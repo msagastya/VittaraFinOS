@@ -164,6 +164,42 @@ class _BanksScreenState extends State<BanksScreen> {
     });
   }
 
+  /// STANDARD BOTTOM SHEET PATTERN FOR VITTARAFINOS
+  ///
+  /// This function implements the recommended iOS-style bottom sheet modal pattern
+  /// for form inputs and multi-field dialogs. This pattern should be used consistently
+  /// across the entire app instead of traditional CupertinoAlertDialog.
+  ///
+  /// Use this pattern when:
+  /// - Implementing add/edit operations
+  /// - Displaying selection lists with multiple options
+  /// - Creating settings/preferences panels
+  /// - Any dialog with more than 2 input fields
+  ///
+  /// Key features of this implementation:
+  /// - showCupertinoModalPopup (NOT showCupertinoDialog)
+  /// - Full-width container (65% of screen height)
+  /// - Backdrop blur effect (sigma: 15)
+  /// - iOS-style handle indicator at top (36x5px)
+  /// - Rounded top corners (20px)
+  /// - Swipe-down to dismiss gesture (built-in)
+  /// - Safe area handling for notch/home indicator
+  /// - Mode detection for reusing form (add vs edit)
+  /// - Keyboard-aware scrolling with SingleChildScrollView
+  ///
+  /// Edit mode support:
+  /// - Pass existingBank parameter to activate edit mode
+  /// - Bank name field becomes read-only with lock icon
+  /// - Pre-populates all fields from existing data
+  /// - Updates existing data instead of creating new entry
+  ///
+  /// To adapt this pattern for other screens:
+  /// 1. Replace bank-specific variables with your domain model
+  /// 2. Customize content inside the SingleChildScrollView
+  /// 3. Adjust height in MediaQuery.of(context).size.height * 0.65
+  /// 4. Update title, field labels, and validation logic
+  /// 5. Modify save logic to match your data structure
+  ///
   void _showBankBottomSheet({Map<String, dynamic>? existingBank, int? bankIndex}) {
     final nameController = TextEditingController(text: existingBank?['name'] ?? '');
     final senderIdController = TextEditingController();
