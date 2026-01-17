@@ -216,8 +216,8 @@ class _FuturisticLoaderPainter extends CustomPainter {
        Paint vStrokePaint = Paint()
          ..style = PaintingStyle.stroke
          ..strokeWidth = 14 * scale // Even thicker
-         ..strokeCap = StrokeCap.butt 
-         ..strokeJoin = StrokeJoin.miter
+         ..strokeCap = StrokeCap.round
+         ..strokeJoin = StrokeJoin.round
          ..shader = vGradient;
 
        PathMetric metric = vPath.computeMetrics().first;
@@ -264,6 +264,8 @@ class _FuturisticLoaderPainter extends CustomPainter {
        Paint vSolidPaint = Paint()
          ..style = PaintingStyle.stroke
          ..strokeWidth = 14 * scale 
+         ..strokeCap = StrokeCap.round
+         ..strokeJoin = StrokeJoin.round
          ..color = Color.lerp(blue, Colors.white, flash)!;
          
        canvas.drawPath(vPath, vSolidPaint);
