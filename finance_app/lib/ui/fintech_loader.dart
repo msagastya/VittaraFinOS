@@ -68,11 +68,8 @@ class _FuturisticLoaderPainter extends CustomPainter {
     final scale = min(w, h) / 100.0;
 
     // --- Palette ---
-    const cyan = Color(0xFF00E5FF);
-    const purple = Color(0xFFD500F9);
-    const blue = Color(0xFF2979FF);
-    const lime = Color(0xFFC6FF00);
-    const green = Color(0xFF00C853);
+    const deepBlue = Color(0xFF1565C0); // Trust/Finance
+    const vibrantTeal = Color(0xFF00BFA5); // Growth/Tech
 
     final Paint fillPaint = Paint()..style = PaintingStyle.fill;
     final Paint strokePaint = Paint()
@@ -83,7 +80,7 @@ class _FuturisticLoaderPainter extends CustomPainter {
     // Moving grid lines at bottom to simulate speed
     double gridSpeed = t * 50 * scale;
     Paint gridPaint = Paint()
-      ..color = blue.withValues(alpha: 0.1)
+      ..color = deepBlue.withValues(alpha: 0.1)
       ..strokeWidth = 1 * scale;
     
     for (int i = 0; i < 10; i++) {
@@ -102,7 +99,7 @@ class _FuturisticLoaderPainter extends CustomPainter {
     double sweepAngle = (t * 4 * pi) % (2 * pi); // 2 full rotations
     Paint radarPaint = Paint()
       ..shader = SweepGradient(
-        colors: [cyan.withValues(alpha: 0.0), cyan.withValues(alpha: 0.2)],
+        colors: [vibrantTeal.withValues(alpha: 0.0), vibrantTeal.withValues(alpha: 0.2)],
         startAngle: sweepAngle - 0.5,
         endAngle: sweepAngle,
         transform: GradientRotation(sweepAngle),
@@ -119,7 +116,7 @@ class _FuturisticLoaderPainter extends CustomPainter {
 
       Paint bracketPaint = Paint()
         ..style = PaintingStyle.stroke
-        ..color = blue.withValues(alpha: 0.8)
+        ..color = deepBlue.withValues(alpha: 0.8)
         ..strokeWidth = 3 * scale;
 
       // Top-Left
@@ -158,7 +155,7 @@ class _FuturisticLoaderPainter extends CustomPainter {
       Paint trendPaint = Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2.5 * scale
-        ..color = green
+        ..color = vibrantTeal
         ..maskFilter = const MaskFilter.blur(BlurStyle.solid, 4.0);
         
       canvas.drawPath(animatedTrend, trendPaint);
@@ -167,9 +164,9 @@ class _FuturisticLoaderPainter extends CustomPainter {
       if (trendProgress < 1.0) {
         Tangent? tip = trendMetric.getTangentForOffset(trendMetric.length * trendProgress);
         if (tip != null) {
-          canvas.drawCircle(tip.position, 5 * scale, fillPaint..color = lime);
+          canvas.drawCircle(tip.position, 5 * scale, fillPaint..color = vibrantTeal);
           // Ripple
-          canvas.drawCircle(tip.position, 10 * scale, strokePaint..color = lime.withValues(alpha:0.4)..strokeWidth=1);
+          canvas.drawCircle(tip.position, 10 * scale, strokePaint..color = vibrantTeal.withValues(alpha:0.4)..strokeWidth=1);
         }
       }
     }
@@ -183,7 +180,7 @@ class _FuturisticLoaderPainter extends CustomPainter {
     Paint ringPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2 * scale
-      ..color = cyan.withValues(alpha: 0.3);
+      ..color = deepBlue.withValues(alpha: 0.3);
       
     for (int i = 0; i < 4; i++) {
       canvas.drawArc(
@@ -205,9 +202,10 @@ class _FuturisticLoaderPainter extends CustomPainter {
        vPath.lineTo(center.dx, center.dy + 35 * scale); 
        vPath.lineTo(center.dx + 35 * scale, center.dy - 30 * scale);
 
+       // Gradient matching the icon: Blue (Left) to Teal (Right)
        final Shader vGradient = LinearGradient(
-         colors: [purple, blue, cyan, lime],
-         stops: const [0.0, 0.4, 0.7, 1.0],
+         colors: [deepBlue, vibrantTeal, deepBlue, vibrantTeal],
+         stops: const [0.0, 0.4, 0.6, 1.0],
          begin: Alignment.topLeft,
          end: Alignment.bottomRight,
          transform: GradientRotation(t * 4 * pi), // Fast gradient cycle
@@ -228,7 +226,7 @@ class _FuturisticLoaderPainter extends CustomPainter {
        Paint shadowPaint = Paint()
          ..style = PaintingStyle.stroke
          ..strokeWidth = 20 * scale
-         ..color = purple.withValues(alpha: 0.4)
+         ..color = deepBlue.withValues(alpha: 0.4)
          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12.0);
        canvas.drawPath(partialV, shadowPaint);
 
@@ -246,7 +244,7 @@ class _FuturisticLoaderPainter extends CustomPainter {
               canvas.drawCircle(
                 pos.position + Offset(cos(theta)*r, sin(theta)*r), 
                 3 * scale, 
-                fillPaint..color = (k%2==0 ? cyan : lime)
+                fillPaint..color = (k%2==0 ? deepBlue : vibrantTeal)
               );
            }
          }
@@ -261,13 +259,21 @@ class _FuturisticLoaderPainter extends CustomPainter {
        // Flash effect at the end
        double flash = 1.0 - ((t - 0.95) / 0.05); // Fade out flash
        
+       // Final state gradient: Blue to Teal (Static)
+       final Shader vFinalGradient = const LinearGradient(
+         colors: [deepBlue, vibrantTeal],
+         begin: Alignment.centerLeft,
+         end: Alignment.centerRight,
+       ).createShader(Rect.fromLTWH(center.dx - 40*scale, center.dy - 40*scale, 80*scale, 80*scale));
+
        Paint vSolidPaint = Paint()
          ..style = PaintingStyle.stroke
          ..strokeWidth = 14 * scale 
          ..strokeCap = StrokeCap.round
          ..strokeJoin = StrokeJoin.round
-         ..color = Color.lerp(blue, Colors.white, flash)!;
-         
+         ..shader = flash > 0.1 ? null : vFinalGradient
+         ..color = flash > 0.1 ? Color.lerp(deepBlue, Colors.white, flash)! : Colors.white; // Fallback color when shader is used
+
        canvas.drawPath(vPath, vSolidPaint);
     }
 
@@ -281,7 +287,7 @@ class _FuturisticLoaderPainter extends CustomPainter {
          double y = ((t * speed) + (i * 50)) % h;
          
          Paint textPaint = Paint()
-           ..color = green.withValues(alpha: 0.2)
+           ..color = vibrantTeal.withValues(alpha: 0.2)
            ..style = PaintingStyle.fill;
          
          // Draw simple "bits" as rectangles instead of text for performance
