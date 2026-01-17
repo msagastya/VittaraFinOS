@@ -211,6 +211,8 @@ class _BanksScreenState extends State<BanksScreen> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
+            final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+
             return BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
               child: Container(
@@ -265,7 +267,11 @@ class _BanksScreenState extends State<BanksScreen> {
                       // Scrollable Content
                       Expanded(
                         child: SingleChildScrollView(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          padding: EdgeInsets.only(
+                            left: 16,
+                            right: 16,
+                            bottom: keyboardHeight > 0 ? keyboardHeight + 16 : 0,
+                          ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -299,20 +305,17 @@ class _BanksScreenState extends State<BanksScreen> {
                                     controller: nameController,
                                     enabled: !isEditMode,
                                     placeholder: 'Bank Name',
+                                    autocorrect: false,
+                                    enableSuggestions: false,
                                     style: TextStyle(
                                       color: isEditMode
                                           ? CupertinoColors.systemGrey
-                                          : Color(0xFF1C1C1E),
+                                          : const Color(0xFF1C1C1E),
                                     ),
                                     decoration: BoxDecoration(
                                       color: isEditMode
                                           ? CupertinoColors.systemGrey6
                                           : CupertinoColors.systemGrey6,
-                                      border: Border.all(
-                                        color: isEditMode
-                                            ? CupertinoColors.systemGrey4
-                                            : CupertinoColors.systemGrey5,
-                                      ),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -362,6 +365,8 @@ class _BanksScreenState extends State<BanksScreen> {
                                         child: CupertinoTextField(
                                           controller: senderIdController,
                                           placeholder: 'Enter Sender ID',
+                                          autocorrect: false,
+                                          enableSuggestions: false,
                                           textInputAction: TextInputAction.done,
                                           onSubmitted: (_) {
                                             if (senderIdController.text.isNotEmpty &&
@@ -378,9 +383,6 @@ class _BanksScreenState extends State<BanksScreen> {
                                           },
                                           decoration: BoxDecoration(
                                             color: CupertinoColors.systemGrey6,
-                                            border: Border.all(
-                                              color: CupertinoColors.systemGrey5,
-                                            ),
                                             borderRadius: BorderRadius.circular(8),
                                           ),
                                           padding: const EdgeInsets.symmetric(

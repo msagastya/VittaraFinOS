@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:vittara_fin_os/ui/fintech_loader.dart';
 import 'package:vittara_fin_os/ui/manage_screen.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
@@ -36,10 +37,19 @@ class MyApp extends StatelessWidget {
     logger.info('Building MyApp root', context: 'MyApp');
     return MaterialApp(
       title: 'VittaraFinOS',
-      // Ensure we have a Cupertino theme available even inside MaterialApp
       theme: ThemeData(
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
+        fontFamily: GoogleFonts.poppins().fontFamily,
+        inputDecorationTheme: InputDecorationTheme(
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          errorBorder: InputBorder.none,
+          focusedErrorBorder: InputBorder.none,
+          disabledBorder: InputBorder.none,
+        ),
+        textTheme: GoogleFonts.poppinsTextTheme(),
         cupertinoOverrideTheme: const CupertinoThemeData(
           primaryColor: Color(0xFF007AFF), // iOS Blue
         ),
