@@ -9,6 +9,7 @@ class Account {
   final AccountType type;
   final double balance;
   final Color color;
+  final String? creditCardNumber;
 
   Account({
     required this.id,
@@ -17,6 +18,7 @@ class Account {
     required this.type,
     required this.balance,
     required this.color,
+    this.creditCardNumber,
   });
 
   Map<String, dynamic> toMap() {
@@ -27,6 +29,7 @@ class Account {
       'type': type.index,
       'balance': balance,
       'color': color.toARGB32(),
+      'creditCardNumber': creditCardNumber,
     };
   }
 
@@ -38,6 +41,7 @@ class Account {
       type: AccountType.values[map['type']],
       balance: map['balance'],
       color: Color(map['color']),
+      creditCardNumber: map['creditCardNumber'],
     );
   }
 }

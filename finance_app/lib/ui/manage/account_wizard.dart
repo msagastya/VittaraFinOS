@@ -34,6 +34,7 @@ class _AccountWizardState extends State<AccountWizard> {
   final TextEditingController _debitCardNumberController = TextEditingController();
   final TextEditingController _creditLimitController = TextEditingController();
   final TextEditingController _amountUsedController = TextEditingController();
+  final TextEditingController _creditCardNumberController = TextEditingController();
   final TextEditingController _balanceController = TextEditingController();
 
   @override
@@ -65,6 +66,7 @@ class _AccountWizardState extends State<AccountWizard> {
     _debitCardNumberController.dispose();
     _creditLimitController.dispose();
     _amountUsedController.dispose();
+    _creditCardNumberController.dispose();
     _balanceController.dispose();
     super.dispose();
   }
@@ -158,6 +160,9 @@ class _AccountWizardState extends State<AccountWizard> {
         type: _selectedAccountType ?? AccountType.savings,
         balance: finalBalance,
         color: _selectedColor ?? CupertinoColors.systemBlue,
+        creditCardNumber: (_selectedAccountType == AccountType.credit || _selectedAccountType == AccountType.payLater)
+            ? (_creditCardNumberController.text.isNotEmpty ? _creditCardNumberController.text : null)
+            : null,
       );
       Navigator.pop(context, account);
     }
@@ -1475,6 +1480,24 @@ class _AccountWizardState extends State<AccountWizard> {
                   ),
                 ],
               ),
+            ),
+            const SizedBox(height: 20),
+            Text('Credit Card Number', style: AppStyles.headerStyle(context)),
+            const SizedBox(height: 4),
+            Text(
+              '(Optional - full or last 4 digits)',
+              style: TextStyle(fontSize: 12, color: AppStyles.getSecondaryTextColor(context)),
+            ),
+            const SizedBox(height: 8),
+            CupertinoTextField(
+              controller: _creditCardNumberController,
+              placeholder: 'Enter credit card number',
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppStyles.getCardColor(context),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              style: TextStyle(color: AppStyles.getTextColor(context)),
             ),
           ] else if (_selectedAccountType == AccountType.wallet || _selectedAccountType == AccountType.investment) ...[
             Text('Opening Balance', style: AppStyles.headerStyle(context)),

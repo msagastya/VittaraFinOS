@@ -225,139 +225,280 @@ class _AccountsScreenState extends State<AccountsScreen> {
   }
 
   Widget _buildAccountCard(Account account) {
-    return Container(
-      key: ValueKey(account.id),
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: AppStyles.cardDecoration(context),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 52,
-                  height: 52,
-                  decoration: AppStyles.iconBoxDecoration(context, account.color),
-                  child: Center(
-                    child: Icon(
-                      account.type == AccountType.investment
-                          ? CupertinoIcons.chart_bar_square_fill
-                          : CupertinoIcons.building_2_fill,
-                      color: account.color,
-                      size: 26,
-                    ),
+    return BouncyButton(
+      onPressed: () => _showAccountDetailsSheet(account),
+      child: Container(
+        key: ValueKey(account.id),
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: AppStyles.cardDecoration(context),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Row(
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: AppStyles.iconBoxDecoration(context, account.color),
+                child: Center(
+                  child: Icon(
+                    account.type == AccountType.investment
+                        ? CupertinoIcons.chart_bar_square_fill
+                        : CupertinoIcons.building_2_fill,
+                    color: account.color,
+                    size: 26,
                   ),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(account.name, style: AppStyles.titleStyle(context)),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${account.bankName} • ${account.type.name.toUpperCase()}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppStyles.getSecondaryTextColor(context),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '₹${account.balance.toStringAsFixed(2)}',
+                    style: AppStyles.titleStyle(context).copyWith(
+                      color: AppStyles.accentBlue,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Icon(
+                    CupertinoIcons.chevron_up,
+                    size: 14,
+                    color: AppStyles.getSecondaryTextColor(context),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showAccountDetailsSheet(Account account) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) {
+        return Container(
+          decoration: BoxDecoration(
+            color: AppStyles.getCardColor(context),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Handle bar
+                Container(
+                  margin: const EdgeInsets.only(top: 12),
+                  width: 40,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: CupertinoColors.systemGrey3,
+                    borderRadius: BorderRadius.circular(2.5),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Account Details
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(account.name, style: AppStyles.titleStyle(context)),
-                      const SizedBox(height: 4),
+                      Text(
+                        account.name,
+                        style: AppStyles.titleStyle(context).copyWith(fontSize: 20),
+                      ),
+                      const SizedBox(height: 8),
                       Text(
                         '${account.bankName} • ${account.type.name.toUpperCase()}',
                         style: TextStyle(
-                          fontSize: 12,
                           color: AppStyles.getSecondaryTextColor(context),
-                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Balance display
+                      Text(
+                        'Balance',
+                        style: TextStyle(
+                          color: AppStyles.getSecondaryTextColor(context),
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '₹${account.balance.toStringAsFixed(2)}',
+                        style: AppStyles.titleStyle(context).copyWith(
+                          fontSize: 28,
+                          color: AppStyles.accentBlue,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                      // Credit Card/Pay Later - Show Credit Limit and Amount Used
+                      if (account.type == AccountType.credit ||
+                          account.type == AccountType.payLater) ...[
+                        const SizedBox(height: 24),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Credit Limit',
+                                    style: TextStyle(
+                                      color: AppStyles.getSecondaryTextColor(context),
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '₹${account.balance.toStringAsFixed(2)}',
+                                    style: TextStyle(
+                                      color: AppStyles.getTextColor(context),
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Amount Used',
+                                    style: TextStyle(
+                                      color: AppStyles.getSecondaryTextColor(context),
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '₹0.00',
+                                    style: TextStyle(
+                                      color: AppStyles.getTextColor(context),
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+
+                      const SizedBox(height: 32),
+                    ],
+                  ),
+                ),
+
+                // Action Buttons
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: BouncyButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _editAccount(account);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            decoration: BoxDecoration(
+                              color: CupertinoColors.systemBlue.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  CupertinoIcons.pencil,
+                                  size: 16,
+                                  color: CupertinoColors.systemBlue,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Edit',
+                                  style: TextStyle(
+                                    color: CupertinoColors.systemBlue,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: BouncyButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _deleteAccount(account);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            decoration: BoxDecoration(
+                              color: CupertinoColors.systemRed.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  CupertinoIcons.trash,
+                                  size: 16,
+                                  color: CupertinoColors.systemRed,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Delete',
+                                  style: TextStyle(
+                                    color: CupertinoColors.systemRed,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      '₹${account.balance.toStringAsFixed(2)}',
-                      style: AppStyles.titleStyle(context).copyWith(
-                        color: AppStyles.accentBlue,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Icon(
-                      CupertinoIcons.chevron_right,
-                      size: 14,
-                      color: AppStyles.getSecondaryTextColor(context),
-                    ),
-                  ],
-                ),
+                const SizedBox(height: 20),
               ],
             ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: BouncyButton(
-                    onPressed: () => _editAccount(account),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      decoration: BoxDecoration(
-                        color: CupertinoColors.systemBlue.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            CupertinoIcons.pencil,
-                            size: 16,
-                            color: CupertinoColors.systemBlue,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            'Edit',
-                            style: TextStyle(
-                              color: CupertinoColors.systemBlue,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: BouncyButton(
-                    onPressed: () => _deleteAccount(account),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      decoration: BoxDecoration(
-                        color: CupertinoColors.systemRed.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            CupertinoIcons.trash,
-                            size: 16,
-                            color: CupertinoColors.systemRed,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            'Delete',
-                            style: TextStyle(
-                              color: CupertinoColors.systemRed,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
