@@ -69,6 +69,8 @@ class _AccountWizardState extends State<AccountWizard> {
         return 'Current Account';
       case AccountType.credit:
         return 'Credit Card';
+      case AccountType.payLater:
+        return 'Pay Later (BNPL)';
       case AccountType.wallet:
         return 'Digital Wallet';
       case AccountType.investment:
@@ -104,8 +106,8 @@ class _AccountWizardState extends State<AccountWizard> {
     double finalBalance = 0.0;
 
     // Calculate final balance based on account type
-    if (_selectedAccountType == AccountType.credit || _selectedAccountType?.name == 'credit') {
-      // For credit card: Balance = Credit Limit - Amount Used
+    if (_selectedAccountType == AccountType.credit || _selectedAccountType == AccountType.payLater) {
+      // For credit card and pay later: Balance = Credit Limit - Amount Used
       final creditLimit = double.tryParse(_creditLimitController.text) ?? 0.0;
       final amountUsed = double.tryParse(_amountUsedController.text) ?? 0.0;
       finalBalance = creditLimit - amountUsed;
@@ -770,8 +772,8 @@ class _AccountWizardState extends State<AccountWizard> {
       {'type': AccountType.savings, 'label': 'Savings Account', 'icon': CupertinoIcons.book_fill},
       {'type': AccountType.current, 'label': 'Current Account', 'icon': CupertinoIcons.briefcase_fill},
       {'type': AccountType.credit, 'label': 'Credit Card', 'icon': CupertinoIcons.creditcard_fill},
-      {'type': AccountType.wallet, 'label': 'Pay Later (BNPL)', 'icon': CupertinoIcons.wallet_pass_fill},
-      {'type': AccountType.investment, 'label': 'Digital Wallet', 'icon': CupertinoIcons.square_stack_3d_down_right_fill},
+      {'type': AccountType.payLater, 'label': 'Pay Later (BNPL)', 'icon': CupertinoIcons.clock_fill},
+      {'type': AccountType.wallet, 'label': 'Digital Wallet', 'icon': CupertinoIcons.square_stack_3d_down_right_fill},
     ];
 
     return SingleChildScrollView(
@@ -941,7 +943,7 @@ class _AccountWizardState extends State<AccountWizard> {
                 ],
               ),
             ),
-          ] else if (_selectedAccountType == AccountType.credit) ...[
+          ] else if (_selectedAccountType == AccountType.credit || _selectedAccountType == AccountType.payLater) ...[
             Text('Credit Limit', style: AppStyles.headerStyle(context)),
             const SizedBox(height: 8),
             Center(
@@ -1021,7 +1023,7 @@ class _AccountWizardState extends State<AccountWizard> {
 
   Widget _buildReviewStep() {
     String displayBalance = '₹0.00';
-    if (_selectedAccountType == AccountType.credit) {
+    if (_selectedAccountType == AccountType.credit || _selectedAccountType == AccountType.payLater) {
       final creditLimit = double.tryParse(_creditLimitController.text) ?? 0.0;
       final amountUsed = double.tryParse(_amountUsedController.text) ?? 0.0;
       final available = creditLimit - amountUsed;
@@ -1116,7 +1118,7 @@ class _AccountWizardState extends State<AccountWizard> {
         canGoNext = _selectedAccountType != null && _nameController.text.isNotEmpty;
         break;
       case 2: // Account Details
-        if (_selectedAccountType == AccountType.credit) {
+        if (_selectedAccountType == AccountType.credit || _selectedAccountType == AccountType.payLater) {
           canGoNext = _creditLimitController.text.isNotEmpty;
         } else {
           canGoNext = _balanceController.text.isNotEmpty;

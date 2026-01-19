@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum AccountType { savings, current, credit, wallet, investment }
+enum AccountType { savings, current, credit, payLater, wallet, investment }
 
 class Account {
   final String id;
