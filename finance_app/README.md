@@ -1,16 +1,34 @@
-# finance_app
+# VittaraFinOS
 
-A new Flutter project.
+A modern, high-performance personal finance operating system built with Flutter.
 
-## Getting Started
+## Features
 
-This project is a starting point for a Flutter application.
+- **Dashboard:** Financial overview with futuristic 3D visualizations.
+- **Manage:** Central hub for managing financial entities.
+  - **Banks:** Add/Edit banks, manage Sender IDs for SMS parsing.
+  - **Accounts:** (In Progress) Track specific bank accounts and wallets.
+- **Settings:**
+  - **Security:** Biometric Authentication, Auto-Lock on Minimize with customizable timeout.
+  - **Appearance:** Light, Dark, and System themes (True AMOLED Dark Mode).
+  - **Data:** Local and Cloud Backup options.
 
-A few resources to get you started if this is your first Flutter project:
+## Tech Stack
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- **Flutter:** UI Framework.
+- **Provider:** State Management.
+- **Shared Preferences:** Local persistence for settings.
+- **Local Auth:** Biometric security.
+- **Google Fonts:** Inter typography.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Architecture
+
+- **Logic:** `lib/logic/` (SettingsController, etc.)
+- **UI:** `lib/ui/` (Screens, Widgets, Styles)
+  - **Styles:** Centralized `AppStyles` for consistent theming.
+  - **Widgets:** Reusable animations (`FadeScalePageRoute`, `BouncyButton`) and loader.
+
+## Setup
+
+1.  `flutter pub get`
+2.  `flutter run`

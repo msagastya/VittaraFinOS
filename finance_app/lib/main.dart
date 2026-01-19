@@ -129,7 +129,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               child: child!,
             ),
             // LOCK SCREEN OVERLAY
-            if (settings.isLocked)
+            if (settings.isLocked && settings.appLoaded)
               const Positioned.fill(child: LockScreen()),
           ],
         );
@@ -186,6 +186,7 @@ class _SplashScreenState extends State<SplashScreen> {
     Timer(const Duration(milliseconds: 3500), () {
       if (mounted) {
         logger.info("Navigating from SplashScreen to Dashboard", context: 'SplashScreen');
+        Provider.of<SettingsController>(context, listen: false).setAppLoaded(); // Enable lock screen
         Navigator.of(context).pushReplacement(FadeScalePageRoute(
           page: const DashboardScreen(),
         ));

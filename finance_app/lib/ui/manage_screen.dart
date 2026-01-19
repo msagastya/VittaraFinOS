@@ -48,14 +48,6 @@ class _ManageScreenState extends State<ManageScreen> {
         previousPageTitle: 'Back',
         backgroundColor: AppStyles.getBackground(context).withValues(alpha: 0.9),
         border: null,
-        trailing: BouncyButton(
-          scaleFactor: 0.9,
-          onPressed: () {
-            logger.info('Settings button pressed', context: 'ManageScreen');
-            Navigator.of(context).push(FadeScalePageRoute(page: const SettingsScreen()));
-          },
-          child: Icon(CupertinoIcons.settings, size: 24, color: AppStyles.getTextColor(context)),
-        ),
       ),
       child: SafeArea(
         child: ReorderableListView.builder(

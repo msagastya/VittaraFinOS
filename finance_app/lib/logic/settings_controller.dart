@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
@@ -6,6 +7,7 @@ import 'package:vittara_fin_os/utils/logger.dart';
 class SettingsController with ChangeNotifier {
   final AppLogger logger = AppLogger();
   final LocalAuthentication auth = LocalAuthentication();
+  static const platform = MethodChannel('com.example.finance_app/secure');
   late SharedPreferences _prefs;
 
   ThemeMode _themeMode = ThemeMode.system;
@@ -14,12 +16,19 @@ class SettingsController with ChangeNotifier {
   int _lockTimeoutSeconds = 10;
   DateTime? _lastPausedTime;
   bool _isLocked = false;
+  bool _appLoaded = false;
 
   ThemeMode get themeMode => _themeMode;
   bool get isBiometricEnabled => _isBiometricEnabled;
   bool get lockOnMinimize => _lockOnMinimize;
   int get lockTimeoutSeconds => _lockTimeoutSeconds;
   bool get isLocked => _isLocked;
+  bool get appLoaded => _appLoaded;
+
+  void setAppLoaded() {
+    _appLoaded = true;
+    notifyListeners();
+  }
 
   Future<void> loadSettings() async {
     _prefs = await SharedPreferences.getInstance();
@@ -33,12 +42,12 @@ class SettingsController with ChangeNotifier {
     _lockOnMinimize = _prefs.getBool('lockOnMinimize') ?? false;
     _lockTimeoutSeconds = _prefs.getInt('lockTimeoutSeconds') ?? 10;
 
-    // IMMEDIATE LOCK ON STARTUP if Biometric is enabled
+    // Apply Secure Flag based on settings
+    _updateSecureFlag();
+
     if (_isBiometricEnabled) {
       logger.info('Startup: Biometric enabled, locking app.', context: 'SettingsController');
       _isLocked = true;
-      // We don't trigger authenticateAndUnlock() here immediately to avoid popup loops during splash
-      // The UI will show the LockScreen, which has an "Unlock" button.
     }
 
     notifyListeners();
@@ -70,6 +79,7 @@ class SettingsController with ChangeNotifier {
   Future<void> toggleLockOnMinimize(bool value) async {
     _lockOnMinimize = value;
     await _prefs.setBool('lockOnMinimize', value);
+    _updateSecureFlag();
     notifyListeners();
   }
 
@@ -79,12 +89,21 @@ class SettingsController with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> _updateSecureFlag() async {
+    try {
+      if (_lockOnMinimize) {
+        await platform.invokeMethod('enableSecure');
+      } else {
+        await platform.invokeMethod('disableSecure');
+      }
+    } catch (e) {
+      logger.error('Failed to update secure flag', error: e, context: 'SettingsController');
+    }
+  }
+
   void appPaused() {
     if (_lockOnMinimize) {
       _lastPausedTime = DateTime.now();
-      // Persist pause time in case app is killed? 
-      // Actually, if app is killed, we want Lock on Launch (handled in loadSettings).
-      // So in-memory variable is fine for minimize/resume cycle.
       logger.info('App Paused. Timer started.', context: 'SettingsController');
     }
   }
