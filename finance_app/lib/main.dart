@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/banks_controller.dart';
 import 'package:vittara_fin_os/logic/brokers_controller.dart';
 import 'package:vittara_fin_os/logic/settings_controller.dart';
@@ -30,6 +31,9 @@ void main() {
         providers: [
           ChangeNotifierProvider(
             create: (_) => SettingsController()..loadSettings(),
+          ),
+          ChangeNotifierProvider(
+            create: (_) => AccountsController()..loadAccounts(),
           ),
           ChangeNotifierProvider(
             create: (_) => BanksController(),

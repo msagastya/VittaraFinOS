@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
+import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/settings_controller.dart';
 import 'package:vittara_fin_os/ui/manage/account_wizard.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -19,7 +20,6 @@ class AccountsScreen extends StatefulWidget {
 
 class _AccountsScreenState extends State<AccountsScreen> {
   final AppLogger logger = AppLogger();
-  final List<Account> _accounts = [];
 
   void _showAddOptions(BuildContext context) {
     showCupertinoModalPopup(
@@ -151,19 +151,15 @@ class _AccountsScreenState extends State<AccountsScreen> {
     );
 
     if (result != null) {
-      setState(() {
-        _accounts.add(result);
-      });
+      final accountsController = Provider.of<AccountsController>(context, listen: false);
+      await accountsController.addAccount(result);
       logger.info('Added account: ${result.name}', context: 'AccountsScreen');
     }
   }
 
   void _onReorder(int oldIndex, int newIndex) {
-    setState(() {
-      if (oldIndex < newIndex) newIndex -= 1;
-      final item = _accounts.removeAt(oldIndex);
-      _accounts.insert(newIndex, item);
-    });
+    final accountsController = Provider.of<AccountsController>(context, listen: false);
+    accountsController.reorderAccounts(oldIndex, newIndex);
   }
 
   @override
@@ -176,49 +172,54 @@ class _AccountsScreenState extends State<AccountsScreen> {
         backgroundColor: AppStyles.getBackground(context),
         border: null,
       ),
-      child: Stack(
-        children: [
-          if (_accounts.isEmpty)
-            Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    CupertinoIcons.creditcard,
-                    size: 64,
-                    color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.3),
+      child: Consumer<AccountsController>(
+        builder: (context, accountsController, child) {
+          final accounts = accountsController.accounts;
+          return Stack(
+            children: [
+              if (accounts.isEmpty)
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        CupertinoIcons.creditcard,
+                        size: 64,
+                        color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.3),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'No Accounts Added',
+                        style: TextStyle(
+                          color: AppStyles.getSecondaryTextColor(context),
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No Accounts Added',
-                    style: TextStyle(
-                      color: AppStyles.getSecondaryTextColor(context),
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                    ),
+                )
+              else
+                SafeArea(
+                  child: ReorderableListView.builder(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                    itemCount: accounts.length,
+                    onReorder: _onReorder,
+                    itemBuilder: (context, index) {
+                      return _buildAccountCard(accounts[index]);
+                    },
                   ),
-                ],
+                ),
+              Positioned(
+                right: 16,
+                bottom: 32,
+                child: FadingFloatingActionButton(
+                  onPressed: () => _showAddOptions(context),
+                ),
               ),
-            )
-          else
-            SafeArea(
-              child: ReorderableListView.builder(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-                itemCount: _accounts.length,
-                onReorder: _onReorder,
-                itemBuilder: (context, index) {
-                  return _buildAccountCard(_accounts[index]);
-                },
-              ),
-            ),
-          Positioned(
-            right: 16,
-            bottom: 32,
-            child: FadingFloatingActionButton(
-              onPressed: () => _showAddOptions(context),
-            ),
-          ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }

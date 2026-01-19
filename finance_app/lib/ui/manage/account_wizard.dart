@@ -46,6 +46,7 @@ class _AccountWizardState extends State<AccountWizard> {
     _creditLimitController.addListener(() => setState(() {}));
     _amountUsedController.addListener(() => setState(() {}));
     _balanceController.addListener(() => setState(() {}));
+    _nameController.addListener(() => setState(() {}));
   }
 
   // Investment brokers (for future use)
@@ -582,6 +583,12 @@ class _AccountWizardState extends State<AccountWizard> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     style: AppStyles.titleStyle(context).copyWith(fontSize: 32, fontWeight: FontWeight.bold),
+                    onSubmitted: (value) {
+                      // Auto-proceed when user taps Done on keyboard
+                      if (_balanceController.text.isNotEmpty) {
+                        _nextStep();
+                      }
+                    },
                   ),
                 ),
               ],
@@ -1404,6 +1411,12 @@ class _AccountWizardState extends State<AccountWizard> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       style: AppStyles.titleStyle(context).copyWith(fontSize: 32, fontWeight: FontWeight.bold),
+                      onSubmitted: (value) {
+                        // Auto-proceed when user taps Done on keyboard
+                        if (_balanceController.text.isNotEmpty) {
+                          _nextStep();
+                        }
+                      },
                     ),
                   ),
                 ],
@@ -1452,6 +1465,12 @@ class _AccountWizardState extends State<AccountWizard> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       style: AppStyles.titleStyle(context).copyWith(fontSize: 32, fontWeight: FontWeight.bold),
+                      onSubmitted: (value) {
+                        // Auto-proceed when user taps Done on keyboard if credit limit is filled
+                        if (_creditLimitController.text.isNotEmpty) {
+                          _nextStep();
+                        }
+                      },
                     ),
                   ),
                 ],
@@ -1476,6 +1495,12 @@ class _AccountWizardState extends State<AccountWizard> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       style: AppStyles.titleStyle(context).copyWith(fontSize: 32, fontWeight: FontWeight.bold),
+                      onSubmitted: (value) {
+                        // Auto-proceed when user taps Done on keyboard
+                        if (_balanceController.text.isNotEmpty) {
+                          _nextStep();
+                        }
+                      },
                     ),
                   ),
                 ],
