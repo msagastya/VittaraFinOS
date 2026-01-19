@@ -230,62 +230,182 @@ class _AccountsScreenState extends State<AccountsScreen> {
       margin: const EdgeInsets.only(bottom: 16),
       decoration: AppStyles.cardDecoration(context),
       child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Row(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
           children: [
-            Container(
-              width: 52,
-              height: 52,
-              decoration: AppStyles.iconBoxDecoration(context, account.color),
-              child: Center(
-                child: Icon(
-                  account.type == AccountType.investment 
-                      ? CupertinoIcons.chart_bar_square_fill 
-                      : CupertinoIcons.building_2_fill,
-                  color: account.color,
-                  size: 26,
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(account.name, style: AppStyles.titleStyle(context)),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${account.bankName} • ${account.type.name.toUpperCase()}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppStyles.getSecondaryTextColor(context),
-                      fontWeight: FontWeight.w500,
+            Row(
+              children: [
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: AppStyles.iconBoxDecoration(context, account.color),
+                  child: Center(
+                    child: Icon(
+                      account.type == AccountType.investment
+                          ? CupertinoIcons.chart_bar_square_fill
+                          : CupertinoIcons.building_2_fill,
+                      color: account.color,
+                      size: 26,
                     ),
                   ),
-                ],
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '₹${account.balance.toStringAsFixed(2)}',
-                  style: AppStyles.titleStyle(context).copyWith(
-                    color: AppStyles.accentBlue,
-                    fontWeight: FontWeight.bold,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(account.name, style: AppStyles.titleStyle(context)),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${account.bankName} • ${account.type.name.toUpperCase()}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppStyles.getSecondaryTextColor(context),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 4),
-                Icon(
-                  CupertinoIcons.chevron_right,
-                  size: 14,
-                  color: AppStyles.getSecondaryTextColor(context),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '₹${account.balance.toStringAsFixed(2)}',
+                      style: AppStyles.titleStyle(context).copyWith(
+                        color: AppStyles.accentBlue,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Icon(
+                      CupertinoIcons.chevron_right,
+                      size: 14,
+                      color: AppStyles.getSecondaryTextColor(context),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: BouncyButton(
+                    onPressed: () => _editAccount(account),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: CupertinoColors.systemBlue.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            CupertinoIcons.pencil,
+                            size: 16,
+                            color: CupertinoColors.systemBlue,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Edit',
+                            style: TextStyle(
+                              color: CupertinoColors.systemBlue,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: BouncyButton(
+                    onPressed: () => _deleteAccount(account),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: CupertinoColors.systemRed.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            CupertinoIcons.trash,
+                            size: 16,
+                            color: CupertinoColors.systemRed,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Delete',
+                            style: TextStyle(
+                              color: CupertinoColors.systemRed,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
           ],
         ),
       ),
+    );
+  }
+
+  void _editAccount(Account account) {
+    logger.info('Edit account: ${account.name}', context: 'AccountsScreen');
+    // For now, show a simple dialog. In future, can open account edit screen
+    showCupertinoDialog(
+      context: context,
+      builder: (context) {
+        return CupertinoAlertDialog(
+          title: const Text('Edit Account'),
+          content: Text('Edit functionality for "${account.name}" coming soon!'),
+          actions: [
+            CupertinoDialogAction(
+              child: const Text('OK'),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteAccount(Account account) {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) {
+        return CupertinoAlertDialog(
+          title: const Text('Delete Account'),
+          content: Text('Are you sure you want to delete "${account.name}"? This action cannot be undone.'),
+          actions: [
+            CupertinoDialogAction(
+              child: const Text('Cancel'),
+              onPressed: () => Navigator.pop(context),
+            ),
+            CupertinoDialogAction(
+              isDestructiveAction: true,
+              child: const Text('Delete'),
+              onPressed: () {
+                final accountsController = Provider.of<AccountsController>(context, listen: false);
+                accountsController.removeAccount(account.id);
+                Navigator.pop(context);
+                logger.info('Deleted account: ${account.name}', context: 'AccountsScreen');
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }
