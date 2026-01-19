@@ -93,4 +93,9 @@ class BanksController with ChangeNotifier {
       return null;
     }
   }
+
+  void addBank(Map<String, dynamic> newBank) {
+    _banks.add(newBank);
+    notifyListeners();
+  }
 }

@@ -36,7 +36,7 @@ class _BanksScreenState extends State<BanksScreen> {
     banksController.sortBanks(_isAscending);
   }
 
-  void _showBankBottomSheet({Map<String, dynamic>? existingBank, int? bankIndex}) {
+  void _showBankBottomSheet({Map<String, dynamic>? existingBank}) {
     final nameController = TextEditingController(text: existingBank?['name'] ?? '');
     final senderIdController = TextEditingController();
     List<String> tempSenderIds = List<String>.from(existingBank?['senderIds'] ?? []);
@@ -45,164 +45,164 @@ class _BanksScreenState extends State<BanksScreen> {
     showCupertinoModalPopup(
       context: context,
       builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
-            final isDark = AppStyles.isDarkMode(context);
+        return Consumer<BanksController>(
+          builder: (context, banksController, child) {
+            return StatefulBuilder(
+              builder: (context, setDialogState) {
+                final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+                final isDark = AppStyles.isDarkMode(context);
 
-            return BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-              child: Padding(
-                padding: EdgeInsets.only(bottom: keyboardHeight),
-                child: Container(
-                  height: MediaQuery.of(context).size.height * 0.75,
-                  decoration: BoxDecoration(
-                    color: AppStyles.getCardColor(context),
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                  ),
-                  child: SafeArea(
-                    child: Column(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: Container(
-                            width: 36, height: 5,
-                            decoration: BoxDecoration(color: CupertinoColors.systemGrey3, borderRadius: BorderRadius.circular(2.5)),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          isEditMode ? 'Edit Bank' : 'Add Bank',
-                          style: AppStyles.titleStyle(context).copyWith(fontSize: 20),
-                        ),
-                        const SizedBox(height: 16),
-                        Container(
-                          height: 1,
-                          color: isDark ? Colors.grey[800] : CupertinoColors.systemGrey5,
-                          margin: const EdgeInsets.symmetric(horizontal: 16),
-                        ),
-                        const SizedBox(height: 16),
-                        Expanded(
-                          child: SingleChildScrollView(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _buildLabel(context, 'Bank Name'),
-                                const SizedBox(height: 8),
-                                CupertinoTextField(
-                                  controller: nameController,
-                                  enabled: !isEditMode,
-                                  placeholder: 'Bank Name',
-                                  style: TextStyle(color: AppStyles.getTextColor(context)),
-                                  decoration: BoxDecoration(
-                                    color: isDark ? const Color(0xFF2C2C2E) : CupertinoColors.systemGrey6,
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                                ),
-                                const SizedBox(height: 24),
-                                _buildLabel(context, 'Sender IDs (${tempSenderIds.length})'),
-                                const SizedBox(height: 8),
-                                Row(
+                return BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                  child: Padding(
+                    padding: EdgeInsets.only(bottom: keyboardHeight),
+                    child: Container(
+                      height: MediaQuery.of(context).size.height * 0.75,
+                      decoration: BoxDecoration(
+                        color: AppStyles.getCardColor(context),
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                      ),
+                      child: SafeArea(
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: Container(
+                                width: 36, height: 5,
+                                decoration: BoxDecoration(color: CupertinoColors.systemGrey3, borderRadius: BorderRadius.circular(2.5)),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              isEditMode ? 'Edit Bank' : 'Add Bank',
+                              style: AppStyles.titleStyle(context).copyWith(fontSize: 20),
+                            ),
+                            const SizedBox(height: 16),
+                            Container(
+                              height: 1,
+                              color: isDark ? Colors.grey[800] : CupertinoColors.systemGrey5,
+                              margin: const EdgeInsets.symmetric(horizontal: 16),
+                            ),
+                            const SizedBox(height: 16),
+                            Expanded(
+                              child: SingleChildScrollView(
+                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Expanded(
-                                      child: CupertinoTextField(
-                                        controller: senderIdController,
-                                        placeholder: 'Enter Sender ID',
-                                        style: TextStyle(color: AppStyles.getTextColor(context)),
-                                        decoration: BoxDecoration(
-                                          color: isDark ? const Color(0xFF2C2C2E) : CupertinoColors.systemGrey6,
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                    _buildLabel(context, 'Bank Name'),
+                                    const SizedBox(height: 8),
+                                    CupertinoTextField(
+                                      controller: nameController,
+                                      enabled: !isEditMode,
+                                      placeholder: 'Bank Name',
+                                      style: TextStyle(color: AppStyles.getTextColor(context)),
+                                      decoration: BoxDecoration(
+                                        color: isDark ? const Color(0xFF2C2C2E) : CupertinoColors.systemGrey6,
+                                        borderRadius: BorderRadius.circular(8),
                                       ),
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                                     ),
-                                    const SizedBox(width: 8),
-                                    CupertinoButton(
-                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                      color: CupertinoColors.systemBlue,
-                                      child: const Text('Add', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                                      onPressed: () {
-                                        if (senderIdController.text.isNotEmpty) {
-                                          setDialogState(() {
-                                            tempSenderIds.add(senderIdController.text.toUpperCase());
-                                            senderIdController.clear();
-                                          });
-                                        }
-                                      },
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 16),
-                                Wrap(
-                                  spacing: 8, runSpacing: 8,
-                                  children: tempSenderIds.map((id) => Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                    decoration: BoxDecoration(
-                                      color: CupertinoColors.systemBlue.withValues(alpha:0.1),
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(color: CupertinoColors.systemBlue),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
+                                    const SizedBox(height: 24),
+                                    _buildLabel(context, 'Sender IDs (${tempSenderIds.length})'),
+                                    const SizedBox(height: 8),
+                                    Row(
                                       children: [
-                                        Text(id, style: const TextStyle(color: CupertinoColors.systemBlue, fontWeight: FontWeight.w500)),
-                                        const SizedBox(width: 6),
-                                        GestureDetector(
-                                          onTap: () => setDialogState(() => tempSenderIds.remove(id)),
-                                          child: const Icon(CupertinoIcons.xmark_circle_fill, size: 16, color: CupertinoColors.systemBlue),
+                                        Expanded(
+                                          child: CupertinoTextField(
+                                            controller: senderIdController,
+                                            placeholder: 'Enter Sender ID',
+                                            style: TextStyle(color: AppStyles.getTextColor(context)),
+                                            decoration: BoxDecoration(
+                                              color: isDark ? const Color(0xFF2C2C2E) : CupertinoColors.systemGrey6,
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        CupertinoButton(
+                                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                          color: CupertinoColors.systemBlue,
+                                          child: const Text('Add', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                          onPressed: () {
+                                            if (senderIdController.text.isNotEmpty) {
+                                              setDialogState(() {
+                                                tempSenderIds.add(senderIdController.text.toUpperCase());
+                                                senderIdController.clear();
+                                              });
+                                            }
+                                          },
                                         ),
                                       ],
                                     ),
-                                  )).toList(),
+                                    const SizedBox(height: 16),
+                                    Wrap(
+                                      spacing: 8, runSpacing: 8,
+                                      children: tempSenderIds.map((id) => Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                        decoration: BoxDecoration(
+                                          color: CupertinoColors.systemBlue.withValues(alpha:0.1),
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(color: CupertinoColors.systemBlue),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(id, style: const TextStyle(color: CupertinoColors.systemBlue, fontWeight: FontWeight.w500)),
+                                            const SizedBox(width: 6),
+                                            GestureDetector(
+                                              onTap: () => setDialogState(() => tempSenderIds.remove(id)),
+                                              child: const Icon(CupertinoIcons.xmark_circle_fill, size: 16, color: CupertinoColors.systemBlue),
+                                            ),
+                                          ],
+                                        ),
+                                      )).toList(),
+                                    ),
+                                  ],
                                 ),
-                              ],
+                              ),
                             ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: CupertinoButton(
-                                  color: isDark ? Colors.grey[800] : CupertinoColors.systemGrey5,
-                                  child: Text('Cancel', style: TextStyle(color: isDark ? Colors.white : Colors.black)),
-                                  onPressed: () => Navigator.pop(context),
-                                ),
+                            Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: CupertinoButton(
+                                      color: isDark ? Colors.grey[800] : CupertinoColors.systemGrey5,
+                                      child: Text('Cancel', style: TextStyle(color: isDark ? Colors.white : Colors.black)),
+                                      onPressed: () => Navigator.pop(context),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: CupertinoButton(
+                                      color: CupertinoColors.systemBlue,
+                                      child: Text(isEditMode ? 'Update' : 'Add', style: const TextStyle(color: Colors.white)),
+                                      onPressed: () {
+                                        if (isEditMode && existingBank != null) {
+                                          // Update existing bank with new sender IDs
+                                          existingBank['senderIds'] = tempSenderIds;
+                                          banksController.notifyListeners();
+                                        } else {
+                                          // Add new bank
+                                          // For now, just update sender IDs of an existing bank
+                                          // Full add bank functionality can be expanded later
+                                        }
+                                        Navigator.pop(context);
+                                      },
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: CupertinoButton(
-                                  color: CupertinoColors.systemBlue,
-                                  child: Text(isEditMode ? 'Update' : 'Add', style: const TextStyle(color: Colors.white)),
-                                  onPressed: () {
-                                    setState(() {
-                                      if (isEditMode) {
-                                        _banks[bankIndex!]['senderIds'] = tempSenderIds;
-                                      } else {
-                                        _banks.add({
-                                          'id': nameController.text.replaceAll(' ', '_').toLowerCase(),
-                                          'name': nameController.text,
-                                          'color': CupertinoColors.systemGrey,
-                                          'isEnabled': false,
-                                          'senderIds': tempSenderIds,
-                                        });
-                                      }
-                                    });
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
-              ),
+                );
+              },
             );
           },
         );

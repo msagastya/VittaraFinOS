@@ -377,9 +377,9 @@ class _AccountWizardState extends State<AccountWizard> {
           ),
           child: Column(
             children: [
-              // Header
+              // Header with Add button
               Container(
-                padding: const EdgeInsets.symmetric(vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 child: Column(
                   children: [
                     Container(
@@ -391,9 +391,34 @@ class _AccountWizardState extends State<AccountWizard> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    Text(
-                      'Select Bank',
-                      style: AppStyles.titleStyle(context).copyWith(fontSize: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Select Bank',
+                          style: AppStyles.titleStyle(context).copyWith(fontSize: 20),
+                        ),
+                        CupertinoButton(
+                          padding: EdgeInsets.zero,
+                          minSize: 40,
+                          onPressed: () => _showAddCustomBankSheet(context, banksController),
+                          child: Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: CupertinoColors.systemBlue.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Center(
+                              child: Icon(
+                                CupertinoIcons.add,
+                                color: CupertinoColors.systemBlue,
+                                size: 18,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -403,9 +428,28 @@ class _AccountWizardState extends State<AccountWizard> {
               Expanded(
                 child: disabledBanks.isEmpty
                     ? Center(
-                        child: Text(
-                          'All banks are already added',
-                          style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              CupertinoIcons.exclamationmark_circle,
+                              size: 48,
+                              color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.3),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'All banks are already added',
+                              style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Tap + to add a custom bank',
+                              style: TextStyle(
+                                color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.7),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
                         ),
                       )
                     : ListView.builder(
@@ -472,6 +516,209 @@ class _AccountWizardState extends State<AccountWizard> {
               ),
             ],
           ),
+        );
+      },
+    );
+  }
+
+  void _showAddCustomBankSheet(BuildContext context, BanksController banksController) {
+    final bankNameController = TextEditingController();
+    Color selectedColor = CupertinoColors.systemBlue;
+
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.6,
+              decoration: BoxDecoration(
+                color: AppStyles.getCardColor(context),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Column(
+                children: [
+                  // Header
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Column(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: CupertinoColors.systemGrey3,
+                            borderRadius: BorderRadius.circular(2.5),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Add New Bank',
+                          style: AppStyles.titleStyle(context).copyWith(fontSize: 20),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Divider(color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.1)),
+                  // Content
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Bank Name',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: AppStyles.getSecondaryTextColor(context),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          CupertinoTextField(
+                            controller: bankNameController,
+                            placeholder: 'Enter bank name',
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppStyles.getCardColor(context),
+                              border: Border.all(
+                                color: CupertinoColors.systemBlue.withValues(alpha: 0.2),
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            style: TextStyle(color: AppStyles.getTextColor(context)),
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            'Select Color',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: AppStyles.getSecondaryTextColor(context),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                CupertinoColors.systemBlue,
+                                CupertinoColors.systemGreen,
+                                CupertinoColors.systemRed,
+                                CupertinoColors.systemPurple,
+                                CupertinoColors.systemOrange,
+                                CupertinoColors.systemTeal,
+                                CupertinoColors.systemPink,
+                                CupertinoColors.systemIndigo,
+                              ]
+                                  .map((color) => GestureDetector(
+                                    onTap: () => setDialogState(() => selectedColor = color),
+                                    child: Container(
+                                      width: 50,
+                                      height: 50,
+                                      margin: const EdgeInsets.only(right: 12),
+                                      decoration: BoxDecoration(
+                                        color: color,
+                                        shape: BoxShape.circle,
+                                        border: selectedColor == color
+                                            ? Border.all(color: Colors.white, width: 3)
+                                            : null,
+                                      ),
+                                    ),
+                                  ))
+                                  .toList(),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // Footer buttons
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: BouncyButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: AppStyles.getCardColor(context),
+                                border: Border.all(
+                                  color: CupertinoColors.systemGrey3,
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  'Cancel',
+                                  style: TextStyle(
+                                    color: AppStyles.getTextColor(context),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: BouncyButton(
+                            onPressed: () {
+                              if (bankNameController.text.isNotEmpty) {
+                                // Add new bank to controller
+                                final newBankId =
+                                    bankNameController.text.replaceAll(' ', '_').toLowerCase();
+                                final newBank = {
+                                  'id': newBankId,
+                                  'name': bankNameController.text,
+                                  'color': selectedColor,
+                                  'isEnabled': true,
+                                  'senderIds': <String>[],
+                                };
+
+                                // Add to controller
+                                banksController.addBank(newBank);
+
+                                // Select it for wizard
+                                setState(() {
+                                  _selectedBank = bankNameController.text;
+                                  _selectedColor = selectedColor;
+                                });
+
+                                // Close modals and move to next step
+                                Navigator.pop(context); // Close add bank sheet
+                                Navigator.pop(context); // Close select bank modal
+                                _nextStep();
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: CupertinoColors.systemBlue,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  'Add & Select',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
         );
       },
     );
