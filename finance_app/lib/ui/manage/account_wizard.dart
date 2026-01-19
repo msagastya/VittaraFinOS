@@ -264,6 +264,8 @@ class _AccountWizardState extends State<AccountWizard> {
                         _selectedColor = broker['color'];
                         _updateNickname();
                       });
+                      // Auto-proceed to next step when broker is selected
+                      _nextStep();
                     },
                     child: Container(
                       decoration: AppStyles.cardDecoration(context).copyWith(
@@ -514,6 +516,8 @@ class _AccountWizardState extends State<AccountWizard> {
                                 });
 
                                 Navigator.pop(context);
+                                // Auto-proceed to next step after adding and selecting broker
+                                _nextStep();
                               }
                             },
                             child: Container(
@@ -553,12 +557,12 @@ class _AccountWizardState extends State<AccountWizard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Account Balance',
+            'Demat Balance',
             style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
           ),
           const SizedBox(height: 8),
           Text(
-            'How much is in your Demat account?',
+            'How much cash is available in your Demat account?',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
           ),
           const SizedBox(height: 48),
@@ -624,7 +628,7 @@ class _AccountWizardState extends State<AccountWizard> {
                   ),
                 ),
                 Text(
-                  'Portfolio Value',
+                  'Demat Balance',
                   style: TextStyle(
                     color: AppStyles.getSecondaryTextColor(context),
                     fontSize: 14,
