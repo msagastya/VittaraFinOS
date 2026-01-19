@@ -14,6 +14,7 @@ class SettingsController with ChangeNotifier {
   bool _isBiometricEnabled = true;
   bool _lockOnMinimize = false;
   int _lockTimeoutSeconds = 10;
+  bool _isInvestmentTrackingEnabled = false; // Default OFF
   DateTime? _lastPausedTime;
   bool _isLocked = false;
   bool _appLoaded = false;
@@ -22,6 +23,7 @@ class SettingsController with ChangeNotifier {
   bool get isBiometricEnabled => _isBiometricEnabled;
   bool get lockOnMinimize => _lockOnMinimize;
   int get lockTimeoutSeconds => _lockTimeoutSeconds;
+  bool get isInvestmentTrackingEnabled => _isInvestmentTrackingEnabled;
   bool get isLocked => _isLocked;
   bool get appLoaded => _appLoaded;
 
@@ -41,6 +43,7 @@ class SettingsController with ChangeNotifier {
     _isBiometricEnabled = _prefs.getBool('isBiometricEnabled') ?? true;
     _lockOnMinimize = _prefs.getBool('lockOnMinimize') ?? false;
     _lockTimeoutSeconds = _prefs.getInt('lockTimeoutSeconds') ?? 10;
+    _isInvestmentTrackingEnabled = _prefs.getBool('isInvestmentTrackingEnabled') ?? false;
 
     // Apply Secure Flag based on settings
     _updateSecureFlag();
@@ -50,6 +53,12 @@ class SettingsController with ChangeNotifier {
       _isLocked = true;
     }
 
+    notifyListeners();
+  }
+
+  Future<void> toggleInvestmentTracking(bool value) async {
+    _isInvestmentTrackingEnabled = value;
+    await _prefs.setBool('isInvestmentTrackingEnabled', value);
     notifyListeners();
   }
 

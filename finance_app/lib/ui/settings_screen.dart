@@ -84,24 +84,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ]),
 
+              // --- FEATURES ---
               _buildHeader('Features'),
               _buildModernSection(context, [
                 _buildToggleRow(
                   context,
+                  icon: CupertinoIcons.graph_square,
+                  title: 'Investment Tracking',
+                  value: settings.isInvestmentTrackingEnabled,
+                  color: CupertinoColors.systemPurple,
+                  onChanged: (val) => settings.toggleInvestmentTracking(val),
+                ),
+                _buildDivider(context),
+                _buildToggleRow(
+                  context,
                   icon: CupertinoIcons.chat_bubble_text,
                   title: 'SMS Auto Detection',
-                  value: false, // Placeholder
+                  value: false, 
                   color: CupertinoColors.systemIndigo,
-                  onChanged: (val) {},
+                  onChanged: (val) {}, 
                 ),
                 _buildDivider(context),
                 _buildToggleRow(
                   context,
                   icon: CupertinoIcons.doc_checkmark,
                   title: 'Statement Reconciliation',
-                  value: false, // Placeholder
+                  value: false, 
                   color: CupertinoColors.systemTeal,
-                  onChanged: (val) {},
+                  onChanged: (val) {}, 
                 ),
               ]),
 
