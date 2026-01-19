@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/banks_controller.dart';
+import 'package:vittara_fin_os/logic/brokers_controller.dart';
 import 'package:vittara_fin_os/logic/settings_controller.dart';
 import 'package:vittara_fin_os/ui/fintech_loader.dart';
 import 'package:vittara_fin_os/ui/manage_screen.dart';
@@ -32,6 +33,9 @@ void main() {
           ),
           ChangeNotifierProvider(
             create: (_) => BanksController(),
+          ),
+          ChangeNotifierProvider(
+            create: (_) => BrokersController(),
           ),
         ],
         child: const MyApp(),

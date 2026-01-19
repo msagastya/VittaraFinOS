@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
 import 'package:vittara_fin_os/logic/banks_controller.dart';
+import 'package:vittara_fin_os/logic/brokers_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 
@@ -17,13 +18,14 @@ class AccountWizard extends StatefulWidget {
 class _AccountWizardState extends State<AccountWizard> {
   final PageController _pageController = PageController();
   int _currentStep = 0;
-  final int _totalSteps = 4;
+  late final int _totalSteps;
 
   // Form Data
   String? _selectedBank;
+  String? _selectedBroker;
   Color? _selectedColor;
 
-  // Step 2: Account Type Selection
+  // Step 2: Account Type Selection (for bank accounts)
   AccountType? _selectedAccountType;
   final TextEditingController _nameController = TextEditingController();
 
@@ -37,6 +39,9 @@ class _AccountWizardState extends State<AccountWizard> {
   @override
   void initState() {
     super.initState();
+    // Set total steps based on account type
+    _totalSteps = widget.isInvestment ? 3 : 4;
+
     // Add listeners to update UI when text changes
     _creditLimitController.addListener(() => setState(() {}));
     _amountUsedController.addListener(() => setState(() {}));
@@ -64,9 +69,15 @@ class _AccountWizardState extends State<AccountWizard> {
   }
 
   void _updateNickname() {
-    if (_selectedBank != null && _selectedAccountType != null) {
-      final typeLabel = _getAccountTypeLabel(_selectedAccountType!);
-      _nameController.text = '$_selectedBank - $typeLabel';
+    if (widget.isInvestment) {
+      if (_selectedBroker != null) {
+        _nameController.text = '$_selectedBroker - Demat';
+      }
+    } else {
+      if (_selectedBank != null && _selectedAccountType != null) {
+        final typeLabel = _getAccountTypeLabel(_selectedAccountType!);
+        _nameController.text = '$_selectedBank - $typeLabel';
+      }
     }
   }
 
@@ -114,26 +125,41 @@ class _AccountWizardState extends State<AccountWizard> {
   void _finishWizard() {
     double finalBalance = 0.0;
 
-    // Calculate final balance based on account type
-    if (_selectedAccountType == AccountType.credit || _selectedAccountType == AccountType.payLater) {
-      // For credit card and pay later: Balance = Credit Limit - Amount Used
-      final creditLimit = double.tryParse(_creditLimitController.text) ?? 0.0;
-      final amountUsed = double.tryParse(_amountUsedController.text) ?? 0.0;
-      finalBalance = creditLimit - amountUsed;
-    } else {
-      // For other types: use opening balance directly
+    if (widget.isInvestment) {
+      // Investment account: use balance directly
       finalBalance = double.tryParse(_balanceController.text) ?? 0.0;
-    }
 
-    final account = Account(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      name: _nameController.text,
-      bankName: _selectedBank ?? 'Other',
-      type: _selectedAccountType ?? AccountType.savings,
-      balance: finalBalance,
-      color: _selectedColor ?? CupertinoColors.systemBlue,
-    );
-    Navigator.pop(context, account);
+      final account = Account(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        name: _nameController.text,
+        bankName: _selectedBroker ?? 'Unknown Broker',
+        type: AccountType.investment,
+        balance: finalBalance,
+        color: _selectedColor ?? CupertinoColors.systemBlue,
+      );
+      Navigator.pop(context, account);
+    } else {
+      // Bank account: calculate balance based on account type
+      if (_selectedAccountType == AccountType.credit || _selectedAccountType == AccountType.payLater) {
+        // For credit card and pay later: Balance = Credit Limit - Amount Used
+        final creditLimit = double.tryParse(_creditLimitController.text) ?? 0.0;
+        final amountUsed = double.tryParse(_amountUsedController.text) ?? 0.0;
+        finalBalance = creditLimit - amountUsed;
+      } else {
+        // For other types: use opening balance directly
+        finalBalance = double.tryParse(_balanceController.text) ?? 0.0;
+      }
+
+      final account = Account(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        name: _nameController.text,
+        bankName: _selectedBank ?? 'Other',
+        type: _selectedAccountType ?? AccountType.savings,
+        balance: finalBalance,
+        color: _selectedColor ?? CupertinoColors.systemBlue,
+      );
+      Navigator.pop(context, account);
+    }
   }
 
   @override
@@ -158,12 +184,18 @@ class _AccountWizardState extends State<AccountWizard> {
               child: PageView(
                 controller: _pageController,
                 physics: const NeverScrollableScrollPhysics(),
-                children: [
-                  _buildBankSelectionStep(),
-                  _buildAccountTypeStep(),
-                  _buildAccountDetailsStep(),
-                  _buildReviewStep(),
-                ],
+                children: widget.isInvestment
+                    ? [
+                        _buildBrokerSelectionStep(),
+                        _buildInvestmentDetailsStep(),
+                        _buildInvestmentReviewStep(),
+                      ]
+                    : [
+                        _buildBankSelectionStep(),
+                        _buildAccountTypeStep(),
+                        _buildAccountDetailsStep(),
+                        _buildReviewStep(),
+                      ],
               ),
             ),
             _buildFooter(),
@@ -190,6 +222,427 @@ class _AccountWizardState extends State<AccountWizard> {
             ),
           );
         }),
+      ),
+    );
+  }
+
+  Widget _buildBrokerSelectionStep() {
+    return Consumer<BrokersController>(
+      builder: (context, brokersController, child) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Select your Broker',
+                style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Which broker do you use?',
+                style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+              ),
+              const SizedBox(height: 32),
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 1.2,
+                ),
+                itemCount: brokersController.brokers.length,
+                itemBuilder: (context, index) {
+                  final broker = brokersController.brokers[index];
+                  final isSelected = _selectedBroker == broker['name'];
+                  return BouncyButton(
+                    onPressed: () {
+                      setState(() {
+                        _selectedBroker = broker['name'];
+                        _selectedColor = broker['color'];
+                        _updateNickname();
+                      });
+                    },
+                    child: Container(
+                      decoration: AppStyles.cardDecoration(context).copyWith(
+                        border: isSelected
+                            ? Border.all(color: CupertinoColors.systemBlue, width: 2)
+                            : null,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: (broker['color'] as Color).withValues(alpha: 0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              CupertinoIcons.chart_bar_square_fill,
+                              color: broker['color'],
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(broker['name'],
+                              style: AppStyles.titleStyle(context)
+                                  .copyWith(fontSize: 14)),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'What should we call this account?',
+                style: AppStyles.headerStyle(context),
+              ),
+              const SizedBox(height: 8),
+              CupertinoTextField(
+                controller: _nameController,
+                placeholder: 'e.g. My Demat Account',
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppStyles.getCardColor(context),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                style: TextStyle(color: AppStyles.getTextColor(context)),
+              ),
+              const SizedBox(height: 24),
+              if (brokersController.brokers.length < 15)
+                BouncyButton(
+                  onPressed: () => _showAddBrokerSheet(context, brokersController),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: CupertinoColors.systemBlue.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: CupertinoColors.systemBlue,
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(CupertinoIcons.add, color: CupertinoColors.systemBlue),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Add Broker',
+                            style: TextStyle(
+                              color: CupertinoColors.systemBlue,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showAddBrokerSheet(BuildContext context, BrokersController brokersController) {
+    final brokerNameController = TextEditingController();
+    Color selectedColor = CupertinoColors.systemBlue;
+
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.6,
+              decoration: BoxDecoration(
+                color: AppStyles.getCardColor(context),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Column(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: CupertinoColors.systemGrey3,
+                            borderRadius: BorderRadius.circular(2.5),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Add New Broker',
+                          style: AppStyles.titleStyle(context).copyWith(fontSize: 20),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Divider(color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.1)),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Broker Name',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: AppStyles.getSecondaryTextColor(context),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          CupertinoTextField(
+                            controller: brokerNameController,
+                            placeholder: 'Enter broker name',
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppStyles.getCardColor(context),
+                              border: Border.all(
+                                color: CupertinoColors.systemBlue.withValues(alpha: 0.2),
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            style: TextStyle(color: AppStyles.getTextColor(context)),
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            'Select Color',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: AppStyles.getSecondaryTextColor(context),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                CupertinoColors.systemBlue,
+                                CupertinoColors.systemGreen,
+                                CupertinoColors.systemRed,
+                                CupertinoColors.systemPurple,
+                                CupertinoColors.systemOrange,
+                                CupertinoColors.systemTeal,
+                                CupertinoColors.systemPink,
+                                CupertinoColors.systemIndigo,
+                              ]
+                                  .map((color) => GestureDetector(
+                                    onTap: () => setDialogState(() => selectedColor = color),
+                                    child: Container(
+                                      width: 50,
+                                      height: 50,
+                                      margin: const EdgeInsets.only(right: 12),
+                                      decoration: BoxDecoration(
+                                        color: color,
+                                        shape: BoxShape.circle,
+                                        border: selectedColor == color
+                                            ? Border.all(color: Colors.white, width: 3)
+                                            : null,
+                                      ),
+                                    ),
+                                  ))
+                                  .toList(),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: BouncyButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: AppStyles.getCardColor(context),
+                                border: Border.all(
+                                  color: CupertinoColors.systemGrey3,
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  'Cancel',
+                                  style: TextStyle(
+                                    color: AppStyles.getTextColor(context),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: BouncyButton(
+                            onPressed: () {
+                              if (brokerNameController.text.isNotEmpty) {
+                                final newBrokerId = brokerNameController.text
+                                    .replaceAll(' ', '_')
+                                    .toLowerCase();
+                                final newBroker = {
+                                  'id': newBrokerId,
+                                  'name': brokerNameController.text,
+                                  'color': selectedColor,
+                                };
+
+                                brokersController.addBroker(newBroker);
+
+                                setState(() {
+                                  _selectedBroker = brokerNameController.text;
+                                  _selectedColor = selectedColor;
+                                  _updateNickname();
+                                });
+
+                                Navigator.pop(context);
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: CupertinoColors.systemBlue,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  'Add & Select',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildInvestmentDetailsStep() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Account Balance',
+            style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'How much is in your Demat account?',
+            style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+          ),
+          const SizedBox(height: 48),
+          Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('₹', style: AppStyles.titleStyle(context).copyWith(fontSize: 32)),
+                const SizedBox(width: 8),
+                IntrinsicWidth(
+                  child: CupertinoTextField(
+                    controller: _balanceController,
+                    placeholder: '0.00',
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    decoration: BoxDecoration(
+                      color: AppStyles.getCardColor(context),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    style: AppStyles.titleStyle(context).copyWith(fontSize: 32, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInvestmentReviewStep() {
+    final balance = double.tryParse(_balanceController.text) ?? 0.0;
+    final displayBalance = '₹${balance.toStringAsFixed(2)}';
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Review & Finish',
+            style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
+          ),
+          const SizedBox(height: 32),
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppStyles.getCardColor(context),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildReviewRow('Broker', _selectedBroker ?? 'Unknown'),
+                const SizedBox(height: 16),
+                _buildReviewRow('Account Name', _nameController.text),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    border: Border(
+                        top: BorderSide(
+                            color: CupertinoColors.systemGrey.withValues(alpha: 0.2))),
+                  ),
+                ),
+                Text(
+                  'Portfolio Value',
+                  style: TextStyle(
+                    color: AppStyles.getSecondaryTextColor(context),
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  displayBalance,
+                  style: AppStyles.titleStyle(context).copyWith(
+                    fontSize: 28,
+                    color: AppStyles.accentBlue,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1119,23 +1572,39 @@ class _AccountWizardState extends State<AccountWizard> {
   Widget _buildFooter() {
     bool canGoNext = false;
 
-    switch (_currentStep) {
-      case 0: // Select Bank
-        canGoNext = _selectedBank != null;
-        break;
-      case 1: // Account Type
-        canGoNext = _selectedAccountType != null && _nameController.text.isNotEmpty;
-        break;
-      case 2: // Account Details
-        if (_selectedAccountType == AccountType.credit || _selectedAccountType == AccountType.payLater) {
-          canGoNext = _creditLimitController.text.isNotEmpty;
-        } else {
+    if (widget.isInvestment) {
+      // Investment account validation (3 steps)
+      switch (_currentStep) {
+        case 0: // Select Broker
+          canGoNext = _selectedBroker != null && _nameController.text.isNotEmpty;
+          break;
+        case 1: // Account Balance
           canGoNext = _balanceController.text.isNotEmpty;
-        }
-        break;
-      case 3: // Review
-        canGoNext = true;
-        break;
+          break;
+        case 2: // Review
+          canGoNext = true;
+          break;
+      }
+    } else {
+      // Bank account validation (4 steps)
+      switch (_currentStep) {
+        case 0: // Select Bank
+          canGoNext = _selectedBank != null;
+          break;
+        case 1: // Account Type
+          canGoNext = _selectedAccountType != null && _nameController.text.isNotEmpty;
+          break;
+        case 2: // Account Details
+          if (_selectedAccountType == AccountType.credit || _selectedAccountType == AccountType.payLater) {
+            canGoNext = _creditLimitController.text.isNotEmpty;
+          } else {
+            canGoNext = _balanceController.text.isNotEmpty;
+          }
+          break;
+        case 3: // Review
+          canGoNext = true;
+          break;
+      }
     }
 
     return Padding(
