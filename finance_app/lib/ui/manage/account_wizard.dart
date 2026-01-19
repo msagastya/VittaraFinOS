@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
+import 'package:vittara_fin_os/logic/banks_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 
@@ -141,71 +143,337 @@ class _AccountWizardState extends State<AccountWizard> {
   }
 
   Widget _buildBankSelectionStep() {
-    final items = widget.isInvestment ? _brokers : _banks;
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            widget.isInvestment ? 'Select your Broker' : 'Select your Bank',
-            style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Where do you keep your money?',
-            style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
-          ),
-          const SizedBox(height: 32),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: 1.2,
+    if (widget.isInvestment) {
+      // Investment brokers - use hardcoded list for now
+      final items = _brokers;
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Select your Broker',
+              style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
             ),
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              final item = items[index];
-              final isSelected = _selectedBank == item['name'];
-              return BouncyButton(
-                onPressed: () {
-                  setState(() {
-                    _selectedBank = item['name'];
-                    _selectedColor = item['color'];
-                  });
-                  _nextStep();
-                },
-                child: Container(
-                  decoration: AppStyles.cardDecoration(context).copyWith(
-                    border: isSelected ? Border.all(color: CupertinoColors.systemBlue, width: 2) : null,
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: (item['color'] as Color).withValues(alpha: 0.1),
-                          shape: BoxShape.circle,
+            const SizedBox(height: 8),
+            Text(
+              'Where do you keep your money?',
+              style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+            ),
+            const SizedBox(height: 32),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: 1.2,
+              ),
+              itemCount: items.length,
+              itemBuilder: (context, index) {
+                final item = items[index];
+                final isSelected = _selectedBank == item['name'];
+                return BouncyButton(
+                  onPressed: () {
+                    setState(() {
+                      _selectedBank = item['name'];
+                      _selectedColor = item['color'];
+                    });
+                    _nextStep();
+                  },
+                  child: Container(
+                    decoration: AppStyles.cardDecoration(context).copyWith(
+                      border: isSelected ? Border.all(color: CupertinoColors.systemBlue, width: 2) : null,
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: (item['color'] as Color).withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            CupertinoIcons.chart_bar_square_fill,
+                            color: item['color'],
+                          ),
                         ),
-                        child: Icon(
-                          widget.isInvestment ? CupertinoIcons.chart_bar_square_fill : CupertinoIcons.building_2_fill,
-                          color: item['color'],
+                        const SizedBox(height: 12),
+                        Text(item['name'], style: AppStyles.titleStyle(context).copyWith(fontSize: 14)),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Bank selection with enabled banks + Add Bank option
+    return Consumer<BanksController>(
+      builder: (context, banksController, child) {
+        final enabledBanks = banksController.enabledBanks;
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Select your Bank',
+                style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Where do you keep your money?',
+                style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+              ),
+              const SizedBox(height: 32),
+              if (enabledBanks.isEmpty)
+                Center(
+                  child: Column(
+                    children: [
+                      Icon(
+                        CupertinoIcons.exclamationmark_circle,
+                        size: 48,
+                        color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.3),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'No banks added yet',
+                        style: TextStyle(
+                          color: AppStyles.getSecondaryTextColor(context),
+                          fontSize: 16,
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      Text(item['name'], style: AppStyles.titleStyle(context).copyWith(fontSize: 14)),
+                      const SizedBox(height: 24),
+                      BouncyButton(
+                        onPressed: () => _showAddBankModal(context, banksController),
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          decoration: BoxDecoration(
+                            color: CupertinoColors.systemBlue,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Center(
+                            child: Text(
+                              'Add Bank',
+                              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
+                )
+              else
+                Column(
+                  children: [
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: 1.2,
+                      ),
+                      itemCount: enabledBanks.length,
+                      itemBuilder: (context, index) {
+                        final item = enabledBanks[index];
+                        final isSelected = _selectedBank == item['name'];
+                        return BouncyButton(
+                          onPressed: () {
+                            setState(() {
+                              _selectedBank = item['name'];
+                              _selectedColor = item['color'];
+                            });
+                            _nextStep();
+                          },
+                          child: Container(
+                            decoration: AppStyles.cardDecoration(context).copyWith(
+                              border: isSelected ? Border.all(color: CupertinoColors.systemBlue, width: 2) : null,
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: (item['color'] as Color).withValues(alpha: 0.1),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    CupertinoIcons.building_2_fill,
+                                    color: item['color'],
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Text(item['name'], style: AppStyles.titleStyle(context).copyWith(fontSize: 14)),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 24),
+                    BouncyButton(
+                      onPressed: () => _showAddBankModal(context, banksController),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: CupertinoColors.systemBlue.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: CupertinoColors.systemBlue,
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Center(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(CupertinoIcons.add, color: CupertinoColors.systemBlue),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Add Bank',
+                                style: TextStyle(
+                                  color: CupertinoColors.systemBlue,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              );
-            },
+            ],
           ),
-        ],
-      ),
+        );
+      },
+    );
+  }
+
+  void _showAddBankModal(BuildContext context, BanksController banksController) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) {
+        final disabledBanks = banksController.disabledBanks;
+
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.7,
+          decoration: BoxDecoration(
+            color: AppStyles.getCardColor(context),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            children: [
+              // Header
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: CupertinoColors.systemGrey3,
+                        borderRadius: BorderRadius.circular(2.5),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Select Bank',
+                      style: AppStyles.titleStyle(context).copyWith(fontSize: 20),
+                    ),
+                  ],
+                ),
+              ),
+              Divider(color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.1)),
+              // List
+              Expanded(
+                child: disabledBanks.isEmpty
+                    ? Center(
+                        child: Text(
+                          'All banks are already added',
+                          style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+                        ),
+                      )
+                    : ListView.builder(
+                        itemCount: disabledBanks.length,
+                        itemBuilder: (context, index) {
+                          final bank = disabledBanks[index];
+                          return BouncyButton(
+                            onPressed: () {
+                              // Toggle bank on
+                              banksController.toggleBank(bank['id'], true);
+                              // Select it for wizard
+                              setState(() {
+                                _selectedBank = bank['name'];
+                                _selectedColor = bank['color'];
+                              });
+                              // Close modal and move to next step
+                              Navigator.pop(context);
+                              _nextStep();
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.1),
+                                  ),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 44,
+                                    height: 44,
+                                    decoration: BoxDecoration(
+                                      color: (bank['color'] as Color).withValues(alpha: 0.1),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Center(
+                                      child: Icon(
+                                        CupertinoIcons.building_2_fill,
+                                        color: bank['color'],
+                                        size: 20,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Text(
+                                      bank['name'],
+                                      style: AppStyles.titleStyle(context),
+                                    ),
+                                  ),
+                                  Icon(
+                                    CupertinoIcons.chevron_right,
+                                    size: 16,
+                                    color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.5),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 

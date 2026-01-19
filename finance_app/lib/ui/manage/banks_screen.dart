@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:vittara_fin_os/logic/banks_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 
@@ -16,86 +18,22 @@ class _BanksScreenState extends State<BanksScreen> {
   final AppLogger logger = AppLogger();
   String _searchQuery = '';
   bool _isAscending = true;
-  
-  late List<Map<String, dynamic>> _banks;
 
-  @override
-  void initState() {
-    super.initState();
-    _banks = _generateBankList();
+  void _onReorder(int oldIndex, int newIndex, BanksController banksController) {
+    banksController.reorderBanks(oldIndex, newIndex);
   }
 
-  List<Map<String, dynamic>> _generateBankList() {
-    final banks = [
-      {'name': 'State Bank of India (SBI)', 'color': const Color(0xFF007DCC)}, 
-      {'name': 'HDFC Bank', 'color': const Color(0xFF004C8F)}, 
-      {'name': 'ICICI Bank', 'color': const Color(0xFFF37E20)}, 
-      {'name': 'Axis Bank', 'color': const Color(0xFF97144D)}, 
-      {'name': 'Kotak Mahindra Bank', 'color': const Color(0xFFED1C24)}, 
-      {'name': 'Punjab National Bank (PNB)', 'color': const Color(0xFFA20A3E)},
-      {'name': 'Bank of Baroda', 'color': const Color(0xFFF26522)},
-      {'name': 'Canara Bank', 'color': const Color(0xFFF37021)},
-      {'name': 'Union Bank of India', 'color': const Color(0xFFE21F25)},
-      {'name': 'IndusInd Bank', 'color': const Color(0xFF981C26)},
-      {'name': 'IDBI Bank', 'color': const Color(0xFF007548)},
-      {'name': 'Yes Bank', 'color': const Color(0xFF00539B)},
-      {'name': 'IDFC First Bank', 'color': const Color(0xFF9D1D27)},
-      {'name': 'Federal Bank', 'color': const Color(0xFFE87722)},
-      {'name': 'Indian Bank', 'color': const Color(0xFF005494)},
-      {'name': 'Bank of India', 'color': const Color(0xFFF68D2E)},
-      {'name': 'Central Bank of India', 'color': const Color(0xFF005B98)},
-      {'name': 'UCO Bank', 'color': const Color(0xFF005B9F)},
-      {'name': 'Bank of Maharashtra', 'color': const Color(0xFFED1C24)},
-      {'name': 'Paytm Payments Bank', 'color': const Color(0xFF002E6E)},
-      {'name': 'Airtel Payments Bank', 'color': const Color(0xFFED1C24)},
-      {'name': 'Google Pay', 'color': const Color(0xFF4285F4)},
-      {'name': 'Amazon Pay', 'color': const Color(0xFFF4B400)},
-      {'name': 'PhonePe', 'color': const Color(0xFF5F259F)},
-      {'name': 'Cred', 'color': const Color(0xFF000000)},
-    ];
-
-    banks.sort((a, b) => (a['name'] as String).compareTo(b['name'] as String));
-
-    return banks.map((bank) {
-      return {
-        'id': (bank['name'] as String).replaceAll(' ', '_').toLowerCase(),
-        'name': bank['name'],
-        'color': bank['color'],
-        'isEnabled': false, 
-        'senderIds': <String>[],
-      };
-    }).toList();
+  void _toggleBank(String bankId, bool value, BanksController banksController) {
+    banksController.toggleBank(bankId, value);
   }
 
-  void _onReorder(int oldIndex, int newIndex) {
-    setState(() {
-      if (oldIndex < newIndex) newIndex -= 1;
-      final item = _banks.removeAt(oldIndex);
-      _banks.insert(newIndex, item);
-    });
+  void _deleteBank(String bankId, BanksController banksController) {
+    banksController.deleteBank(bankId);
   }
 
-  void _toggleBank(int index, bool value) {
-    setState(() {
-      _banks[index]['isEnabled'] = value;
-    });
-  }
-
-  void _deleteBank(int index) {
-    setState(() {
-      _banks.removeAt(index);
-    });
-  }
-
-  void _sortBanks() {
-    setState(() {
-      _isAscending = !_isAscending;
-      _banks.sort((a, b) {
-        return _isAscending
-            ? (a['name'] as String).compareTo(b['name'] as String)
-            : (b['name'] as String).compareTo(a['name'] as String);
-      });
-    });
+  void _sortBanks(BanksController banksController) {
+    _isAscending = !_isAscending;
+    banksController.sortBanks(_isAscending);
   }
 
   void _showBankBottomSheet({Map<String, dynamic>? existingBank, int? bankIndex}) {
@@ -285,71 +223,75 @@ class _BanksScreenState extends State<BanksScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredBanks = _banks.where((bank) {
-      return bank['name'].toString().toLowerCase().contains(_searchQuery.toLowerCase());
-    }).toList();
+    return Consumer<BanksController>(
+      builder: (context, banksController, child) {
+        final filteredBanks = banksController.banks.where((bank) {
+          return bank['name'].toString().toLowerCase().contains(_searchQuery.toLowerCase());
+        }).toList();
 
-    return CupertinoPageScaffold(
-      backgroundColor: AppStyles.getBackground(context),
-      navigationBar: CupertinoNavigationBar(
-        middle: Text('Banks', style: TextStyle(color: AppStyles.getTextColor(context))),
-        previousPageTitle: 'Manage',
-        backgroundColor: AppStyles.getBackground(context),
-        border: null,
-        trailing: CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: _sortBanks,
-          child: Icon(
-            _isAscending ? CupertinoIcons.sort_down : CupertinoIcons.sort_up,
-            size: 24,
-            color: AppStyles.accentBlue,
-          ),
-        ),
-      ),
-      child: Stack(
-        children: [
-          SafeArea(
-            child: Column(
-              children: [
-                Container(
-                  margin: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppStyles.getCardColor(context),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: CupertinoSearchTextField(
-                    backgroundColor: Colors.transparent,
-                    style: TextStyle(color: AppStyles.getTextColor(context)),
-                    placeholder: 'Search Banks',
-                    placeholderStyle: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
-                    onChanged: (value) => setState(() => _searchQuery = value),
-                  ),
-                ),
-                Expanded(
-                  child: ReorderableListView.builder(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
-                    itemCount: filteredBanks.length,
-                    onReorder: _onReorder,
-                    itemBuilder: (context, index) {
-                      final bank = filteredBanks[index];
-                      final originalIndex = _banks.indexOf(bank);
-                      return _build3DBankCard(bank, originalIndex);
-                    },
-                  ),
-                ),
-              ],
+        return CupertinoPageScaffold(
+          backgroundColor: AppStyles.getBackground(context),
+          navigationBar: CupertinoNavigationBar(
+            middle: Text('Banks', style: TextStyle(color: AppStyles.getTextColor(context))),
+            previousPageTitle: 'Manage',
+            backgroundColor: AppStyles.getBackground(context),
+            border: null,
+            trailing: CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: () => _sortBanks(banksController),
+              child: Icon(
+                _isAscending ? CupertinoIcons.sort_down : CupertinoIcons.sort_up,
+                size: 24,
+                color: AppStyles.accentBlue,
+              ),
             ),
           ),
-          Positioned(
-            right: 16, bottom: 32,
-            child: FadingFloatingActionButton(onPressed: () => _showBankBottomSheet()),
+          child: Stack(
+            children: [
+              SafeArea(
+                child: Column(
+                  children: [
+                    Container(
+                      margin: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppStyles.getCardColor(context),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: CupertinoSearchTextField(
+                        backgroundColor: Colors.transparent,
+                        style: TextStyle(color: AppStyles.getTextColor(context)),
+                        placeholder: 'Search Banks',
+                        placeholderStyle: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+                        onChanged: (value) => setState(() => _searchQuery = value),
+                      ),
+                    ),
+                    Expanded(
+                      child: ReorderableListView.builder(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
+                        itemCount: filteredBanks.length,
+                        onReorder: (oldIndex, newIndex) =>
+                            _onReorder(oldIndex, newIndex, banksController),
+                        itemBuilder: (context, index) {
+                          final bank = filteredBanks[index];
+                          return _build3DBankCard(bank, banksController);
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Positioned(
+                right: 16, bottom: 32,
+                child: FadingFloatingActionButton(onPressed: () => _showBankBottomSheet()),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _build3DBankCard(Map<String, dynamic> bank, int index) {
+  Widget _build3DBankCard(Map<String, dynamic> bank, BanksController banksController) {
     return Container(
       key: ValueKey(bank['id']),
       margin: const EdgeInsets.only(bottom: 16),
@@ -388,7 +330,8 @@ class _BanksScreenState extends State<BanksScreen> {
                   child: CupertinoSwitch(
                     value: bank['isEnabled'],
                     activeColor: CupertinoColors.activeGreen,
-                    onChanged: (bool value) => _toggleBank(index, value),
+                    onChanged: (bool value) =>
+                        _toggleBank(bank['id'], value, banksController),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -402,8 +345,9 @@ class _BanksScreenState extends State<BanksScreen> {
                   child: PopupMenuButton<String>(
                     icon: Icon(Icons.more_vert, color: AppStyles.getSecondaryTextColor(context)),
                     onSelected: (String result) {
-                      if (result == 'edit') _showBankBottomSheet(existingBank: bank, bankIndex: index);
-                      else if (result == 'delete') _deleteBank(index);
+                      if (result == 'edit') _showBankBottomSheet(existingBank: bank);
+                      else if (result == 'delete')
+                        _deleteBank(bank['id'], banksController);
                     },
                     itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
                       PopupMenuItem<String>(

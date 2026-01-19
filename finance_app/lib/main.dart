@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:vittara_fin_os/logic/banks_controller.dart';
 import 'package:vittara_fin_os/logic/settings_controller.dart';
 import 'package:vittara_fin_os/ui/fintech_loader.dart';
 import 'package:vittara_fin_os/ui/manage_screen.dart';
@@ -24,8 +25,15 @@ void main() {
     };
 
     runApp(
-      ChangeNotifierProvider(
-        create: (_) => SettingsController()..loadSettings(),
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(
+            create: (_) => SettingsController()..loadSettings(),
+          ),
+          ChangeNotifierProvider(
+            create: (_) => BanksController(),
+          ),
+        ],
         child: const MyApp(),
       ),
     );
