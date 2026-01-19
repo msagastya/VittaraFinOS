@@ -295,208 +295,217 @@ class _AccountsScreenState extends State<AccountsScreen> {
   void _showAccountDetailsSheet(Account account) {
     showCupertinoModalPopup(
       context: context,
-      builder: (context) {
-        return Container(
-          decoration: BoxDecoration(
-            color: AppStyles.getCardColor(context),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Handle bar
-                Container(
-                  margin: const EdgeInsets.only(top: 12),
-                  width: 40,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: CupertinoColors.systemGrey3,
-                    borderRadius: BorderRadius.circular(2.5),
-                  ),
-                ),
-                const SizedBox(height: 20),
+      builder: (modalContext) {
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.6,
+          minChildSize: 0.4,
+          maxChildSize: 0.9,
+          builder: (dragContext, scrollController) {
+            return Container(
+              decoration: BoxDecoration(
+                color: AppStyles.getCardColor(dragContext),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: SingleChildScrollView(
+                controller: scrollController,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Handle bar
+                    Container(
+                      margin: const EdgeInsets.only(top: 12),
+                      width: 40,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: CupertinoColors.systemGrey3,
+                        borderRadius: BorderRadius.circular(2.5),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
 
-                // Account Details
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        account.name,
-                        style: AppStyles.titleStyle(context).copyWith(fontSize: 20),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '${account.bankName} • ${account.type.name.toUpperCase()}',
-                        style: TextStyle(
-                          color: AppStyles.getSecondaryTextColor(context),
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Balance display
-                      Text(
-                        'Balance',
-                        style: TextStyle(
-                          color: AppStyles.getSecondaryTextColor(context),
-                          fontSize: 12,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '₹${account.balance.toStringAsFixed(2)}',
-                        style: AppStyles.titleStyle(context).copyWith(
-                          fontSize: 28,
-                          color: AppStyles.accentBlue,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-
-                      // Credit Card/Pay Later - Show Credit Limit and Amount Used
-                      if (account.type == AccountType.credit ||
-                          account.type == AccountType.payLater) ...[
-                        const SizedBox(height: 24),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Credit Limit',
-                                    style: TextStyle(
-                                      color: AppStyles.getSecondaryTextColor(context),
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    '₹${account.balance.toStringAsFixed(2)}',
-                                    style: TextStyle(
-                                      color: AppStyles.getTextColor(context),
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                    // Account Details
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            account.name,
+                            style: AppStyles.titleStyle(dragContext).copyWith(fontSize: 20),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            '${account.bankName} • ${account.type.name.toUpperCase()}',
+                            style: TextStyle(
+                              color: AppStyles.getSecondaryTextColor(dragContext),
+                              fontSize: 14,
                             ),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Amount Used',
-                                    style: TextStyle(
-                                      color: AppStyles.getSecondaryTextColor(context),
-                                      fontSize: 12,
-                                    ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Balance display
+                          Text(
+                            'Balance',
+                            style: TextStyle(
+                              color: AppStyles.getSecondaryTextColor(dragContext),
+                              fontSize: 12,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '₹${account.balance.toStringAsFixed(2)}',
+                            style: AppStyles.titleStyle(dragContext).copyWith(
+                              fontSize: 28,
+                              color: AppStyles.accentBlue,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+
+                          // Credit Card/Pay Later - Show Credit Limit and Amount Used
+                          if (account.type == AccountType.credit ||
+                              account.type == AccountType.payLater) ...[
+                            const SizedBox(height: 24),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Credit Limit',
+                                        style: TextStyle(
+                                          color: AppStyles.getSecondaryTextColor(dragContext),
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '₹${account.balance.toStringAsFixed(2)}',
+                                        style: TextStyle(
+                                          color: AppStyles.getTextColor(dragContext),
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    '₹0.00',
-                                    style: TextStyle(
-                                      color: AppStyles.getTextColor(context),
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                ),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Amount Used',
+                                        style: TextStyle(
+                                          color: AppStyles.getSecondaryTextColor(dragContext),
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '₹0.00',
+                                        style: TextStyle(
+                                          color: AppStyles.getTextColor(dragContext),
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ],
-                        ),
-                      ],
 
-                      const SizedBox(height: 32),
-                    ],
-                  ),
-                ),
+                          const SizedBox(height: 32),
+                        ],
+                      ),
+                    ),
 
-                // Action Buttons
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: BouncyButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            _editAccount(account);
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            decoration: BoxDecoration(
-                              color: CupertinoColors.systemBlue.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  CupertinoIcons.pencil,
-                                  size: 16,
-                                  color: CupertinoColors.systemBlue,
+                    // Action Buttons
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: BouncyButton(
+                              onPressed: () {
+                                Navigator.pop(modalContext);
+                                _editAccount(account);
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                decoration: BoxDecoration(
+                                  color: CupertinoColors.systemBlue.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  'Edit',
-                                  style: TextStyle(
-                                    color: CupertinoColors.systemBlue,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      CupertinoIcons.pencil,
+                                      size: 16,
+                                      color: CupertinoColors.systemBlue,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'Edit',
+                                      style: TextStyle(
+                                        color: CupertinoColors.systemBlue,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
+                              ),
                             ),
                           ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: BouncyButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            _deleteAccount(account);
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            decoration: BoxDecoration(
-                              color: CupertinoColors.systemRed.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  CupertinoIcons.trash,
-                                  size: 16,
-                                  color: CupertinoColors.systemRed,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: BouncyButton(
+                              onPressed: () {
+                                Navigator.pop(modalContext);
+                                _deleteAccount(account);
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                decoration: BoxDecoration(
+                                  color: CupertinoColors.systemRed.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  'Delete',
-                                  style: TextStyle(
-                                    color: CupertinoColors.systemRed,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      CupertinoIcons.trash,
+                                      size: 16,
+                                      color: CupertinoColors.systemRed,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'Delete',
+                                      style: TextStyle(
+                                        color: CupertinoColors.systemRed,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
+                              ),
                             ),
                           ),
-                        ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
                 ),
-                const SizedBox(height: 20),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );
