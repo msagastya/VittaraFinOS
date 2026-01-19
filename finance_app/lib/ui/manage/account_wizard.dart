@@ -34,6 +34,15 @@ class _AccountWizardState extends State<AccountWizard> {
   final TextEditingController _amountUsedController = TextEditingController();
   final TextEditingController _balanceController = TextEditingController();
 
+  @override
+  void initState() {
+    super.initState();
+    // Add listeners to update UI when text changes
+    _creditLimitController.addListener(() => setState(() {}));
+    _amountUsedController.addListener(() => setState(() {}));
+    _balanceController.addListener(() => setState(() {}));
+  }
+
   // Investment brokers (for future use)
   final List<Map<String, dynamic>> _brokers = [
     {'name': 'Zerodha', 'color': const Color(0xFF387ED1)},
