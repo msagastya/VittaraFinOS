@@ -17,23 +17,24 @@ class AccountWizard extends StatefulWidget {
 class _AccountWizardState extends State<AccountWizard> {
   final PageController _pageController = PageController();
   int _currentStep = 0;
-  final int _totalSteps = 3;
+  final int _totalSteps = 4;
 
   // Form Data
   String? _selectedBank;
   Color? _selectedColor;
+
+  // Step 2: Account Type Selection
+  AccountType? _selectedAccountType;
   final TextEditingController _nameController = TextEditingController();
-  AccountType _selectedType = AccountType.savings;
+
+  // Step 3: Account Details (type-specific)
+  final TextEditingController _accountNumberController = TextEditingController();
+  final TextEditingController _debitCardNumberController = TextEditingController();
+  final TextEditingController _creditLimitController = TextEditingController();
+  final TextEditingController _amountUsedController = TextEditingController();
   final TextEditingController _balanceController = TextEditingController();
 
-  final List<Map<String, dynamic>> _banks = [
-    {'name': 'HDFC Bank', 'color': const Color(0xFF004C8F)},
-    {'name': 'ICICI Bank', 'color': const Color(0xFFF37E20)},
-    {'name': 'SBI', 'color': const Color(0xFF007DCC)},
-    {'name': 'Axis Bank', 'color': const Color(0xFF97144D)},
-    {'name': 'Kotak Bank', 'color': const Color(0xFFED1C24)},
-  ];
-
+  // Investment brokers (for future use)
   final List<Map<String, dynamic>> _brokers = [
     {'name': 'Zerodha', 'color': const Color(0xFF387ED1)},
     {'name': 'Groww', 'color': const Color(0xFF00D09C)},
@@ -45,8 +46,34 @@ class _AccountWizardState extends State<AccountWizard> {
   void dispose() {
     _pageController.dispose();
     _nameController.dispose();
+    _accountNumberController.dispose();
+    _debitCardNumberController.dispose();
+    _creditLimitController.dispose();
+    _amountUsedController.dispose();
     _balanceController.dispose();
     super.dispose();
+  }
+
+  void _updateNickname() {
+    if (_selectedBank != null && _selectedAccountType != null) {
+      final typeLabel = _getAccountTypeLabel(_selectedAccountType!);
+      _nameController.text = '$_selectedBank - $typeLabel';
+    }
+  }
+
+  String _getAccountTypeLabel(AccountType type) {
+    switch (type) {
+      case AccountType.savings:
+        return 'Savings Account';
+      case AccountType.current:
+        return 'Current Account';
+      case AccountType.credit:
+        return 'Credit Card';
+      case AccountType.wallet:
+        return 'Digital Wallet';
+      case AccountType.investment:
+        return 'Investment';
+    }
   }
 
   void _nextStep() {
@@ -74,12 +101,25 @@ class _AccountWizardState extends State<AccountWizard> {
   }
 
   void _finishWizard() {
+    double finalBalance = 0.0;
+
+    // Calculate final balance based on account type
+    if (_selectedAccountType == AccountType.credit || _selectedAccountType?.name == 'credit') {
+      // For credit card: Balance = Credit Limit - Amount Used
+      final creditLimit = double.tryParse(_creditLimitController.text) ?? 0.0;
+      final amountUsed = double.tryParse(_amountUsedController.text) ?? 0.0;
+      finalBalance = creditLimit - amountUsed;
+    } else {
+      // For other types: use opening balance directly
+      finalBalance = double.tryParse(_balanceController.text) ?? 0.0;
+    }
+
     final account = Account(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       name: _nameController.text,
       bankName: _selectedBank ?? 'Other',
-      type: widget.isInvestment ? AccountType.investment : _selectedType,
-      balance: double.tryParse(_balanceController.text) ?? 0.0,
+      type: _selectedAccountType ?? AccountType.savings,
+      balance: finalBalance,
       color: _selectedColor ?? CupertinoColors.systemBlue,
     );
     Navigator.pop(context, account);
@@ -109,8 +149,9 @@ class _AccountWizardState extends State<AccountWizard> {
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
                   _buildBankSelectionStep(),
-                  _buildDetailsStep(),
-                  _buildBalanceStep(),
+                  _buildAccountTypeStep(),
+                  _buildAccountDetailsStep(),
+                  _buildReviewStep(),
                 ],
               ),
             ),
@@ -724,15 +765,95 @@ class _AccountWizardState extends State<AccountWizard> {
     );
   }
 
-  Widget _buildDetailsStep() {
-    return Padding(
+  Widget _buildAccountTypeStep() {
+    final accountTypes = [
+      {'type': AccountType.savings, 'label': 'Savings Account', 'icon': CupertinoIcons.book_fill},
+      {'type': AccountType.current, 'label': 'Current Account', 'icon': CupertinoIcons.briefcase_fill},
+      {'type': AccountType.credit, 'label': 'Credit Card', 'icon': CupertinoIcons.creditcard_fill},
+      {'type': AccountType.wallet, 'label': 'Pay Later (BNPL)', 'icon': CupertinoIcons.wallet_pass_fill},
+      {'type': AccountType.investment, 'label': 'Digital Wallet', 'icon': CupertinoIcons.square_stack_3d_down_right_fill},
+    ];
+
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Account Details', style: AppStyles.titleStyle(context).copyWith(fontSize: 24)),
+          Text(
+            'Account Type',
+            style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'What type of account?',
+            style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+          ),
           const SizedBox(height: 32),
-          Text('Account Nickname', style: AppStyles.headerStyle(context)),
+          Column(
+            children: accountTypes.map((item) {
+              final isSelected = _selectedAccountType == item['type'];
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _selectedAccountType = item['type'] as AccountType;
+                    _updateNickname();
+                  });
+                  _nextStep();
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppStyles.getCardColor(context),
+                    borderRadius: BorderRadius.circular(12),
+                    border: isSelected
+                        ? Border.all(color: CupertinoColors.systemBlue, width: 2)
+                        : Border.all(
+                            color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.1),
+                            width: 1,
+                          ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: CupertinoColors.systemBlue.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Icon(
+                            item['icon'] as IconData,
+                            color: CupertinoColors.systemBlue,
+                            size: 24,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          item['label'] as String,
+                          style: AppStyles.titleStyle(context).copyWith(fontSize: 16),
+                        ),
+                      ),
+                      if (isSelected)
+                        const Icon(
+                          CupertinoIcons.checkmark_circle_fill,
+                          color: CupertinoColors.systemBlue,
+                          size: 24,
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Account Nickname',
+            style: AppStyles.headerStyle(context),
+          ),
           const SizedBox(height: 8),
           CupertinoTextField(
             controller: _nameController,
@@ -744,22 +865,152 @@ class _AccountWizardState extends State<AccountWizard> {
             ),
             style: TextStyle(color: AppStyles.getTextColor(context)),
           ),
-          if (!widget.isInvestment) ...[
-            const SizedBox(height: 24),
-            Text('Account Type', style: AppStyles.headerStyle(context)),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: CupertinoSlidingSegmentedControl<AccountType>(
-                groupValue: _selectedType,
-                children: const {
-                  AccountType.savings: Text('Savings'),
-                  AccountType.current: Text('Current'),
-                  AccountType.credit: Text('Credit'),
-                },
-                onValueChanged: (val) {
-                  if (val != null) setState(() => _selectedType = val);
-                },
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAccountDetailsStep() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Account Details',
+            style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
+          ),
+          const SizedBox(height: 32),
+          if (_selectedAccountType == AccountType.savings || _selectedAccountType == AccountType.current) ...[
+            Text('Account Number', style: AppStyles.headerStyle(context)),
+            const SizedBox(height: 4),
+            Text(
+              '(Optional - full or last 4 digits)',
+              style: TextStyle(fontSize: 12, color: AppStyles.getSecondaryTextColor(context)),
+            ),
+            const SizedBox(height: 8),
+            CupertinoTextField(
+              controller: _accountNumberController,
+              placeholder: 'Enter account number',
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppStyles.getCardColor(context),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              style: TextStyle(color: AppStyles.getTextColor(context)),
+            ),
+            const SizedBox(height: 20),
+            Text('Debit Card Number', style: AppStyles.headerStyle(context)),
+            const SizedBox(height: 4),
+            Text(
+              '(Optional - full or last 4 digits)',
+              style: TextStyle(fontSize: 12, color: AppStyles.getSecondaryTextColor(context)),
+            ),
+            const SizedBox(height: 8),
+            CupertinoTextField(
+              controller: _debitCardNumberController,
+              placeholder: 'Enter debit card number',
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppStyles.getCardColor(context),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              style: TextStyle(color: AppStyles.getTextColor(context)),
+            ),
+            const SizedBox(height: 20),
+            Text('Opening Balance', style: AppStyles.headerStyle(context)),
+            const SizedBox(height: 8),
+            Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('₹', style: AppStyles.titleStyle(context).copyWith(fontSize: 32)),
+                  const SizedBox(width: 8),
+                  IntrinsicWidth(
+                    child: CupertinoTextField(
+                      controller: _balanceController,
+                      placeholder: '0.00',
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: BoxDecoration(
+                        color: AppStyles.getCardColor(context),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      style: AppStyles.titleStyle(context).copyWith(fontSize: 32, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ] else if (_selectedAccountType == AccountType.credit) ...[
+            Text('Credit Limit', style: AppStyles.headerStyle(context)),
+            const SizedBox(height: 8),
+            Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('₹', style: AppStyles.titleStyle(context).copyWith(fontSize: 32)),
+                  const SizedBox(width: 8),
+                  IntrinsicWidth(
+                    child: CupertinoTextField(
+                      controller: _creditLimitController,
+                      placeholder: '0.00',
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: BoxDecoration(
+                        color: AppStyles.getCardColor(context),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      style: AppStyles.titleStyle(context).copyWith(fontSize: 32, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text('Amount Used', style: AppStyles.headerStyle(context)),
+            const SizedBox(height: 8),
+            Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('₹', style: AppStyles.titleStyle(context).copyWith(fontSize: 32)),
+                  const SizedBox(width: 8),
+                  IntrinsicWidth(
+                    child: CupertinoTextField(
+                      controller: _amountUsedController,
+                      placeholder: '0.00',
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: BoxDecoration(
+                        color: AppStyles.getCardColor(context),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      style: AppStyles.titleStyle(context).copyWith(fontSize: 32, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ] else if (_selectedAccountType == AccountType.wallet || _selectedAccountType == AccountType.investment) ...[
+            Text('Opening Balance', style: AppStyles.headerStyle(context)),
+            const SizedBox(height: 8),
+            Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('₹', style: AppStyles.titleStyle(context).copyWith(fontSize: 32)),
+                  const SizedBox(width: 8),
+                  IntrinsicWidth(
+                    child: CupertinoTextField(
+                      controller: _balanceController,
+                      placeholder: '0.00',
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      decoration: BoxDecoration(
+                        color: AppStyles.getCardColor(context),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      style: AppStyles.titleStyle(context).copyWith(fontSize: 32, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -768,30 +1019,63 @@ class _AccountWizardState extends State<AccountWizard> {
     );
   }
 
-  Widget _buildBalanceStep() {
-    return Padding(
+  Widget _buildReviewStep() {
+    String displayBalance = '₹0.00';
+    if (_selectedAccountType == AccountType.credit) {
+      final creditLimit = double.tryParse(_creditLimitController.text) ?? 0.0;
+      final amountUsed = double.tryParse(_amountUsedController.text) ?? 0.0;
+      final available = creditLimit - amountUsed;
+      displayBalance = '₹${available.toStringAsFixed(2)}';
+    } else {
+      final balance = double.tryParse(_balanceController.text) ?? 0.0;
+      displayBalance = '₹${balance.toStringAsFixed(2)}';
+    }
+
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Current Balance', style: AppStyles.titleStyle(context).copyWith(fontSize: 24)),
-          const SizedBox(height: 8),
-          Text('How much is in there right now?', style: TextStyle(color: AppStyles.getSecondaryTextColor(context))),
-          const SizedBox(height: 48),
-          Center(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+          Text(
+            'Review & Finish',
+            style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
+          ),
+          const SizedBox(height: 32),
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppStyles.getCardColor(context),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('₹', style: AppStyles.titleStyle(context).copyWith(fontSize: 40)),
-                const SizedBox(width: 8),
-                IntrinsicWidth(
-                  child: CupertinoTextField(
-                    controller: _balanceController,
-                    placeholder: '0.00',
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: null,
-                    style: AppStyles.titleStyle(context).copyWith(fontSize: 48, fontWeight: FontWeight.bold),
-                    autofocus: true,
+                _buildReviewRow('Bank', _selectedBank ?? 'Unknown'),
+                const SizedBox(height: 16),
+                _buildReviewRow('Account Type', _getAccountTypeLabel(_selectedAccountType ?? AccountType.savings)),
+                const SizedBox(height: 16),
+                _buildReviewRow('Account Name', _nameController.text),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    border: Border(top: BorderSide(color: CupertinoColors.systemGrey.withValues(alpha: 0.2))),
+                  ),
+                ),
+                Text(
+                  'Available Balance',
+                  style: TextStyle(
+                    color: AppStyles.getSecondaryTextColor(context),
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  displayBalance,
+                  style: AppStyles.titleStyle(context).copyWith(
+                    fontSize: 28,
+                    color: AppStyles.accentBlue,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ],
@@ -802,8 +1086,46 @@ class _AccountWizardState extends State<AccountWizard> {
     );
   }
 
+  Widget _buildReviewRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: AppStyles.getSecondaryTextColor(context),
+            fontSize: 14,
+          ),
+        ),
+        Text(
+          value,
+          style: AppStyles.titleStyle(context).copyWith(fontWeight: FontWeight.w600),
+        ),
+      ],
+    );
+  }
+
   Widget _buildFooter() {
-    final canGoNext = _currentStep == 0 ? _selectedBank != null : (_currentStep == 1 ? _nameController.text.isNotEmpty : true);
+    bool canGoNext = false;
+
+    switch (_currentStep) {
+      case 0: // Select Bank
+        canGoNext = _selectedBank != null;
+        break;
+      case 1: // Account Type
+        canGoNext = _selectedAccountType != null && _nameController.text.isNotEmpty;
+        break;
+      case 2: // Account Details
+        if (_selectedAccountType == AccountType.credit) {
+          canGoNext = _creditLimitController.text.isNotEmpty;
+        } else {
+          canGoNext = _balanceController.text.isNotEmpty;
+        }
+        break;
+      case 3: // Review
+        canGoNext = true;
+        break;
+    }
 
     return Padding(
       padding: const EdgeInsets.all(24),
