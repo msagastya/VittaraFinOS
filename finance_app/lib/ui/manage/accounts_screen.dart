@@ -226,9 +226,9 @@ class _AccountsScreenState extends State<AccountsScreen> {
 
   Widget _buildAccountCard(Account account) {
     return BouncyButton(
+      key: ValueKey(account.id),
       onPressed: () => _showAccountDetailsSheet(account),
       child: Container(
-        key: ValueKey(account.id),
         margin: const EdgeInsets.only(bottom: 16),
         decoration: AppStyles.cardDecoration(context),
         child: Padding(
