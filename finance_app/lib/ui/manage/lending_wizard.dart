@@ -1,8 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_contacts/flutter_contacts.dart' as flutter_contacts;
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/contacts_controller.dart';
 import 'package:vittara_fin_os/logic/lending_borrowing_model.dart';
+import 'package:vittara_fin_os/logic/contact_model.dart' as app_contact;
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 
 class LendingWizard extends StatefulWidget {
@@ -27,13 +30,15 @@ class _LendingWizardState extends State<LendingWizard> {
   // Form Data
   String? _selectedPersonName;
   String? _selectedPersonId;
-  bool _useContact = false;
+  String _selectionMode = 'none'; // 'my-people', 'phone-contacts', 'manual'
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   DateTime _selectedDate = DateTime.now();
   DateTime? _selectedDueDate;
+  List<app_contact.Contact> _phoneContacts = [];
+  bool _loadingPhoneContacts = false;
 
   @override
   void dispose() {
@@ -70,7 +75,11 @@ class _LendingWizardState extends State<LendingWizard> {
   }
 
   void _finishWizard() {
-    final personName = _useContact ? (_selectedPersonName ?? 'Unknown') : _nameController.text;
+    final personName = (_selectionMode == 'my-people')
+        ? (_selectedPersonName ?? 'Unknown')
+        : _nameController.text;
+    final phoneNumber = _phoneController.text.isNotEmpty ? _phoneController.text : null;
+
     final record = LendingBorrowing(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       personName: personName,
@@ -80,6 +89,15 @@ class _LendingWizardState extends State<LendingWizard> {
       date: _selectedDate,
       dueDate: _selectedDueDate,
     );
+
+    // Auto-save contact if not from 'my-people' mode
+    if (_selectionMode != 'my-people') {
+      Provider.of<ContactsController>(context, listen: false).addOrGetContact(
+        personName,
+        phoneNumber: phoneNumber,
+      );
+    }
+
     widget.onSave(record);
     Navigator.pop(context);
   }
@@ -87,7 +105,14 @@ class _LendingWizardState extends State<LendingWizard> {
   bool _canProceed() {
     switch (_currentStep) {
       case 0:
-        return _useContact ? _selectedPersonId != null : _nameController.text.isNotEmpty;
+        if (_selectionMode == 'my-people') {
+          return _selectedPersonId != null;
+        } else if (_selectionMode == 'phone-contacts') {
+          return _selectedPersonName != null && _selectedPersonName!.isNotEmpty;
+        } else if (_selectionMode == 'manual') {
+          return _nameController.text.isNotEmpty;
+        }
+        return false;
       case 1:
         return _amountController.text.isNotEmpty && double.tryParse(_amountController.text) != null;
       default:
@@ -162,202 +187,470 @@ class _LendingWizardState extends State<LendingWizard> {
   Widget _buildPersonSelectionStep(BuildContext context) {
     return Consumer<ContactsController>(
       builder: (context, contactsController, child) {
-        final contacts = contactsController.contacts;
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Who did you ${widget.type == LendingType.lent ? "lend" : "borrow"} from?',
-                style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Select from your contacts or enter manually',
-                style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
-              ),
-              const SizedBox(height: 24),
+        final appContacts = contactsController.contacts;
 
-              // Toggle between Contacts and Manual entry
-              Row(
+        // Show three options if no selection mode yet
+        if (_selectionMode == 'none') {
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Who did you ${widget.type == LendingType.lent ? "lend" : "borrow"} from?',
+                  style: AppStyles.titleStyle(context).copyWith(fontSize: 28, fontWeight: FontWeight.w800),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Choose where to find this person',
+                  style: TextStyle(color: AppStyles.getSecondaryTextColor(context), fontSize: 14),
+                ),
+                const SizedBox(height: 40),
+                _buildSelectionCard(
+                  context,
+                  title: 'My People',
+                  subtitle: 'Select from saved contacts',
+                  icon: CupertinoIcons.person_2_fill,
+                  color: AppStyles.accentBlue,
+                  onTap: () => setState(() => _selectionMode = 'my-people'),
+                  badgeCount: appContacts.length,
+                ),
+                const SizedBox(height: 16),
+                _buildSelectionCard(
+                  context,
+                  title: 'Phone Contacts',
+                  subtitle: 'Browse device contacts',
+                  icon: CupertinoIcons.phone_fill,
+                  color: CupertinoColors.systemGreen,
+                  onTap: () => _loadPhoneContactsAndSelect(),
+                ),
+                const SizedBox(height: 16),
+                _buildSelectionCard(
+                  context,
+                  title: 'Manual Entry',
+                  subtitle: 'Type name and phone',
+                  icon: CupertinoIcons.pencil,
+                  color: CupertinoColors.systemOrange,
+                  onTap: () => setState(() => _selectionMode = 'manual'),
+                ),
+              ],
+            ),
+          );
+        }
+
+        // Show specific selection based on mode
+        if (_selectionMode == 'my-people') {
+          return _buildMyPeopleSelection(context, appContacts);
+        } else if (_selectionMode == 'phone-contacts') {
+          return _buildPhoneContactsSelection(context);
+        } else {
+          return _buildManualEntrySelection(context);
+        }
+      },
+    );
+  }
+
+  Widget _buildSelectionCard(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+    int? badgeCount,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: AppStyles.getCardColor(context),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withValues(alpha: 0.2), width: 1.5),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Icon(icon, size: 28, color: color),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => setState(() => _useContact = true),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          color: _useContact ? CupertinoColors.systemBlue.withValues(alpha: 0.15) : Colors.transparent,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: _useContact ? CupertinoColors.systemBlue : CupertinoColors.systemGrey,
-                          ),
-                        ),
-                        child: Center(
-                          child: Text(
-                            'From Contacts',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: _useContact ? CupertinoColors.systemBlue : AppStyles.getSecondaryTextColor(context),
-                            ),
-                          ),
-                        ),
-                      ),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: AppStyles.getTextColor(context),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => setState(() => _useContact = false),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          color: !_useContact ? CupertinoColors.systemBlue.withValues(alpha: 0.15) : Colors.transparent,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: !_useContact ? CupertinoColors.systemBlue : CupertinoColors.systemGrey,
-                          ),
-                        ),
-                        child: Center(
-                          child: Text(
-                            'Manual Entry',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: !_useContact ? CupertinoColors.systemBlue : AppStyles.getSecondaryTextColor(context),
-                            ),
-                          ),
-                        ),
-                      ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppStyles.getSecondaryTextColor(context),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
-
-              // Contacts List or Manual Entry
-              if (_useContact)
-                contacts.isEmpty
-                    ? Center(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 32),
-                          child: Text(
-                            'No contacts yet',
-                            style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
-                          ),
-                        ),
-                      )
-                    : Column(
-                        children: contacts.map((contact) {
-                          final isSelected = _selectedPersonId == contact.id;
-                          final contactName = contact.name.isNotEmpty ? contact.name : 'Unknown';
-                          final firstLetter = contactName.isNotEmpty ? contactName[0].toUpperCase() : '?';
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            decoration: BoxDecoration(
-                              color: AppStyles.getCardColor(context),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: isSelected ? CupertinoColors.systemBlue : CupertinoColors.systemGrey.withValues(alpha: 0.2),
-                                width: isSelected ? 2 : 1,
-                              ),
-                            ),
-                            child: CupertinoButton(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                              onPressed: () {
-                                setState(() {
-                                  _selectedPersonId = contact.id;
-                                  _selectedPersonName = contactName;
-                                });
-                              },
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      color: CupertinoColors.systemBlue.withValues(alpha: 0.15),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        firstLetter,
-                                        style: const TextStyle(
-                                          color: CupertinoColors.systemBlue,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          contactName,
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            color: AppStyles.getTextColor(context),
-                                          ),
-                                        ),
-                                        if (contact.phoneNumber?.isNotEmpty ?? false)
-                                          Text(
-                                            contact.phoneNumber!,
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: AppStyles.getSecondaryTextColor(context),
-                                            ),
-                                          ),
-                                      ],
-                                    ),
-                                  ),
-                                  if (isSelected)
-                                    const Icon(CupertinoIcons.checkmark, color: CupertinoColors.systemBlue),
-                                ],
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      )
-              else
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Person Name', style: AppStyles.headerStyle(context)),
-                    const SizedBox(height: 8),
-                    CupertinoTextField(
-                      controller: _nameController,
-                      placeholder: 'Enter person name',
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppStyles.getBackground(context),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      style: TextStyle(color: AppStyles.getTextColor(context)),
-                      onChanged: (_) => setState(() {}),
-                    ),
-                    const SizedBox(height: 16),
-                    Text('Mobile Number (Optional)', style: AppStyles.headerStyle(context)),
-                    const SizedBox(height: 8),
-                    CupertinoTextField(
-                      controller: _phoneController,
-                      placeholder: 'Enter mobile number',
-                      keyboardType: TextInputType.phone,
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppStyles.getBackground(context),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      style: TextStyle(color: AppStyles.getTextColor(context)),
-                    ),
-                  ],
+            ),
+            if (badgeCount != null)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(20),
                 ),
+                child: Text(
+                  '$badgeCount',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMyPeopleSelection(BuildContext context, List<app_contact.Contact> contacts) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              GestureDetector(
+                onTap: () => setState(() => _selectionMode = 'none'),
+                child: Icon(CupertinoIcons.back, color: AppStyles.accentBlue),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'My People',
+                  style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
+                ),
+              ),
             ],
           ),
-        );
-      },
+          const SizedBox(height: 8),
+          Text(
+            'Choose from your saved contacts',
+            style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+          ),
+          const SizedBox(height: 24),
+          if (contacts.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 48),
+                child: Column(
+                  children: [
+                    Icon(CupertinoIcons.person_add, size: 48, color: AppStyles.getSecondaryTextColor(context)),
+                    const SizedBox(height: 12),
+                    Text('No contacts yet', style: TextStyle(color: AppStyles.getSecondaryTextColor(context))),
+                  ],
+                ),
+              ),
+            )
+          else
+            Column(
+              children: contacts.map((contact) {
+                final isSelected = _selectedPersonId == contact.id;
+                final contactName = contact.name.isNotEmpty ? contact.name : 'Unknown';
+                final firstLetter = contactName.isNotEmpty ? contactName[0].toUpperCase() : '?';
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _selectedPersonId = contact.id;
+                      _selectedPersonName = contactName;
+                    });
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: AppStyles.getCardColor(context),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isSelected ? AppStyles.accentBlue : CupertinoColors.systemGrey.withValues(alpha: 0.2),
+                        width: isSelected ? 2 : 1,
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: AppStyles.accentBlue.withValues(alpha: 0.15),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Center(
+                              child: Text(
+                                firstLetter,
+                                style: const TextStyle(
+                                  color: CupertinoColors.systemBlue,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  contactName,
+                                  style: TextStyle(fontWeight: FontWeight.w600, color: AppStyles.getTextColor(context)),
+                                ),
+                                if (contact.phoneNumber?.isNotEmpty ?? false)
+                                  Text(
+                                    contact.phoneNumber!,
+                                    style: TextStyle(fontSize: 12, color: AppStyles.getSecondaryTextColor(context)),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          if (isSelected)
+                            const Icon(CupertinoIcons.checkmark, color: CupertinoColors.systemBlue),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+        ],
+      ),
     );
+  }
+
+  Widget _buildPhoneContactsSelection(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              GestureDetector(
+                onTap: () => setState(() => _selectionMode = 'none'),
+                child: Icon(CupertinoIcons.back, color: AppStyles.accentBlue),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Phone Contacts',
+                  style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Select from your device contacts',
+            style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+          ),
+          const SizedBox(height: 24),
+          if (_loadingPhoneContacts)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 48),
+                child: CupertinoActivityIndicator(),
+              ),
+            )
+          else if (_phoneContacts.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 48),
+                child: Column(
+                  children: [
+                    Icon(CupertinoIcons.phone, size: 48, color: AppStyles.getSecondaryTextColor(context)),
+                    const SizedBox(height: 12),
+                    Text('No contacts found', style: TextStyle(color: AppStyles.getSecondaryTextColor(context))),
+                  ],
+                ),
+              ),
+            )
+          else
+            Column(
+              children: _phoneContacts.map((contact) {
+                final isSelected = _selectedPersonName == contact.name;
+                final contactName = contact.name.isNotEmpty ? contact.name : 'Unknown';
+                final firstLetter = contactName.isNotEmpty ? contactName[0].toUpperCase() : '?';
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _selectedPersonName = contactName;
+                      if (contact.phoneNumber?.isNotEmpty ?? false) {
+                        _phoneController.text = contact.phoneNumber ?? '';
+                      }
+                    });
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: AppStyles.getCardColor(context),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isSelected ? CupertinoColors.systemGreen : CupertinoColors.systemGrey.withValues(alpha: 0.2),
+                        width: isSelected ? 2 : 1,
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: CupertinoColors.systemGreen.withValues(alpha: 0.15),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Center(
+                              child: Text(
+                                firstLetter,
+                                style: const TextStyle(
+                                  color: CupertinoColors.systemGreen,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  contactName,
+                                  style: TextStyle(fontWeight: FontWeight.w600, color: AppStyles.getTextColor(context)),
+                                ),
+                                if (contact.phoneNumber?.isNotEmpty ?? false)
+                                  Text(
+                                    contact.phoneNumber!,
+                                    style: TextStyle(fontSize: 12, color: AppStyles.getSecondaryTextColor(context)),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          if (isSelected)
+                            const Icon(CupertinoIcons.checkmark, color: CupertinoColors.systemGreen),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildManualEntrySelection(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              GestureDetector(
+                onTap: () => setState(() => _selectionMode = 'none'),
+                child: Icon(CupertinoIcons.back, color: AppStyles.accentBlue),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Manual Entry',
+                  style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Enter person details manually',
+            style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+          ),
+          const SizedBox(height: 32),
+          Text('Person Name', style: AppStyles.headerStyle(context)),
+          const SizedBox(height: 8),
+          CupertinoTextField(
+            controller: _nameController,
+            placeholder: 'Enter person name',
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppStyles.getBackground(context),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            style: TextStyle(color: AppStyles.getTextColor(context)),
+            onChanged: (_) => setState(() {}),
+          ),
+          const SizedBox(height: 20),
+          Text('Mobile Number (Optional)', style: AppStyles.headerStyle(context)),
+          const SizedBox(height: 8),
+          CupertinoTextField(
+            controller: _phoneController,
+            placeholder: 'Enter mobile number',
+            keyboardType: TextInputType.phone,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppStyles.getBackground(context),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            style: TextStyle(color: AppStyles.getTextColor(context)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _loadPhoneContactsAndSelect() async {
+    setState(() => _loadingPhoneContacts = true);
+    try {
+      if (await Permission.contacts.request().isGranted) {
+        final contacts = await flutter_contacts.FlutterContacts.getContacts(withProperties: true);
+        setState(() {
+          _phoneContacts = contacts
+              .where((c) => c.displayName.isNotEmpty)
+              .map((c) {
+                final phone = c.phones.isNotEmpty ? c.phones.first.number : null;
+                return app_contact.Contact(
+                  id: c.id,
+                  name: c.displayName,
+                  phoneNumber: phone,
+                  createdDate: DateTime.now(),
+                );
+              })
+              .toList();
+          _selectionMode = 'phone-contacts';
+        });
+      }
+    } catch (e) {
+      print('Error loading contacts: $e');
+    } finally {
+      setState(() => _loadingPhoneContacts = false);
+    }
   }
 
   Widget _buildAmountStep(BuildContext context) {
@@ -585,7 +878,9 @@ class _LendingWizardState extends State<LendingWizard> {
   }
 
   Widget _buildReviewStep(BuildContext context, Color color) {
-    final personName = _useContact ? (_selectedPersonName ?? 'Unknown') : _nameController.text;
+    final personName = (_selectionMode == 'my-people')
+        ? (_selectedPersonName ?? 'Unknown')
+        : _nameController.text;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(

@@ -213,9 +213,6 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
           type: type,
           onSave: (record) {
             Provider.of<LendingBorrowingController>(context, listen: false).addRecord(record);
-            Provider.of<ContactsController>(context, listen: false).addOrGetContact(
-              record.personName,
-            );
             logger.info(
               'Added ${type == LendingType.lent ? "lent" : "borrowed"} record: ${record.personName}',
               context: 'LendingBorrowingScreen',
