@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/ui/manage/banks_screen.dart';
 import 'package:vittara_fin_os/ui/manage/accounts_screen.dart';
 import 'package:vittara_fin_os/ui/manage/payment_apps_screen.dart';
+import 'package:vittara_fin_os/ui/manage/investments_screen.dart';
 import 'package:vittara_fin_os/ui/settings_screen.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -92,6 +93,8 @@ class _ManageScreenState extends State<ManageScreen> {
             Navigator.of(context).push(FadeScalePageRoute(page: const AccountsScreen()));
           } else if (item['id'] == 'pay') {
             Navigator.of(context).push(FadeScalePageRoute(page: const PaymentAppsScreen()));
+          } else if (item['id'] == 'invest') {
+            Navigator.of(context).push(FadeScalePageRoute(page: const InvestmentsScreen()));
           }
         },
         child: Container(

@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/banks_controller.dart';
 import 'package:vittara_fin_os/logic/brokers_controller.dart';
+import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/payment_apps_controller.dart';
 import 'package:vittara_fin_os/logic/settings_controller.dart';
 import 'package:vittara_fin_os/ui/fintech_loader.dart';
@@ -44,6 +45,9 @@ void main() {
           ),
           ChangeNotifierProvider(
             create: (_) => PaymentAppsController(),
+          ),
+          ChangeNotifierProvider(
+            create: (_) => InvestmentsController()..loadInvestments(),
           ),
         ],
         child: const MyApp(),
