@@ -70,7 +70,7 @@ class _LendingWizardState extends State<LendingWizard> {
   }
 
   void _finishWizard() {
-    final personName = _useContact ? _selectedPersonName! : _nameController.text;
+    final personName = _useContact ? (_selectedPersonName ?? 'Unknown') : _nameController.text;
     final record = LendingBorrowing(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       personName: personName,
@@ -585,7 +585,7 @@ class _LendingWizardState extends State<LendingWizard> {
   }
 
   Widget _buildReviewStep(BuildContext context, Color color) {
-    final personName = _useContact ? _selectedPersonName! : _nameController.text;
+    final personName = _useContact ? (_selectedPersonName ?? 'Unknown') : _nameController.text;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
