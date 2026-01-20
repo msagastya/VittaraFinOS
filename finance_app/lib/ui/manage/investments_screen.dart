@@ -21,13 +21,21 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
   void _showInvestmentTypeSelection(BuildContext context) {
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => InvestmentTypeSelectionModal(
+      builder: (modalContext) => InvestmentTypeSelectionModal(
         onTypeSelected: (investmentType) {
           logger.info('Selected investment type: ${investmentType.name}', context: 'InvestmentsScreen');
           // For now, just log. Later we'll create investment details form
+          Navigator.pop(modalContext);
+          final dummyInvestment = Investment(
+            id: '',
+            name: '',
+            type: investmentType,
+            amount: 0,
+            color: Colors.grey,
+          );
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('${investmentType.name} selected - details form coming soon!'),
+              content: Text('${dummyInvestment.getTypeLabel()} selected - details form coming soon!'),
               duration: const Duration(seconds: 2),
             ),
           );
