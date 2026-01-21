@@ -1,6 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:vittara_fin_os/logic/settings_controller.dart';
+import 'package:vittara_fin_os/logic/lending_borrowing_controller.dart';
 import 'package:vittara_fin_os/ui/manage/banks_screen.dart';
 import 'package:vittara_fin_os/ui/manage/accounts_screen.dart';
 import 'package:vittara_fin_os/ui/manage/payment_apps_screen.dart';
@@ -36,15 +39,6 @@ class _ManageScreenState extends State<ManageScreen> {
     {'id': 'tags', 'title': 'Tags', 'icon': CupertinoIcons.tag_fill, 'color': CupertinoColors.systemIndigo},
   ];
 
-  void _onReorder(int oldIndex, int newIndex) {
-    setState(() {
-      if (oldIndex < newIndex) {
-        newIndex -= 1;
-      }
-      final item = _items.removeAt(oldIndex);
-      _items.insert(newIndex, item);
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,31 +50,59 @@ class _ManageScreenState extends State<ManageScreen> {
         backgroundColor: AppStyles.getBackground(context).withValues(alpha: 0.9),
         border: null,
       ),
-      child: SafeArea(
-        child: ReorderableListView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-          itemCount: _items.length,
-          onReorder: _onReorder,
-          proxyDecorator: (child, index, animation) {
-            return AnimatedBuilder(
-              animation: animation,
-              builder: (BuildContext context, Widget? child) {
-                return Transform.scale(
-                  scale: 1.02,
-                  child: Container(
-                    decoration: AppStyles.cardDecoration(context),
-                    child: child,
-                  ),
+      child: Consumer2<SettingsController, LendingBorrowingController>(
+        builder: (context, settings, lendingController, child) {
+          // Filter items based on settings
+          final filteredItems = _items.where((item) {
+            // Hide Investments if Investment Tracking is disabled
+            if (item['id'] == 'invest' && !settings.isInvestmentTrackingEnabled) {
+              return false;
+            }
+            // Hide People if no contacts are used in lending/borrowing
+            if (item['id'] == 'contacts' && lendingController.records.isEmpty) {
+              return false;
+            }
+            return true;
+          }).toList();
+
+          return SafeArea(
+            child: ReorderableListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              itemCount: filteredItems.length,
+              onReorder: (oldIndex, newIndex) {
+                setState(() {
+                  if (oldIndex < newIndex) {
+                    newIndex -= 1;
+                  }
+                  final item = filteredItems.removeAt(oldIndex);
+                  filteredItems.insert(newIndex, item);
+                  // Update main _items list to match
+                  _items.clear();
+                  _items.addAll(filteredItems);
+                });
+              },
+              proxyDecorator: (child, index, animation) {
+                return AnimatedBuilder(
+                  animation: animation,
+                  builder: (BuildContext context, Widget? child) {
+                    return Transform.scale(
+                      scale: 1.02,
+                      child: Container(
+                        decoration: AppStyles.cardDecoration(context),
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: child,
                 );
               },
-              child: child,
-            );
-          },
-          itemBuilder: (context, index) {
-            final item = _items[index];
-            return _build3DCard(item, index);
-          },
-        ),
+              itemBuilder: (context, index) {
+                final item = filteredItems[index];
+                return _build3DCard(item, index);
+              },
+            ),
+          );
+        },
       ),
     );
   }

@@ -80,6 +80,7 @@ class SettingsController with ChangeNotifier {
       }
     } else {
       _isBiometricEnabled = false;
+      _isLocked = false;
       await _prefs.setBool('isBiometricEnabled', false);
     }
     notifyListeners();
