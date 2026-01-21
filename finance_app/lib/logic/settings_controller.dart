@@ -81,7 +81,10 @@ class SettingsController with ChangeNotifier {
     } else {
       _isBiometricEnabled = false;
       _isLocked = false;
+      _lockOnMinimize = false;
       await _prefs.setBool('isBiometricEnabled', false);
+      await _prefs.setBool('lockOnMinimize', false);
+      _updateSecureFlag();
     }
     notifyListeners();
   }

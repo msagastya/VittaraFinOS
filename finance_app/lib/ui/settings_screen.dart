@@ -47,28 +47,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: CupertinoColors.systemGreen,
                   onChanged: (val) => settings.toggleBiometric(val),
                 ),
-                _buildDivider(context),
-                _buildToggleRow(
-                  context,
-                  icon: CupertinoIcons.lock_shield,
-                  title: 'Lock on Minimize',
-                  value: settings.lockOnMinimize,
-                  color: CupertinoColors.systemOrange,
-                  onChanged: (val) {
-                    settings.toggleLockOnMinimize(val);
-                    if (val) _showLockTimeoutOptions(context, settings);
-                  },
-                ),
-                if (settings.lockOnMinimize) ...[
+                if (settings.isBiometricEnabled) ...[
                   _buildDivider(context),
-                  _buildNavRow(
+                  _buildToggleRow(
                     context,
-                    icon: CupertinoIcons.time,
-                    title: 'Lock Timeout',
-                    value: _getTimeoutString(settings.lockTimeoutSeconds),
-                    color: CupertinoColors.systemGrey,
-                    onTap: () => _showLockTimeoutOptions(context, settings),
+                    icon: CupertinoIcons.lock_shield,
+                    title: 'Lock on Minimize',
+                    value: settings.lockOnMinimize,
+                    color: CupertinoColors.systemOrange,
+                    onChanged: (val) {
+                      settings.toggleLockOnMinimize(val);
+                      if (val) _showLockTimeoutOptions(context, settings);
+                    },
                   ),
+                  if (settings.lockOnMinimize) ...[
+                    _buildDivider(context),
+                    _buildNavRow(
+                      context,
+                      icon: CupertinoIcons.time,
+                      title: 'Lock Timeout',
+                      value: _getTimeoutString(settings.lockTimeoutSeconds),
+                      color: CupertinoColors.systemGrey,
+                      onTap: () => _showLockTimeoutOptions(context, settings),
+                    ),
+                  ],
                 ],
               ]),
 
