@@ -13,6 +13,7 @@ import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/lending_borrowing_controller.dart';
 import 'package:vittara_fin_os/logic/payment_apps_controller.dart';
 import 'package:vittara_fin_os/logic/settings_controller.dart';
+import 'package:vittara_fin_os/logic/tags_controller.dart';
 import 'package:vittara_fin_os/ui/fintech_loader.dart';
 import 'package:vittara_fin_os/ui/manage_screen.dart';
 import 'package:vittara_fin_os/ui/settings_screen.dart';
@@ -64,6 +65,9 @@ void main() {
           ),
           ChangeNotifierProvider(
             create: (_) => ContactsController()..loadContacts(),
+          ),
+          ChangeNotifierProvider(
+            create: (_) => TagsController()..loadTags(),
           ),
         ],
         child: const MyApp(),

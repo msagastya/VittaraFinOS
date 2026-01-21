@@ -8,6 +8,7 @@ import 'package:vittara_fin_os/ui/manage/investments_screen.dart';
 import 'package:vittara_fin_os/ui/manage/categories_screen.dart';
 import 'package:vittara_fin_os/ui/manage/lending_borrowing_screen.dart';
 import 'package:vittara_fin_os/ui/manage/contacts_screen.dart';
+import 'package:vittara_fin_os/ui/manage/tags_screen.dart';
 import 'package:vittara_fin_os/ui/settings_screen.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -32,7 +33,7 @@ class _ManageScreenState extends State<ManageScreen> {
     {'id': 'cats', 'title': 'Categories', 'icon': CupertinoIcons.square_grid_2x2_fill, 'color': CupertinoColors.systemPurple},
     {'id': 'contacts', 'title': 'People', 'icon': CupertinoIcons.person_2_fill, 'color': CupertinoColors.systemBrown},
     {'id': 'lend', 'title': 'Personal Lending & Borrowing', 'icon': CupertinoIcons.money_dollar_circle_fill, 'color': CupertinoColors.systemTeal},
-    {'id': 'tags', 'title': 'Tags', 'icon': CupertinoIcons.tag_fill, 'color': CupertinoColors.systemPink},
+    {'id': 'tags', 'title': 'Tags', 'icon': CupertinoIcons.tag_fill, 'color': CupertinoColors.systemIndigo},
   ];
 
   void _onReorder(int oldIndex, int newIndex) {
@@ -105,6 +106,8 @@ class _ManageScreenState extends State<ManageScreen> {
             Navigator.of(context).push(FadeScalePageRoute(page: const ContactsScreen()));
           } else if (item['id'] == 'lend') {
             Navigator.of(context).push(FadeScalePageRoute(page: const LendingBorrowingScreen()));
+          } else if (item['id'] == 'tags') {
+            Navigator.of(context).push(FadeScalePageRoute(page: const TagsScreen()));
           }
         },
         child: Container(
