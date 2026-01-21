@@ -35,9 +35,11 @@ class _LendingWizardState extends State<LendingWizard> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
   DateTime _selectedDate = DateTime.now();
   DateTime? _selectedDueDate;
   List<app_contact.Contact> _phoneContacts = [];
+  List<app_contact.Contact> _filteredPhoneContacts = [];
   bool _loadingPhoneContacts = false;
 
   @override
@@ -47,6 +49,7 @@ class _LendingWizardState extends State<LendingWizard> {
     _phoneController.dispose();
     _amountController.dispose();
     _descriptionController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -75,9 +78,11 @@ class _LendingWizardState extends State<LendingWizard> {
   }
 
   void _finishWizard() {
-    final personName = (_selectionMode == 'my-people')
+    final personName = _selectionMode == 'my-people'
         ? (_selectedPersonName ?? 'Unknown')
-        : _nameController.text;
+        : _selectionMode == 'phone-contacts'
+            ? (_selectedPersonName ?? 'Unknown')
+            : _nameController.text;
     final phoneNumber = _phoneController.text.isNotEmpty ? _phoneController.text : null;
 
     final record = LendingBorrowing(
@@ -447,15 +452,27 @@ class _LendingWizardState extends State<LendingWizard> {
   }
 
   Widget _buildPhoneContactsSelection(BuildContext context) {
+    // Filter contacts based on search
+    final displayContacts = _searchController.text.isEmpty
+        ? _phoneContacts
+        : _phoneContacts
+            .where((contact) =>
+                contact.name.toLowerCase().contains(_searchController.text.toLowerCase()) ||
+                (contact.phoneNumber?.toLowerCase().contains(_searchController.text.toLowerCase()) ?? false))
+            .toList();
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 200),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               GestureDetector(
-                onTap: () => setState(() => _selectionMode = 'none'),
+                onTap: () {
+                  setState(() => _selectionMode = 'none');
+                  _searchController.clear();
+                },
                 child: Icon(CupertinoIcons.back, color: AppStyles.accentBlue),
               ),
               const SizedBox(width: 12),
@@ -471,6 +488,31 @@ class _LendingWizardState extends State<LendingWizard> {
           Text(
             'Select from your device contacts',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+          ),
+          const SizedBox(height: 24),
+          // Search field
+          CupertinoTextField(
+            controller: _searchController,
+            placeholder: 'Search contacts...',
+            prefix: Padding(
+              padding: const EdgeInsets.only(left: 12),
+              child: Icon(CupertinoIcons.search, color: AppStyles.accentBlue, size: 20),
+            ),
+            suffix: _searchController.text.isNotEmpty
+                ? CupertinoButton(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    onPressed: () => setState(() => _searchController.clear()),
+                    child: Icon(CupertinoIcons.xmark_circle_fill, color: AppStyles.getSecondaryTextColor(context), size: 18),
+                  )
+                : null,
+            padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
+            decoration: BoxDecoration(
+              color: AppStyles.getCardColor(context),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppStyles.accentBlue.withValues(alpha: 0.3), width: 1.5),
+            ),
+            style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600, fontSize: 14),
+            onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: 24),
           if (_loadingPhoneContacts)
@@ -493,9 +535,22 @@ class _LendingWizardState extends State<LendingWizard> {
                 ),
               ),
             )
+          else if (displayContacts.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 48),
+                child: Column(
+                  children: [
+                    Icon(CupertinoIcons.search, size: 48, color: AppStyles.getSecondaryTextColor(context)),
+                    const SizedBox(height: 12),
+                    Text('No contacts match your search', style: TextStyle(color: AppStyles.getSecondaryTextColor(context))),
+                  ],
+                ),
+              ),
+            )
           else
             Column(
-              children: _phoneContacts.map((contact) {
+              children: displayContacts.map((contact) {
                 final isSelected = _selectedPersonName == contact.name;
                 final contactName = contact.name.isNotEmpty ? contact.name : 'Unknown';
                 final firstLetter = contactName.isNotEmpty ? contactName[0].toUpperCase() : '?';
@@ -509,55 +564,110 @@ class _LendingWizardState extends State<LendingWizard> {
                     });
                   },
                   child: Container(
-                    margin: const EdgeInsets.only(bottom: 12),
+                    margin: const EdgeInsets.only(bottom: 14),
                     decoration: BoxDecoration(
                       color: AppStyles.getCardColor(context),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: isSelected ? CupertinoColors.systemGreen : CupertinoColors.systemGrey.withValues(alpha: 0.2),
-                        width: isSelected ? 2 : 1,
+                        color: isSelected ? CupertinoColors.systemGreen : CupertinoColors.systemGrey.withValues(alpha: 0.15),
+                        width: isSelected ? 2.5 : 1.5,
                       ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: isSelected
+                              ? CupertinoColors.systemGreen.withValues(alpha: 0.25)
+                              : Colors.black.withValues(alpha: 0.08),
+                          blurRadius: isSelected ? 12 : 8,
+                          offset: const Offset(0, 2),
+                          spreadRadius: isSelected ? 1 : 0,
+                        ),
+                      ],
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                       child: Row(
                         children: [
                           Container(
-                            width: 40,
-                            height: 40,
+                            width: 48,
+                            height: 48,
                             decoration: BoxDecoration(
-                              color: CupertinoColors.systemGreen.withValues(alpha: 0.15),
+                              gradient: LinearGradient(
+                                colors: [
+                                  CupertinoColors.systemGreen.withValues(alpha: 0.2),
+                                  CupertinoColors.systemGreen.withValues(alpha: 0.1),
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
                               shape: BoxShape.circle,
+                              border: Border.all(
+                                color: CupertinoColors.systemGreen.withValues(alpha: 0.3),
+                                width: 1.5,
+                              ),
                             ),
                             child: Center(
                               child: Text(
                                 firstLetter,
                                 style: const TextStyle(
                                   color: CupertinoColors.systemGreen,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 20,
                                 ),
                               ),
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 16),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
                                   contactName,
-                                  style: TextStyle(fontWeight: FontWeight.w600, color: AppStyles.getTextColor(context)),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    color: AppStyles.getTextColor(context),
+                                    fontSize: 15,
+                                    letterSpacing: 0.3,
+                                  ),
                                 ),
-                                if (contact.phoneNumber?.isNotEmpty ?? false)
+                                if (contact.phoneNumber?.isNotEmpty ?? false) ...[
+                                  const SizedBox(height: 4),
                                   Text(
                                     contact.phoneNumber!,
-                                    style: TextStyle(fontSize: 12, color: AppStyles.getSecondaryTextColor(context)),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: AppStyles.getSecondaryTextColor(context),
+                                    ),
                                   ),
+                                ],
                               ],
                             ),
                           ),
+                          const SizedBox(width: 12),
                           if (isSelected)
-                            const Icon(CupertinoIcons.checkmark, color: CupertinoColors.systemGreen),
+                            Container(
+                              width: 28,
+                              height: 28,
+                              decoration: BoxDecoration(
+                                color: CupertinoColors.systemGreen,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: CupertinoColors.systemGreen.withValues(alpha: 0.4),
+                                    blurRadius: 8,
+                                  ),
+                                ],
+                              ),
+                              child: const Center(
+                                child: Icon(CupertinoIcons.checkmark, color: Colors.white, size: 16),
+                              ),
+                            ),
                         ],
                       ),
                     ),
@@ -884,9 +994,11 @@ class _LendingWizardState extends State<LendingWizard> {
   }
 
   Widget _buildReviewStep(BuildContext context, Color color) {
-    final personName = (_selectionMode == 'my-people')
+    final personName = _selectionMode == 'my-people'
         ? (_selectedPersonName ?? 'Unknown')
-        : _nameController.text;
+        : _selectionMode == 'phone-contacts'
+            ? (_selectedPersonName ?? 'Unknown')
+            : _nameController.text;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
