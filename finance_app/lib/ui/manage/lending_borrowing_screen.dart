@@ -258,47 +258,63 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
               children: [
                 // Header with Icon and Name
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Container(
-                      width: 44,
-                      height: 44,
+                      width: 48,
+                      height: 48,
                       decoration: BoxDecoration(
                         color: color.withValues(alpha: 0.15),
                         shape: BoxShape.circle,
                       ),
                       child: Center(
-                        child: Icon(icon, color: color, size: 20),
+                        child: Icon(icon, color: color, size: 22),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 14),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            record.personName,
+                            record.personName.isNotEmpty ? record.personName : 'Unknown',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
                               color: AppStyles.getTextColor(context),
+                              letterSpacing: 0.3,
                             ),
                           ),
+                          const SizedBox(height: 4),
                           Text(
                             _formatDate(record.date),
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
                               color: AppStyles.getSecondaryTextColor(context),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    Text(
-                      '₹${record.amount.toStringAsFixed(0)}',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: color,
+                    const SizedBox(width: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '₹${record.amount.toStringAsFixed(0)}',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: color,
+                          letterSpacing: 0.5,
+                        ),
                       ),
                     ),
                   ],

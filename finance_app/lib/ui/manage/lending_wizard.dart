@@ -127,6 +127,7 @@ class _LendingWizardState extends State<LendingWizard> {
 
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
+      resizeToAvoidBottomInset: true,
       navigationBar: CupertinoNavigationBar(
         middle: Text(
           isLent ? 'Lent Money' : 'Borrowed Money',
@@ -141,6 +142,7 @@ class _LendingWizardState extends State<LendingWizard> {
         border: null,
       ),
       child: SafeArea(
+        bottom: false,
         child: Column(
           children: [
             _buildProgressBar(color),
@@ -156,7 +158,9 @@ class _LendingWizardState extends State<LendingWizard> {
                 ],
               ),
             ),
-            _buildFooter(color),
+            SingleChildScrollView(
+              child: _buildFooter(color),
+            ),
           ],
         ),
       ),
@@ -568,7 +572,7 @@ class _LendingWizardState extends State<LendingWizard> {
 
   Widget _buildManualEntrySelection(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 200),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -600,10 +604,11 @@ class _LendingWizardState extends State<LendingWizard> {
             placeholder: 'Enter person name',
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppStyles.getBackground(context),
+              color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppStyles.accentBlue.withValues(alpha: 0.2)),
             ),
-            style: TextStyle(color: AppStyles.getTextColor(context)),
+            style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600),
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: 20),
@@ -615,10 +620,11 @@ class _LendingWizardState extends State<LendingWizard> {
             keyboardType: TextInputType.phone,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppStyles.getBackground(context),
+              color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppStyles.accentBlue.withValues(alpha: 0.2)),
             ),
-            style: TextStyle(color: AppStyles.getTextColor(context)),
+            style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600),
           ),
         ],
       ),
@@ -655,7 +661,7 @@ class _LendingWizardState extends State<LendingWizard> {
 
   Widget _buildAmountStep(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 200),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -717,7 +723,7 @@ class _LendingWizardState extends State<LendingWizard> {
 
   Widget _buildDescriptionDateStep(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 200),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
