@@ -88,7 +88,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                       const SizedBox(height: 24),
                       CupertinoButton(
                         color: AppStyles.accentBlue,
-                        child: const Text('Add Investment'),
+                        child: const Text('Add Investment', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
                         onPressed: () => _showInvestmentTypeSelection(context),
                       ),
                     ],
