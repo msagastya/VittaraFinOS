@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
+import 'package:vittara_fin_os/logic/brokers_controller.dart';
 import 'package:vittara_fin_os/logic/payment_apps_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
+import 'package:vittara_fin_os/ui/manage/account_wizard.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
@@ -228,8 +230,8 @@ class _TransferWizardState extends State<TransferWizard> {
   }
 
   Widget _buildSourceAccountStep() {
-    return Consumer<AccountsController>(
-      builder: (context, accountsController, _) {
+    return Consumer2<AccountsController, BrokersController>(
+      builder: (context, accountsController, brokersController, _) {
         return SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -251,7 +253,14 @@ class _TransferWizardState extends State<TransferWizard> {
                       final isSelected = _sourceAccount?.id == account.id;
                       return GestureDetector(
                         onTap: () {
-                          setState(() => _sourceAccount = account);
+                          setState(() {
+                            _sourceAccount = account;
+                            // Auto-select broker if source is Demat/Investment
+                            if (account.type == AccountType.investment) {
+                              _selectedPaymentApp = account.bankName;
+                              _paymentAppHasWallet = false; // Brokers don't have wallets
+                            }
+                          });
                           _nextStep();
                         },
                         child: Container(
@@ -316,11 +325,59 @@ class _TransferWizardState extends State<TransferWizard> {
                     })
                     .toList(),
               ),
+              const SizedBox(height: 24),
+              BouncyButton(
+                onPressed: () => _showAddAccountModal(context, accountsController),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: CupertinoColors.systemBlue.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: CupertinoColors.systemBlue,
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(CupertinoIcons.add, color: CupertinoColors.systemBlue),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Add Account',
+                          style: TextStyle(
+                            color: CupertinoColors.systemBlue,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         );
       },
     );
+  }
+
+  void _showAddAccountModal(BuildContext context, AccountsController accountsController) {
+    Navigator.push<Account>(
+      context,
+      FadeScalePageRoute(
+        page: const AccountWizard(isInvestment: false),
+      ),
+    ).then((result) {
+      if (result != null) {
+        accountsController.addAccount(result);
+        setState(() => _sourceAccount = result);
+        _nextStep();
+      }
+    });
   }
 
   Widget _buildDestinationAccountStep() {
@@ -497,6 +554,8 @@ class _TransferWizardState extends State<TransferWizard> {
   }
 
   Widget _buildPaymentAppStep() {
+    final isSourceDemat = _sourceAccount?.type == AccountType.investment;
+
     return Consumer<PaymentAppsController>(
       builder: (context, paymentAppsController, _) {
         return SingleChildScrollView(
@@ -505,91 +564,182 @@ class _TransferWizardState extends State<TransferWizard> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Payment App (Optional)',
+                isSourceDemat ? 'Broker (Demat)' : 'Payment App (Optional)',
                 style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
               ),
               const SizedBox(height: 8),
               Text(
-                'Are you using any payment app for this transfer?',
+                isSourceDemat
+                    ? 'Cannot withdraw from Demat using other apps. Using: ${_sourceAccount!.bankName}'
+                    : 'Which payment app are you using for this transfer?',
                 style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
               ),
               const SizedBox(height: 32),
-              if (paymentAppsController.paymentApps.isEmpty)
-                Center(
-                  child: Text(
-                    'No payment apps added yet',
-                    style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+              if (isSourceDemat)
+                // Show locked broker for Demat
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: CupertinoColors.systemGreen.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: CupertinoColors.systemGreen,
+                      width: 2,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        CupertinoIcons.lock_fill,
+                        color: CupertinoColors.systemGreen,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _sourceAccount!.bankName,
+                              style: AppStyles.titleStyle(context).copyWith(fontSize: 16),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Auto-selected (Fixed)',
+                              style: TextStyle(
+                                fontSize: TypeScale.footnote,
+                                color: CupertinoColors.systemGreen,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(
+                        CupertinoIcons.checkmark_circle_fill,
+                        color: CupertinoColors.systemGreen,
+                        size: 24,
+                      ),
+                    ],
                   ),
                 )
               else
+                // Show payment apps for other accounts
                 Column(
-                  children: paymentAppsController.paymentApps
-                      .map((app) {
-                        final isSelected = _selectedPaymentApp == app['name'];
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _selectedPaymentApp = app['name'];
-                              _paymentAppHasWallet = app['hasWallet'] ?? false;
-                              if (!_paymentAppHasWallet) {
-                                _nextStep();
-                              }
-                            });
-                          },
-                          child: Container(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: AppStyles.getCardColor(context),
-                              borderRadius: BorderRadius.circular(12),
-                              border: isSelected
-                                  ? Border.all(color: CupertinoColors.systemBlue, width: 2)
-                                  : Border.all(
-                                      color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.1),
-                                      width: 1,
-                                    ),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  CupertinoIcons.square_stack_3d_down_right_fill,
-                                  color: CupertinoColors.systemBlue,
-                                  size: 24,
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (paymentAppsController.paymentApps.isEmpty)
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 32),
+                          child: Text(
+                            'No payment apps added yet',
+                            style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+                          ),
+                        ),
+                      )
+                    else
+                      Column(
+                        children: paymentAppsController.paymentApps
+                            .map((app) {
+                              final isSelected = _selectedPaymentApp == app['name'];
+                              return GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _selectedPaymentApp = app['name'];
+                                    _paymentAppHasWallet = app['hasWallet'] ?? false;
+                                    if (!_paymentAppHasWallet) {
+                                      _nextStep();
+                                    }
+                                  });
+                                },
+                                child: Container(
+                                  margin: const EdgeInsets.only(bottom: 12),
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: AppStyles.getCardColor(context),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: isSelected
+                                        ? Border.all(color: CupertinoColors.systemBlue, width: 2)
+                                        : Border.all(
+                                            color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.1),
+                                            width: 1,
+                                          ),
+                                  ),
+                                  child: Row(
                                     children: [
-                                      Text(
-                                        app['name'],
-                                        style: AppStyles.titleStyle(context).copyWith(fontSize: 16),
+                                      Icon(
+                                        CupertinoIcons.square_stack_3d_down_right_fill,
+                                        color: CupertinoColors.systemBlue,
+                                        size: 24,
                                       ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        (app['hasWallet'] ?? false) ? 'Has wallet' : 'No wallet',
-                                        style: TextStyle(
-                                          fontSize: TypeScale.footnote,
-                                          color: AppStyles.getSecondaryTextColor(context),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              app['name'],
+                                              style: AppStyles.titleStyle(context).copyWith(fontSize: 16),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              (app['hasWallet'] ?? false) ? 'Has wallet' : 'No wallet',
+                                              style: TextStyle(
+                                                fontSize: TypeScale.footnote,
+                                                color: AppStyles.getSecondaryTextColor(context),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
+                                      if (isSelected)
+                                        const Icon(
+                                          CupertinoIcons.checkmark_circle_fill,
+                                          color: CupertinoColors.systemBlue,
+                                          size: 24,
+                                        ),
                                     ],
                                   ),
                                 ),
-                                if (isSelected)
-                                  const Icon(
-                                    CupertinoIcons.checkmark_circle_fill,
-                                    color: CupertinoColors.systemBlue,
-                                    size: 24,
-                                  ),
-                              ],
-                            ),
+                              );
+                            })
+                            .toList(),
+                      ),
+                    const SizedBox(height: 12),
+                    BouncyButton(
+                      onPressed: () => _showAddPaymentAppModal(context, paymentAppsController),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: CupertinoColors.systemBlue.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: CupertinoColors.systemBlue,
+                            width: 1.5,
                           ),
-                        );
-                      })
-                      .toList(),
+                        ),
+                        child: Center(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(CupertinoIcons.add, color: CupertinoColors.systemBlue),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Add Payment App',
+                                style: TextStyle(
+                                  color: CupertinoColors.systemBlue,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              if (_selectedPaymentApp != null && _paymentAppHasWallet) ...[
+              if (_selectedPaymentApp != null && _paymentAppHasWallet && !isSourceDemat) ...[
                 const SizedBox(height: 32),
                 Text('Amount from App Wallet', style: AppStyles.headerStyle(context)),
                 const SizedBox(height: 4),
@@ -622,6 +772,219 @@ class _TransferWizardState extends State<TransferWizard> {
               ],
             ],
           ),
+        );
+      },
+    );
+  }
+
+  void _showAddPaymentAppModal(BuildContext context, PaymentAppsController paymentAppsController) {
+    final appNameController = TextEditingController();
+    bool hasWallet = false;
+
+    showCupertinoModalPopup(
+      context: context,
+      builder: (modalContext) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.5,
+              decoration: BoxDecoration(
+                color: AppStyles.getCardColor(context),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Column(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: CupertinoColors.systemGrey3,
+                            borderRadius: BorderRadius.circular(2.5),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Add Payment App',
+                          style: AppStyles.titleStyle(context).copyWith(fontSize: 20),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Divider(color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.1)),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'App Name',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: AppStyles.getSecondaryTextColor(context),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          CupertinoTextField(
+                            controller: appNameController,
+                            placeholder: 'e.g. Google Pay, PhonePe',
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppStyles.getCardColor(context),
+                              border: Border.all(
+                                color: CupertinoColors.systemBlue.withValues(alpha: 0.2),
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            style: TextStyle(color: AppStyles.getTextColor(context)),
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            'Does this app have a wallet feature?',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: AppStyles.getSecondaryTextColor(context),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.all(4),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () => setModalState(() => hasWallet = true),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 10),
+                                      decoration: BoxDecoration(
+                                        color: hasWallet ? CupertinoColors.systemGreen : Colors.transparent,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          'Yes, Has Wallet',
+                                          style: TextStyle(
+                                            color: hasWallet ? Colors.white : AppStyles.getSecondaryTextColor(context),
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () => setModalState(() => hasWallet = false),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 10),
+                                      decoration: BoxDecoration(
+                                        color: !hasWallet ? CupertinoColors.systemRed : Colors.transparent,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          'No Wallet',
+                                          style: TextStyle(
+                                            color: !hasWallet ? Colors.white : AppStyles.getSecondaryTextColor(context),
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: BouncyButton(
+                            onPressed: () => Navigator.pop(modalContext),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: AppStyles.getCardColor(context),
+                                border: Border.all(
+                                  color: CupertinoColors.systemGrey3,
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  'Cancel',
+                                  style: TextStyle(
+                                    color: AppStyles.getTextColor(context),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: BouncyButton(
+                            onPressed: () {
+                              if (appNameController.text.isNotEmpty) {
+                                final newApp = {
+                                  'id': appNameController.text.toLowerCase().replaceAll(' ', '_'),
+                                  'name': appNameController.text,
+                                  'hasWallet': hasWallet,
+                                  'isEnabled': true,
+                                };
+                                paymentAppsController.addApp(newApp);
+                                setState(() {
+                                  _selectedPaymentApp = appNameController.text;
+                                  _paymentAppHasWallet = hasWallet;
+                                });
+                                Navigator.pop(modalContext);
+                                if (!hasWallet) {
+                                  _nextStep();
+                                }
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: CupertinoColors.systemBlue,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  'Add App',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
         );
       },
     );
