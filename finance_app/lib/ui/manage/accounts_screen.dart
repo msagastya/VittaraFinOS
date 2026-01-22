@@ -8,6 +8,7 @@ import 'package:vittara_fin_os/logic/account_model.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/settings_controller.dart';
 import 'package:vittara_fin_os/ui/manage/account_wizard.dart';
+import 'package:vittara_fin_os/ui/manage/transfer_wizard.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
@@ -167,7 +168,10 @@ class _AccountsScreenState extends State<AccountsScreen> {
   }
 
   double _getTotalBalance(List<Account> accounts) {
-    return accounts.fold(0.0, (sum, account) => sum + account.balance);
+    // Exclude investment/demat accounts from total balance
+    return accounts
+        .where((account) => account.type != AccountType.investment)
+        .fold(0.0, (sum, account) => sum + account.balance);
   }
 
   int _getDistinctTypesCount(List<Account> accounts) {
@@ -255,6 +259,55 @@ class _AccountsScreenState extends State<AccountsScreen> {
                     ],
                   ),
                 ),
+              Positioned(
+                right: Spacing.lg,
+                bottom: Spacing.xxxl + 70,
+                child: BouncyButton(
+                  onPressed: () {
+                    Haptics.light();
+                    Navigator.push(
+                      context,
+                      FadeScalePageRoute(page: const TransferWizard()),
+                    );
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: Spacing.lg,
+                      vertical: Spacing.md,
+                    ),
+                    decoration: BoxDecoration(
+                      color: CupertinoColors.systemGreen,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: CupertinoColors.systemGreen.withValues(alpha: 0.4),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          CupertinoIcons.arrow_right_arrow_left,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                        SizedBox(width: Spacing.sm),
+                        const Text(
+                          'Transfer',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
               Positioned(
                 right: Spacing.lg,
                 bottom: Spacing.xxxl,

@@ -14,9 +14,11 @@ import 'package:vittara_fin_os/logic/lending_borrowing_controller.dart';
 import 'package:vittara_fin_os/logic/payment_apps_controller.dart';
 import 'package:vittara_fin_os/logic/settings_controller.dart';
 import 'package:vittara_fin_os/logic/tags_controller.dart';
+import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/ui/fintech_loader.dart';
 import 'package:vittara_fin_os/ui/manage_screen.dart';
 import 'package:vittara_fin_os/ui/settings_screen.dart';
+import 'package:vittara_fin_os/ui/transaction_history_screen.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
@@ -72,6 +74,9 @@ void main() {
           ),
           ChangeNotifierProvider(
             create: (_) => TagsController()..loadTags(),
+          ),
+          ChangeNotifierProvider(
+            create: (_) => TransactionsController()..loadTransactions(),
           ),
         ],
         child: const MyApp(),
@@ -411,6 +416,43 @@ class DashboardScreen extends StatelessWidget {
                           style: TextStyle(
                             fontSize: TypeScale.body,
                             color: AppStyles.getSecondaryTextColor(context),
+                          ),
+                        ),
+                        SizedBox(height: Spacing.xxxl),
+                        BouncyButton(
+                          onPressed: () {
+                            Navigator.of(context).push(FadeScalePageRoute(
+                              page: const TransactionHistoryScreen(),
+                            ));
+                          },
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: Spacing.xxxl,
+                              vertical: Spacing.lg,
+                            ),
+                            decoration: BoxDecoration(
+                              color: CupertinoColors.systemBlue,
+                              borderRadius: Radii.buttonRadius,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  CupertinoIcons.doc_text,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
+                                SizedBox(width: Spacing.sm),
+                                const Text(
+                                  'View Transaction History',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
