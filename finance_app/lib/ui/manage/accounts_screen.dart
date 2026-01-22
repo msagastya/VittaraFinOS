@@ -27,6 +27,7 @@ class AccountsScreen extends StatefulWidget {
 
 class _AccountsScreenState extends State<AccountsScreen> {
   final AppLogger logger = AppLogger();
+  bool _isSummaryExpanded = true;
 
   void _showAddOptions(BuildContext context) {
     showCupertinoModalPopup(
@@ -180,6 +181,382 @@ class _AccountsScreenState extends State<AccountsScreen> {
     return accounts.map((acc) => acc.type).toSet().length;
   }
 
+  List<Account> _getAccountsByType(List<Account> accounts, AccountType type) {
+    return accounts.where((account) => account.type == type).toList();
+  }
+
+  double _getTotalByType(List<Account> accounts, AccountType type) {
+    return _getAccountsByType(accounts, type)
+        .fold(0.0, (sum, account) => sum + account.balance);
+  }
+
+  double _getTotalCreditLimit(List<Account> accounts, AccountType type) {
+    return _getAccountsByType(accounts, type)
+        .fold(0.0, (sum, account) => sum + (account.creditLimit ?? 0.0));
+  }
+
+  double _getTotalCreditUsed(List<Account> accounts, AccountType type) {
+    return _getAccountsByType(accounts, type)
+        .fold(0.0, (sum, account) => sum + account.balance);
+  }
+
+  double _getTotalCreditRemaining(List<Account> accounts, AccountType type) {
+    final limit = _getTotalCreditLimit(accounts, type);
+    final used = _getTotalCreditUsed(accounts, type);
+    return limit - used;
+  }
+
+  bool _hasAccountType(List<Account> accounts, AccountType type) {
+    return accounts.any((account) => account.type == type);
+  }
+
+  String _getAccountTypeLabel(AccountType type) {
+    switch (type) {
+      case AccountType.savings:
+        return 'Savings';
+      case AccountType.current:
+        return 'Current';
+      case AccountType.credit:
+        return 'Credit Cards';
+      case AccountType.payLater:
+        return 'BNPL/Wallet';
+      case AccountType.wallet:
+        return 'Digital Wallets';
+      case AccountType.investment:
+        return 'Brokers';
+    }
+  }
+
+  Color _getAccountTypeColor(AccountType type) {
+    switch (type) {
+      case AccountType.savings:
+        return const Color(0xFF007AFF);
+      case AccountType.current:
+        return const Color(0xFF34C759);
+      case AccountType.credit:
+        return const Color(0xFFFF3B30);
+      case AccountType.payLater:
+        return const Color(0xFFFF9500);
+      case AccountType.wallet:
+        return const Color(0xFF5AC8FA);
+      case AccountType.investment:
+        return const Color(0xFFAF52DE);
+    }
+  }
+
+  Widget _buildAccountTypeSummaryCards(BuildContext context, List<Account> accounts) {
+    final typesToShow = [
+      AccountType.savings,
+      AccountType.current,
+      AccountType.credit,
+      AccountType.payLater,
+      AccountType.wallet,
+      AccountType.investment,
+    ];
+
+    final availableTypes = typesToShow.where((type) => _hasAccountType(accounts, type)).toList();
+
+    if (availableTypes.isEmpty) {
+      return SizedBox.shrink();
+    }
+
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      child: Container(
+        decoration: AppStyles.cardDecoration(context),
+        margin: EdgeInsets.symmetric(horizontal: Spacing.lg),
+        child: Column(
+          children: [
+            // Header with expand/collapse button
+            Padding(
+              padding: EdgeInsets.all(Spacing.lg),
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _isSummaryExpanded = !_isSummaryExpanded;
+                  });
+                },
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Account Summary',
+                            style: AppStyles.titleStyle(context),
+                          ),
+                          SizedBox(height: Spacing.xs),
+                          Text(
+                            '${accounts.length} accounts across ${_getDistinctTypesCount(accounts)} categories',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppStyles.getSecondaryTextColor(context),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      _isSummaryExpanded
+                          ? CupertinoIcons.chevron_up
+                          : CupertinoIcons.chevron_down,
+                      size: 20,
+                      color: AppStyles.getSecondaryTextColor(context),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // Expandable content
+            if (_isSummaryExpanded)
+              Padding(
+                padding: EdgeInsets.only(bottom: Spacing.lg),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
+                  child: Row(
+                    children: [
+                      for (int i = 0; i < availableTypes.length; i++) ...[
+                        _buildAccountTypeSummaryCard(
+                          context,
+                          availableTypes[i],
+                          accounts,
+                        ),
+                        if (i < availableTypes.length - 1) SizedBox(width: Spacing.lg),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAccountTypeSummaryCard(
+    BuildContext context,
+    AccountType type,
+    List<Account> accounts,
+  ) {
+    final color = _getAccountTypeColor(type);
+    final typeLabel = _getAccountTypeLabel(type);
+    final accountsList = _getAccountsByType(accounts, type);
+    final count = accountsList.length;
+
+    return Container(
+      width: 220,
+      decoration: AppStyles.cardDecoration(context),
+      child: Padding(
+        padding: EdgeInsets.all(Spacing.lg),
+        child: FadeInAnimation(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header with icon and type label
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      CupertinoIcons.creditcard,
+                      size: 18,
+                      color: color,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          typeLabel,
+                          style: AppStyles.titleStyle(context).copyWith(fontSize: 14),
+                        ),
+                        Text(
+                          '$count ${count == 1 ? 'account' : 'accounts'}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppStyles.getSecondaryTextColor(context),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: Spacing.lg),
+
+              // Type-specific content
+              if (type == AccountType.credit || type == AccountType.payLater)
+                _buildCreditCardSummary(context, type, accounts, color)
+              else
+                _buildSimpleBalanceSummary(context, type, accounts, color),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSimpleBalanceSummary(
+    BuildContext context,
+    AccountType type,
+    List<Account> accounts,
+    Color color,
+  ) {
+    final balance = _getTotalByType(accounts, type);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Balance',
+          style: TextStyle(
+            fontSize: 12,
+            color: AppStyles.getSecondaryTextColor(context),
+          ),
+        ),
+        const SizedBox(height: 4),
+        AnimatedCounter(
+          value: balance,
+          prefix: '₹',
+          decimals: 2,
+          duration: AppDurations.counter,
+          style: AppStyles.titleStyle(context).copyWith(
+            fontSize: 18,
+            color: color,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCreditCardSummary(
+    BuildContext context,
+    AccountType type,
+    List<Account> accounts,
+    Color color,
+  ) {
+    final limit = _getTotalCreditLimit(accounts, type);
+    final used = _getTotalCreditUsed(accounts, type);
+    final remaining = _getTotalCreditRemaining(accounts, type);
+    final utilizationPercent = limit > 0 ? (used / limit) * 100 : 0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Credit Limit
+        Text(
+          'Limit',
+          style: TextStyle(
+            fontSize: 12,
+            color: AppStyles.getSecondaryTextColor(context),
+          ),
+        ),
+        const SizedBox(height: 2),
+        AnimatedCounter(
+          value: limit,
+          prefix: '₹',
+          decimals: 2,
+          duration: AppDurations.counter,
+          style: TextStyle(
+            fontSize: 16,
+            color: AppStyles.getTextColor(context),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        SizedBox(height: Spacing.md),
+
+        // Used and Remaining
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Used',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppStyles.getSecondaryTextColor(context),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  AnimatedCounter(
+                    value: used,
+                    prefix: '₹',
+                    decimals: 2,
+                    duration: AppDurations.counter,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: CupertinoColors.systemRed,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Remaining',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppStyles.getSecondaryTextColor(context),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  AnimatedCounter(
+                    value: remaining,
+                    prefix: '₹',
+                    decimals: 2,
+                    duration: AppDurations.counter,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: CupertinoColors.systemGreen,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: Spacing.md),
+
+        // Utilization progress bar
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: limit > 0 ? (used / limit).clamp(0.0, 1.0) : 0,
+            minHeight: 4,
+            backgroundColor: color.withValues(alpha: 0.2),
+            valueColor: AlwaysStoppedAnimation<Color>(color),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          '${utilizationPercent.toStringAsFixed(1)}% utilized',
+          style: TextStyle(
+            fontSize: 11,
+            color: AppStyles.getSecondaryTextColor(context),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
@@ -207,26 +584,12 @@ class _AccountsScreenState extends State<AccountsScreen> {
                 SafeArea(
                   child: Column(
                     children: [
-                      // Total Balance Card with Animated Counter
+                      // Account Type-wise Summary Cards
                       Padding(
-                        padding: EdgeInsets.all(Spacing.lg),
-                        child: FadeInAnimation(
-                          child: SummaryCard(
-                            label: 'Total Balance',
-                            value: _getTotalBalance(accounts),
-                            prefix: '₹',
-                            decimals: 2,
-                            subtitle: '${accounts.length} accounts across ${_getDistinctTypesCount(accounts)} categories',
-                            valueColor: SemanticColors.getPrimary(context),
-                            useGradientBorder: _getTotalBalance(accounts) > 100000,
-                            gradientColors: const [
-                              Color(0xFF007AFF),
-                              Color(0xFF5AC8FA),
-                              Color(0xFF34C759),
-                            ],
-                          ),
-                        ),
+                        padding: EdgeInsets.only(top: Spacing.lg),
+                        child: _buildAccountTypeSummaryCards(context, accounts),
                       ),
+                      SizedBox(height: Spacing.lg),
                       // Accounts List with Staggered Animation
                       Expanded(
                         child: ReorderableListView.builder(
