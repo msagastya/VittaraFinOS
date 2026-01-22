@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/ui/manage/investment_type_selection.dart';
+import 'package:vittara_fin_os/ui/manage/stocks/stocks_wizard.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
@@ -29,14 +30,13 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
         onTypeSelected: (investmentType) {
           logger.info('Selected investment type: ${investmentType.name}', context: 'InvestmentsScreen');
 
-          final dummyInvestment = Investment(
-            id: '',
-            name: '',
-            type: investmentType,
-            amount: 0,
-            color: Colors.grey,
-          );
-          toast.showInfo('${dummyInvestment.getTypeLabel()} - Coming soon!');
+          if (investmentType == InvestmentType.stocks) {
+            Navigator.of(context).push(
+              CupertinoPageRoute(builder: (context) => const StocksWizard()),
+            );
+          } else {
+            toast.showInfo('Coming soon!');
+          }
         },
       ),
     );
