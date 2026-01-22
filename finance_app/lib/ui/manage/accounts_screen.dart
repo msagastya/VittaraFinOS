@@ -6,6 +6,8 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
+import 'package:vittara_fin_os/logic/transaction_model.dart';
+import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/logic/settings_controller.dart';
 import 'package:vittara_fin_os/ui/manage/account_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/transfer_wizard.dart';
@@ -721,11 +723,13 @@ class _AccountsScreenState extends State<AccountsScreen> {
                 color: AppStyles.getCardColor(context),
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
               ),
-              padding: const EdgeInsets.all(24),
-              child: SafeArea(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: SafeArea(
+                    child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
                     const ModalHandle(),
                     SizedBox(height: Spacing.lg),
                     Text(
@@ -861,6 +865,26 @@ class _AccountsScreenState extends State<AccountsScreen> {
                           final oldBalance = account.balance;
 
                           accountsController.updateAccount(updatedAccount);
+
+                          // Create transaction record
+                          final transactionsController = Provider.of<TransactionsController>(context, listen: false);
+                          final transaction = Transaction(
+                            id: DateTime.now().millisecondsSinceEpoch.toString(),
+                            type: TransactionType.transfer,
+                            description: '${isAdding ? "Added" : "Deducted"} ₹${amount.toStringAsFixed(2)}',
+                            dateTime: DateTime.now(),
+                            amount: amount,
+                            sourceAccountId: account.id,
+                            sourceAccountName: account.name,
+                            destinationAccountId: account.id,
+                            destinationAccountName: account.name,
+                            metadata: {
+                              'type': 'balance_adjustment',
+                              'adjustment_type': isAdding ? 'credit' : 'debit',
+                            },
+                          );
+                          transactionsController.addTransaction(transaction);
+
                           Navigator.pop(modalContext);
 
                           Haptics.success();
@@ -870,6 +894,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                             onAction: () {
                               final revertedAccount = account.copyWith(balance: oldBalance);
                               accountsController.updateAccount(revertedAccount);
+                              transactionsController.removeTransaction(transaction.id);
                               toast.showInfo('Adjustment undone');
                             },
                           );
@@ -894,14 +919,16 @@ class _AccountsScreenState extends State<AccountsScreen> {
                         ),
                       ),
                     ),
-                  ],
+                    ],
+                    ),
+                  ),
                 ),
               ),
             );
-          },
-        );
-      },
-    );
+            },
+          );
+        },
+      );
   }
 
   Future<void> _editAccount(Account account) async {

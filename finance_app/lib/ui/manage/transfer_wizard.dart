@@ -327,7 +327,7 @@ class _TransferWizardState extends State<TransferWizard> {
               ),
               const SizedBox(height: 24),
               BouncyButton(
-                onPressed: () => _showAddAccountModal(context, accountsController),
+                onPressed: () => _showAddAccountModal(context, accountsController, isSource: true),
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 12),
@@ -365,7 +365,7 @@ class _TransferWizardState extends State<TransferWizard> {
     );
   }
 
-  void _showAddAccountModal(BuildContext context, AccountsController accountsController) {
+  void _showAddAccountModal(BuildContext context, AccountsController accountsController, {bool isSource = true}) {
     Navigator.push<Account>(
       context,
       FadeScalePageRoute(
@@ -374,7 +374,11 @@ class _TransferWizardState extends State<TransferWizard> {
     ).then((result) {
       if (result != null) {
         accountsController.addAccount(result);
-        setState(() => _sourceAccount = result);
+        if (isSource) {
+          setState(() => _sourceAccount = result);
+        } else {
+          setState(() => _destinationAccount = result);
+        }
         _nextStep();
       }
     });
@@ -469,6 +473,39 @@ class _TransferWizardState extends State<TransferWizard> {
                       );
                     })
                     .toList(),
+              ),
+              const SizedBox(height: 24),
+              BouncyButton(
+                onPressed: () => _showAddAccountModal(context, accountsController, isSource: false),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: CupertinoColors.systemBlue.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: CupertinoColors.systemBlue,
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(CupertinoIcons.add, color: CupertinoColors.systemBlue),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Add Account',
+                          style: TextStyle(
+                            color: CupertinoColors.systemBlue,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
