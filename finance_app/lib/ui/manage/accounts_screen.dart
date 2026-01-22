@@ -166,6 +166,14 @@ class _AccountsScreenState extends State<AccountsScreen> {
     accountsController.reorderAccounts(oldIndex, newIndex);
   }
 
+  double _getTotalBalance(List<Account> accounts) {
+    return accounts.fold(0.0, (sum, account) => sum + account.balance);
+  }
+
+  int _getDistinctTypesCount(List<Account> accounts) {
+    return accounts.map((acc) => acc.type).toSet().length;
+  }
+
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
@@ -191,33 +199,60 @@ class _AccountsScreenState extends State<AccountsScreen> {
                 )
               else
                 SafeArea(
-                  child: ReorderableListView.builder(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-                    itemCount: accounts.length,
-                    onReorder: (oldIndex, newIndex) {
-                      HapticFeedback.mediumImpact();
-                      _onReorder(oldIndex, newIndex);
-                    },
-                    proxyDecorator: (child, index, animation) {
-                      return AnimatedBuilder(
-                        animation: animation,
-                        builder: (context, child) => Transform.scale(
-                          scale: 1.02,
-                          child: Container(
-                            decoration: AppStyles.cardDecoration(context),
-                            child: child,
+                  child: Column(
+                    children: [
+                      // Total Balance Card with Animated Counter
+                      Padding(
+                        padding: EdgeInsets.all(Spacing.lg),
+                        child: FadeInAnimation(
+                          child: SummaryCard(
+                            label: 'Total Balance',
+                            value: _getTotalBalance(accounts),
+                            prefix: '₹',
+                            decimals: 2,
+                            subtitle: '${accounts.length} accounts across ${_getDistinctTypesCount(accounts)} categories',
+                            valueColor: SemanticColors.getPrimary(context),
+                            useGradientBorder: _getTotalBalance(accounts) > 100000,
+                            gradientColors: const [
+                              Color(0xFF007AFF),
+                              Color(0xFF5AC8FA),
+                              Color(0xFF34C759),
+                            ],
                           ),
                         ),
-                        child: child,
-                      );
-                    },
-                    itemBuilder: (context, index) {
-                      return StaggeredItem(
-                        key: ValueKey(accounts[index].id),
-                        index: index,
-                        child: _buildSlidableAccountCard(accounts[index]),
-                      );
-                    },
+                      ),
+                      // Accounts List with Staggered Animation
+                      Expanded(
+                        child: ReorderableListView.builder(
+                          padding: EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, 100),
+                          itemCount: accounts.length,
+                          onReorder: (oldIndex, newIndex) {
+                            Haptics.reorder();
+                            _onReorder(oldIndex, newIndex);
+                          },
+                          proxyDecorator: (child, index, animation) {
+                            return AnimatedBuilder(
+                              animation: animation,
+                              builder: (context, child) => Transform.scale(
+                                scale: 1.02,
+                                child: Container(
+                                  decoration: AppStyles.cardDecoration(context),
+                                  child: child,
+                                ),
+                              ),
+                              child: child,
+                            );
+                          },
+                          itemBuilder: (context, index) {
+                            return StaggeredItem(
+                              key: ValueKey(accounts[index].id),
+                              index: index,
+                              child: _buildSlidableAccountCard(accounts[index]),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               Positioned(
@@ -405,6 +440,28 @@ class _AccountsScreenState extends State<AccountsScreen> {
                             ),
                           ),
 
+                          // Credit Card Number (if exists)
+                          if (account.creditCardNumber != null && account.creditCardNumber!.isNotEmpty) ...[
+                            const SizedBox(height: 16),
+                            Text(
+                              'Card Number',
+                              style: TextStyle(
+                                color: AppStyles.getSecondaryTextColor(dragContext),
+                                fontSize: 12,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              account.creditCardNumber!,
+                              style: TextStyle(
+                                color: AppStyles.getTextColor(dragContext),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 2,
+                              ),
+                            ),
+                          ],
+
                           // Credit Card/Pay Later - Show Credit Limit and Amount Used
                           if (account.type == AccountType.credit ||
                               account.type == AccountType.payLater) ...[
@@ -424,7 +481,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        '₹${account.balance.toStringAsFixed(2)}',
+                                        '₹${(account.creditLimit ?? 0.0).toStringAsFixed(2)}',
                                         style: TextStyle(
                                           color: AppStyles.getTextColor(dragContext),
                                           fontSize: 16,
@@ -447,9 +504,9 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        '₹0.00',
+                                        '₹${((account.creditLimit ?? 0.0) - account.balance).toStringAsFixed(2)}',
                                         style: TextStyle(
-                                          color: AppStyles.getTextColor(dragContext),
+                                          color: CupertinoColors.systemRed,
                                           fontSize: 16,
                                           fontWeight: FontWeight.w600,
                                         ),
@@ -469,76 +526,119 @@ class _AccountsScreenState extends State<AccountsScreen> {
                     // Action Buttons
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Row(
+                      child: Column(
                         children: [
-                          Expanded(
-                            child: BouncyButton(
-                              onPressed: () {
-                                Navigator.pop(modalContext);
-                                _editAccount(account);
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 12),
-                                decoration: BoxDecoration(
-                                  color: CupertinoColors.systemBlue.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      CupertinoIcons.pencil,
-                                      size: 16,
-                                      color: CupertinoColors.systemBlue,
+                          Row(
+                            children: [
+                              Expanded(
+                                child: BouncyButton(
+                                  onPressed: () {
+                                    Navigator.pop(modalContext);
+                                    _showAdjustBalanceModal(context, account);
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    decoration: BoxDecoration(
+                                      color: CupertinoColors.systemGreen.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      'Edit',
-                                      style: TextStyle(
-                                        color: CupertinoColors.systemBlue,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          CupertinoIcons.arrow_up_down_circle,
+                                          size: 16,
+                                          color: CupertinoColors.systemGreen,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          'Adjust Balance',
+                                          style: TextStyle(
+                                            color: CupertinoColors.systemGreen,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ],
+                                  ),
                                 ),
                               ),
-                            ),
+                            ],
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: BouncyButton(
-                              onPressed: () {
-                                Navigator.pop(modalContext);
-                                _deleteAccount(account);
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 12),
-                                decoration: BoxDecoration(
-                                  color: CupertinoColors.systemRed.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      CupertinoIcons.trash,
-                                      size: 16,
-                                      color: CupertinoColors.systemRed,
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: BouncyButton(
+                                  onPressed: () {
+                                    Navigator.pop(modalContext);
+                                    _editAccount(account);
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    decoration: BoxDecoration(
+                                      color: CupertinoColors.systemBlue.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      'Delete',
-                                      style: TextStyle(
-                                        color: CupertinoColors.systemRed,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          CupertinoIcons.pencil,
+                                          size: 16,
+                                          color: CupertinoColors.systemBlue,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          'Edit',
+                                          style: TextStyle(
+                                            color: CupertinoColors.systemBlue,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ],
+                                  ),
                                 ),
                               ),
-                            ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: BouncyButton(
+                                  onPressed: () {
+                                    Navigator.pop(modalContext);
+                                    _deleteAccount(account);
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    decoration: BoxDecoration(
+                                      color: CupertinoColors.systemRed.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          CupertinoIcons.trash,
+                                          size: 16,
+                                          color: CupertinoColors.systemRed,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          'Delete',
+                                          style: TextStyle(
+                                            color: CupertinoColors.systemRed,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -554,24 +654,224 @@ class _AccountsScreenState extends State<AccountsScreen> {
     );
   }
 
-  void _editAccount(Account account) {
-    logger.info('Edit account: ${account.name}', context: 'AccountsScreen');
-    // For now, show a simple dialog. In future, can open account edit screen
-    showCupertinoDialog(
+  void _showAdjustBalanceModal(BuildContext context, Account account) {
+    final amountController = TextEditingController();
+    bool isAdding = true;
+
+    showCupertinoModalPopup(
       context: context,
-      builder: (context) {
-        return CupertinoAlertDialog(
-          title: const Text('Edit Account'),
-          content: Text('Edit functionality for "${account.name}" coming soon!'),
-          actions: [
-            CupertinoDialogAction(
-              child: const Text('OK'),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ],
+      builder: (modalContext) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              decoration: BoxDecoration(
+                color: AppStyles.getCardColor(context),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              padding: const EdgeInsets.all(24),
+              child: SafeArea(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const ModalHandle(),
+                    SizedBox(height: Spacing.lg),
+                    Text(
+                      'Adjust Balance',
+                      style: AppStyles.titleStyle(context).copyWith(fontSize: 22),
+                    ),
+                    SizedBox(height: Spacing.sm),
+                    Text(
+                      account.type == AccountType.credit || account.type == AccountType.payLater
+                          ? 'Add = Pay Card | Subtract = Spend'
+                          : 'Adjust your account balance',
+                      style: TextStyle(
+                        color: AppStyles.getSecondaryTextColor(context),
+                        fontSize: 14,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: Spacing.xxxl),
+
+                    // Add/Subtract Toggle
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.all(4),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                Haptics.light();
+                                setModalState(() => isAdding = true);
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: isAdding ? CupertinoColors.systemGreen : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      CupertinoIcons.add_circled_solid,
+                                      size: 18,
+                                      color: isAdding ? Colors.white : AppStyles.getSecondaryTextColor(context),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'Add',
+                                      style: TextStyle(
+                                        color: isAdding ? Colors.white : AppStyles.getSecondaryTextColor(context),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                Haptics.light();
+                                setModalState(() => isAdding = false);
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: !isAdding ? CupertinoColors.systemRed : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      CupertinoIcons.minus_circle_fill,
+                                      size: 18,
+                                      color: !isAdding ? Colors.white : AppStyles.getSecondaryTextColor(context),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'Subtract',
+                                      style: TextStyle(
+                                        color: !isAdding ? Colors.white : AppStyles.getSecondaryTextColor(context),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: Spacing.xxxl),
+
+                    // Amount Input
+                    Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('₹', style: AppStyles.titleStyle(context).copyWith(fontSize: 32)),
+                          const SizedBox(width: 8),
+                          IntrinsicWidth(
+                            child: CupertinoTextField(
+                              controller: amountController,
+                              placeholder: '0.00',
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              autofocus: true,
+                              decoration: BoxDecoration(
+                                color: AppStyles.getCardColor(context),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              style: AppStyles.titleStyle(context).copyWith(fontSize: 32, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: Spacing.huge),
+
+                    // Confirm Button
+                    BouncyButton(
+                      onPressed: () {
+                        final amount = double.tryParse(amountController.text);
+                        if (amount != null && amount > 0) {
+                          final newBalance = isAdding ? account.balance + amount : account.balance - amount;
+                          final updatedAccount = account.copyWith(balance: newBalance);
+                          final accountsController = Provider.of<AccountsController>(context, listen: false);
+                          final oldBalance = account.balance;
+
+                          accountsController.updateAccount(updatedAccount);
+                          Navigator.pop(modalContext);
+
+                          Haptics.success();
+                          toast.showSuccess(
+                            '${isAdding ? "Added" : "Subtracted"} ₹${amount.toStringAsFixed(2)}',
+                            actionLabel: 'Undo',
+                            onAction: () {
+                              final revertedAccount = account.copyWith(balance: oldBalance);
+                              accountsController.updateAccount(revertedAccount);
+                              toast.showInfo('Adjustment undone');
+                            },
+                          );
+                        }
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        decoration: BoxDecoration(
+                          color: CupertinoColors.systemBlue,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'Confirm',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         );
       },
     );
+  }
+
+  Future<void> _editAccount(Account account) async {
+    logger.info('Edit account: ${account.name}', context: 'AccountsScreen');
+
+    final Account? result = await Navigator.push<Account>(
+      context,
+      FadeScalePageRoute(
+        page: AccountWizard(
+          isInvestment: account.type == AccountType.investment,
+          existingAccount: account,
+        ),
+      ),
+    );
+
+    if (result != null) {
+      final accountsController = Provider.of<AccountsController>(context, listen: false);
+      await accountsController.updateAccount(result);
+      logger.info('Updated account: ${result.name}', context: 'AccountsScreen');
+
+      Haptics.success();
+      toast.showSuccess('Account updated successfully');
+    }
   }
 
   void _deleteAccount(Account account) {

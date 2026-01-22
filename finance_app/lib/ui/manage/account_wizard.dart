@@ -9,7 +9,8 @@ import 'package:vittara_fin_os/ui/widgets/animations.dart';
 
 class AccountWizard extends StatefulWidget {
   final bool isInvestment;
-  const AccountWizard({super.key, this.isInvestment = false});
+  final Account? existingAccount; // For editing existing accounts
+  const AccountWizard({super.key, this.isInvestment = false, this.existingAccount});
 
   @override
   State<AccountWizard> createState() => _AccountWizardState();
@@ -42,6 +43,26 @@ class _AccountWizardState extends State<AccountWizard> {
     super.initState();
     // Set total steps based on account type
     _totalSteps = widget.isInvestment ? 3 : 4;
+
+    // Pre-populate fields if editing existing account
+    if (widget.existingAccount != null) {
+      final account = widget.existingAccount!;
+      _selectedBank = account.bankName;
+      _selectedBroker = account.bankName;
+      _selectedColor = account.color;
+      _selectedAccountType = account.type;
+      _nameController.text = account.name;
+      _balanceController.text = account.balance.toStringAsFixed(2);
+
+      if (account.type == AccountType.credit || account.type == AccountType.payLater) {
+        _creditLimitController.text = (account.creditLimit ?? 0.0).toStringAsFixed(2);
+        final amountUsed = (account.creditLimit ?? 0.0) - account.balance;
+        _amountUsedController.text = amountUsed.toStringAsFixed(2);
+        if (account.creditCardNumber != null) {
+          _creditCardNumberController.text = account.creditCardNumber!;
+        }
+      }
+    }
 
     // Add listeners to update UI when text changes
     _creditLimitController.addListener(() => setState(() {}));
@@ -127,13 +148,15 @@ class _AccountWizardState extends State<AccountWizard> {
 
   void _finishWizard() {
     double finalBalance = 0.0;
+    final isEditing = widget.existingAccount != null;
+    final accountId = isEditing ? widget.existingAccount!.id : DateTime.now().millisecondsSinceEpoch.toString();
 
     if (widget.isInvestment) {
       // Investment account: use balance directly
       finalBalance = double.tryParse(_balanceController.text) ?? 0.0;
 
       final account = Account(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        id: accountId,
         name: _nameController.text,
         bankName: _selectedBroker ?? 'Unknown Broker',
         type: AccountType.investment,
@@ -154,7 +177,7 @@ class _AccountWizardState extends State<AccountWizard> {
       }
 
       final account = Account(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        id: accountId,
         name: _nameController.text,
         bankName: _selectedBank ?? 'Other',
         type: _selectedAccountType ?? AccountType.savings,
@@ -162,6 +185,9 @@ class _AccountWizardState extends State<AccountWizard> {
         color: _selectedColor ?? CupertinoColors.systemBlue,
         creditCardNumber: (_selectedAccountType == AccountType.credit || _selectedAccountType == AccountType.payLater)
             ? (_creditCardNumberController.text.isNotEmpty ? _creditCardNumberController.text : null)
+            : null,
+        creditLimit: (_selectedAccountType == AccountType.credit || _selectedAccountType == AccountType.payLater)
+            ? (double.tryParse(_creditLimitController.text) ?? 0.0)
             : null,
       );
       Navigator.pop(context, account);
@@ -173,7 +199,9 @@ class _AccountWizardState extends State<AccountWizard> {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
       navigationBar: CupertinoNavigationBar(
-        middle: Text(widget.isInvestment ? 'Investment Wizard' : 'Bank Wizard'),
+        middle: Text(widget.existingAccount != null
+            ? 'Edit Account'
+            : (widget.isInvestment ? 'Investment Wizard' : 'Bank Wizard')),
         leading: CupertinoButton(
           padding: EdgeInsets.zero,
           onPressed: _prevStep,

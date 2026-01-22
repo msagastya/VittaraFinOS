@@ -10,6 +10,7 @@ class Account {
   final double balance;
   final Color color;
   final String? creditCardNumber;
+  final double? creditLimit; // For credit cards and pay later accounts
 
   Account({
     required this.id,
@@ -19,6 +20,7 @@ class Account {
     required this.balance,
     required this.color,
     this.creditCardNumber,
+    this.creditLimit,
   });
 
   Map<String, dynamic> toMap() {
@@ -30,6 +32,7 @@ class Account {
       'balance': balance,
       'color': color.toARGB32(),
       'creditCardNumber': creditCardNumber,
+      'creditLimit': creditLimit,
     };
   }
 
@@ -42,6 +45,7 @@ class Account {
       balance: map['balance'],
       color: Color(map['color']),
       creditCardNumber: map['creditCardNumber'],
+      creditLimit: map['creditLimit'],
     );
   }
 
@@ -53,6 +57,7 @@ class Account {
     double? balance,
     Color? color,
     String? creditCardNumber,
+    double? creditLimit,
   }) {
     return Account(
       id: id ?? this.id,
@@ -62,6 +67,7 @@ class Account {
       balance: balance ?? this.balance,
       color: color ?? this.color,
       creditCardNumber: creditCardNumber ?? this.creditCardNumber,
+      creditLimit: creditLimit ?? this.creditLimit,
     );
   }
 }
