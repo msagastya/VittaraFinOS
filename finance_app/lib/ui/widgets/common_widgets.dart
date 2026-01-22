@@ -1,0 +1,922 @@
+import 'dart:async';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/widgets/animations.dart';
+
+// ============================================================
+// COMMON REUSABLE WIDGETS - VittaraFinOS
+// ============================================================
+// This file contains reusable UI components that maintain
+// consistency across the entire application.
+// ============================================================
+
+// ============================================================
+// EMPTY STATE WIDGET
+// ============================================================
+
+/// A consistent empty state view for lists and screens
+class EmptyStateView extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+  final bool showPulse;
+
+  const EmptyStateView({
+    super.key,
+    required this.icon,
+    required this.title,
+    this.subtitle,
+    this.actionLabel,
+    this.onAction,
+    this.showPulse = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeInAnimation(
+      child: Center(
+        child: Padding(
+          padding: Spacing.screenPadding,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildIcon(context),
+              SizedBox(height: Spacing.lg),
+              Text(
+                title,
+                style: TextStyle(
+                  color: AppStyles.getSecondaryTextColor(context),
+                  fontSize: TypeScale.title3,
+                  fontWeight: FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              if (subtitle != null) ...[
+                SizedBox(height: Spacing.sm),
+                Text(
+                  subtitle!,
+                  style: TextStyle(
+                    color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.7),
+                    fontSize: TypeScale.body,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+              if (actionLabel != null && onAction != null) ...[
+                SizedBox(height: Spacing.xxl),
+                _buildActionButton(context),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIcon(BuildContext context) {
+    final iconWidget = Icon(
+      icon,
+      size: IconSizes.emptyStateIcon,
+      color: AppStyles.getSecondaryTextColor(context).withValues(alpha: Opacities.disabled),
+    );
+
+    if (showPulse && onAction != null) {
+      return PulseAnimation(
+        minScale: 0.95,
+        maxScale: 1.05,
+        child: iconWidget,
+      );
+    }
+    return iconWidget;
+  }
+
+  Widget _buildActionButton(BuildContext context) {
+    return BouncyButton(
+      onPressed: onAction!,
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: Spacing.xxl,
+          vertical: Spacing.md,
+        ),
+        decoration: BoxDecoration(
+          color: SemanticColors.getPrimary(context),
+          borderRadius: Radii.buttonRadius,
+          boxShadow: Shadows.fab(SemanticColors.getPrimary(context)),
+        ),
+        child: Text(
+          actionLabel!,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            fontSize: TypeScale.callout,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================
+// FADING FLOATING ACTION BUTTON (Shared)
+// ============================================================
+
+/// A floating action button that fades after inactivity
+class FadingFAB extends StatefulWidget {
+  final VoidCallback onPressed;
+  final IconData icon;
+  final Color? color;
+  final String? heroTag;
+
+  const FadingFAB({
+    super.key,
+    required this.onPressed,
+    this.icon = CupertinoIcons.add,
+    this.color,
+    this.heroTag,
+  });
+
+  @override
+  State<FadingFAB> createState() => _FadingFABState();
+}
+
+class _FadingFABState extends State<FadingFAB> with SingleTickerProviderStateMixin {
+  Timer? _timer;
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: AppDurations.toast,
+    );
+    _animation = Tween<double>(begin: 1.0, end: Opacities.fadedFab).animate(
+      CurvedAnimation(parent: _controller, curve: MotionCurves.standard),
+    );
+    _startInactivityTimer();
+  }
+
+  void _startInactivityTimer() {
+    _timer?.cancel();
+    if (_controller.value > 0) _controller.reverse();
+    _timer = Timer(AppDurations.fabFade, () {
+      if (mounted) _controller.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final fabColor = widget.color ?? SemanticColors.getPrimary(context);
+
+    final fab = AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return Opacity(
+          opacity: _animation.value,
+          child: GestureDetector(
+            onTapDown: (_) => _startInactivityTimer(),
+            onTap: () {
+              _startInactivityTimer();
+              Haptics.light();
+              widget.onPressed();
+            },
+            child: Container(
+              width: ComponentSizes.fabSize,
+              height: ComponentSizes.fabSize,
+              decoration: BoxDecoration(
+                color: fabColor,
+                shape: BoxShape.circle,
+                boxShadow: Shadows.fab(fabColor),
+              ),
+              child: Icon(
+                widget.icon,
+                color: Colors.white,
+                size: IconSizes.fabIcon,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    if (widget.heroTag != null) {
+      return Hero(tag: widget.heroTag!, child: fab);
+    }
+    return fab;
+  }
+}
+
+// ============================================================
+// MODAL HANDLE BAR
+// ============================================================
+
+/// Consistent handle bar for bottom sheets and modals
+class ModalHandle extends StatelessWidget {
+  const ModalHandle({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.only(top: Spacing.md),
+      width: ComponentSizes.modalHandleWidth,
+      height: ComponentSizes.modalHandleHeight,
+      decoration: BoxDecoration(
+        color: CupertinoColors.systemGrey3,
+        borderRadius: BorderRadius.circular(ComponentSizes.modalHandleHeight / 2),
+      ),
+    );
+  }
+}
+
+// ============================================================
+// SECTION HEADER
+// ============================================================
+
+/// Consistent section header for lists
+class SectionHeader extends StatelessWidget {
+  final String title;
+  final int? count;
+  final Widget? trailing;
+
+  const SectionHeader({
+    super.key,
+    required this.title,
+    this.count,
+    this.trailing,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: Spacing.sm,
+        top: Spacing.lg,
+        bottom: Spacing.md,
+        right: Spacing.sm,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              count != null ? '$title ($count)' : title,
+              style: TextStyle(
+                fontSize: TypeScale.footnote,
+                fontWeight: FontWeight.w600,
+                color: AppStyles.getSecondaryTextColor(context),
+              ),
+            ),
+          ),
+          if (trailing != null) trailing!,
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================================
+// ICON BOX
+// ============================================================
+
+/// Consistent icon container with background
+class IconBox extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final double size;
+  final double iconSize;
+  final bool showGlow;
+
+  const IconBox({
+    super.key,
+    required this.icon,
+    required this.color,
+    this.size = ComponentSizes.iconBoxMedium,
+    this.iconSize = IconSizes.listItemIcon,
+    this.showGlow = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: Opacities.iconBackground),
+        borderRadius: Radii.iconBoxRadius,
+        boxShadow: showGlow ? Shadows.iconGlow(color) : null,
+      ),
+      child: Center(
+        child: Icon(
+          icon,
+          color: color,
+          size: iconSize,
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================
+// ACTION BUTTON ROW
+// ============================================================
+
+/// Consistent action button row for modals/sheets
+class ActionButtonRow extends StatelessWidget {
+  final String primaryLabel;
+  final VoidCallback onPrimaryPressed;
+  final String? secondaryLabel;
+  final VoidCallback? onSecondaryPressed;
+  final bool isPrimaryDestructive;
+  final bool isLoading;
+
+  const ActionButtonRow({
+    super.key,
+    required this.primaryLabel,
+    required this.onPrimaryPressed,
+    this.secondaryLabel,
+    this.onSecondaryPressed,
+    this.isPrimaryDestructive = false,
+    this.isLoading = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: Spacing.screenPadding,
+      child: Row(
+        children: [
+          if (secondaryLabel != null && onSecondaryPressed != null) ...[
+            Expanded(
+              child: BouncyButton(
+                onPressed: onSecondaryPressed!,
+                child: Container(
+                  padding: EdgeInsets.symmetric(vertical: Spacing.md),
+                  decoration: BoxDecoration(
+                    color: CupertinoColors.systemGrey5,
+                    borderRadius: Radii.buttonRadius,
+                  ),
+                  child: Center(
+                    child: Text(
+                      secondaryLabel!,
+                      style: TextStyle(
+                        color: AppStyles.getTextColor(context),
+                        fontWeight: FontWeight.w600,
+                        fontSize: TypeScale.body,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(width: Spacing.md),
+          ],
+          Expanded(
+            child: BouncyButton(
+              onPressed: isLoading ? () {} : onPrimaryPressed,
+              child: Container(
+                padding: EdgeInsets.symmetric(vertical: Spacing.md),
+                decoration: BoxDecoration(
+                  color: isPrimaryDestructive
+                      ? SemanticColors.getError(context)
+                      : SemanticColors.getPrimary(context),
+                  borderRadius: Radii.buttonRadius,
+                ),
+                child: Center(
+                  child: isLoading
+                      ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CupertinoActivityIndicator(
+                            color: Colors.white,
+                          ),
+                        )
+                      : Text(
+                          primaryLabel,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: TypeScale.body,
+                          ),
+                        ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================================
+// SMALL ACTION BUTTON (for inline actions)
+// ============================================================
+
+/// Small action button for inline actions (Edit, Delete, etc.)
+class SmallActionButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onPressed;
+
+  const SmallActionButton({
+    super.key,
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return BouncyButton(
+      onPressed: onPressed,
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: Spacing.md),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: Radii.buttonRadius,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: IconSizes.sm, color: color),
+            SizedBox(width: Spacing.xs + 2),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: TypeScale.body,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================
+// SEARCH BAR
+// ============================================================
+
+/// Consistent search bar for screens
+class AppSearchBar extends StatelessWidget {
+  final String placeholder;
+  final ValueChanged<String> onChanged;
+  final TextEditingController? controller;
+
+  const AppSearchBar({
+    super.key,
+    this.placeholder = 'Search',
+    required this.onChanged,
+    this.controller,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.all(Spacing.lg),
+      decoration: BoxDecoration(
+        color: AppStyles.getCardColor(context),
+        borderRadius: Radii.buttonRadius,
+      ),
+      child: CupertinoSearchTextField(
+        controller: controller,
+        backgroundColor: Colors.transparent,
+        style: TextStyle(color: AppStyles.getTextColor(context)),
+        placeholder: placeholder,
+        placeholderStyle: TextStyle(
+          color: AppStyles.getSecondaryTextColor(context),
+        ),
+        onChanged: onChanged,
+      ),
+    );
+  }
+}
+
+// ============================================================
+// SUMMARY CARD
+// ============================================================
+
+/// Consistent summary card for totals and stats
+class SummaryCard extends StatelessWidget {
+  final String label;
+  final double value;
+  final String? subtitle;
+  final String prefix;
+  final int decimals;
+  final Color? valueColor;
+  final bool useAnimatedCounter;
+  final Widget? trailing;
+  final bool useGradientBorder;
+  final List<Color>? gradientColors;
+
+  const SummaryCard({
+    super.key,
+    required this.label,
+    required this.value,
+    this.subtitle,
+    this.prefix = '',
+    this.decimals = 2,
+    this.valueColor,
+    this.useAnimatedCounter = true,
+    this.trailing,
+    this.useGradientBorder = false,
+    this.gradientColors,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final card = Container(
+      padding: Spacing.cardPadding,
+      decoration: useGradientBorder
+          ? null
+          : AppStyles.cardDecoration(context),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: AppStyles.getSecondaryTextColor(context),
+                    fontSize: TypeScale.body,
+                  ),
+                ),
+              ),
+              if (trailing != null) trailing!,
+            ],
+          ),
+          SizedBox(height: Spacing.sm),
+          useAnimatedCounter
+              ? AnimatedCounter(
+                  value: value,
+                  prefix: prefix,
+                  decimals: decimals,
+                  duration: AppDurations.counter,
+                  style: AppStyles.titleStyle(context).copyWith(
+                    fontSize: TypeScale.display,
+                    color: valueColor ?? SemanticColors.getPrimary(context),
+                    fontWeight: FontWeight.bold,
+                  ),
+                )
+              : Text(
+                  '$prefix${value.toStringAsFixed(decimals)}',
+                  style: AppStyles.titleStyle(context).copyWith(
+                    fontSize: TypeScale.display,
+                    color: valueColor ?? SemanticColors.getPrimary(context),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+          if (subtitle != null) ...[
+            SizedBox(height: Spacing.md),
+            Text(
+              subtitle!,
+              style: TextStyle(
+                color: AppStyles.getSecondaryTextColor(context),
+                fontSize: TypeScale.footnote,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+
+    if (useGradientBorder) {
+      return GradientBorderContainer(
+        gradientColors: gradientColors ?? ColorPalettes.gradientPresets.take(3).toList(),
+        borderWidth: 2,
+        child: card,
+      );
+    }
+
+    return card;
+  }
+}
+
+// ============================================================
+// LIST CARD
+// ============================================================
+
+/// Consistent card layout for list items
+class ListCard extends StatelessWidget {
+  final Widget? leading;
+  final String title;
+  final String? subtitle;
+  final Widget? trailing;
+  final VoidCallback? onTap;
+  final String? heroTag;
+  final EdgeInsets? padding;
+
+  const ListCard({
+    super.key,
+    this.leading,
+    required this.title,
+    this.subtitle,
+    this.trailing,
+    this.onTap,
+    this.heroTag,
+    this.padding,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final card = Container(
+      margin: EdgeInsets.only(bottom: Spacing.lg),
+      decoration: AppStyles.cardDecoration(context),
+      child: Padding(
+        padding: padding ?? Spacing.cardPadding,
+        child: Row(
+          children: [
+            if (leading != null) ...[
+              leading!,
+              SizedBox(width: Spacing.lg),
+            ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: AppStyles.titleStyle(context)),
+                  if (subtitle != null) ...[
+                    SizedBox(height: Spacing.xs),
+                    Text(
+                      subtitle!,
+                      style: TextStyle(
+                        fontSize: TypeScale.footnote,
+                        color: AppStyles.getSecondaryTextColor(context),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            if (trailing != null) trailing!,
+          ],
+        ),
+      ),
+    );
+
+    if (onTap != null) {
+      final tappableCard = BouncyButton(onPressed: onTap!, child: card);
+      if (heroTag != null) {
+        return Hero(tag: heroTag!, child: tappableCard);
+      }
+      return tappableCard;
+    }
+
+    if (heroTag != null) {
+      return Hero(tag: heroTag!, child: card);
+    }
+    return card;
+  }
+}
+
+// ============================================================
+// OPTION CARD (for selection modals)
+// ============================================================
+
+/// Large option card for selection screens
+class OptionCard extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+  final double height;
+
+  const OptionCard({
+    super.key,
+    required this.title,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+    this.height = ComponentSizes.optionCardHeight,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return BouncyButton(
+      onPressed: onTap,
+      child: Container(
+        height: height,
+        decoration: AppStyles.cardDecoration(context).copyWith(
+          border: Border.all(
+            color: color.withValues(alpha: Opacities.borderSubtle),
+            width: 1,
+          ),
+        ),
+        padding: Spacing.cardPadding,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: EdgeInsets.all(Spacing.lg),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: IconSizes.cardIcon, color: color),
+            ),
+            SizedBox(height: Spacing.lg),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: AppStyles.titleStyle(context).copyWith(
+                fontSize: TypeScale.headline,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================
+// SETTINGS ROW
+// ============================================================
+
+/// Consistent row for settings screens
+class SettingsRow extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String? subtitle;
+  final Widget? trailing;
+  final VoidCallback? onTap;
+
+  const SettingsRow({
+    super.key,
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    this.subtitle,
+    this.trailing,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final content = Container(
+      decoration: AppStyles.cardDecoration(context),
+      child: Padding(
+        padding: EdgeInsets.all(Spacing.lg),
+        child: Row(
+          children: [
+            IconBox(icon: icon, color: iconColor),
+            SizedBox(width: Spacing.lg),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: AppStyles.titleStyle(context)),
+                  if (subtitle != null) ...[
+                    SizedBox(height: Spacing.xxs),
+                    Text(
+                      subtitle!,
+                      style: TextStyle(
+                        fontSize: TypeScale.footnote,
+                        color: AppStyles.getSecondaryTextColor(context),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            if (trailing != null) trailing!,
+          ],
+        ),
+      ),
+    );
+
+    if (onTap != null) {
+      return BouncyButton(onPressed: onTap!, child: content);
+    }
+    return content;
+  }
+}
+
+// ============================================================
+// COLOR PICKER ROW
+// ============================================================
+
+/// Horizontal color picker for forms
+class ColorPickerRow extends StatelessWidget {
+  final Color selectedColor;
+  final ValueChanged<Color> onColorSelected;
+  final List<Color>? colors;
+
+  const ColorPickerRow({
+    super.key,
+    required this.selectedColor,
+    required this.onColorSelected,
+    this.colors,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorList = colors ?? ColorPalettes.categoryColors;
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: colorList.map((color) {
+          final isSelected = selectedColor == color;
+          return Padding(
+            padding: EdgeInsets.symmetric(horizontal: Spacing.sm),
+            child: GestureDetector(
+              onTap: () {
+                Haptics.selection();
+                onColorSelected(color);
+              },
+              child: AnimatedContainer(
+                duration: AppDurations.fast,
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: color,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isSelected ? Colors.white : Colors.transparent,
+                    width: 3,
+                  ),
+                  boxShadow: isSelected ? Shadows.iconGlow(color) : null,
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+}
+
+// ============================================================
+// LOADING OVERLAY
+// ============================================================
+
+/// Full-screen loading overlay
+class LoadingOverlay extends StatelessWidget {
+  final bool isLoading;
+  final Widget child;
+  final String? message;
+
+  const LoadingOverlay({
+    super.key,
+    required this.isLoading,
+    required this.child,
+    this.message,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        child,
+        if (isLoading)
+          Container(
+            color: Colors.black.withValues(alpha: Opacities.overlay),
+            child: Center(
+              child: GlassContainer(
+                padding: Spacing.cardPadding,
+                borderRadius: Radii.cardRadius,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const CupertinoActivityIndicator(radius: 16),
+                    if (message != null) ...[
+                      SizedBox(height: Spacing.lg),
+                      Text(
+                        message!,
+                        style: TextStyle(
+                          color: AppStyles.getTextColor(context),
+                          fontSize: TypeScale.body,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}

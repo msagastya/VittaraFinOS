@@ -1,12 +1,15 @@
-import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/categories_controller.dart';
 import 'package:vittara_fin_os/logic/category_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
+import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/icon_picker.dart';
+import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 
 class CategoriesScreen extends StatefulWidget {
@@ -317,7 +320,10 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                                 itemCount: defaultCats.length,
                                 itemBuilder: (context, index) {
                                   final category = defaultCats[index];
-                                  return _buildCategoryCard(category, context, categoriesController);
+                                  return StaggeredItem(
+                                    index: index,
+                                    child: _buildCategoryCard(category, context, categoriesController),
+                                  );
                                 },
                               ),
                             ],
@@ -346,11 +352,14 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                                 itemCount: customCats.length,
                                 itemBuilder: (context, index) {
                                   final category = customCats[index];
-                                  return _buildCategoryCard(
-                                    category,
-                                    context,
-                                    categoriesController,
-                                    isCustom: true,
+                                  return StaggeredItem(
+                                    index: index + defaultCats.length,
+                                    child: _buildCategoryCard(
+                                      category,
+                                      context,
+                                      categoriesController,
+                                      isCustom: true,
+                                    ),
                                   );
                                 },
                               ),
@@ -363,10 +372,12 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 ),
               ),
               Positioned(
-                right: 16,
-                bottom: 32,
-                child: FadingFloatingActionButton(
+                right: Spacing.lg,
+                bottom: Spacing.xxxl,
+                child: FadingFAB(
                   onPressed: () => _showAddCategoryModal(context),
+                  color: SemanticColors.categories,
+                  heroTag: 'categories_fab',
                 ),
               ),
             ],
@@ -456,22 +467,27 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 right: 4,
                 child: GestureDetector(
                   onTap: () {
+                    Haptics.delete();
+                    final deletedName = category.name;
+                    final deletedCategory = category;
                     controller.removeCategory(category.id);
-                    logger.info('Deleted category: ${category.name}', context: 'CategoriesScreen');
+                    logger.info('Deleted category: $deletedName', context: 'CategoriesScreen');
+                    toast.showSuccess(
+                      '"$deletedName" deleted',
+                      actionLabel: 'Undo',
+                      onAction: () {
+                        controller.addCategory(deletedCategory);
+                        toast.showInfo('Category restored');
+                      },
+                    );
                   },
                   child: Container(
                     width: 24,
                     height: 24,
                     decoration: BoxDecoration(
-                      color: CupertinoColors.systemRed,
+                      color: SemanticColors.error,
                       shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: CupertinoColors.systemRed.withValues(alpha: 0.3),
-                          blurRadius: 6,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
+                      boxShadow: Shadows.iconGlow(SemanticColors.error),
                     ),
                     child: const Icon(
                       CupertinoIcons.xmark,
@@ -506,75 +522,3 @@ class _IconPickerScreen extends StatelessWidget {
   }
 }
 
-class FadingFloatingActionButton extends StatefulWidget {
-  final VoidCallback onPressed;
-  const FadingFloatingActionButton({super.key, required this.onPressed});
-
-  @override
-  State<FadingFloatingActionButton> createState() => _FadingFloatingActionButtonState();
-}
-
-class _FadingFloatingActionButtonState extends State<FadingFloatingActionButton>
-    with SingleTickerProviderStateMixin {
-  Timer? _timer;
-  late AnimationController _controller;
-  late Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
-    _animation = Tween<double>(begin: 1.0, end: 0.3).animate(_controller);
-    _startInactivityTimer();
-  }
-
-  void _startInactivityTimer() {
-    _timer?.cancel();
-    if (_controller.value > 0) _controller.reverse();
-    _timer = Timer(const Duration(seconds: 4), () {
-      if (mounted) _controller.forward();
-    });
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, child) {
-        return Opacity(
-          opacity: _animation.value,
-          child: GestureDetector(
-            onTapDown: (_) => _startInactivityTimer(),
-            onTap: () {
-              _startInactivityTimer();
-              widget.onPressed();
-            },
-            child: Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: CupertinoColors.systemBlue,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: CupertinoColors.systemBlue.withValues(alpha: 0.4),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: const Icon(CupertinoIcons.add, color: Colors.white, size: 28),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}

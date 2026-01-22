@@ -1,11 +1,16 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/lending_borrowing_controller.dart';
 import 'package:vittara_fin_os/logic/lending_borrowing_model.dart';
-import 'package:vittara_fin_os/logic/contacts_controller.dart';
 import 'package:vittara_fin_os/ui/manage/lending_wizard.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/widgets/animations.dart';
+import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
+import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 
 class LendingBorrowingScreen extends StatefulWidget {
@@ -47,7 +52,10 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                         children: [
                           Expanded(
                             child: GestureDetector(
-                              onTap: () => setState(() => _selectedTab = 0),
+                              onTap: () {
+                                HapticFeedback.selectionClick();
+                                setState(() => _selectedTab = 0);
+                              },
                               child: Container(
                                 padding: const EdgeInsets.symmetric(vertical: 12),
                                 decoration: BoxDecoration(
@@ -76,8 +84,11 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                                         ),
                                       ),
                                       const SizedBox(height: 4),
-                                      Text(
-                                        '₹${controller.getTotalLent().toStringAsFixed(0)}',
+                                      AnimatedCounter(
+                                        value: controller.getTotalLent(),
+                                        prefix: '₹',
+                                        decimals: 0,
+                                        duration: const Duration(milliseconds: 600),
                                         style: TextStyle(
                                           fontSize: 11,
                                           color: _selectedTab == 0
@@ -94,7 +105,10 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: GestureDetector(
-                              onTap: () => setState(() => _selectedTab = 1),
+                              onTap: () {
+                                HapticFeedback.selectionClick();
+                                setState(() => _selectedTab = 1);
+                              },
                               child: Container(
                                 padding: const EdgeInsets.symmetric(vertical: 12),
                                 decoration: BoxDecoration(
@@ -123,8 +137,11 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                                         ),
                                       ),
                                       const SizedBox(height: 4),
-                                      Text(
-                                        '₹${controller.getTotalBorrowed().toStringAsFixed(0)}',
+                                      AnimatedCounter(
+                                        value: controller.getTotalBorrowed(),
+                                        prefix: '₹',
+                                        decimals: 0,
+                                        duration: const Duration(milliseconds: 600),
                                         style: TextStyle(
                                           fontSize: 11,
                                           color: _selectedTab == 1
@@ -171,7 +188,10 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                               itemCount: displayRecords.length,
                               itemBuilder: (context, index) {
                                 final record = displayRecords[index];
-                                return _buildRecordCard(record, context, controller);
+                                return StaggeredItem(
+                                  index: index,
+                                  child: _buildRecordCard(record, context, controller),
+                                );
                               },
                             ),
                     ),
@@ -180,10 +200,12 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
               ),
               // Add Button
               Positioned(
-                right: 16,
-                bottom: 32,
-                child: FadingFloatingActionButton(
+                right: Spacing.lg,
+                bottom: Spacing.xxxl,
+                child: FadingFAB(
                   onPressed: () => _showLendingTypeModal(context),
+                  color: SemanticColors.lending,
+                  heroTag: 'lending_fab',
                 ),
               ),
             ],
@@ -223,6 +245,384 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
     );
   }
 
+  void _showRecordActions(
+    BuildContext context,
+    LendingBorrowing record,
+    LendingBorrowingController controller,
+  ) {
+    final isLent = record.type == LendingType.lent;
+    final color = isLent ? AppStyles.accentBlue : CupertinoColors.systemRed;
+
+    showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext context) => CupertinoActionSheet(
+        title: Text(
+          record.personName,
+          style: TextStyle(
+            fontSize: TypeScale.title3,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        message: Text(
+          '₹${record.amount.toStringAsFixed(0)} • ${isLent ? "Lent" : "Borrowed"}',
+          style: TextStyle(
+            fontSize: TypeScale.body,
+            color: color,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        actions: [
+          if (!record.isSettled) ...[
+            CupertinoActionSheetAction(
+              onPressed: () {
+                Navigator.pop(context);
+                _showPartialPaymentModal(context, record, controller);
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(CupertinoIcons.arrow_up_down_circle, color: SemanticColors.info),
+                  SizedBox(width: Spacing.sm),
+                  const Text('Add/Reduce Amount'),
+                ],
+              ),
+            ),
+            CupertinoActionSheetAction(
+              onPressed: () {
+                Navigator.pop(context);
+                _navigateToEditWizard(context, record);
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(CupertinoIcons.pencil, color: SemanticColors.getPrimary(context)),
+                  SizedBox(width: Spacing.sm),
+                  const Text('Edit Details'),
+                ],
+              ),
+            ),
+            CupertinoActionSheetAction(
+              onPressed: () {
+                Navigator.pop(context);
+                _settleRecord(record, controller);
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(CupertinoIcons.checkmark_circle, color: SemanticColors.success),
+                  SizedBox(width: Spacing.sm),
+                  const Text('Mark as Settled'),
+                ],
+              ),
+            ),
+          ],
+          CupertinoActionSheetAction(
+            isDestructiveAction: true,
+            onPressed: () {
+              Navigator.pop(context);
+              _deleteRecord(context, record, controller);
+            },
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(CupertinoIcons.trash, color: SemanticColors.error),
+                SizedBox(width: Spacing.sm),
+                const Text('Delete'),
+              ],
+            ),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          isDefaultAction: true,
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+      ),
+    );
+  }
+
+  void _showPartialPaymentModal(
+    BuildContext context,
+    LendingBorrowing record,
+    LendingBorrowingController controller,
+  ) {
+    final amountController = TextEditingController();
+    bool isAdding = true;
+
+    showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext modalContext) => StatefulBuilder(
+        builder: (BuildContext context, StateSetter setModalState) {
+          return Container(
+            height: 350,
+            color: AppStyles.getCardColor(context),
+            child: SafeArea(
+              child: Column(
+                children: [
+                  ModalHandle(),
+                  SizedBox(height: Spacing.md),
+                  Text(
+                    'Adjust Amount',
+                    style: AppStyles.titleStyle(context).copyWith(
+                      fontSize: TypeScale.title2,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: Spacing.sm),
+                  Text(
+                    'Current: ₹${record.amount.toStringAsFixed(0)}',
+                    style: TextStyle(
+                      color: AppStyles.getSecondaryTextColor(context),
+                      fontSize: TypeScale.body,
+                    ),
+                  ),
+                  SizedBox(height: Spacing.xxl),
+                  // Add/Subtract Toggle
+                  Padding(
+                    padding: Spacing.screenPadding,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: BouncyButton(
+                            onPressed: () {
+                              Haptics.selection();
+                              setModalState(() => isAdding = true);
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(vertical: Spacing.md),
+                              decoration: BoxDecoration(
+                                color: isAdding
+                                    ? SemanticColors.success.withValues(alpha: 0.15)
+                                    : Colors.transparent,
+                                borderRadius: Radii.buttonRadius,
+                                border: Border.all(
+                                  color: isAdding
+                                      ? SemanticColors.success
+                                      : AppStyles.getSecondaryTextColor(context),
+                                  width: isAdding ? 2 : 1,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    CupertinoIcons.add_circled,
+                                    color: isAdding
+                                        ? SemanticColors.success
+                                        : AppStyles.getSecondaryTextColor(context),
+                                  ),
+                                  SizedBox(width: Spacing.xs),
+                                  Text(
+                                    'Add',
+                                    style: TextStyle(
+                                      color: isAdding
+                                          ? SemanticColors.success
+                                          : AppStyles.getSecondaryTextColor(context),
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: Spacing.md),
+                        Expanded(
+                          child: BouncyButton(
+                            onPressed: () {
+                              Haptics.selection();
+                              setModalState(() => isAdding = false);
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(vertical: Spacing.md),
+                              decoration: BoxDecoration(
+                                color: !isAdding
+                                    ? SemanticColors.warning.withValues(alpha: 0.15)
+                                    : Colors.transparent,
+                                borderRadius: Radii.buttonRadius,
+                                border: Border.all(
+                                  color: !isAdding
+                                      ? SemanticColors.warning
+                                      : AppStyles.getSecondaryTextColor(context),
+                                  width: !isAdding ? 2 : 1,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    CupertinoIcons.minus_circled,
+                                    color: !isAdding
+                                        ? SemanticColors.warning
+                                        : AppStyles.getSecondaryTextColor(context),
+                                  ),
+                                  SizedBox(width: Spacing.xs),
+                                  Text(
+                                    'Reduce',
+                                    style: TextStyle(
+                                      color: !isAdding
+                                          ? SemanticColors.warning
+                                          : AppStyles.getSecondaryTextColor(context),
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: Spacing.lg),
+                  // Amount Input
+                  Padding(
+                    padding: Spacing.screenPadding,
+                    child: CupertinoTextField(
+                      controller: amountController,
+                      placeholder: 'Enter amount',
+                      keyboardType: TextInputType.number,
+                      prefix: Padding(
+                        padding: EdgeInsets.only(left: Spacing.md),
+                        child: Text(
+                          '₹',
+                          style: TextStyle(
+                            color: AppStyles.getTextColor(context),
+                            fontSize: TypeScale.title2,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      style: TextStyle(
+                        color: AppStyles.getTextColor(context),
+                        fontSize: TypeScale.title2,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppStyles.getCardColor(context),
+                        borderRadius: Radii.buttonRadius,
+                        border: Border.all(
+                          color: isAdding
+                              ? SemanticColors.success
+                              : SemanticColors.warning,
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+                  ActionButtonRow(
+                    primaryLabel: 'Save',
+                    onPrimaryPressed: () {
+                      final amount = double.tryParse(amountController.text);
+                      if (amount != null && amount > 0) {
+                        double newAmount;
+                        if (isAdding) {
+                          newAmount = record.amount + amount;
+                        } else {
+                          newAmount = record.amount - amount;
+                          if (newAmount < 0) newAmount = 0;
+                        }
+
+                        final updatedRecord = record.copyWith(amount: newAmount);
+                        controller.updateRecord(record.id, updatedRecord);
+
+                        Navigator.pop(modalContext);
+                        Haptics.success();
+                        toast.showSuccess(
+                          isAdding
+                              ? 'Added ₹${amount.toStringAsFixed(0)}'
+                              : 'Reduced ₹${amount.toStringAsFixed(0)}',
+                        );
+                      }
+                    },
+                    secondaryLabel: 'Cancel',
+                    onSecondaryPressed: () => Navigator.pop(modalContext),
+                  ),
+                  SizedBox(height: Spacing.lg),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _navigateToEditWizard(BuildContext context, LendingBorrowing record) {
+    Navigator.of(context).push(
+      CupertinoPageRoute(
+        builder: (newContext) => LendingWizard(
+          type: record.type,
+          existingRecord: record,
+          onSave: (updatedRecord) {
+            Provider.of<LendingBorrowingController>(context, listen: false)
+                .updateRecord(record.id, updatedRecord);
+            toast.showSuccess('Record updated');
+            logger.info('Updated record: ${record.personName}', context: 'LendingBorrowingScreen');
+          },
+        ),
+      ),
+    );
+  }
+
+  void _settleRecord(LendingBorrowing record, LendingBorrowingController controller) {
+    Haptics.success();
+    controller.settleRecord(record.id);
+    toast.showSuccess(
+      'Marked as settled',
+      actionLabel: 'Undo',
+      onAction: () {
+        final unsettledRecord = record.copyWith(
+          isSettled: false,
+          settledDate: null,
+        );
+        controller.updateRecord(record.id, unsettledRecord);
+      },
+    );
+    logger.info('Settled record: ${record.personName}', context: 'LendingBorrowingScreen');
+  }
+
+  void _deleteRecord(
+    BuildContext context,
+    LendingBorrowing record,
+    LendingBorrowingController controller,
+  ) {
+    Haptics.warning();
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Delete Record'),
+        content: Text('Are you sure you want to delete the record with ${record.personName}?'),
+        actions: [
+          CupertinoDialogAction(
+            isDefaultAction: true,
+            child: const Text('Cancel'),
+            onPressed: () => Navigator.pop(context),
+          ),
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            child: const Text('Delete'),
+            onPressed: () {
+              Haptics.delete();
+              controller.removeRecord(record.id);
+              Navigator.pop(context);
+              toast.showSuccess(
+                '"${record.personName}" deleted',
+                actionLabel: 'Undo',
+                onAction: () {
+                  controller.addRecord(record);
+                  toast.showInfo('Record restored');
+                },
+              );
+              logger.info('Deleted record: ${record.personName}', context: 'LendingBorrowingScreen');
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildRecordCard(
     LendingBorrowing record,
     BuildContext context,
@@ -232,165 +632,160 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
     final color = isLent ? AppStyles.accentBlue : CupertinoColors.systemRed;
     final icon = isLent ? CupertinoIcons.arrow_up_right : CupertinoIcons.arrow_down_left;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: AppStyles.getCardColor(context),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: color.withValues(alpha: 0.2),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+    return BouncyButton(
+      onPressed: () {
+        Haptics.light();
+        _showRecordActions(context, record, controller);
+      },
+      child: Container(
+        margin: EdgeInsets.only(bottom: Spacing.md),
+        decoration: BoxDecoration(
+          color: AppStyles.getCardColor(context),
+          borderRadius: Radii.cardRadius,
+          border: Border.all(
+            color: color.withValues(alpha: 0.2),
+            width: 1,
           ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header with Icon and Name
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.15),
-                        shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            Padding(
+              padding: Spacing.cardPadding,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header with Icon and Name
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      IconBox(
+                        icon: icon,
+                        color: color,
+                        size: 48,
                       ),
-                      child: Center(
-                        child: Icon(icon, color: color, size: 22),
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            record.personName.isNotEmpty ? record.personName : 'Unknown',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: AppStyles.getTextColor(context),
-                              letterSpacing: 0.3,
+                      SizedBox(width: Spacing.lg),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              record.personName.isNotEmpty ? record.personName : 'Unknown',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: TypeScale.callout,
+                                fontWeight: FontWeight.w700,
+                                color: AppStyles.getTextColor(context),
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _formatDate(record.date),
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                              color: AppStyles.getSecondaryTextColor(context),
+                            SizedBox(height: Spacing.xs),
+                            Text(
+                              _formatDate(record.date),
+                              style: TextStyle(
+                                fontSize: TypeScale.footnote,
+                                fontWeight: FontWeight.w500,
+                                color: AppStyles.getSecondaryTextColor(context),
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        '₹${record.amount.toStringAsFixed(0)}',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w800,
-                          color: color,
-                          letterSpacing: 0.5,
+                          ],
                         ),
+                      ),
+                      SizedBox(width: Spacing.md),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: Spacing.md,
+                          vertical: Spacing.sm,
+                        ),
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.1),
+                          borderRadius: Radii.chipRadius,
+                        ),
+                        child: AnimatedCounter(
+                          value: record.amount,
+                          prefix: '₹',
+                          decimals: 0,
+                          duration: AppDurations.counter,
+                          style: TextStyle(
+                            fontSize: TypeScale.callout,
+                            fontWeight: FontWeight.w800,
+                            color: color,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (record.description != null) ...[
+                    SizedBox(height: Spacing.md),
+                    Text(
+                      record.description!,
+                      style: TextStyle(
+                        fontSize: TypeScale.caption,
+                        color: AppStyles.getSecondaryTextColor(context),
                       ),
                     ),
                   ],
-                ),
-                if (record.description != null) ...[
-                  const SizedBox(height: 12),
-                  Text(
-                    record.description!,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: AppStyles.getSecondaryTextColor(context),
+                  if (record.dueDate != null) ...[
+                    SizedBox(height: Spacing.sm),
+                    Row(
+                      children: [
+                        Icon(
+                          CupertinoIcons.calendar,
+                          size: IconSizes.xs,
+                          color: AppStyles.getSecondaryTextColor(context),
+                        ),
+                        SizedBox(width: Spacing.xs),
+                        Text(
+                          'Due: ${_formatDate(record.dueDate!)}',
+                          style: TextStyle(
+                            fontSize: TypeScale.caption,
+                            color: AppStyles.getSecondaryTextColor(context),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
+                  ],
                 ],
-                if (record.dueDate != null) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    'Due: ${_formatDate(record.dueDate!)}',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: AppStyles.getSecondaryTextColor(context),
-                    ),
-                  ),
-                ],
-              ],
+              ),
             ),
-          ),
-          if (record.isSettled)
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  color: Colors.green.withValues(alpha: 0.1),
-                ),
-                child: Center(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: CupertinoColors.systemGreen,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Text(
-                      'Settled',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
+            if (record.isSettled)
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: Radii.cardRadius,
+                    color: SemanticColors.success.withValues(alpha: 0.1),
+                  ),
+                  child: Center(
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: Spacing.md,
+                        vertical: Spacing.xs,
+                      ),
+                      decoration: BoxDecoration(
+                        color: SemanticColors.success,
+                        borderRadius: Radii.chipRadius,
+                      ),
+                      child: Text(
+                        'Settled ✓',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: TypeScale.caption,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            )
-          else
-            Positioned(
-              top: 8,
-              right: 8,
-              child: GestureDetector(
-                onTap: () {
-                  controller.settleRecord(record.id);
-                  logger.info('Settled record: ${record.personName}', context: 'LendingBorrowingScreen');
-                },
-                child: Container(
-                  width: 28,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    color: CupertinoColors.systemGreen.withValues(alpha: 0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Center(
-                    child: Icon(CupertinoIcons.checkmark, size: 14, color: CupertinoColors.systemGreen),
-                  ),
-                ),
-              ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -616,71 +1011,3 @@ class _TransactionTypeWizard extends StatelessWidget {
   }
 }
 
-class FadingFloatingActionButton extends StatefulWidget {
-  final VoidCallback onPressed;
-  const FadingFloatingActionButton({super.key, required this.onPressed});
-
-  @override
-  State<FadingFloatingActionButton> createState() => _FadingFloatingActionButtonState();
-}
-
-class _FadingFloatingActionButtonState extends State<FadingFloatingActionButton>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
-    _animation = Tween<double>(begin: 1.0, end: 0.3).animate(_controller);
-    _startInactivityTimer();
-  }
-
-  void _startInactivityTimer() {
-    if (_controller.value > 0) _controller.reverse();
-    Future.delayed(const Duration(seconds: 4), () {
-      if (mounted) _controller.forward();
-    });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, child) {
-        return Opacity(
-          opacity: _animation.value,
-          child: GestureDetector(
-            onTap: () {
-              _startInactivityTimer();
-              widget.onPressed();
-            },
-            child: Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: CupertinoColors.systemBlue,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: CupertinoColors.systemBlue.withValues(alpha: 0.4),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: const Icon(CupertinoIcons.add, color: Colors.white, size: 28),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}

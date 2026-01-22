@@ -1,14 +1,18 @@
-import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/settings_controller.dart';
 import 'package:vittara_fin_os/ui/manage/account_wizard.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
+import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
+import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 
 class AccountsScreen extends StatefulWidget {
@@ -178,43 +182,50 @@ class _AccountsScreenState extends State<AccountsScreen> {
           return Stack(
             children: [
               if (accounts.isEmpty)
-                Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        CupertinoIcons.creditcard,
-                        size: 64,
-                        color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.3),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No Accounts Added',
-                        style: TextStyle(
-                          color: AppStyles.getSecondaryTextColor(context),
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
+                EmptyStateView(
+                  icon: CupertinoIcons.creditcard,
+                  title: 'No Accounts Added',
+                  subtitle: 'Add your bank accounts, credit cards, and more',
+                  actionLabel: 'Add Account',
+                  onAction: () => _showAddOptions(context),
                 )
               else
                 SafeArea(
                   child: ReorderableListView.builder(
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                     itemCount: accounts.length,
-                    onReorder: _onReorder,
+                    onReorder: (oldIndex, newIndex) {
+                      HapticFeedback.mediumImpact();
+                      _onReorder(oldIndex, newIndex);
+                    },
+                    proxyDecorator: (child, index, animation) {
+                      return AnimatedBuilder(
+                        animation: animation,
+                        builder: (context, child) => Transform.scale(
+                          scale: 1.02,
+                          child: Container(
+                            decoration: AppStyles.cardDecoration(context),
+                            child: child,
+                          ),
+                        ),
+                        child: child,
+                      );
+                    },
                     itemBuilder: (context, index) {
-                      return _buildAccountCard(accounts[index]);
+                      return StaggeredItem(
+                        key: ValueKey(accounts[index].id),
+                        index: index,
+                        child: _buildSlidableAccountCard(accounts[index]),
+                      );
                     },
                   ),
                 ),
               Positioned(
-                right: 16,
-                bottom: 32,
-                child: FadingFloatingActionButton(
+                right: Spacing.lg,
+                bottom: Spacing.xxxl,
+                child: FadingFAB(
                   onPressed: () => _showAddOptions(context),
+                  heroTag: 'accounts_fab',
                 ),
               ),
             ],
@@ -224,68 +235,100 @@ class _AccountsScreenState extends State<AccountsScreen> {
     );
   }
 
+  Widget _buildSlidableAccountCard(Account account) {
+    return Slidable(
+      endActionPane: ActionPane(
+        motion: const BehindMotion(),
+        extentRatio: 0.5,
+        children: [
+          SlidableAction(
+            onPressed: (_) {
+              HapticFeedback.lightImpact();
+              _editAccount(account);
+            },
+            backgroundColor: CupertinoColors.systemBlue,
+            foregroundColor: Colors.white,
+            icon: CupertinoIcons.pencil,
+            label: 'Edit',
+            borderRadius: const BorderRadius.horizontal(left: Radius.circular(12)),
+          ),
+          SlidableAction(
+            onPressed: (_) {
+              HapticFeedback.heavyImpact();
+              _deleteAccount(account);
+            },
+            backgroundColor: CupertinoColors.destructiveRed,
+            foregroundColor: Colors.white,
+            icon: CupertinoIcons.trash,
+            label: 'Delete',
+            borderRadius: const BorderRadius.horizontal(right: Radius.circular(12)),
+          ),
+        ],
+      ),
+      child: _buildAccountCard(account),
+    );
+  }
+
   Widget _buildAccountCard(Account account) {
-    return BouncyButton(
-      key: ValueKey(account.id),
-      onPressed: () => _showAccountDetailsSheet(account),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        decoration: AppStyles.cardDecoration(context),
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Row(
-            children: [
-              Container(
-                width: 52,
-                height: 52,
-                decoration: AppStyles.iconBoxDecoration(context, account.color),
-                child: Center(
-                  child: Icon(
-                    account.type == AccountType.investment
-                        ? CupertinoIcons.chart_bar_square_fill
-                        : CupertinoIcons.building_2_fill,
-                    color: account.color,
-                    size: 26,
+    return Hero(
+      tag: 'account_${account.id}',
+      child: BouncyButton(
+        onPressed: () => _showAccountDetailsSheet(account),
+        child: Container(
+          margin: EdgeInsets.only(bottom: Spacing.lg),
+          decoration: AppStyles.cardDecoration(context),
+          child: Padding(
+            padding: Spacing.cardPadding,
+            child: Row(
+              children: [
+                IconBox(
+                  icon: account.type == AccountType.investment
+                      ? CupertinoIcons.chart_bar_square_fill
+                      : CupertinoIcons.building_2_fill,
+                  color: account.color,
+                  showGlow: true,
+                ),
+                SizedBox(width: Spacing.lg),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(account.name, style: AppStyles.titleStyle(context)),
+                      SizedBox(height: Spacing.xs),
+                      Text(
+                        '${account.bankName} • ${account.type.name.toUpperCase()}',
+                        style: TextStyle(
+                          fontSize: TypeScale.footnote,
+                          color: AppStyles.getSecondaryTextColor(context),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(account.name, style: AppStyles.titleStyle(context)),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${account.bankName} • ${account.type.name.toUpperCase()}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppStyles.getSecondaryTextColor(context),
-                        fontWeight: FontWeight.w500,
+                    AnimatedCounter(
+                      value: account.balance,
+                      prefix: '₹',
+                      decimals: 2,
+                      duration: AppDurations.counter,
+                      style: AppStyles.titleStyle(context).copyWith(
+                        color: SemanticColors.getPrimary(context),
+                        fontWeight: FontWeight.bold,
                       ),
+                    ),
+                    SizedBox(height: Spacing.xs),
+                    Icon(
+                      CupertinoIcons.chevron_up,
+                      size: IconSizes.xs,
+                      color: AppStyles.getSecondaryTextColor(context),
                     ),
                   ],
                 ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    '₹${account.balance.toStringAsFixed(2)}',
-                    style: AppStyles.titleStyle(context).copyWith(
-                      color: AppStyles.accentBlue,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Icon(
-                    CupertinoIcons.chevron_up,
-                    size: 14,
-                    color: AppStyles.getSecondaryTextColor(context),
-                  ),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -532,25 +575,36 @@ class _AccountsScreenState extends State<AccountsScreen> {
   }
 
   void _deleteAccount(Account account) {
+    Haptics.warning();
     showCupertinoDialog(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return CupertinoAlertDialog(
           title: const Text('Delete Account'),
           content: Text('Are you sure you want to delete "${account.name}"? This action cannot be undone.'),
           actions: [
             CupertinoDialogAction(
               child: const Text('Cancel'),
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(dialogContext),
             ),
             CupertinoDialogAction(
               isDestructiveAction: true,
               child: const Text('Delete'),
               onPressed: () {
+                Haptics.delete();
                 final accountsController = Provider.of<AccountsController>(context, listen: false);
+                final deletedName = account.name;
                 accountsController.removeAccount(account.id);
-                Navigator.pop(context);
-                logger.info('Deleted account: ${account.name}', context: 'AccountsScreen');
+                Navigator.pop(dialogContext);
+                logger.info('Deleted account: $deletedName', context: 'AccountsScreen');
+                toast.showSuccess(
+                  '"$deletedName" deleted',
+                  actionLabel: 'Undo',
+                  onAction: () {
+                    accountsController.addAccount(account);
+                    toast.showInfo('Account restored');
+                  },
+                );
               },
             ),
           ],
@@ -560,63 +614,3 @@ class _AccountsScreenState extends State<AccountsScreen> {
   }
 }
 
-class FadingFloatingActionButton extends StatefulWidget {
-  final VoidCallback onPressed;
-  const FadingFloatingActionButton({super.key, required this.onPressed});
-  @override
-  State<FadingFloatingActionButton> createState() => _FadingFloatingActionButtonState();
-}
-
-class _FadingFloatingActionButtonState extends State<FadingFloatingActionButton> with SingleTickerProviderStateMixin {
-  Timer? _timer;
-  late AnimationController _controller;
-  late Animation<double> _animation;
-  
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
-    _animation = Tween<double>(begin: 1.0, end: 0.3).animate(_controller);
-    _startInactivityTimer();
-  }
-  
-  void _startInactivityTimer() {
-    _timer?.cancel();
-    if (_controller.value > 0) _controller.reverse();
-    _timer = Timer(const Duration(seconds: 4), () { if (mounted) _controller.forward(); });
-  }
-  
-  @override
-  void dispose() { _timer?.cancel(); _controller.dispose(); super.dispose(); }
-  
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, child) {
-        return Opacity(
-          opacity: _animation.value,
-          child: GestureDetector(
-            onTapDown: (_) => _startInactivityTimer(),
-            onTap: () { _startInactivityTimer(); widget.onPressed(); },
-            child: Container(
-              width: 56, height: 56,
-              decoration: BoxDecoration(
-                color: CupertinoColors.systemBlue,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: CupertinoColors.systemBlue.withValues(alpha: 0.4),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4)
-                  )
-                ],
-              ),
-              child: const Icon(CupertinoIcons.add, color: Colors.white, size: 28),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}

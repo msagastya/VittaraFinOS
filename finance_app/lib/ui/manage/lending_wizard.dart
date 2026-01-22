@@ -11,11 +11,13 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 class LendingWizard extends StatefulWidget {
   final LendingType type;
   final Function(LendingBorrowing) onSave;
+  final LendingBorrowing? existingRecord;
 
   const LendingWizard({
     super.key,
     required this.type,
     required this.onSave,
+    this.existingRecord,
   });
 
   @override
@@ -41,6 +43,22 @@ class _LendingWizardState extends State<LendingWizard> {
   List<app_contact.Contact> _phoneContacts = [];
   List<app_contact.Contact> _filteredPhoneContacts = [];
   bool _loadingPhoneContacts = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Pre-populate fields if editing existing record
+    if (widget.existingRecord != null) {
+      final record = widget.existingRecord!;
+      _selectedPersonName = record.personName;
+      _nameController.text = record.personName;
+      _amountController.text = record.amount.toStringAsFixed(0);
+      _descriptionController.text = record.description ?? '';
+      _selectedDate = record.date;
+      _selectedDueDate = record.dueDate;
+      _selectionMode = 'manual';
+    }
+  }
 
   @override
   void dispose() {
@@ -86,13 +104,15 @@ class _LendingWizardState extends State<LendingWizard> {
     final phoneNumber = _phoneController.text.isNotEmpty ? _phoneController.text : null;
 
     final record = LendingBorrowing(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: widget.existingRecord?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
       personName: personName,
       amount: double.parse(_amountController.text),
       type: widget.type,
       description: _descriptionController.text.isNotEmpty ? _descriptionController.text : null,
       date: _selectedDate,
       dueDate: _selectedDueDate,
+      isSettled: widget.existingRecord?.isSettled ?? false,
+      settledDate: widget.existingRecord?.settledDate,
     );
 
     // Auto-save contact if not from 'my-people' mode
@@ -135,7 +155,9 @@ class _LendingWizardState extends State<LendingWizard> {
       resizeToAvoidBottomInset: true,
       navigationBar: CupertinoNavigationBar(
         middle: Text(
-          isLent ? 'Lent Money' : 'Borrowed Money',
+          widget.existingRecord != null
+              ? 'Edit Record'
+              : (isLent ? 'Lent Money' : 'Borrowed Money'),
           style: TextStyle(color: AppStyles.getTextColor(context)),
         ),
         leading: CupertinoButton(

@@ -4,6 +4,10 @@ import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/contacts_controller.dart';
 import 'package:vittara_fin_os/logic/contact_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/widgets/animations.dart';
+import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
+import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class ContactsScreen extends StatefulWidget {
   const ContactsScreen({super.key});
@@ -34,49 +38,33 @@ class _ContactsScreenState extends State<ContactsScreen> {
             children: [
               SafeArea(
                 child: contacts.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              CupertinoIcons.person_add,
-                              size: 48,
-                              color: AppStyles.getSecondaryTextColor(context),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'No contacts yet',
-                              style: TextStyle(
-                                color: AppStyles.getSecondaryTextColor(context),
-                                fontSize: 14,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Add people you frequently transact with',
-                              style: TextStyle(
-                                color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.6),
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
+                    ? EmptyStateView(
+                        icon: CupertinoIcons.person_add,
+                        title: 'No contacts yet',
+                        subtitle: 'Add people you frequently transact with',
+                        actionLabel: 'Add Contact',
+                        onAction: () => _showAddContactDialog(context, contactsController),
                       )
                     : ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+                        padding: EdgeInsets.fromLTRB(Spacing.lg, Spacing.md, Spacing.lg, 100),
                         itemCount: contacts.length,
                         itemBuilder: (context, index) {
                           final contact = contacts[index];
-                          return _buildContactCard(contact, context, contactsController);
+                          return StaggeredItem(
+                            index: index,
+                            child: _buildContactCard(contact, context, contactsController),
+                          );
                         },
                       ),
               ),
               // Add Button
               Positioned(
-                right: 16,
-                bottom: 32,
-                child: FadingFloatingActionButton(
+                right: Spacing.lg,
+                bottom: Spacing.xxxl,
+                child: FadingFAB(
                   onPressed: () => _showAddContactDialog(context, contactsController),
+                  color: SemanticColors.contacts,
+                  heroTag: 'contacts_fab',
                 ),
               ),
             ],
@@ -94,57 +82,56 @@ class _ContactsScreenState extends State<ContactsScreen> {
     final contactName = contact.name.isNotEmpty ? contact.name : 'Unknown';
     final firstLetter = contactName.isNotEmpty ? contactName[0].toUpperCase() : '?';
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: AppStyles.getCardColor(context),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppStyles.accentBlue.withValues(alpha: 0.2),
-          width: 1,
+    return BouncyButton(
+      onPressed: () {
+        Haptics.light();
+        _showContactOptions(context, contact, controller);
+      },
+      child: Container(
+        margin: EdgeInsets.only(bottom: Spacing.md),
+        decoration: AppStyles.cardDecoration(context).copyWith(
+          border: Border.all(
+            color: SemanticColors.contacts.withValues(alpha: Opacities.borderSubtle),
+            width: 1,
+          ),
         ),
-      ),
-      child: CupertinoButton(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        onPressed: () => _showContactOptions(context, contact, controller),
+        padding: EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.md),
         child: Row(
           children: [
             Container(
-              width: 44,
-              height: 44,
+              width: ComponentSizes.avatarMedium,
+              height: ComponentSizes.avatarMedium,
               decoration: BoxDecoration(
-                color: AppStyles.accentBlue.withValues(alpha: 0.15),
+                color: SemanticColors.contacts.withValues(alpha: Opacities.iconBackground),
                 shape: BoxShape.circle,
               ),
               child: Center(
                 child: Text(
                   firstLetter,
-                  style: const TextStyle(
-                    color: CupertinoColors.systemBlue,
+                  style: TextStyle(
+                    color: SemanticColors.contacts,
                     fontWeight: FontWeight.w600,
-                    fontSize: 18,
+                    fontSize: TypeScale.title3,
                   ),
                 ),
               ),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: Spacing.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     contactName,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: AppStyles.getTextColor(context),
-                      fontSize: 14,
+                    style: AppStyles.titleStyle(context).copyWith(
+                      fontSize: TypeScale.body,
                     ),
                   ),
                   if (contact.phoneNumber?.isNotEmpty ?? false)
                     Text(
                       contact.phoneNumber!,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: TypeScale.footnote,
                         color: AppStyles.getSecondaryTextColor(context),
                       ),
                     ),
@@ -152,8 +139,8 @@ class _ContactsScreenState extends State<ContactsScreen> {
               ),
             ),
             Icon(
-              CupertinoIcons.info_circle,
-              size: 20,
+              CupertinoIcons.chevron_right,
+              size: IconSizes.sm,
               color: AppStyles.getSecondaryTextColor(context),
             ),
           ],
@@ -320,71 +307,3 @@ class _ContactsScreenState extends State<ContactsScreen> {
   }
 }
 
-class FadingFloatingActionButton extends StatefulWidget {
-  final VoidCallback onPressed;
-  const FadingFloatingActionButton({super.key, required this.onPressed});
-
-  @override
-  State<FadingFloatingActionButton> createState() => _FadingFloatingActionButtonState();
-}
-
-class _FadingFloatingActionButtonState extends State<FadingFloatingActionButton>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
-    _animation = Tween<double>(begin: 1.0, end: 0.3).animate(_controller);
-    _startInactivityTimer();
-  }
-
-  void _startInactivityTimer() {
-    if (_controller.value > 0) _controller.reverse();
-    Future.delayed(const Duration(seconds: 4), () {
-      if (mounted) _controller.forward();
-    });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, child) {
-        return Opacity(
-          opacity: _animation.value,
-          child: GestureDetector(
-            onTap: () {
-              _startInactivityTimer();
-              widget.onPressed();
-            },
-            child: Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: CupertinoColors.systemBlue,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: CupertinoColors.systemBlue.withValues(alpha: 0.4),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: const Icon(CupertinoIcons.add, color: Colors.white, size: 28),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}

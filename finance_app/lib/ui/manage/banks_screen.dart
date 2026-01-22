@@ -2,9 +2,11 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/banks_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 
 class BanksScreen extends StatefulWidget {
@@ -269,11 +271,30 @@ class _BanksScreenState extends State<BanksScreen> {
                       child: ReorderableListView.builder(
                         padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
                         itemCount: filteredBanks.length,
-                        onReorder: (oldIndex, newIndex) =>
-                            _onReorder(oldIndex, newIndex, banksController),
+                        onReorder: (oldIndex, newIndex) {
+                          HapticFeedback.mediumImpact();
+                          _onReorder(oldIndex, newIndex, banksController);
+                        },
+                        proxyDecorator: (child, index, animation) {
+                          return AnimatedBuilder(
+                            animation: animation,
+                            builder: (context, child) => Transform.scale(
+                              scale: 1.02,
+                              child: Container(
+                                decoration: AppStyles.cardDecoration(context),
+                                child: child,
+                              ),
+                            ),
+                            child: child,
+                          );
+                        },
                         itemBuilder: (context, index) {
                           final bank = filteredBanks[index];
-                          return _build3DBankCard(bank, banksController);
+                          return StaggeredItem(
+                            key: ValueKey(bank['id']),
+                            index: index,
+                            child: _build3DBankCard(bank, banksController),
+                          );
                         },
                       ),
                     ),
@@ -293,7 +314,6 @@ class _BanksScreenState extends State<BanksScreen> {
 
   Widget _build3DBankCard(Map<String, dynamic> bank, BanksController banksController) {
     return Container(
-      key: ValueKey(bank['id']),
       margin: const EdgeInsets.only(bottom: 16),
       decoration: AppStyles.cardDecoration(context),
       child: Padding(

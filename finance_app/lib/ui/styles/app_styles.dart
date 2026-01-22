@@ -13,6 +13,8 @@ class AppStyles {
   static const Color darkText = Color(0xFFFFFFFF);
   
   static const Color accentBlue = Color(0xFF007AFF);
+  static const Color accentGreen = Color(0xFF34C759);
+  static const Color accentOrange = Color(0xFFFF9500);
 
   // --- Getters for Theme-Aware Colors ---
   static Color getBackground(BuildContext context) {

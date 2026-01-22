@@ -4,6 +4,10 @@ import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/tags_controller.dart';
 import 'package:vittara_fin_os/logic/tag_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/widgets/animations.dart';
+import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
+import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class TagsScreen extends StatefulWidget {
   const TagsScreen({super.key});
@@ -119,9 +123,11 @@ class _TagsScreenState extends State<TagsScreen> {
                             ),
                             const SizedBox(height: 24),
                             Wrap(
-                              spacing: 12,
-                              runSpacing: 12,
-                              children: tags.map((tag) => _buildTagChip(tag, context, tagsController)).toList(),
+                              spacing: Spacing.md,
+                              runSpacing: Spacing.md,
+                              children: tags.asMap().entries.map((entry) =>
+                                _buildTagChip(entry.value, context, tagsController, entry.key)
+                              ).toList(),
                             ),
                           ],
                         ),
@@ -131,10 +137,12 @@ class _TagsScreenState extends State<TagsScreen> {
               ),
               // Add Button
               Positioned(
-                right: 16,
-                bottom: 32,
-                child: FadingFloatingActionButton(
+                right: Spacing.lg,
+                bottom: Spacing.xxxl,
+                child: FadingFAB(
                   onPressed: () => _showCreateTagWizard(context, tagsController),
+                  color: SemanticColors.tags,
+                  heroTag: 'tags_fab',
                 ),
               ),
             ],
@@ -144,38 +152,43 @@ class _TagsScreenState extends State<TagsScreen> {
     );
   }
 
-  Widget _buildTagChip(Tag tag, BuildContext context, TagsController controller) {
-    return GestureDetector(
-      onLongPress: () => _showTagOptions(context, tag, controller),
-      onTap: () => _showTagDetailsSheet(context, tag, controller),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: tag.color.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: tag.color.withValues(alpha: 0.3), width: 1.5),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 12,
-              height: 12,
-              decoration: BoxDecoration(
-                color: tag.color,
-                shape: BoxShape.circle,
+  Widget _buildTagChip(Tag tag, BuildContext context, TagsController controller, int index) {
+    return StaggeredItem(
+      index: index,
+      child: BouncyButton(
+        onPressed: () {
+          Haptics.light();
+          _showTagDetailsSheet(context, tag, controller);
+        },
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.md),
+          decoration: BoxDecoration(
+            color: tag.color.withValues(alpha: 0.12),
+            borderRadius: Radii.pillRadius,
+            border: Border.all(color: tag.color.withValues(alpha: 0.3), width: 1.5),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  color: tag.color,
+                  shape: BoxShape.circle,
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              tag.name,
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                color: tag.color,
-                fontSize: 13,
+              SizedBox(width: Spacing.sm),
+              Text(
+                tag.name,
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: tag.color,
+                  fontSize: TypeScale.subhead,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -546,71 +559,3 @@ class _TagsScreenState extends State<TagsScreen> {
   }
 }
 
-class FadingFloatingActionButton extends StatefulWidget {
-  final VoidCallback onPressed;
-  const FadingFloatingActionButton({super.key, required this.onPressed});
-
-  @override
-  State<FadingFloatingActionButton> createState() => _FadingFloatingActionButtonState();
-}
-
-class _FadingFloatingActionButtonState extends State<FadingFloatingActionButton>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
-    _animation = Tween<double>(begin: 1.0, end: 0.3).animate(_controller);
-    _startInactivityTimer();
-  }
-
-  void _startInactivityTimer() {
-    if (_controller.value > 0) _controller.reverse();
-    Future.delayed(const Duration(seconds: 4), () {
-      if (mounted) _controller.forward();
-    });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, child) {
-        return Opacity(
-          opacity: _animation.value,
-          child: GestureDetector(
-            onTap: () {
-              _startInactivityTimer();
-              widget.onPressed();
-            },
-            child: Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: CupertinoColors.systemBlue,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: CupertinoColors.systemBlue.withValues(alpha: 0.4),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: const Icon(CupertinoIcons.add, color: Colors.white, size: 28),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}

@@ -23,7 +23,7 @@ class _InvestmentTypeSelectionModalState extends State<InvestmentTypeSelectionMo
   bool _showAll = false;
 
   final Map<InvestmentType, Map<String, dynamic>> _investmentTypeDetails = {
-    InvestmentType.stocks: {'label': 'Stocks', 'icon': CupertinoIcons.chart_bar_fill},
+    InvestmentType.stocks: {'label': 'Stocks & ETFs', 'icon': CupertinoIcons.chart_bar_fill},
     InvestmentType.mutualFund: {'label': 'Mutual Fund', 'icon': CupertinoIcons.chart_pie_fill},
     InvestmentType.fixedDeposit: {'label': 'Fixed Deposit (FD)', 'icon': CupertinoIcons.lock_circle_fill},
     InvestmentType.recurringDeposit: {'label': 'Recurring Deposit (RD)', 'icon': CupertinoIcons.arrow_2_circlepath_circle_fill},

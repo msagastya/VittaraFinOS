@@ -37,6 +37,10 @@ class InvestmentsController with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> deleteInvestment(String investmentId) async {
+    await removeInvestment(investmentId);
+  }
+
   Future<void> updateInvestment(Investment investment) async {
     final index = _investments.indexWhere((inv) => inv.id == investment.id);
     if (index >= 0) {

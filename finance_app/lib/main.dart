@@ -17,7 +17,11 @@ import 'package:vittara_fin_os/logic/tags_controller.dart';
 import 'package:vittara_fin_os/ui/fintech_loader.dart';
 import 'package:vittara_fin_os/ui/manage_screen.dart';
 import 'package:vittara_fin_os/ui/settings_screen.dart';
+import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
+import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
+import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 
 final AppLogger logger = AppLogger();
@@ -162,20 +166,22 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         ),
       ),
       builder: (context, child) {
-        return Stack(
-          children: [
-            DefaultTextStyle(
-              style: TextStyle(
-                fontFamily: GoogleFonts.inter().fontFamily,
-                decoration: TextDecoration.none,
-                color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1C1C1E),
+        return ToastOverlay(
+          child: Stack(
+            children: [
+              DefaultTextStyle(
+                style: TextStyle(
+                  fontFamily: GoogleFonts.inter().fontFamily,
+                  decoration: TextDecoration.none,
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1C1C1E),
+                ),
+                child: child!,
               ),
-              child: child!,
-            ),
-            // LOCK SCREEN OVERLAY
-            if (settings.isLocked && settings.appLoaded)
-              const Positioned.fill(child: LockScreen()),
-          ],
+              // LOCK SCREEN OVERLAY
+              if (settings.isLocked && settings.appLoaded)
+                const Positioned.fill(child: LockScreen()),
+            ],
+          ),
         );
       },
       home: const SplashScreen(),
@@ -190,25 +196,94 @@ class LockScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(CupertinoIcons.lock_fill, size: 64, color: Colors.white),
-            const SizedBox(height: 24),
-            const Text(
-              'VittaraFinOS Locked',
-              style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 40),
-            CupertinoButton(
-              color: CupertinoColors.systemBlue,
-              onPressed: () {
-                Provider.of<SettingsController>(context, listen: false).authenticateAndUnlock();
-              },
-              child: const Text('Unlock', style: TextStyle(color: Colors.white)),
-            ),
-          ],
+      body: FadeInAnimation(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Animated lock icon with glow
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [
+                      SemanticColors.primary.withValues(alpha: 0.3),
+                      SemanticColors.primary.withValues(alpha: 0.1),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: SemanticColors.primary.withValues(alpha: 0.3),
+                      blurRadius: 30,
+                      spreadRadius: 5,
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  CupertinoIcons.lock_shield_fill,
+                  size: 56,
+                  color: Colors.white,
+                ),
+              ),
+              SizedBox(height: Spacing.xxxl),
+              Text(
+                'VittaraFinOS Locked',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: TypeScale.title2,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: Spacing.sm),
+              Text(
+                'Your data is protected',
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.6),
+                  fontSize: TypeScale.body,
+                ),
+              ),
+              SizedBox(height: Spacing.huge),
+              BouncyButton(
+                onPressed: () {
+                  Provider.of<SettingsController>(context, listen: false).authenticateAndUnlock();
+                },
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Spacing.xxxl,
+                    vertical: Spacing.lg,
+                  ),
+                  decoration: BoxDecoration(
+                    color: SemanticColors.primary,
+                    borderRadius: Radii.buttonRadius,
+                    boxShadow: Shadows.fab(SemanticColors.primary),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        CupertinoIcons.lock_open_fill,
+                        color: Colors.white,
+                        size: 22,
+                      ),
+                      SizedBox(width: Spacing.sm),
+                      const Text(
+                        'Unlock',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -267,7 +342,6 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final settings = Provider.of<SettingsController>(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return CupertinoPageScaffold(
@@ -276,20 +350,26 @@ class DashboardScreen extends StatelessWidget {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CupertinoButton(
-              padding: EdgeInsets.zero,
-              child: Icon(CupertinoIcons.slider_horizontal_3, size: 24, color: isDark ? Colors.white : CupertinoColors.black),
+            BouncyButton(
               onPressed: () {
                 Navigator.of(context).push(FadeScalePageRoute(page: const ManageScreen()));
               },
+              child: Icon(
+                CupertinoIcons.slider_horizontal_3,
+                size: IconSizes.navIcon,
+                color: isDark ? Colors.white : CupertinoColors.black,
+              ),
             ),
-            const SizedBox(width: 12),
-            CupertinoButton(
-              padding: EdgeInsets.zero,
-              child: Icon(CupertinoIcons.settings, size: 24, color: isDark ? Colors.white : CupertinoColors.black),
+            SizedBox(width: Spacing.xl),
+            BouncyButton(
               onPressed: () {
                 Navigator.of(context).push(FadeScalePageRoute(page: const SettingsScreen()));
               },
+              child: Icon(
+                CupertinoIcons.settings,
+                size: IconSizes.navIcon,
+                color: isDark ? Colors.white : CupertinoColors.black,
+              ),
             ),
           ],
         ),
@@ -302,25 +382,39 @@ class DashboardScreen extends StatelessWidget {
           child: Column(
             children: [
               Expanded(
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        CupertinoIcons.chart_pie_fill,
-                        size: 64,
-                        color: isDark ? CupertinoColors.systemGrey : CupertinoColors.systemGrey,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Financial Overview',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600,
-                          color: isDark ? Colors.white : CupertinoColors.label,
+                child: FadeInAnimation(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        FloatingAnimation(
+                          child: Icon(
+                            CupertinoIcons.chart_pie_fill,
+                            size: IconSizes.emptyStateIcon,
+                            color: isDark
+                              ? CupertinoColors.systemGrey
+                              : CupertinoColors.systemGrey,
+                          ),
                         ),
-                      ),
-                    ],
+                        SizedBox(height: Spacing.lg),
+                        Text(
+                          'Financial Overview',
+                          style: TextStyle(
+                            fontSize: TypeScale.title2,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.white : CupertinoColors.label,
+                          ),
+                        ),
+                        SizedBox(height: Spacing.sm),
+                        Text(
+                          'Your dashboard analytics will appear here',
+                          style: TextStyle(
+                            fontSize: TypeScale.body,
+                            color: AppStyles.getSecondaryTextColor(context),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

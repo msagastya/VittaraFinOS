@@ -44,4 +44,24 @@ class Account {
       creditCardNumber: map['creditCardNumber'],
     );
   }
+
+  Account copyWith({
+    String? id,
+    String? name,
+    String? bankName,
+    AccountType? type,
+    double? balance,
+    Color? color,
+    String? creditCardNumber,
+  }) {
+    return Account(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      bankName: bankName ?? this.bankName,
+      type: type ?? this.type,
+      balance: balance ?? this.balance,
+      color: color ?? this.color,
+      creditCardNumber: creditCardNumber ?? this.creditCardNumber,
+    );
+  }
 }

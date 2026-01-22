@@ -1,11 +1,15 @@
-import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/ui/manage/investment_type_selection.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/widgets/animations.dart';
+import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
+import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 
 class InvestmentsScreen extends StatefulWidget {
@@ -24,8 +28,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       builder: (modalContext) => InvestmentTypeSelectionModal(
         onTypeSelected: (investmentType) {
           logger.info('Selected investment type: ${investmentType.name}', context: 'InvestmentsScreen');
-          // For now, just log. Later we'll create investment details form
-          Navigator.pop(modalContext);
+
           final dummyInvestment = Investment(
             id: '',
             name: '',
@@ -33,12 +36,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             amount: 0,
             color: Colors.grey,
           );
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('${dummyInvestment.getTypeLabel()} selected - details form coming soon!'),
-              duration: const Duration(seconds: 2),
-            ),
-          );
+          toast.showInfo('${dummyInvestment.getTypeLabel()} - Coming soon!');
         },
       ),
     );
@@ -67,82 +65,65 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
           return Stack(
             children: [
               if (investments.isEmpty)
-                Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        CupertinoIcons.chart_pie_fill,
-                        size: 64,
-                        color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.3),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No Investments Added',
-                        style: TextStyle(
-                          color: AppStyles.getSecondaryTextColor(context),
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      CupertinoButton(
-                        color: AppStyles.accentBlue,
-                        child: const Text('Add Investment', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-                        onPressed: () => _showInvestmentTypeSelection(context),
-                      ),
-                    ],
-                  ),
+                EmptyStateView(
+                  icon: CupertinoIcons.chart_pie_fill,
+                  title: 'No Investments Added',
+                  subtitle: 'Track your stocks, mutual funds, crypto and more',
+                  actionLabel: 'Add Investment',
+                  onAction: () => _showInvestmentTypeSelection(context),
                 )
               else
                 SafeArea(
                   child: Column(
                     children: [
-                      // Total Investment Card
+                      // Total Investment Card with Animated Counter
                       Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: AppStyles.cardDecoration(context),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Total Invested',
-                                style: TextStyle(
-                                  color: AppStyles.getSecondaryTextColor(context),
-                                  fontSize: 14,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                '₹${totalAmount.toStringAsFixed(2)}',
-                                style: AppStyles.titleStyle(context).copyWith(
-                                  fontSize: 32,
-                                  color: AppStyles.accentBlue,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                '${investments.length} investments across ${_getDistinctTypesCount(investments)} categories',
-                                style: TextStyle(
-                                  color: AppStyles.getSecondaryTextColor(context),
-                                  fontSize: 12,
-                                ),
-                              ),
+                        padding: EdgeInsets.all(Spacing.lg),
+                        child: FadeInAnimation(
+                          child: SummaryCard(
+                            label: 'Total Invested',
+                            value: totalAmount,
+                            prefix: '₹',
+                            decimals: 2,
+                            subtitle: '${investments.length} investments across ${_getDistinctTypesCount(investments)} categories',
+                            valueColor: SemanticColors.investments,
+                            useGradientBorder: totalAmount > 100000,
+                            gradientColors: const [
+                              Color(0xFFFF9500),
+                              Color(0xFFFF5E3A),
+                              Color(0xFFFF2D55),
                             ],
                           ),
                         ),
                       ),
-                      // Investments List
+                      // Investments List with Staggered Animation
                       Expanded(
                         child: ReorderableListView.builder(
-                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+                          padding: EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, 100),
                           itemCount: investments.length,
-                          onReorder: _onReorder,
+                          onReorder: (oldIndex, newIndex) {
+                            Haptics.reorder();
+                            _onReorder(oldIndex, newIndex);
+                          },
+                          proxyDecorator: (child, index, animation) {
+                            return AnimatedBuilder(
+                              animation: animation,
+                              builder: (context, child) => Transform.scale(
+                                scale: 1.02,
+                                child: Container(
+                                  decoration: AppStyles.cardDecoration(context),
+                                  child: child,
+                                ),
+                              ),
+                              child: child,
+                            );
+                          },
                           itemBuilder: (context, index) {
-                            return _buildInvestmentCard(investments[index]);
+                            return StaggeredItem(
+                              key: ValueKey(investments[index].id),
+                              index: index,
+                              child: _buildInvestmentCard(investments[index]),
+                            );
                           },
                         ),
                       ),
@@ -150,10 +131,12 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                   ),
                 ),
               Positioned(
-                right: 16,
-                bottom: 32,
-                child: FadingFloatingActionButton(
+                right: Spacing.lg,
+                bottom: Spacing.xxxl,
+                child: FadingFAB(
                   onPressed: () => _showInvestmentTypeSelection(context),
+                  color: SemanticColors.investments,
+                  heroTag: 'investments_fab',
                 ),
               ),
             ],
@@ -168,138 +151,71 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
   }
 
   Widget _buildInvestmentCard(Investment investment) {
-    return Container(
-      key: ValueKey(investment.id),
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: AppStyles.cardDecoration(context),
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Row(
-          children: [
-            Container(
-              width: 52,
-              height: 52,
-              decoration: AppStyles.iconBoxDecoration(context, investment.color),
-              child: Center(
-                child: Icon(
-                  CupertinoIcons.chart_bar_square_fill,
-                  color: investment.color,
-                  size: 26,
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(investment.name, style: AppStyles.titleStyle(context)),
-                  const SizedBox(height: 4),
-                  Text(
-                    investment.getTypeLabel(),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppStyles.getSecondaryTextColor(context),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
+    return Hero(
+      tag: 'investment_${investment.id}',
+      child: BouncyButton(
+        onPressed: () {
+          Haptics.light();
+          toast.showInfo('Investment details coming soon!');
+        },
+        child: Container(
+          margin: EdgeInsets.only(bottom: Spacing.lg),
+          decoration: AppStyles.cardDecoration(context),
+          child: Padding(
+            padding: Spacing.cardPadding,
+            child: Row(
               children: [
-                Text(
-                  '₹${investment.amount.toStringAsFixed(2)}',
-                  style: AppStyles.titleStyle(context).copyWith(
-                    color: investment.color,
-                    fontWeight: FontWeight.bold,
+                IconBox(
+                  icon: CupertinoIcons.chart_bar_square_fill,
+                  color: investment.color,
+                  showGlow: true,
+                ),
+                SizedBox(width: Spacing.lg),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(investment.name, style: AppStyles.titleStyle(context)),
+                      SizedBox(height: Spacing.xs),
+                      Text(
+                        investment.getTypeLabel(),
+                        style: TextStyle(
+                          fontSize: TypeScale.footnote,
+                          color: AppStyles.getSecondaryTextColor(context),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 4),
-                Icon(
-                  CupertinoIcons.chevron_up,
-                  size: 14,
-                  color: AppStyles.getSecondaryTextColor(context),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    AnimatedCounter(
+                      value: investment.amount,
+                      prefix: '₹',
+                      decimals: 2,
+                      duration: AppDurations.counter,
+                      style: AppStyles.titleStyle(context).copyWith(
+                        color: investment.color,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: Spacing.xs),
+                    Icon(
+                      CupertinoIcons.chevron_up,
+                      size: IconSizes.xs,
+                      color: AppStyles.getSecondaryTextColor(context),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
+
 }
 
-class FadingFloatingActionButton extends StatefulWidget {
-  final VoidCallback onPressed;
-  const FadingFloatingActionButton({super.key, required this.onPressed});
-
-  @override
-  State<FadingFloatingActionButton> createState() => _FadingFloatingActionButtonState();
-}
-
-class _FadingFloatingActionButtonState extends State<FadingFloatingActionButton>
-    with SingleTickerProviderStateMixin {
-  Timer? _timer;
-  late AnimationController _controller;
-  late Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
-    _animation = Tween<double>(begin: 1.0, end: 0.3).animate(_controller);
-    _startInactivityTimer();
-  }
-
-  void _startInactivityTimer() {
-    _timer?.cancel();
-    if (_controller.value > 0) _controller.reverse();
-    _timer = Timer(const Duration(seconds: 4), () {
-      if (mounted) _controller.forward();
-    });
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, child) {
-        return Opacity(
-          opacity: _animation.value,
-          child: GestureDetector(
-            onTapDown: (_) => _startInactivityTimer(),
-            onTap: () {
-              _startInactivityTimer();
-              widget.onPressed();
-            },
-            child: Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: CupertinoColors.systemBlue,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: CupertinoColors.systemBlue.withValues(alpha: 0.4),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: const Icon(CupertinoIcons.add, color: Colors.white, size: 28),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}

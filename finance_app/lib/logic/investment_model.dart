@@ -22,6 +22,8 @@ class Investment {
   final double amount;
   final Color color;
   final String? notes;
+  final String? broker;
+  final Map<String, dynamic>? metadata;
 
   Investment({
     required this.id,
@@ -30,6 +32,8 @@ class Investment {
     required this.amount,
     required this.color,
     this.notes,
+    this.broker,
+    this.metadata,
   });
 
   String getTypeLabel() {
@@ -98,6 +102,8 @@ class Investment {
       'amount': amount,
       'color': color.toARGB32(),
       'notes': notes,
+      'broker': broker,
+      'metadata': metadata,
     };
   }
 
@@ -109,6 +115,8 @@ class Investment {
       amount: map['amount'],
       color: Color(map['color']),
       notes: map['notes'],
+      broker: map['broker'],
+      metadata: map['metadata'] != null ? Map<String, dynamic>.from(map['metadata']) : null,
     );
   }
 }
