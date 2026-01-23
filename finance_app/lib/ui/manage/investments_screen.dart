@@ -6,6 +6,7 @@ import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/ui/manage/investment_type_selection.dart';
 import 'package:vittara_fin_os/ui/manage/stocks/stocks_wizard.dart';
+import 'package:vittara_fin_os/ui/manage/stocks/stock_details_screen.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
@@ -505,7 +506,16 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       child: BouncyButton(
         onPressed: () {
           Haptics.light();
-          toast.showInfo('Investment details coming soon!');
+          // Navigate to stock details screen if it's a stock investment
+          if (investment.type == InvestmentType.stocks) {
+            Navigator.of(context).push(
+              CupertinoPageRoute(
+                builder: (context) => StockDetailsScreen(investment: investment),
+              ),
+            );
+          } else {
+            toast.showInfo('Details for ${investment.getTypeLabel()} coming soon!');
+          }
         },
         child: Container(
           margin: EdgeInsets.only(bottom: Spacing.lg),
