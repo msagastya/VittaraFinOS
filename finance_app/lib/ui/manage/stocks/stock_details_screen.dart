@@ -612,82 +612,261 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Quantity', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
+        // Transaction Input Card
+        Container(
+          padding: EdgeInsets.all(Spacing.lg),
+          decoration: BoxDecoration(
+            color: AppStyles.getCardColor(context),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: SemanticColors.investments.withValues(alpha: 0.2),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            children: [
+              // Quantity Field
+              _buildInputField(
+                icon: CupertinoIcons.cube,
+                label: 'Quantity',
+                controller: _qtyController,
+                placeholder: '0',
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
+              ),
+              SizedBox(height: Spacing.lg),
+              // Price per Share Field
+              _buildInputField(
+                icon: CupertinoIcons.money_dollar_circle,
+                label: 'Price per Share',
+                controller: _priceController,
+                placeholder: '0.00',
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                prefix: '₹',
+              ),
+              SizedBox(height: Spacing.lg),
+              // Date Field
+              _buildDateField(
+                icon: CupertinoIcons.calendar,
+                label: 'Date of Purchase',
+                onTap: _showDatePicker,
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: Spacing.xl),
+        // Cost Summary Card
+        Container(
+          padding: EdgeInsets.all(Spacing.lg),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                SemanticColors.investments.withValues(alpha: 0.15),
+                SemanticColors.investments.withValues(alpha: 0.08),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: SemanticColors.investments.withValues(alpha: 0.3),
+              width: 1.5,
+            ),
+          ),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(Spacing.sm),
+                        decoration: BoxDecoration(
+                          color: SemanticColors.investments.withValues(alpha: 0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          CupertinoIcons.bag,
+                          size: 20,
+                          color: SemanticColors.investments,
+                        ),
+                      ),
+                      SizedBox(width: Spacing.md),
+                      Text(
+                        'Base Cost',
+                        style: TextStyle(
+                          color: AppStyles.getSecondaryTextColor(context),
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    '₹${(_qty * _price).toStringAsFixed(2)}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                      color: AppStyles.getTextColor(context),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: Spacing.md),
+              Divider(
+                color: SemanticColors.investments.withValues(alpha: 0.2),
+                height: 1,
+              ),
+              SizedBox(height: Spacing.md),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(Spacing.sm),
+                        decoration: BoxDecoration(
+                          color: SemanticColors.investments.withValues(alpha: 0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          CupertinoIcons.money_yen_circle,
+                          size: 20,
+                          color: SemanticColors.investments,
+                        ),
+                      ),
+                      SizedBox(width: Spacing.md),
+                      Text(
+                        'Total Cost',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                          color: AppStyles.getTextColor(context),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    '₹${(_qty * _price).toStringAsFixed(2)}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      color: SemanticColors.investments,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInputField({
+    required IconData icon,
+    required String label,
+    required TextEditingController controller,
+    required String placeholder,
+    required TextInputType keyboardType,
+    String? prefix,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 18, color: SemanticColors.investments),
+            SizedBox(width: Spacing.sm),
+            Text(
+              label,
+              style: TextStyle(
+                color: AppStyles.getTextColor(context),
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
         SizedBox(height: Spacing.md),
         CupertinoTextField(
-          controller: _qtyController,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          placeholder: '0',
-          padding: const EdgeInsets.all(16),
+          controller: controller,
+          keyboardType: keyboardType,
+          placeholder: placeholder,
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
           decoration: BoxDecoration(
             color: AppStyles.getBackground(context),
             borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.2),
+              width: 1,
+            ),
           ),
+          prefix: prefix != null
+              ? Padding(
+                  padding: const EdgeInsets.only(left: 16),
+                  child: Text(prefix, style: TextStyle(color: AppStyles.getSecondaryTextColor(context))),
+                )
+              : null,
           style: TextStyle(color: AppStyles.getTextColor(context)),
           onChanged: (_) => setState(() {}),
         ),
-        SizedBox(height: Spacing.lg),
-        Text('Price per Share', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
-        SizedBox(height: Spacing.md),
-        CupertinoTextField(
-          controller: _priceController,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          placeholder: '0.00',
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppStyles.getBackground(context),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          prefix: Padding(
-            padding: const EdgeInsets.only(left: 16),
-            child: Text('₹', style: TextStyle(color: AppStyles.getTextColor(context))),
-          ),
-          style: TextStyle(color: AppStyles.getTextColor(context)),
-          onChanged: (_) => setState(() {}),
+      ],
+    );
+  }
+
+  Widget _buildDateField({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 18, color: SemanticColors.investments),
+            SizedBox(width: Spacing.sm),
+            Text(
+              label,
+              style: TextStyle(
+                color: AppStyles.getTextColor(context),
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+              ),
+            ),
+          ],
         ),
-        SizedBox(height: Spacing.lg),
-        Text('Date of Purchase', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
         SizedBox(height: Spacing.md),
         GestureDetector(
-          onTap: _showDatePicker,
+          onTap: onTap,
           child: Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
             decoration: BoxDecoration(
               color: AppStyles.getBackground(context),
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.2),
+                width: 1,
+              ),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   _dateController.text,
-                  style: TextStyle(color: AppStyles.getTextColor(context)),
+                  style: TextStyle(
+                    color: AppStyles.getTextColor(context),
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-                Icon(CupertinoIcons.calendar, color: AppStyles.getSecondaryTextColor(context)),
+                Icon(
+                  CupertinoIcons.calendar,
+                  color: SemanticColors.investments,
+                  size: 18,
+                ),
               ],
             ),
-          ),
-        ),
-        SizedBox(height: Spacing.lg),
-        Container(
-          padding: EdgeInsets.all(Spacing.md),
-          decoration: BoxDecoration(
-            color: SemanticColors.investments.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Total Cost', style: TextStyle(fontWeight: FontWeight.w600)),
-              Text(
-                '₹${(_qty * _price).toStringAsFixed(2)}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: SemanticColors.investments,
-                ),
-              ),
-            ],
           ),
         ),
       ],
@@ -762,35 +941,84 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Extra Charges (Optional)', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
-        SizedBox(height: Spacing.sm),
-        Text(
-          'Add any brokerage fees or charges',
-          style: TextStyle(color: AppStyles.getSecondaryTextColor(context), fontSize: 12),
-        ),
-        SizedBox(height: Spacing.md),
-        CupertinoTextField(
-          controller: _chargesController,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          placeholder: '0.00',
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppStyles.getBackground(context),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          prefix: Padding(
-            padding: const EdgeInsets.only(left: 16),
-            child: Text('₹', style: TextStyle(color: AppStyles.getTextColor(context))),
-          ),
-          style: TextStyle(color: AppStyles.getTextColor(context)),
-          onChanged: (_) => setState(() {}),
-        ),
-        SizedBox(height: Spacing.lg),
+        // Charges Input Card
         Container(
-          padding: EdgeInsets.all(Spacing.md),
+          padding: EdgeInsets.all(Spacing.lg),
           decoration: BoxDecoration(
-            color: AppStyles.getBackground(context),
-            borderRadius: BorderRadius.circular(12),
+            color: AppStyles.getCardColor(context),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: SemanticColors.investments.withValues(alpha: 0.2),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(CupertinoIcons.plus_circle, size: 18, color: CupertinoColors.systemOrange),
+                  SizedBox(width: Spacing.sm),
+                  Text(
+                    'Extra Charges (Optional)',
+                    style: TextStyle(
+                      color: AppStyles.getTextColor(context),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: Spacing.sm),
+              Text(
+                'Brokerage fees, commissions, or taxes',
+                style: TextStyle(
+                  color: AppStyles.getSecondaryTextColor(context),
+                  fontSize: 12,
+                ),
+              ),
+              SizedBox(height: Spacing.lg),
+              CupertinoTextField(
+                controller: _chargesController,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                placeholder: '0.00',
+                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                decoration: BoxDecoration(
+                  color: AppStyles.getBackground(context),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.2),
+                    width: 1,
+                  ),
+                ),
+                prefix: Padding(
+                  padding: const EdgeInsets.only(left: 16),
+                  child: Text('₹', style: TextStyle(color: AppStyles.getSecondaryTextColor(context))),
+                ),
+                style: TextStyle(color: AppStyles.getTextColor(context)),
+                onChanged: (_) => setState(() {}),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: Spacing.xl),
+        // Breakdown Card
+        Container(
+          padding: EdgeInsets.all(Spacing.lg),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                SemanticColors.investments.withValues(alpha: 0.15),
+                SemanticColors.investments.withValues(alpha: 0.08),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: SemanticColors.investments.withValues(alpha: 0.3),
+              width: 1.5,
+            ),
           ),
           child: Column(
             children: [
@@ -1935,6 +2163,8 @@ class _DividendModalState extends State<_DividendModal> {
   late TextEditingController _amountController;
   late TextEditingController _dateController;
   DateTime _dividendDate = DateTime.now();
+  Account? _selectedAccount;
+  bool _linkAccount = true; // Default to linking account
 
   @override
   void initState() {
@@ -1948,6 +2178,19 @@ class _DividendModalState extends State<_DividendModal> {
     _amountController.dispose();
     _dateController.dispose();
     super.dispose();
+  }
+
+  void _showAccountSelector() {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => _AccountSelector(
+        accountType: AccountType.savings,
+        onSelected: (account) {
+          setState(() => _selectedAccount = account);
+          Navigator.pop(context);
+        },
+      ),
+    );
   }
 
   void _showDatePicker() {
@@ -2002,54 +2245,219 @@ class _DividendModalState extends State<_DividendModal> {
                   'Record Dividend',
                   style: AppStyles.titleStyle(context).copyWith(fontSize: 22),
                 ),
-                SizedBox(height: Spacing.xxxl),
-                Text('Dividend Amount', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
-                SizedBox(height: Spacing.md),
-                CupertinoTextField(
-                  controller: _amountController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  placeholder: '0.00',
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppStyles.getBackground(context),
-                    borderRadius: BorderRadius.circular(12),
+                SizedBox(height: Spacing.sm),
+                Text(
+                  'Total dividend amount received',
+                  style: TextStyle(
+                    color: AppStyles.getSecondaryTextColor(context),
+                    fontSize: 14,
                   ),
-                  prefix: Padding(
-                    padding: const EdgeInsets.only(left: 16),
-                    child: Text('₹', style: TextStyle(color: AppStyles.getTextColor(context))),
-                  ),
-                  style: TextStyle(color: AppStyles.getTextColor(context)),
                 ),
-                SizedBox(height: Spacing.lg),
-                Text('Dividend Date', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
-                SizedBox(height: Spacing.md),
-                GestureDetector(
-                  onTap: _showDatePicker,
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppStyles.getBackground(context),
-                      borderRadius: BorderRadius.circular(12),
+                SizedBox(height: Spacing.xxxl),
+                // Input Card
+                Container(
+                  padding: EdgeInsets.all(Spacing.lg),
+                  decoration: BoxDecoration(
+                    color: AppStyles.getCardColor(context),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: CupertinoColors.systemBrown.withValues(alpha: 0.2),
+                      width: 1,
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          _dateController.text,
-                          style: TextStyle(color: AppStyles.getTextColor(context)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Dividend Amount
+                      Row(
+                        children: [
+                          Icon(CupertinoIcons.money_dollar_circle, size: 18, color: CupertinoColors.systemBrown),
+                          SizedBox(width: Spacing.sm),
+                          Text(
+                            'Dividend Amount',
+                            style: TextStyle(
+                              color: AppStyles.getTextColor(context),
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: Spacing.md),
+                      CupertinoTextField(
+                        controller: _amountController,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        placeholder: '0.00',
+                        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: AppStyles.getBackground(context),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.2),
+                            width: 1,
+                          ),
                         ),
-                        Icon(CupertinoIcons.calendar, color: AppStyles.getSecondaryTextColor(context)),
-                      ],
+                        prefix: Padding(
+                          padding: const EdgeInsets.only(left: 16),
+                          child: Text('₹', style: TextStyle(color: AppStyles.getSecondaryTextColor(context))),
+                        ),
+                        style: TextStyle(color: AppStyles.getTextColor(context)),
+                        onChanged: (_) => setState(() {}),
+                      ),
+                      SizedBox(height: Spacing.lg),
+                      // Dividend Date
+                      Row(
+                        children: [
+                          Icon(CupertinoIcons.calendar, size: 18, color: CupertinoColors.systemBrown),
+                          SizedBox(width: Spacing.sm),
+                          Text(
+                            'Dividend Date',
+                            style: TextStyle(
+                              color: AppStyles.getTextColor(context),
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: Spacing.md),
+                      GestureDetector(
+                        onTap: _showDatePicker,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                          decoration: BoxDecoration(
+                            color: AppStyles.getBackground(context),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.2),
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                _dateController.text,
+                                style: TextStyle(
+                                  color: AppStyles.getTextColor(context),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Icon(CupertinoIcons.calendar, color: CupertinoColors.systemBrown, size: 18),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: Spacing.xl),
+                // Account Selection Card
+                Container(
+                  padding: EdgeInsets.all(Spacing.lg),
+                  decoration: BoxDecoration(
+                    color: AppStyles.getCardColor(context),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: CupertinoColors.systemBrown.withValues(alpha: 0.2),
+                      width: 1,
                     ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(CupertinoIcons.building_2_fill, size: 18, color: CupertinoColors.systemBrown),
+                              SizedBox(width: Spacing.sm),
+                              Text(
+                                'Credit to Account',
+                                style: TextStyle(
+                                  color: AppStyles.getTextColor(context),
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Text(
+                            'Required',
+                            style: TextStyle(
+                              color: CupertinoColors.systemRed,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: Spacing.lg),
+                      if (_selectedAccount != null) ...[
+                        Container(
+                          padding: EdgeInsets.all(Spacing.md),
+                          decoration: BoxDecoration(
+                            color: CupertinoColors.systemBrown.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _selectedAccount!.name,
+                                style: TextStyle(
+                                  color: AppStyles.getTextColor(context),
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              SizedBox(height: Spacing.xs),
+                              Text(
+                                'Balance: ₹${_selectedAccount!.balance.toStringAsFixed(2)}',
+                                style: TextStyle(
+                                  color: AppStyles.getSecondaryTextColor(context),
+                                  fontSize: 12,
+                                ),
+                              ),
+                              if (amount > 0) ...[
+                                SizedBox(height: Spacing.xs),
+                                Text(
+                                  'After credit: ₹${(_selectedAccount!.balance + amount).toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    color: CupertinoColors.systemGreen,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: Spacing.md),
+                      ],
+                      SizedBox(
+                        width: double.infinity,
+                        child: CupertinoButton(
+                          onPressed: _showAccountSelector,
+                          child: Text(_selectedAccount != null ? 'Change Account' : 'Select Account'),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 SizedBox(height: Spacing.xl),
                 SizedBox(
                   width: double.infinity,
                   child: CupertinoButton.filled(
-                    onPressed: amount > 0
+                    onPressed: amount > 0 && _selectedAccount != null
                         ? () {
-                            toast.showSuccess('Dividend recorded: ₹$amount');
+                            final accountsController = Provider.of<AccountsController>(context, listen: false);
+                            final newBalance = _selectedAccount!.balance + amount;
+                            accountsController.updateAccount(
+                              _selectedAccount!.copyWith(balance: newBalance),
+                            );
+                            toast.showSuccess('Dividend recorded: ₹${amount.toStringAsFixed(2)} credited to ${_selectedAccount!.name}');
                             Navigator.pop(context);
                           }
                         : null,
