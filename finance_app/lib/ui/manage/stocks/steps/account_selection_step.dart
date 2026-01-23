@@ -7,6 +7,7 @@ import 'package:vittara_fin_os/ui/manage/account_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/stocks/stocks_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/widgets/animations.dart';
 
 class AccountSelectionStep extends StatefulWidget {
   const AccountSelectionStep({super.key});
@@ -152,14 +153,27 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
           padding: const EdgeInsets.all(20),
           child: CupertinoButton(
             color: isDarkMode(context) ? Colors.grey[800] : Colors.grey[200],
-            onPressed: () async {
-              await Navigator.of(context).push(
-                CupertinoPageRoute(builder: (context) => const AccountWizard(isInvestment: true)),
-              );
-              // Refresh list after returning and wait for accounts to load
-              if (mounted) {
-                await Provider.of<AccountsController>(context, listen: false).loadAccounts();
-              }
+            onPressed: () {
+              final accountsController = Provider.of<AccountsController>(context, listen: false);
+              final wizardCtrl = Provider.of<StocksWizardController>(context, listen: false);
+
+              Navigator.push<Account>(
+                context,
+                FadeScalePageRoute(
+                  page: const AccountWizard(isInvestment: true),
+                ),
+              ).then((result) {
+                if (result != null) {
+                  // Save the newly created account
+                  accountsController.addAccount(result);
+                  // Auto-select the newly added account
+                  wizardCtrl.selectAccount(result);
+                  // Auto-proceed to next step
+                  Future.delayed(const Duration(milliseconds: 300), () {
+                    wizardCtrl.nextPage();
+                  });
+                }
+              });
             },
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
