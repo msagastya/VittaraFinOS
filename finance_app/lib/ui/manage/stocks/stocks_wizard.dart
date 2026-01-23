@@ -60,6 +60,8 @@ class _StocksWizardContent extends StatelessWidget {
           'pricePerShare': controller.price,
           'extraCharges': controller.extraCharges,
           'deductedFromAccount': controller.deductFromAccount,
+          'purchaseDate': controller.purchaseDate.toIso8601String(),
+          'currentValue': controller.currentValue > 0 ? controller.currentValue : controller.totalAmount,
         },
       );
 

@@ -15,7 +15,9 @@ class StocksWizardController extends ChangeNotifier {
   // Step 3: Details
   double qty = 0;
   double price = 0;
-  
+  DateTime purchaseDate = DateTime.now();
+  double currentValue = 0;
+
   // Step 4: Deduction
   bool deductFromAccount = false;
   double extraCharges = 0;
@@ -23,6 +25,8 @@ class StocksWizardController extends ChangeNotifier {
   int get currentStep => _currentStep;
   double get totalAmount => qty * price;
   double get totalDeduction => totalAmount + extraCharges;
+  double get gainLoss => currentValue - totalAmount;
+  double get gainLossPercent => totalAmount > 0 ? (gainLoss / totalAmount) * 100 : 0;
 
   void selectStock(StockSearchResult stock) {
     selectedStock = stock;
@@ -34,9 +38,26 @@ class StocksWizardController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateDetails({required double quantity, required double pricePerShare}) {
+  void updateDetails({
+    required double quantity,
+    required double pricePerShare,
+    DateTime? date,
+    double? current,
+  }) {
     qty = quantity;
     price = pricePerShare;
+    if (date != null) purchaseDate = date;
+    if (current != null) currentValue = current;
+    notifyListeners();
+  }
+
+  void updateCurrentValue(double value) {
+    currentValue = value;
+    notifyListeners();
+  }
+
+  void updatePurchaseDate(DateTime date) {
+    purchaseDate = date;
     notifyListeners();
   }
 
