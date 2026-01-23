@@ -143,13 +143,14 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
           padding: const EdgeInsets.all(20),
           child: CupertinoButton(
             color: isDarkMode(context) ? Colors.grey[800] : Colors.grey[200],
-            onPressed: () {
-              Navigator.of(context).push(
+            onPressed: () async {
+              await Navigator.of(context).push(
                 CupertinoPageRoute(builder: (context) => const AccountWizard(isInvestment: true)),
-              ).then((_) {
-                 // Refresh list after returning
-                 Provider.of<AccountsController>(context, listen: false).loadAccounts();
-              });
+              );
+              // Refresh list after returning and wait for accounts to load
+              if (mounted) {
+                await Provider.of<AccountsController>(context, listen: false).loadAccounts();
+              }
             },
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
