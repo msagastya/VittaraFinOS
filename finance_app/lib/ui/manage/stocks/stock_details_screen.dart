@@ -1,8 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:vittara_fin_os/logic/account_model.dart';
+import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
+import 'package:vittara_fin_os/logic/stock_transaction_model.dart';
+import 'package:vittara_fin_os/ui/manage/account_wizard.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
@@ -172,7 +176,6 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                       ],
                     ),
                     SizedBox(height: Spacing.xl),
-                    // Values
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -216,7 +219,6 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                       ],
                     ),
                     SizedBox(height: Spacing.lg),
-                    // Gain/Loss
                     Container(
                       padding: EdgeInsets.all(Spacing.md),
                       decoration: BoxDecoration(
@@ -267,12 +269,6 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                   context,
                   'Purchase Date',
                   _formatDate(DateTime.parse(_investment.metadata!['purchaseDate'] as String)),
-                ),
-              if (_investment.metadata?['extraCharges'] != null && (_investment.metadata!['extraCharges'] as num) > 0)
-                _buildDetailRow(
-                  context,
-                  'Extra Charges',
-                  '₹${((_investment.metadata!['extraCharges'] as num).toDouble()).toStringAsFixed(2)}',
                 ),
               if (_investment.broker != null)
                 _buildDetailRow(context, 'Broker', _investment.broker!),
@@ -413,7 +409,7 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
   }
 }
 
-// Buy More Modal
+// Buy More Modal - Detailed multi-step flow
 class _BuyMoreModal extends StatefulWidget {
   final Investment investment;
   const _BuyMoreModal({required this.investment});
@@ -423,29 +419,91 @@ class _BuyMoreModal extends StatefulWidget {
 }
 
 class _BuyMoreModalState extends State<_BuyMoreModal> {
+  int _step = 0; // 0: Details, 1: Account, 2: Charges, 3: Review
   late TextEditingController _qtyController;
   late TextEditingController _priceController;
+  late TextEditingController _chargesController;
+  late TextEditingController _dateController;
+  DateTime _transactionDate = DateTime.now();
+  Account? _selectedAccount;
+  bool _linkAccount = false;
 
   @override
   void initState() {
     super.initState();
     _qtyController = TextEditingController();
     _priceController = TextEditingController();
+    _chargesController = TextEditingController();
+    _dateController = TextEditingController(text: _formatDate(_transactionDate));
   }
 
   @override
   void dispose() {
     _qtyController.dispose();
     _priceController.dispose();
+    _chargesController.dispose();
+    _dateController.dispose();
     super.dispose();
+  }
+
+  double get _qty => double.tryParse(_qtyController.text) ?? 0;
+  double get _price => double.tryParse(_priceController.text) ?? 0;
+  double get _charges => double.tryParse(_chargesController.text) ?? 0;
+  double get _totalCost => (_qty * _price) + _charges;
+
+  void _showDatePicker() {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => Container(
+        height: 216,
+        padding: const EdgeInsets.only(top: 6.0),
+        margin: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        color: CupertinoColors.systemBackground.resolveFrom(context),
+        child: SafeArea(
+          top: false,
+          child: CupertinoDatePicker(
+            initialDateTime: _transactionDate,
+            mode: CupertinoDatePickerMode.date,
+            maximumDate: DateTime.now(),
+            onDateTimeChanged: (DateTime newDate) {
+              setState(() {
+                _transactionDate = newDate;
+                _dateController.text = _formatDate(newDate);
+              });
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showAccountSelector() {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => _AccountSelector(
+        accountType: AccountType.investment,
+        onSelected: (account) {
+          setState(() => _selectedAccount = account);
+          Navigator.pop(context);
+        },
+      ),
+    );
+  }
+
+  void _saveBuyTransaction() {
+    if (_linkAccount && _selectedAccount != null) {
+      final accountsController = Provider.of<AccountsController>(context, listen: false);
+      final newBalance = _selectedAccount!.balance - _totalCost;
+      accountsController.updateAccount(
+        _selectedAccount!.copyWith(balance: newBalance),
+      );
+    }
+    toast.showSuccess('Bought $_qty shares at ₹$_price');
+    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
-    final qty = double.tryParse(_qtyController.text) ?? 0;
-    final price = double.tryParse(_priceController.text) ?? 0;
-    final total = qty * price;
-
     return Container(
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
@@ -465,88 +523,82 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
               children: [
                 const ModalHandle(),
                 SizedBox(height: Spacing.lg),
+                // Progress
+                Row(
+                  children: List.generate(4, (index) {
+                    return Expanded(
+                      child: Container(
+                        height: 4,
+                        margin: EdgeInsets.symmetric(horizontal: 2),
+                        decoration: BoxDecoration(
+                          color: index <= _step
+                              ? SemanticColors.investments
+                              : (Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.grey[800]
+                                  : Colors.grey[300]),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+                SizedBox(height: Spacing.lg),
                 Text(
-                  'Buy More Shares',
+                  _step == 0
+                      ? 'Buy More Shares'
+                      : _step == 1
+                          ? 'Link Account (Optional)'
+                          : _step == 2
+                              ? 'Extra Charges (Optional)'
+                              : 'Review & Confirm',
                   style: AppStyles.titleStyle(context).copyWith(fontSize: 22),
                 ),
                 SizedBox(height: Spacing.sm),
                 Text(
-                  'Add more shares to your investment',
+                  _step == 0
+                      ? 'Enter quantity, price, and date'
+                      : _step == 1
+                          ? 'Link to account for auto-debit'
+                          : _step == 2
+                              ? 'Add any extra charges'
+                              : 'Confirm your purchase',
                   style: TextStyle(
                     color: AppStyles.getSecondaryTextColor(context),
                     fontSize: 14,
                   ),
                 ),
                 SizedBox(height: Spacing.xxxl),
-                // Quantity
-                Text('Additional Shares', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
-                SizedBox(height: Spacing.md),
-                CupertinoTextField(
-                  controller: _qtyController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  placeholder: '0',
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppStyles.getBackground(context),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  style: TextStyle(color: AppStyles.getTextColor(context)),
-                  onChanged: (_) => setState(() {}),
-                ),
-                SizedBox(height: Spacing.lg),
-                // Price
-                Text('Price per Share', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
-                SizedBox(height: Spacing.md),
-                CupertinoTextField(
-                  controller: _priceController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  placeholder: '0.00',
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppStyles.getBackground(context),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  prefix: Padding(
-                    padding: const EdgeInsets.only(left: 16),
-                    child: Text('₹', style: TextStyle(color: AppStyles.getTextColor(context))),
-                  ),
-                  style: TextStyle(color: AppStyles.getTextColor(context)),
-                  onChanged: (_) => setState(() {}),
-                ),
-                SizedBox(height: Spacing.lg),
-                Container(
-                  padding: EdgeInsets.all(Spacing.md),
-                  decoration: BoxDecoration(
-                    color: SemanticColors.investments.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Total Cost', style: TextStyle(fontWeight: FontWeight.w600)),
-                      Text(
-                        '₹${total.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: SemanticColors.investments,
+                // Step content
+                if (_step == 0) ...[
+                  _buildStepDetails(),
+                ] else if (_step == 1) ...[
+                  _buildStepAccountSelection(),
+                ] else if (_step == 2) ...[
+                  _buildStepCharges(),
+                ] else ...[
+                  _buildStepReview(),
+                ],
+                SizedBox(height: Spacing.xl),
+                // Navigation buttons
+                Row(
+                  children: [
+                    if (_step > 0)
+                      Expanded(
+                        child: CupertinoButton(
+                          onPressed: () => setState(() => _step--),
+                          child: const Text('Back'),
                         ),
                       ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: Spacing.xl),
-                SizedBox(
-                  width: double.infinity,
-                  child: CupertinoButton.filled(
-                    onPressed: qty > 0 && price > 0
-                        ? () {
-                            toast.showSuccess('Added $qty shares at ₹$price');
-                            Navigator.pop(context);
-                          }
-                        : null,
-                    child: const Text('Confirm Purchase'),
-                  ),
+                    if (_step > 0) SizedBox(width: Spacing.md),
+                    Expanded(
+                      child: CupertinoButton.filled(
+                        onPressed: _step < 3
+                            ? () => setState(() => _step++)
+                            : (_qty > 0 && _price > 0 ? _saveBuyTransaction : null),
+                        child: Text(_step < 3 ? 'Next' : 'Confirm Purchase'),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -555,9 +607,301 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
       ),
     );
   }
+
+  Widget _buildStepDetails() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Quantity', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
+        SizedBox(height: Spacing.md),
+        CupertinoTextField(
+          controller: _qtyController,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          placeholder: '0',
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppStyles.getBackground(context),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          style: TextStyle(color: AppStyles.getTextColor(context)),
+          onChanged: (_) => setState(() {}),
+        ),
+        SizedBox(height: Spacing.lg),
+        Text('Price per Share', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
+        SizedBox(height: Spacing.md),
+        CupertinoTextField(
+          controller: _priceController,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          placeholder: '0.00',
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppStyles.getBackground(context),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          prefix: Padding(
+            padding: const EdgeInsets.only(left: 16),
+            child: Text('₹', style: TextStyle(color: AppStyles.getTextColor(context))),
+          ),
+          style: TextStyle(color: AppStyles.getTextColor(context)),
+          onChanged: (_) => setState(() {}),
+        ),
+        SizedBox(height: Spacing.lg),
+        Text('Date of Purchase', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
+        SizedBox(height: Spacing.md),
+        GestureDetector(
+          onTap: _showDatePicker,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppStyles.getBackground(context),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  _dateController.text,
+                  style: TextStyle(color: AppStyles.getTextColor(context)),
+                ),
+                Icon(CupertinoIcons.calendar, color: AppStyles.getSecondaryTextColor(context)),
+              ],
+            ),
+          ),
+        ),
+        SizedBox(height: Spacing.lg),
+        Container(
+          padding: EdgeInsets.all(Spacing.md),
+          decoration: BoxDecoration(
+            color: SemanticColors.investments.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Total Cost', style: TextStyle(fontWeight: FontWeight.w600)),
+              Text(
+                '₹${(_qty * _price).toStringAsFixed(2)}',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: SemanticColors.investments,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStepAccountSelection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Link Account Toggle
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Link to Account', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
+                SizedBox(height: Spacing.xs),
+                Text(
+                  'Auto-debit the purchase amount',
+                  style: TextStyle(color: AppStyles.getSecondaryTextColor(context), fontSize: 12),
+                ),
+              ],
+            ),
+            CupertinoSwitch(
+              value: _linkAccount,
+              onChanged: (value) => setState(() => _linkAccount = value),
+            ),
+          ],
+        ),
+        SizedBox(height: Spacing.lg),
+        if (_linkAccount) ...[
+          if (_selectedAccount != null)
+            Container(
+              padding: EdgeInsets.all(Spacing.md),
+              decoration: BoxDecoration(
+                color: SemanticColors.investments.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Selected Account',
+                    style: TextStyle(color: AppStyles.getSecondaryTextColor(context), fontSize: 12),
+                  ),
+                  SizedBox(height: Spacing.sm),
+                  Text(
+                    _selectedAccount!.name,
+                    style: AppStyles.titleStyle(context).copyWith(fontSize: 16),
+                  ),
+                  SizedBox(height: Spacing.xs),
+                  Text(
+                    'Balance: ₹${_selectedAccount!.balance.toStringAsFixed(2)}',
+                    style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+                  ),
+                ],
+              ),
+            ),
+          SizedBox(height: Spacing.md),
+          CupertinoButton.filled(
+            onPressed: _showAccountSelector,
+            child: Text(_selectedAccount != null ? 'Change Account' : 'Select Account'),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildStepCharges() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Extra Charges (Optional)', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
+        SizedBox(height: Spacing.sm),
+        Text(
+          'Add any brokerage fees or charges',
+          style: TextStyle(color: AppStyles.getSecondaryTextColor(context), fontSize: 12),
+        ),
+        SizedBox(height: Spacing.md),
+        CupertinoTextField(
+          controller: _chargesController,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          placeholder: '0.00',
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppStyles.getBackground(context),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          prefix: Padding(
+            padding: const EdgeInsets.only(left: 16),
+            child: Text('₹', style: TextStyle(color: AppStyles.getTextColor(context))),
+          ),
+          style: TextStyle(color: AppStyles.getTextColor(context)),
+          onChanged: (_) => setState(() {}),
+        ),
+        SizedBox(height: Spacing.lg),
+        Container(
+          padding: EdgeInsets.all(Spacing.md),
+          decoration: BoxDecoration(
+            color: AppStyles.getBackground(context),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Purchase Cost', style: TextStyle(fontWeight: FontWeight.w600)),
+                  Text('₹${(_qty * _price).toStringAsFixed(2)}'),
+                ],
+              ),
+              SizedBox(height: Spacing.sm),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Extra Charges', style: TextStyle(fontWeight: FontWeight.w600)),
+                  Text('₹${_charges.toStringAsFixed(2)}'),
+                ],
+              ),
+              Divider(height: Spacing.lg),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Total Amount', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text(
+                    '₹${_totalCost.toStringAsFixed(2)}',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: SemanticColors.investments),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStepReview() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: EdgeInsets.all(Spacing.lg),
+          decoration: BoxDecoration(
+            color: AppStyles.getBackground(context),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            children: [
+              _reviewRow('Quantity', '$_qty shares'),
+              _reviewRow('Price per Share', '₹${_price.toStringAsFixed(2)}'),
+              _reviewRow('Purchase Cost', '₹${(_qty * _price).toStringAsFixed(2)}'),
+              if (_charges > 0) _reviewRow('Extra Charges', '₹${_charges.toStringAsFixed(2)}'),
+              _reviewRow('Date', _dateController.text),
+              if (_linkAccount && _selectedAccount != null) ...[
+                SizedBox(height: Spacing.md),
+                Divider(),
+                SizedBox(height: Spacing.md),
+                _reviewRow('Linked Account', _selectedAccount!.name),
+                _reviewRow('Account Balance', '₹${_selectedAccount!.balance.toStringAsFixed(2)}'),
+                _reviewRow(
+                  'Balance After Purchase',
+                  '₹${(_selectedAccount!.balance - _totalCost).toStringAsFixed(2)}',
+                  isHighlight: true,
+                ),
+              ],
+              SizedBox(height: Spacing.md),
+              Divider(),
+              SizedBox(height: Spacing.md),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Total Amount', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text(
+                    '₹${_totalCost.toStringAsFixed(2)}',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: SemanticColors.investments),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _reviewRow(String label, String value, {bool isHighlight = false}) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: Spacing.sm),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: TextStyle(color: AppStyles.getSecondaryTextColor(context))),
+          Text(
+            value,
+            style: TextStyle(
+              fontWeight: isHighlight ? FontWeight.bold : FontWeight.w500,
+              color: isHighlight ? SemanticColors.investments : null,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return '${date.day} ${months[date.month - 1]} ${date.year}';
+  }
 }
 
-// Sell Modal
+// Sell Modal - Similar detailed flow
 class _SellModal extends StatefulWidget {
   final Investment investment;
   final double currentQty;
@@ -568,29 +912,92 @@ class _SellModal extends StatefulWidget {
 }
 
 class _SellModalState extends State<_SellModal> {
+  int _step = 0;
   late TextEditingController _qtyController;
   late TextEditingController _priceController;
+  late TextEditingController _chargesController;
+  late TextEditingController _dateController;
+  DateTime _transactionDate = DateTime.now();
+  Account? _selectedAccount;
+  bool _linkAccount = false;
 
   @override
   void initState() {
     super.initState();
     _qtyController = TextEditingController();
     _priceController = TextEditingController();
+    _chargesController = TextEditingController();
+    _dateController = TextEditingController(text: _formatDate(_transactionDate));
   }
 
   @override
   void dispose() {
     _qtyController.dispose();
     _priceController.dispose();
+    _chargesController.dispose();
+    _dateController.dispose();
     super.dispose();
+  }
+
+  double get _qty => double.tryParse(_qtyController.text) ?? 0;
+  double get _price => double.tryParse(_priceController.text) ?? 0;
+  double get _charges => double.tryParse(_chargesController.text) ?? 0;
+  double get _grossProceeds => _qty * _price;
+  double get _netProceeds => _grossProceeds - _charges;
+
+  void _showDatePicker() {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => Container(
+        height: 216,
+        padding: const EdgeInsets.only(top: 6.0),
+        margin: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        color: CupertinoColors.systemBackground.resolveFrom(context),
+        child: SafeArea(
+          top: false,
+          child: CupertinoDatePicker(
+            initialDateTime: _transactionDate,
+            mode: CupertinoDatePickerMode.date,
+            maximumDate: DateTime.now(),
+            onDateTimeChanged: (DateTime newDate) {
+              setState(() {
+                _transactionDate = newDate;
+                _dateController.text = _formatDate(newDate);
+              });
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showAccountSelector() {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => _AccountSelector(
+        accountType: AccountType.savings,
+        onSelected: (account) {
+          setState(() => _selectedAccount = account);
+          Navigator.pop(context);
+        },
+      ),
+    );
+  }
+
+  void _saveSellTransaction() {
+    if (_linkAccount && _selectedAccount != null) {
+      final accountsController = Provider.of<AccountsController>(context, listen: false);
+      final newBalance = _selectedAccount!.balance + _netProceeds;
+      accountsController.updateAccount(
+        _selectedAccount!.copyWith(balance: newBalance),
+      );
+    }
+    toast.showSuccess('Sold $_qty shares at ₹$_price');
+    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
-    final qty = double.tryParse(_qtyController.text) ?? 0;
-    final price = double.tryParse(_priceController.text) ?? 0;
-    final proceeds = qty * price;
-
     return Container(
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
@@ -610,88 +1017,81 @@ class _SellModalState extends State<_SellModal> {
               children: [
                 const ModalHandle(),
                 SizedBox(height: Spacing.lg),
+                Row(
+                  children: List.generate(4, (index) {
+                    return Expanded(
+                      child: Container(
+                        height: 4,
+                        margin: EdgeInsets.symmetric(horizontal: 2),
+                        decoration: BoxDecoration(
+                          color: index <= _step
+                              ? CupertinoColors.systemRed
+                              : (Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.grey[800]
+                                  : Colors.grey[300]),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+                SizedBox(height: Spacing.lg),
                 Text(
-                  'Sell Shares',
+                  _step == 0
+                      ? 'Sell Shares'
+                      : _step == 1
+                          ? 'Link Account (Optional)'
+                          : _step == 2
+                              ? 'Extra Charges (Optional)'
+                              : 'Review & Confirm',
                   style: AppStyles.titleStyle(context).copyWith(fontSize: 22),
                 ),
                 SizedBox(height: Spacing.sm),
                 Text(
-                  'Available: ${widget.currentQty} shares',
+                  _step == 0
+                      ? 'Available: ${widget.currentQty} shares'
+                      : _step == 1
+                          ? 'Credit proceeds to account'
+                          : _step == 2
+                              ? 'Deduct any broker charges'
+                              : 'Confirm your sale',
                   style: TextStyle(
                     color: AppStyles.getSecondaryTextColor(context),
                     fontSize: 14,
                   ),
                 ),
                 SizedBox(height: Spacing.xxxl),
-                // Quantity
-                Text('Shares to Sell', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
-                SizedBox(height: Spacing.md),
-                CupertinoTextField(
-                  controller: _qtyController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  placeholder: '0',
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppStyles.getBackground(context),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  style: TextStyle(color: AppStyles.getTextColor(context)),
-                  onChanged: (_) => setState(() {}),
-                ),
-                SizedBox(height: Spacing.lg),
-                // Price
-                Text('Selling Price per Share', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
-                SizedBox(height: Spacing.md),
-                CupertinoTextField(
-                  controller: _priceController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  placeholder: '0.00',
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppStyles.getBackground(context),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  prefix: Padding(
-                    padding: const EdgeInsets.only(left: 16),
-                    child: Text('₹', style: TextStyle(color: AppStyles.getTextColor(context))),
-                  ),
-                  style: TextStyle(color: AppStyles.getTextColor(context)),
-                  onChanged: (_) => setState(() {}),
-                ),
-                SizedBox(height: Spacing.lg),
-                Container(
-                  padding: EdgeInsets.all(Spacing.md),
-                  decoration: BoxDecoration(
-                    color: CupertinoColors.systemGreen.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Sale Proceeds', style: TextStyle(fontWeight: FontWeight.w600)),
-                      Text(
-                        '₹${proceeds.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: CupertinoColors.systemGreen,
+                if (_step == 0) ...[
+                  _buildStepDetails(),
+                ] else if (_step == 1) ...[
+                  _buildStepAccountSelection(),
+                ] else if (_step == 2) ...[
+                  _buildStepCharges(),
+                ] else ...[
+                  _buildStepReview(),
+                ],
+                SizedBox(height: Spacing.xl),
+                Row(
+                  children: [
+                    if (_step > 0)
+                      Expanded(
+                        child: CupertinoButton(
+                          onPressed: () => setState(() => _step--),
+                          child: const Text('Back'),
                         ),
                       ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: Spacing.xl),
-                SizedBox(
-                  width: double.infinity,
-                  child: CupertinoButton.filled(
-                    onPressed: qty > 0 && qty <= widget.currentQty && price > 0
-                        ? () {
-                            toast.showSuccess('Sold $qty shares at ₹$price');
-                            Navigator.pop(context);
-                          }
-                        : null,
-                    child: const Text('Confirm Sale'),
-                  ),
+                    if (_step > 0) SizedBox(width: Spacing.md),
+                    Expanded(
+                      child: CupertinoButton.filled(
+                        onPressed: _step < 3
+                            ? () => setState(() => _step++)
+                            : (_qty > 0 && _qty <= widget.currentQty && _price > 0
+                                ? _saveSellTransaction
+                                : null),
+                        child: Text(_step < 3 ? 'Next' : 'Confirm Sale'),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -700,9 +1100,300 @@ class _SellModalState extends State<_SellModal> {
       ),
     );
   }
+
+  Widget _buildStepDetails() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Shares to Sell', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
+        SizedBox(height: Spacing.md),
+        CupertinoTextField(
+          controller: _qtyController,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          placeholder: '0',
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppStyles.getBackground(context),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          style: TextStyle(color: AppStyles.getTextColor(context)),
+          onChanged: (_) => setState(() {}),
+        ),
+        SizedBox(height: Spacing.lg),
+        Text('Selling Price per Share', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
+        SizedBox(height: Spacing.md),
+        CupertinoTextField(
+          controller: _priceController,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          placeholder: '0.00',
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppStyles.getBackground(context),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          prefix: Padding(
+            padding: const EdgeInsets.only(left: 16),
+            child: Text('₹', style: TextStyle(color: AppStyles.getTextColor(context))),
+          ),
+          style: TextStyle(color: AppStyles.getTextColor(context)),
+          onChanged: (_) => setState(() {}),
+        ),
+        SizedBox(height: Spacing.lg),
+        Text('Date of Sale', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
+        SizedBox(height: Spacing.md),
+        GestureDetector(
+          onTap: _showDatePicker,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppStyles.getBackground(context),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  _dateController.text,
+                  style: TextStyle(color: AppStyles.getTextColor(context)),
+                ),
+                Icon(CupertinoIcons.calendar, color: AppStyles.getSecondaryTextColor(context)),
+              ],
+            ),
+          ),
+        ),
+        SizedBox(height: Spacing.lg),
+        Container(
+          padding: EdgeInsets.all(Spacing.md),
+          decoration: BoxDecoration(
+            color: CupertinoColors.systemGreen.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Gross Proceeds', style: TextStyle(fontWeight: FontWeight.w600)),
+              Text(
+                '₹${_grossProceeds.toStringAsFixed(2)}',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: CupertinoColors.systemGreen,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStepAccountSelection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Link to Account', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
+                SizedBox(height: Spacing.xs),
+                Text(
+                  'Auto-credit the sale proceeds',
+                  style: TextStyle(color: AppStyles.getSecondaryTextColor(context), fontSize: 12),
+                ),
+              ],
+            ),
+            CupertinoSwitch(
+              value: _linkAccount,
+              onChanged: (value) => setState(() => _linkAccount = value),
+            ),
+          ],
+        ),
+        SizedBox(height: Spacing.lg),
+        if (_linkAccount) ...[
+          if (_selectedAccount != null)
+            Container(
+              padding: EdgeInsets.all(Spacing.md),
+              decoration: BoxDecoration(
+                color: CupertinoColors.systemGreen.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Selected Account',
+                    style: TextStyle(color: AppStyles.getSecondaryTextColor(context), fontSize: 12),
+                  ),
+                  SizedBox(height: Spacing.sm),
+                  Text(
+                    _selectedAccount!.name,
+                    style: AppStyles.titleStyle(context).copyWith(fontSize: 16),
+                  ),
+                  SizedBox(height: Spacing.xs),
+                  Text(
+                    'Current Balance: ₹${_selectedAccount!.balance.toStringAsFixed(2)}',
+                    style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+                  ),
+                ],
+              ),
+            ),
+          SizedBox(height: Spacing.md),
+          CupertinoButton.filled(
+            onPressed: _showAccountSelector,
+            child: Text(_selectedAccount != null ? 'Change Account' : 'Select Account'),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildStepCharges() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Extra Charges (Optional)', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
+        SizedBox(height: Spacing.sm),
+        Text(
+          'Brokerage fees, taxes, or other charges',
+          style: TextStyle(color: AppStyles.getSecondaryTextColor(context), fontSize: 12),
+        ),
+        SizedBox(height: Spacing.md),
+        CupertinoTextField(
+          controller: _chargesController,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          placeholder: '0.00',
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppStyles.getBackground(context),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          prefix: Padding(
+            padding: const EdgeInsets.only(left: 16),
+            child: Text('₹', style: TextStyle(color: AppStyles.getTextColor(context))),
+          ),
+          style: TextStyle(color: AppStyles.getTextColor(context)),
+          onChanged: (_) => setState(() {}),
+        ),
+        SizedBox(height: Spacing.lg),
+        Container(
+          padding: EdgeInsets.all(Spacing.md),
+          decoration: BoxDecoration(
+            color: AppStyles.getBackground(context),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Gross Proceeds', style: TextStyle(fontWeight: FontWeight.w600)),
+                  Text('₹${_grossProceeds.toStringAsFixed(2)}'),
+                ],
+              ),
+              SizedBox(height: Spacing.sm),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Extra Charges', style: TextStyle(fontWeight: FontWeight.w600)),
+                  Text('- ₹${_charges.toStringAsFixed(2)}'),
+                ],
+              ),
+              Divider(height: Spacing.lg),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Net Proceeds', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text(
+                    '₹${_netProceeds.toStringAsFixed(2)}',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: CupertinoColors.systemGreen),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStepReview() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: EdgeInsets.all(Spacing.lg),
+          decoration: BoxDecoration(
+            color: AppStyles.getBackground(context),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            children: [
+              _reviewRow('Quantity', '$_qty shares'),
+              _reviewRow('Selling Price', '₹${_price.toStringAsFixed(2)}'),
+              _reviewRow('Gross Proceeds', '₹${_grossProceeds.toStringAsFixed(2)}'),
+              if (_charges > 0) _reviewRow('Charges', '- ₹${_charges.toStringAsFixed(2)}'),
+              _reviewRow('Date', _dateController.text),
+              if (_linkAccount && _selectedAccount != null) ...[
+                SizedBox(height: Spacing.md),
+                Divider(),
+                SizedBox(height: Spacing.md),
+                _reviewRow('Credit to Account', _selectedAccount!.name),
+                _reviewRow('Current Balance', '₹${_selectedAccount!.balance.toStringAsFixed(2)}'),
+                _reviewRow(
+                  'Balance After Sale',
+                  '₹${(_selectedAccount!.balance + _netProceeds).toStringAsFixed(2)}',
+                  isHighlight: true,
+                ),
+              ],
+              SizedBox(height: Spacing.md),
+              Divider(),
+              SizedBox(height: Spacing.md),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Net Proceeds', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text(
+                    '₹${_netProceeds.toStringAsFixed(2)}',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: CupertinoColors.systemGreen),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _reviewRow(String label, String value, {bool isHighlight = false}) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: Spacing.sm),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: TextStyle(color: AppStyles.getSecondaryTextColor(context))),
+          Text(
+            value,
+            style: TextStyle(
+              fontWeight: isHighlight ? FontWeight.bold : FontWeight.w500,
+              color: isHighlight ? CupertinoColors.systemGreen : null,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return '${date.day} ${months[date.month - 1]} ${date.year}';
+  }
 }
 
-// SIP Modal
+// SIP Modal - Detailed setup with account selection
 class _SIPModal extends StatefulWidget {
   final Investment investment;
   const _SIPModal({required this.investment});
@@ -712,26 +1403,56 @@ class _SIPModal extends StatefulWidget {
 }
 
 class _SIPModalState extends State<_SIPModal> {
+  int _step = 0; // 0: Type, 1: Amount, 2: Frequency, 3: Account, 4: Review
   late TextEditingController _amountController;
+  late TextEditingController _qtyController;
+  late TextEditingController _chargesController;
+  bool _isFixedAmount = true;
   String _frequency = 'Monthly';
   final List<String> frequencies = ['Weekly', 'Monthly', 'Quarterly', 'Yearly'];
+  Account? _selectedAccount;
+  bool _linkAccount = false;
 
   @override
   void initState() {
     super.initState();
     _amountController = TextEditingController();
+    _qtyController = TextEditingController();
+    _chargesController = TextEditingController();
   }
 
   @override
   void dispose() {
     _amountController.dispose();
+    _qtyController.dispose();
+    _chargesController.dispose();
     super.dispose();
+  }
+
+  double get _amount => double.tryParse(_amountController.text) ?? 0;
+  double get _qty => double.tryParse(_qtyController.text) ?? 0;
+  double get _charges => double.tryParse(_chargesController.text) ?? 0;
+
+  void _showAccountSelector() {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => _AccountSelector(
+        accountType: AccountType.savings,
+        onSelected: (account) {
+          setState(() => _selectedAccount = account);
+          Navigator.pop(context);
+        },
+      ),
+    );
+  }
+
+  void _saveSIP() {
+    toast.showSuccess('SIP setup successfully!\n${_isFixedAmount ? '₹${_amount.toStringAsFixed(2)}' : '$_qty shares'} $_frequency');
+    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
-    final amount = double.tryParse(_amountController.text) ?? 0;
-
     return Container(
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
@@ -751,67 +1472,85 @@ class _SIPModalState extends State<_SIPModal> {
               children: [
                 const ModalHandle(),
                 SizedBox(height: Spacing.lg),
+                Row(
+                  children: List.generate(5, (index) {
+                    return Expanded(
+                      child: Container(
+                        height: 4,
+                        margin: EdgeInsets.symmetric(horizontal: 2),
+                        decoration: BoxDecoration(
+                          color: index <= _step
+                              ? CupertinoColors.systemBlue
+                              : (Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.grey[800]
+                                  : Colors.grey[300]),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+                SizedBox(height: Spacing.lg),
                 Text(
-                  'Setup SIP',
+                  _step == 0
+                      ? 'Setup SIP'
+                      : _step == 1
+                          ? 'Investment Amount'
+                          : _step == 2
+                              ? 'Frequency'
+                              : _step == 3
+                                  ? 'Link Account'
+                                  : 'Review & Confirm',
                   style: AppStyles.titleStyle(context).copyWith(fontSize: 22),
                 ),
                 SizedBox(height: Spacing.sm),
                 Text(
-                  'Set up regular investments',
+                  _step == 0
+                      ? 'Fixed amount or fixed quantity?'
+                      : _step == 1
+                          ? 'How much per SIP installment?'
+                          : _step == 2
+                              ? 'How often to invest?'
+                              : _step == 3
+                                  ? 'Link debit account (optional)'
+                                  : 'Confirm your SIP setup',
                   style: TextStyle(
                     color: AppStyles.getSecondaryTextColor(context),
                     fontSize: 14,
                   ),
                 ),
                 SizedBox(height: Spacing.xxxl),
-                // Amount
-                Text('Investment Amount', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
-                SizedBox(height: Spacing.md),
-                CupertinoTextField(
-                  controller: _amountController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  placeholder: '0.00',
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppStyles.getBackground(context),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  prefix: Padding(
-                    padding: const EdgeInsets.only(left: 16),
-                    child: Text('₹', style: TextStyle(color: AppStyles.getTextColor(context))),
-                  ),
-                  style: TextStyle(color: AppStyles.getTextColor(context)),
-                  onChanged: (_) => setState(() {}),
-                ),
-                SizedBox(height: Spacing.lg),
-                // Frequency
-                Text('Frequency', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
-                SizedBox(height: Spacing.md),
-                Container(
-                  decoration: BoxDecoration(
-                    color: AppStyles.getBackground(context),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: CupertinoSegmentedControl<String>(
-                    children: {
-                      for (var freq in frequencies) freq: Text(freq),
-                    },
-                    groupValue: _frequency,
-                    onValueChanged: (value) => setState(() => _frequency = value),
-                  ),
-                ),
+                if (_step == 0) ...[
+                  _buildStepType(),
+                ] else if (_step == 1) ...[
+                  _buildStepAmount(),
+                ] else if (_step == 2) ...[
+                  _buildStepFrequency(),
+                ] else if (_step == 3) ...[
+                  _buildStepAccount(),
+                ] else ...[
+                  _buildStepReview(),
+                ],
                 SizedBox(height: Spacing.xl),
-                SizedBox(
-                  width: double.infinity,
-                  child: CupertinoButton.filled(
-                    onPressed: amount > 0
-                        ? () {
-                            toast.showSuccess('SIP setup: ₹$amount $_frequency');
-                            Navigator.pop(context);
-                          }
-                        : null,
-                    child: const Text('Setup SIP'),
-                  ),
+                Row(
+                  children: [
+                    if (_step > 0)
+                      Expanded(
+                        child: CupertinoButton(
+                          onPressed: () => setState(() => _step--),
+                          child: const Text('Back'),
+                        ),
+                      ),
+                    if (_step > 0) SizedBox(width: Spacing.md),
+                    Expanded(
+                      child: CupertinoButton.filled(
+                        onPressed: _step < 4
+                            ? () => setState(() => _step++)
+                            : (_isFixedAmount ? _amount > 0 : _qty > 0) ? _saveSIP : null,
+                        child: Text(_step < 4 ? 'Next' : 'Setup SIP'),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -820,9 +1559,266 @@ class _SIPModalState extends State<_SIPModal> {
       ),
     );
   }
+
+  Widget _buildStepType() {
+    return Column(
+      children: [
+        _buildTypeCard(
+          'Fixed Amount',
+          'Invest the same amount each time',
+          _isFixedAmount,
+          () => setState(() => _isFixedAmount = true),
+        ),
+        SizedBox(height: Spacing.lg),
+        _buildTypeCard(
+          'Fixed Quantity',
+          'Buy the same number of shares each time',
+          !_isFixedAmount,
+          () => setState(() => _isFixedAmount = false),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTypeCard(String title, String subtitle, bool isSelected, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.all(Spacing.lg),
+        decoration: BoxDecoration(
+          color: isSelected ? SemanticColors.investments.withValues(alpha: 0.1) : AppStyles.getBackground(context),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? SemanticColors.investments : Colors.transparent,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isSelected ? SemanticColors.investments : AppStyles.getSecondaryTextColor(context),
+                ),
+              ),
+              child: isSelected
+                  ? Center(
+                      child: Container(
+                        width: 12,
+                        height: 12,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: SemanticColors.investments,
+                        ),
+                      ),
+                    )
+                  : null,
+            ),
+            SizedBox(width: Spacing.lg),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: AppStyles.getTextColor(context),
+                    ),
+                  ),
+                  SizedBox(height: Spacing.xs),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppStyles.getSecondaryTextColor(context),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStepAmount() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          _isFixedAmount ? 'Amount per SIP' : 'Shares per SIP',
+          style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600),
+        ),
+        SizedBox(height: Spacing.md),
+        CupertinoTextField(
+          controller: _isFixedAmount ? _amountController : _qtyController,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          placeholder: '0.00',
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppStyles.getBackground(context),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          prefix: Padding(
+            padding: const EdgeInsets.only(left: 16),
+            child: Text(_isFixedAmount ? '₹' : 'Qty', style: TextStyle(color: AppStyles.getTextColor(context))),
+          ),
+          style: TextStyle(color: AppStyles.getTextColor(context)),
+          onChanged: (_) => setState(() {}),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStepFrequency() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Select Frequency', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
+        SizedBox(height: Spacing.lg),
+        Wrap(
+          spacing: Spacing.md,
+          runSpacing: Spacing.md,
+          children: frequencies.map((freq) {
+            return GestureDetector(
+              onTap: () => setState(() => _frequency = freq),
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.md),
+                decoration: BoxDecoration(
+                  color: _frequency == freq
+                      ? CupertinoColors.systemBlue.withValues(alpha: 0.1)
+                      : AppStyles.getBackground(context),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: _frequency == freq
+                        ? CupertinoColors.systemBlue
+                        : Colors.transparent,
+                  ),
+                ),
+                child: Text(
+                  freq,
+                  style: TextStyle(
+                    fontWeight: _frequency == freq ? FontWeight.bold : FontWeight.w500,
+                    color: AppStyles.getTextColor(context),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStepAccount() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Link to Account', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
+                SizedBox(height: Spacing.xs),
+                Text(
+                  'Auto-debit each SIP installment',
+                  style: TextStyle(color: AppStyles.getSecondaryTextColor(context), fontSize: 12),
+                ),
+              ],
+            ),
+            CupertinoSwitch(
+              value: _linkAccount,
+              onChanged: (value) => setState(() => _linkAccount = value),
+            ),
+          ],
+        ),
+        SizedBox(height: Spacing.lg),
+        if (_linkAccount) ...[
+          if (_selectedAccount != null)
+            Container(
+              padding: EdgeInsets.all(Spacing.md),
+              decoration: BoxDecoration(
+                color: CupertinoColors.systemBlue.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Selected Account',
+                    style: TextStyle(color: AppStyles.getSecondaryTextColor(context), fontSize: 12),
+                  ),
+                  SizedBox(height: Spacing.sm),
+                  Text(
+                    _selectedAccount!.name,
+                    style: AppStyles.titleStyle(context).copyWith(fontSize: 16),
+                  ),
+                  SizedBox(height: Spacing.xs),
+                  Text(
+                    'Balance: ₹${_selectedAccount!.balance.toStringAsFixed(2)}',
+                    style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+                  ),
+                ],
+              ),
+            ),
+          SizedBox(height: Spacing.md),
+          CupertinoButton.filled(
+            onPressed: _showAccountSelector,
+            child: Text(_selectedAccount != null ? 'Change Account' : 'Select Account'),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildStepReview() {
+    return Container(
+      padding: EdgeInsets.all(Spacing.lg),
+      decoration: BoxDecoration(
+        color: AppStyles.getBackground(context),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          _reviewRow('Type', _isFixedAmount ? 'Fixed Amount' : 'Fixed Quantity'),
+          _reviewRow(
+            _isFixedAmount ? 'Amount per SIP' : 'Shares per SIP',
+            _isFixedAmount ? '₹${_amount.toStringAsFixed(2)}' : '$_qty shares',
+          ),
+          _reviewRow('Frequency', _frequency),
+          if (_linkAccount && _selectedAccount != null) ...[
+            SizedBox(height: Spacing.md),
+            Divider(),
+            SizedBox(height: Spacing.md),
+            _reviewRow('Debit Account', _selectedAccount!.name),
+            _reviewRow('Account Balance', '₹${_selectedAccount!.balance.toStringAsFixed(2)}'),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _reviewRow(String label, String value) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: Spacing.sm),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: TextStyle(color: AppStyles.getSecondaryTextColor(context))),
+          Text(value, style: TextStyle(fontWeight: FontWeight.w600)),
+        ],
+      ),
+    );
+  }
 }
 
-// Edit Modal
+// Placeholder modals for Edit and Dividend - can be expanded later
 class _EditModal extends StatefulWidget {
   final Investment investment;
   const _EditModal({required this.investment});
@@ -876,16 +1872,7 @@ class _EditModalState extends State<_EditModal> {
                   'Edit Investment',
                   style: AppStyles.titleStyle(context).copyWith(fontSize: 22),
                 ),
-                SizedBox(height: Spacing.sm),
-                Text(
-                  'Update investment details',
-                  style: TextStyle(
-                    color: AppStyles.getSecondaryTextColor(context),
-                    fontSize: 14,
-                  ),
-                ),
                 SizedBox(height: Spacing.xxxl),
-                // Name
                 Text('Investment Name', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
                 SizedBox(height: Spacing.md),
                 CupertinoTextField(
@@ -899,7 +1886,6 @@ class _EditModalState extends State<_EditModal> {
                   style: TextStyle(color: AppStyles.getTextColor(context)),
                 ),
                 SizedBox(height: Spacing.lg),
-                // Current Value
                 Text('Current Value', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
                 SizedBox(height: Spacing.md),
                 CupertinoTextField(
@@ -937,7 +1923,6 @@ class _EditModalState extends State<_EditModal> {
   }
 }
 
-// Dividend Modal
 class _DividendModal extends StatefulWidget {
   final Investment investment;
   const _DividendModal({required this.investment});
@@ -1017,16 +2002,7 @@ class _DividendModalState extends State<_DividendModal> {
                   'Record Dividend',
                   style: AppStyles.titleStyle(context).copyWith(fontSize: 22),
                 ),
-                SizedBox(height: Spacing.sm),
-                Text(
-                  'Add dividend received',
-                  style: TextStyle(
-                    color: AppStyles.getSecondaryTextColor(context),
-                    fontSize: 14,
-                  ),
-                ),
                 SizedBox(height: Spacing.xxxl),
-                // Amount
                 Text('Dividend Amount', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
                 SizedBox(height: Spacing.md),
                 CupertinoTextField(
@@ -1045,7 +2021,6 @@ class _DividendModalState extends State<_DividendModal> {
                   style: TextStyle(color: AppStyles.getTextColor(context)),
                 ),
                 SizedBox(height: Spacing.lg),
-                // Date
                 Text('Dividend Date', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
                 SizedBox(height: Spacing.md),
                 GestureDetector(
@@ -1092,5 +2067,97 @@ class _DividendModalState extends State<_DividendModal> {
   String _formatDate(DateTime date) {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
+  }
+}
+
+// Account Selector Widget
+class _AccountSelector extends StatelessWidget {
+  final AccountType accountType;
+  final Function(Account) onSelected;
+
+  const _AccountSelector({
+    required this.accountType,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppStyles.getCardColor(context),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Consumer<AccountsController>(
+        builder: (context, controller, _) {
+          final accounts = controller.accounts.where((a) => a.type == accountType).toList();
+
+          return SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: SafeArea(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const ModalHandle(),
+                    SizedBox(height: Spacing.lg),
+                    Text(
+                      'Select Account',
+                      style: AppStyles.titleStyle(context).copyWith(fontSize: 22),
+                    ),
+                    SizedBox(height: Spacing.xxxl),
+                    if (accounts.isEmpty)
+                      Center(
+                        child: Text(
+                          'No accounts found',
+                          style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+                        ),
+                      )
+                    else
+                      ...accounts.map((account) {
+                        return GestureDetector(
+                          onTap: () => onSelected(account),
+                          child: Container(
+                            margin: EdgeInsets.only(bottom: Spacing.lg),
+                            padding: EdgeInsets.all(Spacing.lg),
+                            decoration: BoxDecoration(
+                              color: AppStyles.getBackground(context),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  account.name,
+                                  style: AppStyles.titleStyle(context),
+                                ),
+                                SizedBox(height: Spacing.xs),
+                                Text(
+                                  account.bankName,
+                                  style: TextStyle(
+                                    color: AppStyles.getSecondaryTextColor(context),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                SizedBox(height: Spacing.sm),
+                                Text(
+                                  '₹${account.balance.toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: account.color,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 }
