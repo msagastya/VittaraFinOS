@@ -98,6 +98,10 @@ class _StockSearchStepState extends State<StockSearchStep> {
                   onTap: () {
                     controller.selectStock(stock);
                     FocusScope.of(context).unfocus(); // Dismiss keyboard
+                    // Auto-proceed to next step
+                    Future.delayed(const Duration(milliseconds: 300), () {
+                      controller.nextPage();
+                    });
                   },
                   child: Container(
                     margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),

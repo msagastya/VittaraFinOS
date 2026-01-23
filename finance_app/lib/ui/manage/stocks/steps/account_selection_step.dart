@@ -20,23 +20,26 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
   void initState() {
     super.initState();
     // Refresh accounts when entering this step
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<AccountsController>(context, listen: false).loadAccounts();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (mounted) {
+        await Provider.of<AccountsController>(context, listen: false).loadAccounts();
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final wizardController = Provider.of<StocksWizardController>(context);
-    final accountsController = Provider.of<AccountsController>(context);
-    
-    // Filter for Investment or generic accounts if needed. 
-    // User said "Demat account", assuming Investment type accounts are Demat.
-    final accounts = accountsController.accounts
-        .where((acc) => acc.type == AccountType.investment)
-        .toList();
 
-    return Column(
+    return Consumer<AccountsController>(
+      builder: (context, accountsController, child) {
+        // Filter for Investment or generic accounts if needed.
+        // User said "Demat account", assuming Investment type accounts are Demat.
+        final accounts = accountsController.accounts
+            .where((acc) => acc.type == AccountType.investment)
+            .toList();
+
+        return Column(
       children: [
         Padding(
           padding: const EdgeInsets.all(16.0),
@@ -67,7 +70,13 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
                     final isSelected = wizardController.selectedAccount?.id == account.id;
 
                     return GestureDetector(
-                      onTap: () => wizardController.selectAccount(account),
+                      onTap: () {
+                        wizardController.selectAccount(account);
+                        // Auto-proceed to next step
+                        Future.delayed(const Duration(milliseconds: 300), () {
+                          wizardController.nextPage();
+                        });
+                      },
                       child: Container(
                         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         padding: const EdgeInsets.all(16),
@@ -162,9 +171,11 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
             ),
           ),
         ),
-      ],
+        ],
+        );
+      },
     );
   }
-  
+
   bool isDarkMode(BuildContext context) => Theme.of(context).brightness == Brightness.dark;
 }
