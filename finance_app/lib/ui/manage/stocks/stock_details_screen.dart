@@ -491,15 +491,42 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
   }
 
   void _saveBuyTransaction() {
-    if (_linkAccount && _selectedAccount != null) {
-      final accountsController = Provider.of<AccountsController>(context, listen: false);
-      final newBalance = _selectedAccount!.balance - _totalCost;
-      accountsController.updateAccount(
-        _selectedAccount!.copyWith(balance: newBalance),
+    try {
+      // Get current invested amount and quantity
+      final currentInvested = widget.investment.amount;
+      final currentQty = (widget.investment.metadata?['qty'] as num?)?.toDouble() ?? 0;
+
+      // Calculate new totals
+      final newInvested = currentInvested + _totalCost;
+      final newQty = currentQty + _qty;
+
+      // Update account if linked
+      if (_linkAccount && _selectedAccount != null) {
+        final accountsController = Provider.of<AccountsController>(context, listen: false);
+        final newBalance = _selectedAccount!.balance - _totalCost;
+        accountsController.updateAccount(
+          _selectedAccount!.copyWith(balance: newBalance),
+        );
+      }
+
+      // Update investment with new quantities
+      final investmentsController = Provider.of<InvestmentsController>(context, listen: false);
+      final updatedMetadata = {...?widget.investment.metadata};
+      updatedMetadata['qty'] = newQty;
+      updatedMetadata['pricePerShare'] = _price; // Update with latest price
+
+      final updatedInvestment = widget.investment.copyWith(
+        amount: newInvested,
+        metadata: updatedMetadata,
       );
+
+      investmentsController.updateInvestment(updatedInvestment);
+
+      toast.showSuccess('Added $_qty shares!\nTotal: $newQty shares\nInvested: ₹${newInvested.toStringAsFixed(2)}');
+      Navigator.pop(context);
+    } catch (e) {
+      toast.showError('Error saving transaction: $e');
     }
-    toast.showSuccess('Bought $_qty shares at ₹$_price');
-    Navigator.pop(context);
   }
 
   @override
@@ -1213,15 +1240,46 @@ class _SellModalState extends State<_SellModal> {
   }
 
   void _saveSellTransaction() {
-    if (_linkAccount && _selectedAccount != null) {
-      final accountsController = Provider.of<AccountsController>(context, listen: false);
-      final newBalance = _selectedAccount!.balance + _netProceeds;
-      accountsController.updateAccount(
-        _selectedAccount!.copyWith(balance: newBalance),
+    try {
+      // Get current invested amount and quantity
+      final currentInvested = widget.investment.amount;
+      final currentQty = (widget.currentQty);
+
+      // Calculate cost per share (average cost basis)
+      final costPerShare = currentQty > 0 ? currentInvested / currentQty : 0;
+
+      // Calculate reduction in invested amount (proportional)
+      final investmentReduction = _qty * costPerShare;
+      final newInvested = currentInvested - investmentReduction;
+      final newQty = currentQty - _qty;
+
+      // Update account if linked (credit proceeds)
+      if (_linkAccount && _selectedAccount != null) {
+        final accountsController = Provider.of<AccountsController>(context, listen: false);
+        final newBalance = _selectedAccount!.balance + _netProceeds;
+        accountsController.updateAccount(
+          _selectedAccount!.copyWith(balance: newBalance),
+        );
+      }
+
+      // Update investment with new quantities
+      final investmentsController = Provider.of<InvestmentsController>(context, listen: false);
+      final updatedMetadata = {...?widget.investment.metadata};
+      updatedMetadata['qty'] = newQty;
+      updatedMetadata['pricePerShare'] = _price; // Update with latest price
+
+      final updatedInvestment = widget.investment.copyWith(
+        amount: newInvested > 0 ? newInvested : 0,
+        metadata: updatedMetadata,
       );
+
+      investmentsController.updateInvestment(updatedInvestment);
+
+      toast.showSuccess('Sold $_qty shares!\nRemaining: $newQty shares\nProceeds: ₹${_netProceeds.toStringAsFixed(2)}');
+      Navigator.pop(context);
+    } catch (e) {
+      toast.showError('Error saving transaction: $e');
     }
-    toast.showSuccess('Sold $_qty shares at ₹$_price');
-    Navigator.pop(context);
   }
 
   @override
@@ -1631,15 +1689,17 @@ class _SIPModal extends StatefulWidget {
 }
 
 class _SIPModalState extends State<_SIPModal> {
-  int _step = 0; // 0: Type, 1: Amount, 2: Frequency, 3: Account, 4: Review
+  int _step = 0; // 0: Start Date, 1: Type, 2: Amount, 3: Frequency, 4: Account, 5: Review
   late TextEditingController _amountController;
   late TextEditingController _qtyController;
   late TextEditingController _chargesController;
+  late TextEditingController _dateController;
   bool _isFixedAmount = true;
   String _frequency = 'Monthly';
   final List<String> frequencies = ['Weekly', 'Monthly', 'Quarterly', 'Yearly'];
   Account? _selectedAccount;
   bool _linkAccount = false;
+  DateTime _sipStartDate = DateTime.now();
 
   @override
   void initState() {
@@ -1647,6 +1707,37 @@ class _SIPModalState extends State<_SIPModal> {
     _amountController = TextEditingController();
     _qtyController = TextEditingController();
     _chargesController = TextEditingController();
+    _dateController = TextEditingController(text: _formatDate(DateTime.now()));
+  }
+
+  void _showDatePicker() {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => Container(
+        height: 216,
+        padding: const EdgeInsets.only(top: 6.0),
+        margin: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        color: CupertinoColors.systemBackground.resolveFrom(context),
+        child: SafeArea(
+          top: false,
+          child: CupertinoDatePicker(
+            initialDateTime: _sipStartDate,
+            mode: CupertinoDatePickerMode.date,
+            onDateTimeChanged: (DateTime newDate) {
+              setState(() {
+                _sipStartDate = newDate;
+                _dateController.text = _formatDate(newDate);
+              });
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 
   @override
@@ -1654,6 +1745,7 @@ class _SIPModalState extends State<_SIPModal> {
     _amountController.dispose();
     _qtyController.dispose();
     _chargesController.dispose();
+    _dateController.dispose();
     super.dispose();
   }
 
@@ -1675,8 +1767,82 @@ class _SIPModalState extends State<_SIPModal> {
   }
 
   void _saveSIP() {
-    toast.showSuccess('SIP setup successfully!\n${_isFixedAmount ? '₹${_amount.toStringAsFixed(2)}' : '$_qty shares'} $_frequency');
-    Navigator.pop(context);
+    try {
+      // Get current state of investment
+      final currentInvested = widget.investment.amount;
+      final currentQty = (widget.investment.metadata?['qty'] as num?)?.toDouble() ?? 0;
+      final currentPrice = (widget.investment.metadata?['pricePerShare'] as num?)?.toDouble() ?? 0;
+
+      // Fetch current market price for calculation
+      // For now, use current price or default to price from metadata
+      final marketPrice = currentPrice > 0 ? currentPrice : 1;
+
+      // Calculate first execution values
+      double firstTransactionQty = 0;
+      double firstTransactionAmount = 0;
+
+      if (_isFixedAmount) {
+        // Fixed amount: calculate qty = amount / marketPrice
+        firstTransactionAmount = _amount;
+        firstTransactionQty = _amount > 0 ? _amount / marketPrice : 0;
+      } else {
+        // Fixed quantity: amount = qty * marketPrice
+        firstTransactionQty = _qty;
+        firstTransactionAmount = _qty * marketPrice;
+      }
+
+      // Update account if linked (debit for first transaction)
+      if (_linkAccount && _selectedAccount != null) {
+        final accountsController = Provider.of<AccountsController>(context, listen: false);
+        final newBalance = _selectedAccount!.balance - firstTransactionAmount;
+        accountsController.updateAccount(
+          _selectedAccount!.copyWith(balance: newBalance),
+        );
+      }
+
+      // Update investment with first SIP execution added to current holdings
+      final investmentsController = Provider.of<InvestmentsController>(context, listen: false);
+      final newTotalInvested = currentInvested + firstTransactionAmount;
+      final newTotalQty = currentQty + firstTransactionQty;
+
+      final updatedMetadata = {...?widget.investment.metadata};
+      updatedMetadata['qty'] = newTotalQty;
+      updatedMetadata['pricePerShare'] = marketPrice;
+      updatedMetadata['sipActive'] = true;
+      updatedMetadata['sipStartDate'] = _sipStartDate.toIso8601String();
+      updatedMetadata['sipType'] = _isFixedAmount ? 'amount' : 'quantity';
+      updatedMetadata['sipAmount'] = _isFixedAmount ? _amount : null;
+      updatedMetadata['sipQty'] = !_isFixedAmount ? _qty : null;
+      updatedMetadata['sipFrequency'] = _frequency;
+      updatedMetadata['sipLinkedAccount'] = _linkAccount ? _selectedAccount?.id : null;
+      updatedMetadata['sipLastExecutionDate'] = _sipStartDate.toIso8601String();
+      updatedMetadata['sipExecutionLog'] = [
+        {
+          'date': _sipStartDate.toIso8601String(),
+          'type': _isFixedAmount ? 'amount' : 'quantity',
+          'value': _isFixedAmount ? _amount : _qty,
+          'qty': firstTransactionQty,
+          'amount': firstTransactionAmount,
+          'price': marketPrice,
+        }
+      ];
+
+      final updatedInvestment = widget.investment.copyWith(
+        amount: newTotalInvested,
+        metadata: updatedMetadata,
+      );
+
+      investmentsController.updateInvestment(updatedInvestment);
+
+      toast.showSuccess(
+        'SIP started successfully!\n'
+        '${_isFixedAmount ? '₹${_amount.toStringAsFixed(2)}/month' : '${_qty.toStringAsFixed(2)} shares/month'}\n'
+        'First execution: ${firstTransactionQty.toStringAsFixed(2)} shares @ ₹${marketPrice.toStringAsFixed(2)}',
+      );
+      Navigator.pop(context);
+    } catch (e) {
+      toast.showError('Error setting up SIP: $e');
+    }
   }
 
   @override
@@ -1701,7 +1867,7 @@ class _SIPModalState extends State<_SIPModal> {
                 const ModalHandle(),
                 SizedBox(height: Spacing.lg),
                 Row(
-                  children: List.generate(5, (index) {
+                  children: List.generate(6, (index) {
                     return Expanded(
                       child: Container(
                         height: 4,
@@ -1721,27 +1887,31 @@ class _SIPModalState extends State<_SIPModal> {
                 SizedBox(height: Spacing.lg),
                 Text(
                   _step == 0
-                      ? 'Setup SIP'
+                      ? 'Start Date'
                       : _step == 1
-                          ? 'Investment Amount'
+                          ? 'Investment Type'
                           : _step == 2
-                              ? 'Frequency'
+                              ? 'Investment Amount'
                               : _step == 3
-                                  ? 'Link Account'
-                                  : 'Review & Confirm',
+                                  ? 'Frequency'
+                                  : _step == 4
+                                      ? 'Link Account'
+                                      : 'Review & Confirm',
                   style: AppStyles.titleStyle(context).copyWith(fontSize: 22),
                 ),
                 SizedBox(height: Spacing.sm),
                 Text(
                   _step == 0
-                      ? 'Fixed amount or fixed quantity?'
+                      ? 'When should your SIP start?'
                       : _step == 1
-                          ? 'How much per SIP installment?'
+                          ? 'Fixed amount or fixed quantity?'
                           : _step == 2
-                              ? 'How often to invest?'
+                              ? 'How much per SIP installment?'
                               : _step == 3
-                                  ? 'Link debit account (optional)'
-                                  : 'Confirm your SIP setup',
+                                  ? 'How often to invest?'
+                                  : _step == 4
+                                      ? 'Link debit account (optional)'
+                                      : 'Confirm your SIP setup',
                   style: TextStyle(
                     color: AppStyles.getSecondaryTextColor(context),
                     fontSize: 14,
@@ -1749,12 +1919,14 @@ class _SIPModalState extends State<_SIPModal> {
                 ),
                 SizedBox(height: Spacing.xxxl),
                 if (_step == 0) ...[
-                  _buildStepType(),
+                  _buildStepStartDate(),
                 ] else if (_step == 1) ...[
-                  _buildStepAmount(),
+                  _buildStepType(),
                 ] else if (_step == 2) ...[
-                  _buildStepFrequency(),
+                  _buildStepAmount(),
                 ] else if (_step == 3) ...[
+                  _buildStepFrequency(),
+                ] else if (_step == 4) ...[
                   _buildStepAccount(),
                 ] else ...[
                   _buildStepReview(),
@@ -1772,10 +1944,10 @@ class _SIPModalState extends State<_SIPModal> {
                     if (_step > 0) SizedBox(width: Spacing.md),
                     Expanded(
                       child: CupertinoButton.filled(
-                        onPressed: _step < 4
+                        onPressed: _step < 5
                             ? () => setState(() => _step++)
                             : (_isFixedAmount ? _amount > 0 : _qty > 0) ? _saveSIP : null,
-                        child: Text(_step < 4 ? 'Next' : 'Setup SIP'),
+                        child: Text(_step < 5 ? 'Next' : 'Setup SIP'),
                       ),
                     ),
                   ],
@@ -1785,6 +1957,86 @@ class _SIPModalState extends State<_SIPModal> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildStepStartDate() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'SIP Start Date',
+          style: TextStyle(
+            color: AppStyles.getTextColor(context),
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+          ),
+        ),
+        SizedBox(height: Spacing.md),
+        GestureDetector(
+          onTap: _showDatePicker,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+            decoration: BoxDecoration(
+              color: AppStyles.getBackground(context),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.2),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  _dateController.text,
+                  style: TextStyle(
+                    color: AppStyles.getTextColor(context),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Icon(
+                  CupertinoIcons.calendar,
+                  color: CupertinoColors.systemBlue,
+                  size: 18,
+                ),
+              ],
+            ),
+          ),
+        ),
+        SizedBox(height: Spacing.lg),
+        Container(
+          padding: EdgeInsets.all(Spacing.md),
+          decoration: BoxDecoration(
+            color: CupertinoColors.systemBlue.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    CupertinoIcons.info,
+                    size: 16,
+                    color: CupertinoColors.systemBlue,
+                  ),
+                  SizedBox(width: Spacing.sm),
+                  Expanded(
+                    child: Text(
+                      'SIP will start on the selected date. First transaction will be processed immediately.',
+                      style: TextStyle(
+                        color: AppStyles.getSecondaryTextColor(context),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 

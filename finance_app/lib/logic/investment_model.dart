@@ -119,4 +119,26 @@ class Investment {
       metadata: map['metadata'] != null ? Map<String, dynamic>.from(map['metadata']) : null,
     );
   }
+
+  Investment copyWith({
+    String? id,
+    String? name,
+    InvestmentType? type,
+    double? amount,
+    Color? color,
+    String? notes,
+    String? broker,
+    Map<String, dynamic>? metadata,
+  }) {
+    return Investment(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      type: type ?? this.type,
+      amount: amount ?? this.amount,
+      color: color ?? this.color,
+      notes: notes ?? this.notes,
+      broker: broker ?? this.broker,
+      metadata: metadata ?? this.metadata,
+    );
+  }
 }

@@ -646,6 +646,13 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
   }
 
   Widget _buildInvestmentCard(Investment investment) {
+    // Calculate values
+    final investedAmount = investment.amount;
+    final currentValue = _calculateCurrentValue(investment);
+    final gainLoss = currentValue - investedAmount;
+    final gainLossPercent = investedAmount > 0 ? (gainLoss / investedAmount) * 100 : 0;
+    final isProfit = gainLoss >= 0;
+
     return Hero(
       tag: 'investment_${investment.id}',
       child: BouncyButton(
@@ -689,20 +696,80 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                           fontWeight: FontWeight.w500,
                         ),
                       ),
+                      SizedBox(height: Spacing.sm),
+                      // Investment metrics
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Invested',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: AppStyles.getSecondaryTextColor(context),
+                                  ),
+                                ),
+                                Text(
+                                  '₹${investedAmount.toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppStyles.getTextColor(context),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(width: Spacing.md),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Current',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: AppStyles.getSecondaryTextColor(context),
+                                  ),
+                                ),
+                                Text(
+                                  '₹${currentValue.toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppStyles.getTextColor(context),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    AnimatedCounter(
-                      value: investment.amount,
-                      prefix: '₹',
-                      decimals: 2,
-                      duration: AppDurations.counter,
-                      style: AppStyles.titleStyle(context).copyWith(
-                        color: investment.color,
-                        fontWeight: FontWeight.bold,
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.xs),
+                      decoration: BoxDecoration(
+                        color: isProfit
+                            ? CupertinoColors.systemGreen.withOpacity(0.15)
+                            : CupertinoColors.systemRed.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '${isProfit ? '+' : ''}${gainLossPercent.toStringAsFixed(2)}%',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: isProfit
+                              ? CupertinoColors.systemGreen
+                              : CupertinoColors.systemRed,
+                        ),
                       ),
                     ),
                     SizedBox(height: Spacing.xs),
@@ -719,6 +786,14 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
         ),
       ),
     );
+  }
+
+  double _calculateCurrentValue(Investment investment) {
+    final metadata = investment.metadata;
+    if (metadata != null && metadata.containsKey('currentValue')) {
+      return (metadata['currentValue'] as num).toDouble();
+    }
+    return investment.amount;
   }
 
 }
