@@ -6,6 +6,7 @@ import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/stock_transaction_model.dart';
+import 'package:vittara_fin_os/services/stock_api_service.dart';
 import 'package:vittara_fin_os/ui/manage/account_wizard.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
@@ -490,7 +491,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
     );
   }
 
-  void _saveBuyTransaction() {
+  Future<void> _saveBuyTransaction() async {
     try {
       // Get current invested amount and quantity
       final currentInvested = widget.investment.amount;
@@ -499,6 +500,24 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
       // Calculate new totals
       final newInvested = currentInvested + _totalCost;
       final newQty = currentQty + _qty;
+
+      // Fetch current market price to recalculate current value for all shares
+      final symbol = (widget.investment.metadata?['symbol'] as String?) ?? '';
+      final apiService = StockApiService();
+      double currentMarketPrice = _price; // Default to buy price if fetch fails
+
+      if (symbol.isNotEmpty) {
+        final fetchedPrice = await apiService.getStockPrice(symbol);
+        if (fetchedPrice != null) {
+          currentMarketPrice = fetchedPrice;
+        }
+      }
+
+      // Calculate average cost basis (for all shares combined)
+      final averageCostBasis = newQty > 0 ? newInvested / newQty : 0;
+
+      // Calculate new current value for ALL shares
+      final newCurrentValue = newQty * currentMarketPrice;
 
       // Update account if linked
       if (_linkAccount && _selectedAccount != null) {
@@ -509,11 +528,12 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
         );
       }
 
-      // Update investment with new quantities
+      // Update investment with new quantities, average price, and recalculated current value
       final investmentsController = Provider.of<InvestmentsController>(context, listen: false);
       final updatedMetadata = {...?widget.investment.metadata};
       updatedMetadata['qty'] = newQty;
-      updatedMetadata['pricePerShare'] = _price; // Update with latest price
+      updatedMetadata['pricePerShare'] = averageCostBasis; // Average cost basis
+      updatedMetadata['currentValue'] = newCurrentValue; // Recalculated for all shares
 
       final updatedInvestment = widget.investment.copyWith(
         amount: newInvested,
@@ -522,7 +542,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
 
       investmentsController.updateInvestment(updatedInvestment);
 
-      toast.showSuccess('Added $_qty shares!\nTotal: $newQty shares\nInvested: ₹${newInvested.toStringAsFixed(2)}');
+      toast.showSuccess('Added $_qty shares!\nTotal: $newQty shares @ ₹${averageCostBasis.toStringAsFixed(2)} avg\nInvested: ₹${newInvested.toStringAsFixed(2)}\nCurrent: ₹${newCurrentValue.toStringAsFixed(2)}');
       Navigator.pop(context);
     } catch (e) {
       toast.showError('Error saving transaction: $e');
@@ -621,7 +641,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                       child: CupertinoButton.filled(
                         onPressed: _step < 3
                             ? () => setState(() => _step++)
-                            : (_qty > 0 && _price > 0 ? _saveBuyTransaction : null),
+                            : (_qty > 0 && _price > 0 ? () => _saveBuyTransaction() : null),
                         child: Text(_step < 3 ? 'Next' : 'Confirm Purchase'),
                       ),
                     ),
@@ -1239,7 +1259,7 @@ class _SellModalState extends State<_SellModal> {
     );
   }
 
-  void _saveSellTransaction() {
+  Future<void> _saveSellTransaction() async {
     try {
       // Get current invested amount and quantity
       final currentInvested = widget.investment.amount;
@@ -1253,6 +1273,24 @@ class _SellModalState extends State<_SellModal> {
       final newInvested = currentInvested - investmentReduction;
       final newQty = currentQty - _qty;
 
+      // Fetch current market price to recalculate current value for remaining shares
+      final symbol = (widget.investment.metadata?['symbol'] as String?) ?? '';
+      final apiService = StockApiService();
+      double currentMarketPrice = _price; // Default to sell price if fetch fails
+
+      if (symbol.isNotEmpty) {
+        final fetchedPrice = await apiService.getStockPrice(symbol);
+        if (fetchedPrice != null) {
+          currentMarketPrice = fetchedPrice;
+        }
+      }
+
+      // Calculate new average cost basis for remaining shares
+      final newAverageCostBasis = newQty > 0 ? newInvested / newQty : 0;
+
+      // Calculate new current value for remaining shares
+      final newCurrentValue = newQty * currentMarketPrice;
+
       // Update account if linked (credit proceeds)
       if (_linkAccount && _selectedAccount != null) {
         final accountsController = Provider.of<AccountsController>(context, listen: false);
@@ -1262,11 +1300,12 @@ class _SellModalState extends State<_SellModal> {
         );
       }
 
-      // Update investment with new quantities
+      // Update investment with new quantities, average price, and recalculated current value
       final investmentsController = Provider.of<InvestmentsController>(context, listen: false);
       final updatedMetadata = {...?widget.investment.metadata};
       updatedMetadata['qty'] = newQty;
-      updatedMetadata['pricePerShare'] = _price; // Update with latest price
+      updatedMetadata['pricePerShare'] = newAverageCostBasis; // Average cost basis for remaining
+      updatedMetadata['currentValue'] = newCurrentValue; // Recalculated for remaining shares
 
       final updatedInvestment = widget.investment.copyWith(
         amount: newInvested > 0 ? newInvested : 0,
@@ -1275,7 +1314,7 @@ class _SellModalState extends State<_SellModal> {
 
       investmentsController.updateInvestment(updatedInvestment);
 
-      toast.showSuccess('Sold $_qty shares!\nRemaining: $newQty shares\nProceeds: ₹${_netProceeds.toStringAsFixed(2)}');
+      toast.showSuccess('Sold $_qty shares!\nRemaining: $newQty shares @ ₹${newAverageCostBasis.toStringAsFixed(2)} avg\nProceeds: ₹${_netProceeds.toStringAsFixed(2)}\nCurrent: ₹${newCurrentValue.toStringAsFixed(2)}');
       Navigator.pop(context);
     } catch (e) {
       toast.showError('Error saving transaction: $e');
@@ -1372,7 +1411,7 @@ class _SellModalState extends State<_SellModal> {
                         onPressed: _step < 3
                             ? () => setState(() => _step++)
                             : (_qty > 0 && _qty <= widget.currentQty && _price > 0
-                                ? _saveSellTransaction
+                                ? () => _saveSellTransaction()
                                 : null),
                         child: Text(_step < 3 ? 'Next' : 'Confirm Sale'),
                       ),
