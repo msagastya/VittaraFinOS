@@ -24,6 +24,7 @@ class InvestmentsScreen extends StatefulWidget {
 class _InvestmentsScreenState extends State<InvestmentsScreen> {
   final AppLogger logger = AppLogger();
   bool _isSummaryExpanded = true;
+  InvestmentType? _selectedFilter; // null = All investments
 
   void _showInvestmentTypeSelection(BuildContext context) {
     showCupertinoModalPopup(
@@ -64,6 +65,11 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
           final investments = investmentsController.investments;
           final totalAmount = investmentsController.getTotalInvestmentAmount();
 
+          // Filter investments based on selected type
+          final filteredInvestments = _selectedFilter == null
+              ? investments
+              : investments.where((inv) => inv.type == _selectedFilter).toList();
+
           return Stack(
             children: [
               if (investments.isEmpty)
@@ -78,43 +84,71 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                 SafeArea(
                   child: Column(
                     children: [
+                      // Filter Bar
+                      _buildFilterBar(context, investments),
+                      SizedBox(height: Spacing.md),
                       // Investment Type-wise Summary Cards
-                      Padding(
-                        padding: EdgeInsets.only(top: Spacing.lg),
-                        child: _buildInvestmentTypeSummaryCards(context, investments),
-                      ),
+                      if (filteredInvestments.isNotEmpty)
+                        Padding(
+                          padding: EdgeInsets.only(top: Spacing.lg),
+                          child: _buildInvestmentTypeSummaryCards(context, filteredInvestments),
+                        ),
                       SizedBox(height: Spacing.lg),
                       // Investments List with Staggered Animation
-                      Expanded(
-                        child: ReorderableListView.builder(
-                          padding: EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, 100),
-                          itemCount: investments.length,
-                          onReorder: (oldIndex, newIndex) {
-                            Haptics.reorder();
-                            _onReorder(oldIndex, newIndex);
-                          },
-                          proxyDecorator: (child, index, animation) {
-                            return AnimatedBuilder(
-                              animation: animation,
-                              builder: (context, child) => Transform.scale(
-                                scale: 1.02,
-                                child: Container(
-                                  decoration: AppStyles.cardDecoration(context),
-                                  child: child,
+                      if (filteredInvestments.isEmpty)
+                        Expanded(
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  CupertinoIcons.search,
+                                  size: 48,
+                                  color: AppStyles.getSecondaryTextColor(context).withOpacity(0.5),
                                 ),
-                              ),
-                              child: child,
-                            );
-                          },
-                          itemBuilder: (context, index) {
-                            return StaggeredItem(
-                              key: ValueKey(investments[index].id),
-                              index: index,
-                              child: _buildInvestmentCard(investments[index]),
-                            );
-                          },
+                                SizedBox(height: Spacing.md),
+                                Text(
+                                  'No investments found',
+                                  style: TextStyle(
+                                    color: AppStyles.getSecondaryTextColor(context),
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      else
+                        Expanded(
+                          child: ReorderableListView.builder(
+                            padding: EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, 100),
+                            itemCount: filteredInvestments.length,
+                            onReorder: (oldIndex, newIndex) {
+                              Haptics.reorder();
+                              _onReorder(oldIndex, newIndex);
+                            },
+                            proxyDecorator: (child, index, animation) {
+                              return AnimatedBuilder(
+                                animation: animation,
+                                builder: (context, child) => Transform.scale(
+                                  scale: 1.02,
+                                  child: Container(
+                                    decoration: AppStyles.cardDecoration(context),
+                                    child: child,
+                                  ),
+                                ),
+                                child: child,
+                              );
+                            },
+                            itemBuilder: (context, index) {
+                              return StaggeredItem(
+                                key: ValueKey(filteredInvestments[index].id),
+                                index: index,
+                                child: _buildInvestmentCard(filteredInvestments[index]),
+                              );
+                            },
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),
@@ -131,6 +165,117 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
           );
         },
       ),
+    );
+  }
+
+  Widget _buildFilterBar(BuildContext context, List<Investment> investments) {
+    // Get all unique types present in investments
+    final investmentTypes = InvestmentType.values;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.md),
+          child: Text(
+            'Filter by Type',
+            style: TextStyle(
+              color: AppStyles.getTextColor(context),
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
+          ),
+        ),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
+          child: Row(
+            children: [
+              // "All" option
+              GestureDetector(
+                onTap: () => setState(() => _selectedFilter = null),
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.sm),
+                  decoration: BoxDecoration(
+                    color: _selectedFilter == null
+                        ? SemanticColors.investments
+                        : AppStyles.getCardColor(context),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: _selectedFilter == null
+                          ? SemanticColors.investments
+                          : AppStyles.getSecondaryTextColor(context).withOpacity(0.2),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Text(
+                    'All',
+                    style: TextStyle(
+                      color: _selectedFilter == null
+                          ? Colors.white
+                          : AppStyles.getTextColor(context),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(width: Spacing.md),
+              // Investment type filters
+              ...investmentTypes.map((type) {
+                final count = investments.where((inv) => inv.type == type).length;
+                final isSelected = _selectedFilter == type;
+
+                return Padding(
+                  padding: EdgeInsets.only(right: Spacing.md),
+                  child: GestureDetector(
+                    onTap: () => setState(() => _selectedFilter = type),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.sm),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? SemanticColors.investments
+                            : AppStyles.getCardColor(context),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: isSelected
+                              ? SemanticColors.investments
+                              : AppStyles.getSecondaryTextColor(context).withOpacity(0.2),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            _getInvestmentTypeLabel(type),
+                            style: TextStyle(
+                              color: isSelected ? Colors.white : AppStyles.getTextColor(context),
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                            ),
+                          ),
+                          if (count > 0)
+                            Text(
+                              '($count)',
+                              style: TextStyle(
+                                color: isSelected
+                                    ? Colors.white.withOpacity(0.8)
+                                    : AppStyles.getSecondaryTextColor(context),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
