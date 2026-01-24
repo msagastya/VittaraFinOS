@@ -18,6 +18,7 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
   late TextEditingController _priceController;
   final StockApiService _apiService = StockApiService();
   bool _isLoadingPrice = false;
+  double _currentMarketPrice = 0; // Current market price (auto-fetched, read-only)
 
   @override
   void initState() {
@@ -26,8 +27,8 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
     _qtyController = TextEditingController(text: controller.qty > 0 ? controller.qty.toString() : '');
     _priceController = TextEditingController(text: controller.price > 0 ? controller.price.toString() : '');
 
-    // Fetch price if not already set
-    if (controller.price == 0 && controller.selectedStock != null) {
+    // Fetch current market price
+    if (controller.selectedStock != null) {
       _fetchPrice(controller.selectedStock!.symbol);
     }
   }
@@ -36,8 +37,14 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
     setState(() => _isLoadingPrice = true);
     final price = await _apiService.getStockPrice(symbol);
     if (price != null && mounted) {
-      _priceController.text = price.toString();
-      _updateController();
+      setState(() {
+        _currentMarketPrice = price;
+        // Pre-fill purchase price with current market price if not already set
+        if (_priceController.text.isEmpty) {
+          _priceController.text = price.toStringAsFixed(2);
+          _updateController();
+        }
+      });
     }
     if (mounted) setState(() => _isLoadingPrice = false);
   }
@@ -46,10 +53,11 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
     final controller = Provider.of<StocksWizardController>(context, listen: false);
     final qty = double.tryParse(_qtyController.text) ?? 0;
     final price = double.tryParse(_priceController.text) ?? 0;
+    final currentValue = qty * _currentMarketPrice; // Current value = qty × current market price
     controller.updateDetails(
       quantity: qty,
       pricePerShare: price,
-      current: 0,
+      current: currentValue,
     );
   }
 
@@ -176,6 +184,81 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
           ),
           const SizedBox(height: 30),
 
+          // Current Value (Read-only)
+          Text('Current Market Value', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppStyles.getBackground(context).withOpacity(0.7),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: CupertinoColors.systemGreen.withOpacity(0.3),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      CupertinoIcons.info,
+                      size: 16,
+                      color: AppStyles.getSecondaryTextColor(context),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Auto-calculated (Read-only)',
+                      style: TextStyle(
+                        color: AppStyles.getSecondaryTextColor(context),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: CupertinoColors.systemGreen.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: CupertinoColors.systemGreen.withOpacity(0.4),
+                width: 1.5,
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Current Value @ ₹${_currentMarketPrice.toStringAsFixed(2)}/share',
+                      style: TextStyle(
+                        color: AppStyles.getSecondaryTextColor(context),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+                Text(
+                  '₹${(controller.qty * _currentMarketPrice).toStringAsFixed(2)}',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: CupertinoColors.systemGreen,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 30),
+
           // Summary
           Container(
             padding: const EdgeInsets.all(20),
@@ -184,21 +267,67 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: SemanticColors.investments.withOpacity(0.3)),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Column(
               children: [
-                const Text(
-                  'Total to Invest',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Amount to Invest',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      '₹${controller.totalAmount.toStringAsFixed(2)}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: SemanticColors.investments,
+                      ),
+                    ),
+                  ],
                 ),
-                Text(
-                  '₹${controller.totalAmount.toStringAsFixed(2)}',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: SemanticColors.investments,
+                if (controller.currentValue > 0) ...[
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Current Market Value',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        '₹${controller.currentValue.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: controller.currentValue >= controller.totalAmount
+                              ? CupertinoColors.systemGreen
+                              : CupertinoColors.systemRed,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Gain/Loss (Initial)',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
+                      Text(
+                        '${controller.currentValue >= controller.totalAmount ? '+' : ''}₹${(controller.currentValue - controller.totalAmount).toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: controller.currentValue >= controller.totalAmount
+                              ? CupertinoColors.systemGreen
+                              : CupertinoColors.systemRed,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),
