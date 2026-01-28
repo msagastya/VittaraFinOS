@@ -33,6 +33,14 @@ class AppStyles {
     return isDarkMode(context) ? const Color(0xFF8E8E93) : const Color(0xFF8E8E93);
   }
 
+  static Color getPrimaryColor(BuildContext context) {
+    return accentBlue;
+  }
+
+  static Color getDividerColor(BuildContext context) {
+    return isDarkMode(context) ? const Color(0xFF3A3A3C) : const Color(0xFFE5E5EA);
+  }
+
   static bool isDarkMode(BuildContext context) {
     return Theme.of(context).brightness == Brightness.dark;
   }

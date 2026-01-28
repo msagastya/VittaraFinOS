@@ -1,0 +1,737 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:vittara_fin_os/logic/fixed_deposit_model.dart';
+import 'package:vittara_fin_os/logic/investment_model.dart';
+import 'package:vittara_fin_os/logic/investments_controller.dart';
+import 'package:vittara_fin_os/logic/accounts_controller.dart';
+import 'package:vittara_fin_os/logic/account_model.dart';
+import 'package:vittara_fin_os/ui/manage/fd/fd_wizard_controller.dart';
+import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
+
+class FDRenewalModal extends StatefulWidget {
+  final FixedDeposit fd;
+  final VoidCallback onRenew;
+  final dynamic investmentController; // InvestmentsController
+  final dynamic originalInvestment; // Investment
+
+  const FDRenewalModal({
+    required this.fd,
+    required this.onRenew,
+    this.investmentController,
+    this.originalInvestment,
+    super.key,
+  });
+
+  @override
+  State<FDRenewalModal> createState() => _FDRenewalModalState();
+}
+
+class _FDRenewalModalState extends State<FDRenewalModal> {
+  late FDWizardController _controller;
+  late TextEditingController _fdNameController;
+  late TextEditingController _tenureDurationController;
+  late TextEditingController _principalController;
+  late TextEditingController _interestRateController;
+
+  TenureUnit _selectedUnit = TenureUnit.months;
+  int _tenureDuration = 12;
+  bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = FDWizardController();
+
+    // Pre-fill with maturity value as new principal
+    _controller.selectedAccount = null; // User will select
+    _controller.principal = widget.fd.maturityValue;
+    _controller.interestRate = widget.fd.interestRate;
+    _controller.tenureMonths = widget.fd.tenureMonths;
+    _controller.tenureUnit = TenureUnit.months;
+    _controller.tenureDuration = widget.fd.tenureMonths;
+    _controller.compoundingFrequency = widget.fd.compoundingFrequency;
+    _controller.isCumulative = widget.fd.isCumulative;
+    _controller.payoutFrequency = widget.fd.payoutFrequency;
+    _controller.investmentDate = DateTime.now(); // Start from today (renewal date)
+
+    _fdNameController = TextEditingController(text: '${widget.fd.name} (Renewal)');
+    _tenureDurationController = TextEditingController(text: widget.fd.tenureMonths.toString());
+    _principalController = TextEditingController(text: widget.fd.maturityValue.toStringAsFixed(2));
+    _interestRateController = TextEditingController(text: widget.fd.interestRate.toStringAsFixed(2));
+
+    // Initialize tenure from widget.fd
+    _tenureDuration = widget.fd.tenureMonths;
+    _selectedUnit = TenureUnit.months;
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _fdNameController.dispose();
+    _tenureDurationController.dispose();
+    _principalController.dispose();
+    _interestRateController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider.value(
+      value: _controller,
+      child: SafeArea(
+        child: Scaffold(
+          backgroundColor: AppStyles.getBackground(context),
+          appBar: CupertinoNavigationBar(
+            middle: const Text('Renew FD'),
+            previousPageTitle: 'Back',
+            backgroundColor: AppStyles.getBackground(context),
+            border: null,
+          ),
+          body: SingleChildScrollView(
+            padding: EdgeInsets.all(Spacing.lg),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Principal (Auto-filled from maturity value)
+                Text(
+                  'Principal',
+                  style: TextStyle(
+                    color: AppStyles.getTextColor(context),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+                SizedBox(height: Spacing.sm),
+                CupertinoTextField(
+                  controller: _principalController,
+                  placeholder: 'Principal Amount',
+                  placeholderStyle: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+                  padding: EdgeInsets.all(Spacing.md),
+                  decoration: BoxDecoration(
+                    color: AppStyles.getCardColor(context),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  style: TextStyle(color: AppStyles.getTextColor(context)),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  onChanged: (value) {
+                    _controller.updatePrincipal(double.tryParse(value) ?? widget.fd.maturityValue);
+                  },
+                ),
+                SizedBox(height: Spacing.lg),
+
+                // Investment Start Date (Editable - for date adjustments)
+                Text(
+                  'Investment Start Date',
+                  style: TextStyle(
+                    color: AppStyles.getTextColor(context),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+                SizedBox(height: Spacing.sm),
+                GestureDetector(
+                  onTap: () => _showDatePicker(
+                    context,
+                    _controller.investmentDate,
+                    (newDate) {
+                      setState(() {
+                        _controller.investmentDate = newDate;
+                      });
+                    },
+                  ),
+                  child: Container(
+                    padding: EdgeInsets.all(Spacing.md),
+                    decoration: BoxDecoration(
+                      color: AppStyles.getCardColor(context),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: AppStyles.getDividerColor(context),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          _formatDate(_controller.investmentDate),
+                          style: TextStyle(
+                            color: AppStyles.getTextColor(context),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Icon(
+                          CupertinoIcons.calendar,
+                          color: AppStyles.getPrimaryColor(context),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(height: Spacing.lg),
+
+                // Interest Rate (Editable)
+                Text(
+                  'Interest Rate',
+                  style: TextStyle(
+                    color: AppStyles.getTextColor(context),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+                SizedBox(height: Spacing.sm),
+                CupertinoTextField(
+                  controller: _interestRateController,
+                  placeholder: 'Annual Interest Rate (%)',
+                  placeholderStyle: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+                  padding: EdgeInsets.all(Spacing.md),
+                  decoration: BoxDecoration(
+                    color: AppStyles.getCardColor(context),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  style: TextStyle(color: AppStyles.getTextColor(context)),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  onChanged: (value) {
+                    _controller.updateInterestRate(double.tryParse(value) ?? widget.fd.interestRate);
+                  },
+                ),
+                SizedBox(height: Spacing.lg),
+
+                // Tenure (Flexible - Days/Months/Years)
+                Text(
+                  'Tenure Duration',
+                  style: TextStyle(
+                    color: AppStyles.getTextColor(context),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+                SizedBox(height: Spacing.sm),
+                Row(
+                  children: [
+                    Expanded(
+                      child: CupertinoTextField(
+                        controller: _tenureDurationController,
+                        placeholder: 'Enter duration',
+                        placeholderStyle: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+                        padding: EdgeInsets.all(Spacing.md),
+                        decoration: BoxDecoration(
+                          color: AppStyles.getCardColor(context),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        style: TextStyle(color: AppStyles.getTextColor(context)),
+                        keyboardType: TextInputType.number,
+                        onChanged: (value) {
+                          setState(() {
+                            _tenureDuration = int.tryParse(value) ?? 12;
+                            _updateTenureInController();
+                          });
+                        },
+                      ),
+                    ),
+                    SizedBox(width: Spacing.md),
+                    // Unit selector dropdown
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: Spacing.md),
+                      decoration: BoxDecoration(
+                        color: AppStyles.getCardColor(context),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: AppStyles.getDividerColor(context),
+                          width: 1,
+                        ),
+                      ),
+                      child: CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: () => _showUnitPicker(context),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              _getUnitLabel(_selectedUnit),
+                              style: TextStyle(
+                                color: AppStyles.getTextColor(context),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            SizedBox(width: Spacing.sm),
+                            Icon(
+                              CupertinoIcons.chevron_down,
+                              size: 16,
+                              color: AppStyles.getPrimaryColor(context),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: Spacing.lg),
+
+                // FD Type
+                Text(
+                  'FD Type',
+                  style: TextStyle(
+                    color: AppStyles.getTextColor(context),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+                SizedBox(height: Spacing.sm),
+                Consumer<FDWizardController>(
+                  builder: (context, controller, child) {
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: _buildTypeOption(
+                            context,
+                            'Cumulative',
+                            controller.isCumulative,
+                            () => controller.updateFDType(true),
+                          ),
+                        ),
+                        SizedBox(width: Spacing.md),
+                        Expanded(
+                          child: _buildTypeOption(
+                            context,
+                            'Non-Cumulative',
+                            !controller.isCumulative,
+                            () => controller.updateFDType(false),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+                SizedBox(height: Spacing.lg),
+
+                // Maturity Value Display
+                Consumer<FDWizardController>(
+                  builder: (context, controller, child) {
+                    return Container(
+                      padding: EdgeInsets.all(Spacing.lg),
+                      decoration: BoxDecoration(
+                        color: AppStyles.getCardColor(context),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppStyles.getPrimaryColor(context).withOpacity(0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Estimated Maturity Value',
+                            style: TextStyle(
+                              color: AppStyles.getSecondaryTextColor(context),
+                              fontSize: 12,
+                            ),
+                          ),
+                          SizedBox(height: Spacing.sm),
+                          Text(
+                            '₹${controller.maturityValue.toStringAsFixed(2)}',
+                            style: TextStyle(
+                              color: AppStyles.getPrimaryColor(context),
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: Spacing.sm),
+                          Text(
+                            'Interest: ₹${controller.totalInterestAtMaturity.toStringAsFixed(2)}',
+                            style: TextStyle(
+                              color: AppStyles.getSecondaryTextColor(context),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+                SizedBox(height: Spacing.lg),
+
+                // Estimated Maturity Date
+                Container(
+                  padding: EdgeInsets.all(Spacing.lg),
+                  decoration: BoxDecoration(
+                    color: AppStyles.getPrimaryColor(context).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: AppStyles.getPrimaryColor(context).withOpacity(0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Estimated Maturity Date',
+                        style: TextStyle(
+                          color: AppStyles.getSecondaryTextColor(context),
+                          fontSize: 12,
+                        ),
+                      ),
+                      SizedBox(height: Spacing.sm),
+                      Text(
+                        _formatDate(_calculateMaturityDate()),
+                        style: TextStyle(
+                          color: AppStyles.getPrimaryColor(context),
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: Spacing.sm),
+                      Text(
+                        'Based on ${_controller.tenureMonths} months from ${_formatDate(_controller.investmentDate)}',
+                        style: TextStyle(
+                          color: AppStyles.getSecondaryTextColor(context),
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: Spacing.lg),
+
+                // FD Name
+                Text(
+                  'FD Name',
+                  style: TextStyle(
+                    color: AppStyles.getTextColor(context),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+                SizedBox(height: Spacing.sm),
+                CupertinoTextField(
+                  controller: _fdNameController,
+                  placeholder: 'e.g., My FD Renewal',
+                  padding: EdgeInsets.all(Spacing.md),
+                  decoration: BoxDecoration(
+                    color: AppStyles.getCardColor(context),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  style: TextStyle(color: AppStyles.getTextColor(context)),
+                  onChanged: (value) => _controller.updateFDName(value),
+                ),
+                SizedBox(height: Spacing.xxl),
+
+                // Confirm Button
+                SizedBox(
+                  width: double.infinity,
+                  child: CupertinoButton(
+                    color: AppStyles.getPrimaryColor(context),
+                    onPressed: _isSubmitting ? null : () async {
+                      if (_isSubmitting) return;
+
+                      setState(() => _isSubmitting = true);
+
+                      try {
+                        // Update controller with current values from text fields
+                        _controller.updateFDName(_fdNameController.text);
+                        final principal = double.tryParse(_principalController.text) ?? widget.fd.maturityValue;
+                        final interestRate = double.tryParse(_interestRateController.text) ?? widget.fd.interestRate;
+
+                        _controller.updatePrincipal(principal);
+                        _controller.updateInterestRate(interestRate);
+
+                        // Get accounts controller to find the original linked account
+                        final accountsController = Provider.of<AccountsController>(context, listen: false);
+                        Account? linkedAccount;
+                        try {
+                          linkedAccount = accountsController.accounts.firstWhere(
+                            (a) => a.id == widget.fd.linkedAccountId,
+                          );
+                        } catch (e) {
+                          if (context.mounted) {
+                            toast.showError('Linked account not found');
+                          }
+                          return;
+                        }
+
+                        _controller.selectedAccount = linkedAccount;
+
+                        // Get investments controller
+                        final investmentsController = widget.investmentController ??
+                            Provider.of<InvestmentsController>(context, listen: false);
+
+                        // Build the renewed FD
+                        final renewedFD = _controller.buildFD();
+
+                        // Convert to Investment object
+                        final renewedInvestment = Investment(
+                          id: renewedFD.id,
+                          name: renewedFD.name,
+                          type: InvestmentType.fixedDeposit,
+                          amount: renewedFD.principal,
+                          color: const Color(0xFFFF6B00),
+                          notes: renewedFD.notes,
+                          broker: renewedFD.bankName,
+                          metadata: {
+                            ...?renewedFD.metadata,
+                            'fdData': renewedFD.toMap(),
+                            'linkedAccountId': renewedFD.linkedAccountId,
+                            'linkedAccountName': renewedFD.linkedAccountName,
+                            'maturityDate': renewedFD.maturityDate.toIso8601String(),
+                            'estimatedAccruedValue': renewedFD.estimatedAccruedValue,
+                            'realizedValue': renewedFD.realizedValue,
+                            'interestRate': renewedFD.interestRate,
+                            'tenureMonths': renewedFD.tenureMonths,
+                            'compoundingFrequency': renewedFD.compoundingFrequency.toString(),
+                            'payoutFrequency': renewedFD.payoutFrequency.toString(),
+                            'isCumulative': renewedFD.isCumulative,
+                            'investmentDate': renewedFD.investmentDate.toIso8601String(),
+                            'debitedFromAccount': false,
+                          },
+                        );
+
+                        // Add renewed FD as new investment
+                        await investmentsController.addInvestment(renewedInvestment);
+
+                        if (context.mounted) {
+                          toast.showSuccess('FD Renewed Successfully!');
+                          Navigator.of(context).pop();
+                          Navigator.of(context).pop();
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          toast.showError('Error: $e');
+                        }
+                      } finally {
+                        if (mounted) {
+                          setState(() => _isSubmitting = false);
+                        }
+                      }
+                    },
+                    child: Text(
+                      _isSubmitting ? 'Processing...' : 'Confirm Renewal',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: Spacing.lg),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showDatePicker(
+    BuildContext context,
+    DateTime selectedDate,
+    Function(DateTime) onDateChanged,
+  ) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext context) => Container(
+        height: 300,
+        color: AppStyles.getBackground(context),
+        child: Column(
+          children: [
+            SizedBox(
+              height: 200,
+              child: CupertinoDatePicker(
+                mode: CupertinoDatePickerMode.date,
+                initialDateTime: selectedDate,
+                onDateTimeChanged: onDateChanged,
+              ),
+            ),
+            CupertinoButton(
+              child: const Text('Done'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    final months = [
+      '',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+    return '${date.day} ${months[date.month]} ${date.year}';
+  }
+
+  DateTime _calculateMaturityDate() {
+    int totalDays = _convertToDays(_tenureDuration, _selectedUnit);
+    return _controller.investmentDate.add(Duration(days: totalDays));
+  }
+
+  int _convertToDays(int duration, TenureUnit unit) {
+    switch (unit) {
+      case TenureUnit.days:
+        return duration;
+      case TenureUnit.months:
+        // 1 month = 365/12 = ~30.42 days
+        return (duration * 365 / 12).toInt();
+      case TenureUnit.years:
+        // 1 year = 365 days (not 360)
+        return duration * 365;
+    }
+  }
+
+  void _updateTenureInController() {
+    int tenureInMonths = _convertToMonths(_tenureDuration, _selectedUnit);
+    _controller.updateTenure(tenureInMonths);
+  }
+
+  int _convertToMonths(int duration, TenureUnit unit) {
+    switch (unit) {
+      case TenureUnit.days:
+        // 1 day = 12/365 months
+        return (duration * 12 / 365).toInt();
+      case TenureUnit.months:
+        return duration;
+      case TenureUnit.years:
+        // 1 year = 12 months
+        return duration * 12;
+    }
+  }
+
+  String _getUnitLabel(TenureUnit unit) {
+    switch (unit) {
+      case TenureUnit.days:
+        return 'Days';
+      case TenureUnit.months:
+        return 'Months';
+      case TenureUnit.years:
+        return 'Years';
+    }
+  }
+
+  void _showUnitPicker(BuildContext context) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext context) => Container(
+        color: AppStyles.getBackground(context),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.md),
+              decoration: BoxDecoration(
+                color: AppStyles.getCardColor(context),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(12),
+                  topRight: Radius.circular(12),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Select Unit',
+                    style: TextStyle(
+                      color: AppStyles.getTextColor(context),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    child: const Text('Done'),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+            ),
+            ...TenureUnit.values.map((unit) {
+              final isSelected = _selectedUnit == unit;
+              return CupertinoButton(
+                padding: EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.md),
+                onPressed: () {
+                  setState(() {
+                    _selectedUnit = unit;
+                    _updateTenureInController();
+                  });
+                  Navigator.of(context).pop();
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(Spacing.md),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? AppStyles.getPrimaryColor(context).withOpacity(0.1)
+                        : AppStyles.getCardColor(context),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: isSelected
+                          ? AppStyles.getPrimaryColor(context)
+                          : AppStyles.getDividerColor(context),
+                      width: isSelected ? 2 : 1,
+                    ),
+                  ),
+                  child: Text(
+                    _getUnitLabel(unit),
+                    style: TextStyle(
+                      color: isSelected
+                          ? AppStyles.getPrimaryColor(context)
+                          : AppStyles.getTextColor(context),
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                    ),
+                  ),
+                ),
+              );
+            }),
+            SizedBox(height: Spacing.lg),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTypeOption(
+    BuildContext context,
+    String label,
+    bool isSelected,
+    VoidCallback onTap,
+  ) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.all(Spacing.md),
+        decoration: BoxDecoration(
+          color: isSelected ? AppStyles.getPrimaryColor(context).withOpacity(0.15) : AppStyles.getCardColor(context),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? AppStyles.getPrimaryColor(context) : Colors.transparent,
+            width: 1.5,
+          ),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: AppStyles.getTextColor(context),
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

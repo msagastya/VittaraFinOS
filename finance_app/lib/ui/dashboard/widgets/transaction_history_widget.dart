@@ -1,0 +1,221 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:vittara_fin_os/logic/dashboard_widget_model.dart';
+import 'package:vittara_fin_os/logic/transactions_controller.dart';
+import 'package:vittara_fin_os/ui/dashboard/base_dashboard_widget.dart';
+import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+
+class TransactionHistoryWidget extends BaseDashboardWidget {
+  const TransactionHistoryWidget({
+    required DashboardWidgetConfig config,
+    VoidCallback? onTap,
+    super.key,
+  }) : super(config: config, onTap: onTap);
+
+  @override
+  Widget buildHeader(BuildContext context, {bool compact = false}) {
+    return Row(
+      children: [
+        Icon(
+          CupertinoIcons.doc_text_fill,
+          size: compact ? 16 : 18,
+          color: AppStyles.getPrimaryColor(context),
+        ),
+        SizedBox(width: Spacing.sm),
+        Expanded(
+          child: Text(
+            config.title,
+            style: TextStyle(
+              fontSize: compact ? 14 : 16,
+              fontWeight: FontWeight.bold,
+              color: AppStyles.getTextColor(context),
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget buildContent(
+    BuildContext context, {
+    required int columnSpan,
+    required int rowSpan,
+    required double width,
+    required double height,
+  }) {
+    // Determine how many transactions to show based on space
+    // Compact (1 col, 1 row): 1 transaction
+    // Compact (1 col, 2+ rows): 2-3 transactions
+    // Medium (2 cols, 1 row): 2 transactions
+    // Medium (2 cols, 2+ rows): 4 transactions
+    // Full (3 cols, 1 row): 3 transactions
+    // Full (3 cols, 2+ rows): 5-6 transactions
+
+    int txCount = 2;
+    if (columnSpan == 1 && rowSpan == 1) txCount = 1;
+    if (columnSpan == 1 && rowSpan >= 2) txCount = 2;
+    if (columnSpan == 2 && rowSpan == 1) txCount = 2;
+    if (columnSpan == 2 && rowSpan >= 2) txCount = 4;
+    if (columnSpan == 3 && rowSpan == 1) txCount = 3;
+    if (columnSpan == 3 && rowSpan >= 2) txCount = 5;
+
+    return Consumer<TransactionsController>(
+      builder: (context, transactionController, child) {
+        final transactions = transactionController.transactions.take(txCount).toList();
+
+        if (transactions.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  CupertinoIcons.doc_text,
+                  size: columnSpan == 1 ? 28 : 40,
+                  color: AppStyles.getSecondaryTextColor(context),
+                ),
+                SizedBox(height: Spacing.sm),
+                Text(
+                  'No transactions',
+                  style: TextStyle(
+                    fontSize: columnSpan == 1 ? 11 : 13,
+                    color: AppStyles.getSecondaryTextColor(context),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          );
+        }
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: transactions
+              .asMap()
+              .entries
+              .map((entry) {
+                final isLast = entry.key == transactions.length - 1;
+                return Column(
+                  children: [
+                    _buildTransactionItem(
+                      context,
+                      entry.value,
+                      compact: columnSpan == 1,
+                    ),
+                    if (!isLast) Divider(height: 12),
+                  ],
+                );
+              })
+              .toList(),
+        );
+      },
+    );
+  }
+
+  Widget _buildTransactionItem(
+    BuildContext context,
+    dynamic transaction, {
+    bool compact = false,
+  }) {
+    final amount = transaction.amount ?? 0;
+    final description = transaction.description ?? 'Transaction';
+
+    if (compact) {
+      // Vertical compact layout
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            description,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: AppStyles.getTextColor(context),
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          SizedBox(height: 4),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Just now',
+                style: TextStyle(
+                  fontSize: 9,
+                  color: AppStyles.getSecondaryTextColor(context),
+                ),
+              ),
+              Text(
+                '₹${amount.toStringAsFixed(0)}',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: AppStyles.getTextColor(context),
+                ),
+              ),
+            ],
+          ),
+        ],
+      );
+    }
+
+    // Horizontal layout
+    return Row(
+      children: [
+        Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            color: Colors.blue.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Icon(
+            CupertinoIcons.arrow_right,
+            size: 14,
+            color: Colors.blue,
+          ),
+        ),
+        SizedBox(width: Spacing.md),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                description,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: AppStyles.getTextColor(context),
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              Text(
+                'Just now',
+                style: TextStyle(
+                  fontSize: 10,
+                  color: AppStyles.getSecondaryTextColor(context),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Text(
+          '₹${amount.toStringAsFixed(2)}',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: AppStyles.getTextColor(context),
+          ),
+        ),
+      ],
+    );
+  }
+}

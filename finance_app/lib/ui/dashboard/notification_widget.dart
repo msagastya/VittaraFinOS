@@ -1,0 +1,361 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:vittara_fin_os/logic/fixed_deposit_model.dart';
+import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+
+enum NotificationType {
+  fdPayout,        // Fixed Deposit payout
+  rdInstallment,   // Recurring Deposit installment
+  fdAutoRenew,     // FD auto-renew
+  rdAutoPayment,   // RD auto-payment
+  stockSip,        // Stock SIP
+}
+
+class NotificationWidget extends StatelessWidget {
+  final NotificationType type;
+  final String title;
+  final String subtitle;
+  final String amount;
+  final String timeInfo;
+  final Color badgeColor;
+  final IconData icon;
+  final Widget statusWidget;
+  final List<Widget>? actionButtons;
+
+  const NotificationWidget({
+    required this.type,
+    required this.title,
+    required this.subtitle,
+    required this.amount,
+    required this.timeInfo,
+    required this.badgeColor,
+    required this.icon,
+    required this.statusWidget,
+    this.actionButtons,
+    super.key,
+  });
+
+  // Factory for FD Payout
+  factory NotificationWidget.fdPayout({
+    required BuildContext context,
+    required FixedDeposit fd,
+    required PayoutRecord record,
+    required int daysUntil,
+  }) {
+    return NotificationWidget(
+      type: NotificationType.fdPayout,
+      title: fd.name,
+      subtitle: 'Payout on ${_formatDate(record.payoutDate)}',
+      amount: '₹${(record.interestAmount + record.principalAmount).toStringAsFixed(2)}',
+      timeInfo: 'In $daysUntil day${daysUntil > 1 ? 's' : ''}',
+      badgeColor: daysUntil <= 3 ? Colors.red : Colors.orange,
+      icon: CupertinoIcons.bell_fill,
+      statusWidget: fd.autoLinkEnabled
+          ? _buildAutoLinkEnabled(context, fd)
+          : _buildAutoLinkDisabled(context),
+    );
+  }
+
+  // Factory for RD Installment
+  factory NotificationWidget.rdInstallment({
+    required BuildContext context,
+    required String rdName,
+    required String accountName,
+    required double amount,
+    required DateTime dueDate,
+  }) {
+    final daysUntil = dueDate.difference(DateTime.now()).inDays;
+
+    return NotificationWidget(
+      type: NotificationType.rdInstallment,
+      title: rdName,
+      subtitle: 'Next installment due on ${_formatDate(dueDate)}',
+      amount: '₹${amount.toStringAsFixed(2)}',
+      timeInfo: 'In $daysUntil day${daysUntil > 1 ? 's' : ''}',
+      badgeColor: daysUntil <= 3 ? Colors.red : Colors.blue,
+      icon: CupertinoIcons.money_dollar_circle_fill,
+      statusWidget: _buildRDInstallmentInfo(context, accountName),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            badgeColor.withOpacity(0.15),
+            badgeColor.withOpacity(0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: badgeColor.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header with notification badge
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: badgeColor,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      icon,
+                      color: Colors.white,
+                      size: 12,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _getNotificationLabel(type),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: badgeColor.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  timeInfo,
+                  style: TextStyle(
+                    color: badgeColor,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // Title and Amount
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        color: AppStyles.getTextColor(context),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        color: AppStyles.getSecondaryTextColor(context),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    amount,
+                    style: TextStyle(
+                      color: badgeColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+                  Text(
+                    _getAmountLabel(type),
+                    style: TextStyle(
+                      color: AppStyles.getSecondaryTextColor(context),
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // Status Widget
+          statusWidget,
+          if (actionButtons != null) ...[
+            const SizedBox(height: 12),
+            Row(
+              children: actionButtons!,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  static Widget _buildAutoLinkEnabled(BuildContext context, FixedDeposit fd) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.green.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            CupertinoIcons.checkmark_circle_fill,
+            size: 16,
+            color: Colors.green,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Auto-link enabled. Payout will be credited to ${fd.linkedAccountName}',
+              style: const TextStyle(
+                color: Colors.green,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static Widget _buildAutoLinkDisabled(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: AppStyles.getCardColor(context),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            CupertinoIcons.info,
+            size: 14,
+            color: AppStyles.getSecondaryTextColor(context),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Auto-link is disabled. Enable to auto-credit this payout.',
+              style: TextStyle(
+                color: AppStyles.getSecondaryTextColor(context),
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static Widget _buildRDInstallmentInfo(BuildContext context, String accountName) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: AppStyles.getCardColor(context),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            CupertinoIcons.info,
+            size: 14,
+            color: AppStyles.getSecondaryTextColor(context),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Will be debited from $accountName',
+              style: TextStyle(
+                color: AppStyles.getSecondaryTextColor(context),
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static String _getNotificationLabel(NotificationType type) {
+    switch (type) {
+      case NotificationType.fdPayout:
+        return 'FD Payout';
+      case NotificationType.rdInstallment:
+        return 'RD Installment';
+      case NotificationType.fdAutoRenew:
+        return 'FD Auto-Renew';
+      case NotificationType.rdAutoPayment:
+        return 'RD Auto-Payment';
+      case NotificationType.stockSip:
+        return 'Stock SIP';
+    }
+  }
+
+  static String _getAmountLabel(NotificationType type) {
+    switch (type) {
+      case NotificationType.fdPayout:
+        return 'Interest + Principal';
+      case NotificationType.rdInstallment:
+        return 'Monthly Installment';
+      case NotificationType.fdAutoRenew:
+        return 'Renewal Amount';
+      case NotificationType.rdAutoPayment:
+        return 'Payment Amount';
+      case NotificationType.stockSip:
+        return 'SIP Amount';
+    }
+  }
+
+  static String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final targetDay = DateTime(date.year, date.month, date.day);
+
+    if (targetDay == today) {
+      return 'Today';
+    } else if (targetDay == today.add(const Duration(days: 1))) {
+      return 'Tomorrow';
+    } else {
+      final months = [
+        '',
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec'
+      ];
+      return '${date.day} ${months[date.month]}';
+    }
+  }
+}

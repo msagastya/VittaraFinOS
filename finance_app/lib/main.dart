@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -8,6 +9,8 @@ import 'package:vittara_fin_os/logic/banks_controller.dart';
 import 'package:vittara_fin_os/logic/brokers_controller.dart';
 import 'package:vittara_fin_os/logic/categories_controller.dart';
 import 'package:vittara_fin_os/logic/contacts_controller.dart';
+import 'package:vittara_fin_os/logic/dashboard_controller.dart';
+import 'package:vittara_fin_os/logic/dashboard_widget_model.dart';
 import 'package:vittara_fin_os/logic/investment_type_preferences_controller.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/lending_borrowing_controller.dart';
@@ -20,7 +23,15 @@ import 'package:vittara_fin_os/ui/manage_screen.dart';
 import 'package:vittara_fin_os/ui/settings_screen.dart';
 import 'package:vittara_fin_os/ui/transaction_history_screen.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/notifications_page.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/manage/fd/modals/fd_renewal_modal.dart';
+import 'package:vittara_fin_os/ui/manage/fd/modals/fd_withdrawal_modal.dart';
+import 'package:vittara_fin_os/logic/fixed_deposit_model.dart';
+import 'package:vittara_fin_os/ui/dashboard/notification_widget.dart';
+import 'package:vittara_fin_os/ui/dashboard/widgets/actions_widget.dart';
+import 'package:vittara_fin_os/ui/dashboard/widgets/transaction_history_widget.dart';
+import 'package:vittara_fin_os/ui/dashboard/widgets/net_worth_widget.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
@@ -77,6 +88,9 @@ void main() {
           ),
           ChangeNotifierProvider(
             create: (_) => TransactionsController()..loadTransactions(),
+          ),
+          ChangeNotifierProvider(
+            create: (_) => DashboardController()..initialize(),
           ),
         ],
         child: const MyApp(),
@@ -182,8 +196,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                 ),
                 child: child!,
               ),
-              // LOCK SCREEN OVERLAY
-              if (settings.isLocked && settings.appLoaded)
+              // LOCK SCREEN OVERLAY (disabled on web)
+              if (settings.isLocked && settings.appLoaded && !kIsWeb)
                 const Positioned.fill(child: LockScreen()),
             ],
           ),
@@ -194,8 +208,22 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   }
 }
 
-class LockScreen extends StatelessWidget {
+class LockScreen extends StatefulWidget {
   const LockScreen({super.key});
+
+  @override
+  State<LockScreen> createState() => _LockScreenState();
+}
+
+class _LockScreenState extends State<LockScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Automatically trigger biometric authentication when lock screen appears
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<SettingsController>(context, listen: false).authenticateAndUnlock();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -245,46 +273,19 @@ class LockScreen extends StatelessWidget {
               ),
               SizedBox(height: Spacing.sm),
               Text(
-                'Your data is protected',
+                'Authenticating...',
                 style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.6),
                   fontSize: TypeScale.body,
                 ),
               ),
               SizedBox(height: Spacing.huge),
-              BouncyButton(
-                onPressed: () {
-                  Provider.of<SettingsController>(context, listen: false).authenticateAndUnlock();
-                },
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: Spacing.xxxl,
-                    vertical: Spacing.lg,
-                  ),
-                  decoration: BoxDecoration(
-                    color: SemanticColors.primary,
-                    borderRadius: Radii.buttonRadius,
-                    boxShadow: Shadows.fab(SemanticColors.primary),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        CupertinoIcons.lock_open_fill,
-                        color: Colors.white,
-                        size: 22,
-                      ),
-                      SizedBox(width: Spacing.sm),
-                      const Text(
-                        'Unlock',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
-                  ),
+              const SizedBox(
+                width: 40,
+                height: 40,
+                child: CupertinoActivityIndicator(
+                  color: Colors.white,
+                  radius: 15,
                 ),
               ),
             ],
@@ -349,121 +350,239 @@ class DashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        middle: const Text('VittaraFinOS'),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            BouncyButton(
-              onPressed: () {
-                Navigator.of(context).push(FadeScalePageRoute(page: const ManageScreen()));
-              },
-              child: Icon(
-                CupertinoIcons.slider_horizontal_3,
-                size: IconSizes.navIcon,
-                color: isDark ? Colors.white : CupertinoColors.black,
-              ),
+    return Consumer<DashboardController>(
+      builder: (context, dashboardController, child) {
+        if (!dashboardController.isInitialized) {
+          return Scaffold(
+            backgroundColor: AppStyles.getBackground(context),
+            body: const Center(child: CupertinoActivityIndicator()),
+          );
+        }
+
+        final visibleWidgets = dashboardController.config.getVisibleWidgets();
+
+        return CupertinoPageScaffold(
+          navigationBar: CupertinoNavigationBar(
+            middle: const Text('VittaraFinOS'),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Manage button
+                BouncyButton(
+                  onPressed: () {
+                    Navigator.of(context).push(FadeScalePageRoute(page: const ManageScreen()));
+                  },
+                  child: Icon(
+                    CupertinoIcons.slider_horizontal_3,
+                    size: IconSizes.navIcon,
+                    color: isDark ? Colors.white : CupertinoColors.black,
+                  ),
+                ),
+                SizedBox(width: Spacing.xl),
+                // Settings button
+                BouncyButton(
+                  onPressed: () {
+                    Navigator.of(context).push(FadeScalePageRoute(page: const SettingsScreen()));
+                  },
+                  child: Icon(
+                    CupertinoIcons.settings,
+                    size: IconSizes.navIcon,
+                    color: isDark ? Colors.white : CupertinoColors.black,
+                  ),
+                ),
+              ],
             ),
-            SizedBox(width: Spacing.xl),
-            BouncyButton(
-              onPressed: () {
-                Navigator.of(context).push(FadeScalePageRoute(page: const SettingsScreen()));
-              },
-              child: Icon(
-                CupertinoIcons.settings,
-                size: IconSizes.navIcon,
-                color: isDark ? Colors.white : CupertinoColors.black,
-              ),
+            backgroundColor: isDark ? const Color(0xFF1C1C1E) : CupertinoColors.systemGroupedBackground,
+            border: null,
+          ),
+          child: SafeArea(
+            child: Container(
+              color: isDark ? Colors.black : CupertinoColors.systemGroupedBackground,
+              child: visibleWidgets.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            CupertinoIcons.square_grid_2x2,
+                            size: 80,
+                            color: isDark
+                                ? CupertinoColors.systemGrey
+                                : CupertinoColors.systemGrey,
+                          ),
+                          SizedBox(height: Spacing.lg),
+                          Text(
+                            'No widgets enabled',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? Colors.white : CupertinoColors.label,
+                            ),
+                          ),
+                          SizedBox(height: Spacing.sm),
+                          Text(
+                            'Tap Edit to enable widgets',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: AppStyles.getSecondaryTextColor(context),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : _buildDashboardGrid(context, dashboardController, visibleWidgets),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDashboardGrid(
+    BuildContext context,
+    DashboardController controller,
+    List<DashboardWidgetConfig> visibleWidgets,
+  ) {
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(Spacing.lg),
+      child: Column(
+        children: visibleWidgets
+            .map((widget) => Padding(
+                  padding: EdgeInsets.only(bottom: Spacing.md),
+                  child: _buildExpandableCard(context, widget),
+                ))
+            .toList(),
+      ),
+    );
+  }
+
+  Widget _buildExpandableCard(BuildContext context, DashboardWidgetConfig widgetConfig) {
+    return GestureDetector(
+      onTap: () {
+        _handleWidgetTap(context, widgetConfig);
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppStyles.getCardColor(context),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
-        backgroundColor: isDark ? const Color(0xFF1C1C1E) : CupertinoColors.systemGroupedBackground,
-        border: null,
-      ),
-      child: SafeArea(
-        child: Container(
-          color: isDark ? Colors.black : CupertinoColors.systemGroupedBackground,
-          child: Column(
-            children: [
-              Expanded(
-                child: FadeInAnimation(
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        FloatingAnimation(
-                          child: Icon(
-                            CupertinoIcons.chart_pie_fill,
-                            size: IconSizes.emptyStateIcon,
-                            color: isDark
-                              ? CupertinoColors.systemGrey
-                              : CupertinoColors.systemGrey,
-                          ),
-                        ),
-                        SizedBox(height: Spacing.lg),
-                        Text(
-                          'Financial Overview',
-                          style: TextStyle(
-                            fontSize: TypeScale.title2,
-                            fontWeight: FontWeight.w600,
-                            color: isDark ? Colors.white : CupertinoColors.label,
-                          ),
-                        ),
-                        SizedBox(height: Spacing.sm),
-                        Text(
-                          'Your dashboard analytics will appear here',
-                          style: TextStyle(
-                            fontSize: TypeScale.body,
-                            color: AppStyles.getSecondaryTextColor(context),
-                          ),
-                        ),
-                        SizedBox(height: Spacing.xxxl),
-                        BouncyButton(
-                          onPressed: () {
-                            Navigator.of(context).push(FadeScalePageRoute(
-                              page: const TransactionHistoryScreen(),
-                            ));
-                          },
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: Spacing.xxxl,
-                              vertical: Spacing.lg,
-                            ),
-                            decoration: BoxDecoration(
-                              color: CupertinoColors.systemBlue,
-                              borderRadius: Radii.buttonRadius,
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  CupertinoIcons.doc_text,
-                                  color: Colors.white,
-                                  size: 18,
-                                ),
-                                SizedBox(width: Spacing.sm),
-                                const Text(
-                                  'View Transaction History',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Padding(
+              padding: EdgeInsets.all(Spacing.lg),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    widgetConfig.title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppStyles.getTextColor(context),
                     ),
                   ),
+                  Icon(
+                    CupertinoIcons.chevron_right,
+                    size: 20,
+                    color: AppStyles.getPrimaryColor(context),
+                  ),
+                ],
+              ),
+            ),
+            // Preview content (2-3 lines)
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
+              child: Container(
+                constraints: const BoxConstraints(maxHeight: 80),
+                child: SingleChildScrollView(
+                  physics: const NeverScrollableScrollPhysics(),
+                  child: _buildWidgetPreview(context, widgetConfig),
                 ),
               ),
-            ],
-          ),
+            ),
+            SizedBox(height: Spacing.lg),
+          ],
         ),
       ),
     );
+  }
+
+  Widget _buildWidgetPreview(BuildContext context, DashboardWidgetConfig widgetConfig) {
+    switch (widgetConfig.type) {
+      case DashboardWidgetType.actions:
+        return Text(
+          'Manage accounts, transactions, and investments',
+          style: TextStyle(
+            fontSize: 13,
+            color: AppStyles.getSecondaryTextColor(context),
+          ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        );
+      case DashboardWidgetType.netWorth:
+        return Text(
+          'View your total net worth across all accounts and investments',
+          style: TextStyle(
+            fontSize: 13,
+            color: AppStyles.getSecondaryTextColor(context),
+          ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        );
+      case DashboardWidgetType.transactionHistory:
+        return Text(
+          'Track all your recent transactions',
+          style: TextStyle(
+            fontSize: 13,
+            color: AppStyles.getSecondaryTextColor(context),
+          ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        );
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+  void _handleWidgetTap(BuildContext context, DashboardWidgetConfig widgetConfig) {
+    switch (widgetConfig.type) {
+      case DashboardWidgetType.actions:
+        Navigator.of(context).push(
+          CupertinoPageRoute(builder: (context) => const ManageScreen()),
+        );
+        break;
+      case DashboardWidgetType.transactionHistory:
+        Navigator.of(context).push(
+          CupertinoPageRoute(builder: (context) => const TransactionHistoryScreen()),
+        );
+        break;
+      case DashboardWidgetType.netWorth:
+        Navigator.of(context).push(
+          CupertinoPageRoute(builder: (context) => const ManageScreen()),
+        );
+        break;
+      default:
+        break;
+    }
+  }
+
+}
+
+extension on List<DashboardWidgetConfig> {
+  DashboardWidgetConfig? firstWhereOrNull(bool Function(DashboardWidgetConfig) test) {
+    try {
+      return firstWhere(test);
+    } catch (e) {
+      return null;
+    }
   }
 }

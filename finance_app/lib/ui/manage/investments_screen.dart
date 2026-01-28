@@ -1,12 +1,19 @@
+import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
+import 'package:vittara_fin_os/logic/fixed_deposit_model.dart';
+import 'package:vittara_fin_os/logic/recurring_deposit_model.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/ui/manage/investment_type_selection.dart';
 import 'package:vittara_fin_os/ui/manage/stocks/stocks_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/stocks/stock_details_screen.dart';
+import 'package:vittara_fin_os/ui/manage/fd/fd_wizard_screen.dart';
+import 'package:vittara_fin_os/ui/manage/fd/fd_details_screen.dart';
+import 'package:vittara_fin_os/ui/manage/rd/rd_wizard_screen.dart';
+import 'package:vittara_fin_os/ui/manage/rd/rd_details_screen.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
@@ -101,8 +108,99 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
 
   double _calculateCurrentValue(Investment investment) {
     final metadata = investment.metadata;
-    if (metadata != null && metadata.containsKey('currentValue')) {
-      return (metadata['currentValue'] as num).toDouble();
+    if (metadata != null) {
+      // Check for currentValue (stocks)
+      if (metadata.containsKey('currentValue')) {
+        return (metadata['currentValue'] as num).toDouble();
+      }
+
+      // For FDs - check if maturity freeze should apply
+      if (investment.type == InvestmentType.fixedDeposit) {
+        final maturityDateStr = metadata['maturityDate'] as String?;
+
+        if (maturityDateStr != null) {
+          try {
+            final maturityDate = DateTime.parse(maturityDateStr);
+            final today = DateTime.now();
+            final daysUntilMaturity = maturityDate.difference(today).inDays;
+
+            // If within 10 days of maturity or already matured, freeze the value at maturity value
+            if (daysUntilMaturity <= 10) {
+              if (metadata.containsKey('maturityValue')) {
+                return (metadata['maturityValue'] as num).toDouble();
+              }
+              if (metadata.containsKey('estimatedAccruedValue')) {
+                return (metadata['estimatedAccruedValue'] as num).toDouble();
+              }
+            }
+          } catch (e) {
+            // Continue to normal calculation if date parsing fails
+          }
+        }
+      }
+
+      // For FDs and RDs - calculate current accrued value based on time elapsed
+      if (investment.type == InvestmentType.fixedDeposit ||
+          investment.type == InvestmentType.recurringDeposit) {
+        final interestRate = (metadata['interestRate'] as num?)?.toDouble();
+        final investmentDateStr = metadata['investmentDate'] as String?;
+        final compoundingFreqStr = metadata['compoundingFrequency'] as String?;
+        final isCumulative = (metadata['isCumulative'] as bool?) ?? true;
+
+        if (interestRate != null && investmentDateStr != null && isCumulative) {
+          try {
+            final investmentDate = DateTime.parse(investmentDateStr);
+            final today = DateTime.now();
+            final daysElapsed = today.difference(investmentDate).inDays;
+
+            if (daysElapsed > 0) {
+              // Calculate current accrued value based on days elapsed
+              final principal = investment.amount;
+              double currentValue = principal;
+
+              // Determine compounding frequency
+              int compoundsPerYear = 4; // default quarterly
+              if (compoundingFreqStr != null) {
+                if (compoundingFreqStr.contains('annually')) {
+                  compoundsPerYear = 1;
+                } else if (compoundingFreqStr.contains('semi')) {
+                  compoundsPerYear = 2;
+                } else if (compoundingFreqStr.contains('quarterly')) {
+                  compoundsPerYear = 4;
+                } else if (compoundingFreqStr.contains('monthly')) {
+                  compoundsPerYear = 12;
+                } else if (compoundingFreqStr.contains('daily')) {
+                  compoundsPerYear = 365;
+                }
+              }
+
+              // Calculate number of compounding periods elapsed
+              final daysPerCompound = 365 / compoundsPerYear;
+              final compoundsElapsed = daysElapsed / daysPerCompound;
+
+              // Compound interest formula: A = P(1 + r/(100*k))^(n*k*t)
+              // where k = compounds per year, t = years
+              final rate = interestRate / 100.0;
+              final ratePerCompound = rate / compoundsPerYear;
+              currentValue = principal * pow(1 + ratePerCompound, compoundsElapsed).toDouble();
+
+              return currentValue;
+            }
+          } catch (e) {
+            // If calculation fails, fall back to invested amount
+          }
+        }
+
+        // Fallback to estimatedAccruedValue if calculation not possible
+        if (metadata.containsKey('estimatedAccruedValue')) {
+          return (metadata['estimatedAccruedValue'] as num).toDouble();
+        }
+      }
+
+      // Check for estimatedAccruedValue (stocks, other investments)
+      if (metadata.containsKey('estimatedAccruedValue')) {
+        return (metadata['estimatedAccruedValue'] as num).toDouble();
+      }
     }
     return investment.amount;
   }
@@ -127,6 +225,14 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             Navigator.of(context).push(
               CupertinoPageRoute(builder: (context) => const StocksWizard()),
             );
+          } else if (investmentType == InvestmentType.fixedDeposit) {
+            Navigator.of(context).push(
+              CupertinoPageRoute(builder: (context) => const FDWizardScreen()),
+            );
+          } else if (investmentType == InvestmentType.recurringDeposit) {
+            Navigator.of(context).push(
+              CupertinoPageRoute(builder: (context) => const RDWizardScreen()),
+            );
           } else {
             toast.showInfo('Coming soon!');
           }
@@ -149,6 +255,44 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
         previousPageTitle: 'Manage',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Filter Icon
+            CupertinoButton(
+              padding: EdgeInsets.symmetric(horizontal: Spacing.md),
+              onPressed: () => _showFilterModal(context),
+              child: Icon(
+                CupertinoIcons.line_horizontal_3_decrease,
+                size: 20,
+                color: SemanticColors.investments,
+              ),
+            ),
+            // Sort Icon
+            CupertinoButton(
+              padding: EdgeInsets.symmetric(horizontal: Spacing.md),
+              onPressed: () => _showSortModal(context),
+              child: Icon(
+                CupertinoIcons.arrow_up_arrow_down,
+                size: 20,
+                color: SemanticColors.investments,
+              ),
+            ),
+            // Ascending/Descending Icon
+            CupertinoButton(
+              padding: EdgeInsets.symmetric(horizontal: Spacing.md),
+              onPressed: () {
+                Haptics.light();
+                setState(() => _sortAscending = !_sortAscending);
+              },
+              child: Icon(
+                _sortAscending ? CupertinoIcons.arrow_up : CupertinoIcons.arrow_down,
+                size: 20,
+                color: SemanticColors.investments,
+              ),
+            ),
+          ],
+        ),
       ),
       child: Consumer<InvestmentsController>(
         builder: (context, investmentsController, child) {
@@ -177,19 +321,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                 SafeArea(
                   child: Column(
                     children: [
-                      // Filter Bar
-                      _buildFilterBar(context, investments),
-                      SizedBox(height: Spacing.md),
-                      // Sort Bar
-                      _buildSortBar(context),
-                      SizedBox(height: Spacing.md),
-                      // Investment Type-wise Summary Cards
-                      if (sortedInvestments.isNotEmpty)
-                        Padding(
-                          padding: EdgeInsets.only(top: Spacing.lg),
-                          child: _buildInvestmentTypeSummaryCards(context, sortedInvestments),
-                        ),
-                      SizedBox(height: Spacing.lg),
+                      // Compact Summary Section
+                      _buildCompactSummary(context, investments),
                       // Investments List with Staggered Animation
                       if (sortedInvestments.isEmpty)
                         Expanded(
@@ -242,7 +375,10 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                               return StaggeredItem(
                                 key: ValueKey(sortedInvestments[index].id),
                                 index: index,
-                                child: _buildInvestmentCard(sortedInvestments[index]),
+                                child: Container(
+                                  margin: EdgeInsets.only(top: Spacing.lg),
+                                  child: _buildInvestmentCard(sortedInvestments[index]),
+                                ),
                               );
                             },
                           ),
@@ -262,6 +398,569 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             ],
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildCompactSummary(BuildContext context, List<Investment> investments) {
+    String filterLabel = 'Filter: All';
+    if (_selectedFilter != null) {
+      filterLabel = 'Filter: ${_getInvestmentTypeLabel(_selectedFilter!)}';
+    }
+
+    return Container(
+      color: AppStyles.getCardColor(context),
+      padding: EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.md),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${investments.length} Investments',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppStyles.getTextColor(context),
+                ),
+              ),
+              SizedBox(height: Spacing.xs),
+              Text(
+                filterLabel,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: AppStyles.getSecondaryTextColor(context),
+                ),
+              ),
+            ],
+          ),
+          // Current sort indicator
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
+            decoration: BoxDecoration(
+              color: AppStyles.getBackground(context),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              _getSortLabel(_sortBy),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: SemanticColors.investments,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFilterModal(BuildContext context) {
+    final investments = Provider.of<InvestmentsController>(context, listen: false).investments;
+
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => Container(
+        color: AppStyles.getBackground(context),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Top padding to avoid notification panel
+            SizedBox(height: Spacing.xxxl + Spacing.xxl),
+            // Header
+            Container(
+              padding: EdgeInsets.all(Spacing.lg),
+              decoration: BoxDecoration(
+                color: AppStyles.getCardColor(context),
+                border: Border(
+                  bottom: BorderSide(
+                    color: AppStyles.getDividerColor(context),
+                    width: 0.5,
+                  ),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Filter by Type',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppStyles.getTextColor(context),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: Icon(
+                      CupertinoIcons.xmark_circle_fill,
+                      color: AppStyles.getSecondaryTextColor(context),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Filter Options
+            Expanded(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.all(Spacing.lg),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // All option
+                    _buildFilterOptionCard(
+                      context,
+                      'All Investments',
+                      _selectedFilter == null,
+                      () {
+                        setState(() => _selectedFilter = null);
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                    SizedBox(height: Spacing.md),
+                    // Type options
+                    ...InvestmentType.values.map((type) {
+                      final count = investments.where((inv) => inv.type == type).length;
+                      if (count == 0) return SizedBox.shrink();
+
+                      final isSelected = _selectedFilter == type;
+                      return Padding(
+                        padding: EdgeInsets.only(bottom: Spacing.md),
+                        child: _buildFilterOptionCard(
+                          context,
+                          '${_getInvestmentTypeLabel(type)} ($count)',
+                          isSelected,
+                          () {
+                            setState(() => _selectedFilter = type);
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      );
+                    }),
+                  ],
+                ),
+              ),
+            ),
+            // Bottom padding for safe area
+            SizedBox(height: Spacing.lg),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterOptionCard(
+    BuildContext context,
+    String label,
+    bool isSelected,
+    VoidCallback onTap,
+  ) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.all(Spacing.lg),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? SemanticColors.investments.withOpacity(0.15)
+              : AppStyles.getCardColor(context),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected
+                ? SemanticColors.investments
+                : AppStyles.getDividerColor(context),
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: AppStyles.getTextColor(context),
+              ),
+            ),
+            if (isSelected)
+              Icon(
+                CupertinoIcons.check_mark,
+                color: SemanticColors.investments,
+                size: 20,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showSortModal(BuildContext context) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => Container(
+        color: AppStyles.getBackground(context),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Top padding to avoid notification panel
+            SizedBox(height: Spacing.xxxl + Spacing.xxl),
+            // Header
+            Container(
+              padding: EdgeInsets.all(Spacing.lg),
+              decoration: BoxDecoration(
+                color: AppStyles.getCardColor(context),
+                border: Border(
+                  bottom: BorderSide(
+                    color: AppStyles.getDividerColor(context),
+                    width: 0.5,
+                  ),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Sort By',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppStyles.getTextColor(context),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: Icon(
+                      CupertinoIcons.xmark_circle_fill,
+                      color: AppStyles.getSecondaryTextColor(context),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Sort Options
+            Expanded(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.all(Spacing.lg),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    ...SortBy.values.map((sort) {
+                      final isSelected = _sortBy == sort;
+                      return Padding(
+                        padding: EdgeInsets.only(bottom: Spacing.md),
+                        child: _buildSortOptionCard(
+                          context,
+                          _getSortLabel(sort),
+                          isSelected,
+                          () {
+                            setState(() => _sortBy = sort);
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      );
+                    }),
+                  ],
+                ),
+              ),
+            ),
+            // Bottom padding for safe area
+            SizedBox(height: Spacing.lg),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSortOptionCard(
+    BuildContext context,
+    String label,
+    bool isSelected,
+    VoidCallback onTap,
+  ) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.all(Spacing.lg),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? SemanticColors.investments.withOpacity(0.15)
+              : AppStyles.getCardColor(context),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected
+                ? SemanticColors.investments
+                : AppStyles.getDividerColor(context),
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: AppStyles.getTextColor(context),
+              ),
+            ),
+            if (isSelected)
+              Icon(
+                CupertinoIcons.check_mark,
+                color: SemanticColors.investments,
+                size: 20,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfessionalHeader(BuildContext context, List<Investment> investments, List<Investment> sortedInvestments) {
+    return Container(
+      color: AppStyles.getCardColor(context),
+      padding: EdgeInsets.all(Spacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Summary Row with Order Toggle
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${investments.length} Investments',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppStyles.getTextColor(context),
+                    ),
+                  ),
+                  SizedBox(height: Spacing.xs),
+                  Text(
+                    '${_getDistinctTypesCount(investments)} categories',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppStyles.getSecondaryTextColor(context),
+                    ),
+                  ),
+                ],
+              ),
+              // Order Toggle Button (More Visible)
+              GestureDetector(
+                onTap: () {
+                  Haptics.light();
+                  setState(() => _sortAscending = !_sortAscending);
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
+                  decoration: BoxDecoration(
+                    color: AppStyles.getBackground(context),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: SemanticColors.investments.withOpacity(0.3),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        _sortAscending ? CupertinoIcons.arrow_up : CupertinoIcons.arrow_down,
+                        size: 14,
+                        color: SemanticColors.investments,
+                      ),
+                      SizedBox(width: Spacing.xs),
+                      Text(
+                        _sortAscending ? 'Ascending' : 'Descending',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: SemanticColors.investments,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: Spacing.lg),
+          // Filter Chips
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Filter',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppStyles.getSecondaryTextColor(context),
+                  letterSpacing: 0.5,
+                ),
+              ),
+              SizedBox(height: Spacing.sm),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: EdgeInsets.zero,
+                child: Row(
+                  children: [
+                    // All chip
+                    GestureDetector(
+                      onTap: () {
+                        Haptics.selection();
+                        setState(() => _selectedFilter = null);
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
+                        margin: EdgeInsets.only(right: Spacing.md),
+                        decoration: BoxDecoration(
+                          color: _selectedFilter == null
+                              ? SemanticColors.investments
+                              : AppStyles.getBackground(context),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: _selectedFilter == null
+                                ? SemanticColors.investments
+                                : AppStyles.getSecondaryTextColor(context).withOpacity(0.2),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Text(
+                          'All',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: _selectedFilter == null
+                                ? Colors.white
+                                : AppStyles.getTextColor(context),
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Type chips
+                    ...InvestmentType.values.map((type) {
+                      final count = investments.where((inv) => inv.type == type).length;
+                      if (count == 0) return SizedBox.shrink();
+
+                      final isSelected = _selectedFilter == type;
+                      return GestureDetector(
+                        onTap: () {
+                          Haptics.selection();
+                          setState(() => _selectedFilter = type);
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
+                          margin: EdgeInsets.only(right: Spacing.md),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? SemanticColors.investments
+                                : AppStyles.getBackground(context),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: isSelected
+                                  ? SemanticColors.investments
+                                  : AppStyles.getSecondaryTextColor(context).withOpacity(0.2),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Text(
+                                _getInvestmentTypeLabel(type),
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : AppStyles.getTextColor(context),
+                                ),
+                              ),
+                              SizedBox(width: Spacing.xs),
+                              Text(
+                                '($count)',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: isSelected
+                                      ? Colors.white.withOpacity(0.8)
+                                      : AppStyles.getSecondaryTextColor(context),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: Spacing.lg),
+          // Sort Options
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Sort By',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppStyles.getSecondaryTextColor(context),
+                  letterSpacing: 0.5,
+                ),
+              ),
+              SizedBox(height: Spacing.sm),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: EdgeInsets.zero,
+                child: Row(
+                  children: [
+                    ...SortBy.values.map((sort) {
+                      final isSelected = _sortBy == sort;
+                      return GestureDetector(
+                        onTap: () {
+                          Haptics.selection();
+                          setState(() => _sortBy = sort);
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
+                          margin: EdgeInsets.only(right: Spacing.md),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? SemanticColors.investments.withOpacity(0.15)
+                                : AppStyles.getBackground(context),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: isSelected
+                                  ? SemanticColors.investments
+                                  : AppStyles.getSecondaryTextColor(context).withOpacity(0.2),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Text(
+                            _getSortLabel(sort),
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: isSelected
+                                  ? SemanticColors.investments
+                                  : AppStyles.getSecondaryTextColor(context),
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -863,6 +1562,40 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                 builder: (context) => StockDetailsScreen(investment: investment),
               ),
             );
+          } else if (investment.type == InvestmentType.fixedDeposit) {
+            // Reconstruct FD from investment metadata
+            if (investment.metadata != null && investment.metadata!.containsKey('fdData')) {
+              try {
+                final fdData = investment.metadata!['fdData'] as Map<String, dynamic>;
+                final fd = FixedDeposit.fromMap(fdData);
+                Navigator.of(context).push(
+                  CupertinoPageRoute(
+                    builder: (context) => FDDetailsScreen(fd: fd),
+                  ),
+                );
+              } catch (e) {
+                toast.showError('Error loading FD details');
+              }
+            } else {
+              toast.showInfo('FD data not available');
+            }
+          } else if (investment.type == InvestmentType.recurringDeposit) {
+            // Reconstruct RD from investment metadata
+            if (investment.metadata != null && investment.metadata!.containsKey('rdData')) {
+              try {
+                final rdData = investment.metadata!['rdData'] as Map<String, dynamic>;
+                final rd = RecurringDeposit.fromMap(rdData);
+                Navigator.of(context).push(
+                  CupertinoPageRoute(
+                    builder: (context) => RDDetailsScreen(rd: rd),
+                  ),
+                );
+              } catch (e) {
+                toast.showError('Error loading RD details');
+              }
+            } else {
+              toast.showInfo('RD data not available');
+            }
           } else {
             toast.showInfo('Details for ${investment.getTypeLabel()} coming soon!');
           }

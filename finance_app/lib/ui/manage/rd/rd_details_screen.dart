@@ -1,0 +1,866 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:vittara_fin_os/logic/recurring_deposit_model.dart';
+import 'package:vittara_fin_os/logic/investments_controller.dart';
+import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
+
+class RDDetailsScreen extends StatefulWidget {
+  final RecurringDeposit rd;
+
+  const RDDetailsScreen({
+    required this.rd,
+    super.key,
+  });
+
+  @override
+  State<RDDetailsScreen> createState() => _RDDetailsScreenState();
+}
+
+class _RDDetailsScreenState extends State<RDDetailsScreen> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('RD Details'),
+        elevation: 0,
+        backgroundColor: AppStyles.getBackground(context),
+        foregroundColor: AppStyles.getTextColor(context),
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // Header Card
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppStyles.getCardColor(context),
+                border: Border(
+                  bottom: BorderSide(
+                    color: AppStyles.getDividerColor(context),
+                    width: 0.5,
+                  ),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // RD Name and Status
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              widget.rd.name,
+                              style: TextStyle(
+                                color: AppStyles.getTextColor(context),
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Linked: ${widget.rd.linkedAccountName}',
+                              style: TextStyle(
+                                color: AppStyles.getSecondaryTextColor(context),
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _getStatusColor(widget.rd.status).withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          widget.rd.getStatusLabel(),
+                          style: TextStyle(
+                            color: _getStatusColor(widget.rd.status),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  // Key Metrics
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _buildMetric(
+                        context,
+                        'Per Installment',
+                        '₹${widget.rd.monthlyAmount.toStringAsFixed(0)}',
+                        AppStyles.getSecondaryTextColor(context),
+                      ),
+                      _buildMetric(
+                        context,
+                        'Total Invested',
+                        '₹${widget.rd.totalInvestedAmount.toStringAsFixed(0)}',
+                        AppStyles.getPrimaryColor(context),
+                      ),
+                      _buildMetric(
+                        context,
+                        'Est. Maturity',
+                        '₹${widget.rd.maturityValue.toStringAsFixed(0)}',
+                        Colors.green,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            // Detailed Information
+            Container(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Timeline Section
+                  Text(
+                    'Timeline',
+                    style: TextStyle(
+                      color: AppStyles.getTextColor(context),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTimelineItem(
+                    context,
+                    'Started',
+                    _formatDate(widget.rd.startDate),
+                    Icons.check_circle,
+                  ),
+                  _buildTimelineItem(
+                    context,
+                    'Maturity',
+                    _formatDate(widget.rd.maturityDate),
+                    widget.rd.daysUntilMaturity <= 0 ? Icons.check_circle : Icons.schedule,
+                  ),
+                  const SizedBox(height: 20),
+                  // Details Grid
+                  Text(
+                    'Details',
+                    style: TextStyle(
+                      color: AppStyles.getTextColor(context),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildDetailRow('Monthly Amount', '₹${widget.rd.monthlyAmount.toStringAsFixed(2)}'),
+                  _buildDetailRow('Total Installments', '${widget.rd.totalInstallments}'),
+                  _buildDetailRow('Completed', '${widget.rd.completedInstallments}'),
+                  _buildDetailRow('Pending', '${widget.rd.pendingInstallments}'),
+                  _buildDetailRow('Interest Rate', '${widget.rd.interestRate}% p.a.'),
+                  _buildDetailRow('Payment Frequency', widget.rd.paymentFrequency.name),
+                  _buildDetailRow(
+                    'Total Interest',
+                    '₹${widget.rd.totalInterestAtMaturity.toStringAsFixed(2)}',
+                    isHighlight: true,
+                  ),
+                  _buildDetailRow(
+                    'Maturity Value',
+                    '₹${widget.rd.maturityValue.toStringAsFixed(2)}',
+                    isHighlight: true,
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              ),
+            ),
+            // Action Buttons
+            _buildActionButtons(context),
+            const SizedBox(height: 30),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMetric(
+    BuildContext context,
+    String label,
+    String value,
+    Color color,
+  ) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: AppStyles.getSecondaryTextColor(context),
+            fontSize: 12,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: TextStyle(
+            color: color,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTimelineItem(
+    BuildContext context,
+    String title,
+    String date,
+    IconData icon,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: AppStyles.getPrimaryColor(context)),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: AppStyles.getSecondaryTextColor(context),
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  date,
+                  style: TextStyle(
+                    color: AppStyles.getTextColor(context),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(
+    String label,
+    String value, {
+    bool isHighlight = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: AppStyles.getSecondaryTextColor(context),
+              fontSize: 13,
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              color: AppStyles.getTextColor(context),
+              fontWeight: isHighlight ? FontWeight.bold : FontWeight.w600,
+              fontSize: isHighlight ? 14 : 13,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButtons(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildActionButton(
+            context,
+            'Installment Schedule',
+            'View all installments',
+            CupertinoIcons.calendar,
+            AppStyles.getPrimaryColor(context),
+            () => _showInstallmentScheduleModal(context),
+          ),
+          const SizedBox(height: 12),
+          _buildActionButton(
+            context,
+            'Edit Settings',
+            'Modify auto-payment settings',
+            CupertinoIcons.pencil,
+            Colors.purple,
+            () => _showEditModal(context),
+          ),
+          const SizedBox(height: 12),
+          _buildActionButton(
+            context,
+            'View History',
+            'See all transactions',
+            CupertinoIcons.clock,
+            AppStyles.getSecondaryTextColor(context),
+            () => _showHistoryModal(context),
+          ),
+          const SizedBox(height: 12),
+          _buildActionButton(
+            context,
+            'Delete',
+            'Remove this RD',
+            CupertinoIcons.trash,
+            Colors.red,
+            () => _showDeleteConfirmation(context),
+            isDangerous: true,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton(
+    BuildContext context,
+    String title,
+    String description,
+    IconData icon,
+    Color color,
+    VoidCallback onTap, {
+    bool isDangerous = false,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppStyles.getCardColor(context),
+          borderRadius: BorderRadius.circular(12),
+          border: isDangerous
+              ? Border.all(color: color.withOpacity(0.3), width: 1)
+              : null,
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: AppStyles.getTextColor(context),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                    ),
+                  ),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      color: AppStyles.getSecondaryTextColor(context),
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              CupertinoIcons.chevron_right,
+              color: AppStyles.getSecondaryTextColor(context),
+              size: 16,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showInstallmentScheduleModal(BuildContext context) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => Container(
+        color: AppStyles.getBackground(context),
+        child: Column(
+          children: [
+            // Header
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppStyles.getCardColor(context),
+                border: Border(
+                  bottom: BorderSide(
+                    color: AppStyles.getDividerColor(context),
+                    width: 0.5,
+                  ),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Installment Schedule',
+                    style: TextStyle(
+                      color: AppStyles.getTextColor(context),
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: Icon(
+                      CupertinoIcons.xmark_circle_fill,
+                      color: AppStyles.getSecondaryTextColor(context),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Schedule list
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    if (widget.rd.completedInstallments > 0) ...[
+                      Text(
+                        'Completed',
+                        style: TextStyle(
+                          color: AppStyles.getTextColor(context),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      ...List.generate(widget.rd.completedInstallments, (index) {
+                        return _buildInstallmentItem(
+                          context,
+                          'Installment ${index + 1}',
+                          '₹${widget.rd.monthlyAmount.toStringAsFixed(2)}',
+                          'Completed',
+                          Colors.green,
+                        );
+                      }).toList(),
+                      const SizedBox(height: 20),
+                    ],
+                    if (widget.rd.pendingInstallments > 0) ...[
+                      Text(
+                        'Pending',
+                        style: TextStyle(
+                          color: AppStyles.getTextColor(context),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      ...List.generate(widget.rd.pendingInstallments, (index) {
+                        return _buildInstallmentItem(
+                          context,
+                          'Installment ${widget.rd.completedInstallments + index + 1}',
+                          '₹${widget.rd.monthlyAmount.toStringAsFixed(2)}',
+                          'Upcoming',
+                          AppStyles.getPrimaryColor(context),
+                        );
+                      }).toList(),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInstallmentItem(
+    BuildContext context,
+    String title,
+    String amount,
+    String status,
+    Color color,
+  ) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppStyles.getCardColor(context),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: AppStyles.getTextColor(context),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  status,
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            amount,
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEditModal(BuildContext context) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => Container(
+        color: AppStyles.getBackground(context),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            children: [
+              // Header
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppStyles.getCardColor(context),
+                  border: Border(
+                    bottom: BorderSide(
+                      color: AppStyles.getDividerColor(context),
+                      width: 0.5,
+                    ),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Edit RD Settings',
+                      style: TextStyle(
+                        color: AppStyles.getTextColor(context),
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Icon(
+                        CupertinoIcons.xmark_circle_fill,
+                        color: AppStyles.getSecondaryTextColor(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Content
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Auto-Payment Settings',
+                        style: TextStyle(
+                          color: AppStyles.getTextColor(context),
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppStyles.getCardColor(context),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Auto-Payment',
+                                    style: TextStyle(
+                                      color: AppStyles.getTextColor(context),
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Auto-debit future installments',
+                                    style: TextStyle(
+                                      color: AppStyles.getSecondaryTextColor(context),
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            CupertinoSwitch(
+                              value: widget.rd.autoPaymentEnabled,
+                              onChanged: (value) {
+                                Navigator.of(context).pop();
+                                toast.showSuccess('Auto-payment setting updated');
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showHistoryModal(BuildContext context) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => Container(
+        color: AppStyles.getBackground(context),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            children: [
+              // Header
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppStyles.getCardColor(context),
+                  border: Border(
+                    bottom: BorderSide(
+                      color: AppStyles.getDividerColor(context),
+                      width: 0.5,
+                    ),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'RD Timeline',
+                      style: TextStyle(
+                        color: AppStyles.getTextColor(context),
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Icon(
+                        CupertinoIcons.xmark_circle_fill,
+                        color: AppStyles.getSecondaryTextColor(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Content
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHistoryItem(
+                        context,
+                        'Started',
+                        _formatDate(widget.rd.startDate),
+                        'RD account created',
+                        Icons.check_circle,
+                      ),
+                      _buildHistoryItem(
+                        context,
+                        'Active',
+                        '${widget.rd.completedInstallments} of ${widget.rd.totalInstallments} completed',
+                        'Currently running',
+                        Icons.schedule,
+                      ),
+                      _buildHistoryItem(
+                        context,
+                        'Maturity Date',
+                        _formatDate(widget.rd.maturityDate),
+                        widget.rd.daysUntilMaturity <= 0
+                            ? 'RD matured'
+                            : '${widget.rd.daysUntilMaturity} days remaining',
+                        widget.rd.daysUntilMaturity <= 0
+                            ? Icons.check_circle
+                            : Icons.schedule,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHistoryItem(
+    BuildContext context,
+    String title,
+    String date,
+    String description,
+    IconData icon,
+  ) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppStyles.getPrimaryColor(context).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: AppStyles.getPrimaryColor(context), size: 20),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: AppStyles.getTextColor(context),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  date,
+                  style: TextStyle(
+                    color: AppStyles.getSecondaryTextColor(context),
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  description,
+                  style: TextStyle(
+                    color: AppStyles.getSecondaryTextColor(context),
+                    fontSize: 11,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context) {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Delete RD?'),
+        content: const Text(
+          'Are you sure you want to delete this RD? This action cannot be undone.',
+        ),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            onPressed: () async {
+              // Delete RD from investments controller
+              final investmentsController = Provider.of<InvestmentsController>(context, listen: false);
+              await investmentsController.deleteInvestment(widget.rd.id);
+
+              // Close dialog
+              Navigator.of(context).pop();
+              // Go back to investments list
+              Navigator.of(context).pop();
+
+              toast.showSuccess('RD deleted successfully');
+            },
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _getStatusColor(RDStatus status) {
+    switch (status) {
+      case RDStatus.active:
+        return Colors.green;
+      case RDStatus.mature:
+        return Colors.orange;
+      case RDStatus.completed:
+        return Colors.grey;
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    final months = [
+      '',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+    return '${date.day} ${months[date.month]} ${date.year}';
+  }
+}

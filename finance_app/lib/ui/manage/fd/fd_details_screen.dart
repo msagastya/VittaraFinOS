@@ -1,0 +1,1459 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:vittara_fin_os/logic/fixed_deposit_model.dart';
+import 'package:vittara_fin_os/logic/investments_controller.dart';
+import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
+import 'package:vittara_fin_os/ui/manage/fd/modals/fd_renewal_modal.dart';
+import 'package:vittara_fin_os/ui/manage/fd/modals/fd_withdrawal_modal.dart';
+
+class FDDetailsScreen extends StatefulWidget {
+  final FixedDeposit fd;
+
+  const FDDetailsScreen({
+    required this.fd,
+    super.key,
+  });
+
+  @override
+  State<FDDetailsScreen> createState() => _FDDetailsScreenState();
+}
+
+class _FDDetailsScreenState extends State<FDDetailsScreen> {
+  bool _isMaturityAlertShown = false;
+
+  bool _isFDNearMaturity() {
+    final daysUntil = widget.fd.maturityDate.difference(DateTime.now()).inDays;
+    return daysUntil <= 10 && daysUntil >= 0;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('FD Details'),
+        elevation: 0,
+        backgroundColor: AppStyles.getBackground(context),
+        foregroundColor: AppStyles.getTextColor(context),
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // Maturity Alert (if within 10 days)
+            if (_isFDNearMaturity())
+              _buildMaturityAlert(context),
+
+            // Header Card with Key Information
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppStyles.getCardColor(context),
+                border: Border(
+                  bottom: BorderSide(
+                    color: AppStyles.getDividerColor(context),
+                    width: 0.5,
+                  ),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // FD Name and Status
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              widget.fd.name,
+                              style: TextStyle(
+                                color: AppStyles.getTextColor(context),
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Linked: ${widget.fd.linkedAccountName}',
+                              style: TextStyle(
+                                color: AppStyles.getSecondaryTextColor(context),
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _getStatusColor(widget.fd.status).withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          widget.fd.getStatusLabel(),
+                          style: TextStyle(
+                            color: _getStatusColor(widget.fd.status),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  // Key Metrics
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _buildMetric(
+                        context,
+                        'Principal',
+                        '₹${widget.fd.principal.toStringAsFixed(0)}',
+                        AppStyles.getSecondaryTextColor(context),
+                      ),
+                      _buildMetric(
+                        context,
+                        'Current Value',
+                        '₹${widget.fd.estimatedAccruedValue.toStringAsFixed(0)}',
+                        AppStyles.getPrimaryColor(context),
+                      ),
+                      _buildMetric(
+                        context,
+                        'Interest Earned',
+                        '₹${widget.fd.interestEarnedTillDate.toStringAsFixed(0)}',
+                        Colors.green,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            // Detailed Information
+            Container(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Timeline Section
+                  Text(
+                    'Timeline',
+                    style: TextStyle(
+                      color: AppStyles.getTextColor(context),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTimelineItem(
+                    context,
+                    'Created',
+                    _formatDate(widget.fd.createdDate),
+                    Icons.check_circle,
+                  ),
+                  _buildTimelineItem(
+                    context,
+                    'Investment Date',
+                    _formatDate(widget.fd.investmentDate),
+                    Icons.check_circle,
+                  ),
+                  _buildTimelineItem(
+                    context,
+                    'Maturity Date',
+                    _formatDate(widget.fd.maturityDate),
+                    widget.fd.daysUntilMaturity <= 0
+                        ? Icons.check_circle
+                        : Icons.schedule,
+                  ),
+                  const SizedBox(height: 20),
+                  // Details Grid
+                  Text(
+                    'Details',
+                    style: TextStyle(
+                      color: AppStyles.getTextColor(context),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildDetailRow('Interest Rate', '${widget.fd.interestRate}% p.a.'),
+                  _buildDetailRow('Tenure', '${widget.fd.tenureMonths} months'),
+                  _buildDetailRow(
+                    'Elapsed',
+                    '${widget.fd.elapsedMonths} of ${widget.fd.tenureMonths} months',
+                  ),
+                  _buildDetailRow('Compounding', widget.fd.getCompoundingLabel()),
+                  _buildDetailRow('Payout Frequency', widget.fd.getPayoutLabel()),
+                  _buildDetailRow('FD Type', widget.fd.isCumulative ? 'Cumulative' : 'Non-Cumulative'),
+                  _buildDetailRow(
+                    'Maturity Value',
+                    '₹${widget.fd.maturityValue.toStringAsFixed(2)}',
+                    isHighlight: true,
+                  ),
+                  _buildDetailRow(
+                    'Total Interest',
+                    '₹${widget.fd.totalInterestAtMaturity.toStringAsFixed(2)}',
+                  ),
+                  const SizedBox(height: 20),
+                  // Status-specific info
+                  if (widget.fd.status == FDStatus.prematurelyWithdrawn)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Withdrawal Details',
+                          style: TextStyle(
+                            color: AppStyles.getTextColor(context),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _buildDetailRow(
+                          'Withdrawal Date',
+                          _formatDate(widget.fd.withdrawalDate ?? DateTime.now()),
+                        ),
+                        _buildDetailRow(
+                          'Withdrawal Amount',
+                          '₹${(widget.fd.withdrawalAmount ?? 0).toStringAsFixed(2)}',
+                        ),
+                        if (widget.fd.withdrawalReason != null)
+                          _buildDetailRow(
+                            'Reason',
+                            widget.fd.withdrawalReason ?? 'N/A',
+                          ),
+                      ],
+                    ),
+                ],
+              ),
+            ),
+            // Action Buttons
+            _buildActionButtons(context),
+            const SizedBox(height: 30),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMetric(
+    BuildContext context,
+    String label,
+    String value,
+    Color color,
+  ) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: AppStyles.getSecondaryTextColor(context),
+            fontSize: 12,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: TextStyle(
+            color: color,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTimelineItem(
+    BuildContext context,
+    String title,
+    String date,
+    IconData icon,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: AppStyles.getPrimaryColor(context)),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: AppStyles.getSecondaryTextColor(context),
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  date,
+                  style: TextStyle(
+                    color: AppStyles.getTextColor(context),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(
+    String label,
+    String value, {
+    bool isHighlight = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: AppStyles.getSecondaryTextColor(context),
+              fontSize: 13,
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              color: AppStyles.getTextColor(context),
+              fontWeight: isHighlight ? FontWeight.bold : FontWeight.w600,
+              fontSize: isHighlight ? 14 : 13,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButtons(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (widget.fd.status == FDStatus.active) ...[
+            _buildActionButton(
+              context,
+              'Reinvest',
+              'Reinvest maturity amount in a new FD',
+              CupertinoIcons.plus_circle,
+              Colors.blue,
+              () => _showReinvestModal(context),
+            ),
+            const SizedBox(height: 12),
+            _buildActionButton(
+              context,
+              'Premature Withdrawal',
+              'Withdraw before maturity',
+              CupertinoIcons.money_dollar_circle,
+              Colors.orange,
+              () => _showPrematureWithdrawalModal(context),
+            ),
+            const SizedBox(height: 12),
+          ],
+          _buildActionButton(
+            context,
+            'Payout Schedule',
+            'View all payouts',
+            CupertinoIcons.calendar,
+            AppStyles.getPrimaryColor(context),
+            () => _showPayoutScheduleModal(context),
+          ),
+          const SizedBox(height: 12),
+          _buildActionButton(
+            context,
+            'Edit Details',
+            'Modify auto-link settings',
+            CupertinoIcons.pencil,
+            Colors.purple,
+            () => _showEditModal(context),
+          ),
+          const SizedBox(height: 12),
+          _buildActionButton(
+            context,
+            'View History',
+            'See all transactions',
+            CupertinoIcons.clock,
+            AppStyles.getSecondaryTextColor(context),
+            () => _showHistoryModal(context),
+          ),
+          const SizedBox(height: 12),
+          _buildActionButton(
+            context,
+            'Delete',
+            'Remove this FD',
+            CupertinoIcons.trash,
+            Colors.red,
+            () => _showDeleteConfirmation(context),
+            isDangerous: true,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton(
+    BuildContext context,
+    String title,
+    String description,
+    IconData icon,
+    Color color,
+    VoidCallback onTap, {
+    bool isDangerous = false,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppStyles.getCardColor(context),
+          borderRadius: BorderRadius.circular(12),
+          border: isDangerous
+              ? Border.all(color: color.withOpacity(0.3), width: 1)
+              : null,
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: AppStyles.getTextColor(context),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                    ),
+                  ),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      color: AppStyles.getSecondaryTextColor(context),
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              CupertinoIcons.chevron_right,
+              color: AppStyles.getSecondaryTextColor(context),
+              size: 16,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showReinvestModal(BuildContext context) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => Container(
+        color: AppStyles.getBackground(context),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            children: [
+              // Header
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppStyles.getCardColor(context),
+                  border: Border(
+                    bottom: BorderSide(
+                      color: AppStyles.getDividerColor(context),
+                      width: 0.5,
+                    ),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Reinvest FD',
+                      style: TextStyle(
+                        color: AppStyles.getTextColor(context),
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Icon(
+                        CupertinoIcons.xmark_circle_fill,
+                        color: AppStyles.getSecondaryTextColor(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Content
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Maturity Value',
+                        style: TextStyle(
+                          color: AppStyles.getSecondaryTextColor(context),
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '₹${widget.fd.maturityValue.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          color: Colors.green,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Options',
+                        style: TextStyle(
+                          color: AppStyles.getTextColor(context),
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildReinvestOption(
+                        context,
+                        'Create New FD',
+                        'Invest maturity amount in a new FD',
+                        () {
+                          Navigator.of(context).pop();
+                          toast.showSuccess('Create new FD with ₹${widget.fd.maturityValue.toStringAsFixed(0)}');
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      _buildReinvestOption(
+                        context,
+                        'Transfer to Account',
+                        'Move maturity amount to linked account',
+                        () {
+                          Navigator.of(context).pop();
+                          toast.showSuccess('Amount transferred to account');
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReinvestOption(
+    BuildContext context,
+    String title,
+    String description,
+    VoidCallback onTap,
+  ) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppStyles.getCardColor(context),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: AppStyles.getPrimaryColor(context).withOpacity(0.2),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppStyles.getPrimaryColor(context).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                CupertinoIcons.plus,
+                color: AppStyles.getPrimaryColor(context),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: AppStyles.getTextColor(context),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      color: AppStyles.getSecondaryTextColor(context),
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              CupertinoIcons.chevron_right,
+              color: AppStyles.getSecondaryTextColor(context),
+              size: 16,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showPrematureWithdrawalModal(BuildContext context) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => Container(
+        color: AppStyles.getBackground(context),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            children: [
+              // Header
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppStyles.getCardColor(context),
+                  border: Border(
+                    bottom: BorderSide(
+                      color: AppStyles.getDividerColor(context),
+                      width: 0.5,
+                    ),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Premature Withdrawal',
+                      style: TextStyle(
+                        color: AppStyles.getTextColor(context),
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Icon(
+                        CupertinoIcons.xmark_circle_fill,
+                        color: AppStyles.getSecondaryTextColor(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Content
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              CupertinoIcons.info,
+                              color: Colors.orange,
+                              size: 16,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Withdrawing before maturity may result in penalty charges from your bank.',
+                                style: TextStyle(
+                                  color: Colors.orange,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        'Expected Amount',
+                        style: TextStyle(
+                          color: AppStyles.getSecondaryTextColor(context),
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '₹${widget.fd.estimatedAccruedValue.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Days remaining until maturity: ${widget.fd.daysUntilMaturity}',
+                        style: TextStyle(
+                          color: AppStyles.getSecondaryTextColor(context),
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Action',
+                        style: TextStyle(
+                          color: AppStyles.getTextColor(context),
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          toast.showWarning('Withdrawal initiated. Pending bank confirmation.');
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.red.withOpacity(0.3), width: 1),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(CupertinoIcons.money_dollar_circle, color: Colors.red),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Withdraw Amount',
+                                style: TextStyle(
+                                  color: Colors.red,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showPayoutScheduleModal(BuildContext context) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => Container(
+          color: AppStyles.getBackground(context),
+          child: Column(
+            children: [
+              // Header
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppStyles.getCardColor(context),
+                  border: Border(
+                    bottom: BorderSide(
+                      color: AppStyles.getDividerColor(context),
+                      width: 0.5,
+                    ),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Payout Schedule',
+                      style: TextStyle(
+                        color: AppStyles.getTextColor(context),
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Icon(
+                        CupertinoIcons.xmark_circle_fill,
+                        color: AppStyles.getSecondaryTextColor(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Payout list
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      // Past payouts
+                      if (widget.fd.pastPayouts.isNotEmpty) ...[
+                        Text(
+                          'Past Payouts',
+                          style: TextStyle(
+                            color: AppStyles.getTextColor(context),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        ...widget.fd.pastPayouts.map((payout) {
+                          return _buildPayoutItem(context, payout, isPast: true);
+                        }).toList(),
+                        const SizedBox(height: 20),
+                      ],
+                      // Upcoming payouts
+                      if (widget.fd.upcomingPayouts.isNotEmpty) ...[
+                        Text(
+                          'Upcoming Payouts',
+                          style: TextStyle(
+                            color: AppStyles.getTextColor(context),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        ...widget.fd.upcomingPayouts.map((payout) {
+                          return _buildPayoutItem(context, payout, isPast: false);
+                        }).toList(),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+      ),
+    );
+  }
+
+  Widget _buildPayoutItem(BuildContext context, PayoutRecord payout,
+      {required bool isPast}) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppStyles.getCardColor(context),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _formatDate(payout.payoutDate),
+                  style: TextStyle(
+                    color: AppStyles.getTextColor(context),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  payout.payoutType == 'interest'
+                      ? 'Interest'
+                      : payout.payoutType == 'principal'
+                          ? 'Principal'
+                          : 'Interest + Principal',
+                  style: TextStyle(
+                    color: AppStyles.getSecondaryTextColor(context),
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '₹${(payout.interestAmount + payout.principalAmount).toStringAsFixed(2)}',
+                style: TextStyle(
+                  color: isPast
+                      ? Colors.green
+                      : AppStyles.getPrimaryColor(context),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              if (isPast)
+                Text(
+                  'Credited',
+                  style: TextStyle(
+                    color: Colors.green,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEditModal(BuildContext context) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => Container(
+        color: AppStyles.getBackground(context),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            children: [
+              // Header
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppStyles.getCardColor(context),
+                  border: Border(
+                    bottom: BorderSide(
+                      color: AppStyles.getDividerColor(context),
+                      width: 0.5,
+                    ),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Edit FD Settings',
+                      style: TextStyle(
+                        color: AppStyles.getTextColor(context),
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Icon(
+                        CupertinoIcons.xmark_circle_fill,
+                        color: AppStyles.getSecondaryTextColor(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Content
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Auto-Link Settings',
+                        style: TextStyle(
+                          color: AppStyles.getTextColor(context),
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppStyles.getCardColor(context),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Auto-Link Payouts',
+                                    style: TextStyle(
+                                      color: AppStyles.getTextColor(context),
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Auto-credit payouts to linked account',
+                                    style: TextStyle(
+                                      color: AppStyles.getSecondaryTextColor(context),
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            CupertinoSwitch(
+                              value: widget.fd.autoLinkEnabled,
+                              onChanged: (value) {
+                                Navigator.of(context).pop();
+                                toast.showSuccess('Auto-link setting updated');
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Bank Account',
+                        style: TextStyle(
+                          color: AppStyles.getTextColor(context),
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppStyles.getCardColor(context),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              widget.fd.linkedAccountName,
+                              style: TextStyle(
+                                color: AppStyles.getTextColor(context),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              widget.fd.bankName ?? 'Bank Account',
+                              style: TextStyle(
+                                color: AppStyles.getSecondaryTextColor(context),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showHistoryModal(BuildContext context) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => Container(
+        color: AppStyles.getBackground(context),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            children: [
+              // Header
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppStyles.getCardColor(context),
+                  border: Border(
+                    bottom: BorderSide(
+                      color: AppStyles.getDividerColor(context),
+                      width: 0.5,
+                    ),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'FD Timeline',
+                      style: TextStyle(
+                        color: AppStyles.getTextColor(context),
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Icon(
+                        CupertinoIcons.xmark_circle_fill,
+                        color: AppStyles.getSecondaryTextColor(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Content
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHistoryItem(
+                        context,
+                        'Created',
+                        _formatDate(widget.fd.createdDate),
+                        'FD account opened',
+                        Icons.check_circle,
+                      ),
+                      _buildHistoryItem(
+                        context,
+                        'Investment',
+                        _formatDate(widget.fd.investmentDate),
+                        'Initial amount invested',
+                        Icons.check_circle,
+                      ),
+                      if (widget.fd.elapsedMonths > 0)
+                        _buildHistoryItem(
+                          context,
+                          'Active',
+                          '${widget.fd.elapsedMonths} months invested',
+                          'Currently earning interest',
+                          Icons.schedule,
+                        ),
+                      _buildHistoryItem(
+                        context,
+                        'Maturity Date',
+                        _formatDate(widget.fd.maturityDate),
+                        widget.fd.daysUntilMaturity <= 0
+                            ? 'FD matured'
+                            : '${widget.fd.daysUntilMaturity} days remaining',
+                        widget.fd.daysUntilMaturity <= 0
+                            ? Icons.check_circle
+                            : Icons.schedule,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHistoryItem(
+    BuildContext context,
+    String title,
+    String date,
+    String description,
+    IconData icon,
+  ) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppStyles.getPrimaryColor(context).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: AppStyles.getPrimaryColor(context), size: 20),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: AppStyles.getTextColor(context),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  date,
+                  style: TextStyle(
+                    color: AppStyles.getSecondaryTextColor(context),
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  description,
+                  style: TextStyle(
+                    color: AppStyles.getSecondaryTextColor(context),
+                    fontSize: 11,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context) {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Delete FD?'),
+        content: const Text(
+          'Are you sure you want to delete this FD? This action cannot be undone.',
+        ),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            onPressed: () async {
+              // Delete FD from investments controller
+              final investmentsController = Provider.of<InvestmentsController>(context, listen: false);
+              await investmentsController.deleteInvestment(widget.fd.id);
+
+              // Close dialog
+              Navigator.of(context).pop();
+              // Go back to investments list
+              Navigator.of(context).pop();
+
+              toast.showSuccess('FD deleted successfully');
+            },
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _getStatusColor(FDStatus status) {
+    switch (status) {
+      case FDStatus.active:
+        return Colors.green;
+      case FDStatus.mature:
+        return Colors.orange;
+      case FDStatus.prematurelyWithdrawn:
+        return Colors.red;
+      case FDStatus.completed:
+        return Colors.grey;
+    }
+  }
+
+  Widget _buildMaturityAlert(BuildContext context) {
+    final daysUntil = widget.fd.maturityDate.difference(DateTime.now()).inDays;
+
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.orange.withOpacity(0.15),
+            Colors.orange.withOpacity(0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.orange.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.orange,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      CupertinoIcons.bell_fill,
+                      color: Colors.white,
+                      size: 12,
+                    ),
+                    SizedBox(width: 4),
+                    Text(
+                      'FD Maturity',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  'In $daysUntil day${daysUntil > 1 ? 's' : ''}',
+                  style: const TextStyle(
+                    color: Colors.orange,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Your FD matures on ${_formatDate(widget.fd.maturityDate)}',
+            style: TextStyle(
+              color: AppStyles.getTextColor(context),
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Choose to renew or withdraw your investment',
+            style: TextStyle(
+              color: AppStyles.getSecondaryTextColor(context),
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: CupertinoButton(
+                  color: AppStyles.getPrimaryColor(context),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      CupertinoPageRoute(
+                        builder: (_) => FDRenewalModal(
+                          fd: widget.fd,
+                          onRenew: () {
+                            // TODO: Create renewed FD
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    'Renew',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: CupertinoButton(
+                  color: Colors.green,
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      CupertinoPageRoute(
+                        builder: (_) => FDWithdrawalModal(
+                          fd: widget.fd,
+                          onWithdraw: () {
+                            // TODO: Mark FD as withdrawn
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    'Withdraw',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    final months = [
+      '',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+    return '${date.day} ${months[date.month]} ${date.year}';
+  }
+}

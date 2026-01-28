@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
@@ -34,7 +35,7 @@ class SettingsController with ChangeNotifier {
 
   Future<void> loadSettings() async {
     _prefs = await SharedPreferences.getInstance();
-    
+
     final themeIndex = _prefs.getInt('themeMode') ?? 0;
     if (themeIndex == 1) _themeMode = ThemeMode.light;
     else if (themeIndex == 2) _themeMode = ThemeMode.dark;
@@ -45,12 +46,15 @@ class SettingsController with ChangeNotifier {
     _lockTimeoutSeconds = _prefs.getInt('lockTimeoutSeconds') ?? 10;
     _isInvestmentTrackingEnabled = _prefs.getBool('isInvestmentTrackingEnabled') ?? false;
 
-    // Apply Secure Flag based on settings
-    _updateSecureFlag();
+    // Skip biometric setup on web
+    if (!kIsWeb) {
+      // Apply Secure Flag based on settings
+      _updateSecureFlag();
 
-    if (_isBiometricEnabled) {
-      logger.info('Startup: Biometric enabled, locking app.', context: 'SettingsController');
-      _isLocked = true;
+      if (_isBiometricEnabled) {
+        logger.info('Startup: Biometric enabled, locking app.', context: 'SettingsController');
+        _isLocked = true;
+      }
     }
 
     notifyListeners();
@@ -72,6 +76,8 @@ class SettingsController with ChangeNotifier {
   }
 
   Future<void> toggleBiometric(bool value) async {
+    if (kIsWeb) return; // Skip on web
+
     if (value) {
       bool authenticated = await _authenticate();
       if (authenticated) {
@@ -90,6 +96,8 @@ class SettingsController with ChangeNotifier {
   }
 
   Future<void> toggleLockOnMinimize(bool value) async {
+    if (kIsWeb) return; // Skip on web
+
     _lockOnMinimize = value;
     await _prefs.setBool('lockOnMinimize', value);
     _updateSecureFlag();
@@ -103,6 +111,8 @@ class SettingsController with ChangeNotifier {
   }
 
   Future<void> _updateSecureFlag() async {
+    if (kIsWeb) return; // Skip on web
+
     try {
       if (_lockOnMinimize) {
         await platform.invokeMethod('enableSecure');
@@ -122,7 +132,7 @@ class SettingsController with ChangeNotifier {
   }
 
   void appResumed() {
-    if (!_lockOnMinimize || _lastPausedTime == null) return;
+    if (kIsWeb || !_lockOnMinimize || _lastPausedTime == null) return;
 
     final durationPaused = DateTime.now().difference(_lastPausedTime!);
     logger.info('App Resumed after ${durationPaused.inSeconds}s', context: 'SettingsController');
@@ -138,6 +148,8 @@ class SettingsController with ChangeNotifier {
   }
 
   Future<bool> _authenticate() async {
+    if (kIsWeb) return false; // Biometric not available on web
+
     try {
       final bool canAuthenticateWithBiometrics = await auth.canCheckBiometrics;
       if (!canAuthenticateWithBiometrics) return false;
@@ -152,6 +164,8 @@ class SettingsController with ChangeNotifier {
   }
 
   Future<void> authenticateAndUnlock() async {
+    if (kIsWeb) return; // Skip on web
+
     try {
       bool authenticated = await auth.authenticate(
         localizedReason: 'Unlock VittaraFinOS',
