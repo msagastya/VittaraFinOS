@@ -975,7 +975,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
               // Payout list
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.only(top: 32, left: 16, right: 16, bottom: 16),
                   child: Column(
                     children: [
                       // Past payouts
@@ -1128,7 +1128,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
               // Content
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.only(top: 32, left: 16, right: 16, bottom: 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -1175,9 +1175,42 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                             ),
                             CupertinoSwitch(
                               value: widget.fd.autoLinkEnabled,
-                              onChanged: (value) {
-                                Navigator.of(context).pop();
-                                toast.showSuccess('Auto-link setting updated');
+                              onChanged: (value) async {
+                                try {
+                                  final investmentsController =
+                                      Provider.of<InvestmentsController>(context, listen: false);
+
+                                  // Create updated FD with new autoLinkEnabled value
+                                  final updatedFD = widget.fd.copyWith(
+                                    autoLinkEnabled: value,
+                                  );
+
+                                  // Create updated Investment with new FD data
+                                  final currentInvestment = investmentsController.investments
+                                      .firstWhere((inv) => inv.id == widget.fd.id);
+
+                                  final updatedInvestment = currentInvestment.copyWith(
+                                    metadata: {
+                                      ...?currentInvestment.metadata,
+                                      'fdData': updatedFD.toMap(),
+                                      'autoLink': value,
+                                    },
+                                  );
+
+                                  // Update the investment
+                                  await investmentsController.updateInvestment(updatedInvestment);
+
+                                  if (mounted) {
+                                    Navigator.of(context).pop();
+                                    toast.showSuccess(
+                                      'Auto-link ${value ? 'enabled' : 'disabled'}',
+                                    );
+                                  }
+                                } catch (e) {
+                                  if (mounted) {
+                                    toast.showError('Failed to update setting');
+                                  }
+                                }
                               },
                             ),
                           ],
@@ -1277,7 +1310,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
               // Content
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.only(top: 32, left: 16, right: 16, bottom: 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
