@@ -67,6 +67,16 @@ class DashboardController extends ChangeNotifier {
           columnSpan: 3,
           rowSpan: 2,
         ),
+        DashboardWidgetConfig(
+          id: 'fd_notifications',
+          type: DashboardWidgetType.fdNotifications,
+          title: 'FD Notifications',
+          isVisible: true,
+          gridRow: 5,
+          gridColumn: 1,
+          columnSpan: 3,
+          rowSpan: 1,
+        ),
       ],
     );
   }

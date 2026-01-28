@@ -548,6 +548,43 @@ class DashboardScreen extends StatelessWidget {
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
         );
+      case DashboardWidgetType.fdNotifications:
+        return Consumer<InvestmentsController>(
+          builder: (context, investmentsController, child) {
+            final investments = investmentsController.investments;
+            final fdsMatured = investments.where((inv) {
+              if (inv.type.name != 'fixedDeposit') return false;
+              final metadata = inv.metadata;
+              if (metadata == null || !metadata.containsKey('maturityDate')) return false;
+              final maturityDate = DateTime.parse(metadata['maturityDate'] as String);
+              final daysUntil = maturityDate.difference(DateTime.now()).inDays;
+              return daysUntil < 0;
+            }).toList();
+
+            if (fdsMatured.isEmpty) {
+              return Text(
+                'No matured FDs. All investments are on track',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: AppStyles.getSecondaryTextColor(context),
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              );
+            }
+
+            return Text(
+              '${fdsMatured.length} matured FD${fdsMatured.length > 1 ? 's' : ''} awaiting action',
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.orange,
+                fontWeight: FontWeight.w600,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            );
+          },
+        );
       default:
         return const SizedBox.shrink();
     }
@@ -568,6 +605,11 @@ class DashboardScreen extends StatelessWidget {
       case DashboardWidgetType.netWorth:
         Navigator.of(context).push(
           CupertinoPageRoute(builder: (context) => const ManageScreen()),
+        );
+        break;
+      case DashboardWidgetType.fdNotifications:
+        Navigator.of(context).push(
+          CupertinoPageRoute(builder: (context) => const NotificationsPage()),
         );
         break;
       default:
