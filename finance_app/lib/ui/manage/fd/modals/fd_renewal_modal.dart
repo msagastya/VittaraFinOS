@@ -478,9 +478,14 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                         );
 
                         // Get existing renewal cycles
-                        final existingCycles = (widget.originalInvestment?.metadata?['renewalCycles'] as List?)
-                            ?.map((c) => FDRenewalCycle.fromMap(c as Map<String, dynamic>))
-                            .toList() ?? [];
+                        final existingCycles = <FDRenewalCycle>[];
+                        final cyclesData = widget.originalInvestment?.metadata?['renewalCycles'] as List?;
+                        if (cyclesData != null) {
+                          for (var c in cyclesData) {
+                            final cycleMap = Map<String, dynamic>.from(c as Map);
+                            existingCycles.add(FDRenewalCycle.fromMap(cycleMap));
+                          }
+                        }
 
                         // Add new cycle to the list
                         existingCycles.add(renewalCycle);

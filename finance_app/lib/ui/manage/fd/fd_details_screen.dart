@@ -951,9 +951,14 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                                     .firstWhere((inv) => inv.id == widget.fd.id);
 
                                 // Get existing renewal cycles
-                                final existingCycles = (originalInvestment.metadata?['renewalCycles'] as List?)
-                                    ?.map((c) => FDRenewalCycle.fromMap(c as Map<String, dynamic>))
-                                    .toList() ?? [];
+                                final existingCycles = <FDRenewalCycle>[];
+                                final cyclesData = originalInvestment.metadata?['renewalCycles'] as List?;
+                                if (cyclesData != null) {
+                                  for (var c in cyclesData) {
+                                    final cycleMap = Map<String, dynamic>.from(c as Map);
+                                    existingCycles.add(FDRenewalCycle.fromMap(cycleMap));
+                                  }
+                                }
 
                                 // If no cycles exist, create the first one from the FD
                                 if (existingCycles.isEmpty) {
