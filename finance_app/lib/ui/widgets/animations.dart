@@ -3,7 +3,6 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:shimmer/shimmer.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 // ============================================================
@@ -128,55 +127,6 @@ class GlassContainer extends StatelessWidget {
   }
 }
 
-// ============================================================
-// SHIMMER LOADING WIDGET
-// ============================================================
-
-class ShimmerLoading extends StatelessWidget {
-  final double width;
-  final double height;
-  final BorderRadius? borderRadius;
-
-  const ShimmerLoading({
-    super.key,
-    this.width = double.infinity,
-    this.height = 60,
-    this.borderRadius,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Shimmer.fromColors(
-      baseColor: isDark ? Colors.grey.shade800 : Colors.grey.shade300,
-      highlightColor: isDark ? Colors.grey.shade700 : Colors.grey.shade100,
-      child: Container(
-        width: width,
-        height: height,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: borderRadius ?? BorderRadius.circular(16),
-        ),
-      ),
-    );
-  }
-}
-
-class ShimmerCard extends StatelessWidget {
-  const ShimmerCard({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: ShimmerLoading(
-        height: 80,
-        borderRadius: BorderRadius.circular(24),
-      ),
-    );
-  }
-}
 
 // ============================================================
 // FADE IN ANIMATION WRAPPER
