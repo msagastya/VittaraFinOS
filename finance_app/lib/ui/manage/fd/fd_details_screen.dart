@@ -347,15 +347,6 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
           if (widget.fd.status == FDStatus.active) ...[
             _buildActionButton(
               context,
-              'Reinvest',
-              'Reinvest maturity amount in a new FD',
-              CupertinoIcons.plus_circle,
-              Colors.blue,
-              () => _showReinvestModal(context),
-            ),
-            const SizedBox(height: 12),
-            _buildActionButton(
-              context,
               'Premature Withdrawal',
               'Withdraw before maturity',
               CupertinoIcons.money_dollar_circle,
@@ -643,149 +634,298 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
   }
 
   void _showPrematureWithdrawalModal(BuildContext context) {
+    DateTime withdrawalDate = DateTime.now();
+
+    double calculateWithdrawalAmount(DateTime selectedDate) {
+      final daysSinceInvestment = selectedDate.difference(widget.fd.investmentDate).inDays;
+      final totalDays = widget.fd.maturityDate.difference(widget.fd.investmentDate).inDays;
+      final adjustedDays = daysSinceInvestment > totalDays ? totalDays : daysSinceInvestment;
+      final elapsedFraction = adjustedDays / totalDays;
+      final accruedInterest = widget.fd.totalInterestAtMaturity * elapsedFraction;
+      final monthsElapsed = (adjustedDays / 30.44).toInt();
+      final penaltyPercentage = monthsElapsed < 12 ? 1.0 : 0.5;
+      final penaltyAmount = (accruedInterest * penaltyPercentage) / 100;
+      return widget.fd.principal + accruedInterest - penaltyAmount;
+    }
+
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => Container(
-        color: AppStyles.getBackground(context),
-        child: SafeArea(
-          top: false,
-          child: Column(
-            children: [
-              // Header
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppStyles.getCardColor(context),
-                  border: Border(
-                    bottom: BorderSide(
-                      color: AppStyles.getDividerColor(context),
-                      width: 0.5,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => Container(
+          color: AppStyles.getBackground(context),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              children: [
+                // Header
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppStyles.getCardColor(context),
+                    border: Border(
+                      bottom: BorderSide(
+                        color: AppStyles.getDividerColor(context),
+                        width: 0.5,
+                      ),
                     ),
                   ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Premature Withdrawal',
-                      style: TextStyle(
-                        color: AppStyles.getTextColor(context),
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () => Navigator.of(context).pop(),
-                      child: Icon(
-                        CupertinoIcons.xmark_circle_fill,
-                        color: AppStyles.getSecondaryTextColor(context),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // Content
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.orange.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              CupertinoIcons.info,
-                              color: Colors.orange,
-                              size: 16,
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                'Withdrawing before maturity may result in penalty charges from your bank.',
-                                style: TextStyle(
-                                  color: Colors.orange,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 20),
                       Text(
-                        'Expected Amount',
-                        style: TextStyle(
-                          color: AppStyles.getSecondaryTextColor(context),
-                          fontSize: 12,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '₹${widget.fd.estimatedAccruedValue.toStringAsFixed(2)}',
-                        style: TextStyle(
-                          color: Colors.red,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      Text(
-                        'Days remaining until maturity: ${widget.fd.daysUntilMaturity}',
-                        style: TextStyle(
-                          color: AppStyles.getSecondaryTextColor(context),
-                          fontSize: 12,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      Text(
-                        'Action',
+                        'Premature Withdrawal',
                         style: TextStyle(
                           color: AppStyles.getTextColor(context),
-                          fontSize: 14,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 12),
                       GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).pop();
-                          toast.showWarning('Withdrawal initiated. Pending bank confirmation.');
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.red.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.red.withOpacity(0.3), width: 1),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(CupertinoIcons.money_dollar_circle, color: Colors.red),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Withdraw Amount',
-                                style: TextStyle(
-                                  color: Colors.red,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          ),
+                        onTap: () => Navigator.of(context).pop(),
+                        child: Icon(
+                          CupertinoIcons.xmark_circle_fill,
+                          color: AppStyles.getSecondaryTextColor(context),
                         ),
                       ),
                     ],
                   ),
                 ),
-              ),
-            ],
+                // Content
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                CupertinoIcons.exclamationmark_triangle_fill,
+                                color: Colors.orange,
+                                size: 16,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Early withdrawal may incur penalties and reduced interest.',
+                                  style: TextStyle(
+                                    color: Colors.orange,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        // Withdrawal Date
+                        Text(
+                          'Withdrawal Date',
+                          style: TextStyle(
+                            color: AppStyles.getTextColor(context),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        GestureDetector(
+                          onTap: () async {
+                            final picked = await showCupertinoModalPopup<DateTime>(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return Container(
+                                  height: 216,
+                                  padding: const EdgeInsets.only(top: 6.0),
+                                  margin: EdgeInsets.only(
+                                    bottom: MediaQuery.of(context).viewInsets.bottom,
+                                  ),
+                                  color: CupertinoColors.systemBackground.resolveFrom(context),
+                                  child: SafeArea(
+                                    top: false,
+                                    child: CupertinoDatePicker(
+                                      initialDateTime: withdrawalDate,
+                                      mode: CupertinoDatePickerMode.date,
+                                      minimumDate: widget.fd.investmentDate,
+                                      maximumDate: DateTime.now(),
+                                      onDateTimeChanged: (DateTime newDate) {
+                                        setState(() {
+                                          withdrawalDate = newDate;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                            if (picked != null) {
+                              setState(() {
+                                withdrawalDate = picked;
+                              });
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppStyles.getCardColor(context),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: AppStyles.getDividerColor(context),
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  withdrawalDate.toString().split(' ')[0],
+                                  style: TextStyle(
+                                    color: AppStyles.getTextColor(context),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                Icon(
+                                  CupertinoIcons.calendar,
+                                  color: AppStyles.getPrimaryColor(context),
+                                  size: 18,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          'Expected Amount',
+                          style: TextStyle(
+                            color: AppStyles.getSecondaryTextColor(context),
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '₹${calculateWithdrawalAmount(withdrawalDate).toStringAsFixed(2)}',
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          'Linked Account',
+                          style: TextStyle(
+                            color: AppStyles.getSecondaryTextColor(context),
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          widget.fd.linkedAccountName,
+                          style: TextStyle(
+                            color: AppStyles.getTextColor(context),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
+                    ),
+                  ),
+                ),
+                // Action buttons
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppStyles.getCardColor(context),
+                    border: Border(
+                      top: BorderSide(
+                        color: AppStyles.getDividerColor(context),
+                        width: 0.5,
+                      ),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: CupertinoButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          color: AppStyles.getSecondaryTextColor(context).withOpacity(0.3),
+                          child: Text(
+                            'Cancel',
+                            style: TextStyle(
+                              color: AppStyles.getSecondaryTextColor(context),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: CupertinoButton(
+                          onPressed: () async {
+                            final amount = calculateWithdrawalAmount(withdrawalDate);
+                            final confirmed = await showCupertinoDialog<bool>(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return CupertinoAlertDialog(
+                                  title: const Text('Confirm Withdrawal'),
+                                  content: Column(
+                                    children: [
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Amount: ₹${amount.toStringAsFixed(2)}',
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Date: ${withdrawalDate.toString().split(' ')[0]}',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: AppStyles.getSecondaryTextColor(context),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      const Text(
+                                        'Do you want to credit this amount to your linked account?',
+                                      ),
+                                    ],
+                                  ),
+                                  actions: [
+                                    CupertinoDialogAction(
+                                      onPressed: () => Navigator.of(context).pop(false),
+                                      child: const Text('No'),
+                                    ),
+                                    CupertinoDialogAction(
+                                      isDestructiveAction: false,
+                                      onPressed: () => Navigator.of(context).pop(true),
+                                      child: const Text('Yes, Credit Account'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+
+                            if (confirmed == true && mounted) {
+                              Navigator.of(context).pop();
+                              toast.showSuccess('Withdrawal initiated. Amount: ₹${amount.toStringAsFixed(2)}');
+                            }
+                          },
+                          color: Colors.orange,
+                          child: const Text('Withdraw'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

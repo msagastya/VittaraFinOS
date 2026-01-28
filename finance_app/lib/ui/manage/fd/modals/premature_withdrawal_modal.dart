@@ -22,10 +22,12 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
   late double _penaltyAmount;
   late double _netAmount;
   late TextEditingController _netAmountController;
+  late DateTime _withdrawalDate;
 
   @override
   void initState() {
     super.initState();
+    _withdrawalDate = DateTime.now();
     _calculateWithdrawalAmount();
     _netAmountController =
         TextEditingController(text: _netAmount.toStringAsFixed(2));
@@ -38,16 +40,19 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
   }
 
   void _calculateWithdrawalAmount() {
-    // Simplified calculation - typically banks deduct interest based on elapsed time
-    // and may charge a penalty
+    // Calculate interest based on withdrawal date
+    final daysSinceInvestment = _withdrawalDate.difference(widget.fd.investmentDate).inDays;
+    final totalDays = widget.fd.maturityDate.difference(widget.fd.investmentDate).inDays;
 
-    final elapsedFraction = widget.fd.elapsedFraction;
+    // Ensure we don't go beyond maturity date
+    final adjustedDays = daysSinceInvestment > totalDays ? totalDays : daysSinceInvestment;
+    final elapsedFraction = adjustedDays / totalDays;
 
     // Calculate interest proportional to elapsed time
     final accruedInterest = widget.fd.totalInterestAtMaturity * elapsedFraction;
 
-    // Assume 1% penalty on interest if withdrawn before 1 year
-    final monthsElapsed = widget.fd.elapsedMonths;
+    // Determine penalty based on months elapsed
+    final monthsElapsed = (adjustedDays / 30.44).toInt();
     final penaltyPercentage = monthsElapsed < 12 ? 1.0 : 0.5;
 
     _penaltyAmount = (accruedInterest * penaltyPercentage) / 100;
@@ -61,6 +66,101 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
     setState(() {
       _netAmount = amount;
     });
+  }
+
+  Future<void> _selectWithdrawalDate() async {
+    final picked = await showCupertinoModalPopup<DateTime>(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          height: 216,
+          padding: const EdgeInsets.only(top: 6.0),
+          margin: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          color: CupertinoColors.systemBackground.resolveFrom(context),
+          child: SafeArea(
+            top: false,
+            child: CupertinoDatePicker(
+              initialDateTime: _withdrawalDate,
+              mode: CupertinoDatePickerMode.date,
+              minimumDate: widget.fd.investmentDate,
+              maximumDate: DateTime.now(),
+              onDateTimeChanged: (DateTime newDate) {
+                setState(() {
+                  _withdrawalDate = newDate;
+                  _calculateWithdrawalAmount();
+                  _netAmountController.text = _netAmount.toStringAsFixed(2);
+                });
+              },
+            ),
+          ),
+        );
+      },
+    );
+
+    if (picked != null && picked != _withdrawalDate) {
+      setState(() {
+        _withdrawalDate = picked;
+        _calculateWithdrawalAmount();
+        _netAmountController.text = _netAmount.toStringAsFixed(2);
+      });
+    }
+  }
+
+  Future<void> _showConfirmationDialog() async {
+    final confirm = await showCupertinoDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoAlertDialog(
+          title: const Text('Confirm Withdrawal'),
+          content: Column(
+            children: [
+              const SizedBox(height: 8),
+              Text(
+                'Amount: ₹${_netAmount.toStringAsFixed(2)}',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Date: ${_withdrawalDate.toString().split(' ')[0]}',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppStyles.getSecondaryTextColor(context),
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Do you want to credit this amount to your linked account?',
+              ),
+            ],
+          ),
+          actions: [
+            CupertinoDialogAction(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('No'),
+            ),
+            CupertinoDialogAction(
+              isDestructiveAction: false,
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Yes, Credit Account'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirm == true && mounted) {
+      Navigator.of(context).pop({
+        'amount': _netAmount,
+        'date': _withdrawalDate,
+        'creditAccount': true,
+      });
+      ShowToast.showSuccess('Withdrawal initiated');
+    }
   }
 
   @override
@@ -191,6 +291,56 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
                     ),
                   ),
                   const SizedBox(height: 20),
+                  // Withdrawal Date
+                  Text(
+                    'Withdrawal Date',
+                    style: TextStyle(
+                      color: AppStyles.getTextColor(context),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Select the date you withdrew the amount',
+                    style: TextStyle(
+                      color: AppStyles.getSecondaryTextColor(context),
+                      fontSize: 12,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: _selectWithdrawalDate,
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppStyles.getCardColor(context),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: AppStyles.getDividerColor(context),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            _withdrawalDate.toString().split(' ')[0],
+                            style: TextStyle(
+                              color: AppStyles.getTextColor(context),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Icon(
+                            CupertinoIcons.calendar,
+                            color: AppStyles.getPrimaryColor(context),
+                            size: 18,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
                   // Editable Net Amount
                   Text(
                     'Final Withdrawal Amount',
@@ -311,11 +461,7 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: CupertinoButton(
-                    onPressed: () {
-                      // TODO: Process withdrawal
-                      Navigator.of(context).pop();
-                      ShowToast.showSuccess('Withdrawal initiated');
-                    },
+                    onPressed: _showConfirmationDialog,
                     color: Colors.orange,
                     child: const Text('Withdraw'),
                   ),
