@@ -654,7 +654,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
         builder: (context, setState) => Container(
           color: AppStyles.getBackground(context),
           child: SafeArea(
-            top: false,
+            top: true,
             child: Column(
               children: [
                 // Header
@@ -800,19 +800,44 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                         ),
                         const SizedBox(height: 20),
                         Text(
-                          'Expected Amount',
+                          'Withdrawal Amount',
+                          style: TextStyle(
+                            color: AppStyles.getTextColor(context),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Expected amount (you can adjust if agreed with bank)',
                           style: TextStyle(
                             color: AppStyles.getSecondaryTextColor(context),
                             fontSize: 12,
                           ),
                         ),
                         const SizedBox(height: 8),
-                        Text(
-                          '₹${calculateWithdrawalAmount(withdrawalDate).toStringAsFixed(2)}',
+                        CupertinoTextField(
+                          placeholder: calculateWithdrawalAmount(withdrawalDate).toStringAsFixed(2),
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppStyles.getCardColor(context),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          prefix: Padding(
+                            padding: const EdgeInsets.only(left: 12),
+                            child: Text(
+                              '₹',
+                              style: TextStyle(
+                                color: AppStyles.getTextColor(context),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
                           style: TextStyle(
-                            color: Colors.red,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
+                            color: AppStyles.getTextColor(context),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                         const SizedBox(height: 24),
@@ -1089,7 +1114,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
       builder: (context) => Container(
         color: AppStyles.getBackground(context),
         child: SafeArea(
-          top: false,
+          top: true,
           child: Column(
             children: [
               // Header
@@ -1271,7 +1296,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
       builder: (context) => Container(
         color: AppStyles.getBackground(context),
         child: SafeArea(
-          top: false,
+          top: true,
           child: Column(
             children: [
               // Header
