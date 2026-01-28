@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/fixed_deposit_model.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
+import 'package:vittara_fin_os/logic/investment_model.dart';
+import 'package:vittara_fin_os/logic/fd_renewal_cycle.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/ui/manage/fd/modals/fd_renewal_modal.dart';
@@ -938,8 +940,68 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                             );
 
                             if (confirmed == true && mounted) {
-                              Navigator.of(context).pop();
-                              toast.showSuccess('Withdrawal initiated. Amount: ₹${amount.toStringAsFixed(2)}');
+                              try {
+                                // Get the investments controller
+                                final investmentsController =
+                                    Provider.of<InvestmentsController>(context, listen: false);
+
+                                // Find the original investment from the controller
+                                final originalInvestment = investmentsController.investments
+                                    .firstWhere((inv) => inv.id == widget.fd.id);
+
+                                // Get existing renewal cycles
+                                final existingCycles = (originalInvestment.metadata?['renewalCycles'] as List?)
+                                    ?.map((c) => FDRenewalCycle.fromMap(c as Map<String, dynamic>))
+                                    .toList() ?? [];
+
+                                // If no cycles exist, create the first one from the FD
+                                if (existingCycles.isEmpty) {
+                                  existingCycles.add(FDRenewalCycle(
+                                    cycleNumber: 1,
+                                    investmentDate: widget.fd.investmentDate,
+                                    maturityDate: widget.fd.maturityDate,
+                                    principal: widget.fd.principal,
+                                    interestRate: widget.fd.interestRate,
+                                    tenureMonths: widget.fd.tenureMonths,
+                                    maturityValue: widget.fd.maturityValue,
+                                    isWithdrawn: false,
+                                    isCompleted: false,
+                                  ));
+                                }
+
+                                // Mark the last cycle as withdrawn
+                                if (existingCycles.isNotEmpty) {
+                                  final lastCycle = existingCycles.last;
+                                  existingCycles[existingCycles.length - 1] = lastCycle.copyWith(
+                                    isWithdrawn: true,
+                                    withdrawalDate: withdrawalDate,
+                                    withdrawalAmount: amount,
+                                    withdrawalReason: 'Premature withdrawal',
+                                  );
+                                }
+
+                                // Update the investment with withdrawal cycle
+                                final updatedInvestment = originalInvestment.copyWith(
+                                  metadata: {
+                                    ...?originalInvestment.metadata,
+                                    'renewalCycles': existingCycles.map((c) => c.toMap()).toList(),
+                                    'withdrawalDate': withdrawalDate.toIso8601String(),
+                                    'withdrawalAmount': amount,
+                                    'withdrawalReason': 'Premature withdrawal',
+                                    'status': 'withdrawn',
+                                  },
+                                );
+
+                                // Update the investment
+                                await investmentsController.updateInvestment(updatedInvestment);
+
+                                Navigator.of(context).pop();
+                                toast.showSuccess('Withdrawal completed. Amount: ₹${amount.toStringAsFixed(2)}');
+                              } catch (e) {
+                                if (mounted) {
+                                  toast.showError('Error processing withdrawal: $e');
+                                }
+                              }
                             }
                           },
                           color: Colors.orange,

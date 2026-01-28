@@ -6,6 +6,7 @@ import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
+import 'package:vittara_fin_os/logic/fd_renewal_cycle.dart';
 import 'package:vittara_fin_os/ui/manage/fd/fd_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
@@ -463,35 +464,45 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                         // Build the renewed FD
                         final renewedFD = _controller.buildFD();
 
-                        // Convert to Investment object
-                        final renewedInvestment = Investment(
-                          id: renewedFD.id,
-                          name: renewedFD.name,
-                          type: InvestmentType.fixedDeposit,
-                          amount: renewedFD.principal,
-                          color: const Color(0xFFFF6B00),
-                          notes: renewedFD.notes,
-                          broker: renewedFD.bankName,
+                        // Create a renewal cycle for this renewal
+                        final renewalCycle = FDRenewalCycle(
+                          cycleNumber: (widget.originalInvestment?.metadata?['renewalCycles'] as List?)?.length ?? 1 + 1,
+                          investmentDate: renewedFD.investmentDate,
+                          maturityDate: renewedFD.maturityDate,
+                          principal: renewedFD.principal,
+                          interestRate: renewedFD.interestRate,
+                          tenureMonths: renewedFD.tenureMonths,
+                          maturityValue: renewedFD.maturityValue,
+                          isWithdrawn: false,
+                          isCompleted: false,
+                        );
+
+                        // Get existing renewal cycles
+                        final existingCycles = (widget.originalInvestment?.metadata?['renewalCycles'] as List?)
+                            ?.map((c) => FDRenewalCycle.fromMap(c as Map<String, dynamic>))
+                            .toList() ?? [];
+
+                        // Add new cycle to the list
+                        existingCycles.add(renewalCycle);
+
+                        // Update the original investment with new renewal cycle
+                        final updatedInvestment = widget.originalInvestment!.copyWith(
+                          amount: renewedFD.principal, // Original invested amount stays same
                           metadata: {
-                            ...?renewedFD.metadata,
-                            'fdData': renewedFD.toMap(),
-                            'linkedAccountId': renewedFD.linkedAccountId,
-                            'linkedAccountName': renewedFD.linkedAccountName,
+                            ...?widget.originalInvestment?.metadata,
+                            'renewalCycles': existingCycles.map((c) => c.toMap()).toList(),
+                            'currentCycleIndex': existingCycles.length - 1,
+                            'lastRenewalDate': DateTime.now().toIso8601String(),
+                            'interestRate': renewedFD.interestRate, // Update to current rate
                             'maturityDate': renewedFD.maturityDate.toIso8601String(),
                             'estimatedAccruedValue': renewedFD.estimatedAccruedValue,
-                            'realizedValue': renewedFD.realizedValue,
-                            'interestRate': renewedFD.interestRate,
-                            'tenureMonths': renewedFD.tenureMonths,
-                            'compoundingFrequency': renewedFD.compoundingFrequency.toString(),
-                            'payoutFrequency': renewedFD.payoutFrequency.toString(),
-                            'isCumulative': renewedFD.isCumulative,
-                            'investmentDate': renewedFD.investmentDate.toIso8601String(),
-                            'debitedFromAccount': false,
+                            'linkedAccountId': linkedAccount.id,
+                            'linkedAccountName': linkedAccount.name,
                           },
                         );
 
-                        // Add renewed FD as new investment
-                        await investmentsController.addInvestment(renewedInvestment);
+                        // Update the investment (not create new one)
+                        await investmentsController.updateInvestment(updatedInvestment);
 
                         if (context.mounted) {
                           toast.showSuccess('FD Renewed Successfully!');
