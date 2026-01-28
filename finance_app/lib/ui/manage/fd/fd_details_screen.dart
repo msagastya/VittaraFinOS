@@ -5,6 +5,7 @@ import 'package:vittara_fin_os/logic/fixed_deposit_model.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/fd_renewal_cycle.dart';
+import 'package:vittara_fin_os/logic/fd_calculations.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/ui/manage/fd/modals/fd_renewal_modal.dart';
@@ -127,8 +128,8 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                       ),
                       _buildMetric(
                         context,
-                        'Interest Earned',
-                        '₹${widget.fd.interestEarnedTillDate.toStringAsFixed(0)}',
+                        'CAGR',
+                        '${_calculateCAGR(widget.fd).toStringAsFixed(2)}%',
                         Colors.green,
                       ),
                     ],
@@ -1548,6 +1549,16 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
       case FDStatus.completed:
         return Colors.grey;
     }
+  }
+
+  /// Calculate CAGR for the FD based on current state
+  double _calculateCAGR(FixedDeposit fd) {
+    return FDCalculations.calculateCAGR(
+      fd.principal,
+      fd.estimatedAccruedValue,
+      fd.investmentDate,
+      DateTime.now(),
+    );
   }
 
   Widget _buildMaturityAlert(BuildContext context) {
