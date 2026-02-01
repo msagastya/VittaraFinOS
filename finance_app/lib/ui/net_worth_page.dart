@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,6 +21,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
   bool _expandLiabilities = false;
   List<String> _investmentTypeOrder = [];
   List<String> _accountOrder = [];
+  bool _orderInitialized = false;
 
   @override
   void initState() {
@@ -28,13 +30,27 @@ class _NetWorthPageState extends State<NetWorthPage> {
   }
 
   Future<void> _loadOrders() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedInvestmentOrder = prefs.getStringList('investmentTypeOrder') ?? [];
-    final savedAccountOrder = prefs.getStringList('accountOrder') ?? [];
-    setState(() {
-      _investmentTypeOrder = savedInvestmentOrder;
-      _accountOrder = savedAccountOrder;
-    });
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedInvestmentOrder = prefs.getStringList('investmentTypeOrder') ?? [];
+      final savedAccountOrder = prefs.getStringList('accountOrder') ?? [];
+      if (mounted) {
+        setState(() {
+          _investmentTypeOrder = savedInvestmentOrder;
+          _accountOrder = savedAccountOrder;
+          _orderInitialized = true;
+        });
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error loading orders: $e');
+      }
+      if (mounted) {
+        setState(() {
+          _orderInitialized = true;
+        });
+      }
+    }
   }
 
   Future<void> _saveInvestmentTypeOrder() async {
@@ -342,15 +358,18 @@ class _NetWorthPageState extends State<NetWorthPage> {
     Function(int)? onMoveDown,
     String Function(dynamic)? itemIdGetter,
   }) {
-    // Initialize account order if empty
-    if (accountOrderList != null && accountOrderList.isEmpty && itemIdGetter != null) {
-      accountOrderList.addAll(items.map((item) => itemIdGetter(item) as String).toList());
-      _saveAccountOrder();
+    // Initialize account order if empty (first time only)
+    if (accountOrderList != null && accountOrderList.isEmpty && itemIdGetter != null && _orderInitialized) {
+      final newOrder = items.map((item) => itemIdGetter(item) as String).toList();
+      accountOrderList.addAll(newOrder);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _saveAccountOrder();
+      });
     }
 
     // Apply custom ordering if provided
     List<dynamic> orderedItems = items;
-    if (accountOrderList != null && itemIdGetter != null) {
+    if (accountOrderList != null && itemIdGetter != null && accountOrderList.isNotEmpty) {
       orderedItems = [];
       for (var id in accountOrderList) {
         final item = items.firstWhere(
@@ -599,15 +618,19 @@ class _NetWorthPageState extends State<NetWorthPage> {
       return totalB.compareTo(totalA);
     });
 
-    // Initialize investment type order if empty
-    if (_investmentTypeOrder.isEmpty) {
+    // Initialize investment type order if empty (first time only)
+    if (_orderInitialized && _investmentTypeOrder.isEmpty) {
       _investmentTypeOrder = sortedEntries.map((e) => e.key).toList();
-      _saveInvestmentTypeOrder();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _saveInvestmentTypeOrder();
+      });
     }
 
-    // Apply custom order
+    // Apply custom order - use sortedEntries as default if not initialized
     final orderedEntries = <MapEntry<String, List<Investment>>>[];
-    for (var type in _investmentTypeOrder) {
+    final orderToUse = _investmentTypeOrder.isNotEmpty ? _investmentTypeOrder : sortedEntries.map((e) => e.key).toList();
+
+    for (var type in orderToUse) {
       final entry = sortedEntries.firstWhere(
         (e) => e.key == type,
         orElse: () => MapEntry('', []),
@@ -618,7 +641,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
     }
     // Add any new types not in the saved order
     for (var entry in sortedEntries) {
-      if (!_investmentTypeOrder.contains(entry.key)) {
+      if (!orderToUse.contains(entry.key)) {
         orderedEntries.add(entry);
       }
     }
