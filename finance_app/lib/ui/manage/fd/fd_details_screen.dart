@@ -6,6 +6,7 @@ import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/fd_renewal_cycle.dart';
 import 'package:vittara_fin_os/logic/fd_calculations.dart';
+import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/ui/manage/fd/modals/fd_renewal_modal.dart';
@@ -123,7 +124,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                       _buildMetric(
                         context,
                         'Current Value',
-                        '₹${widget.fd.estimatedAccruedValue.toStringAsFixed(0)}',
+                        '₹${_getCurrentValue().toStringAsFixed(0)}',
                         AppStyles.getPrimaryColor(context),
                       ),
                       _buildMetric(
@@ -168,11 +169,18 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                   _buildTimelineItem(
                     context,
                     'Maturity Date',
-                    _formatDate(widget.fd.maturityDate),
+                    _formatDate(_getMaturityDate()),
                     widget.fd.daysUntilMaturity <= 0
                         ? Icons.check_circle
                         : Icons.schedule,
                   ),
+                  if (_hasBeenRenewed())
+                    _buildTimelineItem(
+                      context,
+                      'Renewed',
+                      _formatDate(_getRenewalDate() ?? DateTime.now()),
+                      Icons.check_circle,
+                    ),
                   const SizedBox(height: 20),
                   // Details Grid
                   Text(
@@ -184,23 +192,29 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  _buildDetailRow('Interest Rate', '${widget.fd.interestRate}% p.a.'),
-                  _buildDetailRow('Tenure', '${widget.fd.tenureMonths} months'),
+                  _buildDetailRow(
+                    'Interest Rate',
+                    '${_getLatestRenewalCycle()?.interestRate ?? widget.fd.interestRate}% p.a.',
+                  ),
+                  _buildDetailRow(
+                    'Tenure',
+                    '${_getLatestRenewalCycle()?.tenureMonths ?? widget.fd.tenureMonths} months',
+                  ),
                   _buildDetailRow(
                     'Elapsed',
-                    '${widget.fd.elapsedMonths} of ${widget.fd.tenureMonths} months',
+                    '${_getElapsed()['elapsed']} of ${_getElapsed()['total']} months',
                   ),
                   _buildDetailRow('Compounding', widget.fd.getCompoundingLabel()),
                   _buildDetailRow('Payout Frequency', widget.fd.getPayoutLabel()),
                   _buildDetailRow('FD Type', widget.fd.isCumulative ? 'Cumulative' : 'Non-Cumulative'),
                   _buildDetailRow(
                     'Maturity Value',
-                    '₹${widget.fd.maturityValue.toStringAsFixed(2)}',
+                    '₹${(_getLatestRenewalCycle()?.maturityValue ?? widget.fd.maturityValue).toStringAsFixed(2)}',
                     isHighlight: true,
                   ),
                   _buildDetailRow(
                     'Total Interest',
-                    '₹${widget.fd.totalInterestAtMaturity.toStringAsFixed(2)}',
+                    '₹${_getTotalInterest().toStringAsFixed(2)}',
                   ),
                   const SizedBox(height: 20),
                   // Status-specific info
@@ -638,6 +652,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
 
   void _showPrematureWithdrawalModal(BuildContext context) {
     DateTime withdrawalDate = DateTime.now();
+    late TextEditingController withdrawalAmountController;
 
     double calculateWithdrawalAmount(DateTime selectedDate) {
       final daysSinceInvestment = selectedDate.difference(widget.fd.investmentDate).inDays;
@@ -654,11 +669,17 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
     showCupertinoModalPopup(
       context: context,
       builder: (context) => StatefulBuilder(
-        builder: (context, setState) => Container(
-          color: AppStyles.getBackground(context),
-          child: SafeArea(
-            top: true,
-            child: Column(
+        builder: (context, setState) {
+          final initialAmount = calculateWithdrawalAmount(withdrawalDate);
+          withdrawalAmountController = TextEditingController(
+            text: initialAmount.toStringAsFixed(2),
+          );
+
+          return Container(
+            color: AppStyles.getBackground(context),
+            child: SafeArea(
+              top: true,
+              child: Column(
               children: [
                 // Header
                 Container(
@@ -819,7 +840,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                         ),
                         const SizedBox(height: 8),
                         CupertinoTextField(
-                          placeholder: calculateWithdrawalAmount(withdrawalDate).toStringAsFixed(2),
+                          controller: withdrawalAmountController,
                           keyboardType: const TextInputType.numberWithOptions(decimal: true),
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
@@ -895,7 +916,8 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                       Expanded(
                         child: CupertinoButton(
                           onPressed: () async {
-                            final amount = calculateWithdrawalAmount(withdrawalDate);
+                            final amount = double.tryParse(withdrawalAmountController.text) ??
+                                calculateWithdrawalAmount(withdrawalDate);
                             final confirmed = await showCupertinoDialog<bool>(
                               context: context,
                               builder: (BuildContext context) {
@@ -987,9 +1009,12 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                                 }
 
                                 // Update the investment with withdrawal cycle
+                                final existingMetadata = originalInvestment.metadata ?? {};
+                                final safeMetadata = Map<String, dynamic>.from(existingMetadata);
+
                                 final updatedInvestment = originalInvestment.copyWith(
                                   metadata: {
-                                    ...?originalInvestment.metadata,
+                                    ...safeMetadata,
                                     'renewalCycles': existingCycles.map((c) => c.toMap()).toList(),
                                     'withdrawalDate': withdrawalDate.toIso8601String(),
                                     'withdrawalAmount': amount,
@@ -1000,6 +1025,28 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
 
                                 // Update the investment
                                 await investmentsController.updateInvestment(updatedInvestment);
+
+                                // Credit the linked account
+                                final linkedAccountId = widget.fd.linkedAccountId;
+                                if (linkedAccountId.isNotEmpty) {
+                                  try {
+                                    final accountsController =
+                                        Provider.of<AccountsController>(context, listen: false);
+                                    try {
+                                      final linkedAccount = accountsController.accounts.firstWhere(
+                                        (acc) => acc.id == linkedAccountId,
+                                      );
+                                      final updatedAccount = linkedAccount.copyWith(
+                                        balance: linkedAccount.balance + amount,
+                                      );
+                                      await accountsController.updateAccount(updatedAccount);
+                                    } catch (e) {
+                                      // Account not found
+                                    }
+                                  } catch (e) {
+                                    // Continue even if account credit fails
+                                  }
+                                }
 
                                 Navigator.of(context).pop();
                                 toast.showSuccess('Withdrawal completed. Amount: ₹${amount.toStringAsFixed(2)}');
@@ -1020,7 +1067,8 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
               ],
             ),
           ),
-        ),
+        );
+        },
       ),
     );
   }
@@ -1556,14 +1604,136 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
     }
   }
 
+  /// Get the latest renewal cycle from metadata
+  FDRenewalCycle? _getLatestRenewalCycle() {
+    try {
+      final investmentsController = Provider.of<InvestmentsController>(context, listen: false);
+      final investments = investmentsController.investments
+          .where((inv) => inv.name == widget.fd.name)
+          .toList();
+
+      if (investments.isEmpty) return null;
+
+      final investment = investments.first;
+      final cyclesData = investment.metadata?['renewalCycles'] as List?;
+      if (cyclesData == null || cyclesData.isEmpty) return null;
+
+      // Get the last (latest) cycle
+      final lastCycleMap = Map<String, dynamic>.from(cyclesData.last as Map);
+      return FDRenewalCycle.fromMap(lastCycleMap);
+    } catch (e) {
+      print('Error getting latest renewal cycle: $e');
+      return null;
+    }
+  }
+
+  /// Check if FD has been renewed (has multiple cycles)
+  bool _hasBeenRenewed() {
+    try {
+      final investmentsController = Provider.of<InvestmentsController>(context, listen: false);
+      final investments = investmentsController.investments
+          .where((inv) => inv.name == widget.fd.name)
+          .toList();
+
+      if (investments.isEmpty) return false;
+
+      final investment = investments.first;
+      final cyclesData = investment.metadata?['renewalCycles'] as List?;
+      return cyclesData != null && cyclesData.length > 1;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Get renewal date from metadata
+  DateTime? _getRenewalDate() {
+    try {
+      final investmentsController = Provider.of<InvestmentsController>(context, listen: false);
+      final investments = investmentsController.investments
+          .where((inv) => inv.name == widget.fd.name)
+          .toList();
+
+      if (investments.isEmpty) return null;
+
+      final investment = investments.first;
+      final renewalDateStr = investment.metadata?['lastRenewalDate'] as String?;
+      if (renewalDateStr != null) {
+        return DateTime.parse(renewalDateStr);
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// Get current accrued value based on latest cycle
+  double _getCurrentValue() {
+    final latestCycle = _getLatestRenewalCycle();
+    if (latestCycle != null) {
+      return latestCycle.getAccruedValue(DateTime.now());
+    }
+    return widget.fd.estimatedAccruedValue;
+  }
+
+  /// Get maturity date from latest cycle or original FD
+  DateTime _getMaturityDate() {
+    final latestCycle = _getLatestRenewalCycle();
+    if (latestCycle != null) {
+      return latestCycle.maturityDate;
+    }
+    return widget.fd.maturityDate;
+  }
+
+  /// Get total interest earned
+  double _getTotalInterest() {
+    final currentValue = _getCurrentValue();
+    return currentValue - widget.fd.principal;
+  }
+
+  /// Get elapsed days and months
+  Map<String, int> _getElapsed() {
+    final latestCycle = _getLatestRenewalCycle();
+    final investmentDate = latestCycle?.investmentDate ?? widget.fd.investmentDate;
+    final maturityDate = latestCycle?.maturityDate ?? widget.fd.maturityDate;
+
+    final now = DateTime.now();
+    final daysElapsed = now.difference(investmentDate).inDays;
+    final totalDays = maturityDate.difference(investmentDate).inDays;
+    final monthsElapsed = (daysElapsed / 30.44).round();
+    final totalMonths = latestCycle?.tenureMonths ?? widget.fd.tenureMonths;
+
+    return {
+      'elapsed': monthsElapsed,
+      'total': totalMonths,
+    };
+  }
+
   /// Calculate CAGR for the FD based on current state
   double _calculateCAGR(FixedDeposit fd) {
-    return FDCalculations.calculateCAGR(
-      fd.principal,
-      fd.estimatedAccruedValue,
-      fd.investmentDate,
-      DateTime.now(),
+    final principal = fd.principal;
+    final currentValue = _getCurrentValue();
+    final investDate = fd.investmentDate;
+    final today = DateTime.now();
+    final daysElapsed = today.difference(investDate).inDays;
+    final yearsElapsed = daysElapsed / 365.25;
+
+    print('\n📊 CAGR CALCULATION DEBUG:');
+    print('  Principal: ₹$principal');
+    print('  Current Value: ₹$currentValue');
+    print('  Investment Date: $investDate');
+    print('  Today: $today');
+    print('  Days Elapsed: $daysElapsed days');
+    print('  Years Elapsed: ${yearsElapsed.toStringAsFixed(2)} years');
+    print('  Gain %: ${((currentValue - principal) / principal * 100).toStringAsFixed(2)}%');
+
+    final cagr = FDCalculations.calculateCAGR(
+      principal,
+      currentValue,
+      investDate,
+      today,
     );
+    print('  CAGR Result: ${cagr.toStringAsFixed(2)}%\n');
+    return cagr;
   }
 
   Widget _buildMaturityAlert(BuildContext context) {

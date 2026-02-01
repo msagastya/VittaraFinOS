@@ -464,6 +464,24 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                         // Build the renewed FD
                         final renewedFD = _controller.buildFD();
 
+                        print('\n🔵 RENEWAL DEBUG LOG');
+                        print('Original Investment ID: ${widget.originalInvestment?.id}');
+                        print('Original Investment Amount (Principal): ${widget.originalInvestment?.amount}');
+                        print('Original Investment Metadata:');
+                        print('  - investmentDate: ${widget.originalInvestment?.metadata?['investmentDate']}');
+                        print('  - maturityDate: ${widget.originalInvestment?.metadata?['maturityDate']}');
+                        print('  - interestRate: ${widget.originalInvestment?.metadata?['interestRate']}');
+                        print('  - estimatedAccruedValue: ${widget.originalInvestment?.metadata?['estimatedAccruedValue']}');
+                        print('  - renewalCycles exists: ${widget.originalInvestment?.metadata?['renewalCycles'] != null}');
+
+                        print('\nRenewed FD Details:');
+                        print('  - principal: ${renewedFD.principal}');
+                        print('  - investmentDate: ${renewedFD.investmentDate}');
+                        print('  - maturityDate: ${renewedFD.maturityDate}');
+                        print('  - interestRate: ${renewedFD.interestRate}');
+                        print('  - maturityValue: ${renewedFD.maturityValue}');
+                        print('  - estimatedAccruedValue: ${renewedFD.estimatedAccruedValue}');
+
                         // Create a renewal cycle for this renewal
                         final renewalCycle = FDRenewalCycle(
                           cycleNumber: (widget.originalInvestment?.metadata?['renewalCycles'] as List?)?.length ?? 1 + 1,
@@ -477,9 +495,17 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                           isCompleted: false,
                         );
 
+                        print('\nNew Renewal Cycle Created:');
+                        print('  - cycleNumber: ${renewalCycle.cycleNumber}');
+                        print('  - principal: ${renewalCycle.principal}');
+                        print('  - investmentDate: ${renewalCycle.investmentDate}');
+                        print('  - maturityDate: ${renewalCycle.maturityDate}');
+                        print('  - maturityValue: ${renewalCycle.maturityValue}');
+
                         // Get existing renewal cycles
                         final existingCycles = <FDRenewalCycle>[];
                         final cyclesData = widget.originalInvestment?.metadata?['renewalCycles'] as List?;
+                        print('\nExisting renewal cycles in metadata: ${cyclesData?.length ?? 0}');
                         if (cyclesData != null) {
                           for (var c in cyclesData) {
                             final cycleMap = Map<String, dynamic>.from(c as Map);
@@ -489,12 +515,23 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
 
                         // Add new cycle to the list
                         existingCycles.add(renewalCycle);
+                        print('Total cycles after renewal: ${existingCycles.length}');
 
                         // Update the original investment with new renewal cycle
+                        final existingMetadata = widget.originalInvestment?.metadata ?? {};
+                        final safeMetadata = Map<String, dynamic>.from(existingMetadata);
+
+                        print('\n📝 UPDATING INVESTMENT:');
+                        print('  - Keeping amount (principal): ${widget.originalInvestment?.amount}');
+                        print('  - New maturity date: ${renewedFD.maturityDate}');
+                        print('  - New interest rate: ${renewedFD.interestRate}');
+                        print('  - New estimated accrued value: ${renewedFD.estimatedAccruedValue}');
+                        print('  - Cycles being saved: ${existingCycles.length}');
+
                         final updatedInvestment = widget.originalInvestment!.copyWith(
-                          amount: renewedFD.principal, // Original invested amount stays same
+                          amount: widget.originalInvestment!.amount, // KEEP ORIGINAL PRINCIPAL
                           metadata: {
-                            ...?widget.originalInvestment?.metadata,
+                            ...safeMetadata,
                             'renewalCycles': existingCycles.map((c) => c.toMap()).toList(),
                             'currentCycleIndex': existingCycles.length - 1,
                             'lastRenewalDate': DateTime.now().toIso8601String(),
@@ -506,8 +543,15 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                           },
                         );
 
+                        print('\nFinal Updated Investment:');
+                        print('  - ID: ${updatedInvestment.id}');
+                        print('  - Amount (Principal): ${updatedInvestment.amount}');
+                        print('  - Metadata keys: ${updatedInvestment.metadata?.keys.toList()}');
+
                         // Update the investment (not create new one)
                         await investmentsController.updateInvestment(updatedInvestment);
+                        print('✅ Investment updated successfully');
+                        print('🔵 RENEWAL DEBUG LOG END\n');
 
                         if (context.mounted) {
                           toast.showSuccess('FD Renewed Successfully!');
@@ -515,6 +559,8 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                           Navigator.of(context).pop();
                         }
                       } catch (e) {
+                        print('❌ RENEWAL ERROR: $e');
+                        print('Stack trace: $e');
                         if (context.mounted) {
                           toast.showError('Error: $e');
                         }

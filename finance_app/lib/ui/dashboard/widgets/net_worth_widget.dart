@@ -52,16 +52,22 @@ class NetWorthWidget extends BaseDashboardWidget {
       builder: (context, accountsController, investmentsController, child) {
         // Calculate totals
         double totalAccounts = 0;
+        int accountCount = 0;
         for (var account in accountsController.accounts) {
           totalAccounts += account.balance;
+          accountCount++;
         }
 
         double totalInvestments = 0;
+        int investmentCount = 0;
         for (var investment in investmentsController.investments) {
           totalInvestments += investment.amount;
+          investmentCount++;
         }
 
         final totalNetWorth = totalAccounts + totalInvestments;
+        final investmentPercentage = totalNetWorth > 0 ? (totalInvestments / totalNetWorth * 100).toDouble() : 0.0;
+        final accountPercentage = totalNetWorth > 0 ? (totalAccounts / totalNetWorth * 100).toDouble() : 0.0;
 
         // Determine layout based on size
         bool showCompact = columnSpan == 1;
@@ -71,54 +77,195 @@ class NetWorthWidget extends BaseDashboardWidget {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Main amount
-            Text(
-              '₹${totalNetWorth.toStringAsFixed(0)}',
-              style: TextStyle(
-                fontSize: showCompact ? 18 : 24,
-                fontWeight: FontWeight.bold,
-                color: AppStyles.getPrimaryColor(context),
+            // Main amount with gradient effect
+            Container(
+              padding: EdgeInsets.all(showCompact ? 12 : 16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppStyles.getPrimaryColor(context).withOpacity(0.1),
+                    AppStyles.getPrimaryColor(context).withOpacity(0.05),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppStyles.getPrimaryColor(context).withOpacity(0.2),
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Total Net Worth',
+                    style: TextStyle(
+                      fontSize: showCompact ? 12 : 13,
+                      color: AppStyles.getSecondaryTextColor(context),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  SizedBox(height: showCompact ? 6 : Spacing.sm),
+                  Text(
+                    '₹${totalNetWorth.toStringAsFixed(0)}',
+                    style: TextStyle(
+                      fontSize: showCompact ? 20 : 28,
+                      fontWeight: FontWeight.bold,
+                      color: AppStyles.getPrimaryColor(context),
+                    ),
+                  ),
+                ],
               ),
             ),
+
             if (showCompact)
-              SizedBox(height: 8)
+              SizedBox(height: Spacing.sm)
             else
-              SizedBox(height: Spacing.md),
+              SizedBox(height: Spacing.lg),
 
             // Breakdown (if space allows)
             if (showBreakdown)
-              Container(
-                padding: EdgeInsets.all(showCompact ? 8 : 12),
-                decoration: BoxDecoration(
-                  color: AppStyles.getBackground(context),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildBreakdownItem(
-                      context,
-                      'Accounts',
-                      totalAccounts,
-                      CupertinoIcons.creditcard_fill,
-                      Colors.blue,
-                      compact: showCompact,
-                    ),
-                    SizedBox(height: showCompact ? 6 : Spacing.sm),
-                    _buildBreakdownItem(
-                      context,
-                      'Investments',
-                      totalInvestments,
-                      CupertinoIcons.chart_bar_fill,
-                      Colors.green,
-                      compact: showCompact,
-                    ),
-                  ],
-                ),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Accounts Section
+                  _buildDetailedBreakdownItem(
+                    context,
+                    'Bank Accounts',
+                    totalAccounts,
+                    accountCount,
+                    CupertinoIcons.creditcard_fill,
+                    Colors.blue,
+                    percentage: accountPercentage,
+                    compact: showCompact,
+                  ),
+                  SizedBox(height: showCompact ? 12 : Spacing.md),
+
+                  // Investments Section
+                  _buildDetailedBreakdownItem(
+                    context,
+                    'Investments',
+                    totalInvestments,
+                    investmentCount,
+                    CupertinoIcons.chart_bar_fill,
+                    Colors.green,
+                    percentage: investmentPercentage,
+                    compact: showCompact,
+                  ),
+                ],
               ),
           ],
         );
       },
+    );
+  }
+
+  Widget _buildDetailedBreakdownItem(
+    BuildContext context,
+    String label,
+    double amount,
+    int count,
+    IconData icon,
+    Color color, {
+    double percentage = 0,
+    bool compact = false,
+  }) {
+    return Container(
+      padding: EdgeInsets.all(compact ? 10 : 14),
+      decoration: BoxDecoration(
+        color: AppStyles.getCardColor(context),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: color.withOpacity(0.1),
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  icon,
+                  size: compact ? 14 : 16,
+                  color: color,
+                ),
+              ),
+              SizedBox(width: compact ? 8 : Spacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: compact ? 11 : 12,
+                        color: AppStyles.getSecondaryTextColor(context),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    if (!compact)
+                      Padding(
+                        padding: EdgeInsets.only(top: 2),
+                        child: Text(
+                          '$count item${count != 1 ? 's' : ''}',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: AppStyles.getSecondaryTextColor(context).withOpacity(0.7),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '₹${amount.toStringAsFixed(0)}',
+                    style: TextStyle(
+                      fontSize: compact ? 11 : 13,
+                      fontWeight: FontWeight.bold,
+                      color: AppStyles.getTextColor(context),
+                    ),
+                  ),
+                  if (!compact)
+                    Padding(
+                      padding: EdgeInsets.only(top: 2),
+                      child: Text(
+                        '${percentage.toStringAsFixed(1)}%',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: color,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
+          if (!compact)
+            Padding(
+              padding: EdgeInsets.only(top: Spacing.sm),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: percentage / 100,
+                  minHeight: 6,
+                  backgroundColor: AppStyles.getBackground(context),
+                  valueColor: AlwaysStoppedAnimation<Color>(color),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 

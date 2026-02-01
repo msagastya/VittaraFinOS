@@ -29,6 +29,8 @@ import 'package:vittara_fin_os/ui/manage/fd/modals/fd_renewal_modal.dart';
 import 'package:vittara_fin_os/ui/manage/fd/modals/fd_withdrawal_modal.dart';
 import 'package:vittara_fin_os/logic/fixed_deposit_model.dart';
 import 'package:vittara_fin_os/ui/dashboard/notification_widget.dart';
+import 'package:vittara_fin_os/ui/dashboard/dashboard_settings_modal.dart';
+import 'package:vittara_fin_os/ui/net_worth_page.dart';
 import 'package:vittara_fin_os/ui/dashboard/widgets/actions_widget.dart';
 import 'package:vittara_fin_os/ui/dashboard/widgets/transaction_history_widget.dart';
 import 'package:vittara_fin_os/ui/dashboard/widgets/net_worth_widget.dart';
@@ -36,6 +38,7 @@ import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
+import 'package:vittara_fin_os/services/mf_database_service.dart';
 
 final AppLogger logger = AppLogger();
 
@@ -308,6 +311,10 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     logger.info("Initializing SplashScreen state", context: 'SplashScreen');
+
+    // Initialize MFDatabaseService in background (non-blocking)
+    MFDatabaseService().initialize();
+
     Timer(const Duration(milliseconds: 3500), () {
       if (mounted) {
         logger.info("Navigating from SplashScreen to Dashboard", context: 'SplashScreen');
@@ -367,13 +374,29 @@ class DashboardScreen extends StatelessWidget {
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
+                // Dashboard Settings
+                BouncyButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      CupertinoPageRoute(
+                        builder: (context) => const DashboardSettingsModal(),
+                      ),
+                    );
+                  },
+                  child: Icon(
+                    CupertinoIcons.slider_horizontal_3,
+                    size: IconSizes.navIcon,
+                    color: isDark ? Colors.white : CupertinoColors.black,
+                  ),
+                ),
+                SizedBox(width: Spacing.xl),
                 // Manage button
                 BouncyButton(
                   onPressed: () {
                     Navigator.of(context).push(FadeScalePageRoute(page: const ManageScreen()));
                   },
                   child: Icon(
-                    CupertinoIcons.slider_horizontal_3,
+                    CupertinoIcons.square_grid_2x2,
                     size: IconSizes.navIcon,
                     color: isDark ? Colors.white : CupertinoColors.black,
                   ),
@@ -443,53 +466,116 @@ class DashboardScreen extends StatelessWidget {
     DashboardController controller,
     List<DashboardWidgetConfig> visibleWidgets,
   ) {
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(Spacing.lg),
-      child: Column(
-        children: visibleWidgets
-            .map((widget) => Padding(
-                  padding: EdgeInsets.only(bottom: Spacing.md),
-                  child: _buildExpandableCard(context, widget),
-                ))
-            .toList(),
-      ),
+    return Column(
+      children: [
+        // PROFESSIONAL HEADER
+        _buildHeaderSection(context),
+
+        // REORDERABLE WIDGETS
+        Expanded(
+          child: ReorderableListView(
+            padding: EdgeInsets.all(Spacing.lg),
+            onReorder: (oldIndex, newIndex) {
+              // Reorder in the visible widgets list
+              final newVisibleWidgets = [...visibleWidgets];
+              if (newIndex > oldIndex) {
+                newIndex -= 1;
+              }
+              final widget = newVisibleWidgets.removeAt(oldIndex);
+              newVisibleWidgets.insert(newIndex, widget);
+
+              // Update controller with new order
+              for (int i = 0; i < newVisibleWidgets.length; i++) {
+                controller.updateWidget(
+                  newVisibleWidgets[i].copyWith(gridRow: i + 1),
+                );
+              }
+              controller.saveConfig();
+            },
+            children: visibleWidgets
+                .asMap()
+                .entries
+                .map((entry) {
+              final widget = entry.value;
+              return Container(
+                key: Key(widget.id),
+                margin: EdgeInsets.only(bottom: Spacing.lg),
+                child: _buildReorderableDashboardCard(context, widget),
+              );
+            })
+                .toList(),
+          ),
+        ),
+      ],
     );
   }
 
-  Widget _buildExpandableCard(BuildContext context, DashboardWidgetConfig widgetConfig) {
+  Widget _buildReorderableDashboardCard(
+    BuildContext context,
+    DashboardWidgetConfig widgetConfig,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Check if widget has content
+    final hasContent = _widgetHasContent(context, widgetConfig);
+
+    // Dynamic min height based on content
+    final minHeight = hasContent ? 320.0 : 120.0;
+
     return GestureDetector(
       onTap: () {
         _handleWidgetTap(context, widgetConfig);
       },
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        constraints: BoxConstraints(minHeight: minHeight),
         decoration: BoxDecoration(
           color: AppStyles.getCardColor(context),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
+            // Header with drag handle
             Padding(
               padding: EdgeInsets.all(Spacing.lg),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    widgetConfig.title,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppStyles.getTextColor(context),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        // Drag handle icon
+                        Icon(
+                          CupertinoIcons.line_horizontal_3,
+                          size: 18,
+                          color: AppStyles.getPrimaryColor(context)
+                              .withOpacity(0.4),
+                        ),
+                        SizedBox(width: Spacing.md),
+                        // Title
+                        Expanded(
+                          child: Text(
+                            widgetConfig.title,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: AppStyles.getTextColor(context),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
+                  // Expand arrow
                   Icon(
                     CupertinoIcons.chevron_right,
                     size: 20,
@@ -498,61 +584,477 @@ class DashboardScreen extends StatelessWidget {
                 ],
               ),
             ),
-            // Preview content (2-3 lines)
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
-              child: Container(
-                constraints: const BoxConstraints(maxHeight: 80),
-                child: SingleChildScrollView(
-                  physics: const NeverScrollableScrollPhysics(),
-                  child: _buildWidgetPreview(context, widgetConfig),
+
+            // Content with padding
+            if (hasContent)
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: Spacing.lg)
+                      .copyWith(bottom: Spacing.lg),
+                  child: SingleChildScrollView(
+                    physics: const NeverScrollableScrollPhysics(),
+                    child: _buildWidgetPreview(context, widgetConfig),
+                  ),
+                ),
+              )
+            else
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: Spacing.lg,
+                  vertical: Spacing.md,
+                ),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        CupertinoIcons.checkmark_circle_fill,
+                        size: 28,
+                        color: Colors.green.withOpacity(0.6),
+                      ),
+                      SizedBox(height: Spacing.sm),
+                      Text(
+                        'All caught up!',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppStyles.getSecondaryTextColor(context),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            SizedBox(height: Spacing.lg),
           ],
         ),
       ),
     );
   }
 
+  bool _widgetHasContent(
+    BuildContext context,
+    DashboardWidgetConfig widgetConfig,
+  ) {
+    switch (widgetConfig.type) {
+      case DashboardWidgetType.actions:
+        return true; // Actions always has content
+      case DashboardWidgetType.netWorth:
+        return true; // Net Worth always has content
+      case DashboardWidgetType.transactionHistory:
+        // Check if there are transactions
+        final transactionsController =
+            Provider.of<TransactionsController>(context, listen: false);
+        return transactionsController.transactions.isNotEmpty;
+      case DashboardWidgetType.fdNotifications:
+        // Check if there are FD notifications
+        final investmentsController =
+            Provider.of<InvestmentsController>(context, listen: false);
+        final fdsNearMaturity = investmentsController.investments.where((inv) {
+          if (inv.type.name != 'fixedDeposit') return false;
+          final metadata = inv.metadata;
+          if (metadata == null || !metadata.containsKey('maturityDate'))
+            return false;
+          final maturityDate = DateTime.parse(metadata['maturityDate'] as String);
+          final daysUntil = maturityDate.difference(DateTime.now()).inDays;
+          return daysUntil <= 10 && daysUntil >= 0;
+        }).toList();
+
+        final fdsMatured = investmentsController.investments.where((inv) {
+          if (inv.type.name != 'fixedDeposit') return false;
+          final metadata = inv.metadata;
+          if (metadata == null || !metadata.containsKey('maturityDate'))
+            return false;
+          final maturityDate = DateTime.parse(metadata['maturityDate'] as String);
+          final daysUntil = maturityDate.difference(DateTime.now()).inDays;
+          return daysUntil < 0;
+        }).toList();
+
+        return fdsNearMaturity.isNotEmpty || fdsMatured.isNotEmpty;
+      default:
+        return true;
+    }
+  }
+
+  Widget _buildHeaderSection(BuildContext context) {
+    final now = DateTime.now();
+    final hour = now.hour;
+    final greeting = hour < 12
+        ? 'Good Morning'
+        : hour < 17
+            ? 'Good Afternoon'
+            : 'Good Evening';
+
+    final dateFormatter = _formatHeaderDate(now);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            SemanticColors.primary.withOpacity(0.1),
+            SemanticColors.primary.withOpacity(0.05),
+          ],
+        ),
+        border: Border(
+          bottom: BorderSide(
+            color: Colors.grey.withOpacity(0.1),
+            width: 1,
+          ),
+        ),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: Spacing.lg,
+            vertical: Spacing.xl,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Greeting
+              Text(
+                greeting,
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: AppStyles.getTextColor(context),
+                ),
+              ),
+              SizedBox(height: Spacing.sm),
+
+              // Date & Status
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    dateFormatter,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppStyles.getSecondaryTextColor(context),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: Spacing.md,
+                      vertical: Spacing.xs,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.green.withOpacity(0.3),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          CupertinoIcons.checkmark_circle_fill,
+                          size: 12,
+                          color: Colors.green,
+                        ),
+                        SizedBox(width: 6),
+                        Text(
+                          'All Systems Go',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.green,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _formatHeaderDate(DateTime date) {
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+    final days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+    return '${days[date.weekday - 1]}, ${date.day} ${months[date.month - 1]} ${date.year}';
+  }
+
+
   Widget _buildWidgetPreview(BuildContext context, DashboardWidgetConfig widgetConfig) {
     switch (widgetConfig.type) {
       case DashboardWidgetType.actions:
-        return Text(
-          'Manage accounts, transactions, and investments',
-          style: TextStyle(
-            fontSize: 13,
-            color: AppStyles.getSecondaryTextColor(context),
-          ),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
+        return Consumer<InvestmentsController>(
+          builder: (context, _, child) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildQuickAction(context, 'Add Transaction', CupertinoIcons.plus_circle_fill, Colors.blue),
+                SizedBox(height: Spacing.md),
+                _buildQuickAction(context, 'Manage Accounts', CupertinoIcons.creditcard_fill, Colors.green),
+                SizedBox(height: Spacing.md),
+                _buildQuickAction(context, 'View Investments', CupertinoIcons.chart_bar_fill, Colors.purple),
+              ],
+            );
+          },
         );
       case DashboardWidgetType.netWorth:
-        return Text(
-          'View your total net worth across all accounts and investments',
-          style: TextStyle(
-            fontSize: 13,
-            color: AppStyles.getSecondaryTextColor(context),
-          ),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
+        return Consumer2<AccountsController, InvestmentsController>(
+          builder: (context, accountsController, investmentsController, child) {
+            double totalAccounts = 0;
+            for (var account in accountsController.accounts) {
+              totalAccounts += account.balance;
+            }
+            double totalInvestments = 0;
+            for (var investment in investmentsController.investments) {
+              totalInvestments += investment.amount;
+            }
+            final totalNetWorth = totalAccounts + totalInvestments;
+            final accountCount = accountsController.accounts.length;
+            final investmentCount = investmentsController.investments.length;
+
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Main Net Worth Card with Gradient
+                Container(
+                  padding: EdgeInsets.all(Spacing.lg),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        AppStyles.getPrimaryColor(context).withOpacity(0.15),
+                        AppStyles.getPrimaryColor(context).withOpacity(0.05),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppStyles.getPrimaryColor(context).withOpacity(0.2),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppStyles.getPrimaryColor(context).withOpacity(0.1),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Net Worth',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: AppStyles.getSecondaryTextColor(context),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              SizedBox(height: Spacing.xs),
+                              Text(
+                                '₹${totalNetWorth.toStringAsFixed(0)}',
+                                style: TextStyle(
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppStyles.getPrimaryColor(context),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Container(
+                            padding: EdgeInsets.all(Spacing.md),
+                            decoration: BoxDecoration(
+                              color: AppStyles.getPrimaryColor(context).withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              CupertinoIcons.graph_square_fill,
+                              size: 28,
+                              color: AppStyles.getPrimaryColor(context),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: Spacing.lg),
+
+                // Assets Breakdown
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildNetWorthBreakdownItem(
+                      context,
+                      'Bank Accounts',
+                      totalAccounts,
+                      accountCount,
+                      CupertinoIcons.creditcard_fill,
+                      Colors.blue,
+                      totalNetWorth,
+                    ),
+                    SizedBox(height: Spacing.md),
+                    _buildNetWorthBreakdownItem(
+                      context,
+                      'Investments',
+                      totalInvestments,
+                      investmentCount,
+                      CupertinoIcons.chart_bar_fill,
+                      Colors.green,
+                      totalNetWorth,
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
         );
       case DashboardWidgetType.transactionHistory:
-        return Text(
-          'Track all your recent transactions',
-          style: TextStyle(
-            fontSize: 13,
-            color: AppStyles.getSecondaryTextColor(context),
-          ),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
+        return Consumer<TransactionsController>(
+          builder: (context, transactionController, child) {
+            final transactions = transactionController.transactions.take(3).toList();
+
+            if (transactions.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      CupertinoIcons.doc_text,
+                      size: 32,
+                      color: AppStyles.getSecondaryTextColor(context),
+                    ),
+                    SizedBox(height: Spacing.sm),
+                    Text(
+                      'No transactions yet',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppStyles.getSecondaryTextColor(context),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: transactions
+                  .asMap()
+                  .entries
+                  .map((entry) {
+                    final isLast = entry.key == transactions.length - 1;
+                    final tx = entry.value;
+                    final amount = tx.amount ?? 0;
+                    final isExpense = amount < 0;
+
+                    return Column(
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: (isExpense ? Colors.red : Colors.green)
+                                    .withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(
+                                isExpense
+                                    ? CupertinoIcons.arrow_up
+                                    : CupertinoIcons.arrow_down,
+                                size: 18,
+                                color: isExpense ? Colors.red : Colors.green,
+                              ),
+                            ),
+                            SizedBox(width: Spacing.md),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    tx.description ?? 'Transaction',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppStyles.getTextColor(context),
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Text(
+                                    'Just now',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: AppStyles.getSecondaryTextColor(context),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Text(
+                              '${isExpense ? '-' : '+'}₹${amount.abs().toStringAsFixed(0)}',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: isExpense ? Colors.red : Colors.green,
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (!isLast)
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: Spacing.md),
+                            child: Divider(height: 1),
+                          ),
+                      ],
+                    );
+                  })
+                  .toList(),
+            );
+          },
         );
       case DashboardWidgetType.fdNotifications:
         return Consumer<InvestmentsController>(
           builder: (context, investmentsController, child) {
-            final investments = investmentsController.investments;
-            final fdsMatured = investments.where((inv) {
+            final fdsNearMaturity = investmentsController.investments.where((inv) {
+              if (inv.type.name != 'fixedDeposit') return false;
+              final metadata = inv.metadata;
+              if (metadata == null || !metadata.containsKey('maturityDate')) return false;
+              final maturityDate = DateTime.parse(metadata['maturityDate'] as String);
+              final daysUntil = maturityDate.difference(DateTime.now()).inDays;
+              return daysUntil <= 10 && daysUntil >= 0;
+            }).toList();
+
+            final fdsMatured = investmentsController.investments.where((inv) {
               if (inv.type.name != 'fixedDeposit') return false;
               final metadata = inv.metadata;
               if (metadata == null || !metadata.containsKey('maturityDate')) return false;
@@ -561,33 +1063,249 @@ class DashboardScreen extends StatelessWidget {
               return daysUntil < 0;
             }).toList();
 
-            if (fdsMatured.isEmpty) {
-              return Text(
-                'No matured FDs. All investments are on track',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: AppStyles.getSecondaryTextColor(context),
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              );
-            }
+            final totalNotifications = fdsNearMaturity.length + fdsMatured.length;
 
-            return Text(
-              '${fdsMatured.length} matured FD${fdsMatured.length > 1 ? 's' : ''} awaiting action',
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.orange,
-                fontWeight: FontWeight.w600,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (fdsMatured.isNotEmpty)
+                  Container(
+                    padding: EdgeInsets.all(Spacing.md),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.red.withOpacity(0.2)),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          CupertinoIcons.exclamationmark_circle_fill,
+                          size: 20,
+                          color: Colors.red,
+                        ),
+                        SizedBox(width: Spacing.md),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                '${fdsMatured.length} FD${fdsMatured.length > 1 ? 's' : ''} Matured',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.red,
+                                ),
+                              ),
+                              Text(
+                                'Action required',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.red.withOpacity(0.7),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                if (fdsMatured.isNotEmpty && fdsNearMaturity.isNotEmpty)
+                  SizedBox(height: Spacing.md),
+                if (fdsNearMaturity.isNotEmpty)
+                  Container(
+                    padding: EdgeInsets.all(Spacing.md),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.orange.withOpacity(0.2)),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          CupertinoIcons.bell_fill,
+                          size: 20,
+                          color: Colors.orange,
+                        ),
+                        SizedBox(width: Spacing.md),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                '${fdsNearMaturity.length} FD${fdsNearMaturity.length > 1 ? 's' : ''} Maturing Soon',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.orange,
+                                ),
+                              ),
+                              Text(
+                                'Within 10 days',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.orange.withOpacity(0.7),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
             );
           },
         );
       default:
         return const SizedBox.shrink();
     }
+  }
+
+  Widget _buildQuickAction(
+    BuildContext context,
+    String label,
+    IconData icon,
+    Color color,
+  ) {
+    return Container(
+      padding: EdgeInsets.all(Spacing.md),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, size: 16, color: color),
+          ),
+          SizedBox(width: Spacing.md),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppStyles.getTextColor(context),
+              ),
+            ),
+          ),
+          Icon(
+            CupertinoIcons.chevron_right,
+            size: 14,
+            color: color,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNetWorthBreakdownItem(
+    BuildContext context,
+    String label,
+    double amount,
+    int count,
+    IconData icon,
+    Color color,
+    double total,
+  ) {
+    final percentage = total > 0 ? (amount / total * 100) : 0.0;
+
+    return Container(
+      padding: EdgeInsets.all(Spacing.md),
+      decoration: BoxDecoration(
+        color: AppStyles.getCardColor(context),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: color.withOpacity(0.15),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  icon,
+                  size: 16,
+                  color: color,
+                ),
+              ),
+              SizedBox(width: Spacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppStyles.getSecondaryTextColor(context),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    Text(
+                      '$count item${count != 1 ? 's' : ''}',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: AppStyles.getSecondaryTextColor(context).withOpacity(0.7),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '₹${amount.toStringAsFixed(0)}',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: AppStyles.getTextColor(context),
+                    ),
+                  ),
+                  Text(
+                    '${percentage.toStringAsFixed(1)}%',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: color,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          SizedBox(height: Spacing.sm),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: percentage / 100,
+              minHeight: 6,
+              backgroundColor: AppStyles.getBackground(context),
+              valueColor: AlwaysStoppedAnimation<Color>(color),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _handleWidgetTap(BuildContext context, DashboardWidgetConfig widgetConfig) {
@@ -604,7 +1322,7 @@ class DashboardScreen extends StatelessWidget {
         break;
       case DashboardWidgetType.netWorth:
         Navigator.of(context).push(
-          CupertinoPageRoute(builder: (context) => const ManageScreen()),
+          CupertinoPageRoute(builder: (context) => const NetWorthPage()),
         );
         break;
       case DashboardWidgetType.fdNotifications:

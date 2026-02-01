@@ -1,6 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/fixed_deposit_model.dart';
+import 'package:vittara_fin_os/logic/investments_controller.dart';
+import 'package:vittara_fin_os/logic/investment_model.dart';
+import 'package:vittara_fin_os/logic/fd_renewal_cycle.dart';
+import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
@@ -8,10 +13,14 @@ import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 class FDWithdrawalModal extends StatefulWidget {
   final FixedDeposit fd;
   final VoidCallback onWithdraw;
+  final InvestmentsController? investmentController;
+  final Investment? originalInvestment;
 
   const FDWithdrawalModal({
     required this.fd,
     required this.onWithdraw,
+    this.investmentController,
+    this.originalInvestment,
     super.key,
   });
 
@@ -22,12 +31,22 @@ class FDWithdrawalModal extends StatefulWidget {
 class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
   late DateTime _withdrawalDate;
   late double _withdrawalValue;
+  late TextEditingController _withdrawalAmountController;
 
   @override
   void initState() {
     super.initState();
     _withdrawalDate = widget.fd.maturityDate;
     _withdrawalValue = _calculateWithdrawalValue(_withdrawalDate);
+    _withdrawalAmountController = TextEditingController(
+      text: _withdrawalValue.toStringAsFixed(2),
+    );
+  }
+
+  @override
+  void dispose() {
+    _withdrawalAmountController.dispose();
+    super.dispose();
   }
 
   double _calculateWithdrawalValue(DateTime date) {
@@ -161,13 +180,47 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                       ),
                     ),
                     SizedBox(height: Spacing.sm),
-                    Text(
-                      '₹${_withdrawalValue.toStringAsFixed(2)}',
-                      style: TextStyle(
-                        color: AppStyles.getPrimaryColor(context),
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: CupertinoTextField(
+                            controller: _withdrawalAmountController,
+                            placeholder: '0.00',
+                            prefix: Padding(
+                              padding: EdgeInsets.only(left: Spacing.md),
+                              child: Text(
+                                '₹',
+                                style: TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppStyles.getPrimaryColor(context),
+                                ),
+                              ),
+                            ),
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            style: TextStyle(
+                              color: AppStyles.getPrimaryColor(context),
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: AppStyles.getDividerColor(context),
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: Spacing.md,
+                              vertical: Spacing.md,
+                            ),
+                            onChanged: (value) {
+                              setState(() {
+                                _withdrawalValue = double.tryParse(value) ?? _withdrawalValue;
+                              });
+                            },
+                          ),
+                        ),
+                      ],
                     ),
                     SizedBox(height: Spacing.md),
                     if (_withdrawalDate.isBefore(widget.fd.maturityDate))
@@ -220,12 +273,111 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                 width: double.infinity,
                 child: CupertinoButton(
                   color: Colors.green,
-                  onPressed: () {
-                    toast.showSuccess(
-                      'Withdrawal confirmed for ${_formatDate(_withdrawalDate)}',
-                    );
-                    widget.onWithdraw();
-                    Navigator.of(context).pop();
+                  onPressed: () async {
+                    // If we have the investment controller, persist the withdrawal
+                    if (widget.investmentController != null && widget.originalInvestment != null) {
+                      try {
+                        // Read the user-entered withdrawal amount from text field
+                        final userEnteredAmount = double.tryParse(_withdrawalAmountController.text) ?? _withdrawalValue;
+                        final withdrawalAmount = userEnteredAmount;
+
+                        final originalInvestment = widget.originalInvestment!;
+                        final investmentsController = widget.investmentController!;
+
+                        // Get existing renewal cycles
+                        final existingCycles = <FDRenewalCycle>[];
+                        final cyclesData = originalInvestment.metadata?['renewalCycles'] as List?;
+                        if (cyclesData != null) {
+                          for (var c in cyclesData) {
+                            final cycleMap = Map<String, dynamic>.from(c as Map);
+                            existingCycles.add(FDRenewalCycle.fromMap(cycleMap));
+                          }
+                        }
+
+                        // If no cycles exist, create the first one from the FD
+                        if (existingCycles.isEmpty) {
+                          existingCycles.add(FDRenewalCycle(
+                            cycleNumber: 1,
+                            investmentDate: widget.fd.investmentDate,
+                            maturityDate: widget.fd.maturityDate,
+                            principal: widget.fd.principal,
+                            interestRate: widget.fd.interestRate,
+                            tenureMonths: widget.fd.tenureMonths,
+                            maturityValue: widget.fd.maturityValue,
+                            isWithdrawn: false,
+                            isCompleted: false,
+                          ));
+                        }
+
+                        // Mark the last cycle as withdrawn
+                        if (existingCycles.isNotEmpty) {
+                          final lastCycle = existingCycles.last;
+                          existingCycles[existingCycles.length - 1] = lastCycle.copyWith(
+                            isWithdrawn: true,
+                            withdrawalDate: _withdrawalDate,
+                            withdrawalAmount: withdrawalAmount,
+                            withdrawalReason: 'Withdrawal from notification',
+                          );
+                        }
+
+                        // Update the investment with withdrawal cycle
+                        final existingMetadata = originalInvestment.metadata ?? {};
+                        final safeMetadata = Map<String, dynamic>.from(existingMetadata);
+
+                        final updatedInvestment = originalInvestment.copyWith(
+                          metadata: {
+                            ...safeMetadata,
+                            'renewalCycles': existingCycles.map((c) => c.toMap()).toList(),
+                            'withdrawalDate': _withdrawalDate.toIso8601String(),
+                            'withdrawalAmount': withdrawalAmount,
+                            'withdrawalReason': 'Withdrawal from notification',
+                            'status': 'withdrawn',
+                          },
+                        );
+
+                        // Update the investment
+                        await investmentsController.updateInvestment(updatedInvestment);
+
+                        // Credit the linked account
+                        final linkedAccountId = widget.fd.linkedAccountId;
+                        if (linkedAccountId.isNotEmpty) {
+                          try {
+                            final accountsController =
+                                Provider.of<AccountsController>(context, listen: false);
+                            try {
+                              final linkedAccount = accountsController.accounts.firstWhere(
+                                (acc) => acc.id == linkedAccountId,
+                              );
+                              final updatedAccount = linkedAccount.copyWith(
+                                balance: linkedAccount.balance + withdrawalAmount,
+                              );
+                              await accountsController.updateAccount(updatedAccount);
+                            } catch (e) {
+                              // Account not found
+                            }
+                          } catch (e) {
+                            // Continue even if account credit fails
+                          }
+                        }
+
+                        if (mounted) {
+                          toast.showSuccess(
+                            'Withdrawal confirmed for ${_formatDate(_withdrawalDate)}. Amount: ₹${_withdrawalValue.toStringAsFixed(2)}',
+                          );
+                          widget.onWithdraw();
+                          Navigator.of(context).pop();
+                        }
+                      } catch (e) {
+                        toast.showError('Error processing withdrawal: $e');
+                      }
+                    } else {
+                      // Fallback to old behavior if controller not provided
+                      toast.showSuccess(
+                        'Withdrawal confirmed for ${_formatDate(_withdrawalDate)}',
+                      );
+                      widget.onWithdraw();
+                      Navigator.of(context).pop();
+                    }
                   },
                   child: const Text(
                     'Confirm Withdrawal',
@@ -262,6 +414,8 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                   setState(() {
                     _withdrawalDate = newDate;
                     _withdrawalValue = _calculateWithdrawalValue(newDate);
+                    // Update the text field with new calculated value
+                    _withdrawalAmountController.text = _withdrawalValue.toStringAsFixed(2);
                   });
                 },
               ),

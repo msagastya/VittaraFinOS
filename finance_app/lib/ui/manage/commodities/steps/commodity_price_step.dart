@@ -1,0 +1,276 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:vittara_fin_os/ui/manage/commodities/commodities_wizard_controller.dart';
+import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+
+class CommodityPriceStep extends StatefulWidget {
+  final CommoditiesWizardController ctrl;
+
+  const CommodityPriceStep(this.ctrl);
+
+  @override
+  State<CommodityPriceStep> createState() => _CommodityPriceStepState();
+}
+
+class _CommodityPriceStepState extends State<CommodityPriceStep> {
+  late TextEditingController _priceController;
+
+  @override
+  void initState() {
+    super.initState();
+    _priceController = TextEditingController(
+      text: widget.ctrl.buyPrice?.toString() ?? '',
+    );
+  }
+
+  @override
+  void dispose() {
+    _priceController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final exchanges = ['MCX (India)', 'NCDEX (India)', 'COMEX (US)', 'LME (London)', 'TOCOM (Japan)', 'Other'];
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Purchase Price & Exchange', style: AppStyles.titleStyle(context)),
+          const SizedBox(height: 30),
+          Text('Price Per ${widget.ctrl.unit ?? 'Unit'} (₹)',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+          const SizedBox(height: 12),
+          CupertinoTextField(
+            controller: _priceController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            placeholder: '0.00',
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppStyles.getCardColor(context),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            prefix: Padding(
+              padding: const EdgeInsets.only(left: 16),
+              child: const Text('₹'),
+            ),
+            onChanged: (v) {
+              final price = double.tryParse(v) ?? 0;
+              if (price > 0) widget.ctrl.updateBuyPrice(price);
+            },
+          ),
+          const SizedBox(height: 24),
+          Text('Purchase Date',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+          const SizedBox(height: 12),
+          GestureDetector(
+            onTap: () {
+              showCupertinoModalPopup(
+                context: context,
+                builder: (ctx) => Container(
+                  height: 300,
+                  color: AppStyles.getBackground(context),
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppStyles.getCardColor(context),
+                          border: Border(
+                            bottom: BorderSide(color: Colors.grey.withOpacity(0.2)),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Select Date',
+                                style: const TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold)),
+                            GestureDetector(
+                              onTap: () => Navigator.pop(ctx),
+                              child: const Icon(CupertinoIcons.xmark),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: CupertinoDatePicker(
+                          mode: CupertinoDatePickerMode.date,
+                          initialDateTime: widget.ctrl.purchaseDate,
+                          onDateTimeChanged: (date) {
+                            widget.ctrl.updatePurchaseDate(date);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppStyles.getCardColor(context),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.withOpacity(0.2)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${widget.ctrl.purchaseDate.day}/${widget.ctrl.purchaseDate.month}/${widget.ctrl.purchaseDate.year}',
+                    style: TextStyle(color: AppStyles.getTextColor(context)),
+                  ),
+                  const Icon(CupertinoIcons.calendar),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text('Exchange',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: AppStyles.getCardColor(context),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.withOpacity(0.2)),
+            ),
+            child: CupertinoButton(
+              onPressed: () {
+                showCupertinoModalPopup(
+                  context: context,
+                  builder: (ctx) => Container(
+                    color: AppStyles.getBackground(context),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AppStyles.getCardColor(context),
+                            border: Border(
+                              bottom: BorderSide(color: Colors.grey.withOpacity(0.2)),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Select Exchange',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppStyles.getTextColor(context),
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () => Navigator.pop(ctx),
+                                child: const Icon(CupertinoIcons.xmark),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: ListView.builder(
+                            padding: const EdgeInsets.all(16),
+                            itemCount: exchanges.length,
+                            itemBuilder: (context, index) {
+                              final exchange = exchanges[index];
+                              return GestureDetector(
+                                onTap: () {
+                                  widget.ctrl.updateExchange(exchange);
+                                  Navigator.pop(ctx);
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
+                                  margin: const EdgeInsets.only(bottom: 8),
+                                  decoration: BoxDecoration(
+                                    color: widget.ctrl.exchange == exchange
+                                        ? const Color(0xFF8B4513).withOpacity(0.1)
+                                        : AppStyles.getBackground(context),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: widget.ctrl.exchange == exchange
+                                          ? const Color(0xFF8B4513)
+                                          : Colors.transparent,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    exchange,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: widget.ctrl.exchange == exchange
+                                          ? const Color(0xFF8B4513)
+                                          : AppStyles.getTextColor(context),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+              padding: EdgeInsets.zero,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    widget.ctrl.exchange ?? 'Select exchange',
+                    style: TextStyle(
+                      color: widget.ctrl.exchange != null
+                          ? AppStyles.getTextColor(context)
+                          : AppStyles.getSecondaryTextColor(context),
+                    ),
+                  ),
+                  const Icon(CupertinoIcons.down_arrow),
+                ],
+              ),
+            ),
+          ),
+          if (widget.ctrl.buyPrice != null && widget.ctrl.quantity != null) ...[
+            const SizedBox(height: 24),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF8B4513).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFF8B4513).withOpacity(0.3)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Total Cost',
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: AppStyles.getSecondaryTextColor(context))),
+                      const SizedBox(height: 4),
+                      Text('₹${widget.ctrl.totalCost.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF8B4513))),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}

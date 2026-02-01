@@ -1,0 +1,261 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:vittara_fin_os/ui/manage/bonds/bonds_wizard_controller.dart';
+import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+
+class BondsPurchaseStep extends StatefulWidget {
+  const BondsPurchaseStep({super.key});
+
+  @override
+  State<BondsPurchaseStep> createState() => _BondsPurchaseStepState();
+}
+
+class _BondsPurchaseStepState extends State<BondsPurchaseStep> {
+  late TextEditingController _priceController;
+  late TextEditingController _notesController;
+
+  @override
+  void initState() {
+    super.initState();
+    final controller =
+        Provider.of<BondsWizardController>(context, listen: false);
+    _priceController = TextEditingController(
+      text: controller.purchasePrice != null
+          ? controller.purchasePrice!.toString()
+          : '',
+    );
+    _notesController = TextEditingController(text: controller.notes ?? '');
+  }
+
+  @override
+  void dispose() {
+    _priceController.dispose();
+    _notesController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = Provider.of<BondsWizardController>(context);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Purchase Information',
+            style: AppStyles.titleStyle(context),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Enter purchase date and price',
+            style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+          ),
+          const SizedBox(height: 30),
+          // Purchase Date
+          Text(
+            'Purchase Date',
+            style: TextStyle(
+              color: AppStyles.getTextColor(context),
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 12),
+          GestureDetector(
+            onTap: () async {
+              final pickedDate = await showCupertinoModalPopup<DateTime>(
+                context: context,
+                builder: (BuildContext context) {
+                  return Container(
+                    height: 300,
+                    color: AppStyles.getBackground(context),
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              CupertinoButton(
+                                padding: EdgeInsets.zero,
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('Cancel'),
+                              ),
+                              CupertinoButton(
+                                padding: EdgeInsets.zero,
+                                onPressed: () =>
+                                    Navigator.pop(context, controller.purchaseDate),
+                                child: const Text('Done'),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: CupertinoDatePicker(
+                            initialDateTime: controller.purchaseDate,
+                            maximumDate: DateTime.now(),
+                            mode: CupertinoDatePickerMode.date,
+                            onDateTimeChanged: (DateTime newDate) {
+                              controller.updatePurchaseDate(newDate);
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              );
+
+              if (pickedDate != null) {
+                controller.updatePurchaseDate(pickedDate);
+              }
+            },
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppStyles.getCardColor(context),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Colors.grey.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${controller.purchaseDate.day}/${controller.purchaseDate.month}/${controller.purchaseDate.year}',
+                    style: TextStyle(color: AppStyles.getTextColor(context)),
+                  ),
+                  Icon(
+                    CupertinoIcons.calendar,
+                    color: AppStyles.getSecondaryTextColor(context),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          // Purchase Price per Bond
+          Text(
+            'Purchase Price per Bond (₹)',
+            style: TextStyle(
+              color: AppStyles.getTextColor(context),
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 12),
+          CupertinoTextField(
+            controller: _priceController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            placeholder: '1000',
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppStyles.getCardColor(context),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            prefix: Padding(
+              padding: const EdgeInsets.only(left: 16),
+              child: Text(
+                '₹',
+                style: TextStyle(color: AppStyles.getTextColor(context)),
+              ),
+            ),
+            style: TextStyle(color: AppStyles.getTextColor(context)),
+            onChanged: (value) {
+              final price = double.tryParse(value) ?? 0;
+              if (price > 0) {
+                controller.updatePurchasePrice(price);
+              }
+            },
+          ),
+          const SizedBox(height: 24),
+          // Notes
+          Text(
+            'Notes (Optional)',
+            style: TextStyle(
+              color: AppStyles.getTextColor(context),
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 12),
+          CupertinoTextField(
+            controller: _notesController,
+            placeholder: 'Add any notes about this bond...',
+            padding: const EdgeInsets.all(16),
+            maxLines: 4,
+            decoration: BoxDecoration(
+              color: AppStyles.getCardColor(context),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            style: TextStyle(color: AppStyles.getTextColor(context)),
+            onChanged: (value) {
+              controller.updateNotes(value.isEmpty ? null : value);
+            },
+          ),
+          const SizedBox(height: 30),
+          // Summary
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF007AFF).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: const Color(0xFF007AFF).withValues(alpha: 0.3),
+              ),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Total Cost',
+                      style: TextStyle(
+                        color: AppStyles.getSecondaryTextColor(context),
+                        fontSize: 12,
+                      ),
+                    ),
+                    Text(
+                      '₹${controller.totalCost.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Color(0xFF007AFF),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Maturity Value (Face Value)',
+                      style: TextStyle(
+                        color: AppStyles.getSecondaryTextColor(context),
+                        fontSize: 12,
+                      ),
+                    ),
+                    Text(
+                      '₹${controller.maturityValue.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+}

@@ -7,13 +7,30 @@ import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/fixed_deposit_model.dart';
 import 'package:vittara_fin_os/logic/recurring_deposit_model.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
+import 'package:vittara_fin_os/services/gold_price_service.dart';
 import 'package:vittara_fin_os/ui/manage/investment_type_selection.dart';
 import 'package:vittara_fin_os/ui/manage/stocks/stocks_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/stocks/stock_details_screen.dart';
+import 'package:vittara_fin_os/ui/manage/mf/mf_wizard.dart';
+import 'package:vittara_fin_os/ui/manage/mf/mf_details_screen.dart';
 import 'package:vittara_fin_os/ui/manage/fd/fd_wizard_screen.dart';
 import 'package:vittara_fin_os/ui/manage/fd/fd_details_screen.dart';
 import 'package:vittara_fin_os/ui/manage/rd/rd_wizard_screen.dart';
 import 'package:vittara_fin_os/ui/manage/rd/rd_details_screen.dart';
+import 'package:vittara_fin_os/ui/manage/bonds/bonds_wizard.dart';
+import 'package:vittara_fin_os/ui/manage/bonds/bonds_details_screen.dart';
+import 'package:vittara_fin_os/ui/manage/cryptocurrency/crypto_wizard.dart';
+import 'package:vittara_fin_os/ui/manage/cryptocurrency/crypto_details_screen.dart';
+import 'package:vittara_fin_os/ui/manage/digital_gold/digital_gold_wizard.dart';
+import 'package:vittara_fin_os/ui/manage/digital_gold/digital_gold_details_screen.dart';
+import 'package:vittara_fin_os/ui/manage/nps/nps_wizard.dart';
+import 'package:vittara_fin_os/ui/manage/nps/nps_details_screen.dart';
+import 'package:vittara_fin_os/ui/manage/pension/pension_wizard.dart';
+import 'package:vittara_fin_os/ui/manage/pension/pension_details_screen.dart';
+import 'package:vittara_fin_os/ui/manage/commodities/commodities_wizard.dart';
+import 'package:vittara_fin_os/ui/manage/commodities/commodities_details_screen.dart';
+import 'package:vittara_fin_os/ui/manage/fo/fo_wizard.dart';
+import 'package:vittara_fin_os/ui/manage/fo/fo_details_screen.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
@@ -38,6 +55,10 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
   // Sort options
   SortBy _sortBy = SortBy.currentAmount;
   bool _sortAscending = false; // true = ascending, false = descending
+
+  // Cache for current gold price (shared across all digital gold cards)
+  double? _cachedGoldPrice;
+  Future<double?>? _goldPriceFuture;
 
   String _getSortLabel(SortBy sort) {
     switch (sort) {
@@ -106,11 +127,26 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     return sorted;
   }
 
+  // Fetch current gold price with caching
+  Future<double?> _getCurrentGoldPrice() async {
+    // Use cached price if available
+    if (_cachedGoldPrice != null) {
+      return _cachedGoldPrice;
+    }
+
+    // Fetch fresh price
+    final price = await GoldPriceService.fetchCurrentGoldPrice();
+    if (price != null) {
+      _cachedGoldPrice = price;
+    }
+    return price;
+  }
+
   double _calculateCurrentValue(Investment investment) {
     final metadata = investment.metadata;
     if (metadata != null) {
-      // Check for currentValue (stocks)
-      if (metadata.containsKey('currentValue')) {
+      // Check for currentValue (stocks, and pre-calculated values)
+      if (metadata.containsKey('currentValue') && metadata['currentValue'] != 0) {
         return (metadata['currentValue'] as num).toDouble();
       }
 
@@ -225,6 +261,10 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             Navigator.of(context).push(
               CupertinoPageRoute(builder: (context) => const StocksWizard()),
             );
+          } else if (investmentType == InvestmentType.mutualFund) {
+            Navigator.of(context).push(
+              CupertinoPageRoute(builder: (context) => const MFWizard()),
+            );
           } else if (investmentType == InvestmentType.fixedDeposit) {
             Navigator.of(context).push(
               CupertinoPageRoute(builder: (context) => const FDWizardScreen()),
@@ -232,6 +272,34 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
           } else if (investmentType == InvestmentType.recurringDeposit) {
             Navigator.of(context).push(
               CupertinoPageRoute(builder: (context) => const RDWizardScreen()),
+            );
+          } else if (investmentType == InvestmentType.bonds) {
+            Navigator.of(context).push(
+              CupertinoPageRoute(builder: (context) => const BondsWizard()),
+            );
+          } else if (investmentType == InvestmentType.cryptocurrency) {
+            Navigator.of(context).push(
+              CupertinoPageRoute(builder: (context) => const CryptoWizard()),
+            );
+          } else if (investmentType == InvestmentType.digitalGold) {
+            Navigator.of(context).push(
+              CupertinoPageRoute(builder: (context) => const DigitalGoldWizard()),
+            );
+          } else if (investmentType == InvestmentType.nationalSavingsScheme) {
+            Navigator.of(context).push(
+              CupertinoPageRoute(builder: (context) => const NPSWizard()),
+            );
+          } else if (investmentType == InvestmentType.pensionSchemes) {
+            Navigator.of(context).push(
+              CupertinoPageRoute(builder: (context) => const PensionWizard()),
+            );
+          } else if (investmentType == InvestmentType.commodities) {
+            Navigator.of(context).push(
+              CupertinoPageRoute(builder: (context) => const CommoditiesWizard()),
+            );
+          } else if (investmentType == InvestmentType.futuresOptions) {
+            Navigator.of(context).push(
+              CupertinoPageRoute(builder: (context) => const FOWizard()),
             );
           } else {
             toast.showInfo('Coming soon!');
@@ -1542,8 +1610,180 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     );
   }
 
+  /// Build investment card for digital gold with real-time price fetching
+  Widget _buildDigitalGoldInvestmentCard(Investment investment) {
+    final investedAmount = investment.amount;
+    final metadata = investment.metadata ?? {};
+    final weightInGrams = (metadata['weightInGrams'] as num?)?.toDouble() ?? 0;
+
+    return FutureBuilder<double?>(
+      future: _getCurrentGoldPrice(),
+      builder: (context, snapshot) {
+        double currentValue = 0;
+        double currentRate = 0;
+
+        if (snapshot.hasData && snapshot.data != null) {
+          currentRate = snapshot.data!;
+          currentValue = weightInGrams * currentRate;
+        } else if (snapshot.hasError) {
+          // Use stored value as fallback
+          currentValue = (metadata['currentValue'] as num?)?.toDouble() ?? 0;
+          currentRate = (metadata['currentRate'] as num?)?.toDouble() ?? 0;
+        }
+
+        final gainLoss = currentValue - investedAmount;
+        final gainLossPercent = investedAmount > 0 ? (gainLoss / investedAmount) * 100 : 0;
+        final isProfit = gainLoss >= 0;
+
+        return Hero(
+          tag: 'investment_${investment.id}',
+          child: BouncyButton(
+            onPressed: () {
+              Haptics.light();
+              Navigator.of(context).push(
+                CupertinoPageRoute(
+                  builder: (context) => DigitalGoldDetailsScreen(investment: investment),
+                ),
+              );
+            },
+            child: Container(
+              margin: EdgeInsets.only(bottom: Spacing.lg),
+              decoration: AppStyles.cardDecoration(context),
+              child: Padding(
+                padding: Spacing.cardPadding,
+                child: Row(
+                  children: [
+                    IconBox(
+                      icon: CupertinoIcons.chart_bar_square_fill,
+                      color: investment.color,
+                      showGlow: true,
+                    ),
+                    SizedBox(width: Spacing.lg),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(investment.name, style: AppStyles.titleStyle(context)),
+                          SizedBox(height: Spacing.xs),
+                          Text(
+                            investment.getTypeLabel(),
+                            style: TextStyle(
+                              fontSize: TypeScale.footnote,
+                              color: AppStyles.getSecondaryTextColor(context),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          SizedBox(height: Spacing.sm),
+                          // Investment metrics
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Invested',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: AppStyles.getSecondaryTextColor(context),
+                                      ),
+                                    ),
+                                    Text(
+                                      '₹${investedAmount.toStringAsFixed(2)}',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppStyles.getTextColor(context),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(width: Spacing.md),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Current',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: AppStyles.getSecondaryTextColor(context),
+                                      ),
+                                    ),
+                                    if (snapshot.connectionState == ConnectionState.waiting)
+                                      Text(
+                                        'Fetching...',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppStyles.getSecondaryTextColor(context),
+                                        ),
+                                      )
+                                    else
+                                      Text(
+                                        '₹${currentValue.toStringAsFixed(2)}',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppStyles.getTextColor(context),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.xs),
+                          decoration: BoxDecoration(
+                            color: isProfit
+                                ? CupertinoColors.systemGreen.withOpacity(0.15)
+                                : CupertinoColors.systemRed.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            '${isProfit ? '+' : ''}${gainLossPercent.toStringAsFixed(2)}%',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: isProfit
+                                  ? CupertinoColors.systemGreen
+                                  : CupertinoColors.systemRed,
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: Spacing.xs),
+                        Icon(
+                          CupertinoIcons.chevron_up,
+                          size: IconSizes.xs,
+                          color: AppStyles.getSecondaryTextColor(context),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildInvestmentCard(Investment investment) {
-    // Calculate values
+    // For digital gold, use async fetching with FutureBuilder
+    if (investment.type == InvestmentType.digitalGold) {
+      return _buildDigitalGoldInvestmentCard(investment);
+    }
+
+    // Calculate values for other types
     final investedAmount = investment.amount;
     final currentValue = _calculateCurrentValue(investment);
     final gainLoss = currentValue - investedAmount;
@@ -1555,11 +1795,17 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       child: BouncyButton(
         onPressed: () {
           Haptics.light();
-          // Navigate to stock details screen if it's a stock investment
+          // Navigate to details screen based on investment type
           if (investment.type == InvestmentType.stocks) {
             Navigator.of(context).push(
               CupertinoPageRoute(
                 builder: (context) => StockDetailsScreen(investment: investment),
+              ),
+            );
+          } else if (investment.type == InvestmentType.mutualFund) {
+            Navigator.of(context).push(
+              CupertinoPageRoute(
+                builder: (context) => MFDetailsScreen(investment: investment),
               ),
             );
           } else if (investment.type == InvestmentType.fixedDeposit) {
@@ -1596,6 +1842,48 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             } else {
               toast.showInfo('RD data not available');
             }
+          } else if (investment.type == InvestmentType.bonds) {
+            Navigator.of(context).push(
+              CupertinoPageRoute(
+                builder: (context) => BondsDetailsScreen(investment: investment),
+              ),
+            );
+          } else if (investment.type == InvestmentType.cryptocurrency) {
+            Navigator.of(context).push(
+              CupertinoPageRoute(
+                builder: (context) => CryptoDetailsScreen(investment: investment),
+              ),
+            );
+          } else if (investment.type == InvestmentType.digitalGold) {
+            Navigator.of(context).push(
+              CupertinoPageRoute(
+                builder: (context) => DigitalGoldDetailsScreen(investment: investment),
+              ),
+            );
+          } else if (investment.type == InvestmentType.nationalSavingsScheme) {
+            Navigator.of(context).push(
+              CupertinoPageRoute(
+                builder: (context) => NPSDetailsScreen(investment: investment),
+              ),
+            );
+          } else if (investment.type == InvestmentType.pensionSchemes) {
+            Navigator.of(context).push(
+              CupertinoPageRoute(
+                builder: (context) => PensionDetailsScreen(investment: investment),
+              ),
+            );
+          } else if (investment.type == InvestmentType.commodities) {
+            Navigator.of(context).push(
+              CupertinoPageRoute(
+                builder: (context) => CommoditiesDetailsScreen(investment: investment),
+              ),
+            );
+          } else if (investment.type == InvestmentType.futuresOptions) {
+            Navigator.of(context).push(
+              CupertinoPageRoute(
+                builder: (context) => FODetailsScreen(investment: investment),
+              ),
+            );
           } else {
             toast.showInfo('Details for ${investment.getTypeLabel()} coming soon!');
           }

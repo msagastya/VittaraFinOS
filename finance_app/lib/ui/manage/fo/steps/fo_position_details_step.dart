@@ -1,0 +1,260 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:vittara_fin_os/ui/manage/fo/fo_wizard_controller.dart';
+import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+
+class FOPositionDetailsStep extends StatefulWidget {
+  final FOWizardController ctrl;
+
+  const FOPositionDetailsStep(this.ctrl);
+
+  @override
+  State<FOPositionDetailsStep> createState() => _FOPositionDetailsStepState();
+}
+
+class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
+  late TextEditingController _currentPriceController;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentPriceController = TextEditingController(
+      text: widget.ctrl.currentPrice?.toString() ?? '',
+    );
+  }
+
+  @override
+  void dispose() {
+    _currentPriceController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Position Details', style: AppStyles.titleStyle(context)),
+          const SizedBox(height: 30),
+          Text('Current Price (₹)',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+          const SizedBox(height: 12),
+          CupertinoTextField(
+            controller: _currentPriceController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            placeholder: '0.00',
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppStyles.getCardColor(context),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            prefix: Padding(
+              padding: const EdgeInsets.only(left: 16),
+              child: const Text('₹'),
+            ),
+            onChanged: (v) {
+              final price = double.tryParse(v) ?? 0;
+              if (price > 0) widget.ctrl.updateCurrentPrice(price);
+            },
+          ),
+          const SizedBox(height: 24),
+          Text('Entry Date',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+          const SizedBox(height: 12),
+          GestureDetector(
+            onTap: () {
+              showCupertinoModalPopup(
+                context: context,
+                builder: (ctx) => Container(
+                  height: 300,
+                  color: AppStyles.getBackground(context),
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppStyles.getCardColor(context),
+                          border: Border(
+                            bottom: BorderSide(color: Colors.grey.withOpacity(0.2)),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Select Date',
+                                style: const TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold)),
+                            GestureDetector(
+                              onTap: () => Navigator.pop(ctx),
+                              child: const Icon(CupertinoIcons.xmark),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: CupertinoDatePicker(
+                          mode: CupertinoDatePickerMode.date,
+                          initialDateTime: widget.ctrl.entryDate,
+                          onDateTimeChanged: (date) {
+                            widget.ctrl.updateEntryDate(date);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppStyles.getCardColor(context),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.withOpacity(0.2)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${widget.ctrl.entryDate.day}/${widget.ctrl.entryDate.month}/${widget.ctrl.entryDate.year}',
+                    style: TextStyle(color: AppStyles.getTextColor(context)),
+                  ),
+                  const Icon(CupertinoIcons.calendar),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text('Expiry Date',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+          const SizedBox(height: 12),
+          GestureDetector(
+            onTap: () {
+              showCupertinoModalPopup(
+                context: context,
+                builder: (ctx) => Container(
+                  height: 300,
+                  color: AppStyles.getBackground(context),
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppStyles.getCardColor(context),
+                          border: Border(
+                            bottom: BorderSide(color: Colors.grey.withOpacity(0.2)),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Select Date',
+                                style: const TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold)),
+                            GestureDetector(
+                              onTap: () => Navigator.pop(ctx),
+                              child: const Icon(CupertinoIcons.xmark),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: CupertinoDatePicker(
+                          mode: CupertinoDatePickerMode.date,
+                          initialDateTime: widget.ctrl.expiryDate,
+                          onDateTimeChanged: (date) {
+                            widget.ctrl.updateExpiryDate(date);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppStyles.getCardColor(context),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.withOpacity(0.2)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${widget.ctrl.expiryDate.day}/${widget.ctrl.expiryDate.month}/${widget.ctrl.expiryDate.year}',
+                    style: TextStyle(color: AppStyles.getTextColor(context)),
+                  ),
+                  const Icon(CupertinoIcons.calendar),
+                ],
+              ),
+            ),
+          ),
+          if (widget.ctrl.entryPrice != null && widget.ctrl.currentPrice != null) ...[
+            const SizedBox(height: 24),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: (widget.ctrl.gainLoss >= 0
+                        ? Colors.green
+                        : Colors.red)
+                    .withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                    color: (widget.ctrl.gainLoss >= 0
+                            ? Colors.green
+                            : Colors.red)
+                        .withOpacity(0.3)),
+              ),
+              child: Column(
+                children: [
+                  _Summary('Current Value', '₹${widget.ctrl.currentValue.toStringAsFixed(2)}', true),
+                  const SizedBox(height: 12),
+                  _Summary(
+                      'Gain/Loss',
+                      '${widget.ctrl.gainLoss >= 0 ? '+' : ''}₹${widget.ctrl.gainLoss.toStringAsFixed(2)}',
+                      widget.ctrl.gainLoss >= 0),
+                  const SizedBox(height: 12),
+                  _Summary(
+                      'Return %',
+                      '${widget.ctrl.gainLossPercent >= 0 ? '+' : ''}${widget.ctrl.gainLossPercent.toStringAsFixed(2)}%',
+                      widget.ctrl.gainLossPercent >= 0,
+                      isBold: true),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _Summary extends StatelessWidget {
+  final String label;
+  final String value;
+  final bool isPositive;
+  final bool isBold;
+
+  const _Summary(this.label, this.value, this.isPositive, {this.isBold = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label,
+            style: TextStyle(
+                color: AppStyles.getSecondaryTextColor(context), fontSize: 13)),
+        Text(value,
+            style: TextStyle(
+                fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
+                fontSize: isBold ? 14 : 13,
+                color: isPositive ? Colors.green : Colors.red)),
+      ],
+    );
+  }
+}

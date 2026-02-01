@@ -123,99 +123,190 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
   }) {
     final amount = transaction.amount ?? 0;
     final description = transaction.description ?? 'Transaction';
+    final category = transaction.category?.name ?? 'Other';
+    final isExpense = amount < 0;
+    final displayAmount = amount.abs();
+
+    // Get category color
+    Color getCategoryColor(String categoryName) {
+      switch (categoryName.toLowerCase()) {
+        case 'groceries':
+        case 'food':
+          return Colors.green;
+        case 'transport':
+        case 'fuel':
+          return Colors.orange;
+        case 'entertainment':
+          return Colors.purple;
+        case 'shopping':
+          return Colors.pink;
+        case 'utilities':
+          return Colors.blue;
+        case 'salary':
+        case 'income':
+          return Colors.green;
+        default:
+          return Colors.grey;
+      }
+    }
+
+    final categoryColor = getCategoryColor(category);
 
     if (compact) {
       // Vertical compact layout
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            description,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              color: AppStyles.getTextColor(context),
+      return Container(
+        padding: EdgeInsets.all(Spacing.sm),
+        decoration: BoxDecoration(
+          color: AppStyles.getCardColor(context),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: categoryColor.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Icon(
+                    isExpense ? CupertinoIcons.arrow_up : CupertinoIcons.arrow_down,
+                    size: 12,
+                    color: categoryColor,
+                  ),
+                ),
+                SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: AppStyles.getTextColor(context),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          SizedBox(height: 4),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Just now',
-                style: TextStyle(
-                  fontSize: 9,
-                  color: AppStyles.getSecondaryTextColor(context),
+            SizedBox(height: 4),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Just now',
+                  style: TextStyle(
+                    fontSize: 9,
+                    color: AppStyles.getSecondaryTextColor(context),
+                  ),
                 ),
-              ),
-              Text(
-                '₹${amount.toStringAsFixed(0)}',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: AppStyles.getTextColor(context),
+                Text(
+                  '${isExpense ? '-' : '+'}₹${displayAmount.toStringAsFixed(0)}',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: isExpense ? Colors.red : Colors.green,
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       );
     }
 
-    // Horizontal layout
-    return Row(
-      children: [
-        Container(
-          width: 32,
-          height: 32,
-          decoration: BoxDecoration(
-            color: Colors.blue.withOpacity(0.15),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: const Icon(
-            CupertinoIcons.arrow_right,
-            size: 14,
-            color: Colors.blue,
-          ),
+    // Horizontal layout - Enhanced
+    return Container(
+      padding: EdgeInsets.all(Spacing.md),
+      decoration: BoxDecoration(
+        color: AppStyles.getCardColor(context),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: categoryColor.withOpacity(0.1),
         ),
-        SizedBox(width: Spacing.md),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                description,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: AppStyles.getTextColor(context),
+      ),
+      child: Row(
+        children: [
+          // Category Icon
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: categoryColor.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              isExpense ? CupertinoIcons.arrow_up : CupertinoIcons.arrow_down,
+              size: 18,
+              color: categoryColor,
+            ),
+          ),
+          SizedBox(width: Spacing.md),
+
+          // Description and Category
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  description,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppStyles.getTextColor(context),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              Text(
-                'Just now',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: AppStyles.getSecondaryTextColor(context),
+                SizedBox(height: 2),
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: categoryColor.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        category,
+                        style: TextStyle(
+                          fontSize: 9,
+                          color: categoryColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 6),
+                    Text(
+                      'Just now',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AppStyles.getSecondaryTextColor(context),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        Text(
-          '₹${amount.toStringAsFixed(2)}',
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: AppStyles.getTextColor(context),
+
+          // Amount
+          Text(
+            '${isExpense ? '-' : '+'}₹${displayAmount.toStringAsFixed(0)}',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: isExpense ? Colors.red : Colors.green,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

@@ -92,69 +92,154 @@ class ActionsWidget extends BaseDashboardWidget {
     bool compact = false,
   }) {
     if (compact) {
-      // Vertical layout for compact
-      return Column(
-        children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, size: 16, color: color),
+      // Vertical layout for compact - Enhanced with better styling
+      return Container(
+        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+        decoration: BoxDecoration(
+          color: AppStyles.getCardColor(context),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: color.withOpacity(0.1),
           ),
-          SizedBox(height: 6),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              color: AppStyles.getTextColor(context),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    color.withOpacity(0.15),
+                    color.withOpacity(0.08),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: color.withOpacity(0.15)),
+              ),
+              child: Icon(icon, size: 18, color: color),
             ),
-            textAlign: TextAlign.center,
-          ),
-        ],
+            SizedBox(height: 8),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppStyles.getTextColor(context),
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            SizedBox(height: 3),
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: 10,
+                color: color.withOpacity(0.7),
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       );
     }
 
-    // Horizontal layout for medium/full
-    return Row(
-      children: [
-        Container(
-          width: 36,
-          height: 36,
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.15),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(icon, size: 18, color: color),
+    // Horizontal layout for medium/full - Enhanced
+    return Container(
+      padding: EdgeInsets.all(Spacing.md),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            color.withOpacity(0.08),
+            color.withOpacity(0.03),
+          ],
         ),
-        SizedBox(width: Spacing.md),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AppStyles.getTextColor(context),
-                ),
-              ),
-              Text(
-                subtitle,
-                style: TextStyle(
-                  fontSize: 10,
-                  color: AppStyles.getSecondaryTextColor(context),
-                ),
-              ),
-            ],
-          ),
+        color: AppStyles.getCardColor(context),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: color.withOpacity(0.15),
         ),
-      ],
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Icon container with gradient
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  color.withOpacity(0.2),
+                  color.withOpacity(0.1),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: color.withOpacity(0.2)),
+            ),
+            child: Icon(icon, size: 20, color: color),
+          ),
+          SizedBox(width: Spacing.md),
+
+          // Title and subtitle
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppStyles.getTextColor(context),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                SizedBox(height: 2),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: color,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Arrow indicator
+          Icon(
+            CupertinoIcons.chevron_right,
+            size: 14,
+            color: color.withOpacity(0.5),
+          ),
+        ],
+      ),
     );
   }
 }
