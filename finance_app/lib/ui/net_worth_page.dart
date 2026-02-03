@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
+import 'package:vittara_fin_os/logic/account_model.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -38,6 +39,8 @@ class _NetWorthPageState extends State<NetWorthPage> {
                     _buildTotalNetWorthCard(context, accountsController, investmentsController),
                     SizedBox(height: Spacing.xl),
                     _buildBankAccountsSection(context, accountsController),
+                    SizedBox(height: Spacing.lg),
+                    _buildDematAccountsSection(context, accountsController),
                     SizedBox(height: Spacing.lg),
                     _buildInvestmentsSection(context, investmentsController),
                     SizedBox(height: Spacing.xl),
@@ -188,7 +191,12 @@ class _NetWorthPageState extends State<NetWorthPage> {
     BuildContext context,
     AccountsController accountsController,
   ) {
-    if (accountsController.accounts.isEmpty) {
+    // Filter for bank accounts (exclude investment accounts)
+    final bankAccounts = accountsController.accounts
+        .where((a) => a.type != AccountType.investment)
+        .toList();
+
+    if (bankAccounts.isEmpty) {
       return Container(
         padding: EdgeInsets.all(Spacing.lg),
         decoration: BoxDecoration(
@@ -209,7 +217,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
     }
 
     double total = 0;
-    for (var account in accountsController.accounts) {
+    for (var account in bankAccounts) {
       total += account.balance;
     }
 
@@ -248,7 +256,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                         ),
                       ),
                       Text(
-                        '${accountsController.accounts.length} account${accountsController.accounts.length != 1 ? 's' : ''}',
+                        '${bankAccounts.length} account${bankAccounts.length != 1 ? 's' : ''}',
                         style: TextStyle(
                           fontSize: 12,
                           color: AppStyles.getSecondaryTextColor(context),
@@ -273,11 +281,149 @@ class _NetWorthPageState extends State<NetWorthPage> {
             padding: EdgeInsets.all(Spacing.lg),
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              children: accountsController.accounts
+              children: bankAccounts
                   .asMap()
                   .entries
                   .map((entry) {
-                    final isLast = entry.key == accountsController.accounts.length - 1;
+                    final isLast = entry.key == bankAccounts.length - 1;
+                    final account = entry.value;
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    account.name,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppStyles.getTextColor(context),
+                                    ),
+                                  ),
+                                  Text(
+                                    account.bankName,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: AppStyles.getSecondaryTextColor(context),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Text(
+                              '₹${account.balance.toStringAsFixed(0)}',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: AppStyles.getTextColor(context),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (!isLast)
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: Spacing.md),
+                            child: Divider(height: 1),
+                          ),
+                      ],
+                    );
+                  })
+                  .toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDematAccountsSection(
+    BuildContext context,
+    AccountsController accountsController,
+  ) {
+    // Filter for investment/demat accounts only
+    final dematAccounts = accountsController.accounts
+        .where((a) => a.type == AccountType.investment)
+        .toList();
+
+    if (dematAccounts.isEmpty) {
+      return SizedBox.shrink();
+    }
+
+    double total = 0;
+    for (var account in dematAccounts) {
+      total += account.balance;
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppStyles.getCardColor(context),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: EdgeInsets.all(Spacing.lg),
+            child: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(CupertinoIcons.chart_bar_fill, size: 20, color: Colors.orange),
+                ),
+                SizedBox(width: Spacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Demat / Investment Accounts',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: AppStyles.getTextColor(context),
+                        ),
+                      ),
+                      Text(
+                        '${dematAccounts.length} account${dematAccounts.length != 1 ? 's' : ''}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppStyles.getSecondaryTextColor(context),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Text(
+                  '₹${total.toStringAsFixed(0)}',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: AppStyles.getTextColor(context),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Divider(height: 1),
+          Padding(
+            padding: EdgeInsets.all(Spacing.lg),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: dematAccounts
+                  .asMap()
+                  .entries
+                  .map((entry) {
+                    final isLast = entry.key == dematAccounts.length - 1;
                     final account = entry.value;
                     return Column(
                       mainAxisSize: MainAxisSize.min,
