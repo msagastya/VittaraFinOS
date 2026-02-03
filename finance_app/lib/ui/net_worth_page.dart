@@ -96,22 +96,31 @@ class _NetWorthPageState extends State<NetWorthPage> {
     AccountsController accountsController,
     InvestmentsController investmentsController,
   ) {
-    // Calculate assets (exclude credit cards and BNPL completely from net worth)
-    double totalAccounts = 0;
+    // Calculate Amount (bank accounts - real money)
+    double totalAmount = 0;
     for (var account in accountsController.accounts) {
-      // Only include real asset accounts
       if (account.type != AccountType.credit && account.type != AccountType.payLater) {
-        totalAccounts += account.balance;
+        totalAmount += account.balance;
       }
     }
 
+    // Calculate Investment (investment portfolio)
     double totalInvestments = 0;
     for (var investment in investmentsController.investments) {
       totalInvestments += investment.amount;
     }
 
-    // Net Worth = Real Assets + Investments (Credit liabilities shown separately)
-    final totalNetWorth = totalAccounts + totalInvestments;
+    // Calculate Liabilities (credit card and BNPL used amounts)
+    double totalLiabilities = 0;
+    for (var account in accountsController.accounts) {
+      if (account.type == AccountType.credit || account.type == AccountType.payLater) {
+        final used = (account.creditLimit ?? 0.0) - account.balance;
+        totalLiabilities += used;
+      }
+    }
+
+    // Net Worth = Amount + Investment - Liabilities
+    final totalNetWorth = totalAmount + totalInvestments - totalLiabilities;
 
     return Container(
       padding: EdgeInsets.all(Spacing.xl),
@@ -150,44 +159,96 @@ class _NetWorthPageState extends State<NetWorthPage> {
             ),
           ),
           SizedBox(height: Spacing.lg),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Expanded(
-                child: Container(
-                  padding: EdgeInsets.all(Spacing.md),
-                  decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.green.withOpacity(0.2)),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
+
+          // Formula breakdown
+          Container(
+            padding: EdgeInsets.all(Spacing.md),
+            decoration: BoxDecoration(
+              color: AppStyles.getCardColor(context),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.withOpacity(0.1)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Amount
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Amount',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppStyles.getSecondaryTextColor(context),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    Text(
+                      '₹${totalAmount.toStringAsFixed(0)}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.green,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: Spacing.sm),
+
+                // Investment
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Investment',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppStyles.getSecondaryTextColor(context),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    Text(
+                      '₹${totalInvestments.toStringAsFixed(0)}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.blue,
+                      ),
+                    ),
+                  ],
+                ),
+
+                if (totalLiabilities > 0) ...[
+                  SizedBox(height: Spacing.sm),
+                  // Divider
+                  Divider(height: 1),
+                  SizedBox(height: Spacing.sm),
+
+                  // Liabilities
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Icon(CupertinoIcons.checkmark_seal_fill, size: 20, color: Colors.green),
-                      SizedBox(height: Spacing.sm),
                       Text(
-                        'Assets',
+                        'Liabilities',
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 12,
                           color: AppStyles.getSecondaryTextColor(context),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      SizedBox(height: Spacing.xs),
                       Text(
-                        '₹${(totalAccounts + totalInvestments).toStringAsFixed(0)}',
+                        '₹${totalLiabilities.toStringAsFixed(0)}',
                         style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: AppStyles.getTextColor(context),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.red,
                         ),
                       ),
                     ],
                   ),
-                ),
-              ),
-            ],
+                ],
+              ],
+            ),
           ),
         ],
       ),
