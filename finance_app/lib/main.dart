@@ -538,9 +538,6 @@ class DashboardScreen extends StatelessWidget {
     // Check if widget has content
     final hasContent = _widgetHasContent(context, widgetConfig);
 
-    // Dynamic min height based on content
-    final minHeight = hasContent ? 320.0 : 120.0;
-
     return GestureDetector(
       onTap: () {
         _handleWidgetTap(context, widgetConfig);
@@ -548,7 +545,6 @@ class DashboardScreen extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
-        constraints: BoxConstraints(minHeight: minHeight),
         decoration: BoxDecoration(
           color: AppStyles.getCardColor(context),
           borderRadius: BorderRadius.circular(16),
@@ -561,11 +557,12 @@ class DashboardScreen extends StatelessWidget {
           ],
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header with drag handle
             Padding(
-              padding: EdgeInsets.all(Spacing.lg),
+              padding: EdgeInsets.all(Spacing.md),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -604,44 +601,38 @@ class DashboardScreen extends StatelessWidget {
               ),
             ),
 
-            // Content with padding
+            // Content - minimal padding, shrink to fit
             if (hasContent)
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: Spacing.lg)
-                      .copyWith(bottom: Spacing.lg),
-                  child: SingleChildScrollView(
-                    physics: const NeverScrollableScrollPhysics(),
-                    child: _buildWidgetPreview(context, widgetConfig),
-                  ),
-                ),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: Spacing.md)
+                    .copyWith(bottom: Spacing.md),
+                child: _buildWidgetPreview(context, widgetConfig),
               )
             else
               Padding(
                 padding: EdgeInsets.symmetric(
-                  horizontal: Spacing.lg,
-                  vertical: Spacing.md,
+                  horizontal: Spacing.md,
+                  vertical: Spacing.sm,
                 ),
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        CupertinoIcons.checkmark_circle_fill,
-                        size: 28,
-                        color: Colors.green.withOpacity(0.6),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Icon(
+                      CupertinoIcons.checkmark_circle_fill,
+                      size: 24,
+                      color: Colors.green.withOpacity(0.6),
+                    ),
+                    SizedBox(height: Spacing.xs),
+                    Text(
+                      'All caught up!',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppStyles.getSecondaryTextColor(context),
+                        fontWeight: FontWeight.w500,
                       ),
-                      SizedBox(height: Spacing.sm),
-                      Text(
-                        'All caught up!',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: AppStyles.getSecondaryTextColor(context),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
           ],
