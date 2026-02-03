@@ -42,6 +42,8 @@ class _NetWorthPageState extends State<NetWorthPage> {
                     SizedBox(height: Spacing.lg),
                     _buildDematAccountsSection(context, accountsController),
                     SizedBox(height: Spacing.lg),
+                    _buildCreditLiabilitiesSection(context, accountsController),
+                    SizedBox(height: Spacing.lg),
                     _buildInvestmentsSection(context, investmentsController),
                     SizedBox(height: Spacing.xl),
                   ],
@@ -94,9 +96,18 @@ class _NetWorthPageState extends State<NetWorthPage> {
     AccountsController accountsController,
     InvestmentsController investmentsController,
   ) {
+    // Calculate assets (exclude credit liabilities)
     double totalAccounts = 0;
+    double totalCreditLiability = 0;
     for (var account in accountsController.accounts) {
-      totalAccounts += account.balance;
+      if (account.type == AccountType.credit || account.type == AccountType.payLater) {
+        // For credit cards/BNPL, the balance is "available", but we need to count "used" as liability
+        final used = (account.creditLimit ?? 0.0) - account.balance;
+        totalCreditLiability += used;
+      } else {
+        // Regular accounts: bank, demat, wallet, etc.
+        totalAccounts += account.balance;
+      }
     }
 
     double totalInvestments = 0;
@@ -104,7 +115,8 @@ class _NetWorthPageState extends State<NetWorthPage> {
       totalInvestments += investment.amount;
     }
 
-    final totalNetWorth = totalAccounts + totalInvestments;
+    // Net Worth = Assets - Liabilities
+    final totalNetWorth = totalAccounts + totalInvestments - totalCreditLiability;
 
     return Container(
       padding: EdgeInsets.all(Spacing.xl),
@@ -191,9 +203,11 @@ class _NetWorthPageState extends State<NetWorthPage> {
     BuildContext context,
     AccountsController accountsController,
   ) {
-    // Filter for bank accounts (exclude investment accounts)
+    // Filter for regular bank accounts only (exclude investment, credit, and BNPL accounts)
     final bankAccounts = accountsController.accounts
-        .where((a) => a.type != AccountType.investment)
+        .where((a) => a.type != AccountType.investment &&
+                      a.type != AccountType.credit &&
+                      a.type != AccountType.payLater)
         .toList();
 
     if (bankAccounts.isEmpty) {
@@ -459,6 +473,260 @@ class _NetWorthPageState extends State<NetWorthPage> {
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
                                 color: AppStyles.getTextColor(context),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (!isLast)
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: Spacing.md),
+                            child: Divider(height: 1),
+                          ),
+                      ],
+                    );
+                  })
+                  .toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCreditLiabilitiesSection(
+    BuildContext context,
+    AccountsController accountsController,
+  ) {
+    // Filter for credit cards and BNPL accounts
+    final creditAccounts = accountsController.accounts
+        .where((a) => a.type == AccountType.credit || a.type == AccountType.payLater)
+        .toList();
+
+    if (creditAccounts.isEmpty) {
+      return SizedBox.shrink();
+    }
+
+    double totalCreditLimit = 0;
+    double totalUsed = 0;
+    for (var account in creditAccounts) {
+      totalCreditLimit += (account.creditLimit ?? 0.0);
+      totalUsed += ((account.creditLimit ?? 0.0) - account.balance);
+    }
+    final totalAvailable = totalCreditLimit - totalUsed;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppStyles.getCardColor(context),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: EdgeInsets.all(Spacing.lg),
+            child: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(CupertinoIcons.creditcard_fill, size: 20, color: Colors.red),
+                ),
+                SizedBox(width: Spacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Credit & BNPL Liabilities',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: AppStyles.getTextColor(context),
+                        ),
+                      ),
+                      Text(
+                        '${creditAccounts.length} account${creditAccounts.length != 1 ? 's' : ''}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppStyles.getSecondaryTextColor(context),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Text(
+                  '₹${totalUsed.toStringAsFixed(0)}',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Divider(height: 1),
+          Padding(
+            padding: EdgeInsets.all(Spacing.lg),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: creditAccounts
+                  .asMap()
+                  .entries
+                  .map((entry) {
+                    final isLast = entry.key == creditAccounts.length - 1;
+                    final account = entry.value;
+                    final used = (account.creditLimit ?? 0.0) - account.balance;
+                    final available = account.balance;
+                    final utilization = (account.creditLimit ?? 0.0) > 0
+                        ? (used / (account.creditLimit ?? 1.0) * 100)
+                        : 0.0;
+
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    account.name,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppStyles.getTextColor(context),
+                                    ),
+                                  ),
+                                  Text(
+                                    account.bankName,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: AppStyles.getSecondaryTextColor(context),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: Spacing.md),
+                        // Credit details row
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Limit',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: AppStyles.getSecondaryTextColor(context),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    '₹${(account.creditLimit ?? 0.0).toStringAsFixed(0)}',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppStyles.getTextColor(context),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Used',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.red,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    '₹${used.toStringAsFixed(0)}',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Available',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.green,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    '₹${available.toStringAsFixed(0)}',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.green,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: Spacing.md),
+                        // Utilization progress bar
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            value: utilization / 100,
+                            minHeight: 6,
+                            backgroundColor: Colors.grey.withOpacity(0.2),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              utilization > 80 ? Colors.red : Colors.orange,
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Utilization',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: AppStyles.getSecondaryTextColor(context),
+                              ),
+                            ),
+                            Text(
+                              '${utilization.toStringAsFixed(1)}%',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: utilization > 80 ? Colors.red : Colors.orange,
                               ),
                             ),
                           ],
