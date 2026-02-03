@@ -368,6 +368,14 @@ class DashboardScreen extends StatelessWidget {
 
         final visibleWidgets = dashboardController.config.getVisibleWidgets();
 
+        // Debug: Print visible widgets count
+        if (kDebugMode) {
+          print('Dashboard: ${visibleWidgets.length} visible widgets out of ${dashboardController.config.widgets.length} total');
+          for (var w in dashboardController.config.widgets) {
+            print('  - ${w.id}: visible=${w.isVisible}');
+          }
+        }
+
         return CupertinoPageScaffold(
           navigationBar: CupertinoNavigationBar(
             middle: const Text('VittaraFinOS'),
