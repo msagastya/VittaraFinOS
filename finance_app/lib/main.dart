@@ -463,7 +463,7 @@ class DashboardScreen extends StatelessWidget {
                             onPressed: () async {
                               if (kDebugMode) print('Resetting dashboard to default');
                               await dashboardController.resetToDefault();
-                              if (mounted) {
+                              if (context.mounted) {
                                 toast.showSuccess('Dashboard reset to default');
                               }
                             },
