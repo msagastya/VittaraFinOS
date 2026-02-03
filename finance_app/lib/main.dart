@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
+import 'package:vittara_fin_os/logic/account_model.dart';
 import 'package:vittara_fin_os/logic/banks_controller.dart';
 import 'package:vittara_fin_os/logic/brokers_controller.dart';
 import 'package:vittara_fin_os/logic/categories_controller.dart';
@@ -838,22 +839,42 @@ class DashboardScreen extends StatelessWidget {
       case DashboardWidgetType.netWorth:
         return Consumer2<AccountsController, InvestmentsController>(
           builder: (context, accountsController, investmentsController, child) {
-            double totalAccounts = 0;
+            // Calculate Savings (non-credit accounts)
+            double totalSavings = 0;
             for (var account in accountsController.accounts) {
-              totalAccounts += account.balance;
+              if (account.type != AccountType.credit && account.type != AccountType.payLater) {
+                totalSavings += account.balance;
+              }
             }
+
+            // Calculate Investments
             double totalInvestments = 0;
             for (var investment in investmentsController.investments) {
               totalInvestments += investment.amount;
             }
-            final totalNetWorth = totalAccounts + totalInvestments;
-            final accountCount = accountsController.accounts.length;
-            final investmentCount = investmentsController.investments.length;
+
+            // Calculate Credit (limit and used)
+            double totalCreditLimit = 0;
+            double totalCreditUsed = 0;
+            for (var account in accountsController.accounts) {
+              if (account.type == AccountType.credit || account.type == AccountType.payLater) {
+                totalCreditLimit += (account.creditLimit ?? 0.0);
+                final used = (account.creditLimit ?? 0.0) - account.balance;
+                totalCreditUsed += used;
+              }
+            }
+
+            // Net Worth = Savings + Investments - Credit Used
+            final totalNetWorth = totalSavings + totalInvestments - totalCreditUsed;
+
+            // Determine color based on positive/negative
+            final isPositive = totalNetWorth >= 0;
+            final displayColor = isPositive ? AppStyles.getPrimaryColor(context) : Colors.red;
 
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Main Net Worth Card with Gradient
+                // Main Net Worth Card
                 Container(
                   padding: EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
@@ -861,94 +882,116 @@ class DashboardScreen extends StatelessWidget {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        AppStyles.getPrimaryColor(context).withOpacity(0.15),
-                        AppStyles.getPrimaryColor(context).withOpacity(0.05),
+                        displayColor.withOpacity(0.15),
+                        displayColor.withOpacity(0.05),
                       ],
                     ),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: AppStyles.getPrimaryColor(context).withOpacity(0.2),
+                      color: displayColor.withOpacity(0.2),
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppStyles.getPrimaryColor(context).withOpacity(0.1),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Net Worth',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: AppStyles.getSecondaryTextColor(context),
-                                  fontWeight: FontWeight.w500,
+                      Text(
+                        'Net Worth',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppStyles.getSecondaryTextColor(context),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      SizedBox(height: Spacing.xs),
+                      Text(
+                        '₹${totalNetWorth.toStringAsFixed(0)}',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w800,
+                          color: displayColor,
+                        ),
+                      ),
+                      SizedBox(height: Spacing.md),
+                      Container(
+                        padding: EdgeInsets.all(Spacing.sm),
+                        decoration: BoxDecoration(
+                          color: displayColor.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Savings',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: AppStyles.getSecondaryTextColor(context),
+                                  ),
                                 ),
-                              ),
-                              SizedBox(height: Spacing.xs),
-                              Text(
-                                '₹${totalNetWorth.toStringAsFixed(0)}',
-                                style: TextStyle(
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppStyles.getPrimaryColor(context),
+                                Text(
+                                  '₹${totalSavings.toStringAsFixed(0)}',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.green,
+                                  ),
                                 ),
+                              ],
+                            ),
+                            if (totalInvestments > 0) ...[
+                              SizedBox(height: 6),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Investments',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: AppStyles.getSecondaryTextColor(context),
+                                    ),
+                                  ),
+                                  Text(
+                                    '₹${totalInvestments.toStringAsFixed(0)}',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.blue,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
-                          ),
-                          Container(
-                            padding: EdgeInsets.all(Spacing.md),
-                            decoration: BoxDecoration(
-                              color: AppStyles.getPrimaryColor(context).withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Icon(
-                              CupertinoIcons.graph_square_fill,
-                              size: 28,
-                              color: AppStyles.getPrimaryColor(context),
-                            ),
-                          ),
-                        ],
+                            if (totalCreditUsed > 0) ...[
+                              SizedBox(height: 6),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Credit Used',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: AppStyles.getSecondaryTextColor(context),
+                                    ),
+                                  ),
+                                  Text(
+                                    '₹${totalCreditUsed.toStringAsFixed(0)}',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ],
+                        ),
                       ),
                     ],
                   ),
-                ),
-                SizedBox(height: Spacing.lg),
-
-                // Assets Breakdown
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildNetWorthBreakdownItem(
-                      context,
-                      'Bank Accounts',
-                      totalAccounts,
-                      accountCount,
-                      CupertinoIcons.creditcard_fill,
-                      Colors.blue,
-                      totalNetWorth,
-                    ),
-                    SizedBox(height: Spacing.md),
-                    _buildNetWorthBreakdownItem(
-                      context,
-                      'Investments',
-                      totalInvestments,
-                      investmentCount,
-                      CupertinoIcons.chart_bar_fill,
-                      Colors.green,
-                      totalNetWorth,
-                    ),
-                  ],
                 ),
               ],
             );

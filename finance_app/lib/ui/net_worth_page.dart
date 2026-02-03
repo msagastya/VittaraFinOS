@@ -96,31 +96,36 @@ class _NetWorthPageState extends State<NetWorthPage> {
     AccountsController accountsController,
     InvestmentsController investmentsController,
   ) {
-    // Calculate Amount (bank accounts - real money)
-    double totalAmount = 0;
+    // Calculate Savings (all non-credit accounts)
+    double totalSavings = 0;
     for (var account in accountsController.accounts) {
       if (account.type != AccountType.credit && account.type != AccountType.payLater) {
-        totalAmount += account.balance;
+        totalSavings += account.balance;
       }
     }
 
-    // Calculate Investment (investment portfolio)
+    // Calculate Total Investment
     double totalInvestments = 0;
     for (var investment in investmentsController.investments) {
       totalInvestments += investment.amount;
     }
 
-    // Calculate Liabilities (credit card and BNPL used amounts)
-    double totalLiabilities = 0;
+    // Calculate Total Credit Limit
+    double totalCreditLimit = 0;
+    double totalCreditUsed = 0;
     for (var account in accountsController.accounts) {
       if (account.type == AccountType.credit || account.type == AccountType.payLater) {
+        totalCreditLimit += (account.creditLimit ?? 0.0);
         final used = (account.creditLimit ?? 0.0) - account.balance;
-        totalLiabilities += used;
+        totalCreditUsed += used;
       }
     }
 
-    // Net Worth = Amount + Investment - Liabilities
-    final totalNetWorth = totalAmount + totalInvestments - totalLiabilities;
+    // Net Worth = Savings + Investment - Credit Used
+    final totalNetWorth = totalSavings + totalInvestments - totalCreditUsed;
+
+    // Determine color based on positive/negative
+    final netWorthColor = totalNetWorth >= 0 ? SemanticColors.primary : Colors.red;
 
     return Container(
       padding: EdgeInsets.all(Spacing.xl),
@@ -129,20 +134,20 @@ class _NetWorthPageState extends State<NetWorthPage> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            SemanticColors.primary.withOpacity(0.12),
-            SemanticColors.primary.withOpacity(0.04),
+            netWorthColor.withOpacity(0.12),
+            netWorthColor.withOpacity(0.04),
           ],
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: SemanticColors.primary.withOpacity(0.2),
+          color: netWorthColor.withOpacity(0.2),
         ),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'Total Net Worth',
+            'Net Worth',
             style: TextStyle(
               fontSize: 14,
               color: AppStyles.getSecondaryTextColor(context),
@@ -151,16 +156,16 @@ class _NetWorthPageState extends State<NetWorthPage> {
           ),
           SizedBox(height: Spacing.md),
           Text(
-            '₹${totalNetWorth.toStringAsFixed(0)}',
+            '₹${totalNetWorth.toStringAsFixed(2)}',
             style: TextStyle(
               fontSize: 42,
               fontWeight: FontWeight.w900,
-              color: SemanticColors.primary,
+              color: netWorthColor,
             ),
           ),
-          SizedBox(height: Spacing.lg),
+          SizedBox(height: Spacing.xl),
 
-          // Formula breakdown
+          // Breakdown
           Container(
             padding: EdgeInsets.all(Spacing.md),
             decoration: BoxDecoration(
@@ -171,22 +176,22 @@ class _NetWorthPageState extends State<NetWorthPage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Amount
+                // Savings
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Amount',
+                      'Savings',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 13,
                         color: AppStyles.getSecondaryTextColor(context),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                     Text(
-                      '₹${totalAmount.toStringAsFixed(0)}',
+                      '₹${totalSavings.toStringAsFixed(2)}',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: Colors.green,
                       ),
@@ -195,51 +200,76 @@ class _NetWorthPageState extends State<NetWorthPage> {
                 ),
                 SizedBox(height: Spacing.sm),
 
-                // Investment
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Investment',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppStyles.getSecondaryTextColor(context),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    Text(
-                      '₹${totalInvestments.toStringAsFixed(0)}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.blue,
-                      ),
-                    ),
-                  ],
-                ),
-
-                if (totalLiabilities > 0) ...[
-                  SizedBox(height: Spacing.sm),
-                  // Divider
-                  Divider(height: 1),
-                  SizedBox(height: Spacing.sm),
-
-                  // Liabilities
+                // Investments
+                if (totalInvestments > 0)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Liabilities',
+                        'Investments',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 13,
                           color: AppStyles.getSecondaryTextColor(context),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
                       Text(
-                        '₹${totalLiabilities.toStringAsFixed(0)}',
+                        '₹${totalInvestments.toStringAsFixed(2)}',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.blue,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                // Credit Limit (informational)
+                if (totalCreditLimit > 0) ...[
+                  SizedBox(height: Spacing.sm),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Credit Limit',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppStyles.getSecondaryTextColor(context),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Text(
+                        '₹${totalCreditLimit.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppStyles.getSecondaryTextColor(context),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+
+                // Credit Used (liability)
+                if (totalCreditUsed > 0) ...[
+                  SizedBox(height: Spacing.sm),
+                  Divider(height: 1),
+                  SizedBox(height: Spacing.sm),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Credit Used',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppStyles.getSecondaryTextColor(context),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Text(
+                        '₹${totalCreditUsed.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontSize: 13,
                           fontWeight: FontWeight.w600,
                           color: Colors.red,
                         ),
