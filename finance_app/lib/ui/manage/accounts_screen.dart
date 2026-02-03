@@ -196,14 +196,15 @@ class _AccountsScreenState extends State<AccountsScreen> {
   }
 
   double _getTotalCreditUsed(List<Account> accounts, AccountType type) {
+    // Used = Credit Limit - Balance (where balance is available credit)
     return _getAccountsByType(accounts, type)
-        .fold(0.0, (sum, account) => sum + account.balance);
+        .fold(0.0, (sum, account) => sum + ((account.creditLimit ?? 0.0) - account.balance));
   }
 
   double _getTotalCreditRemaining(List<Account> accounts, AccountType type) {
-    final limit = _getTotalCreditLimit(accounts, type);
-    final used = _getTotalCreditUsed(accounts, type);
-    return limit - used;
+    // Remaining = Balance (which is the available credit)
+    return _getAccountsByType(accounts, type)
+        .fold(0.0, (sum, account) => sum + account.balance);
   }
 
   bool _hasAccountType(List<Account> accounts, AccountType type) {

@@ -96,16 +96,11 @@ class _NetWorthPageState extends State<NetWorthPage> {
     AccountsController accountsController,
     InvestmentsController investmentsController,
   ) {
-    // Calculate assets (exclude credit liabilities)
+    // Calculate assets (exclude credit cards and BNPL completely from net worth)
     double totalAccounts = 0;
-    double totalCreditLiability = 0;
     for (var account in accountsController.accounts) {
-      if (account.type == AccountType.credit || account.type == AccountType.payLater) {
-        // For credit cards/BNPL, the balance is "available", but we need to count "used" as liability
-        final used = (account.creditLimit ?? 0.0) - account.balance;
-        totalCreditLiability += used;
-      } else {
-        // Regular accounts: bank, demat, wallet, etc.
+      // Only include real asset accounts
+      if (account.type != AccountType.credit && account.type != AccountType.payLater) {
         totalAccounts += account.balance;
       }
     }
@@ -115,8 +110,8 @@ class _NetWorthPageState extends State<NetWorthPage> {
       totalInvestments += investment.amount;
     }
 
-    // Net Worth = Assets - Liabilities
-    final totalNetWorth = totalAccounts + totalInvestments - totalCreditLiability;
+    // Net Worth = Real Assets + Investments (Credit liabilities shown separately)
+    final totalNetWorth = totalAccounts + totalInvestments;
 
     return Container(
       padding: EdgeInsets.all(Spacing.xl),
