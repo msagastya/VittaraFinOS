@@ -452,11 +452,22 @@ class DashboardScreen extends StatelessWidget {
                           ),
                           SizedBox(height: Spacing.sm),
                           Text(
-                            'Tap Edit to enable widgets',
+                            'All dashboard widgets are hidden',
                             style: TextStyle(
                               fontSize: 14,
                               color: AppStyles.getSecondaryTextColor(context),
                             ),
+                          ),
+                          SizedBox(height: Spacing.xl),
+                          CupertinoButton.filled(
+                            onPressed: () async {
+                              if (kDebugMode) print('Resetting dashboard to default');
+                              await dashboardController.resetToDefault();
+                              if (mounted) {
+                                toast.showSuccess('Dashboard reset to default');
+                              }
+                            },
+                            child: const Text('Reset to Default'),
                           ),
                         ],
                       ),

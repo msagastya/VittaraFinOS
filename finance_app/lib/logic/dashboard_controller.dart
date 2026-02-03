@@ -26,7 +26,15 @@ class DashboardController extends ChangeNotifier {
       try {
         final map = jsonDecode(configJson) as Map<String, dynamic>;
         _config = DashboardConfig.fromMap(map);
+
+        // Ensure at least some widgets are visible, otherwise reset
+        if (_config.getVisibleWidgets().isEmpty) {
+          print('No visible widgets found, resetting to default');
+          _config = _getDefaultConfig();
+          await saveConfig();
+        }
       } catch (e) {
+        print('Error loading dashboard config: $e, using default');
         _config = _getDefaultConfig();
       }
     } else {
