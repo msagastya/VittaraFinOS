@@ -866,7 +866,7 @@ class DashboardScreen extends StatelessWidget {
               children: [
                 // Main Net Worth Card
                 Container(
-                  padding: EdgeInsets.all(Spacing.lg),
+                  padding: EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
@@ -892,7 +892,7 @@ class DashboardScreen extends StatelessWidget {
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      SizedBox(height: Spacing.xs),
+                      SizedBox(height: 4),
                       Text(
                         '₹${totalNetWorth.toStringAsFixed(0)}',
                         style: TextStyle(
@@ -901,9 +901,9 @@ class DashboardScreen extends StatelessWidget {
                           color: displayColor,
                         ),
                       ),
-                      SizedBox(height: Spacing.md),
+                      SizedBox(height: 8),
                       Container(
-                        padding: EdgeInsets.all(Spacing.sm),
+                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
                           color: displayColor.withOpacity(0.08),
                           borderRadius: BorderRadius.circular(8),
@@ -932,7 +932,7 @@ class DashboardScreen extends StatelessWidget {
                               ],
                             ),
                             if (totalInvestments > 0) ...[
-                              SizedBox(height: 6),
+                              SizedBox(height: 4),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
@@ -955,7 +955,7 @@ class DashboardScreen extends StatelessWidget {
                               ),
                             ],
                             if (totalCreditUsed > 0) ...[
-                              SizedBox(height: 6),
+                              SizedBox(height: 4),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
