@@ -121,32 +121,68 @@ class _NetWorthPageState extends State<NetWorthPage> {
       child: SafeArea(
         child: Consumer2<AccountsController, InvestmentsController>(
           builder: (context, accountsController, investmentsController, child) {
-            return SingleChildScrollView(
-              padding: EdgeInsets.all(Spacing.lg),
-              child: Column(
-                children: [
-                  // TOTAL NET WORTH CARD
-                  _buildTotalNetWorthCard(
-                    context,
-                    accountsController,
-                    investmentsController,
-                  ),
-                  SizedBox(height: Spacing.xl),
+            try {
+              return SingleChildScrollView(
+                padding: EdgeInsets.all(Spacing.lg),
+                child: Column(
+                  children: [
+                    // TOTAL NET WORTH CARD
+                    _buildTotalNetWorthCard(
+                      context,
+                      accountsController,
+                      investmentsController,
+                    ),
+                    SizedBox(height: Spacing.xl),
 
-                  // ASSETS SECTION
-                  _buildAssetsSection(context, accountsController, investmentsController),
-                  SizedBox(height: Spacing.xl),
+                    // ASSETS SECTION
+                    _buildAssetsSection(context, accountsController, investmentsController),
+                    SizedBox(height: Spacing.xl),
 
-                  // LIABILITIES & CREDIT SECTION
-                  _buildLiabilitiesSection(context),
-                  SizedBox(height: Spacing.xl),
+                    // LIABILITIES & CREDIT SECTION
+                    _buildLiabilitiesSection(context),
+                    SizedBox(height: Spacing.xl),
 
-                  // NET WORTH BREAKDOWN PIE CHART
-                  _buildNetWorthBreakdown(context, accountsController, investmentsController),
-                  SizedBox(height: Spacing.xl),
-                ],
-              ),
-            );
+                    // NET WORTH BREAKDOWN PIE CHART
+                    _buildNetWorthBreakdown(context, accountsController, investmentsController),
+                    SizedBox(height: Spacing.xl),
+                  ],
+                ),
+              );
+            } catch (e) {
+              if (kDebugMode) {
+                print('Error building Net Worth page: $e');
+                print(StackTrace.current);
+              }
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(CupertinoIcons.exclamationmark_circle,
+                      size: 50,
+                      color: Colors.red.withOpacity(0.7)
+                    ),
+                    SizedBox(height: Spacing.lg),
+                    Text(
+                      'Error Loading Net Worth',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppStyles.getTextColor(context),
+                      ),
+                    ),
+                    SizedBox(height: Spacing.md),
+                    Text(
+                      e.toString(),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppStyles.getSecondaryTextColor(context),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              );
+            }
           },
         ),
       ),
@@ -358,43 +394,64 @@ class _NetWorthPageState extends State<NetWorthPage> {
     Function(int)? onMoveDown,
     String Function(dynamic)? itemIdGetter,
   }) {
-    // Initialize account order if empty (first time only)
-    if (accountOrderList != null && accountOrderList.isEmpty && itemIdGetter != null && _orderInitialized) {
-      final newOrder = items.map((item) => itemIdGetter(item) as String).toList();
-      accountOrderList.addAll(newOrder);
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _saveAccountOrder();
-      });
-    }
+    try {
+      // Initialize account order if needed (only once)
+      if (accountOrderList != null &&
+          itemIdGetter != null &&
+          _orderInitialized &&
+          accountOrderList.isEmpty &&
+          items.isNotEmpty) {
+        final newOrder = items.map((item) => itemIdGetter(item) as String).toList();
+        accountOrderList.clear();
+        accountOrderList.addAll(newOrder);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _saveAccountOrder();
+        });
+      }
 
-    // Apply custom ordering if provided
-    List<dynamic> orderedItems = items;
-    if (accountOrderList != null && itemIdGetter != null && accountOrderList.isNotEmpty) {
-      orderedItems = [];
-      for (var id in accountOrderList) {
-        final item = items.firstWhere(
-          (item) => itemIdGetter(item) == id,
-          orElse: () => null,
-        );
-        if (item != null) {
-          orderedItems.add(item);
+      // Apply custom ordering if provided
+      List<dynamic> orderedItems = items;
+      if (accountOrderList != null &&
+          itemIdGetter != null &&
+          accountOrderList.isNotEmpty &&
+          items.isNotEmpty) {
+        orderedItems = [];
+
+        // First add items in saved order
+        for (var id in accountOrderList) {
+          try {
+            final item = items.firstWhere(
+              (item) => itemIdGetter(item) == id,
+              orElse: () => null,
+            );
+            if (item != null) {
+              orderedItems.add(item);
+            }
+          } catch (e) {
+            if (kDebugMode) print('Error finding item: $e');
+          }
+        }
+
+        // Add any new items not in the saved order
+        for (var item in items) {
+          try {
+            final itemId = itemIdGetter(item);
+            if (!accountOrderList.contains(itemId)) {
+              orderedItems.add(item);
+            }
+          } catch (e) {
+            if (kDebugMode) print('Error getting item ID: $e');
+          }
         }
       }
-      // Add any new items not in the saved order
-      for (var item in items) {
-        if (!accountOrderList.contains(itemIdGetter(item))) {
-          orderedItems.add(item);
-        }
+
+      double total = 0;
+      for (var item in orderedItems) {
+        final data = itemBuilder(item);
+        total += (data['balance'] as double?) ?? 0.0;
       }
-    }
 
-    double total = 0;
-    for (var item in orderedItems) {
-      final data = itemBuilder(item);
-      total += data['balance'] as double;
-    }
-
-    return Container(
+      return Container(
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(16),
@@ -568,6 +625,29 @@ class _NetWorthPageState extends State<NetWorthPage> {
         ],
       ),
     );
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error in _buildAssetSubsection: $e');
+        print(StackTrace.current);
+      }
+      return Container(
+        padding: EdgeInsets.all(Spacing.lg),
+        decoration: BoxDecoration(
+          color: AppStyles.getCardColor(context),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.red.withOpacity(0.2)),
+        ),
+        child: Center(
+          child: Text(
+            'Error loading $title',
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.red,
+            ),
+          ),
+        ),
+      );
+    }
   }
 
   Widget _buildInvestmentsTypeWise(
