@@ -34,7 +34,6 @@ import 'package:vittara_fin_os/ui/dashboard/dashboard_settings_modal.dart';
 import 'package:vittara_fin_os/ui/net_worth_page.dart';
 import 'package:vittara_fin_os/ui/dashboard/widgets/actions_widget.dart';
 import 'package:vittara_fin_os/ui/dashboard/widgets/transaction_history_widget.dart';
-import 'package:vittara_fin_os/ui/dashboard/widgets/net_worth_widget.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
