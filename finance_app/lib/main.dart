@@ -485,29 +485,47 @@ class DashboardScreen extends StatelessWidget {
     DashboardController controller,
     List<DashboardWidgetConfig> visibleWidgets,
   ) {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          // PROFESSIONAL HEADER
-          _buildHeaderSection(context),
+    return Column(
+      children: [
+        // PROFESSIONAL HEADER
+        _buildHeaderSection(context),
 
-          // DASHBOARD WIDGETS - SIMPLIFIED FOR STABILITY
-          Padding(
+        // REORDERABLE DASHBOARD WIDGETS
+        Expanded(
+          child: ReorderableListView(
             padding: EdgeInsets.all(Spacing.lg),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: visibleWidgets
-                  .map((widget) {
-                    return Container(
-                      margin: EdgeInsets.only(bottom: Spacing.lg),
-                      child: _buildDashboardWidgetCard(context, widget),
-                    );
-                  })
-                  .toList(),
-            ),
+            onReorder: (oldIndex, newIndex) {
+              // Reorder in the visible widgets list
+              final newVisibleWidgets = [...visibleWidgets];
+              if (newIndex > oldIndex) {
+                newIndex -= 1;
+              }
+              final widget = newVisibleWidgets.removeAt(oldIndex);
+              newVisibleWidgets.insert(newIndex, widget);
+
+              // Update controller with new order
+              for (int i = 0; i < newVisibleWidgets.length; i++) {
+                controller.updateWidget(
+                  newVisibleWidgets[i].copyWith(gridRow: i + 1),
+                );
+              }
+              controller.saveConfig();
+            },
+            children: visibleWidgets
+                .asMap()
+                .entries
+                .map((entry) {
+              final widget = entry.value;
+              return Container(
+                key: Key(widget.id),
+                margin: EdgeInsets.only(bottom: Spacing.lg),
+                child: _buildDashboardWidgetCard(context, widget),
+              );
+            })
+                .toList(),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
