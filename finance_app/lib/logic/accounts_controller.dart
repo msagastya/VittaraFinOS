@@ -26,6 +26,16 @@ class AccountsController with ChangeNotifier {
   }
 
   Future<void> addAccount(Account account) async {
+    // Validate credit card balance doesn't exceed limit
+    if ((account.type == AccountType.credit || account.type == AccountType.payLater) &&
+        account.creditLimit != null &&
+        account.balance > account.creditLimit!) {
+      throw Exception(
+        'Credit card balance (₹${account.balance.toStringAsFixed(2)}) '
+        'cannot exceed credit limit (₹${account.creditLimit!.toStringAsFixed(2)})'
+      );
+    }
+
     _accounts.add(account);
     await _saveAccounts();
     notifyListeners();
@@ -38,6 +48,16 @@ class AccountsController with ChangeNotifier {
   }
 
   Future<void> updateAccount(Account account) async {
+    // Validate credit card balance doesn't exceed limit
+    if ((account.type == AccountType.credit || account.type == AccountType.payLater) &&
+        account.creditLimit != null &&
+        account.balance > account.creditLimit!) {
+      throw Exception(
+        'Credit card balance (₹${account.balance.toStringAsFixed(2)}) '
+        'cannot exceed credit limit (₹${account.creditLimit!.toStringAsFixed(2)})'
+      );
+    }
+
     final index = _accounts.indexWhere((acc) => acc.id == account.id);
     if (index >= 0) {
       _accounts[index] = account;

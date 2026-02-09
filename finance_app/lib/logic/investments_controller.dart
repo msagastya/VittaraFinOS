@@ -42,43 +42,20 @@ class InvestmentsController with ChangeNotifier {
   }
 
   Future<void> updateInvestment(Investment investment) async {
-    print('\n📥 InvestmentsController.updateInvestment called');
-    print('   Investment ID: ${investment.id}');
-    print('   Investment Name: ${investment.name}');
-    print('   Investment Amount: ${investment.amount}');
-    print('   Investment Type: ${investment.type}');
-    if (investment.metadata != null) {
-      print('   Metadata keys: ${investment.metadata!.keys.toList()}');
-      print('   - renewalCycles exists: ${investment.metadata!.containsKey('renewalCycles')}');
-      if (investment.metadata!.containsKey('renewalCycles')) {
-        print('   - renewalCycles length: ${(investment.metadata!['renewalCycles'] as List?)?.length ?? 0}');
-      }
-    }
-
     final index = _investments.indexWhere((inv) => inv.id == investment.id);
-    print('   Found at index: $index');
 
     if (index >= 0) {
       _investments[index] = investment;
-      print('   ✅ Investment updated in list');
       await _saveInvestments();
-      print('   ✅ Saved to SharedPreferences');
       notifyListeners();
-    } else {
-      print('   ❌ Investment not found in list!');
     }
   }
 
   Future<void> _saveInvestments() async {
-    print('\n💾 Saving ${_investments.length} investments to SharedPreferences');
     final investmentsJson = _investments
-        .map((investment) {
-          print('   - Saving: ${investment.name} (ID: ${investment.id}, Amount: ${investment.amount})');
-          return jsonEncode(investment.toMap());
-        })
+        .map((investment) => jsonEncode(investment.toMap()))
         .toList();
     await _prefs.setStringList(_storageKey, investmentsJson);
-    print('   ✅ Saved successfully');
   }
 
   void reorderInvestments(int oldIndex, int newIndex) {

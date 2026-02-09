@@ -9,7 +9,7 @@ import 'package:vittara_fin_os/logic/fd_calculations.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
-import 'package:vittara_fin_os/ui/manage/fd/modals/fd_renewal_modal.dart';
+import 'package:vittara_fin_os/ui/manage/fd/fd_renewal_wizard_screen.dart';
 import 'package:vittara_fin_os/ui/manage/fd/modals/fd_withdrawal_modal.dart';
 
 class FDDetailsScreen extends StatefulWidget {
@@ -969,8 +969,10 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                                     Provider.of<InvestmentsController>(context, listen: false);
 
                                 // Find the original investment from the controller
-                                final originalInvestment = investmentsController.investments
-                                    .firstWhere((inv) => inv.id == widget.fd.id);
+                                final originalInvestment = investmentsController.investments.firstWhere(
+                                  (inv) => inv.id == widget.fd.id,
+                                  orElse: () => throw Exception('Investment not found'),
+                                );
 
                                 // Get existing renewal cycles
                                 final existingCycles = <FDRenewalCycle>[];
@@ -1026,15 +1028,17 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                                 // Update the investment
                                 await investmentsController.updateInvestment(updatedInvestment);
 
+                                if (!mounted) return;
                                 // Credit the linked account
                                 final linkedAccountId = widget.fd.linkedAccountId;
-                                if (linkedAccountId.isNotEmpty) {
+                                if (linkedAccountId.isNotEmpty && mounted) {
                                   try {
                                     final accountsController =
                                         Provider.of<AccountsController>(context, listen: false);
                                     try {
                                       final linkedAccount = accountsController.accounts.firstWhere(
                                         (acc) => acc.id == linkedAccountId,
+                                        orElse: () => throw Exception('Account not found'),
                                       );
                                       final updatedAccount = linkedAccount.copyWith(
                                         balance: linkedAccount.balance + amount,
@@ -1048,8 +1052,10 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                                   }
                                 }
 
-                                Navigator.of(context).pop();
-                                toast.showSuccess('Withdrawal completed. Amount: ₹${amount.toStringAsFixed(2)}');
+                                if (mounted) {
+                                  Navigator.of(context).pop();
+                                  toast.showSuccess('Withdrawal completed. Amount: ₹${amount.toStringAsFixed(2)}');
+                                }
                               } catch (e) {
                                 if (mounted) {
                                   toast.showError('Error processing withdrawal: $e');
@@ -1318,6 +1324,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                               value: widget.fd.autoLinkEnabled,
                               onChanged: (value) async {
                                 try {
+                                  if (!mounted) return;
                                   final investmentsController =
                                       Provider.of<InvestmentsController>(context, listen: false);
 
@@ -1327,8 +1334,10 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                                   );
 
                                   // Create updated Investment with new FD data
-                                  final currentInvestment = investmentsController.investments
-                                      .firstWhere((inv) => inv.id == widget.fd.id);
+                                  final currentInvestment = investmentsController.investments.firstWhere(
+                                    (inv) => inv.id == widget.fd.id,
+                                    orElse: () => throw Exception('Investment not found'),
+                                  );
 
                                   final updatedInvestment = currentInvestment.copyWith(
                                     metadata: {
@@ -1340,13 +1349,12 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
 
                                   // Update the investment
                                   await investmentsController.updateInvestment(updatedInvestment);
+                                  if (!mounted) return;
 
-                                  if (mounted) {
-                                    Navigator.of(context).pop();
-                                    toast.showSuccess(
-                                      'Auto-link ${value ? 'enabled' : 'disabled'}',
-                                    );
-                                  }
+                                  Navigator.of(context).pop();
+                                  toast.showSuccess(
+                                    'Auto-link ${value ? 'enabled' : 'disabled'}',
+                                  );
                                 } catch (e) {
                                   if (mounted) {
                                     toast.showError('Failed to update setting');
@@ -1573,16 +1581,19 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
           CupertinoDialogAction(
             isDestructiveAction: true,
             onPressed: () async {
+              if (!mounted) return;
               // Delete FD from investments controller
               final investmentsController = Provider.of<InvestmentsController>(context, listen: false);
               await investmentsController.deleteInvestment(widget.fd.id);
 
-              // Close dialog
-              Navigator.of(context).pop();
-              // Go back to investments list
-              Navigator.of(context).pop();
+              if (mounted) {
+                // Close dialog
+                Navigator.of(context).pop();
+                // Go back to investments list
+                Navigator.of(context).pop();
 
-              toast.showSuccess('FD deleted successfully');
+                toast.showSuccess('FD deleted successfully');
+              }
             },
             child: const Text('Delete'),
           ),
@@ -1622,7 +1633,6 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
       final lastCycleMap = Map<String, dynamic>.from(cyclesData.last as Map);
       return FDRenewalCycle.fromMap(lastCycleMap);
     } catch (e) {
-      print('Error getting latest renewal cycle: $e');
       return null;
     }
   }
@@ -1717,22 +1727,12 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
     final daysElapsed = today.difference(investDate).inDays;
     final yearsElapsed = daysElapsed / 365.25;
 
-    print('\n📊 CAGR CALCULATION DEBUG:');
-    print('  Principal: ₹$principal');
-    print('  Current Value: ₹$currentValue');
-    print('  Investment Date: $investDate');
-    print('  Today: $today');
-    print('  Days Elapsed: $daysElapsed days');
-    print('  Years Elapsed: ${yearsElapsed.toStringAsFixed(2)} years');
-    print('  Gain %: ${((currentValue - principal) / principal * 100).toStringAsFixed(2)}%');
-
     final cagr = FDCalculations.calculateCAGR(
       principal,
       currentValue,
       investDate,
       today,
     );
-    print('  CAGR Result: ${cagr.toStringAsFixed(2)}%\n');
     return cagr;
   }
 
@@ -1830,16 +1830,31 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                 child: CupertinoButton(
                   color: AppStyles.getPrimaryColor(context),
                   onPressed: () {
-                    Navigator.of(context).push(
-                      CupertinoPageRoute(
-                        builder: (_) => FDRenewalModal(
-                          fd: widget.fd,
-                          onRenew: () {
-                            // TODO: Create renewed FD
-                          },
+                    final investmentsController = Provider.of<InvestmentsController>(context, listen: false);
+                    try {
+                      final originalInvestment = investmentsController.investments.firstWhere(
+                        (inv) => inv.id == widget.fd.id,
+                        orElse: () => throw Exception('Investment not found'),
+                      );
+
+                      Navigator.of(context).push(
+                        CupertinoPageRoute(
+                          builder: (_) => FDRenewalWizardScreen(
+                            fd: widget.fd,
+                            originalInvestment: originalInvestment,
                         ),
                       ),
-                    );
+                    ).then((renewed) {
+                      if (!mounted) return;
+                      if (renewed == true) {
+                        Navigator.of(context).pop();
+                      }
+                    });
+                    } catch (e) {
+                      if (mounted) {
+                        toast.showError('Failed to open renewal: $e');
+                      }
+                    }
                   },
                   child: const Text(
                     'Renew',
@@ -1856,16 +1871,37 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                 child: CupertinoButton(
                   color: Colors.green,
                   onPressed: () {
-                    Navigator.of(context).push(
-                      CupertinoPageRoute(
-                        builder: (_) => FDWithdrawalModal(
-                          fd: widget.fd,
+                    final investmentsController = Provider.of<InvestmentsController>(context, listen: false);
+                    try {
+                      final originalInvestment = investmentsController.investments.firstWhere(
+                        (inv) => inv.id == widget.fd.id,
+                        orElse: () => throw Exception('Investment not found'),
+                      );
+
+                      Navigator.of(context).push(
+                        CupertinoPageRoute(
+                          builder: (_) => FDWithdrawalModal(
+                            fd: widget.fd,
+                            investmentController: investmentsController,
                           onWithdraw: () {
-                            // TODO: Mark FD as withdrawn
+                            // Withdrawal handled by modal, pop back to investments list
+                            if (mounted) {
+                              Navigator.of(context).pop();
+                            }
                           },
                         ),
                       ),
-                    );
+                    ).then((withdrawn) {
+                      if (!mounted) return;
+                      if (withdrawn == true) {
+                        Navigator.of(context).pop();
+                      }
+                    });
+                    } catch (e) {
+                      if (mounted) {
+                        toast.showError('Failed to open withdrawal: $e');
+                      }
+                    }
                   },
                   child: const Text(
                     'Withdraw',

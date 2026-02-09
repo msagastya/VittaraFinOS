@@ -7,7 +7,7 @@ class AppStyles {
   static const Color darkBackground = Color(0xFF000000); // AMOLED
   
   static const Color lightCard = Color(0xFFFFFFFF);
-  static const Color darkCard = Color(0xFF1C1C1E);
+  static const Color darkCard = Color(0xFF111111); // AMOLED black
   
   static const Color lightText = Color(0xFF1C1C1E);
   static const Color darkText = Color(0xFFFFFFFF);

@@ -22,6 +22,12 @@ class FDWizardController extends ChangeNotifier {
   TenureUnit? tenureUnit;
   int tenureDuration = 12;
 
+  // Multiple tenure unit support
+  int tenureYearsInput = 0;
+  int tenureMonthsInput = 0;
+  int tenureDaysInput = 0;
+  int tenureTotalDays = 0; // Exact total days (never lose precision)
+
   // Step 5: Compounding Frequency
   FDCompoundingFrequency compoundingFrequency = FDCompoundingFrequency.quarterly;
 
@@ -97,6 +103,25 @@ class FDWizardController extends ChangeNotifier {
         tenureMonths = duration * 12;
         break;
     }
+
+    _updateMaturityDate();
+    _updateCalculations();
+    notifyListeners();
+  }
+
+  void updateTenureWithMultipleUnits(int years, int months, int days) {
+    tenureYearsInput = years;
+    tenureMonthsInput = months;
+    tenureDaysInput = days;
+
+    // For validation and reference: calculate approximate total months
+    // (This is just for display/validation, actual maturity date uses proper date arithmetic)
+    int totalMonths = (years * 12) + months;
+    if (totalMonths < 1 && days > 0) totalMonths = 1; // At least 1 month if only days
+
+    tenureMonths = totalMonths;
+    tenureUnit = null; // Clear single unit since we're using multiple
+    tenureDuration = totalMonths;
 
     _updateMaturityDate();
     _updateCalculations();
@@ -191,37 +216,88 @@ class FDWizardController extends ChangeNotifier {
   }
 
   void _updateMaturityDate() {
-    // Calculate days based on tenure unit
-    int totalDays = 0;
+    // Proper date arithmetic (handles leap years and varying month lengths)
+    DateTime result = investmentDate;
 
     if (tenureUnit == null) {
-      // Legacy: calculate from months
-      var newMonth = investmentDate.month + tenureMonths;
-      var newYear = investmentDate.year;
-
-      while (newMonth > 12) {
-        newMonth -= 12;
-        newYear++;
+      // Multi-unit input (Years + Months + Days)
+      // Add years first
+      if (tenureYearsInput > 0) {
+        result = DateTime(
+          result.year + tenureYearsInput,
+          result.month,
+          result.day,
+        );
       }
 
-      maturityDate = DateTime(newYear, newMonth, investmentDate.day);
+      // Then add months
+      if (tenureMonthsInput > 0) {
+        var newMonth = result.month + tenureMonthsInput;
+        var newYear = result.year;
+
+        while (newMonth > 12) {
+          newMonth -= 12;
+          newYear++;
+        }
+
+        // Handle day overflow for months with fewer days
+        var maxDayInMonth = DateTime(newYear, newMonth + 1, 0).day;
+        var day = result.day > maxDayInMonth ? maxDayInMonth : result.day;
+
+        result = DateTime(newYear, newMonth, day);
+      }
+
+      // Finally add days
+      if (tenureDaysInput > 0) {
+        result = result.add(Duration(days: tenureDaysInput));
+      }
+
+      maturityDate = result;
     } else {
-      // New: use tenure unit with 365-day calculation
+      // Single unit input (Days, Months, or Years)
       switch (tenureUnit) {
         case TenureUnit.days:
-          totalDays = tenureDuration;
+          maturityDate = result.add(Duration(days: tenureDuration));
           break;
-        case TenureUnit.months:
-          totalDays = (tenureDuration * 365 / 12).toInt();
-          break;
-        case TenureUnit.years:
-          totalDays = tenureDuration * 365;
-          break;
-        case null:
-          totalDays = (tenureMonths * 365 / 12).toInt();
-      }
 
-      maturityDate = investmentDate.add(Duration(days: totalDays));
+        case TenureUnit.months:
+          // Add months properly
+          var newMonth = result.month + tenureDuration;
+          var newYear = result.year;
+
+          while (newMonth > 12) {
+            newMonth -= 12;
+            newYear++;
+          }
+
+          // Handle day overflow
+          var maxDayInMonth = DateTime(newYear, newMonth + 1, 0).day;
+          var day = result.day > maxDayInMonth ? maxDayInMonth : result.day;
+
+          maturityDate = DateTime(newYear, newMonth, day);
+          break;
+
+        case TenureUnit.years:
+          // Add years properly
+          maturityDate = DateTime(
+            result.year + tenureDuration,
+            result.month,
+            result.day,
+          );
+          break;
+
+        case null:
+          // Fallback (shouldn't happen)
+          var newMonth = result.month + tenureMonths;
+          var newYear = result.year;
+
+          while (newMonth > 12) {
+            newMonth -= 12;
+            newYear++;
+          }
+
+          maturityDate = DateTime(newYear, newMonth, result.day);
+      }
     }
   }
 

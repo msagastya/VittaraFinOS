@@ -785,7 +785,7 @@ class _LendingWizardState extends State<LendingWizard> {
         });
       }
     } catch (e) {
-      print('Error loading contacts: $e');
+      // Error loading contacts
     } finally {
       setState(() => _loadingPhoneContacts = false);
     }

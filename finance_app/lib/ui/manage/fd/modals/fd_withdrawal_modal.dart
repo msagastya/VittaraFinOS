@@ -284,13 +284,21 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                         final originalInvestment = widget.originalInvestment!;
                         final investmentsController = widget.investmentController!;
 
-                        // Get existing renewal cycles
+                        // Get existing renewal cycles with safe casting
                         final existingCycles = <FDRenewalCycle>[];
-                        final cyclesData = originalInvestment.metadata?['renewalCycles'] as List?;
-                        if (cyclesData != null) {
+                        final cyclesData = originalInvestment.metadata?['renewalCycles'];
+                        if (cyclesData is List) {
                           for (var c in cyclesData) {
-                            final cycleMap = Map<String, dynamic>.from(c as Map);
-                            existingCycles.add(FDRenewalCycle.fromMap(cycleMap));
+                            try {
+                              if (c is Map<String, dynamic>) {
+                                existingCycles.add(FDRenewalCycle.fromMap(c));
+                              } else if (c is Map) {
+                                final cycleMap = Map<String, dynamic>.from(c);
+                                existingCycles.add(FDRenewalCycle.fromMap(cycleMap));
+                              }
+                            } catch (e) {
+                              // Skip invalid renewal cycle data
+                            }
                           }
                         }
 
@@ -337,11 +345,13 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
 
                         // Update the investment
                         await investmentsController.updateInvestment(updatedInvestment);
+                        if (!mounted) return;
 
                         // Credit the linked account
                         final linkedAccountId = widget.fd.linkedAccountId;
                         if (linkedAccountId.isNotEmpty) {
                           try {
+                            if (!mounted) return;
                             final accountsController =
                                 Provider.of<AccountsController>(context, listen: false);
                             try {
@@ -352,6 +362,7 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                                 balance: linkedAccount.balance + withdrawalAmount,
                               );
                               await accountsController.updateAccount(updatedAccount);
+                              if (!mounted) return;
                             } catch (e) {
                               // Account not found
                             }

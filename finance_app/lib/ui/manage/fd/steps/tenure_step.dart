@@ -13,133 +13,44 @@ class TenureStep extends StatefulWidget {
 }
 
 class _TenureStepState extends State<TenureStep> {
-  late TextEditingController _durationController;
-  late TenureUnit _selectedUnit;
+  late TextEditingController _yearsController;
+  late TextEditingController _monthsController;
+  late TextEditingController _daysController;
 
   @override
   void initState() {
     super.initState();
     final controller = Provider.of<FDWizardController>(context, listen: false);
-    _selectedUnit = controller.tenureUnit ?? TenureUnit.months;
-    _durationController = TextEditingController(
-      text: controller.tenureDuration.toString(),
+    _yearsController = TextEditingController(
+      text: controller.tenureYearsInput > 0 ? controller.tenureYearsInput.toString() : '',
+    );
+    _monthsController = TextEditingController(
+      text: controller.tenureMonthsInput > 0 ? controller.tenureMonthsInput.toString() : '',
+    );
+    _daysController = TextEditingController(
+      text: controller.tenureDaysInput > 0 ? controller.tenureDaysInput.toString() : '',
     );
   }
 
   @override
   void dispose() {
-    _durationController.dispose();
+    _yearsController.dispose();
+    _monthsController.dispose();
+    _daysController.dispose();
     super.dispose();
   }
 
   void _updateTenure() {
     final controller = Provider.of<FDWizardController>(context, listen: false);
-    final duration = int.tryParse(_durationController.text) ?? 12;
-    controller.updateTenureWithUnit(duration, _selectedUnit);
-  }
+    final years = int.tryParse(_yearsController.text) ?? 0;
+    final months = int.tryParse(_monthsController.text) ?? 0;
+    final days = int.tryParse(_daysController.text) ?? 0;
 
-  int _convertToDays(int duration, TenureUnit unit) {
-    switch (unit) {
-      case TenureUnit.days:
-        return duration;
-      case TenureUnit.months:
-        return (duration * 365 / 12).toInt();
-      case TenureUnit.years:
-        return duration * 365;
+    if (years > 0 || months > 0 || days > 0) {
+      controller.updateTenureWithMultipleUnits(years, months, days);
     }
   }
 
-  String _getUnitLabel(TenureUnit unit) {
-    switch (unit) {
-      case TenureUnit.days:
-        return 'Days';
-      case TenureUnit.months:
-        return 'Months';
-      case TenureUnit.years:
-        return 'Years';
-    }
-  }
-
-  void _showUnitPicker(BuildContext context) {
-    showCupertinoModalPopup(
-      context: context,
-      builder: (BuildContext context) => Container(
-        color: AppStyles.getBackground(context),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.md),
-              decoration: BoxDecoration(
-                color: AppStyles.getCardColor(context),
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(12),
-                  topRight: Radius.circular(12),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Select Unit',
-                    style: TextStyle(
-                      color: AppStyles.getTextColor(context),
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  CupertinoButton(
-                    padding: EdgeInsets.zero,
-                    child: const Text('Done'),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                ],
-              ),
-            ),
-            ...TenureUnit.values.map((unit) {
-              final isSelected = _selectedUnit == unit;
-              return CupertinoButton(
-                padding: EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.md),
-                onPressed: () {
-                  setState(() {
-                    _selectedUnit = unit;
-                    _updateTenure();
-                  });
-                  Navigator.of(context).pop();
-                },
-                child: Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.all(Spacing.md),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? AppStyles.getPrimaryColor(context).withOpacity(0.1)
-                        : AppStyles.getCardColor(context),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: isSelected
-                          ? AppStyles.getPrimaryColor(context)
-                          : AppStyles.getDividerColor(context),
-                      width: isSelected ? 2 : 1,
-                    ),
-                  ),
-                  child: Text(
-                    _getUnitLabel(unit),
-                    style: TextStyle(
-                      color: isSelected
-                          ? AppStyles.getPrimaryColor(context)
-                          : AppStyles.getTextColor(context),
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                    ),
-                  ),
-                ),
-              );
-            }),
-            SizedBox(height: Spacing.lg),
-          ],
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -154,66 +65,108 @@ class _TenureStepState extends State<TenureStep> {
           ),
           const SizedBox(height: 8),
           Text(
-            'How long do you want to keep this FD?',
+            'Enter tenure as Years, Months, and/or Days. All fields are optional, but at least one must be filled.',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
           ),
           const SizedBox(height: 30),
           Text(
-            'Duration',
+            'Tenure',
             style: TextStyle(
               color: AppStyles.getTextColor(context),
               fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 12),
+          // Three input fields in a row
           Row(
             children: [
+              // Years field
               Expanded(
-                child: CupertinoTextField(
-                  controller: _durationController,
-                  keyboardType: TextInputType.number,
-                  placeholder: '12',
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppStyles.getCardColor(context),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  style: TextStyle(color: AppStyles.getTextColor(context)),
-                  onChanged: (_) => _updateTenure(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Years',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppStyles.getSecondaryTextColor(context),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    CupertinoTextField(
+                      controller: _yearsController,
+                      keyboardType: TextInputType.number,
+                      placeholder: '0',
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppStyles.getCardColor(context),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      style: TextStyle(color: AppStyles.getTextColor(context)),
+                      onChanged: (_) => _updateTenure(),
+                    ),
+                  ],
                 ),
               ),
               SizedBox(width: Spacing.md),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: Spacing.md),
-                decoration: BoxDecoration(
-                  color: AppStyles.getCardColor(context),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: AppStyles.getDividerColor(context),
-                    width: 1,
-                  ),
+              // Months field
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Months',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppStyles.getSecondaryTextColor(context),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    CupertinoTextField(
+                      controller: _monthsController,
+                      keyboardType: TextInputType.number,
+                      placeholder: '0',
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppStyles.getCardColor(context),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      style: TextStyle(color: AppStyles.getTextColor(context)),
+                      onChanged: (_) => _updateTenure(),
+                    ),
+                  ],
                 ),
-                child: CupertinoButton(
-                  padding: EdgeInsets.zero,
-                  onPressed: () => _showUnitPicker(context),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        _getUnitLabel(_selectedUnit),
-                        style: TextStyle(
-                          color: AppStyles.getTextColor(context),
-                          fontWeight: FontWeight.w600,
-                        ),
+              ),
+              SizedBox(width: Spacing.md),
+              // Days field
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Days',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppStyles.getSecondaryTextColor(context),
+                        fontWeight: FontWeight.w500,
                       ),
-                      SizedBox(width: Spacing.sm),
-                      Icon(
-                        CupertinoIcons.chevron_down,
-                        size: 16,
-                        color: AppStyles.getPrimaryColor(context),
+                    ),
+                    const SizedBox(height: 6),
+                    CupertinoTextField(
+                      controller: _daysController,
+                      keyboardType: TextInputType.number,
+                      placeholder: '0',
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppStyles.getCardColor(context),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                    ],
-                  ),
+                      style: TextStyle(color: AppStyles.getTextColor(context)),
+                      onChanged: (_) => _updateTenure(),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -222,33 +175,18 @@ class _TenureStepState extends State<TenureStep> {
           Consumer<FDWizardController>(
             builder: (context, controller, child) {
               final maturityDate = controller.maturityDate;
-              String durationText = '';
+              final years = controller.tenureYearsInput;
+              final months = controller.tenureMonthsInput;
+              final days = controller.tenureDaysInput;
+              final totalMonths = controller.tenureMonths;
 
-              if (controller.tenureUnit != null) {
-                switch (controller.tenureUnit) {
-                  case TenureUnit.days:
-                    durationText = '${controller.tenureDuration} day${controller.tenureDuration > 1 ? 's' : ''}';
-                    break;
-                  case TenureUnit.months:
-                    durationText = '${controller.tenureDuration} month${controller.tenureDuration > 1 ? 's' : ''}';
-                    break;
-                  case TenureUnit.years:
-                    durationText = '${controller.tenureDuration} year${controller.tenureDuration > 1 ? 's' : ''}';
-                    break;
-                  case null:
-                    final years = controller.tenureMonths ~/ 12;
-                    final months = controller.tenureMonths % 12;
-                    durationText = years > 0
-                        ? '$years year${years > 1 ? 's' : ''} ${months > 0 ? '$months month${months > 1 ? 's' : ''}' : ''}'
-                        : '${controller.tenureMonths} month${controller.tenureMonths > 1 ? 's' : ''}';
-                }
-              } else {
-                final years = controller.tenureMonths ~/ 12;
-                final months = controller.tenureMonths % 12;
-                durationText = years > 0
-                    ? '$years year${years > 1 ? 's' : ''} ${months > 0 ? '$months month${months > 1 ? 's' : ''}' : ''}'
-                    : '${controller.tenureMonths} month${controller.tenureMonths > 1 ? 's' : ''}';
-              }
+              // Build duration breakdown string
+              List<String> parts = [];
+              if (years > 0) parts.add('$years year${years > 1 ? 's' : ''}');
+              if (months > 0) parts.add('$months month${months > 1 ? 's' : ''}');
+              if (days > 0) parts.add('$days day${days > 1 ? 's' : ''}');
+
+              String durationText = parts.isNotEmpty ? parts.join(', ') : 'No tenure entered';
 
               return Container(
                 padding: const EdgeInsets.all(16),
@@ -284,6 +222,24 @@ class _TenureStepState extends State<TenureStep> {
                           durationText,
                           style: TextStyle(
                             color: AppStyles.getTextColor(context),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Total Months',
+                          style:
+                              TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+                        ),
+                        Text(
+                          '$totalMonths month${totalMonths > 1 ? 's' : ''}',
+                          style: TextStyle(
+                            color: AppStyles.getPrimaryColor(context),
                             fontWeight: FontWeight.bold,
                           ),
                         ),

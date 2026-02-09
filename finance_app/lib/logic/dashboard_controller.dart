@@ -29,12 +29,10 @@ class DashboardController extends ChangeNotifier {
 
         // Ensure at least some widgets are visible, otherwise reset
         if (_config.getVisibleWidgets().isEmpty) {
-          print('No visible widgets found, resetting to default');
           _config = _getDefaultConfig();
           await saveConfig();
         }
       } catch (e) {
-        print('Error loading dashboard config: $e, using default');
         _config = _getDefaultConfig();
       }
     } else {
@@ -46,23 +44,13 @@ class DashboardController extends ChangeNotifier {
     return DashboardConfig(
       widgets: [
         DashboardWidgetConfig(
-          id: 'actions',
-          type: DashboardWidgetType.actions,
-          title: 'Actions',
-          isVisible: true,
-          gridRow: 1,
-          gridColumn: 1,
-          columnSpan: 1,
-          rowSpan: 2,
-        ),
-        DashboardWidgetConfig(
           id: 'net_worth',
           type: DashboardWidgetType.netWorth,
           title: 'Net Worth',
           isVisible: true,
           gridRow: 1,
-          gridColumn: 2,
-          columnSpan: 2,
+          gridColumn: 1,
+          columnSpan: 3,
           rowSpan: 2,
         ),
         DashboardWidgetConfig(
@@ -76,9 +64,9 @@ class DashboardController extends ChangeNotifier {
           rowSpan: 2,
         ),
         DashboardWidgetConfig(
-          id: 'fd_notifications',
-          type: DashboardWidgetType.fdNotifications,
-          title: 'FD Notifications',
+          id: 'notifications_and_actions',
+          type: DashboardWidgetType.notificationsAndActions,
+          title: 'Notifications and Actions',
           isVisible: true,
           gridRow: 5,
           gridColumn: 1,
@@ -108,7 +96,10 @@ class DashboardController extends ChangeNotifier {
 
   // Move widget to new position
   void moveWidget(String widgetId, int newRow, int newColumn) {
-    final widget = _config.widgets.firstWhere((w) => w.id == widgetId);
+    final widget = _config.widgets.firstWhere(
+      (w) => w.id == widgetId,
+      orElse: () => throw Exception('Widget not found: $widgetId'),
+    );
 
     // Clamp to valid grid boundaries
     int clampedColumn = newColumn;
@@ -133,7 +124,10 @@ class DashboardController extends ChangeNotifier {
 
   // Resize widget (change column and row span)
   void resizeWidget(String widgetId, int newColumnSpan, int newRowSpan) {
-    final widget = _config.widgets.firstWhere((w) => w.id == widgetId);
+    final widget = _config.widgets.firstWhere(
+      (w) => w.id == widgetId,
+      orElse: () => throw Exception('Widget not found: $widgetId'),
+    );
 
     // Clamp spans
     int clampedColSpan = newColumnSpan.clamp(1, GRID_COLUMNS);
@@ -155,7 +149,10 @@ class DashboardController extends ChangeNotifier {
   }
 
   void toggleWidgetVisibility(String widgetId) {
-    final widget = _config.widgets.firstWhere((w) => w.id == widgetId);
+    final widget = _config.widgets.firstWhere(
+      (w) => w.id == widgetId,
+      orElse: () => throw Exception('Widget not found: $widgetId'),
+    );
     updateWidget(widget.copyWith(isVisible: !widget.isVisible));
   }
 

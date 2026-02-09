@@ -1,0 +1,273 @@
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+
+/// Service for fetching NAV (Net Asset Value) data for Mutual Funds
+class NAVService {
+  static const String _cachePrefix = 'nav_cache_';
+  static const Duration _cacheDuration = Duration(hours: 6);
+
+  /// Fetch current NAV for a mutual fund scheme
+  Future<NAVData?> getCurrentNAV(String schemeCode) async {
+    try {
+      // Check cache first
+      final cached = await _getCachedNAV(schemeCode);
+      if (cached != null) return cached;
+
+      // Fetch from AMFI API
+      final url = Uri.parse('https://api.mfapi.in/mf/$schemeCode/latest');
+      final response = await http.get(url).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final navData = NAVData.fromJson(data);
+
+        // Cache the result
+        await _cacheNAV(schemeCode, navData);
+
+        return navData;
+      }
+
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching NAV for $schemeCode: $e');
+      return null;
+    }
+  }
+
+  /// Fetch historical NAV data for a mutual fund scheme
+  Future<List<NAVData>> getHistoricalNAV(
+    String schemeCode, {
+    DateTime? fromDate,
+    DateTime? toDate,
+    int? lastNDays,
+  }) async {
+    try {
+      final url = Uri.parse('https://api.mfapi.in/mf/$schemeCode');
+      final response = await http.get(url).timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final List<dynamic> navList = data['data'] ?? [];
+
+        List<NAVData> historicalData = navList
+            .map((item) => NAVData.fromJson(item))
+            .toList();
+
+        // Filter by date range if provided
+        if (fromDate != null || toDate != null) {
+          historicalData = historicalData.where((nav) {
+            if (fromDate != null && nav.date.isBefore(fromDate)) return false;
+            if (toDate != null && nav.date.isAfter(toDate)) return false;
+            return true;
+          }).toList();
+        }
+
+        // Limit to last N days if provided
+        if (lastNDays != null && historicalData.length > lastNDays) {
+          historicalData = historicalData.sublist(0, lastNDays);
+        }
+
+        return historicalData;
+      }
+
+      return [];
+    } catch (e) {
+      debugPrint('Error fetching historical NAV for $schemeCode: $e');
+      return [];
+    }
+  }
+
+  /// Get NAV for a specific date
+  Future<NAVData?> getNAVForDate(String schemeCode, DateTime date) async {
+    try {
+      final historical = await getHistoricalNAV(schemeCode);
+
+      // Find closest NAV to the requested date
+      NAVData? closestNAV;
+      int minDiff = 999999;
+
+      for (final nav in historical) {
+        final diff = nav.date.difference(date).inDays.abs();
+        if (diff < minDiff) {
+          minDiff = diff;
+          closestNAV = nav;
+        }
+      }
+
+      return closestNAV;
+    } catch (e) {
+      debugPrint('Error fetching NAV for date: $e');
+      return null;
+    }
+  }
+
+  /// Calculate returns over a period
+  Future<double?> calculateReturns(
+    String schemeCode, {
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    try {
+      final startNAV = await getNAVForDate(schemeCode, startDate);
+      final endNAV = await getNAVForDate(schemeCode, endDate);
+
+      if (startNAV == null || endNAV == null) return null;
+
+      final returns = ((endNAV.nav - startNAV.nav) / startNAV.nav) * 100;
+      return returns;
+    } catch (e) {
+      debugPrint('Error calculating returns: $e');
+      return null;
+    }
+  }
+
+  /// Calculate XIRR (Extended Internal Rate of Return) for SIP investments
+  Future<double?> calculateXIRR(List<SIPTransaction> transactions) async {
+    // Simple XIRR calculation (can be enhanced with more accurate algorithm)
+    try {
+      if (transactions.isEmpty) return null;
+
+      double totalInvested = 0;
+      double totalValue = 0;
+
+      for (final transaction in transactions) {
+        totalInvested += transaction.amount;
+        totalValue += transaction.amount * (transaction.currentNAV / transaction.purchaseNAV);
+      }
+
+      final returns = ((totalValue - totalInvested) / totalInvested) * 100;
+      return returns;
+    } catch (e) {
+      debugPrint('Error calculating XIRR: $e');
+      return null;
+    }
+  }
+
+  /// Cache NAV data
+  Future<void> _cacheNAV(String schemeCode, NAVData navData) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cacheKey = '$_cachePrefix$schemeCode';
+      final cacheData = {
+        'data': navData.toJson(),
+        'timestamp': DateTime.now().toIso8601String(),
+      };
+      await prefs.setString(cacheKey, json.encode(cacheData));
+    } catch (e) {
+      debugPrint('Error caching NAV: $e');
+    }
+  }
+
+  /// Get cached NAV data
+  Future<NAVData?> _getCachedNAV(String schemeCode) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cacheKey = '$_cachePrefix$schemeCode';
+      final cacheJson = prefs.getString(cacheKey);
+
+      if (cacheJson == null) return null;
+
+      final cacheData = json.decode(cacheJson);
+      final timestamp = DateTime.parse(cacheData['timestamp']);
+
+      // Check if cache is still valid
+      if (DateTime.now().difference(timestamp) > _cacheDuration) {
+        return null;
+      }
+
+      return NAVData.fromJson(cacheData['data']);
+    } catch (e) {
+      debugPrint('Error reading NAV cache: $e');
+      return null;
+    }
+  }
+
+  /// Clear all NAV cache
+  Future<void> clearCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final keys = prefs.getKeys();
+      for (final key in keys) {
+        if (key.startsWith(_cachePrefix)) {
+          await prefs.remove(key);
+        }
+      }
+    } catch (e) {
+      debugPrint('Error clearing NAV cache: $e');
+    }
+  }
+
+  /// Bulk fetch NAVs for multiple schemes
+  Future<Map<String, NAVData>> bulkFetchNAVs(List<String> schemeCodes) async {
+    final Map<String, NAVData> results = {};
+
+    await Future.wait(
+      schemeCodes.map((code) async {
+        final nav = await getCurrentNAV(code);
+        if (nav != null) {
+          results[code] = nav;
+        }
+      }),
+    );
+
+    return results;
+  }
+}
+
+/// NAV data model
+class NAVData {
+  final DateTime date;
+  final double nav;
+
+  NAVData({
+    required this.date,
+    required this.nav,
+  });
+
+  factory NAVData.fromJson(Map<String, dynamic> json) {
+    return NAVData(
+      date: _parseDate(json['date'] ?? ''),
+      nav: double.tryParse(json['nav']?.toString() ?? '0') ?? 0.0,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'date': date.toIso8601String(),
+      'nav': nav,
+    };
+  }
+
+  static DateTime _parseDate(String dateStr) {
+    try {
+      // Handle DD-MM-YYYY format from AMFI
+      final parts = dateStr.split('-');
+      if (parts.length == 3) {
+        final day = int.parse(parts[0]);
+        final month = int.parse(parts[1]);
+        final year = int.parse(parts[2]);
+        return DateTime(year, month, day);
+      }
+      return DateTime.parse(dateStr);
+    } catch (e) {
+      return DateTime.now();
+    }
+  }
+}
+
+/// SIP transaction model for XIRR calculation
+class SIPTransaction {
+  final DateTime date;
+  final double amount;
+  final double purchaseNAV;
+  final double currentNAV;
+
+  SIPTransaction({
+    required this.date,
+    required this.amount,
+    required this.purchaseNAV,
+    required this.currentNAV,
+  });
+}

@@ -4,7 +4,7 @@ enum DashboardWidgetType {
   netWorth,
   investmentsSummary,
   savingsGoals,
-  fdNotifications,
+  notificationsAndActions,
 }
 
 class DashboardWidgetConfig {

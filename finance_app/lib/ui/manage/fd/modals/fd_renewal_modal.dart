@@ -464,27 +464,9 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                         // Build the renewed FD
                         final renewedFD = _controller.buildFD();
 
-                        print('\n🔵 RENEWAL DEBUG LOG');
-                        print('Original Investment ID: ${widget.originalInvestment?.id}');
-                        print('Original Investment Amount (Principal): ${widget.originalInvestment?.amount}');
-                        print('Original Investment Metadata:');
-                        print('  - investmentDate: ${widget.originalInvestment?.metadata?['investmentDate']}');
-                        print('  - maturityDate: ${widget.originalInvestment?.metadata?['maturityDate']}');
-                        print('  - interestRate: ${widget.originalInvestment?.metadata?['interestRate']}');
-                        print('  - estimatedAccruedValue: ${widget.originalInvestment?.metadata?['estimatedAccruedValue']}');
-                        print('  - renewalCycles exists: ${widget.originalInvestment?.metadata?['renewalCycles'] != null}');
-
-                        print('\nRenewed FD Details:');
-                        print('  - principal: ${renewedFD.principal}');
-                        print('  - investmentDate: ${renewedFD.investmentDate}');
-                        print('  - maturityDate: ${renewedFD.maturityDate}');
-                        print('  - interestRate: ${renewedFD.interestRate}');
-                        print('  - maturityValue: ${renewedFD.maturityValue}');
-                        print('  - estimatedAccruedValue: ${renewedFD.estimatedAccruedValue}');
-
                         // Create a renewal cycle for this renewal
                         final renewalCycle = FDRenewalCycle(
-                          cycleNumber: (widget.originalInvestment?.metadata?['renewalCycles'] as List?)?.length ?? 1 + 1,
+                          cycleNumber: ((widget.originalInvestment?.metadata?['renewalCycles'] as List?)?.length ?? 0) + 1,
                           investmentDate: renewedFD.investmentDate,
                           maturityDate: renewedFD.maturityDate,
                           principal: renewedFD.principal,
@@ -495,38 +477,30 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                           isCompleted: false,
                         );
 
-                        print('\nNew Renewal Cycle Created:');
-                        print('  - cycleNumber: ${renewalCycle.cycleNumber}');
-                        print('  - principal: ${renewalCycle.principal}');
-                        print('  - investmentDate: ${renewalCycle.investmentDate}');
-                        print('  - maturityDate: ${renewalCycle.maturityDate}');
-                        print('  - maturityValue: ${renewalCycle.maturityValue}');
-
-                        // Get existing renewal cycles
+                        // Get existing renewal cycles with safe casting
                         final existingCycles = <FDRenewalCycle>[];
-                        final cyclesData = widget.originalInvestment?.metadata?['renewalCycles'] as List?;
-                        print('\nExisting renewal cycles in metadata: ${cyclesData?.length ?? 0}');
-                        if (cyclesData != null) {
+                        final cyclesData = widget.originalInvestment?.metadata?['renewalCycles'];
+                        if (cyclesData is List) {
                           for (var c in cyclesData) {
-                            final cycleMap = Map<String, dynamic>.from(c as Map);
-                            existingCycles.add(FDRenewalCycle.fromMap(cycleMap));
+                            try {
+                              if (c is Map<String, dynamic>) {
+                                existingCycles.add(FDRenewalCycle.fromMap(c));
+                              } else if (c is Map) {
+                                final cycleMap = Map<String, dynamic>.from(c);
+                                existingCycles.add(FDRenewalCycle.fromMap(cycleMap));
+                              }
+                            } catch (e) {
+                              // Skip invalid renewal cycle data
+                            }
                           }
                         }
 
                         // Add new cycle to the list
                         existingCycles.add(renewalCycle);
-                        print('Total cycles after renewal: ${existingCycles.length}');
 
                         // Update the original investment with new renewal cycle
                         final existingMetadata = widget.originalInvestment?.metadata ?? {};
                         final safeMetadata = Map<String, dynamic>.from(existingMetadata);
-
-                        print('\n📝 UPDATING INVESTMENT:');
-                        print('  - Keeping amount (principal): ${widget.originalInvestment?.amount}');
-                        print('  - New maturity date: ${renewedFD.maturityDate}');
-                        print('  - New interest rate: ${renewedFD.interestRate}');
-                        print('  - New estimated accrued value: ${renewedFD.estimatedAccruedValue}');
-                        print('  - Cycles being saved: ${existingCycles.length}');
 
                         final updatedInvestment = widget.originalInvestment!.copyWith(
                           amount: widget.originalInvestment!.amount, // KEEP ORIGINAL PRINCIPAL
@@ -543,15 +517,8 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                           },
                         );
 
-                        print('\nFinal Updated Investment:');
-                        print('  - ID: ${updatedInvestment.id}');
-                        print('  - Amount (Principal): ${updatedInvestment.amount}');
-                        print('  - Metadata keys: ${updatedInvestment.metadata?.keys.toList()}');
-
                         // Update the investment (not create new one)
                         await investmentsController.updateInvestment(updatedInvestment);
-                        print('✅ Investment updated successfully');
-                        print('🔵 RENEWAL DEBUG LOG END\n');
 
                         if (context.mounted) {
                           toast.showSuccess('FD Renewed Successfully!');
@@ -559,8 +526,6 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                           Navigator.of(context).pop();
                         }
                       } catch (e) {
-                        print('❌ RENEWAL ERROR: $e');
-                        print('Stack trace: $e');
                         if (context.mounted) {
                           toast.showError('Error: $e');
                         }
@@ -638,19 +603,49 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
   }
 
   DateTime _calculateMaturityDate() {
-    int totalDays = _convertToDays(_tenureDuration, _selectedUnit);
-    return _controller.investmentDate.add(Duration(days: totalDays));
+    // Use proper date arithmetic (handles leap years and varying month lengths)
+    DateTime result = _controller.investmentDate;
+
+    switch (_selectedUnit) {
+      case TenureUnit.days:
+        // Add days directly
+        return result.add(Duration(days: _tenureDuration));
+
+      case TenureUnit.months:
+        // Add months properly (date-to-date)
+        var newMonth = result.month + _tenureDuration;
+        var newYear = result.year;
+
+        while (newMonth > 12) {
+          newMonth -= 12;
+          newYear++;
+        }
+
+        // Handle day overflow for months with fewer days
+        var maxDayInMonth = DateTime(newYear, newMonth + 1, 0).day;
+        var day = result.day > maxDayInMonth ? maxDayInMonth : result.day;
+
+        return DateTime(newYear, newMonth, day);
+
+      case TenureUnit.years:
+        // Add years properly (date-to-date, handles leap years)
+        return DateTime(
+          result.year + _tenureDuration,
+          result.month,
+          result.day,
+        );
+    }
   }
 
   int _convertToDays(int duration, TenureUnit unit) {
+    // Legacy method - kept for backward compatibility if needed
+    // But _calculateMaturityDate() now uses proper date arithmetic
     switch (unit) {
       case TenureUnit.days:
         return duration;
       case TenureUnit.months:
-        // 1 month = 365/12 = ~30.42 days
         return (duration * 365 / 12).toInt();
       case TenureUnit.years:
-        // 1 year = 365 days (not 360)
         return duration * 365;
     }
   }

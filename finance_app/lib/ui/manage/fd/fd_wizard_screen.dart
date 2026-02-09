@@ -90,12 +90,20 @@ class _FDWizardScreenState extends State<FDWizardScreen> {
 
       // Debit principal from linked account if enabled
       if (_controller.debitFromAccount) {
-        final account = accountsController.accounts
-            .firstWhere((a) => a.id == fd.linkedAccountId);
-        final updatedAccount = account.copyWith(
-          balance: account.balance - fd.principal,
-        );
-        await accountsController.updateAccount(updatedAccount);
+        try {
+          final account = accountsController.accounts.firstWhere(
+            (a) => a.id == fd.linkedAccountId,
+            orElse: () => throw Exception('Account not found'),
+          );
+          final updatedAccount = account.copyWith(
+            balance: account.balance - fd.principal,
+          );
+          await accountsController.updateAccount(updatedAccount);
+        } catch (e) {
+          if (mounted) {
+            toast.showError('Failed to debit from account: $e');
+          }
+        }
       }
 
       // Save FD as Investment

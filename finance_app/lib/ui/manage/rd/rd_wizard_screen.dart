@@ -94,12 +94,20 @@ class _RDWizardScreenState extends State<RDWizardScreen> {
 
       // Debit first installment from linked account if enabled
       if (_controller.debitFromAccount) {
-        final account = accountsController.accounts
-            .firstWhere((a) => a.id == rd.linkedAccountId);
-        final updatedAccount = account.copyWith(
-          balance: account.balance - rd.monthlyAmount,
-        );
-        await accountsController.updateAccount(updatedAccount);
+        try {
+          final account = accountsController.accounts.firstWhere(
+            (a) => a.id == rd.linkedAccountId,
+            orElse: () => throw Exception('Account not found'),
+          );
+          final updatedAccount = account.copyWith(
+            balance: account.balance - rd.monthlyAmount,
+          );
+          await accountsController.updateAccount(updatedAccount);
+        } catch (e) {
+          if (mounted) {
+            toast.showError('Failed to debit from account: $e');
+          }
+        }
       }
 
       // Save RD as Investment

@@ -19,6 +19,8 @@ import 'package:vittara_fin_os/logic/payment_apps_controller.dart';
 import 'package:vittara_fin_os/logic/settings_controller.dart';
 import 'package:vittara_fin_os/logic/tags_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
+import 'package:vittara_fin_os/logic/goals_controller.dart';
+import 'package:vittara_fin_os/logic/budgets_controller.dart';
 import 'package:vittara_fin_os/ui/fintech_loader.dart';
 import 'package:vittara_fin_os/ui/manage_screen.dart';
 import 'package:vittara_fin_os/ui/settings_screen.dart';
@@ -26,19 +28,16 @@ import 'package:vittara_fin_os/ui/transaction_history_screen.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/notifications_page.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
-import 'package:vittara_fin_os/ui/manage/fd/modals/fd_renewal_modal.dart';
-import 'package:vittara_fin_os/ui/manage/fd/modals/fd_withdrawal_modal.dart';
-import 'package:vittara_fin_os/logic/fixed_deposit_model.dart';
-import 'package:vittara_fin_os/ui/dashboard/notification_widget.dart';
 import 'package:vittara_fin_os/ui/dashboard/dashboard_settings_modal.dart';
 import 'package:vittara_fin_os/ui/net_worth_page.dart';
-import 'package:vittara_fin_os/ui/dashboard/widgets/actions_widget.dart';
-import 'package:vittara_fin_os/ui/dashboard/widgets/transaction_history_widget.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
-import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 import 'package:vittara_fin_os/services/mf_database_service.dart';
+import 'package:vittara_fin_os/ui/manage/goals/goals_screen.dart';
+import 'package:vittara_fin_os/ui/manage/budgets/budgets_screen.dart';
+import 'package:vittara_fin_os/ui/manage/savings/savings_planners_screen.dart';
+import 'package:vittara_fin_os/ui/manage/ai_planner/ai_monthly_planner_screen.dart';
 
 final AppLogger logger = AppLogger();
 
@@ -94,6 +93,12 @@ void main() {
           ),
           ChangeNotifierProvider(
             create: (_) => DashboardController()..initialize(),
+          ),
+          ChangeNotifierProvider(
+            create: (_) => GoalsController()..initialize(),
+          ),
+          ChangeNotifierProvider(
+            create: (_) => BudgetsController()..initialize(),
           ),
         ],
         child: const MyApp(),
@@ -518,7 +523,7 @@ class DashboardScreen extends StatelessWidget {
               final widget = entry.value;
               return Container(
                 key: Key(widget.id),
-                margin: EdgeInsets.only(bottom: Spacing.lg),
+                margin: EdgeInsets.only(bottom: Spacing.md),
                 child: _buildDashboardWidgetCard(context, widget),
               );
             })
@@ -604,35 +609,41 @@ class DashboardScreen extends StatelessWidget {
             // Content - minimal padding, shrink to fit
             if (hasContent)
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: Spacing.md)
-                    .copyWith(bottom: Spacing.md),
+                padding: EdgeInsets.only(
+                  left: Spacing.md,
+                  right: Spacing.md,
+                  bottom: Spacing.sm,
+                ),
                 child: _buildWidgetPreview(context, widgetConfig),
               )
             else
-              Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: Spacing.md,
-                  vertical: Spacing.sm,
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Icon(
-                      CupertinoIcons.checkmark_circle_fill,
-                      size: 24,
-                      color: Colors.green.withOpacity(0.6),
-                    ),
-                    SizedBox(height: Spacing.xs),
-                    Text(
-                      'All caught up!',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppStyles.getSecondaryTextColor(context),
-                        fontWeight: FontWeight.w500,
+              Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Spacing.md,
+                    vertical: Spacing.lg,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Icon(
+                        CupertinoIcons.checkmark_circle_fill,
+                        size: 32,
+                        color: Colors.green.withOpacity(0.7),
                       ),
-                    ),
-                  ],
+                      SizedBox(height: Spacing.md),
+                      Text(
+                        'All caught up!',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppStyles.getSecondaryTextColor(context),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
           ],
@@ -646,8 +657,6 @@ class DashboardScreen extends StatelessWidget {
     DashboardWidgetConfig widgetConfig,
   ) {
     switch (widgetConfig.type) {
-      case DashboardWidgetType.actions:
-        return true; // Actions always has content
       case DashboardWidgetType.netWorth:
         return true; // Net Worth always has content
       case DashboardWidgetType.transactionHistory:
@@ -655,7 +664,7 @@ class DashboardScreen extends StatelessWidget {
         final transactionsController =
             Provider.of<TransactionsController>(context, listen: false);
         return transactionsController.transactions.isNotEmpty;
-      case DashboardWidgetType.fdNotifications:
+      case DashboardWidgetType.notificationsAndActions:
         // Check if there are FD notifications
         final investmentsController =
             Provider.of<InvestmentsController>(context, listen: false);
@@ -781,11 +790,122 @@ class DashboardScreen extends StatelessWidget {
                   ),
                 ],
               ),
+
+              // Quick Action Pills
+              SizedBox(height: Spacing.lg),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _buildQuickActionPill(context, 'Goals', CupertinoIcons.checkmark_circle, Colors.blue),
+                    SizedBox(width: Spacing.md),
+                    _buildQuickActionPill(context, 'Budgets', CupertinoIcons.chart_pie, Colors.purple),
+                    SizedBox(width: Spacing.md),
+                    _buildQuickActionPill(context, 'Savings', CupertinoIcons.heart, Colors.green),
+                    SizedBox(width: Spacing.md),
+                    _buildQuickActionPill(context, 'AI Plan', CupertinoIcons.lightbulb, Colors.orange),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildQuickActionPill(
+    BuildContext context,
+    String label,
+    IconData icon,
+    Color color,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return GestureDetector(
+      onTap: () {
+        _handleQuickActionTap(context, label);
+      },
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              color.withOpacity(0.15),
+              color.withOpacity(0.08),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: color.withOpacity(0.2),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: color),
+            SizedBox(width: Spacing.xs),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _handleQuickActionTap(BuildContext context, String action) {
+    switch (action) {
+      case 'Goals':
+        // Navigate to Goals screen
+        Navigator.of(context).push(
+          CupertinoPageRoute(
+            builder: (context) => const GoalsScreen(),
+          ),
+        );
+        break;
+      case 'Budgets':
+        // Navigate to Budgets screen
+        Navigator.of(context).push(
+          CupertinoPageRoute(
+            builder: (context) => const BudgetsScreen(),
+          ),
+        );
+        break;
+      case 'Savings':
+        // Navigate to Savings screen
+        Navigator.of(context).push(
+          CupertinoPageRoute(
+            builder: (context) => const SavingsPlannersScreen(),
+          ),
+        );
+        break;
+      case 'AI Plan':
+        // Navigate to AI Monthly Planner screen
+        Navigator.of(context).push(
+          CupertinoPageRoute(
+            builder: (context) => const AIMonthlyPlannerScreen(),
+          ),
+        );
+        break;
+      default:
+        break;
+    }
   }
 
   String _formatHeaderDate(DateTime date) {
@@ -811,21 +931,6 @@ class DashboardScreen extends StatelessWidget {
 
   Widget _buildWidgetPreview(BuildContext context, DashboardWidgetConfig widgetConfig) {
     switch (widgetConfig.type) {
-      case DashboardWidgetType.actions:
-        return Consumer<InvestmentsController>(
-          builder: (context, _, child) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildQuickAction(context, 'Add Transaction', CupertinoIcons.plus_circle_fill, Colors.blue),
-                SizedBox(height: Spacing.md),
-                _buildQuickAction(context, 'Manage Accounts', CupertinoIcons.creditcard_fill, Colors.green),
-                SizedBox(height: Spacing.md),
-                _buildQuickAction(context, 'View Investments', CupertinoIcons.chart_bar_fill, Colors.purple),
-              ],
-            );
-          },
-        );
       case DashboardWidgetType.netWorth:
         return Consumer2<AccountsController, InvestmentsController>(
           builder: (context, accountsController, investmentsController, child) {
@@ -866,7 +971,7 @@ class DashboardScreen extends StatelessWidget {
               children: [
                 // Main Net Worth Card
                 Container(
-                  padding: EdgeInsets.all(12),
+                  padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
@@ -892,7 +997,7 @@ class DashboardScreen extends StatelessWidget {
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      SizedBox(height: 4),
+                      SizedBox(height: 2),
                       Text(
                         '₹${totalNetWorth.toStringAsFixed(0)}',
                         style: TextStyle(
@@ -901,9 +1006,9 @@ class DashboardScreen extends StatelessWidget {
                           color: displayColor,
                         ),
                       ),
-                      SizedBox(height: 8),
+                      SizedBox(height: 6),
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
                           color: displayColor.withOpacity(0.08),
                           borderRadius: BorderRadius.circular(8),
@@ -932,7 +1037,7 @@ class DashboardScreen extends StatelessWidget {
                               ],
                             ),
                             if (totalInvestments > 0) ...[
-                              SizedBox(height: 4),
+                              SizedBox(height: 3),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
@@ -955,7 +1060,7 @@ class DashboardScreen extends StatelessWidget {
                               ),
                             ],
                             if (totalCreditUsed > 0) ...[
-                              SizedBox(height: 4),
+                              SizedBox(height: 3),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
@@ -1094,7 +1199,7 @@ class DashboardScreen extends StatelessWidget {
             );
           },
         );
-      case DashboardWidgetType.fdNotifications:
+      case DashboardWidgetType.notificationsAndActions:
         return Consumer<InvestmentsController>(
           builder: (context, investmentsController, child) {
             final fdsNearMaturity = investmentsController.investments.where((inv) {
@@ -1362,11 +1467,6 @@ class DashboardScreen extends StatelessWidget {
 
   void _handleWidgetTap(BuildContext context, DashboardWidgetConfig widgetConfig) {
     switch (widgetConfig.type) {
-      case DashboardWidgetType.actions:
-        Navigator.of(context).push(
-          CupertinoPageRoute(builder: (context) => const ManageScreen()),
-        );
-        break;
       case DashboardWidgetType.transactionHistory:
         Navigator.of(context).push(
           CupertinoPageRoute(builder: (context) => const TransactionHistoryScreen()),
@@ -1377,7 +1477,7 @@ class DashboardScreen extends StatelessWidget {
           CupertinoPageRoute(builder: (context) => const NetWorthPage()),
         );
         break;
-      case DashboardWidgetType.fdNotifications:
+      case DashboardWidgetType.notificationsAndActions:
         Navigator.of(context).push(
           CupertinoPageRoute(builder: (context) => const NotificationsPage()),
         );

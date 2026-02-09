@@ -202,8 +202,8 @@ class _DashboardSettingsModalState extends State<DashboardSettingsModal> {
         return 'Your total net worth & breakdown';
       case DashboardWidgetType.transactionHistory:
         return 'Recent transactions';
-      case DashboardWidgetType.fdNotifications:
-        return 'Fixed deposit reminders';
+      case DashboardWidgetType.notificationsAndActions:
+        return 'Notifications and actions';
       default:
         return '';
     }

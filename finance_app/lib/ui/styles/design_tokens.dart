@@ -332,6 +332,24 @@ class Elevations {
   static const int dialog = 7;
 }
 
+/// Investment type colors for consistent branding
+class InvestmentColors {
+  InvestmentColors._();
+
+  // Investment types
+  static const Color fixedDeposit = Color(0xFFFF6B00);      // Orange
+  static const Color recurringDeposit = Color(0xFFD600CC);  // Magenta
+  static const Color stocks = Color(0xFF00B050);             // Green
+  static const Color bonds = Color(0xFF00A6CC);              // Cyan
+  static const Color mutualFunds = Color(0xFF0066CC);        // Blue
+  static const Color nps = Color(0xFF9B59B6);                // Purple
+  static const Color cryptocurrency = Color(0xFFF7931A);     // Bitcoin Orange
+  static const Color digitalGold = Color(0xFFFFB81C);        // Gold Yellow
+  static const Color pension = Color(0xFF8E44AD);            // Dark Purple
+  static const Color commodities = Color(0xFFC0922B);        // Bronze
+  static const Color futuresOptions = Color(0xFFE74C3C);     // Red
+}
+
 /// Preset color palettes for pickers
 class ColorPalettes {
   ColorPalettes._();
@@ -372,4 +390,278 @@ class ColorPalettes {
     Color(0xFFFA709A), // Rose
     Color(0xFFFEE140), // Yellow
   ];
+}
+
+/// Gradient color schemes for backgrounds and cards
+class GradientSchemes {
+  GradientSchemes._();
+
+  // Purple Dream
+  static const LinearGradient purpleDream = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
+  );
+
+  // Ocean Breeze
+  static const LinearGradient oceanBreeze = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF4FACFE), Color(0xFF00F2FE)],
+  );
+
+  // Sunset Glow
+  static const LinearGradient sunsetGlow = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFFF5576C), Color(0xFFFA709A), Color(0xFFFEE140)],
+  );
+
+  // Fresh Mint
+  static const LinearGradient freshMint = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF43E97B), Color(0xFF38F9D7)],
+  );
+
+  // Royal Purple
+  static const LinearGradient royalPurple = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF9C27B0), Color(0xFF673AB7)],
+  );
+
+  // Fire Ember
+  static const LinearGradient fireEmber = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFFFF6B00), Color(0xFFFF3B30)],
+  );
+
+  // Cool Night
+  static const LinearGradient coolNight = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF0066CC), Color(0xFF00A6CC)],
+  );
+
+  // Golden Hour
+  static const LinearGradient goldenHour = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFFFFB81C), Color(0xFFFEE140)],
+  );
+
+  // Cosmic Violet
+  static const LinearGradient cosmicViolet = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF5E5CE6), Color(0xFF9B59B6), Color(0xFFF093FB)],
+  );
+
+  // Neon Surge
+  static const LinearGradient neonSurge = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF00F2FE), Color(0xFF4FACFE), Color(0xFF667EEA)],
+  );
+
+  // Cherry Blossom
+  static const LinearGradient cherryBlossom = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFFF093FB), Color(0xFFFA709A)],
+  );
+
+  // Forest Green
+  static const LinearGradient forestGreen = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF00B050), Color(0xFF43E97B)],
+  );
+
+  /// Radial gradients for glowing effects
+  static RadialGradient glowEffect(Color color) {
+    return RadialGradient(
+      colors: [
+        color.withValues(alpha: 0.6),
+        color.withValues(alpha: 0.3),
+        color.withValues(alpha: 0.0),
+      ],
+      stops: const [0.0, 0.5, 1.0],
+    );
+  }
+
+  /// Sweep gradient for loading indicators
+  static SweepGradient loadingSpinner(Color color) {
+    return SweepGradient(
+      colors: [
+        color.withValues(alpha: 0.0),
+        color,
+        color.withValues(alpha: 0.0),
+      ],
+      stops: const [0.0, 0.5, 1.0],
+    );
+  }
+}
+
+/// Theme variant configurations
+class ThemeVariants {
+  ThemeVariants._();
+
+  // Glass theme colors
+  static const Color glassLight = Color(0xFFF5F5F7);
+  static const Color glassDark = Color(0xFF1C1C1E);
+  static const double glassOpacity = 0.15;
+  static const double glassBlur = 20.0;
+
+  // Neon theme colors
+  static const Color neonPrimary = Color(0xFF00F2FE);
+  static const Color neonSecondary = Color(0xFFFF00FF);
+  static const Color neonAccent = Color(0xFF00FF00);
+
+  // Soft theme colors
+  static const Color softBackground = Color(0xFFFBFBFD);
+  static const Color softCard = Color(0xFFFFFFFF);
+  static const double softElevation = 2.0;
+
+  // Bold theme colors
+  static const Color boldPrimary = Color(0xFFFF3B30);
+  static const Color boldSecondary = Color(0xFF007AFF);
+  static const Color boldAccent = Color(0xFFFF9500);
+
+  /// Get gradient based on theme variant
+  static LinearGradient getVariantGradient(String variant) {
+    switch (variant) {
+      case 'purple':
+        return GradientSchemes.purpleDream;
+      case 'ocean':
+        return GradientSchemes.oceanBreeze;
+      case 'sunset':
+        return GradientSchemes.sunsetGlow;
+      case 'mint':
+        return GradientSchemes.freshMint;
+      case 'fire':
+        return GradientSchemes.fireEmber;
+      case 'cosmic':
+        return GradientSchemes.cosmicViolet;
+      case 'neon':
+        return GradientSchemes.neonSurge;
+      default:
+        return GradientSchemes.purpleDream;
+    }
+  }
+}
+
+/// Color utilities for dynamic theme generation
+class ColorUtilities {
+  ColorUtilities._();
+
+  /// Lighten a color by percentage (0-100)
+  static Color lighten(Color color, double percentage) {
+    final hsl = HSLColor.fromColor(color);
+    final lightness = (hsl.lightness + percentage / 100).clamp(0.0, 1.0);
+    return hsl.withLightness(lightness).toColor();
+  }
+
+  /// Darken a color by percentage (0-100)
+  static Color darken(Color color, double percentage) {
+    final hsl = HSLColor.fromColor(color);
+    final lightness = (hsl.lightness - percentage / 100).clamp(0.0, 1.0);
+    return hsl.withLightness(lightness).toColor();
+  }
+
+  /// Adjust saturation by percentage (-100 to 100)
+  static Color saturate(Color color, double percentage) {
+    final hsl = HSLColor.fromColor(color);
+    final saturation = (hsl.saturation + percentage / 100).clamp(0.0, 1.0);
+    return hsl.withSaturation(saturation).toColor();
+  }
+
+  /// Create a gradient from a single color
+  static LinearGradient autoGradient(Color color) {
+    return LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        lighten(color, 10),
+        color,
+        darken(color, 10),
+      ],
+    );
+  }
+
+  /// Generate complementary color
+  static Color complementary(Color color) {
+    final hsl = HSLColor.fromColor(color);
+    final hue = (hsl.hue + 180) % 360;
+    return hsl.withHue(hue).toColor();
+  }
+
+  /// Generate analogous colors
+  static List<Color> analogous(Color color) {
+    final hsl = HSLColor.fromColor(color);
+    return [
+      hsl.withHue((hsl.hue - 30) % 360).toColor(),
+      color,
+      hsl.withHue((hsl.hue + 30) % 360).toColor(),
+    ];
+  }
+
+  /// Generate triadic colors
+  static List<Color> triadic(Color color) {
+    final hsl = HSLColor.fromColor(color);
+    return [
+      color,
+      hsl.withHue((hsl.hue + 120) % 360).toColor(),
+      hsl.withHue((hsl.hue + 240) % 360).toColor(),
+    ];
+  }
+
+  /// Blend two colors
+  static Color blend(Color color1, Color color2, double ratio) {
+    return Color.lerp(color1, color2, ratio) ?? color1;
+  }
+
+  /// Get readable text color for background
+  static Color getTextColor(Color backgroundColor) {
+    final luminance = backgroundColor.computeLuminance();
+    return luminance > 0.5 ? Colors.black : Colors.white;
+  }
+
+  /// Check if color is dark
+  static bool isDark(Color color) {
+    return color.computeLuminance() < 0.5;
+  }
+}
+
+/// Surface colors for different elevations
+class SurfaceColors {
+  SurfaceColors._();
+
+  /// Get surface color based on elevation (Material Design)
+  static Color getElevatedSurface(BuildContext context, int elevation) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    if (!isDark) return Colors.white;
+
+    // In dark mode, higher elevation = lighter surface
+    final opacity = (elevation * 0.05).clamp(0.0, 0.15);
+    return Color.lerp(
+      const Color(0xFF121212),
+      Colors.white,
+      opacity,
+    )!;
+  }
+
+  static const Color backgroundLight = Color(0xFFFBFBFD);
+  static const Color backgroundDark = Color(0xFF000000);
+
+  static const Color surfaceLight = Color(0xFFFFFFFF);
+  static const Color surfaceDark = Color(0xFF1C1C1E);
+
+  static const Color cardLight = Color(0xFFFFFFFF);
+  static const Color cardDark = Color(0xFF2C2C2E);
+
+  static const Color overlayLight = Color(0x33000000);
+  static const Color overlayDark = Color(0x66000000);
 }

@@ -728,7 +728,7 @@ class _ReviewStep extends StatelessWidget {
               border: Border.all(color: const Color(0xFF00A6CC).withOpacity(0.3)),
             ),
             child: Text(
-              'You will receive payout reminders 2 days before each scheduled payout date via FD Notifications.',
+              'You will receive payout reminders 2 days before each scheduled payout date via Notifications and Actions.',
               style: TextStyle(
                 fontSize: 12,
                 color: AppStyles.getSecondaryTextColor(context),

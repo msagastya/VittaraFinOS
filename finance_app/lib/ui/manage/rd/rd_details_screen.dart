@@ -816,16 +816,19 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
           CupertinoDialogAction(
             isDestructiveAction: true,
             onPressed: () async {
+              if (!mounted) return;
               // Delete RD from investments controller
               final investmentsController = Provider.of<InvestmentsController>(context, listen: false);
               await investmentsController.deleteInvestment(widget.rd.id);
 
-              // Close dialog
-              Navigator.of(context).pop();
-              // Go back to investments list
-              Navigator.of(context).pop();
+              if (mounted) {
+                // Close dialog
+                Navigator.of(context).pop();
+                // Go back to investments list
+                Navigator.of(context).pop();
 
-              toast.showSuccess('RD deleted successfully');
+                toast.showSuccess('RD deleted successfully');
+              }
             },
             child: const Text('Delete'),
           ),

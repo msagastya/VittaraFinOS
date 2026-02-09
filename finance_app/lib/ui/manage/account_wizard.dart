@@ -1400,6 +1400,7 @@ class _AccountWizardState extends State<AccountWizard> {
             CupertinoTextField(
               controller: _accountNumberController,
               placeholder: 'Enter account number',
+              keyboardType: TextInputType.number,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
@@ -1418,6 +1419,7 @@ class _AccountWizardState extends State<AccountWizard> {
             CupertinoTextField(
               controller: _debitCardNumberController,
               placeholder: 'Enter debit card number',
+              keyboardType: TextInputType.number,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
@@ -1520,6 +1522,7 @@ class _AccountWizardState extends State<AccountWizard> {
             CupertinoTextField(
               controller: _creditCardNumberController,
               placeholder: 'Enter credit card number',
+              keyboardType: TextInputType.number,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),

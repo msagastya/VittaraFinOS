@@ -512,6 +512,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
           currentMarketPrice = fetchedPrice;
         }
       }
+      if (!mounted) return;
 
       // Calculate average cost basis (for all shares combined)
       final averageCostBasis = newQty > 0 ? newInvested / newQty : 0;
@@ -541,6 +542,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
       );
 
       investmentsController.updateInvestment(updatedInvestment);
+      if (!mounted) return;
 
       toast.showSuccess('Added $_qty shares!\nTotal: $newQty shares @ ₹${averageCostBasis.toStringAsFixed(2)} avg\nInvested: ₹${newInvested.toStringAsFixed(2)}\nCurrent: ₹${newCurrentValue.toStringAsFixed(2)}');
       Navigator.pop(context);
@@ -1284,6 +1286,7 @@ class _SellModalState extends State<_SellModal> {
           currentMarketPrice = fetchedPrice;
         }
       }
+      if (!mounted) return;
 
       // Calculate new average cost basis for remaining shares
       final newAverageCostBasis = newQty > 0 ? newInvested / newQty : 0;
@@ -1313,6 +1316,7 @@ class _SellModalState extends State<_SellModal> {
       );
 
       investmentsController.updateInvestment(updatedInvestment);
+      if (!mounted) return;
 
       toast.showSuccess('Sold $_qty shares!\nRemaining: $newQty shares @ ₹${newAverageCostBasis.toStringAsFixed(2)} avg\nProceeds: ₹${_netProceeds.toStringAsFixed(2)}\nCurrent: ₹${newCurrentValue.toStringAsFixed(2)}');
       Navigator.pop(context);
