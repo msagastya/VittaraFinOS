@@ -107,7 +107,9 @@ class _NetWorthPageState extends State<NetWorthPage> {
     // Calculate Total Investment
     double totalInvestments = 0;
     for (var investment in investmentsController.investments) {
-      totalInvestments += investment.amount;
+      final metadata = investment.metadata ?? {};
+      final currentValue = (metadata['currentValue'] as num?)?.toDouble();
+      totalInvestments += currentValue ?? investment.amount;
     }
 
     // Calculate Total Credit Limit
