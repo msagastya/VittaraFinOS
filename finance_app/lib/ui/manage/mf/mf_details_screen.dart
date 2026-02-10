@@ -23,10 +23,14 @@ class MFDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final metadata = investment.metadata ?? {};
-    final investedAmount = (metadata['investmentAmount'] as num?)?.toDouble() ?? investment.amount;
+    final investedAmount =
+        (metadata['investmentAmount'] as num?)?.toDouble() ?? investment.amount;
     final currentValue = (metadata['currentValue'] as num?)?.toDouble() ?? 0;
+    final bool sipActive = metadata['sipActive'] == true;
+    final sipActionLabel = sipActive ? 'Manage SIP' : 'SIP';
     final gainLoss = currentValue - investedAmount;
-    final gainPercent = investedAmount > 0 ? (gainLoss / investedAmount) * 100 : 0;
+    final gainPercent =
+        investedAmount > 0 ? (gainLoss / investedAmount) * 100 : 0;
 
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
@@ -209,11 +213,18 @@ class MFDetailsScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              _buildDetailRow('Units', (metadata['units'] as num?)?.toDouble().toStringAsFixed(4) ?? '-'),
-              _buildDetailRow('NAV @ Purchase', '₹${(metadata['investmentNAV'] as num?)?.toDouble().toStringAsFixed(2) ?? '-'}'),
-              _buildDetailRow('Current NAV', '₹${(metadata['currentNAV'] as num?)?.toDouble().toStringAsFixed(2) ?? '-'}'),
-              _buildDetailRow('Scheme Type', metadata['schemeType'] as String? ?? '-'),
-              _buildDetailRow('Scheme Code', metadata['schemeCode'] as String? ?? '-'),
+              _buildDetailRow(
+                  'Units',
+                  (metadata['units'] as num?)?.toDouble().toStringAsFixed(4) ??
+                      '-'),
+              _buildDetailRow('NAV @ Purchase',
+                  '₹${(metadata['investmentNAV'] as num?)?.toDouble().toStringAsFixed(2) ?? '-'}'),
+              _buildDetailRow('Current NAV',
+                  '₹${(metadata['currentNAV'] as num?)?.toDouble().toStringAsFixed(2) ?? '-'}'),
+              _buildDetailRow(
+                  'Scheme Type', metadata['schemeType'] as String? ?? '-'),
+              _buildDetailRow(
+                  'Scheme Code', metadata['schemeCode'] as String? ?? '-'),
 
               if (metadata['investmentDate'] != null) ...[
                 _buildDetailRow(
@@ -290,7 +301,7 @@ class MFDetailsScreen extends StatelessWidget {
                     icon: CupertinoIcons.repeat,
                     label: 'SIP',
                     color: CupertinoColors.systemBlue,
-                    onTap: () => _showSIPWizard(context),
+                    onTap: () => _handleSIPAction(context),
                   ),
                   _buildActionButton(
                     context,
@@ -349,24 +360,92 @@ class MFDetailsScreen extends StatelessWidget {
   String _formatDate(String isoDate) {
     try {
       final date = DateTime.parse(isoDate);
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const months = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec'
+      ];
       return '${date.day} ${months[date.month - 1]} ${date.year}';
     } catch (e) {
       return isoDate;
     }
   }
 
-  void _showBuyMoreWizard(BuildContext context) => _launchMFWizard(context, MFWizardMode.buyMore);
+  void _showBuyMoreWizard(BuildContext context) =>
+      _launchMFWizard(context, MFWizardMode.buyMore);
 
-  void _showSellWizard(BuildContext context) => _launchMFWizard(context, MFWizardMode.sell);
+  void _showSellWizard(BuildContext context) =>
+      _launchMFWizard(context, MFWizardMode.sell);
 
-  Future<void> _showSIPWizard(BuildContext context) async {
+  void _handleSIPAction(BuildContext context) {
+    final metadata = investment.metadata ?? {};
+    final sipActive = metadata['sipActive'] == true;
+
+    if (!sipActive) {
+      _openSIPWizard(context);
+      return;
+    }
+
+    showCupertinoModalPopup(
+      context: context,
+      builder: (_) => CupertinoActionSheet(
+        title: const Text('SIP Options'),
+        actions: [
+          CupertinoActionSheetAction(
+            child: const Text('Edit SIP'),
+            onPressed: () {
+              Navigator.pop(context);
+              final account = _resolveSIPAccount(context, metadata);
+              _openSIPWizard(
+                context,
+                initialData: metadata['sipData'] as Map<String, dynamic>?,
+                initialAccount: account,
+              );
+            },
+          ),
+          CupertinoActionSheetAction(
+            isDestructiveAction: true,
+            child: const Text('Stop SIP'),
+            onPressed: () {
+              Navigator.pop(context);
+              _stopSIP(context);
+            },
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          child: const Text('Cancel'),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openSIPWizard(
+    BuildContext context, {
+    Map<String, dynamic>? initialData,
+    Account? initialAccount,
+  }) async {
     final result = await Navigator.of(context).push<Map<String, dynamic>>(
-      CupertinoPageRoute(builder: (_) => SIPWizard()),
+      CupertinoPageRoute(
+        builder: (_) => SIPWizard(
+          initialData: initialData,
+          initialAccount: initialAccount,
+        ),
+      ),
     );
     if (result == null) return;
 
-    final controller = Provider.of<InvestmentsController>(context, listen: false);
+    final controller =
+        Provider.of<InvestmentsController>(context, listen: false);
     final metadata = Map<String, dynamic>.from(investment.metadata ?? {});
     metadata['sipActive'] = true;
     metadata['sipData'] = result;
@@ -376,6 +455,26 @@ class MFDetailsScreen extends StatelessWidget {
     controller.updateInvestment(updatedInvestment);
     if (context.mounted) {
       toast.showSuccess('SIP configuration saved');
+    }
+  }
+
+  void _stopSIP(BuildContext context) {
+    final metadata = Map<String, dynamic>.from(investment.metadata ?? {});
+    if (metadata['sipActive'] != true) return;
+
+    metadata['sipActive'] = false;
+    metadata.remove('sipData');
+    metadata.remove('sipLinkedAccount');
+    metadata.remove('sipFrequency');
+    metadata.remove('sipStartDate');
+    metadata.remove('sipLastExecutionDate');
+    metadata.remove('sipExecutionLog');
+
+    final updatedInvestment = investment.copyWith(metadata: metadata);
+    Provider.of<InvestmentsController>(context, listen: false)
+        .updateInvestment(updatedInvestment);
+    if (context.mounted) {
+      toast.showSuccess('SIP stopped for this fund');
     }
   }
 
@@ -398,7 +497,8 @@ class MFDetailsScreen extends StatelessWidget {
       context: context,
       builder: (ctx) => CupertinoAlertDialog(
         title: const Text('Delete Investment'),
-        content: const Text('Are you sure you want to delete this mutual fund investment?'),
+        content: const Text(
+            'Are you sure you want to delete this mutual fund investment?'),
         actions: [
           CupertinoDialogAction(
             child: const Text('Cancel'),
@@ -408,7 +508,8 @@ class MFDetailsScreen extends StatelessWidget {
             isDestructiveAction: true,
             child: const Text('Delete'),
             onPressed: () {
-              Provider.of<InvestmentsController>(context, listen: false).removeInvestment(investment.id);
+              Provider.of<InvestmentsController>(context, listen: false)
+                  .removeInvestment(investment.id);
               Navigator.pop(ctx);
               Navigator.pop(context);
               toast.showSuccess('Investment deleted');
@@ -460,14 +561,31 @@ class MFDetailsScreen extends StatelessWidget {
         0;
   }
 
-  Account? _resolveLinkedAccount(BuildContext context, Map<String, dynamic> metadata) {
-    final accountId = metadata['accountId'] as String?;
+  Account? _resolveSIPAccount(
+      BuildContext context, Map<String, dynamic> metadata) {
+    final accountId = (metadata['sipData']
+            as Map<String, dynamic>?)?['deductionAccountId'] as String? ??
+        metadata['sipLinkedAccount'] as String?;
     if (accountId == null) return null;
-    final accounts = Provider.of<AccountsController>(context, listen: false).accounts;
+    if (accountId == null) return null;
+    final accounts =
+        Provider.of<AccountsController>(context, listen: false).accounts;
     for (final account in accounts) {
       if (account.id == accountId) {
         return account;
       }
+    }
+    return null;
+  }
+
+  Account? _resolveLinkedAccount(
+      BuildContext context, Map<String, dynamic> metadata) {
+    final accountId = metadata['accountId'] as String?;
+    if (accountId == null) return null;
+    final accounts =
+        Provider.of<AccountsController>(context, listen: false).accounts;
+    for (final account in accounts) {
+      if (account.id == accountId) return account;
     }
     return null;
   }
@@ -511,7 +629,6 @@ class MFDetailsScreen extends StatelessWidget {
     );
   }
 }
-
 
 class _MFDividendModal extends StatefulWidget {
   final Investment investment;
@@ -607,7 +724,10 @@ class _MFDividendModalState extends State<_MFDividendModal> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
+        Text(label,
+            style: TextStyle(
+                color: AppStyles.getTextColor(context),
+                fontWeight: FontWeight.w600)),
         SizedBox(height: Spacing.xs),
         CupertinoTextField(
           controller: _amountController,
@@ -620,7 +740,8 @@ class _MFDividendModalState extends State<_MFDividendModal> {
           prefix: prefix != null
               ? Padding(
                   padding: const EdgeInsets.only(left: 16),
-                  child: Text(prefix, style: TextStyle(color: AppStyles.getTextColor(context))),
+                  child: Text(prefix,
+                      style: TextStyle(color: AppStyles.getTextColor(context))),
                 )
               : null,
           style: TextStyle(color: AppStyles.getTextColor(context)),
@@ -630,11 +751,13 @@ class _MFDividendModalState extends State<_MFDividendModal> {
   }
 
   Widget _buildDateField(BuildContext context) {
-    final label = '${_dividendDate.day}/${_dividendDate.month}/${_dividendDate.year}';
+    final label =
+        '${_dividendDate.day}/${_dividendDate.month}/${_dividendDate.year}';
     return GestureDetector(
       onTap: _pickDate,
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
+        padding:
+            EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
         decoration: BoxDecoration(
           color: AppStyles.getBackground(context),
           borderRadius: BorderRadius.circular(12),
@@ -642,8 +765,13 @@ class _MFDividendModalState extends State<_MFDividendModal> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Dividend Date', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
-            Text(label, style: TextStyle(color: AppStyles.getSecondaryTextColor(context))),
+            Text('Dividend Date',
+                style: TextStyle(
+                    color: AppStyles.getTextColor(context),
+                    fontWeight: FontWeight.w600)),
+            Text(label,
+                style:
+                    TextStyle(color: AppStyles.getSecondaryTextColor(context))),
           ],
         ),
       ),
@@ -699,14 +827,15 @@ class _EditMFModalState extends State<_EditMFModal> {
         (widget.investment.metadata?['units'] as num?)?.toDouble() ??
         0;
 
-    final metadata = Map<String, dynamic>.from(widget.investment.metadata ?? {});
+    final metadata =
+        Map<String, dynamic>.from(widget.investment.metadata ?? {});
     metadata['investmentAmount'] = investmentAmount;
     metadata['investmentNAV'] = investmentNav;
     metadata['units'] = units;
     metadata['currentValue'] = investmentNav * units;
 
-    final updatedInvestment =
-        widget.investment.copyWith(amount: investmentAmount, metadata: metadata);
+    final updatedInvestment = widget.investment
+        .copyWith(amount: investmentAmount, metadata: metadata);
 
     Provider.of<InvestmentsController>(context, listen: false)
         .updateInvestment(updatedInvestment);
@@ -739,7 +868,8 @@ class _EditMFModalState extends State<_EditMFModal> {
                 style: AppStyles.titleStyle(context).copyWith(fontSize: 22),
               ),
               SizedBox(height: Spacing.xxxl),
-              _buildInputField(context, 'Investment Amount', _amountController, prefix: '₹'),
+              _buildInputField(context, 'Investment Amount', _amountController,
+                  prefix: '₹'),
               SizedBox(height: Spacing.lg),
               _buildInputField(context, 'Average NAV', _navController),
               SizedBox(height: Spacing.lg),
@@ -768,7 +898,10 @@ class _EditMFModalState extends State<_EditMFModal> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
+        Text(label,
+            style: TextStyle(
+                color: AppStyles.getTextColor(context),
+                fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         CupertinoTextField(
           controller: controller,
@@ -782,7 +915,8 @@ class _EditMFModalState extends State<_EditMFModal> {
           prefix: prefix != null
               ? Padding(
                   padding: const EdgeInsets.only(left: 16),
-                  child: Text(prefix, style: TextStyle(color: AppStyles.getTextColor(context))),
+                  child: Text(prefix,
+                      style: TextStyle(color: AppStyles.getTextColor(context))),
                 )
               : null,
           style: TextStyle(color: AppStyles.getTextColor(context)),
