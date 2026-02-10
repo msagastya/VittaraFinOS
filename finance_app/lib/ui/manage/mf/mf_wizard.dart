@@ -16,12 +16,14 @@ import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class MFWizard extends StatelessWidget {
-  const MFWizard({super.key});
+  final MFWizardIntent? intent;
+
+  const MFWizard({super.key, this.intent});
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => MFWizardController(),
+      create: (_) => MFWizardController(intent: intent),
       child: const _MFWizardContent(),
     );
   }
@@ -90,6 +92,63 @@ class _MFWizardContent extends StatelessWidget {
       if (context.mounted) {
         toast.showError('Failed to save investment: $e');
       }
+    }
+  }
+
+  Future<void> _saveOrUpdateInvestment(
+    BuildContext context,
+    MFWizardController controller,
+  ) async {
+    if (controller.mode != MFWizardMode.add && controller.targetInvestment != null) {
+      await _updateInvestment(context, controller);
+      return;
+    }
+    await _saveInvestment(context, controller);
+  }
+
+  Future<void> _updateInvestment(
+    BuildContext context,
+    MFWizardController controller,
+  ) async {
+    final investmentsController =
+        Provider.of<InvestmentsController>(context, listen: false);
+
+    final target = controller.targetInvestment!;
+    final metadata = Map<String, dynamic>.from(target.metadata ?? {});
+    final currentUnits = (metadata['units'] as num?)?.toDouble() ?? 0;
+    final currentAmount = (metadata['investmentAmount'] as num?)?.toDouble() ?? target.amount;
+
+    final transactionAmount = controller.investmentAmount;
+    final transactionUnits = controller.selectedMFType == MFType.existing &&
+            controller.averageNAV > 0
+        ? transactionAmount / controller.averageNAV
+        : controller.calculatedUnits;
+
+    final sign = controller.mode == MFWizardMode.sell ? -1 : 1;
+    final unitsDelta = sign * transactionUnits;
+    final amountDelta = sign * transactionAmount;
+
+    final freshUnits = (currentUnits + unitsDelta).clamp(0.0, double.infinity);
+    final freshAmount = (currentAmount + amountDelta).clamp(0.0, double.infinity);
+    final avgNav = freshUnits > 0 ? freshAmount / freshUnits : controller.averageNAV;
+    final currentMarketNav =
+        controller.selectedMF?.nav ?? controller.averageNAV;
+
+    metadata['units'] = freshUnits;
+    metadata['investmentAmount'] = freshAmount;
+    metadata['investmentNAV'] = avgNav;
+    metadata['currentNAV'] = currentMarketNav;
+    metadata['currentValue'] = currentMarketNav * freshUnits;
+    if (controller.mode == MFWizardMode.sip) {
+      metadata['sipActive'] = true;
+    }
+
+    final updatedInvestment = target.copyWith(amount: freshAmount, metadata: metadata);
+    await investmentsController.updateInvestment(updatedInvestment);
+
+    if (context.mounted) {
+      toast.showSuccess('Mutual Fund investment updated!');
+      Navigator.of(context).pop();
     }
   }
 
@@ -196,10 +255,10 @@ class _MFWizardContent extends StatelessWidget {
                             _showSIPDialog(context);
                           } else if (controller.currentStep == 4) {
                             // For New MF (Step 4 is Review), save directly
-                            await _saveInvestment(context, controller);
+                            await _saveOrUpdateInvestment(context, controller);
                           } else if (controller.currentStep == 5) {
                             // After SIP, save
-                            await _saveInvestment(context, controller);
+                            await _saveOrUpdateInvestment(context, controller);
                           } else {
                             controller.nextPage();
                           }
@@ -238,9 +297,9 @@ class _MFWizardContent extends StatelessWidget {
               Navigator.pop(dialogContext); // Close dialog
               controller.setSIPData(null); // No SIP
               // Save investment without SIP (use main context)
-              if (context.mounted) {
-                await _saveInvestment(context, controller);
-              }
+                  if (context.mounted) {
+                    await _saveOrUpdateInvestment(context, controller);
+                  }
             },
           ),
           CupertinoDialogAction(

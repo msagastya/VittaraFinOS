@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
+import 'package:vittara_fin_os/services/investment_value_service.dart';
 
 class InvestmentsController with ChangeNotifier {
   late SharedPreferences _prefs;
@@ -80,5 +81,39 @@ class InvestmentsController with ChangeNotifier {
 
   List<Investment> getInvestmentsByType(InvestmentType type) {
     return _investments.where((inv) => inv.type == type).toList();
+  }
+
+  Future<bool> refreshCurrentValues(InvestmentValueService valueService) async {
+    var updated = false;
+    for (var i = 0; i < _investments.length; i++) {
+      final investment = _investments[i];
+      final newValue = await valueService.fetchCurrentValue(investment);
+      if (newValue != null) {
+        final metadata = Map<String, dynamic>.from(investment.metadata ?? {});
+        final oldValue = _asDouble(metadata['currentValue']);
+        metadata['currentValue'] = newValue;
+
+        if (oldValue != newValue) {
+          _investments[i] = investment.copyWith(metadata: metadata);
+          updated = true;
+        }
+      }
+    }
+
+    if (updated) {
+      await _saveInvestments();
+      notifyListeners();
+    }
+
+    return updated;
+  }
+
+  double? _asDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value);
+    return null;
   }
 }

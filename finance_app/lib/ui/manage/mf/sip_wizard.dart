@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:vittara_fin_os/logic/account_model.dart';
 import 'package:vittara_fin_os/ui/manage/mf/sip_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/manage/mf/steps/sip_amount_step.dart';
 import 'package:vittara_fin_os/ui/manage/mf/steps/sip_frequency_deduction_step.dart';
@@ -10,12 +11,22 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class SIPWizard extends StatelessWidget {
-  const SIPWizard({super.key});
+  final Map<String, dynamic>? initialData;
+  final Account? initialAccount;
+
+  const SIPWizard({
+    super.key,
+    this.initialData,
+    this.initialAccount,
+  });
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => SIPWizardController(),
+      create: (_) => SIPWizardController(
+        initialData: initialData,
+        initialAccount: initialAccount,
+      ),
       child: const _SIPWizardContent(),
     );
   }

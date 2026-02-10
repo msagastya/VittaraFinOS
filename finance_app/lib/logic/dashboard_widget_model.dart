@@ -2,8 +2,10 @@ enum DashboardWidgetType {
   actions,
   transactionHistory,
   netWorth,
-  investmentsSummary,
-  savingsGoals,
+  goalsOverview,
+  budgetsOverview,
+  savingsPlanners,
+  aiPlanner,
   notificationsAndActions,
 }
 

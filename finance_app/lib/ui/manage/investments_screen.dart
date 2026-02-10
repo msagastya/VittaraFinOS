@@ -37,6 +37,7 @@ import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
+import 'package:vittara_fin_os/services/investment_value_service.dart';
 
 enum SortBy { currentAmount, investedAmount, gainPercent, gainAmount, name, type, dateAdded }
 
@@ -51,10 +52,13 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
   final AppLogger logger = AppLogger();
   bool _isSummaryExpanded = true;
   InvestmentType? _selectedFilter; // null = All investments
-
+  
   // Sort options
   SortBy _sortBy = SortBy.currentAmount;
   bool _sortAscending = false; // true = ascending, false = descending
+
+  final InvestmentValueService _valueService = InvestmentValueService();
+  bool _isRefreshingCurrentValues = false;
 
   // Cache for current gold price (shared across all digital gold cards)
   double? _cachedGoldPrice;
@@ -140,6 +144,31 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       _cachedGoldPrice = price;
     }
     return price;
+  }
+
+  Future<void> _refreshCurrentValues(BuildContext context) async {
+    if (_isRefreshingCurrentValues) return;
+    setState(() => _isRefreshingCurrentValues = true);
+
+    try {
+      final controller = Provider.of<InvestmentsController>(context, listen: false);
+      final updated = await controller.refreshCurrentValues(_valueService);
+
+      if (!mounted) return;
+
+      if (updated) {
+        toast.showSuccess('Current values refreshed');
+      } else {
+        toast.showInfo('Current values already up to date');
+      }
+    } catch (error, stackTrace) {
+      toast.showError('Failed to refresh current values');
+      logger.warning('Refresh current values failed', error: error, stackTrace: stackTrace);
+    } finally {
+      if (mounted) {
+        setState(() => _isRefreshingCurrentValues = false);
+      }
+    }
   }
 
   double _calculateCurrentValue(Investment investment) {
@@ -345,6 +374,18 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                 size: 20,
                 color: SemanticColors.investments,
               ),
+            ),
+            // Refresh Icon
+            CupertinoButton(
+              padding: EdgeInsets.symmetric(horizontal: Spacing.md),
+              onPressed: _isRefreshingCurrentValues ? null : () => _refreshCurrentValues(context),
+              child: _isRefreshingCurrentValues
+                  ? CupertinoActivityIndicator(radius: 10, color: SemanticColors.investments)
+                  : Icon(
+                      CupertinoIcons.arrow_clockwise,
+                      size: 20,
+                      color: SemanticColors.investments,
+                    ),
             ),
             // Ascending/Descending Icon
             CupertinoButton(
@@ -2008,4 +2049,3 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
   }
 
 }
-

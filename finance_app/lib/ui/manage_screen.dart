@@ -41,11 +41,6 @@ class _ManageScreenState extends State<ManageScreen> {
     {'id': 'contacts', 'title': 'People', 'icon': CupertinoIcons.person_2_fill, 'color': CupertinoColors.systemBrown},
     {'id': 'lend', 'title': 'Personal Lending & Borrowing', 'icon': CupertinoIcons.money_dollar_circle_fill, 'color': CupertinoColors.systemTeal},
     {'id': 'tags', 'title': 'Tags', 'icon': CupertinoIcons.tag_fill, 'color': CupertinoColors.systemIndigo},
-    // Financial Planning Section
-    {'id': 'goals', 'title': 'Goals', 'icon': CupertinoIcons.checkmark_circle_fill, 'color': Color(0xFF007AFF)},
-    {'id': 'budgets', 'title': 'Budgets & Savings', 'icon': CupertinoIcons.chart_pie, 'color': Color(0xFF9933FF)},
-    {'id': 'savings', 'title': 'Savings Planners', 'icon': CupertinoIcons.heart, 'color': Color(0xFF34C759)},
-    {'id': 'aiplan', 'title': 'AI Monthly Planner', 'icon': CupertinoIcons.lightbulb, 'color': Color(0xFFFF9500)},
   ];
 
 
@@ -189,18 +184,6 @@ class _ManageScreenState extends State<ManageScreen> {
         break;
       case 'tags':
         page = const TagsScreen();
-        break;
-      case 'goals':
-        page = const GoalsScreen();
-        break;
-      case 'budgets':
-        page = const BudgetsScreen();
-        break;
-      case 'savings':
-        page = const SavingsPlannersScreen();
-        break;
-      case 'aiplan':
-        page = const AIMonthlyPlannerScreen();
         break;
     }
     if (page != null) {

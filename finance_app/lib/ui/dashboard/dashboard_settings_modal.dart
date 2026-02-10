@@ -204,6 +204,14 @@ class _DashboardSettingsModalState extends State<DashboardSettingsModal> {
         return 'Recent transactions';
       case DashboardWidgetType.notificationsAndActions:
         return 'Notifications and actions';
+      case DashboardWidgetType.goalsOverview:
+        return 'Track your goals progress';
+      case DashboardWidgetType.budgetsOverview:
+        return 'Monitor budget health';
+      case DashboardWidgetType.savingsPlanners:
+        return 'View savings planner progress';
+      case DashboardWidgetType.aiPlanner:
+        return 'Launch the AI monthly planner';
       default:
         return '';
     }

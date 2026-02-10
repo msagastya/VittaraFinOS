@@ -5,6 +5,11 @@ enum SIPFrequency { daily, weekly, monthly }
 enum StepUpTenure { monthly, yearly }
 
 class SIPWizardController extends ChangeNotifier {
+  SIPWizardController({Map<String, dynamic>? initialData, Account? initialAccount}) {
+    _initializeFromData(initialData);
+    deductionAccount = initialAccount;
+  }
+
   final PageController pageController = PageController();
   int _currentStep = 0;
 
@@ -88,6 +93,35 @@ class SIPWizardController extends ChangeNotifier {
       default:
         return true;
     }
+  }
+
+  void _initializeFromData(Map<String, dynamic>? data) {
+    if (data == null) return;
+
+    sipAmount = (data['sipAmount'] as num?)?.toDouble() ?? sipAmount;
+    frequency = _parseFrequency(data['frequency'] as String?) ?? frequency;
+    selectedWeekday = (data['weekday'] as int?) ?? selectedWeekday;
+    selectedMonthDay = (data['monthDay'] as int?) ?? selectedMonthDay;
+    stepUpEnabled = data['stepUpEnabled'] == true;
+    stepUpPercent = (data['stepUpPercent'] as num?)?.toDouble() ?? stepUpPercent;
+    stepUpTenure = _parseStepUpTenure(data['stepUpTenure'] as String?) ?? stepUpTenure;
+    stepUpDuration = (data['stepUpDuration'] as int?) ?? stepUpDuration;
+  }
+
+  SIPFrequency? _parseFrequency(String? value) {
+    if (value == null) return null;
+    return SIPFrequency.values.firstWhere(
+      (freq) => freq.name.toLowerCase() == value.toLowerCase(),
+      orElse: () => SIPFrequency.monthly,
+    );
+  }
+
+  StepUpTenure? _parseStepUpTenure(String? value) {
+    if (value == null) return null;
+    return StepUpTenure.values.firstWhere(
+      (tenure) => tenure.name.toLowerCase() == value.toLowerCase(),
+      orElse: () => StepUpTenure.yearly,
+    );
   }
 
   void nextPage() {

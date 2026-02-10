@@ -658,14 +658,16 @@ class DashboardScreen extends StatelessWidget {
   ) {
     switch (widgetConfig.type) {
       case DashboardWidgetType.netWorth:
-        return true; // Net Worth always has content
+      case DashboardWidgetType.goalsOverview:
+      case DashboardWidgetType.budgetsOverview:
+      case DashboardWidgetType.savingsPlanners:
+      case DashboardWidgetType.aiPlanner:
+        return true;
       case DashboardWidgetType.transactionHistory:
-        // Check if there are transactions
         final transactionsController =
             Provider.of<TransactionsController>(context, listen: false);
         return transactionsController.transactions.isNotEmpty;
       case DashboardWidgetType.notificationsAndActions:
-        // Check if there are FD notifications
         final investmentsController =
             Provider.of<InvestmentsController>(context, listen: false);
         final fdsNearMaturity = investmentsController.investments.where((inv) {
@@ -1092,6 +1094,202 @@ class DashboardScreen extends StatelessWidget {
             );
           },
         );
+      case DashboardWidgetType.goalsOverview:
+        return Consumer<GoalsController>(
+          builder: (context, goalsController, child) {
+            final activeGoals = goalsController.activeGoals.length;
+            final totalSaved = goalsController.totalSavedAmount;
+            final totalTarget = goalsController.totalTargetAmount;
+            final progress = totalTarget > 0
+                ? (totalSaved / totalTarget).clamp(0, 1).toDouble()
+                : 0.0;
+
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '$activeGoals Active Goal${activeGoals == 1 ? '' : 's'}',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppStyles.getTextColor(context),
+                        ),
+                      ),
+                    ),
+                    Text(
+                      '${(progress * 100).toStringAsFixed(0)}% Complete',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppStyles.getSecondaryTextColor(context),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: Spacing.md),
+                LinearProgressIndicator(
+                  value: progress,
+                  minHeight: 6,
+                  backgroundColor: AppStyles.getBackground(context).withOpacity(0.5),
+                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
+                ),
+                SizedBox(height: Spacing.sm),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Saved ₹${totalSaved.toStringAsFixed(0)}',
+                      style: const TextStyle(fontSize: 12, color: Colors.green),
+                    ),
+                    Text(
+                      'Goal ₹${totalTarget.toStringAsFixed(0)}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppStyles.getSecondaryTextColor(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
+        );
+      case DashboardWidgetType.budgetsOverview:
+        return Consumer<BudgetsController>(
+          builder: (context, budgetsController, child) {
+            final activeCount = budgetsController.activeBudgets.length;
+            final warningCount = budgetsController.getBudgetsInWarning().length;
+            final exceededCount = budgetsController.getBudgetsExceedingLimit().length;
+
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$activeCount Active Budget${activeCount == 1 ? '' : 's'}',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppStyles.getTextColor(context),
+                  ),
+                ),
+                SizedBox(height: Spacing.md),
+                Row(
+                children: [
+                    _buildBadge(context, 'Warning', warningCount, Colors.orange),
+                    SizedBox(width: Spacing.sm),
+                    _buildBadge(context, 'Exceeded', exceededCount, Colors.red),
+                  ],
+                ),
+              ],
+            );
+          },
+        );
+      case DashboardWidgetType.savingsPlanners:
+        return Consumer<BudgetsController>(
+          builder: (context, budgetsController, child) {
+            final plannerCount = budgetsController.savingsplanners.length;
+            final totalTarget = budgetsController.totalMonthlySavingsTarget;
+            final totalSaved = budgetsController.totalMonthlySaved;
+            final ratio = totalTarget > 0
+                ? (totalSaved / totalTarget).clamp(0, 1).toDouble()
+                : 0.0;
+
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '$plannerCount Savings Planner${plannerCount == 1 ? '' : 's'}',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppStyles.getTextColor(context),
+                  ),
+                ),
+                SizedBox(height: Spacing.md),
+                LinearProgressIndicator(
+                  value: ratio,
+                  minHeight: 6,
+                  backgroundColor: AppStyles.getBackground(context).withOpacity(0.5),
+                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.green),
+                ),
+                SizedBox(height: Spacing.sm),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Saved ₹${totalSaved.toStringAsFixed(0)}',
+                      style: const TextStyle(fontSize: 12, color: Colors.green),
+                    ),
+                    Text(
+                      'Target ₹${totalTarget.toStringAsFixed(0)}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppStyles.getSecondaryTextColor(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
+        );
+      case DashboardWidgetType.aiPlanner:
+        return Consumer2<GoalsController, BudgetsController>(
+          builder: (context, goalsController, budgetsController, child) {
+            final progress = goalsController.overallProgress;
+            final recommendedSavings = goalsController.totalRecommendedMonthlySavings;
+            final budgetWarnings = budgetsController.getBudgetsInWarning().length;
+
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'AI Planner Score',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppStyles.getTextColor(context),
+                  ),
+                ),
+                SizedBox(height: Spacing.md),
+                Row(
+                  children: [
+                    Icon(CupertinoIcons.lightbulb, size: 16, color: Colors.purple),
+                    SizedBox(width: Spacing.sm),
+                    Text(
+                      '${progress.toStringAsFixed(0)}% Financial Health',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppStyles.getSecondaryTextColor(context),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: Spacing.sm),
+                Text(
+                  'Recommended monthly savings: ₹${recommendedSavings.toStringAsFixed(0)}',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: AppStyles.getSecondaryTextColor(context),
+                  ),
+                ),
+                Text(
+                  budgetWarnings > 0
+                      ? '$budgetWarnings budgets need attention'
+                      : 'Budget health looks stable',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: budgetWarnings > 0 ? Colors.orange : Colors.green,
+                  ),
+                ),
+              ],
+            );
+          },
+        );
       case DashboardWidgetType.transactionHistory:
         return Consumer<TransactionsController>(
           builder: (context, transactionController, child) {
@@ -1365,6 +1563,39 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildBadge(
+    BuildContext context,
+    String label,
+    int value,
+    Color color,
+  ) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: Spacing.sm, vertical: Spacing.xs),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            CupertinoIcons.circle_fill,
+            size: 8,
+            color: color,
+          ),
+          SizedBox(width: Spacing.xs),
+          Text(
+            '$label $value',
+            style: TextStyle(
+              fontSize: 11,
+              color: AppStyles.getTextColor(context),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildNetWorthBreakdownItem(
     BuildContext context,
     String label,
@@ -1475,6 +1706,26 @@ class DashboardScreen extends StatelessWidget {
       case DashboardWidgetType.netWorth:
         Navigator.of(context).push(
           CupertinoPageRoute(builder: (context) => const NetWorthPage()),
+        );
+        break;
+      case DashboardWidgetType.goalsOverview:
+        Navigator.of(context).push(
+          CupertinoPageRoute(builder: (context) => const GoalsScreen()),
+        );
+        break;
+      case DashboardWidgetType.budgetsOverview:
+        Navigator.of(context).push(
+          CupertinoPageRoute(builder: (context) => const BudgetsScreen()),
+        );
+        break;
+      case DashboardWidgetType.savingsPlanners:
+        Navigator.of(context).push(
+          CupertinoPageRoute(builder: (context) => const SavingsPlannersScreen()),
+        );
+        break;
+      case DashboardWidgetType.aiPlanner:
+        Navigator.of(context).push(
+          CupertinoPageRoute(builder: (context) => const AIMonthlyPlannerScreen()),
         );
         break;
       case DashboardWidgetType.notificationsAndActions:

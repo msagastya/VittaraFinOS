@@ -1,12 +1,53 @@
 import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
+import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/models/mutual_fund_model.dart';
 
 enum MFType { existing, newMF }
 
+enum MFWizardMode { add, buyMore, sell, sip }
+
+class MFWizardIntent {
+  final MFWizardMode mode;
+  final Investment? targetInvestment;
+  final MutualFund mutualFund;
+  final Account? account;
+  final double transactionAmount;
+  final double transactionNav;
+  final DateTime transactionDate;
+  final double? transactionUnits;
+  final int initialStep;
+
+  const MFWizardIntent({
+    required this.mode,
+    required this.mutualFund,
+    required this.transactionAmount,
+    required this.transactionNav,
+    required this.transactionDate,
+    this.targetInvestment,
+    this.account,
+    this.transactionUnits,
+    this.initialStep = 3,
+  });
+}
+
 class MFWizardController extends ChangeNotifier {
-  final PageController pageController = PageController();
+  final PageController pageController;
   int _currentStep = 0;
+  final MFWizardIntent? intent;
+
+  MFWizardController({this.intent})
+      : pageController =
+            PageController(initialPage: intent?.initialStep ?? 0) {
+    _currentStep = intent?.initialStep ?? 0;
+    final initialIntent = intent;
+    if (initialIntent != null) {
+      _initializeFromIntent(initialIntent);
+    }
+  }
+
+  MFWizardMode mode = MFWizardMode.add;
+  Investment? targetInvestment;
 
   // Step 1: Mutual Fund Selection
   MutualFund? selectedMF;
@@ -80,6 +121,31 @@ class MFWizardController extends ChangeNotifier {
     averageNAV = nav;
     if (date != null) investmentDate = date;
     notifyListeners();
+  }
+
+  void jumpToStep(int step) {
+    if (step < 0 || step > 5) return;
+    _currentStep = step;
+    pageController.jumpToPage(step);
+    notifyListeners();
+  }
+
+  void _initializeFromIntent(MFWizardIntent intent) {
+    mode = intent.mode;
+    targetInvestment = intent.targetInvestment;
+    selectedMF = intent.mutualFund;
+    selectedMFType = MFType.existing;
+    selectedAccount = intent.account;
+    investmentAmount = intent.transactionAmount;
+    averageNAV = intent.transactionNav;
+    investmentDate = intent.transactionDate;
+    units = intent.transactionUnits ??
+        (intent.transactionNav > 0
+            ? intent.transactionAmount / intent.transactionNav
+            : 0);
+    if (intent.mode == MFWizardMode.sip) {
+      sipActive = true;
+    }
   }
 
   // For New MF
