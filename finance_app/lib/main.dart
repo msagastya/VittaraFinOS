@@ -944,10 +944,12 @@ class DashboardScreen extends StatelessWidget {
               }
             }
 
-            // Calculate Investments
+            // Calculate Investments (use current values)
             double totalInvestments = 0;
             for (var investment in investmentsController.investments) {
-              totalInvestments += investment.amount;
+              final metadata = investment.metadata ?? {};
+              final currentValue = (metadata['currentValue'] as num?)?.toDouble();
+              totalInvestments += currentValue ?? investment.amount;
             }
 
             // Calculate Credit (limit and used)
