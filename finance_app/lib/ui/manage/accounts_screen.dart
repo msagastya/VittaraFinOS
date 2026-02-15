@@ -27,7 +27,14 @@ class AccountsScreen extends StatefulWidget {
 
 class _AccountsScreenState extends State<AccountsScreen> {
   final AppLogger logger = AppLogger();
-  bool _isSummaryExpanded = true;
+  final PageController _categoryPageController = PageController();
+  int _selectedCategoryIndex = 0;
+
+  @override
+  void dispose() {
+    _categoryPageController.dispose();
+    super.dispose();
+  }
 
   void _showAddOptions(BuildContext context) {
     showCupertinoModalPopup(
@@ -170,41 +177,11 @@ class _AccountsScreenState extends State<AccountsScreen> {
     }
   }
 
-  double _getTotalBalance(List<Account> accounts) {
-    // Exclude investment/demat accounts from total balance
-    return accounts
-        .where((account) => account.type != AccountType.investment)
-        .fold(0.0, (sum, account) => sum + account.balance);
-  }
-
-  int _getDistinctTypesCount(List<Account> accounts) {
-    return accounts.map((acc) => acc.type).toSet().length;
-  }
-
   List<Account> _getAccountsByType(List<Account> accounts, AccountType type) {
     return accounts.where((account) => account.type == type).toList();
   }
 
   double _getTotalByType(List<Account> accounts, AccountType type) {
-    return _getAccountsByType(accounts, type)
-        .fold(0.0, (sum, account) => sum + account.balance);
-  }
-
-  double _getTotalCreditLimit(List<Account> accounts, AccountType type) {
-    return _getAccountsByType(accounts, type)
-        .fold(0.0, (sum, account) => sum + (account.creditLimit ?? 0.0));
-  }
-
-  double _getTotalCreditUsed(List<Account> accounts, AccountType type) {
-    // Used = Credit Limit - Balance (where balance is available credit)
-    return _getAccountsByType(accounts, type).fold(
-        0.0,
-        (sum, account) =>
-            sum + ((account.creditLimit ?? 0.0) - account.balance));
-  }
-
-  double _getTotalCreditRemaining(List<Account> accounts, AccountType type) {
-    // Remaining = Balance (which is the available credit)
     return _getAccountsByType(accounts, type)
         .fold(0.0, (sum, account) => sum + account.balance);
   }
@@ -247,12 +224,6 @@ class _AccountsScreenState extends State<AccountsScreen> {
     }
   }
 
-  Widget _buildAccountTypeSummaryCards(
-      BuildContext context, List<Account> accounts) {
-    // Account Summary section removed
-    return SizedBox.shrink();
-  }
-
   List<AccountType> _orderedAccountTypes(List<Account> accounts) {
     const order = <AccountType>[
       AccountType.savings,
@@ -271,70 +242,133 @@ class _AccountsScreenState extends State<AccountsScreen> {
     return presentTypes;
   }
 
-  Widget _buildGroupedAccountsList(List<Account> accounts) {
-    final types = _orderedAccountTypes(accounts);
-    return ListView.builder(
-      padding: EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, 110),
-      itemCount: types.length,
-      itemBuilder: (context, sectionIndex) {
-        final type = types[sectionIndex];
-        final sectionAccounts = _getAccountsByType(accounts, type)
-          ..sort((a, b) => b.balance.compareTo(a.balance));
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              margin: EdgeInsets.only(
-                  bottom: Spacing.md, top: sectionIndex == 0 ? 0 : Spacing.md),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+  void _syncSelectedCategoryIndex(List<AccountType> types) {
+    if (types.isEmpty) return;
+    final maxIndex = types.length - 1;
+    if (_selectedCategoryIndex > maxIndex) {
+      final target = maxIndex;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        setState(() => _selectedCategoryIndex = target);
+        _categoryPageController.jumpToPage(target);
+      });
+    }
+  }
+
+  Widget _buildCategoryTabs(List<AccountType> types, List<Account> accounts) {
+    return SizedBox(
+      height: 88,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
+        itemCount: types.length,
+        separatorBuilder: (_, __) => SizedBox(width: Spacing.sm),
+        itemBuilder: (context, index) {
+          final type = types[index];
+          final isSelected = index == _selectedCategoryIndex;
+          final total = _getTotalByType(accounts, type);
+          return BouncyButton(
+            onPressed: () {
+              setState(() => _selectedCategoryIndex = index);
+              _categoryPageController.animateToPage(
+                index,
+                duration: const Duration(milliseconds: 280),
+                curve: Curves.easeOutCubic,
+              );
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: _getAccountTypeColor(type).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
+                color: isSelected
+                    ? _getAccountTypeColor(type).withValues(alpha: 0.16)
+                    : AppStyles.getCardColor(context),
+                borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: _getAccountTypeColor(type).withValues(alpha: 0.25),
+                  color: isSelected
+                      ? _getAccountTypeColor(type)
+                      : AppStyles.getSecondaryTextColor(context)
+                          .withValues(alpha: 0.2),
+                  width: isSelected ? 1.6 : 1,
                 ),
               ),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: _getAccountTypeColor(type),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      _getAccountTypeLabel(type),
-                      style:
-                          AppStyles.titleStyle(context).copyWith(fontSize: 14),
-                    ),
-                  ),
                   Text(
-                    '${sectionAccounts.length}',
+                    _getAccountTypeLabel(type),
+                    style: AppStyles.titleStyle(context).copyWith(fontSize: 13),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '₹${total.toStringAsFixed(2)}',
                     style: TextStyle(
-                      color: AppStyles.getSecondaryTextColor(context),
                       fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
+                      color: isSelected
+                          ? _getAccountTypeColor(type)
+                          : AppStyles.getSecondaryTextColor(context),
                     ),
                   ),
                 ],
               ),
             ),
-            ...sectionAccounts.asMap().entries.map((entry) {
-              final index = entry.key;
-              final account = entry.value;
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildCategoryPage(AccountType type, List<Account> allAccounts) {
+    final sectionAccounts = _getAccountsByType(allAccounts, type)
+      ..sort((a, b) => b.balance.compareTo(a.balance));
+    final total = _getTotalByType(allAccounts, type);
+    return Column(
+      children: [
+        Container(
+          margin: EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, Spacing.md),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: _getAccountTypeColor(type).withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: _getAccountTypeColor(type).withValues(alpha: 0.35),
+            ),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  '${_getAccountTypeLabel(type)} Total',
+                  style: AppStyles.titleStyle(context).copyWith(fontSize: 14),
+                ),
+              ),
+              Text(
+                '₹${total.toStringAsFixed(2)}',
+                style: AppStyles.titleStyle(context).copyWith(
+                  fontSize: 15,
+                  color: _getAccountTypeColor(type),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: ListView.builder(
+            padding: EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, 110),
+            itemCount: sectionAccounts.length,
+            itemBuilder: (context, index) {
+              final account = sectionAccounts[index];
               return StaggeredItem(
-                key: ValueKey(account.id),
-                index: sectionIndex * 100 + index,
+                key: ValueKey('${type.name}_${account.id}'),
+                index: index,
                 child: _buildSlidableAccountCard(account),
               );
-            }),
-          ],
-        );
-      },
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -352,6 +386,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
       child: Consumer<AccountsController>(
         builder: (context, accountsController, child) {
           final accounts = accountsController.accounts;
+          final types = _orderedAccountTypes(accounts);
+          _syncSelectedCategoryIndex(types);
           return Stack(
             children: [
               if (accounts.isEmpty)
@@ -366,15 +402,20 @@ class _AccountsScreenState extends State<AccountsScreen> {
                 SafeArea(
                   child: Column(
                     children: [
-                      // Account Type-wise Summary Cards
-                      Padding(
-                        padding: EdgeInsets.only(top: Spacing.lg),
-                        child: _buildAccountTypeSummaryCards(context, accounts),
-                      ),
                       SizedBox(height: Spacing.lg),
-                      // Accounts grouped by type
+                      _buildCategoryTabs(types, accounts),
+                      SizedBox(height: Spacing.md),
                       Expanded(
-                        child: _buildGroupedAccountsList(accounts),
+                        child: PageView.builder(
+                          controller: _categoryPageController,
+                          itemCount: types.length,
+                          onPageChanged: (index) {
+                            setState(() => _selectedCategoryIndex = index);
+                          },
+                          itemBuilder: (context, index) {
+                            return _buildCategoryPage(types[index], accounts);
+                          },
+                        ),
                       ),
                     ],
                   ),
