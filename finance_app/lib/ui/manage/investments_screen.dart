@@ -39,7 +39,15 @@ import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 import 'package:vittara_fin_os/services/investment_value_service.dart';
 
-enum SortBy { currentAmount, investedAmount, gainPercent, gainAmount, name, type, dateAdded }
+enum SortBy {
+  currentAmount,
+  investedAmount,
+  gainPercent,
+  gainAmount,
+  name,
+  type,
+  dateAdded
+}
 
 class InvestmentsScreen extends StatefulWidget {
   const InvestmentsScreen({super.key});
@@ -52,7 +60,9 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
   final AppLogger logger = AppLogger();
   bool _isSummaryExpanded = true;
   InvestmentType? _selectedFilter; // null = All investments
-  
+  final PageController _categoryPageController = PageController();
+  int _selectedCategoryIndex = 0;
+
   // Sort options
   SortBy _sortBy = SortBy.currentAmount;
   bool _sortAscending = false; // true = ascending, false = descending
@@ -63,6 +73,12 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
   // Cache for current gold price (shared across all digital gold cards)
   double? _cachedGoldPrice;
   Future<double?>? _goldPriceFuture;
+
+  @override
+  void dispose() {
+    _categoryPageController.dispose();
+    super.dispose();
+  }
 
   String _getSortLabel(SortBy sort) {
     switch (sort) {
@@ -151,7 +167,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     setState(() => _isRefreshingCurrentValues = true);
 
     try {
-      final controller = Provider.of<InvestmentsController>(context, listen: false);
+      final controller =
+          Provider.of<InvestmentsController>(context, listen: false);
       final updated = await controller.refreshCurrentValues(
         _valueService,
         forceRefresh: true,
@@ -166,7 +183,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       }
     } catch (error, stackTrace) {
       toast.showError('Failed to refresh current values');
-      logger.warning('Refresh current values failed', error: error, stackTrace: stackTrace);
+      logger.warning('Refresh current values failed',
+          error: error, stackTrace: stackTrace);
     } finally {
       if (mounted) {
         setState(() => _isRefreshingCurrentValues = false);
@@ -248,7 +266,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               // where k = compounds per year, t = years
               final rate = interestRate / 100.0;
               final ratePerCompound = rate / compoundsPerYear;
-              currentValue = principal * pow(1 + ratePerCompound, compoundsElapsed).toDouble();
+              currentValue = principal *
+                  pow(1 + ratePerCompound, compoundsElapsed).toDouble();
 
               return currentValue;
             }
@@ -291,7 +310,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       context: context,
       builder: (modalContext) => InvestmentTypeSelectionModal(
         onTypeSelected: (investmentType) {
-          logger.info('Selected investment type: ${investmentType.name}', context: 'InvestmentsScreen');
+          logger.info('Selected investment type: ${investmentType.name}',
+              context: 'InvestmentsScreen');
 
           if (investmentType == InvestmentType.stocks) {
             Navigator.of(context).push(
@@ -319,7 +339,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             );
           } else if (investmentType == InvestmentType.digitalGold) {
             Navigator.of(context).push(
-              CupertinoPageRoute(builder: (context) => const DigitalGoldWizard()),
+              CupertinoPageRoute(
+                  builder: (context) => const DigitalGoldWizard()),
             );
           } else if (investmentType == InvestmentType.nationalSavingsScheme) {
             Navigator.of(context).push(
@@ -331,7 +352,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             );
           } else if (investmentType == InvestmentType.commodities) {
             Navigator.of(context).push(
-              CupertinoPageRoute(builder: (context) => const CommoditiesWizard()),
+              CupertinoPageRoute(
+                  builder: (context) => const CommoditiesWizard()),
             );
           } else if (investmentType == InvestmentType.futuresOptions) {
             Navigator.of(context).push(
@@ -346,8 +368,138 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
   }
 
   void _onReorder(int oldIndex, int newIndex) {
-    final investmentsController = Provider.of<InvestmentsController>(context, listen: false);
+    final investmentsController =
+        Provider.of<InvestmentsController>(context, listen: false);
     investmentsController.reorderInvestments(oldIndex, newIndex);
+  }
+
+  List<InvestmentType?> _buildCategoryFilters(List<Investment> investments) {
+    final availableTypes = InvestmentType.values
+        .where((type) => investments.any((inv) => inv.type == type))
+        .toList();
+    availableTypes.sort((a, b) => _getCurrentValueByType(investments, b)
+        .compareTo(_getCurrentValueByType(investments, a)));
+    return [null, ...availableTypes];
+  }
+
+  String _getCategoryLabel(InvestmentType? type) {
+    if (type == null) return 'All';
+    return _getInvestmentTypeLabel(type);
+  }
+
+  double _getCategoryTotalCurrentValue(
+      List<Investment> investments, InvestmentType? type) {
+    if (type == null) {
+      return investments.fold(
+          0.0, (sum, inv) => sum + _calculateCurrentValue(inv));
+    }
+    return _getCurrentValueByType(investments, type);
+  }
+
+  List<Investment> _filterByCategory(
+      List<Investment> investments, InvestmentType? type) {
+    if (type == null) return investments;
+    return investments.where((inv) => inv.type == type).toList();
+  }
+
+  void _syncSelectedCategory(List<InvestmentType?> categories) {
+    final selected = _selectedFilter;
+    if (!categories.contains(selected)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        setState(() {
+          _selectedFilter = null;
+          _selectedCategoryIndex = 0;
+        });
+        _categoryPageController.jumpToPage(0);
+      });
+      return;
+    }
+
+    final targetIndex = categories.indexOf(selected);
+    if (targetIndex != _selectedCategoryIndex && targetIndex >= 0) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        setState(() => _selectedCategoryIndex = targetIndex);
+        _categoryPageController.jumpToPage(targetIndex);
+      });
+    }
+  }
+
+  Widget _buildCategoryTabs(
+    BuildContext context,
+    List<Investment> investments,
+    List<InvestmentType?> categories,
+  ) {
+    return SizedBox(
+      height: 86,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
+        itemCount: categories.length,
+        separatorBuilder: (_, __) => SizedBox(width: Spacing.sm),
+        itemBuilder: (context, index) {
+          final type = categories[index];
+          final isSelected = index == _selectedCategoryIndex;
+          final label = _getCategoryLabel(type);
+          final total = _getCategoryTotalCurrentValue(investments, type);
+          final color = type == null
+              ? SemanticColors.investments
+              : _getInvestmentTypeColor(type);
+          return BouncyButton(
+            onPressed: () {
+              setState(() {
+                _selectedCategoryIndex = index;
+                _selectedFilter = type;
+              });
+              _categoryPageController.animateToPage(
+                index,
+                duration: const Duration(milliseconds: 260),
+                curve: Curves.easeOutCubic,
+              );
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? color.withValues(alpha: 0.16)
+                    : AppStyles.getCardColor(context),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isSelected
+                      ? color
+                      : AppStyles.getDividerColor(context)
+                          .withValues(alpha: 0.4),
+                  width: isSelected ? 1.5 : 1,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    label,
+                    style: AppStyles.titleStyle(context).copyWith(fontSize: 13),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '₹${total.toStringAsFixed(2)}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: isSelected
+                          ? color
+                          : AppStyles.getSecondaryTextColor(context),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   @override
@@ -355,23 +507,14 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
       navigationBar: CupertinoNavigationBar(
-        middle: Text('Investments', style: TextStyle(color: AppStyles.getTextColor(context))),
+        middle: Text('Investments',
+            style: TextStyle(color: AppStyles.getTextColor(context))),
         previousPageTitle: 'Manage',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Filter Icon
-            CupertinoButton(
-              padding: EdgeInsets.symmetric(horizontal: Spacing.md),
-              onPressed: () => _showFilterModal(context),
-              child: Icon(
-                CupertinoIcons.line_horizontal_3_decrease,
-                size: 20,
-                color: SemanticColors.investments,
-              ),
-            ),
             // Sort Icon
             CupertinoButton(
               padding: EdgeInsets.symmetric(horizontal: Spacing.md),
@@ -385,9 +528,12 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             // Refresh Icon
             CupertinoButton(
               padding: EdgeInsets.symmetric(horizontal: Spacing.md),
-              onPressed: _isRefreshingCurrentValues ? null : () => _refreshCurrentValues(context),
+              onPressed: _isRefreshingCurrentValues
+                  ? null
+                  : () => _refreshCurrentValues(context),
               child: _isRefreshingCurrentValues
-                  ? CupertinoActivityIndicator(radius: 10, color: SemanticColors.investments)
+                  ? CupertinoActivityIndicator(
+                      radius: 10, color: SemanticColors.investments)
                   : Icon(
                       CupertinoIcons.arrow_clockwise,
                       size: 20,
@@ -402,7 +548,9 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                 setState(() => _sortAscending = !_sortAscending);
               },
               child: Icon(
-                _sortAscending ? CupertinoIcons.arrow_up : CupertinoIcons.arrow_down,
+                _sortAscending
+                    ? CupertinoIcons.arrow_up
+                    : CupertinoIcons.arrow_down,
                 size: 20,
                 color: SemanticColors.investments,
               ),
@@ -413,15 +561,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       child: Consumer<InvestmentsController>(
         builder: (context, investmentsController, child) {
           final investments = investmentsController.investments;
-          final totalAmount = investmentsController.getTotalInvestmentAmount();
-
-          // Filter investments based on selected type
-          final filteredInvestments = _selectedFilter == null
-              ? investments
-              : investments.where((inv) => inv.type == _selectedFilter).toList();
-
-          // Sort investments
-          final sortedInvestments = _sortInvestments(filteredInvestments);
+          final categories = _buildCategoryFilters(investments);
+          _syncSelectedCategory(categories);
 
           return Stack(
             children: [
@@ -439,66 +580,112 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                     children: [
                       // Compact Summary Section
                       _buildCompactSummary(context, investments),
+                      SizedBox(height: Spacing.md),
+                      _buildCategoryTabs(context, investments, categories),
+                      SizedBox(height: Spacing.md),
                       // Investments List with Staggered Animation
-                      if (sortedInvestments.isEmpty)
-                        Expanded(
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  CupertinoIcons.search,
-                                  size: 48,
-                                  color: AppStyles.getSecondaryTextColor(context).withOpacity(0.5),
+                      Expanded(
+                        child: PageView.builder(
+                          controller: _categoryPageController,
+                          itemCount: categories.length,
+                          onPageChanged: (index) {
+                            setState(() {
+                              _selectedCategoryIndex = index;
+                              _selectedFilter = categories[index];
+                            });
+                          },
+                          itemBuilder: (context, pageIndex) {
+                            final categoryType = categories[pageIndex];
+                            final pageInvestments = _sortInvestments(
+                                _filterByCategory(investments, categoryType));
+
+                            if (pageInvestments.isEmpty) {
+                              return Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      CupertinoIcons.search,
+                                      size: 48,
+                                      color: AppStyles.getSecondaryTextColor(
+                                              context)
+                                          .withValues(alpha: 0.5),
+                                    ),
+                                    SizedBox(height: Spacing.md),
+                                    Text(
+                                      'No investments found',
+                                      style: TextStyle(
+                                        color: AppStyles.getSecondaryTextColor(
+                                            context),
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                SizedBox(height: Spacing.md),
-                                Text(
-                                  'No investments found',
-                                  style: TextStyle(
-                                    color: AppStyles.getSecondaryTextColor(context),
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        )
-                      else
-                        Expanded(
-                          child: ReorderableListView.builder(
-                            padding: EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, 100),
-                            itemCount: sortedInvestments.length,
-                            onReorder: (oldIndex, newIndex) {
-                              if (_sortBy == SortBy.dateAdded) {
-                                Haptics.reorder();
-                                _onReorder(oldIndex, newIndex);
-                              }
-                            },
-                            proxyDecorator: (child, index, animation) {
-                              return AnimatedBuilder(
-                                animation: animation,
-                                builder: (context, child) => Transform.scale(
-                                  scale: 1.02,
-                                  child: Container(
-                                    decoration: AppStyles.cardDecoration(context),
+                              );
+                            }
+
+                            final canReorder = categoryType == null &&
+                                _sortBy == SortBy.dateAdded;
+
+                            if (canReorder) {
+                              return ReorderableListView.builder(
+                                padding: EdgeInsets.fromLTRB(
+                                    Spacing.lg, 0, Spacing.lg, 100),
+                                itemCount: pageInvestments.length,
+                                onReorder: (oldIndex, newIndex) {
+                                  Haptics.reorder();
+                                  _onReorder(oldIndex, newIndex);
+                                },
+                                proxyDecorator: (child, index, animation) {
+                                  return AnimatedBuilder(
+                                    animation: animation,
+                                    builder: (context, child) =>
+                                        Transform.scale(
+                                      scale: 1.02,
+                                      child: Container(
+                                        decoration:
+                                            AppStyles.cardDecoration(context),
+                                        child: child,
+                                      ),
+                                    ),
                                     child: child,
+                                  );
+                                },
+                                itemBuilder: (context, index) {
+                                  return StaggeredItem(
+                                    key: ValueKey(pageInvestments[index].id),
+                                    index: index,
+                                    child: Container(
+                                      margin: EdgeInsets.only(top: Spacing.lg),
+                                      child: _buildInvestmentCard(
+                                          pageInvestments[index]),
+                                    ),
+                                  );
+                                },
+                              );
+                            }
+
+                            return ListView.builder(
+                              padding: EdgeInsets.fromLTRB(
+                                  Spacing.lg, 0, Spacing.lg, 100),
+                              itemCount: pageInvestments.length,
+                              itemBuilder: (context, index) {
+                                return StaggeredItem(
+                                  key: ValueKey(
+                                      '${categoryType?.name ?? 'all'}_${pageInvestments[index].id}'),
+                                  index: index,
+                                  child: Container(
+                                    margin: EdgeInsets.only(top: Spacing.lg),
+                                    child: _buildInvestmentCard(
+                                        pageInvestments[index]),
                                   ),
-                                ),
-                                child: child,
-                              );
-                            },
-                            itemBuilder: (context, index) {
-                              return StaggeredItem(
-                                key: ValueKey(sortedInvestments[index].id),
-                                index: index,
-                                child: Container(
-                                  margin: EdgeInsets.only(top: Spacing.lg),
-                                  child: _buildInvestmentCard(sortedInvestments[index]),
-                                ),
-                              );
-                            },
-                          ),
+                                );
+                              },
+                            );
+                          },
                         ),
+                      ),
                     ],
                   ),
                 ),
@@ -518,7 +705,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     );
   }
 
-  Widget _buildCompactSummary(BuildContext context, List<Investment> investments) {
+  Widget _buildCompactSummary(
+      BuildContext context, List<Investment> investments) {
     String filterLabel = 'Filter: All';
     if (_selectedFilter != null) {
       filterLabel = 'Filter: ${_getInvestmentTypeLabel(_selectedFilter!)}';
@@ -526,7 +714,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
 
     return Container(
       color: AppStyles.getCardColor(context),
-      padding: EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.md),
+      padding:
+          EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.md),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -553,7 +742,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
           ),
           // Current sort indicator
           Container(
-            padding: EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
+            padding: EdgeInsets.symmetric(
+                horizontal: Spacing.md, vertical: Spacing.sm),
             decoration: BoxDecoration(
               color: AppStyles.getBackground(context),
               borderRadius: BorderRadius.circular(8),
@@ -573,7 +763,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
   }
 
   void _showFilterModal(BuildContext context) {
-    final investments = Provider.of<InvestmentsController>(context, listen: false).investments;
+    final investments =
+        Provider.of<InvestmentsController>(context, listen: false).investments;
 
     showCupertinoModalPopup(
       context: context,
@@ -637,7 +828,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                     SizedBox(height: Spacing.md),
                     // Type options
                     ...InvestmentType.values.map((type) {
-                      final count = investments.where((inv) => inv.type == type).length;
+                      final count =
+                          investments.where((inv) => inv.type == type).length;
                       if (count == 0) return SizedBox.shrink();
 
                       final isSelected = _selectedFilter == type;
@@ -833,7 +1025,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     );
   }
 
-  Widget _buildProfessionalHeader(BuildContext context, List<Investment> investments, List<Investment> sortedInvestments) {
+  Widget _buildProfessionalHeader(BuildContext context,
+      List<Investment> investments, List<Investment> sortedInvestments) {
     return Container(
       color: AppStyles.getCardColor(context),
       padding: EdgeInsets.all(Spacing.lg),
@@ -873,7 +1066,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                 },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  padding: EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
+                  padding: EdgeInsets.symmetric(
+                      horizontal: Spacing.md, vertical: Spacing.sm),
                   decoration: BoxDecoration(
                     color: AppStyles.getBackground(context),
                     borderRadius: BorderRadius.circular(8),
@@ -885,7 +1079,9 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                   child: Row(
                     children: [
                       Icon(
-                        _sortAscending ? CupertinoIcons.arrow_up : CupertinoIcons.arrow_down,
+                        _sortAscending
+                            ? CupertinoIcons.arrow_up
+                            : CupertinoIcons.arrow_down,
                         size: 14,
                         color: SemanticColors.investments,
                       ),
@@ -931,7 +1127,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                         setState(() => _selectedFilter = null);
                       },
                       child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: Spacing.md, vertical: Spacing.sm),
                         margin: EdgeInsets.only(right: Spacing.md),
                         decoration: BoxDecoration(
                           color: _selectedFilter == null
@@ -941,7 +1138,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                           border: Border.all(
                             color: _selectedFilter == null
                                 ? SemanticColors.investments
-                                : AppStyles.getSecondaryTextColor(context).withOpacity(0.2),
+                                : AppStyles.getSecondaryTextColor(context)
+                                    .withOpacity(0.2),
                             width: 1.5,
                           ),
                         ),
@@ -959,7 +1157,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                     ),
                     // Type chips
                     ...InvestmentType.values.map((type) {
-                      final count = investments.where((inv) => inv.type == type).length;
+                      final count =
+                          investments.where((inv) => inv.type == type).length;
                       if (count == 0) return SizedBox.shrink();
 
                       final isSelected = _selectedFilter == type;
@@ -969,7 +1168,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                           setState(() => _selectedFilter = type);
                         },
                         child: Container(
-                          padding: EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: Spacing.md, vertical: Spacing.sm),
                           margin: EdgeInsets.only(right: Spacing.md),
                           decoration: BoxDecoration(
                             color: isSelected
@@ -979,7 +1179,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                             border: Border.all(
                               color: isSelected
                                   ? SemanticColors.investments
-                                  : AppStyles.getSecondaryTextColor(context).withOpacity(0.2),
+                                  : AppStyles.getSecondaryTextColor(context)
+                                      .withOpacity(0.2),
                               width: 1.5,
                             ),
                           ),
@@ -1003,7 +1204,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                   fontWeight: FontWeight.w500,
                                   color: isSelected
                                       ? Colors.white.withOpacity(0.8)
-                                      : AppStyles.getSecondaryTextColor(context),
+                                      : AppStyles.getSecondaryTextColor(
+                                          context),
                                 ),
                               ),
                             ],
@@ -1044,7 +1246,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                           setState(() => _sortBy = sort);
                         },
                         child: Container(
-                          padding: EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: Spacing.md, vertical: Spacing.sm),
                           margin: EdgeInsets.only(right: Spacing.md),
                           decoration: BoxDecoration(
                             color: isSelected
@@ -1054,7 +1257,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                             border: Border.all(
                               color: isSelected
                                   ? SemanticColors.investments
-                                  : AppStyles.getSecondaryTextColor(context).withOpacity(0.2),
+                                  : AppStyles.getSecondaryTextColor(context)
+                                      .withOpacity(0.2),
                               width: 1.5,
                             ),
                           ),
@@ -1089,7 +1293,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.md),
+          padding: EdgeInsets.symmetric(
+              horizontal: Spacing.lg, vertical: Spacing.md),
           child: Text(
             'Filter by Type',
             style: TextStyle(
@@ -1108,7 +1313,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               GestureDetector(
                 onTap: () => setState(() => _selectedFilter = null),
                 child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.sm),
+                  padding: EdgeInsets.symmetric(
+                      horizontal: Spacing.lg, vertical: Spacing.sm),
                   decoration: BoxDecoration(
                     color: _selectedFilter == null
                         ? SemanticColors.investments
@@ -1117,7 +1323,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                     border: Border.all(
                       color: _selectedFilter == null
                           ? SemanticColors.investments
-                          : AppStyles.getSecondaryTextColor(context).withOpacity(0.2),
+                          : AppStyles.getSecondaryTextColor(context)
+                              .withOpacity(0.2),
                       width: 1.5,
                     ),
                   ),
@@ -1136,7 +1343,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               SizedBox(width: Spacing.md),
               // Investment type filters
               ...investmentTypes.map((type) {
-                final count = investments.where((inv) => inv.type == type).length;
+                final count =
+                    investments.where((inv) => inv.type == type).length;
                 final isSelected = _selectedFilter == type;
 
                 return Padding(
@@ -1144,7 +1352,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                   child: GestureDetector(
                     onTap: () => setState(() => _selectedFilter = type),
                     child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.sm),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: Spacing.lg, vertical: Spacing.sm),
                       decoration: BoxDecoration(
                         color: isSelected
                             ? SemanticColors.investments
@@ -1153,7 +1362,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                         border: Border.all(
                           color: isSelected
                               ? SemanticColors.investments
-                              : AppStyles.getSecondaryTextColor(context).withOpacity(0.2),
+                              : AppStyles.getSecondaryTextColor(context)
+                                  .withOpacity(0.2),
                           width: 1.5,
                         ),
                       ),
@@ -1163,7 +1373,9 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                           Text(
                             _getInvestmentTypeLabel(type),
                             style: TextStyle(
-                              color: isSelected ? Colors.white : AppStyles.getTextColor(context),
+                              color: isSelected
+                                  ? Colors.white
+                                  : AppStyles.getTextColor(context),
                               fontWeight: FontWeight.w600,
                               fontSize: 13,
                             ),
@@ -1197,7 +1409,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.md),
+          padding: EdgeInsets.symmetric(
+              horizontal: Spacing.lg, vertical: Spacing.md),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -1212,19 +1425,23 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               GestureDetector(
                 onTap: () => setState(() => _sortAscending = !_sortAscending),
                 child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.xs),
+                  padding: EdgeInsets.symmetric(
+                      horizontal: Spacing.md, vertical: Spacing.xs),
                   decoration: BoxDecoration(
                     color: AppStyles.getCardColor(context),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: AppStyles.getSecondaryTextColor(context).withOpacity(0.2),
+                      color: AppStyles.getSecondaryTextColor(context)
+                          .withOpacity(0.2),
                       width: 1,
                     ),
                   ),
                   child: Row(
                     children: [
                       Icon(
-                        _sortAscending ? CupertinoIcons.arrow_up : CupertinoIcons.arrow_down,
+                        _sortAscending
+                            ? CupertinoIcons.arrow_up
+                            : CupertinoIcons.arrow_down,
                         size: 14,
                         color: AppStyles.getSecondaryTextColor(context),
                       ),
@@ -1265,7 +1482,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
         child: GestureDetector(
           onTap: () => setState(() => _sortBy = sort),
           child: Container(
-            padding: EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.sm),
+            padding: EdgeInsets.symmetric(
+                horizontal: Spacing.lg, vertical: Spacing.sm),
             decoration: BoxDecoration(
               color: isSelected
                   ? SemanticColors.investments
@@ -1281,7 +1499,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             child: Text(
               _getSortLabel(sort),
               style: TextStyle(
-                color: isSelected ? Colors.white : AppStyles.getTextColor(context),
+                color:
+                    isSelected ? Colors.white : AppStyles.getTextColor(context),
                 fontWeight: FontWeight.w600,
                 fontSize: 13,
               ),
@@ -1296,7 +1515,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     return investments.map((inv) => inv.type).toSet().length;
   }
 
-  List<Investment> _getInvestmentsByType(List<Investment> investments, InvestmentType type) {
+  List<Investment> _getInvestmentsByType(
+      List<Investment> investments, InvestmentType type) {
     return investments.where((inv) => inv.type == type).toList();
   }
 
@@ -1305,7 +1525,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
         .fold(0.0, (sum, inv) => sum + inv.amount);
   }
 
-  double _getCurrentValueByType(List<Investment> investments, InvestmentType type) {
+  double _getCurrentValueByType(
+      List<Investment> investments, InvestmentType type) {
     return _getInvestmentsByType(investments, type).fold(0.0, (sum, inv) {
       // Try to get current value from metadata, otherwise use invested amount
       final metadata = inv.metadata;
@@ -1378,7 +1599,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     }
   }
 
-  Widget _buildInvestmentTypeSummaryCards(BuildContext context, List<Investment> investments) {
+  Widget _buildInvestmentTypeSummaryCards(
+      BuildContext context, List<Investment> investments) {
     final typesToShow = [
       InvestmentType.stocks,
       InvestmentType.mutualFund,
@@ -1394,7 +1616,9 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       InvestmentType.commodities,
     ];
 
-    final availableTypes = typesToShow.where((type) => _hasInvestmentType(investments, type)).toList();
+    final availableTypes = typesToShow
+        .where((type) => _hasInvestmentType(investments, type))
+        .toList();
 
     if (availableTypes.isEmpty) {
       return SizedBox.shrink();
@@ -1464,7 +1688,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                           availableTypes[i],
                           investments,
                         ),
-                        if (i < availableTypes.length - 1) SizedBox(width: Spacing.lg),
+                        if (i < availableTypes.length - 1)
+                          SizedBox(width: Spacing.lg),
                       ],
                     ],
                   ),
@@ -1522,7 +1747,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                       children: [
                         Text(
                           typeLabel,
-                          style: AppStyles.titleStyle(context).copyWith(fontSize: 14),
+                          style: AppStyles.titleStyle(context)
+                              .copyWith(fontSize: 14),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -1680,7 +1906,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
         }
 
         final gainLoss = currentValue - investedAmount;
-        final gainLossPercent = investedAmount > 0 ? (gainLoss / investedAmount) * 100 : 0;
+        final gainLossPercent =
+            investedAmount > 0 ? (gainLoss / investedAmount) * 100 : 0;
         final isProfit = gainLoss >= 0;
 
         return Hero(
@@ -1690,7 +1917,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               Haptics.light();
               Navigator.of(context).push(
                 CupertinoPageRoute(
-                  builder: (context) => DigitalGoldDetailsScreen(investment: investment),
+                  builder: (context) =>
+                      DigitalGoldDetailsScreen(investment: investment),
                 ),
               );
             },
@@ -1711,7 +1939,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(investment.name, style: AppStyles.titleStyle(context)),
+                          Text(investment.name,
+                              style: AppStyles.titleStyle(context)),
                           SizedBox(height: Spacing.xs),
                           Text(
                             investment.getTypeLabel(),
@@ -1733,7 +1962,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                       'Invested',
                                       style: TextStyle(
                                         fontSize: 11,
-                                        color: AppStyles.getSecondaryTextColor(context),
+                                        color: AppStyles.getSecondaryTextColor(
+                                            context),
                                       ),
                                     ),
                                     Text(
@@ -1756,16 +1986,20 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                       'Current',
                                       style: TextStyle(
                                         fontSize: 11,
-                                        color: AppStyles.getSecondaryTextColor(context),
+                                        color: AppStyles.getSecondaryTextColor(
+                                            context),
                                       ),
                                     ),
-                                    if (snapshot.connectionState == ConnectionState.waiting)
+                                    if (snapshot.connectionState ==
+                                        ConnectionState.waiting)
                                       Text(
                                         'Fetching...',
                                         style: TextStyle(
                                           fontSize: 13,
                                           fontWeight: FontWeight.w600,
-                                          color: AppStyles.getSecondaryTextColor(context),
+                                          color:
+                                              AppStyles.getSecondaryTextColor(
+                                                  context),
                                         ),
                                       )
                                     else
@@ -1774,7 +2008,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                         style: TextStyle(
                                           fontSize: 13,
                                           fontWeight: FontWeight.w600,
-                                          color: AppStyles.getTextColor(context),
+                                          color:
+                                              AppStyles.getTextColor(context),
                                         ),
                                       ),
                                   ],
@@ -1789,7 +2024,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Container(
-                          padding: EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.xs),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: Spacing.md, vertical: Spacing.xs),
                           decoration: BoxDecoration(
                             color: isProfit
                                 ? CupertinoColors.systemGreen.withOpacity(0.15)
@@ -1835,7 +2071,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     final investedAmount = investment.amount;
     final currentValue = _calculateCurrentValue(investment);
     final gainLoss = currentValue - investedAmount;
-    final gainLossPercent = investedAmount > 0 ? (gainLoss / investedAmount) * 100 : 0;
+    final gainLossPercent =
+        investedAmount > 0 ? (gainLoss / investedAmount) * 100 : 0;
     final isProfit = gainLoss >= 0;
 
     return Hero(
@@ -1847,7 +2084,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
           if (investment.type == InvestmentType.stocks) {
             Navigator.of(context).push(
               CupertinoPageRoute(
-                builder: (context) => StockDetailsScreen(investment: investment),
+                builder: (context) =>
+                    StockDetailsScreen(investment: investment),
               ),
             );
           } else if (investment.type == InvestmentType.mutualFund) {
@@ -1858,9 +2096,11 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             );
           } else if (investment.type == InvestmentType.fixedDeposit) {
             // Reconstruct FD from investment metadata
-            if (investment.metadata != null && investment.metadata!.containsKey('fdData')) {
+            if (investment.metadata != null &&
+                investment.metadata!.containsKey('fdData')) {
               try {
-                final fdData = investment.metadata!['fdData'] as Map<String, dynamic>;
+                final fdData =
+                    investment.metadata!['fdData'] as Map<String, dynamic>;
                 final fd = FixedDeposit.fromMap(fdData);
                 Navigator.of(context).push(
                   CupertinoPageRoute(
@@ -1875,9 +2115,11 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             }
           } else if (investment.type == InvestmentType.recurringDeposit) {
             // Reconstruct RD from investment metadata
-            if (investment.metadata != null && investment.metadata!.containsKey('rdData')) {
+            if (investment.metadata != null &&
+                investment.metadata!.containsKey('rdData')) {
               try {
-                final rdData = investment.metadata!['rdData'] as Map<String, dynamic>;
+                final rdData =
+                    investment.metadata!['rdData'] as Map<String, dynamic>;
                 final rd = RecurringDeposit.fromMap(rdData);
                 Navigator.of(context).push(
                   CupertinoPageRoute(
@@ -1893,19 +2135,22 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
           } else if (investment.type == InvestmentType.bonds) {
             Navigator.of(context).push(
               CupertinoPageRoute(
-                builder: (context) => BondsDetailsScreen(investment: investment),
+                builder: (context) =>
+                    BondsDetailsScreen(investment: investment),
               ),
             );
           } else if (investment.type == InvestmentType.cryptocurrency) {
             Navigator.of(context).push(
               CupertinoPageRoute(
-                builder: (context) => CryptoDetailsScreen(investment: investment),
+                builder: (context) =>
+                    CryptoDetailsScreen(investment: investment),
               ),
             );
           } else if (investment.type == InvestmentType.digitalGold) {
             Navigator.of(context).push(
               CupertinoPageRoute(
-                builder: (context) => DigitalGoldDetailsScreen(investment: investment),
+                builder: (context) =>
+                    DigitalGoldDetailsScreen(investment: investment),
               ),
             );
           } else if (investment.type == InvestmentType.nationalSavingsScheme) {
@@ -1917,13 +2162,15 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
           } else if (investment.type == InvestmentType.pensionSchemes) {
             Navigator.of(context).push(
               CupertinoPageRoute(
-                builder: (context) => PensionDetailsScreen(investment: investment),
+                builder: (context) =>
+                    PensionDetailsScreen(investment: investment),
               ),
             );
           } else if (investment.type == InvestmentType.commodities) {
             Navigator.of(context).push(
               CupertinoPageRoute(
-                builder: (context) => CommoditiesDetailsScreen(investment: investment),
+                builder: (context) =>
+                    CommoditiesDetailsScreen(investment: investment),
               ),
             );
           } else if (investment.type == InvestmentType.futuresOptions) {
@@ -1933,7 +2180,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               ),
             );
           } else {
-            toast.showInfo('Details for ${investment.getTypeLabel()} coming soon!');
+            toast.showInfo(
+                'Details for ${investment.getTypeLabel()} coming soon!');
           }
         },
         child: Container(
@@ -1953,7 +2201,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(investment.name, style: AppStyles.titleStyle(context)),
+                      Text(investment.name,
+                          style: AppStyles.titleStyle(context)),
                       SizedBox(height: Spacing.xs),
                       Text(
                         investment.getTypeLabel(),
@@ -1975,7 +2224,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                   'Invested',
                                   style: TextStyle(
                                     fontSize: 11,
-                                    color: AppStyles.getSecondaryTextColor(context),
+                                    color: AppStyles.getSecondaryTextColor(
+                                        context),
                                   ),
                                 ),
                                 Text(
@@ -1998,7 +2248,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                   'Current',
                                   style: TextStyle(
                                     fontSize: 11,
-                                    color: AppStyles.getSecondaryTextColor(context),
+                                    color: AppStyles.getSecondaryTextColor(
+                                        context),
                                   ),
                                 ),
                                 Text(
@@ -2021,7 +2272,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.xs),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: Spacing.md, vertical: Spacing.xs),
                       decoration: BoxDecoration(
                         color: isProfit
                             ? CupertinoColors.systemGreen.withOpacity(0.15)
@@ -2054,5 +2306,4 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       ),
     );
   }
-
 }
