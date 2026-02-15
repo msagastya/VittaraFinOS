@@ -561,14 +561,17 @@ class _AccountsScreenState extends State<AccountsScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    AnimatedCounter(
-                      value: account.balance,
-                      prefix: '₹',
-                      decimals: 2,
-                      duration: AppDurations.counter,
-                      style: AppStyles.titleStyle(context).copyWith(
-                        color: SemanticColors.getPrimary(context),
-                        fontWeight: FontWeight.bold,
+                    SizedBox(
+                      width: 136,
+                      child: Text(
+                        '₹${account.balance.toStringAsFixed(2)}',
+                        textAlign: TextAlign.right,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppStyles.titleStyle(context).copyWith(
+                          color: SemanticColors.getPrimary(context),
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                     SizedBox(height: Spacing.xs),
