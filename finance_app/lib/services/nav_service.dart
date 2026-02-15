@@ -9,31 +9,77 @@ class NAVService {
   static const Duration _cacheDuration = Duration(hours: 6);
 
   /// Fetch current NAV for a mutual fund scheme
-  Future<NAVData?> getCurrentNAV(String schemeCode) async {
+  Future<NAVData?> getCurrentNAV(String schemeCode, {bool forceRefresh = false}) async {
     try {
       // Check cache first
-      final cached = await _getCachedNAV(schemeCode);
-      if (cached != null) return cached;
-
-      // Fetch from AMFI API
-      final url = Uri.parse('https://api.mfapi.in/mf/$schemeCode/latest');
-      final response = await http.get(url).timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final navData = NAVData.fromJson(data);
-
-        // Cache the result
-        await _cacheNAV(schemeCode, navData);
-
-        return navData;
+      if (!forceRefresh) {
+        final cached = await _getCachedNAV(schemeCode);
+        if (cached != null) return cached;
       }
 
-      return null;
+      final navData = await _fetchLatestOrFallbackNAV(schemeCode);
+      if (navData == null || navData.nav <= 0) {
+        return null;
+      }
+
+      await _cacheNAV(schemeCode, navData);
+      return navData;
     } catch (e) {
       debugPrint('Error fetching NAV for $schemeCode: $e');
       return null;
     }
+  }
+
+  Future<NAVData?> _fetchLatestOrFallbackNAV(String schemeCode) async {
+    // Primary endpoint
+    final latestUrl = Uri.parse('https://api.mfapi.in/mf/$schemeCode/latest');
+    final latestResponse = await http.get(latestUrl).timeout(const Duration(seconds: 10));
+    if (latestResponse.statusCode == 200) {
+      final latestPayload = json.decode(latestResponse.body);
+      final latestNav = _parseLatestNAVResponse(latestPayload);
+      if (latestNav != null && latestNav.nav > 0) {
+        return latestNav;
+      }
+    }
+
+    // Fallback endpoint: historical feed, take first record
+    final fallbackUrl = Uri.parse('https://api.mfapi.in/mf/$schemeCode');
+    final fallbackResponse = await http.get(fallbackUrl).timeout(const Duration(seconds: 12));
+    if (fallbackResponse.statusCode != 200) return null;
+
+    final fallbackPayload = json.decode(fallbackResponse.body);
+    if (fallbackPayload is! Map<String, dynamic>) return null;
+    final dataNode = fallbackPayload['data'];
+    if (dataNode is List && dataNode.isNotEmpty && dataNode.first is Map<String, dynamic>) {
+      final nav = NAVData.fromJson(dataNode.first as Map<String, dynamic>);
+      return nav.nav > 0 ? nav : null;
+    }
+    return null;
+  }
+
+  NAVData? _parseLatestNAVResponse(dynamic payload) {
+    if (payload is! Map<String, dynamic>) return null;
+
+    final directNav = _safeParseNav(payload['nav']);
+    final directDate = payload['date']?.toString();
+    if (directNav != null && directDate != null) {
+      return NAVData(date: NAVData._parseDate(directDate), nav: directNav);
+    }
+
+    final dataNode = payload['data'];
+    if (dataNode is List && dataNode.isNotEmpty && dataNode.first is Map<String, dynamic>) {
+      return NAVData.fromJson(dataNode.first as Map<String, dynamic>);
+    }
+    if (dataNode is Map<String, dynamic>) {
+      return NAVData.fromJson(dataNode);
+    }
+
+    return null;
+  }
+
+  double? _safeParseNav(dynamic value) {
+    if (value == null) return null;
+    return double.tryParse(value.toString());
   }
 
   /// Fetch historical NAV data for a mutual fund scheme
@@ -200,12 +246,15 @@ class NAVService {
   }
 
   /// Bulk fetch NAVs for multiple schemes
-  Future<Map<String, NAVData>> bulkFetchNAVs(List<String> schemeCodes) async {
+  Future<Map<String, NAVData>> bulkFetchNAVs(
+    List<String> schemeCodes, {
+    bool forceRefresh = false,
+  }) async {
     final Map<String, NAVData> results = {};
 
     await Future.wait(
       schemeCodes.map((code) async {
-        final nav = await getCurrentNAV(code);
+        final nav = await getCurrentNAV(code, forceRefresh: forceRefresh);
         if (nav != null) {
           results[code] = nav;
         }

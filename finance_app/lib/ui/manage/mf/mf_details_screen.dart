@@ -450,6 +450,19 @@ class MFDetailsScreen extends StatelessWidget {
     metadata['sipActive'] = true;
     metadata['sipData'] = result;
     metadata['sipUpdatedAt'] = DateTime.now().toIso8601String();
+    final nowIso = DateTime.now().toIso8601String();
+    metadata['sipLastExecutionDate'] = nowIso;
+    metadata['sipStartDate'] = metadata['sipStartDate'] ?? nowIso;
+    final executionLog =
+        (metadata['sipExecutionLog'] as List?)?.cast<Map<String, dynamic>>() ??
+            [];
+    executionLog.add({
+      'action': 'updated',
+      'date': nowIso,
+      'amount': result['sipAmount'],
+      'frequency': result['frequency'],
+    });
+    metadata['sipExecutionLog'] = executionLog;
 
     final updatedInvestment = investment.copyWith(metadata: metadata);
     controller.updateInvestment(updatedInvestment);

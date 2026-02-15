@@ -83,17 +83,32 @@ class InvestmentsController with ChangeNotifier {
     return _investments.where((inv) => inv.type == type).toList();
   }
 
-  Future<bool> refreshCurrentValues(InvestmentValueService valueService) async {
+  Future<bool> refreshCurrentValues(
+    InvestmentValueService valueService, {
+    bool forceRefresh = false,
+  }) async {
     var updated = false;
+    final refreshedAt = DateTime.now().toIso8601String();
+
     for (var i = 0; i < _investments.length; i++) {
       final investment = _investments[i];
-      final newValue = await valueService.fetchCurrentValue(investment);
-      if (newValue != null) {
+      final result = await valueService.fetchCurrentValue(
+        investment,
+        forceRefresh: forceRefresh,
+      );
+      if (result != null && (result.currentValue != null || result.currentNAV != null)) {
         final metadata = Map<String, dynamic>.from(investment.metadata ?? {});
         final oldValue = _asDouble(metadata['currentValue']);
+        final oldNav = _asDouble(metadata['currentNAV']);
+        final newValue = result.currentValue ?? oldValue ?? investment.amount;
         metadata['currentValue'] = newValue;
+        if (result.currentNAV != null) {
+          metadata['currentNAV'] = result.currentNAV;
+        }
+        metadata['lastRefreshedAt'] = refreshedAt;
 
-        if (oldValue != newValue) {
+        final newNav = _asDouble(metadata['currentNAV']);
+        if (oldValue != newValue || oldNav != newNav || forceRefresh) {
           _investments[i] = investment.copyWith(metadata: metadata);
           updated = true;
         }

@@ -115,6 +115,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: CupertinoColors.systemTeal,
                   onChanged: (val) {}, 
                 ),
+                _buildDivider(context),
+                _buildToggleRow(
+                  context,
+                  icon: CupertinoIcons.archivebox_fill,
+                  title: 'Show Archived Transactions',
+                  value: settings.isArchivedTransactionsEnabled,
+                  color: CupertinoColors.systemPurple,
+                  onChanged: (val) => settings.toggleArchivedTransactions(val),
+                ),
               ]),
 
               _buildHeader('Data'),

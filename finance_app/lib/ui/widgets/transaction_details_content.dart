@@ -1,0 +1,285 @@
+import 'package:flutter/cupertino.dart';
+import 'package:vittara_fin_os/logic/transaction_model.dart';
+import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+
+class TransactionDetailsContent extends StatelessWidget {
+  final Transaction transaction;
+  final List<Widget> actionButtons;
+
+  const TransactionDetailsContent({
+    super.key,
+    required this.transaction,
+    this.actionButtons = const [],
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final detailEntries = _buildDetailEntries(context);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 40),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 16),
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 24),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: _getTransactionColor().withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  _getTransactionIcon(),
+                  color: _getTransactionColor(),
+                  size: 32,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  transaction.getTypeLabel(),
+                  style: AppStyles.titleStyle(context).copyWith(fontSize: 20),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _formatDate(transaction.dateTime),
+                  style: TextStyle(
+                    color: AppStyles.getSecondaryTextColor(context),
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 28),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Amount',
+                  style: TextStyle(
+                    color: AppStyles.getSecondaryTextColor(context),
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '₹${transaction.amount.toStringAsFixed(2)}',
+                  style: AppStyles.titleStyle(context).copyWith(
+                    fontSize: 28,
+                    color: _getTransactionColor(),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          ...detailEntries.map((entry) => _buildDetailRow(context, entry)),
+          if (actionButtons.isNotEmpty) ...[
+            const SizedBox(height: 32),
+            ...actionButtons.map(
+              (child) => Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
+                child: child,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  List<_DetailEntry> _buildDetailEntries(BuildContext context) {
+    final entries = <_DetailEntry>[];
+    final metadata = transaction.metadata ?? {};
+
+    void maybeAdd(String label, String? value, {Color? forceColor}) {
+      if (value == null || value.trim().isEmpty) return;
+      entries.add(
+          _DetailEntry(label: label, value: value.trim(), color: forceColor));
+    }
+
+    if (transaction.sourceAccountName != null) {
+      maybeAdd('From Account', transaction.sourceAccountName);
+    }
+    if (transaction.destinationAccountName != null) {
+      maybeAdd('To Account', transaction.destinationAccountName);
+    }
+
+    if (transaction.type == TransactionType.transfer) {
+      final appWallet = transaction.appWalletAmount ?? 0.0;
+      if (appWallet > 0) {
+        maybeAdd(
+          'From App Wallet',
+          '₹${appWallet.toStringAsFixed(2)}',
+          forceColor: CupertinoColors.systemOrange,
+        );
+        maybeAdd(
+          'From Source Account',
+          '₹${(transaction.amount - appWallet).toStringAsFixed(2)}',
+        );
+      } else {
+        maybeAdd(
+            'From Source Account', '₹${transaction.amount.toStringAsFixed(2)}');
+      }
+    }
+
+    maybeAdd('Description', transaction.description);
+    maybeAdd('Category', metadata['categoryName'] as String?);
+    final merchant = metadata['merchant'] as String?;
+    if (merchant != null && merchant.isNotEmpty) {
+      maybeAdd('Merchant', merchant);
+    }
+    maybeAdd('Payment App', transaction.paymentAppName);
+    final paymentApp = metadata['paymentApp'] as String?;
+    if ((transaction.paymentAppName ?? '').isEmpty) {
+      maybeAdd('Payment App', paymentApp);
+    }
+    final tags = metadata['tags'];
+    if (tags is List && tags.isNotEmpty) {
+      maybeAdd('Tags', tags.join(', '));
+    }
+
+    if (transaction.cashbackAmount != null && transaction.cashbackAmount! > 0) {
+      maybeAdd('Cashback Amount',
+          '₹${transaction.cashbackAmount!.toStringAsFixed(2)}',
+          forceColor: CupertinoColors.systemGreen);
+      maybeAdd('Cashback Flow',
+          metadata['cashbackFlow'] as String? ?? 'Payment App');
+      maybeAdd('Cashback Account', transaction.cashbackAccountName);
+    }
+
+    if (metadata.containsKey('paymentType')) {
+      maybeAdd('Payment Type', metadata['paymentType'] as String?);
+    }
+
+    if (transaction.type == TransactionType.transfer &&
+        transaction.charges != null &&
+        transaction.charges! > 0) {
+      maybeAdd('Charges', '₹${transaction.charges!.toStringAsFixed(2)}',
+          forceColor: CupertinoColors.systemRed);
+    }
+
+    return entries;
+  }
+
+  Widget _buildDetailRow(BuildContext context, _DetailEntry entry) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              entry.label,
+              style: TextStyle(
+                color: AppStyles.getSecondaryTextColor(context),
+                fontSize: 13,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              entry.value,
+              style: TextStyle(
+                color: entry.color ?? AppStyles.getTextColor(context),
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+              softWrap: true,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  IconData _getTransactionIcon() {
+    switch (transaction.type) {
+      case TransactionType.transfer:
+        return CupertinoIcons.arrow_right_arrow_left;
+      case TransactionType.cashback:
+        return CupertinoIcons.gift_fill;
+      case TransactionType.lending:
+        return CupertinoIcons.arrow_up_circle_fill;
+      case TransactionType.borrowing:
+        return CupertinoIcons.arrow_down_circle_fill;
+      case TransactionType.investment:
+        return CupertinoIcons.chart_bar_square_fill;
+      case TransactionType.expense:
+        return CupertinoIcons.arrow_down_circle_fill;
+      case TransactionType.income:
+        return CupertinoIcons.arrow_up_circle_fill;
+    }
+  }
+
+  Color _getTransactionColor() {
+    switch (transaction.type) {
+      case TransactionType.transfer:
+        return CupertinoColors.systemBlue;
+      case TransactionType.cashback:
+        return CupertinoColors.systemGreen;
+      case TransactionType.lending:
+        return CupertinoColors.systemOrange;
+      case TransactionType.borrowing:
+        return CupertinoColors.systemPurple;
+      case TransactionType.investment:
+        return CupertinoColors.systemRed;
+      case TransactionType.expense:
+        return CupertinoColors.systemRed;
+      case TransactionType.income:
+        return CupertinoColors.systemGreen;
+    }
+  }
+
+  String _formatDate(DateTime dateTime) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final txnDate = DateTime(dateTime.year, dateTime.month, dateTime.day);
+
+    if (txnDate == today) {
+      return 'Today ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
+    }
+
+    final yesterday = today.subtract(const Duration(days: 1));
+    if (txnDate == yesterday) {
+      return 'Yesterday';
+    }
+
+    return '${dateTime.day} ${_getMonthName(dateTime.month)}';
+  }
+
+  String _getMonthName(int month) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+    return months[month - 1];
+  }
+}
+
+class _DetailEntry {
+  final String label;
+  final String value;
+  final Color? color;
+
+  const _DetailEntry({required this.label, required this.value, this.color});
+}

@@ -6,6 +6,7 @@ import 'package:vittara_fin_os/logic/bond_payout_generator.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/fixed_deposit_model.dart';
+import 'package:vittara_fin_os/logic/notification_helpers.dart';
 import 'package:vittara_fin_os/ui/dashboard/notification_widget.dart';
 import 'package:vittara_fin_os/ui/manage/fd/modals/fd_renewal_modal.dart';
 import 'package:vittara_fin_os/ui/manage/fd/modals/fd_withdrawal_modal.dart';
@@ -13,6 +14,11 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
+import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
+import 'package:vittara_fin_os/ui/manage/bonds/bond_payout_modal.dart';
+import 'package:vittara_fin_os/ui/manage/bonds/bonds_details_screen.dart';
+import 'package:vittara_fin_os/ui/manage/mf/mf_details_screen.dart';
+import 'package:vittara_fin_os/ui/manage/stocks/stock_details_screen.dart';
 
 class NotificationsPage extends StatelessWidget {
   const NotificationsPage({super.key});
@@ -30,7 +36,8 @@ class NotificationsPage extends StatelessWidget {
       ),
       child: SafeArea(
         child: Container(
-          color: isDark ? Colors.black : CupertinoColors.systemGroupedBackground,
+          color:
+              isDark ? Colors.black : CupertinoColors.systemGroupedBackground,
           child: Consumer<InvestmentsController>(
             builder: (context, investmentsController, child) {
               final investments = investmentsController.investments;
@@ -39,7 +46,8 @@ class NotificationsPage extends StatelessWidget {
               final fdsNearMaturity = investments.where((inv) {
                 if (inv.type.name != 'fixedDeposit') return false;
                 final metadata = inv.metadata;
-                if (metadata == null || !metadata.containsKey('maturityDate')) return false;
+                if (metadata == null || !metadata.containsKey('maturityDate'))
+                  return false;
                 final maturityDate =
                     DateTime.parse(metadata['maturityDate'] as String);
                 final daysUntil =
@@ -51,7 +59,8 @@ class NotificationsPage extends StatelessWidget {
               final fdsMatured = investments.where((inv) {
                 if (inv.type.name != 'fixedDeposit') return false;
                 final metadata = inv.metadata;
-                if (metadata == null || !metadata.containsKey('maturityDate')) return false;
+                if (metadata == null || !metadata.containsKey('maturityDate'))
+                  return false;
                 final maturityDate =
                     DateTime.parse(metadata['maturityDate'] as String);
                 final daysUntil =
@@ -65,35 +74,9 @@ class NotificationsPage extends StatelessWidget {
                 return true;
               }).toList();
 
-              // Find Bonds with upcoming payouts
-              final bondsWithUpcomingPayouts = <Investment>[];
-              final bondPayoutMap = <String, List<BondPayoutNotification>>{};
-
-              for (final inv in investments) {
-                if (inv.type.name != 'bonds') continue;
-                final metadata = inv.metadata;
-                if (metadata == null || !metadata.containsKey('payoutSchedule')) continue;
-
-                try {
-                  final payoutList = metadata['payoutSchedule'] as List?;
-                  if (payoutList == null) continue;
-
-                  final schedules = payoutList
-                      .cast<Map<String, dynamic>>()
-                      .map((p) => BondPayoutSchedule.fromMap(p))
-                      .toList();
-
-                  final notifications = BondPayoutGenerator.getUpcomingPayoutNotifications(schedules);
-
-                  if (notifications.isNotEmpty) {
-                    bondsWithUpcomingPayouts.add(inv);
-                    bondPayoutMap[inv.id] = notifications;
-                  }
-                } catch (e) {
-                  // Skip bonds with invalid payout data
-                  continue;
-                }
-              }
+              final sipNotifications = collectSipNotifications(investments);
+              final bondNotifications =
+                  collectBondPayoutNotifications(investments);
 
               return SingleChildScrollView(
                 child: Column(
@@ -122,15 +105,13 @@ class NotificationsPage extends StatelessWidget {
                             amount: '₹${maturityValue.toStringAsFixed(2)}',
                             timeInfo:
                                 'In $daysUntil day${daysUntil > 1 ? 's' : ''}',
-                            badgeColor: daysUntil <= 3
-                                ? Colors.red
-                                : Colors.orange,
+                            badgeColor:
+                                daysUntil <= 3 ? Colors.red : Colors.orange,
                             icon: CupertinoIcons.bell_fill,
                             statusWidget: Container(
                               padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
-                                color:
-                                    AppStyles.getCardColor(context),
+                                color: AppStyles.getCardColor(context),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Row(
@@ -138,16 +119,16 @@ class NotificationsPage extends StatelessWidget {
                                   Icon(
                                     CupertinoIcons.info,
                                     size: 14,
-                                    color: AppStyles
-                                        .getSecondaryTextColor(context),
+                                    color: AppStyles.getSecondaryTextColor(
+                                        context),
                                   ),
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
                                       'Choose to renew or withdraw',
                                       style: TextStyle(
-                                        color: AppStyles
-                                            .getSecondaryTextColor(context),
+                                        color: AppStyles.getSecondaryTextColor(
+                                            context),
                                         fontSize: 12,
                                       ),
                                     ),
@@ -221,29 +202,33 @@ class NotificationsPage extends StatelessWidget {
                                   onPressed: () async {
                                     try {
                                       // Construct FixedDeposit from Investment metadata
-                                      final fdObj = _buildFixedDepositFromInvestment(fd);
+                                      final fdObj =
+                                          _buildFixedDepositFromInvestment(fd);
                                       final investmentsController =
-                                          Provider.of<InvestmentsController>(context, listen: false);
+                                          Provider.of<InvestmentsController>(
+                                              context,
+                                              listen: false);
                                       if (!context.mounted) return;
                                       Navigator.of(context).push(
                                         CupertinoPageRoute(
-                                          builder: (context) =>
-                                              FDRenewalModal(
-                                                fd: fdObj,
-                                                investmentController: investmentsController,
-                                                originalInvestment: fd,
-                                                onRenew: () async {
-                                                  // Renewal completed, go back
-                                                  if (context.mounted) {
-                                                    Navigator.of(context).pop();
-                                                  }
-                                                },
-                                              ),
+                                          builder: (context) => FDRenewalModal(
+                                            fd: fdObj,
+                                            investmentController:
+                                                investmentsController,
+                                            originalInvestment: fd,
+                                            onRenew: () async {
+                                              // Renewal completed, go back
+                                              if (context.mounted) {
+                                                Navigator.of(context).pop();
+                                              }
+                                            },
+                                          ),
                                         ),
                                       );
                                     } catch (e) {
                                       if (context.mounted) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
                                           SnackBar(content: Text('Error: $e')),
                                         );
                                       }
@@ -268,29 +253,34 @@ class NotificationsPage extends StatelessWidget {
                                   onPressed: () async {
                                     try {
                                       // Construct FixedDeposit from Investment metadata
-                                      final fdObj = _buildFixedDepositFromInvestment(fd);
+                                      final fdObj =
+                                          _buildFixedDepositFromInvestment(fd);
                                       final investmentsController =
-                                          Provider.of<InvestmentsController>(context, listen: false);
+                                          Provider.of<InvestmentsController>(
+                                              context,
+                                              listen: false);
                                       if (!context.mounted) return;
                                       Navigator.of(context).push(
                                         CupertinoPageRoute(
                                           builder: (context) =>
                                               FDWithdrawalModal(
-                                                fd: fdObj,
-                                                investmentController: investmentsController,
-                                                originalInvestment: fd,
-                                                onWithdraw: () async {
-                                                  // Withdrawal completed, go back
-                                                  if (context.mounted) {
-                                                    Navigator.of(context).pop();
-                                                  }
-                                                },
-                                              ),
+                                            fd: fdObj,
+                                            investmentController:
+                                                investmentsController,
+                                            originalInvestment: fd,
+                                            onWithdraw: () async {
+                                              // Withdrawal completed, go back
+                                              if (context.mounted) {
+                                                Navigator.of(context).pop();
+                                              }
+                                            },
+                                          ),
                                         ),
                                       );
                                     } catch (e) {
                                       if (context.mounted) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
                                           SnackBar(content: Text('Error: $e')),
                                         );
                                       }
@@ -316,8 +306,7 @@ class NotificationsPage extends StatelessWidget {
                       ...rdsWithUpcomingInstallments.map((rd) {
                         final metadata = rd.metadata;
                         final monthlyAmount =
-                            (metadata?['monthlyAmount'] as num?)
-                                    ?.toDouble() ??
+                            (metadata?['monthlyAmount'] as num?)?.toDouble() ??
                                 rd.amount;
                         final linkedAccountName =
                             metadata?['linkedAccountName'] as String? ??
@@ -331,97 +320,36 @@ class NotificationsPage extends StatelessWidget {
                             rdName: rd.name,
                             accountName: linkedAccountName,
                             amount: monthlyAmount,
-                            dueDate: DateTime.now()
-                                .add(const Duration(days: 5)),
+                            dueDate:
+                                DateTime.now().add(const Duration(days: 5)),
                           ),
                         );
                       }),
+                    if (rdsWithUpcomingInstallments.isNotEmpty &&
+                        sipNotifications.isNotEmpty)
+                      SizedBox(height: Spacing.md),
 
-                    // Bond Payout Notifications
-                    if (bondsWithUpcomingPayouts.isNotEmpty)
-                      ...bondsWithUpcomingPayouts.expand((bond) {
-                        final notifications = bondPayoutMap[bond.id] ?? [];
-                        return notifications.map((notif) {
-                          final daysUntil = notif.daysUntil;
-                          final badgeColor = daysUntil <= 3
-                              ? Colors.red
-                              : (daysUntil < 0 ? Colors.purple : Colors.orange);
-
-                          return Container(
-                            margin: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
-                            child: NotificationWidget(
-                              type: NotificationType.fdPayout,
-                              title: bond.name,
-                              subtitle: 'Payout #${notif.payoutNumber} on ${_formatDashboardDate(notif.payoutDate)}',
-                              amount: '₹—', // Will be entered by user
-                              timeInfo: daysUntil < 0
-                                  ? '${daysUntil.abs()} day${daysUntil.abs() > 1 ? 's' : ''} overdue'
-                                  : 'In $daysUntil day${daysUntil > 1 ? 's' : ''}',
-                              badgeColor: badgeColor,
-                              icon: CupertinoIcons.money_dollar,
-                              statusWidget: Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: AppStyles.getCardColor(context),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      CupertinoIcons.info,
-                                      size: 14,
-                                      color: AppStyles
-                                          .getSecondaryTextColor(context),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Text(
-                                        'Enter amount, date & account to confirm',
-                                        style: TextStyle(
-                                          color: AppStyles
-                                              .getSecondaryTextColor(context),
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              actionButtons: [
-                                Expanded(
-                                  child: CupertinoButton(
-                                    color: Colors.blue,
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 8, horizontal: 12),
-                                    onPressed: () {
-                                      _showBondPayoutModal(
-                                        context,
-                                        bond,
-                                        notif,
-                                      );
-                                    },
-                                    child: const Text(
-                                      'Record Payout',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        });
-                      }),
+                    if (sipNotifications.isNotEmpty)
+                      ...sipNotifications.map(
+                        (entry) => _buildSipNotificationWidget(context, entry),
+                      ),
+                    if (sipNotifications.isNotEmpty &&
+                        bondNotifications.isNotEmpty)
+                      SizedBox(height: Spacing.md),
+                    if (bondNotifications.isNotEmpty)
+                      ...bondNotifications
+                          .map((entry) => _buildBondNotificationWidget(
+                                context,
+                                entry,
+                              ))
+                          .toList(),
 
                     // Empty State
                     if (fdsNearMaturity.isEmpty &&
                         fdsMatured.isEmpty &&
                         rdsWithUpcomingInstallments.isEmpty &&
-                        bondsWithUpcomingPayouts.isEmpty)
+                        sipNotifications.isEmpty &&
+                        bondNotifications.isEmpty)
                       Padding(
                         padding: EdgeInsets.only(top: Spacing.xxxl),
                         child: FadeInAnimation(
@@ -454,8 +382,8 @@ class NotificationsPage extends StatelessWidget {
                                   'You\'re all caught up!',
                                   style: TextStyle(
                                     fontSize: 14,
-                                    color: AppStyles
-                                        .getSecondaryTextColor(context),
+                                    color: AppStyles.getSecondaryTextColor(
+                                        context),
                                   ),
                                 ),
                               ],
@@ -470,6 +398,199 @@ class NotificationsPage extends StatelessWidget {
             },
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildSipNotificationWidget(
+      BuildContext context, SipNotificationInfo entry) {
+    final amountText =
+        entry.amount > 0 ? '₹${entry.amount.toStringAsFixed(2)}' : '₹—';
+    final timeInfo = entry.daysUntil == 0
+        ? 'Due today'
+        : 'In ${entry.daysUntil} day${entry.daysUntil > 1 ? 's' : ''}';
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: NotificationWidget(
+        type: NotificationType.stockSip,
+        title: entry.investment.name,
+        subtitle: entry.frequencyLabel,
+        amount: amountText,
+        timeInfo: timeInfo,
+        badgeColor: Colors.blue,
+        icon: CupertinoIcons.repeat,
+        statusWidget: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: AppStyles.getCardColor(context),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            'Due on ${_formatDashboardDate(entry.dueDate)}',
+            style: TextStyle(
+              color: AppStyles.getSecondaryTextColor(context),
+              fontSize: 12,
+            ),
+          ),
+        ),
+        actionButtons: [
+          Expanded(
+            child: CupertinoButton(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              color: Colors.blue,
+              onPressed: () =>
+                  _openInvestmentDetails(context, entry.investment),
+              child: const Text(
+                'Edit SIP',
+                style: TextStyle(color: Colors.white, fontSize: 12),
+              ),
+            ),
+          ),
+          const SizedBox(width: Spacing.sm),
+          Expanded(
+            child: CupertinoButton(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              color: Colors.grey,
+              onPressed: () =>
+                  _skipSip(context, entry.investment, entry.dueDate),
+              child: const Text(
+                'Skip SIP',
+                style: TextStyle(color: Colors.white, fontSize: 12),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBondNotificationWidget(
+    BuildContext context,
+    BondPayoutNotificationInfo entry,
+  ) {
+    final timeInfo = entry.daysUntil == 0
+        ? 'Due today'
+        : 'In ${entry.daysUntil} day${entry.daysUntil > 1 ? 's' : ''}';
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: NotificationWidget(
+        type: NotificationType.bondPayout,
+        title: entry.investment.name,
+        subtitle: 'Payout #${entry.schedule.payoutNumber}',
+        amount: '₹—',
+        timeInfo: timeInfo,
+        badgeColor: Colors.teal,
+        icon: CupertinoIcons.money_dollar,
+        statusWidget: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: AppStyles.getCardColor(context),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            'Due on ${_formatDashboardDate(entry.schedule.payoutDate)}',
+            style: TextStyle(
+              color: AppStyles.getSecondaryTextColor(context),
+              fontSize: 12,
+            ),
+          ),
+        ),
+        actionButtons: [
+          Expanded(
+            child: CupertinoButton(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              color: Colors.blue,
+              onPressed: () => _showBondPayoutModal(context, entry),
+              child: const Text(
+                'Edit Payout',
+                style: TextStyle(color: Colors.white, fontSize: 12),
+              ),
+            ),
+          ),
+          const SizedBox(width: Spacing.sm),
+          Expanded(
+            child: CupertinoButton(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              color: Colors.grey,
+              onPressed: () => _skipBondPayout(context, entry),
+              child: const Text(
+                'Skip Payout',
+                style: TextStyle(color: Colors.white, fontSize: 12),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openInvestmentDetails(BuildContext context, Investment investment) {
+    Widget? destination;
+    switch (investment.type) {
+      case InvestmentType.stocks:
+        destination = StockDetailsScreen(investment: investment);
+        break;
+      case InvestmentType.mutualFund:
+        destination = MFDetailsScreen(investment: investment);
+        break;
+      case InvestmentType.bonds:
+        destination = BondsDetailsScreen(investment: investment);
+        break;
+      default:
+        destination = null;
+    }
+    final route = destination;
+    if (route == null) return;
+    Navigator.of(context).push(
+      CupertinoPageRoute(builder: (_) => route),
+    );
+  }
+
+  Future<void> _skipSip(
+    BuildContext context,
+    Investment investment,
+    DateTime nextDue,
+  ) async {
+    final controller =
+        Provider.of<InvestmentsController>(context, listen: false);
+    final updatedMetadata =
+        markSipAsExecuted(investment.metadata ?? {}, nextDue);
+    final updatedInvestment = investment.copyWith(metadata: updatedMetadata);
+    await controller.updateInvestment(updatedInvestment);
+    if (context.mounted) {
+      toast_lib.toast.showInfo('Skipped next SIP for ${investment.name}');
+    }
+  }
+
+  Future<void> _skipBondPayout(
+    BuildContext context,
+    BondPayoutNotificationInfo entry,
+  ) async {
+    final controller =
+        Provider.of<InvestmentsController>(context, listen: false);
+    final metadata = Map<String, dynamic>.from(entry.investment.metadata ?? {});
+    final skipped = (metadata['skippedPayouts'] as List?)?.cast<int>() ?? [];
+    if (!skipped.contains(entry.schedule.payoutNumber)) {
+      skipped.add(entry.schedule.payoutNumber);
+      metadata['skippedPayouts'] = skipped;
+      final updatedInvestment = entry.investment.copyWith(metadata: metadata);
+      await controller.updateInvestment(updatedInvestment);
+      if (context.mounted) {
+        toast_lib.toast.showInfo(
+            'Skipped payout #${entry.schedule.payoutNumber} for ${entry.investment.name}');
+      }
+    }
+  }
+
+  void _showBondPayoutModal(
+      BuildContext context, BondPayoutNotificationInfo entry) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (ctx) => BondPayoutModal(
+        bond: entry.investment,
+        notification: entry,
       ),
     );
   }
@@ -508,8 +629,8 @@ class NotificationsPage extends StatelessWidget {
 
     // Get maturity value from metadata
     final maturityValue = (metadata['maturityValue'] as num?)?.toDouble() ??
-                         (metadata['estimatedAccruedValue'] as num?)?.toDouble() ??
-                         investment.amount;
+        (metadata['estimatedAccruedValue'] as num?)?.toDouble() ??
+        investment.amount;
 
     // Get principal (original investment amount)
     final principal = investment.amount;
@@ -520,7 +641,8 @@ class NotificationsPage extends StatelessWidget {
       principal: principal,
       interestRate: (metadata['interestRate'] as num?)?.toDouble() ?? 6.0,
       tenureMonths: (metadata['tenureMonths'] as num?)?.toInt() ?? 12,
-      compoundingFrequency: _parseCompoundingFrequency(metadata['compoundingFrequency']),
+      compoundingFrequency:
+          _parseCompoundingFrequency(metadata['compoundingFrequency']),
       payoutFrequency: _parsePayoutFrequency(metadata['payoutFrequency']),
       isCumulative: (metadata['isCumulative'] as bool?) ?? true,
       linkedAccountId: metadata['linkedAccountId'] as String? ?? '',
@@ -560,438 +682,5 @@ class NotificationsPage extends StatelessWidget {
     if (value is DateTime) return value;
     if (value is String) return DateTime.parse(value);
     return DateTime.now();
-  }
-
-  void _showBondPayoutModal(
-    BuildContext context,
-    Investment bond,
-    BondPayoutNotification notification,
-  ) {
-    showCupertinoModalPopup(
-      context: context,
-      builder: (ctx) => _BondPayoutModal(
-        bond: bond,
-        notification: notification,
-      ),
-    );
-  }
-}
-
-// Bond Payout Entry Modal
-class _BondPayoutModal extends StatefulWidget {
-  final Investment bond;
-  final BondPayoutNotification notification;
-
-  const _BondPayoutModal({
-    required this.bond,
-    required this.notification,
-  });
-
-  @override
-  State<_BondPayoutModal> createState() => _BondPayoutModalState();
-}
-
-class _BondPayoutModalState extends State<_BondPayoutModal> {
-  late TextEditingController _amountController;
-  late DateTime _selectedDate;
-  String? _selectedAccountId;
-  String? _selectedAccountName;
-
-  @override
-  void initState() {
-    super.initState();
-    _amountController = TextEditingController();
-    _selectedDate = widget.notification.payoutDate;
-  }
-
-  @override
-  void dispose() {
-    _amountController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        middle: const Text('Record Bond Payout'),
-        previousPageTitle: 'Back',
-        backgroundColor: AppStyles.getBackground(context),
-      ),
-      child: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Payout Details
-              Text(
-                'Payout Details',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppStyles.getTextColor(context),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Bond Name
-              Text(
-                'Bond',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: AppStyles.getSecondaryTextColor(context),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppStyles.getCardColor(context),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey.withOpacity(0.2)),
-                ),
-                child: Text(
-                  widget.bond.name,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: AppStyles.getTextColor(context),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Payout Amount
-              Text(
-                'Payout Amount',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: AppStyles.getSecondaryTextColor(context),
-                ),
-              ),
-              const SizedBox(height: 8),
-              CupertinoTextField(
-                controller: _amountController,
-                placeholder: '0.00',
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppStyles.getCardColor(context),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey.withOpacity(0.2)),
-                ),
-                prefix: Padding(
-                  padding: const EdgeInsets.only(left: 12),
-                  child: const Text('₹'),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Payout Date
-              Text(
-                'Payout Date',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: AppStyles.getSecondaryTextColor(context),
-                ),
-              ),
-              const SizedBox(height: 8),
-              GestureDetector(
-                onTap: () {
-                  showCupertinoModalPopup(
-                    context: context,
-                    builder: (ctx) => Container(
-                      height: 300,
-                      color: AppStyles.getBackground(context),
-                      child: Column(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: AppStyles.getCardColor(context),
-                              border: Border(
-                                bottom: BorderSide(color: Colors.grey.withOpacity(0.2)),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text(
-                                  'Select Date',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                GestureDetector(
-                                  onTap: () => Navigator.pop(ctx),
-                                  child: const Icon(CupertinoIcons.xmark),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Expanded(
-                            child: CupertinoDatePicker(
-                              mode: CupertinoDatePickerMode.date,
-                              initialDateTime: _selectedDate,
-                              onDateTimeChanged: (newDate) {
-                                setState(() {
-                                  _selectedDate = newDate;
-                                });
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppStyles.getCardColor(context),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey.withOpacity(0.2)),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
-                        style: TextStyle(color: AppStyles.getTextColor(context)),
-                      ),
-                      const Icon(CupertinoIcons.calendar),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Credit Account Selection
-              Text(
-                'Credit Account',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: AppStyles.getSecondaryTextColor(context),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Consumer<AccountsController>(
-                builder: (context, accountsController, child) {
-                  return Column(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          color: AppStyles.getCardColor(context),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.grey.withOpacity(0.2)),
-                        ),
-                        child: CupertinoButton(
-                          onPressed: () {
-                            showCupertinoModalPopup(
-                              context: context,
-                              builder: (ctx) => Container(
-                                height: 400,
-                                decoration: BoxDecoration(
-                                  color: AppStyles.getCardColor(context),
-                                  borderRadius: const BorderRadius.only(
-                                    topLeft: Radius.circular(12),
-                                    topRight: Radius.circular(12),
-                                  ),
-                                ),
-                                child: Column(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(12),
-                                      decoration: BoxDecoration(
-                                        border: Border(
-                                          bottom: BorderSide(color: Colors.grey.withOpacity(0.2)),
-                                        ),
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          const Text(
-                                            'Select Account',
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          GestureDetector(
-                                            onTap: () => Navigator.pop(ctx),
-                                            child: const Icon(CupertinoIcons.xmark),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: ListView.builder(
-                                        itemCount: accountsController.accounts.length,
-                                        itemBuilder: (context, index) {
-                                          final account = accountsController.accounts[index];
-                                          final isSelected = _selectedAccountId == account.id;
-
-                                          return GestureDetector(
-                                            onTap: () {
-                                              setState(() {
-                                                _selectedAccountId = account.id;
-                                                _selectedAccountName = account.name;
-                                              });
-                                              Navigator.pop(ctx);
-                                            },
-                                            child: Container(
-                                              padding: const EdgeInsets.all(12),
-                                              margin: const EdgeInsets.symmetric(
-                                                horizontal: 12,
-                                                vertical: 8,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color: isSelected
-                                                    ? Colors.blue.withOpacity(0.1)
-                                                    : AppStyles.getBackground(context),
-                                                border: Border.all(
-                                                  color: isSelected
-                                                      ? Colors.blue
-                                                      : Colors.transparent,
-                                                ),
-                                                borderRadius: BorderRadius.circular(8),
-                                              ),
-                                              child: Row(
-                                                children: [
-                                                  Expanded(
-                                                    child: Column(
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                                      children: [
-                                                        Text(
-                                                          account.name,
-                                                          style: const TextStyle(
-                                                            fontWeight: FontWeight.w600,
-                                                            fontSize: 14,
-                                                          ),
-                                                        ),
-                                                        Text(
-                                                          account.bankName,
-                                                          style: TextStyle(
-                                                            fontSize: 12,
-                                                            color: AppStyles.getSecondaryTextColor(
-                                                              context,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  if (isSelected)
-                                                    const Icon(
-                                                      CupertinoIcons.checkmark_alt_circle_fill,
-                                                      color: Colors.blue,
-                                                    ),
-                                                ],
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                          padding: EdgeInsets.zero,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              if (_selectedAccountId == null)
-                                Text(
-                                  'Select account',
-                                  style: TextStyle(
-                                    color: AppStyles.getSecondaryTextColor(context),
-                                  ),
-                                )
-                              else
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        _selectedAccountName ?? 'Unknown',
-                                        style: TextStyle(
-                                          color: AppStyles.getTextColor(context),
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              const Icon(CupertinoIcons.down_arrow),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-              const SizedBox(height: 40),
-
-              // Save Button
-              SizedBox(
-                width: double.infinity,
-                child: CupertinoButton.filled(
-                  onPressed: _selectedAccountId == null || _amountController.text.isEmpty
-                      ? null
-                      : () async {
-                          final investmentsController =
-                              Provider.of<InvestmentsController>(context, listen: false);
-
-                          try {
-                            // Create payout record
-                            final payoutRecord = BondPayoutRecord(
-                              payoutNumber: widget.notification.payoutNumber,
-                              scheduledPayoutDate: widget.notification.payoutDate,
-                              payoutAmount: double.parse(_amountController.text),
-                              actualPayoutDate: _selectedDate,
-                              creditAccountId: _selectedAccountId,
-                              creditAccountName: _selectedAccountName,
-                              recordedDate: DateTime.now(),
-                            );
-
-                            // Update bond metadata with payout record
-                            final updatedMetadata = Map<String, dynamic>.from(widget.bond.metadata ?? {});
-                            final pastPayouts = (updatedMetadata['pastPayouts'] as List?)?.cast<Map<String, dynamic>>() ?? [];
-                            pastPayouts.add(payoutRecord.toMap());
-                            updatedMetadata['pastPayouts'] = pastPayouts;
-
-                            final updatedBond = widget.bond.copyWith(metadata: updatedMetadata);
-                            await investmentsController.updateInvestment(updatedBond);
-
-                            if (context.mounted) {
-                              Navigator.pop(context);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Payout recorded successfully!')),
-                              );
-                            }
-                          } catch (e) {
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Error: $e')),
-                              );
-                            }
-                          }
-                        },
-                  child: const Text('Save Payout'),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }

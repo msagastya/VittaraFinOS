@@ -3,14 +3,45 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/budgets_controller.dart';
 import 'package:vittara_fin_os/logic/goals_controller.dart';
+import 'package:vittara_fin_os/logic/transaction_model.dart';
+import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
-import 'package:vittara_fin_os/ui/widgets/animated_counter.dart' as counter_widgets;
+import 'package:vittara_fin_os/ui/widgets/animated_counter.dart'
+    as counter_widgets;
 import 'package:vittara_fin_os/ui/widgets/glass_card.dart';
-import 'package:vittara_fin_os/ui/widgets/neumorphic_glass_card.dart';
 import 'package:vittara_fin_os/ui/widgets/liquid_progress_indicators.dart';
+import 'package:vittara_fin_os/ui/widgets/neumorphic_glass_card.dart';
 import 'package:vittara_fin_os/utils/alert_service.dart';
+
+class _PlannerRecommendation {
+  final String title;
+  final String description;
+  final IconData icon;
+  final Color color;
+
+  const _PlannerRecommendation({
+    required this.title,
+    required this.description,
+    required this.icon,
+    required this.color,
+  });
+}
+
+class _CategoryInsight {
+  final String name;
+  final double spent;
+  final double budget;
+  final double progress;
+
+  const _CategoryInsight({
+    required this.name,
+    required this.spent,
+    required this.budget,
+    required this.progress,
+  });
+}
 
 class AIMonthlyPlannerScreen extends StatefulWidget {
   const AIMonthlyPlannerScreen({super.key});
@@ -22,6 +53,8 @@ class AIMonthlyPlannerScreen extends StatefulWidget {
 class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
   bool _isGenerating = false;
   bool _hasGenerated = false;
+  double? _monthlyIncome;
+  double? _mustSaveAmount;
 
   @override
   void initState() {
@@ -29,21 +62,174 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<BudgetsController>(context, listen: false).initialize();
       Provider.of<GoalsController>(context, listen: false).initialize();
+      Provider.of<TransactionsController>(context, listen: false)
+          .loadTransactions();
     });
   }
 
-  void _generateRecommendations() {
+  Future<void> _generateRecommendations() async {
+    final incomeController = TextEditingController(
+      text: _monthlyIncome == null ? '' : _monthlyIncome!.toStringAsFixed(0),
+    );
+    final saveController = TextEditingController(
+      text: _mustSaveAmount == null ? '' : _mustSaveAmount!.toStringAsFixed(0),
+    );
+
+    final shouldGenerate = await showCupertinoModalPopup<bool>(
+          context: context,
+          builder: (ctx) => Container(
+            decoration: BoxDecoration(
+              color: AppStyles.getCardColor(ctx),
+              borderRadius:
+                  BorderRadius.vertical(top: Radius.circular(Radii.xxl)),
+            ),
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: EdgeInsets.only(
+                  left: Spacing.xxl,
+                  right: Spacing.xxl,
+                  top: Spacing.xl,
+                  bottom: MediaQuery.of(ctx).viewInsets.bottom + Spacing.xl,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: CupertinoColors.systemGrey3,
+                          borderRadius: BorderRadius.circular(2.5),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: Spacing.xl),
+                    Text(
+                      'Planner Inputs',
+                      style: TextStyle(
+                        fontSize: TypeScale.title2,
+                        fontWeight: FontWeight.bold,
+                        color: AppStyles.getTextColor(ctx),
+                      ),
+                    ),
+                    SizedBox(height: Spacing.sm),
+                    Text(
+                      'Enter your own numbers to generate plan.',
+                      style: TextStyle(
+                        fontSize: TypeScale.footnote,
+                        color: AppStyles.getSecondaryTextColor(ctx),
+                      ),
+                    ),
+                    SizedBox(height: Spacing.lg),
+                    Text(
+                      'Monthly Income',
+                      style: TextStyle(
+                        fontSize: TypeScale.subhead,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    SizedBox(height: Spacing.sm),
+                    CupertinoTextField(
+                      controller: incomeController,
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      prefix: Padding(
+                        padding: EdgeInsets.only(left: Spacing.md),
+                        child: Text('₹',
+                            style: TextStyle(fontSize: TypeScale.callout)),
+                      ),
+                      padding: EdgeInsets.all(Spacing.lg),
+                      decoration: BoxDecoration(
+                        color: AppStyles.getBackground(ctx),
+                        borderRadius: BorderRadius.circular(Radii.md),
+                      ),
+                    ),
+                    SizedBox(height: Spacing.lg),
+                    Text(
+                      'Must-Save This Month (optional)',
+                      style: TextStyle(
+                        fontSize: TypeScale.subhead,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    SizedBox(height: Spacing.sm),
+                    CupertinoTextField(
+                      controller: saveController,
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      prefix: Padding(
+                        padding: EdgeInsets.only(left: Spacing.md),
+                        child: Text('₹',
+                            style: TextStyle(fontSize: TypeScale.callout)),
+                      ),
+                      padding: EdgeInsets.all(Spacing.lg),
+                      decoration: BoxDecoration(
+                        color: AppStyles.getBackground(ctx),
+                        borderRadius: BorderRadius.circular(Radii.md),
+                      ),
+                    ),
+                    SizedBox(height: Spacing.xl),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: CupertinoButton(
+                            color: CupertinoColors.systemGrey4,
+                            onPressed: () => Navigator.pop(ctx, false),
+                            child: Text('Cancel',
+                                style: TextStyle(
+                                    color: AppStyles.getTextColor(ctx))),
+                          ),
+                        ),
+                        SizedBox(width: Spacing.md),
+                        Expanded(
+                          child: CupertinoButton(
+                            color: SemanticColors.info,
+                            onPressed: () {
+                              final income =
+                                  double.tryParse(incomeController.text.trim());
+                              final mustSave =
+                                  double.tryParse(saveController.text.trim());
+                              if (income == null || income <= 0) {
+                                AlertService.showError(
+                                    ctx, 'Please enter valid monthly income');
+                                return;
+                              }
+                              setState(() {
+                                _monthlyIncome = income;
+                                _mustSaveAmount = mustSave;
+                              });
+                              Navigator.pop(ctx, true);
+                            },
+                            child: const Text('Generate',
+                                style: TextStyle(color: Colors.white)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ) ??
+        false;
+
+    if (!shouldGenerate) return;
+
     setState(() {
       _isGenerating = true;
     });
 
-    Future.delayed(Duration(seconds: 2), () {
-      setState(() {
-        _isGenerating = false;
-        _hasGenerated = true;
-      });
-      AlertService.showSuccess(context, 'Recommendations generated!');
+    await Future.delayed(const Duration(milliseconds: 1200));
+
+    setState(() {
+      _isGenerating = false;
+      _hasGenerated = true;
     });
+    AlertService.showSuccess(context, 'Recommendations generated!');
   }
 
   @override
@@ -51,34 +237,229 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
       navigationBar: CupertinoNavigationBar(
-        middle: Text('AI Monthly Planner', style: TextStyle(color: AppStyles.getTextColor(context))),
+        middle: Text('AI Monthly Planner',
+            style: TextStyle(color: AppStyles.getTextColor(context))),
         previousPageTitle: 'Manage',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
-        trailing: CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: () {
-            AlertService.showInfo(context, 'Export feature coming soon!');
-          },
-          child: Icon(CupertinoIcons.share, color: AppStyles.accentBlue),
-        ),
       ),
-      child: Consumer2<BudgetsController, GoalsController>(
-        builder: (context, budgetsController, goalsController, child) {
-          final totalBudgetLimit = budgetsController.activeBudgets.fold(0.0, (sum, b) => sum + b.limitAmount);
-          final totalGoalTarget = goalsController.totalRecommendedMonthlySavings;
-          final projectedSavings = totalBudgetLimit * 0.2;
+      child:
+          Consumer3<BudgetsController, GoalsController, TransactionsController>(
+        builder: (context, budgetsController, goalsController,
+            transactionsController, child) {
+          final totalBudgetLimit = budgetsController.activeBudgets
+              .fold(0.0, (sum, b) => sum + b.limitAmount);
+          final totalGoalTarget =
+              goalsController.totalRecommendedMonthlySavings;
+          final monthStart =
+              DateTime(DateTime.now().year, DateTime.now().month, 1);
+          final thisMonthExpenses =
+              transactionsController.transactions.where((tx) {
+            return tx.type == TransactionType.expense &&
+                !tx.dateTime.isBefore(monthStart);
+          }).toList();
+          final totalSpent =
+              thisMonthExpenses.fold(0.0, (sum, tx) => sum + tx.amount);
+
+          final categorySpent = <String, double>{};
+          for (final tx in thisMonthExpenses) {
+            final metadata = tx.metadata ?? {};
+            final categoryName = (metadata['categoryName'] as String?)?.trim();
+            final key = (categoryName == null || categoryName.isEmpty)
+                ? 'Uncategorized'
+                : categoryName;
+            categorySpent.update(key, (value) => value + tx.amount,
+                ifAbsent: () => tx.amount);
+          }
+
+          final budgetByCategory = <String, double>{};
+          for (final budget in budgetsController.activeBudgets) {
+            final key = budget.categoryName?.trim();
+            if (key != null && key.isNotEmpty) {
+              budgetByCategory.update(
+                  key, (value) => value + budget.limitAmount,
+                  ifAbsent: () => budget.limitAmount);
+            }
+          }
+
+          final recommendations = _buildRecommendations(
+            totalSpent: totalSpent,
+            totalGoalTarget: totalGoalTarget,
+            totalBudgetLimit: totalBudgetLimit,
+            categorySpent: categorySpent,
+            categoryBudgets: budgetByCategory,
+          );
+          final categoryInsights =
+              _buildCategoryInsights(categorySpent, budgetByCategory);
+          final projectedSavings = (_monthlyIncome ?? 0) - totalSpent;
+          final healthScore = _computeHealthScore(
+              totalSpent, totalGoalTarget, totalBudgetLimit);
 
           return SafeArea(
             child: _isGenerating
                 ? _buildGeneratingState()
                 : !_hasGenerated
-                    ? _buildInitialState(totalBudgetLimit, totalGoalTarget, projectedSavings)
-                    : _buildRecommendationsState(totalBudgetLimit, totalGoalTarget, projectedSavings),
+                    ? _buildInitialState(
+                        totalBudgetLimit, totalGoalTarget, totalSpent)
+                    : _buildRecommendationsState(
+                        projectedSavings: projectedSavings,
+                        goalTarget: totalGoalTarget,
+                        healthScore: healthScore,
+                        recommendations: recommendations,
+                        categoryInsights: categoryInsights,
+                      ),
           );
         },
       ),
     );
+  }
+
+  List<_PlannerRecommendation> _buildRecommendations({
+    required double totalSpent,
+    required double totalGoalTarget,
+    required double totalBudgetLimit,
+    required Map<String, double> categorySpent,
+    required Map<String, double> categoryBudgets,
+  }) {
+    final list = <_PlannerRecommendation>[];
+
+    if (_monthlyIncome != null && _monthlyIncome! > 0) {
+      final ratio = totalSpent / _monthlyIncome!;
+      if (ratio > 0.85) {
+        list.add(
+          _PlannerRecommendation(
+            title: 'High Spend Ratio',
+            description:
+                'You used ${(ratio * 100).toStringAsFixed(0)}% of income this month. Cut one discretionary category.',
+            icon: CupertinoIcons.exclamationmark_triangle_fill,
+            color: SemanticColors.warning,
+          ),
+        );
+      } else {
+        list.add(
+          _PlannerRecommendation(
+            title: 'Spending In Control',
+            description:
+                'You used ${(ratio * 100).toStringAsFixed(0)}% of income this month. Keep this pace.',
+            icon: CupertinoIcons.check_mark_circled_solid,
+            color: SemanticColors.success,
+          ),
+        );
+      }
+    }
+
+    final topCategoryEntry = categorySpent.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    if (topCategoryEntry.isNotEmpty) {
+      final top = topCategoryEntry.first;
+      list.add(
+        _PlannerRecommendation(
+          title: 'Top Spend: ${top.key}',
+          description:
+              'This month spending is ₹${top.value.toStringAsFixed(0)} in ${top.key}. Review repeat spends here first.',
+          icon: CupertinoIcons.chart_bar_fill,
+          color: SemanticColors.info,
+        ),
+      );
+    }
+
+    for (final entry in categorySpent.entries) {
+      final budget = categoryBudgets[entry.key];
+      if (budget != null && budget > 0) {
+        final progress = entry.value / budget;
+        if (progress >= 0.9) {
+          list.add(
+            _PlannerRecommendation(
+              title: '${entry.key} Near Limit',
+              description:
+                  '₹${entry.value.toStringAsFixed(0)} spent of ₹${budget.toStringAsFixed(0)} budget.',
+              icon: CupertinoIcons.bell_fill,
+              color: SemanticColors.error,
+            ),
+          );
+        }
+      }
+    }
+
+    if (_mustSaveAmount != null &&
+        _mustSaveAmount! > 0 &&
+        _monthlyIncome != null) {
+      final left = _monthlyIncome! - totalSpent;
+      if (left < _mustSaveAmount!) {
+        list.add(
+          _PlannerRecommendation(
+            title: 'Savings Gap',
+            description:
+                'Need ₹${(_mustSaveAmount! - left).toStringAsFixed(0)} more to hit your must-save target.',
+            icon: CupertinoIcons.arrow_up_circle_fill,
+            color: SemanticColors.warning,
+          ),
+        );
+      }
+    }
+
+    if (totalGoalTarget > 0) {
+      list.add(
+        _PlannerRecommendation(
+          title: 'Goal Contribution',
+          description:
+              'Recommended monthly goal contribution is ₹${totalGoalTarget.toStringAsFixed(0)}.',
+          icon: CupertinoIcons.flag_fill,
+          color: SemanticColors.info,
+        ),
+      );
+    }
+
+    if (list.isEmpty) {
+      list.add(
+        const _PlannerRecommendation(
+          title: 'Need More Data',
+          description:
+              'Add budgets/categories and transactions to generate stronger monthly recommendations.',
+          icon: CupertinoIcons.info_circle_fill,
+          color: SemanticColors.info,
+        ),
+      );
+    }
+
+    return list;
+  }
+
+  List<_CategoryInsight> _buildCategoryInsights(
+    Map<String, double> categorySpent,
+    Map<String, double> categoryBudgets,
+  ) {
+    final names = <String>{...categorySpent.keys, ...categoryBudgets.keys};
+    final insights = names.map((name) {
+      final spent = categorySpent[name] ?? 0;
+      final budget = categoryBudgets[name] ?? 0;
+      final progress = budget > 0 ? (spent / budget).clamp(0.0, 1.5) : 0.0;
+      return _CategoryInsight(
+        name: name,
+        spent: spent,
+        budget: budget,
+        progress: progress,
+      );
+    }).toList();
+
+    insights.sort((a, b) => b.spent.compareTo(a.spent));
+    return insights.take(6).toList();
+  }
+
+  double _computeHealthScore(
+      double totalSpent, double goalTarget, double budgetLimit) {
+    final income = _monthlyIncome ?? 0;
+    if (income <= 0) return 0;
+    final spendRatio = (totalSpent / income).clamp(0.0, 1.0);
+    final goalRatio = goalTarget <= 0
+        ? 1.0
+        : ((income - totalSpent) / goalTarget).clamp(0.0, 1.0);
+    final budgetRatio = budgetLimit <= 0
+        ? 1.0
+        : (1 - (totalSpent / budgetLimit).clamp(0.0, 1.0));
+    final raw =
+        (goalRatio * 0.4) + ((1 - spendRatio) * 0.4) + (budgetRatio * 0.2);
+    return (raw * 100).clamp(0.0, 100.0);
   }
 
   Widget _buildGeneratingState() {
@@ -86,17 +467,30 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          SpinningArcProgress(size: 80, color: SemanticColors.info, strokeWidth: 6),
+          SpinningArcProgress(
+              size: 80, color: SemanticColors.info, strokeWidth: 6),
           SizedBox(height: Spacing.xxl),
-          Text('Analyzing Your Finances...', style: TextStyle(fontSize: TypeScale.title2, fontWeight: FontWeight.bold, color: AppStyles.getTextColor(context))),
+          Text(
+            'Analyzing Your Finances...',
+            style: TextStyle(
+                fontSize: TypeScale.title2,
+                fontWeight: FontWeight.bold,
+                color: AppStyles.getTextColor(context)),
+          ),
           SizedBox(height: Spacing.md),
-          Text('Generating personalized recommendations', style: TextStyle(fontSize: TypeScale.callout, color: AppStyles.getSecondaryTextColor(context))),
+          Text(
+            'Generating personalized recommendations',
+            style: TextStyle(
+                fontSize: TypeScale.callout,
+                color: AppStyles.getSecondaryTextColor(context)),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildInitialState(double budgetLimit, double goalTarget, double projectedSavings) {
+  Widget _buildInitialState(
+      double budgetLimit, double goalTarget, double spent) {
     return Center(
       child: Padding(
         padding: EdgeInsets.all(Spacing.xxxl),
@@ -105,25 +499,65 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
           children: [
             Container(
               padding: EdgeInsets.all(Spacing.xxxl),
-              decoration: BoxDecoration(color: SemanticColors.info.withValues(alpha: 0.1), shape: BoxShape.circle),
-              child: Icon(CupertinoIcons.sparkles, size: IconSizes.emptyStateIcon, color: SemanticColors.info),
+              decoration: BoxDecoration(
+                  color: SemanticColors.info.withValues(alpha: 0.1),
+                  shape: BoxShape.circle),
+              child: Icon(CupertinoIcons.sparkles,
+                  size: IconSizes.emptyStateIcon, color: SemanticColors.info),
             ),
             SizedBox(height: Spacing.xxl),
-            Text('AI Financial Planner', style: TextStyle(fontSize: TypeScale.largeTitle, fontWeight: FontWeight.bold, color: AppStyles.getTextColor(context))),
+            Text(
+              'AI Financial Planner',
+              style: TextStyle(
+                  fontSize: TypeScale.largeTitle,
+                  fontWeight: FontWeight.bold,
+                  color: AppStyles.getTextColor(context)),
+            ),
             SizedBox(height: Spacing.md),
-            Text('Get personalized recommendations\nbased on your spending patterns', textAlign: TextAlign.center, style: TextStyle(fontSize: TypeScale.callout, color: AppStyles.getSecondaryTextColor(context))),
+            Text(
+              'Uses your real budgets, categories, and transactions.\nNo preset templates.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  fontSize: TypeScale.callout,
+                  color: AppStyles.getSecondaryTextColor(context)),
+            ),
+            SizedBox(height: Spacing.lg),
+            Text(
+              'Spent this month: ₹${spent.toStringAsFixed(0)}',
+              style: TextStyle(
+                  fontSize: TypeScale.subhead,
+                  color: AppStyles.getSecondaryTextColor(context)),
+            ),
             SizedBox(height: Spacing.xxxl),
             BouncyButton(
               onPressed: _generateRecommendations,
               child: Container(
-                padding: EdgeInsets.symmetric(horizontal: Spacing.xxl, vertical: Spacing.lg),
-                decoration: BoxDecoration(gradient: GradientSchemes.cosmicViolet, borderRadius: BorderRadius.circular(Radii.full), boxShadow: [BoxShadow(color: SemanticColors.info.withValues(alpha: 0.4), blurRadius: 20, offset: Offset(0, 8))]),
+                padding: EdgeInsets.symmetric(
+                    horizontal: Spacing.xxl, vertical: Spacing.lg),
+                decoration: BoxDecoration(
+                  gradient: GradientSchemes.cosmicViolet,
+                  borderRadius: BorderRadius.circular(Radii.full),
+                  boxShadow: [
+                    BoxShadow(
+                      color: SemanticColors.info.withValues(alpha: 0.4),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(CupertinoIcons.sparkles, color: Colors.white, size: IconSizes.lg),
+                    Icon(CupertinoIcons.sparkles,
+                        color: Colors.white, size: IconSizes.lg),
                     SizedBox(width: Spacing.sm),
-                    Text('Generate Recommendations', style: TextStyle(fontSize: TypeScale.callout, fontWeight: FontWeight.w600, color: Colors.white)),
+                    Text(
+                      'Generate Recommendations',
+                      style: TextStyle(
+                          fontSize: TypeScale.callout,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white),
+                    ),
                   ],
                 ),
               ),
@@ -134,7 +568,13 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
     );
   }
 
-  Widget _buildRecommendationsState(double budgetLimit, double goalTarget, double projectedSavings) {
+  Widget _buildRecommendationsState({
+    required double projectedSavings,
+    required double goalTarget,
+    required double healthScore,
+    required List<_PlannerRecommendation> recommendations,
+    required List<_CategoryInsight> categoryInsights,
+  }) {
     return CustomScrollView(
       slivers: [
         SliverToBoxAdapter(
@@ -145,45 +585,94 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
                 children: [
                   Row(
                     children: [
-                      Icon(CupertinoIcons.sparkles, color: SemanticColors.info, size: IconSizes.lg),
+                      Icon(CupertinoIcons.sparkles,
+                          color: SemanticColors.info, size: IconSizes.lg),
                       SizedBox(width: Spacing.md),
-                      Expanded(child: Text('Monthly Financial Plan', style: TextStyle(fontSize: TypeScale.title2, fontWeight: FontWeight.bold, color: AppStyles.getTextColor(context)))),
+                      Expanded(
+                        child: Text(
+                          'Monthly Financial Plan',
+                          style: TextStyle(
+                              fontSize: TypeScale.title2,
+                              fontWeight: FontWeight.bold,
+                              color: AppStyles.getTextColor(context)),
+                        ),
+                      ),
                     ],
                   ),
                   SizedBox(height: Spacing.xxl),
                   LiquidCircularProgress(
-                    progress: 0.75,
+                    progress: (healthScore / 100).clamp(0, 1),
                     size: 160,
-                    color: SemanticColors.success,
+                    color: healthScore >= 75
+                        ? SemanticColors.success
+                        : healthScore >= 50
+                            ? SemanticColors.warning
+                            : SemanticColors.error,
                     center: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text('75%', style: TextStyle(fontSize: TypeScale.hero, fontWeight: FontWeight.bold, color: SemanticColors.success)),
+                        Text('${healthScore.toStringAsFixed(0)}%',
+                            style: TextStyle(
+                                fontSize: TypeScale.hero,
+                                fontWeight: FontWeight.bold,
+                                color: AppStyles.getTextColor(context))),
                         SizedBox(height: Spacing.xs),
-                        Text('Health Score', style: TextStyle(fontSize: TypeScale.footnote, color: AppStyles.getSecondaryTextColor(context))),
+                        Text('Health Score',
+                            style: TextStyle(
+                                fontSize: TypeScale.footnote,
+                                color:
+                                    AppStyles.getSecondaryTextColor(context))),
                       ],
                     ),
                   ),
                   SizedBox(height: Spacing.xxl),
                   Container(
                     padding: EdgeInsets.all(Spacing.lg),
-                    decoration: BoxDecoration(color: SemanticColors.success.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(Radii.md)),
+                    decoration: BoxDecoration(
+                        color: SemanticColors.success.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(Radii.md)),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         Column(
                           children: [
-                            Text('Projected Savings', style: TextStyle(fontSize: TypeScale.footnote, color: AppStyles.getSecondaryTextColor(context))),
+                            Text('Projected Savings',
+                                style: TextStyle(
+                                    fontSize: TypeScale.footnote,
+                                    color: AppStyles.getSecondaryTextColor(
+                                        context))),
                             SizedBox(height: Spacing.xs),
-                            counter_widgets.CurrencyCounter(value: projectedSavings, textStyle: TextStyle(fontSize: TypeScale.title3, fontWeight: FontWeight.bold, color: SemanticColors.success), decimalPlaces: 0),
+                            counter_widgets.CurrencyCounter(
+                                value: projectedSavings,
+                                textStyle: TextStyle(
+                                    fontSize: TypeScale.title3,
+                                    fontWeight: FontWeight.bold,
+                                    color: projectedSavings >= 0
+                                        ? SemanticColors.success
+                                        : SemanticColors.error),
+                                decimalPlaces: 0),
                           ],
                         ),
-                        Container(width: 1, height: 40, color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.2)),
+                        Container(
+                            width: 1,
+                            height: 40,
+                            color: AppStyles.getSecondaryTextColor(context)
+                                .withValues(alpha: 0.2)),
                         Column(
                           children: [
-                            Text('Goal Target', style: TextStyle(fontSize: TypeScale.footnote, color: AppStyles.getSecondaryTextColor(context))),
+                            Text('Goal Target',
+                                style: TextStyle(
+                                    fontSize: TypeScale.footnote,
+                                    color: AppStyles.getSecondaryTextColor(
+                                        context))),
                             SizedBox(height: Spacing.xs),
-                            counter_widgets.CurrencyCounter(value: goalTarget, textStyle: TextStyle(fontSize: TypeScale.title3, fontWeight: FontWeight.bold, color: AppStyles.getTextColor(context)), decimalPlaces: 0),
+                            counter_widgets.CurrencyCounter(
+                                value: goalTarget,
+                                textStyle: TextStyle(
+                                    fontSize: TypeScale.title3,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppStyles.getTextColor(context)),
+                                decimalPlaces: 0),
                           ],
                         ),
                       ],
@@ -197,42 +686,52 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
         SliverToBoxAdapter(
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
-            child: Text('Recommendations', style: TextStyle(fontSize: TypeScale.title3, fontWeight: FontWeight.bold, color: AppStyles.getTextColor(context))),
+            child: Text('Recommendations',
+                style: TextStyle(
+                    fontSize: TypeScale.title3,
+                    fontWeight: FontWeight.bold,
+                    color: AppStyles.getTextColor(context))),
           ),
         ),
         SliverPadding(
           padding: EdgeInsets.all(Spacing.lg),
           sliver: SliverList(
-            delegate: SliverChildListDelegate([
-              _buildRecommendationCard('Reduce Dining Out', 'Save \u{20B9}3,000 by cooking at home', CupertinoIcons.house_fill, SemanticColors.success, 0),
-              SizedBox(height: Spacing.md),
-              _buildRecommendationCard('Optimize Subscriptions', 'Cancel unused services to save \u{20B9}1,500', CupertinoIcons.layers_alt_fill, SemanticColors.warning, 1),
-              SizedBox(height: Spacing.md),
-              _buildRecommendationCard('Emergency Fund Priority', 'Allocate \u{20B9}5,000 to emergency savings', CupertinoIcons.shield_fill, SemanticColors.info, 2),
-              SizedBox(height: Spacing.md),
-              _buildRecommendationCard('Entertainment Budget', 'Reduce spending by 20% to stay on track', CupertinoIcons.film_fill, SemanticColors.error, 3),
-            ]),
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final item = recommendations[index];
+                return Padding(
+                  padding: EdgeInsets.only(bottom: Spacing.md),
+                  child: _buildRecommendationCard(item, index),
+                );
+              },
+              childCount: recommendations.length,
+            ),
           ),
         ),
         SliverToBoxAdapter(child: SizedBox(height: Spacing.lg)),
         SliverToBoxAdapter(
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
-            child: Text('Category Breakdown', style: TextStyle(fontSize: TypeScale.title3, fontWeight: FontWeight.bold, color: AppStyles.getTextColor(context))),
+            child: Text('Category Breakdown',
+                style: TextStyle(
+                    fontSize: TypeScale.title3,
+                    fontWeight: FontWeight.bold,
+                    color: AppStyles.getTextColor(context))),
           ),
         ),
         SliverPadding(
           padding: EdgeInsets.all(Spacing.lg),
           sliver: SliverList(
-            delegate: SliverChildListDelegate([
-              _buildCategoryCard('Food & Dining', 15000, 20000, 0.75),
-              SizedBox(height: Spacing.md),
-              _buildCategoryCard('Transportation', 8000, 10000, 0.80),
-              SizedBox(height: Spacing.md),
-              _buildCategoryCard('Entertainment', 5000, 5000, 1.0),
-              SizedBox(height: Spacing.md),
-              _buildCategoryCard('Shopping', 12000, 15000, 0.80),
-            ]),
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final insight = categoryInsights[index];
+                return Padding(
+                  padding: EdgeInsets.only(bottom: Spacing.md),
+                  child: _buildCategoryCard(insight),
+                );
+              },
+              childCount: categoryInsights.length,
+            ),
           ),
         ),
         SliverToBoxAdapter(child: SizedBox(height: 80)),
@@ -240,7 +739,7 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
     );
   }
 
-  Widget _buildRecommendationCard(String title, String description, IconData icon, Color color, int index) {
+  Widget _buildRecommendationCard(_PlannerRecommendation item, int index) {
     return StaggeredItem(
       index: index,
       child: GlassCard(
@@ -248,29 +747,42 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
           children: [
             Container(
               padding: EdgeInsets.all(Spacing.md),
-              decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(Radii.md)),
-              child: Icon(icon, color: color, size: IconSizes.lg),
+              decoration: BoxDecoration(
+                  color: item.color.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(Radii.md)),
+              child: Icon(item.icon, color: item.color, size: IconSizes.lg),
             ),
             SizedBox(width: Spacing.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: TextStyle(fontSize: TypeScale.callout, fontWeight: FontWeight.w600, color: AppStyles.getTextColor(context))),
+                  Text(item.title,
+                      style: TextStyle(
+                          fontSize: TypeScale.callout,
+                          fontWeight: FontWeight.w600,
+                          color: AppStyles.getTextColor(context))),
                   SizedBox(height: Spacing.xxs),
-                  Text(description, style: TextStyle(fontSize: TypeScale.footnote, color: AppStyles.getSecondaryTextColor(context))),
+                  Text(item.description,
+                      style: TextStyle(
+                          fontSize: TypeScale.footnote,
+                          color: AppStyles.getSecondaryTextColor(context))),
                 ],
               ),
             ),
-            Icon(CupertinoIcons.chevron_right, size: IconSizes.sm, color: AppStyles.getSecondaryTextColor(context)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildCategoryCard(String category, double spent, double budget, double progress) {
-    final color = progress >= 0.9 ? SemanticColors.error : progress >= 0.75 ? SemanticColors.warning : SemanticColors.success;
+  Widget _buildCategoryCard(_CategoryInsight insight) {
+    final progress = insight.budget > 0 ? insight.progress : 0.0;
+    final color = progress >= 0.9
+        ? SemanticColors.error
+        : progress >= 0.75
+            ? SemanticColors.warning
+            : SemanticColors.success;
 
     return GlassCard(
       child: Column(
@@ -279,18 +791,49 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(category, style: TextStyle(fontSize: TypeScale.callout, fontWeight: FontWeight.w600, color: AppStyles.getTextColor(context))),
-              counter_widgets.AnimatedCounter(value: progress * 100, suffix: '%', decimalPlaces: 0, textStyle: TextStyle(fontSize: TypeScale.callout, fontWeight: FontWeight.bold, color: color)),
+              Expanded(
+                child: Text(
+                  insight.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                      fontSize: TypeScale.callout,
+                      fontWeight: FontWeight.w600,
+                      color: AppStyles.getTextColor(context)),
+                ),
+              ),
+              if (insight.budget > 0)
+                counter_widgets.AnimatedCounter(
+                  value: progress * 100,
+                  suffix: '%',
+                  decimalPlaces: 0,
+                  textStyle: TextStyle(
+                      fontSize: TypeScale.callout,
+                      fontWeight: FontWeight.bold,
+                      color: color),
+                ),
             ],
           ),
           SizedBox(height: Spacing.md),
-          LiquidLinearProgress(progress: progress, height: 8, color: color),
-          SizedBox(height: Spacing.md),
+          if (insight.budget > 0)
+            LiquidLinearProgress(
+                progress: progress.clamp(0.0, 1.0), height: 8, color: color),
+          if (insight.budget > 0) SizedBox(height: Spacing.md),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('\u{20B9}${spent.toStringAsFixed(0)} spent', style: TextStyle(fontSize: TypeScale.footnote, color: AppStyles.getSecondaryTextColor(context))),
-              Text('\u{20B9}${budget.toStringAsFixed(0)} budget', style: TextStyle(fontSize: TypeScale.footnote, color: AppStyles.getSecondaryTextColor(context))),
+              Text('₹${insight.spent.toStringAsFixed(0)} spent',
+                  style: TextStyle(
+                      fontSize: TypeScale.footnote,
+                      color: AppStyles.getSecondaryTextColor(context))),
+              Text(
+                insight.budget > 0
+                    ? '₹${insight.budget.toStringAsFixed(0)} budget'
+                    : 'No category budget',
+                style: TextStyle(
+                    fontSize: TypeScale.footnote,
+                    color: AppStyles.getSecondaryTextColor(context)),
+              ),
             ],
           ),
         ],

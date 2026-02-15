@@ -19,6 +19,7 @@ class SettingsController with ChangeNotifier {
   DateTime? _lastPausedTime;
   bool _isLocked = false;
   bool _appLoaded = false;
+  bool _isArchivedTransactionsEnabled = false;
 
   ThemeMode get themeMode => _themeMode;
   bool get isBiometricEnabled => _isBiometricEnabled;
@@ -27,6 +28,7 @@ class SettingsController with ChangeNotifier {
   bool get isInvestmentTrackingEnabled => _isInvestmentTrackingEnabled;
   bool get isLocked => _isLocked;
   bool get appLoaded => _appLoaded;
+  bool get isArchivedTransactionsEnabled => _isArchivedTransactionsEnabled;
 
   void setAppLoaded() {
     _appLoaded = true;
@@ -45,6 +47,7 @@ class SettingsController with ChangeNotifier {
     _lockOnMinimize = _prefs.getBool('lockOnMinimize') ?? false;
     _lockTimeoutSeconds = _prefs.getInt('lockTimeoutSeconds') ?? 10;
     _isInvestmentTrackingEnabled = _prefs.getBool('isInvestmentTrackingEnabled') ?? false;
+    _isArchivedTransactionsEnabled = _prefs.getBool('showArchivedTransactions') ?? false;
 
     // Skip biometric setup on web
     if (!kIsWeb) {
@@ -79,7 +82,9 @@ class SettingsController with ChangeNotifier {
     if (kIsWeb) return; // Skip on web
 
     if (value) {
-      bool authenticated = await _authenticate();
+      bool authenticated = await _authenticate(
+        reason: 'Please authenticate to enable biometric security',
+      );
       if (authenticated) {
         _isBiometricEnabled = true;
         await _prefs.setBool('isBiometricEnabled', true);
@@ -93,6 +98,20 @@ class SettingsController with ChangeNotifier {
       _updateSecureFlag();
     }
     notifyListeners();
+  }
+
+  Future<void> toggleArchivedTransactions(bool value) async {
+    _isArchivedTransactionsEnabled = value;
+    await _prefs.setBool('showArchivedTransactions', value);
+    notifyListeners();
+  }
+
+  Future<bool> authenticateArchivedAccess({String reason = 'Authenticate to view archived transactions'}) async {
+    if (!_isArchivedTransactionsEnabled || !_isBiometricEnabled || kIsWeb) {
+      return true;
+    }
+
+    return await _authenticate(reason: reason);
   }
 
   Future<void> toggleLockOnMinimize(bool value) async {
@@ -147,7 +166,7 @@ class SettingsController with ChangeNotifier {
     _lastPausedTime = null;
   }
 
-  Future<bool> _authenticate() async {
+  Future<bool> _authenticate({String reason = 'Please authenticate to change settings'}) async {
     if (kIsWeb) return false; // Biometric not available on web
 
     try {
@@ -155,7 +174,7 @@ class SettingsController with ChangeNotifier {
       if (!canAuthenticateWithBiometrics) return false;
 
       return await auth.authenticate(
-        localizedReason: 'Please authenticate to change settings',
+        localizedReason: reason,
       );
     } catch (e) {
       logger.error('Auth Error', error: e, context: 'SettingsController');

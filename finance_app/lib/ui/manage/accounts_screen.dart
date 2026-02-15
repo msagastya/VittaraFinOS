@@ -33,7 +33,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
     showCupertinoModalPopup(
       context: context,
       builder: (context) {
-        final settings = Provider.of<SettingsController>(context, listen: false);
+        final settings =
+            Provider.of<SettingsController>(context, listen: false);
         final showInvestment = settings.isInvestmentTrackingEnabled;
 
         return BackdropFilter(
@@ -41,7 +42,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
           child: Container(
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(24)),
             ),
             padding: const EdgeInsets.all(24),
             child: SafeArea(
@@ -161,15 +163,11 @@ class _AccountsScreenState extends State<AccountsScreen> {
     if (!mounted) return;
 
     if (result != null) {
-      final accountsController = Provider.of<AccountsController>(context, listen: false);
+      final accountsController =
+          Provider.of<AccountsController>(context, listen: false);
       await accountsController.addAccount(result);
       logger.info('Added account: ${result.name}', context: 'AccountsScreen');
     }
-  }
-
-  void _onReorder(int oldIndex, int newIndex) {
-    final accountsController = Provider.of<AccountsController>(context, listen: false);
-    accountsController.reorderAccounts(oldIndex, newIndex);
   }
 
   double _getTotalBalance(List<Account> accounts) {
@@ -199,8 +197,10 @@ class _AccountsScreenState extends State<AccountsScreen> {
 
   double _getTotalCreditUsed(List<Account> accounts, AccountType type) {
     // Used = Credit Limit - Balance (where balance is available credit)
-    return _getAccountsByType(accounts, type)
-        .fold(0.0, (sum, account) => sum + ((account.creditLimit ?? 0.0) - account.balance));
+    return _getAccountsByType(accounts, type).fold(
+        0.0,
+        (sum, account) =>
+            sum + ((account.creditLimit ?? 0.0) - account.balance));
   }
 
   double _getTotalCreditRemaining(List<Account> accounts, AccountType type) {
@@ -247,9 +247,95 @@ class _AccountsScreenState extends State<AccountsScreen> {
     }
   }
 
-  Widget _buildAccountTypeSummaryCards(BuildContext context, List<Account> accounts) {
+  Widget _buildAccountTypeSummaryCards(
+      BuildContext context, List<Account> accounts) {
     // Account Summary section removed
     return SizedBox.shrink();
+  }
+
+  List<AccountType> _orderedAccountTypes(List<Account> accounts) {
+    const order = <AccountType>[
+      AccountType.savings,
+      AccountType.current,
+      AccountType.credit,
+      AccountType.payLater,
+      AccountType.wallet,
+      AccountType.investment,
+    ];
+    final presentTypes =
+        order.where((type) => _hasAccountType(accounts, type)).toList();
+    presentTypes.sort(
+      (a, b) =>
+          _getTotalByType(accounts, b).compareTo(_getTotalByType(accounts, a)),
+    );
+    return presentTypes;
+  }
+
+  Widget _buildGroupedAccountsList(List<Account> accounts) {
+    final types = _orderedAccountTypes(accounts);
+    return ListView.builder(
+      padding: EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, 110),
+      itemCount: types.length,
+      itemBuilder: (context, sectionIndex) {
+        final type = types[sectionIndex];
+        final sectionAccounts = _getAccountsByType(accounts, type)
+          ..sort((a, b) => b.balance.compareTo(a.balance));
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              margin: EdgeInsets.only(
+                  bottom: Spacing.md, top: sectionIndex == 0 ? 0 : Spacing.md),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: _getAccountTypeColor(type).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: _getAccountTypeColor(type).withValues(alpha: 0.25),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: _getAccountTypeColor(type),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _getAccountTypeLabel(type),
+                      style:
+                          AppStyles.titleStyle(context).copyWith(fontSize: 14),
+                    ),
+                  ),
+                  Text(
+                    '${sectionAccounts.length}',
+                    style: TextStyle(
+                      color: AppStyles.getSecondaryTextColor(context),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            ...sectionAccounts.asMap().entries.map((entry) {
+              final index = entry.key;
+              final account = entry.value;
+              return StaggeredItem(
+                key: ValueKey(account.id),
+                index: sectionIndex * 100 + index,
+                child: _buildSlidableAccountCard(account),
+              );
+            }),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -257,7 +343,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
       navigationBar: CupertinoNavigationBar(
-        middle: Text('Accounts', style: TextStyle(color: AppStyles.getTextColor(context))),
+        middle: Text('Accounts',
+            style: TextStyle(color: AppStyles.getTextColor(context))),
         previousPageTitle: 'Manage',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
@@ -285,36 +372,9 @@ class _AccountsScreenState extends State<AccountsScreen> {
                         child: _buildAccountTypeSummaryCards(context, accounts),
                       ),
                       SizedBox(height: Spacing.lg),
-                      // Accounts List with Staggered Animation
+                      // Accounts grouped by type
                       Expanded(
-                        child: ReorderableListView.builder(
-                          padding: EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, 100),
-                          itemCount: accounts.length,
-                          onReorder: (oldIndex, newIndex) {
-                            Haptics.reorder();
-                            _onReorder(oldIndex, newIndex);
-                          },
-                          proxyDecorator: (child, index, animation) {
-                            return AnimatedBuilder(
-                              animation: animation,
-                              builder: (context, child) => Transform.scale(
-                                scale: 1.02,
-                                child: Container(
-                                  decoration: AppStyles.cardDecoration(context),
-                                  child: child,
-                                ),
-                              ),
-                              child: child,
-                            );
-                          },
-                          itemBuilder: (context, index) {
-                            return StaggeredItem(
-                              key: ValueKey(accounts[index].id),
-                              index: index,
-                              child: _buildSlidableAccountCard(accounts[index]),
-                            );
-                          },
-                        ),
+                        child: _buildGroupedAccountsList(accounts),
                       ),
                     ],
                   ),
@@ -340,7 +400,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: CupertinoColors.systemGreen.withValues(alpha: 0.4),
+                          color: CupertinoColors.systemGreen
+                              .withValues(alpha: 0.4),
                           blurRadius: 12,
                           offset: const Offset(0, 6),
                         ),
@@ -398,7 +459,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
             foregroundColor: Colors.white,
             icon: CupertinoIcons.pencil,
             label: 'Edit',
-            borderRadius: const BorderRadius.horizontal(left: Radius.circular(12)),
+            borderRadius:
+                const BorderRadius.horizontal(left: Radius.circular(12)),
           ),
           SlidableAction(
             onPressed: (_) {
@@ -409,7 +471,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
             foregroundColor: Colors.white,
             icon: CupertinoIcons.trash,
             label: 'Delete',
-            borderRadius: const BorderRadius.horizontal(right: Radius.circular(12)),
+            borderRadius:
+                const BorderRadius.horizontal(right: Radius.circular(12)),
           ),
         ],
       ),
@@ -496,7 +559,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
             return Container(
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(dragContext),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(24)),
               ),
               child: SingleChildScrollView(
                 controller: scrollController,
@@ -523,13 +587,15 @@ class _AccountsScreenState extends State<AccountsScreen> {
                         children: [
                           Text(
                             account.name,
-                            style: AppStyles.titleStyle(dragContext).copyWith(fontSize: 20),
+                            style: AppStyles.titleStyle(dragContext)
+                                .copyWith(fontSize: 20),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             '${account.bankName} • ${account.type.name.toUpperCase()}',
                             style: TextStyle(
-                              color: AppStyles.getSecondaryTextColor(dragContext),
+                              color:
+                                  AppStyles.getSecondaryTextColor(dragContext),
                               fontSize: 14,
                             ),
                           ),
@@ -539,7 +605,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
                           Text(
                             'Balance',
                             style: TextStyle(
-                              color: AppStyles.getSecondaryTextColor(dragContext),
+                              color:
+                                  AppStyles.getSecondaryTextColor(dragContext),
                               fontSize: 12,
                             ),
                           ),
@@ -554,12 +621,14 @@ class _AccountsScreenState extends State<AccountsScreen> {
                           ),
 
                           // Credit Card Number (if exists)
-                          if (account.creditCardNumber != null && account.creditCardNumber!.isNotEmpty) ...[
+                          if (account.creditCardNumber != null &&
+                              account.creditCardNumber!.isNotEmpty) ...[
                             const SizedBox(height: 16),
                             Text(
                               'Card Number',
                               style: TextStyle(
-                                color: AppStyles.getSecondaryTextColor(dragContext),
+                                color: AppStyles.getSecondaryTextColor(
+                                    dragContext),
                                 fontSize: 12,
                               ),
                             ),
@@ -583,12 +652,15 @@ class _AccountsScreenState extends State<AccountsScreen> {
                               children: [
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         'Credit Limit',
                                         style: TextStyle(
-                                          color: AppStyles.getSecondaryTextColor(dragContext),
+                                          color:
+                                              AppStyles.getSecondaryTextColor(
+                                                  dragContext),
                                           fontSize: 12,
                                         ),
                                       ),
@@ -596,7 +668,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                       Text(
                                         '₹${(account.creditLimit ?? 0.0).toStringAsFixed(2)}',
                                         style: TextStyle(
-                                          color: AppStyles.getTextColor(dragContext),
+                                          color: AppStyles.getTextColor(
+                                              dragContext),
                                           fontSize: 16,
                                           fontWeight: FontWeight.w600,
                                         ),
@@ -606,12 +679,15 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                 ),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         'Amount Used',
                                         style: TextStyle(
-                                          color: AppStyles.getSecondaryTextColor(dragContext),
+                                          color:
+                                              AppStyles.getSecondaryTextColor(
+                                                  dragContext),
                                           fontSize: 12,
                                         ),
                                       ),
@@ -650,13 +726,16 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                     _showAdjustBalanceModal(context, account);
                                   },
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 12),
                                     decoration: BoxDecoration(
-                                      color: CupertinoColors.systemGreen.withValues(alpha: 0.1),
+                                      color: CupertinoColors.systemGreen
+                                          .withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         Icon(
                                           CupertinoIcons.arrow_up_down_circle,
@@ -689,13 +768,16 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                     _editAccount(account);
                                   },
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 12),
                                     decoration: BoxDecoration(
-                                      color: CupertinoColors.systemBlue.withValues(alpha: 0.1),
+                                      color: CupertinoColors.systemBlue
+                                          .withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         Icon(
                                           CupertinoIcons.pencil,
@@ -724,13 +806,16 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                     _deleteAccount(account);
                                   },
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 12),
                                     decoration: BoxDecoration(
-                                      color: CupertinoColors.systemRed.withValues(alpha: 0.1),
+                                      color: CupertinoColors.systemRed
+                                          .withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         Icon(
                                           CupertinoIcons.trash,
@@ -779,7 +864,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
             return Container(
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(24)),
               ),
               child: SingleChildScrollView(
                 child: Padding(
@@ -791,207 +877,254 @@ class _AccountsScreenState extends State<AccountsScreen> {
                   ),
                   child: SafeArea(
                     child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                    const ModalHandle(),
-                    SizedBox(height: Spacing.lg),
-                    Text(
-                      'Adjust Balance',
-                      style: AppStyles.titleStyle(context).copyWith(fontSize: 22),
-                    ),
-                    SizedBox(height: Spacing.sm),
-                    Text(
-                      account.type == AccountType.credit || account.type == AccountType.payLater
-                          ? 'Add = Pay Card | Subtract = Spend'
-                          : 'Adjust your account balance',
-                      style: TextStyle(
-                        color: AppStyles.getSecondaryTextColor(context),
-                        fontSize: 14,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    SizedBox(height: Spacing.xxxl),
-
-                    // Add/Subtract Toggle
-                    Container(
-                      decoration: BoxDecoration(
-                        color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.all(4),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () {
-                                Haptics.light();
-                                setModalState(() => isAdding = true);
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 10),
-                                decoration: BoxDecoration(
-                                  color: isAdding ? CupertinoColors.systemGreen : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      CupertinoIcons.add_circled_solid,
-                                      size: 18,
-                                      color: isAdding ? Colors.white : AppStyles.getSecondaryTextColor(context),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      'Add',
-                                      style: TextStyle(
-                                        color: isAdding ? Colors.white : AppStyles.getSecondaryTextColor(context),
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () {
-                                Haptics.light();
-                                setModalState(() => isAdding = false);
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 10),
-                                decoration: BoxDecoration(
-                                  color: !isAdding ? CupertinoColors.systemRed : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      CupertinoIcons.minus_circle_fill,
-                                      size: 18,
-                                      color: !isAdding ? Colors.white : AppStyles.getSecondaryTextColor(context),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      'Subtract',
-                                      style: TextStyle(
-                                        color: !isAdding ? Colors.white : AppStyles.getSecondaryTextColor(context),
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: Spacing.xxxl),
-
-                    // Amount Input
-                    Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text('₹', style: AppStyles.titleStyle(context).copyWith(fontSize: 32)),
-                          const SizedBox(width: 8),
-                          IntrinsicWidth(
-                            child: CupertinoTextField(
-                              controller: amountController,
-                              placeholder: '0.00',
-                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                              autofocus: true,
-                              decoration: BoxDecoration(
-                                color: AppStyles.getCardColor(context),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              style: AppStyles.titleStyle(context).copyWith(fontSize: 32, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: Spacing.huge),
-
-                    // Confirm Button
-                    BouncyButton(
-                      onPressed: () {
-                        final amount = double.tryParse(amountController.text);
-                        if (amount != null && amount > 0) {
-                          final newBalance = isAdding ? account.balance + amount : account.balance - amount;
-                          final updatedAccount = account.copyWith(balance: newBalance);
-                          final accountsController = Provider.of<AccountsController>(context, listen: false);
-                          final oldBalance = account.balance;
-
-                          accountsController.updateAccount(updatedAccount);
-
-                          // Create transaction record
-                          final transactionsController = Provider.of<TransactionsController>(context, listen: false);
-                          final transaction = Transaction(
-                            id: DateTime.now().millisecondsSinceEpoch.toString(),
-                            type: TransactionType.transfer,
-                            description: '${isAdding ? "Added" : "Deducted"} ₹${amount.toStringAsFixed(2)}',
-                            dateTime: DateTime.now(),
-                            amount: amount,
-                            sourceAccountId: account.id,
-                            sourceAccountName: account.name,
-                            destinationAccountId: account.id,
-                            destinationAccountName: account.name,
-                            metadata: {
-                              'type': 'balance_adjustment',
-                              'adjustment_type': isAdding ? 'credit' : 'debit',
-                            },
-                          );
-                          transactionsController.addTransaction(transaction);
-
-                          Navigator.pop(modalContext);
-
-                          Haptics.success();
-                          toast.showSuccess(
-                            '${isAdding ? "Added" : "Subtracted"} ₹${amount.toStringAsFixed(2)}',
-                            actionLabel: 'Undo',
-                            onAction: () {
-                              final revertedAccount = account.copyWith(balance: oldBalance);
-                              accountsController.updateAccount(revertedAccount);
-                              transactionsController.removeTransaction(transaction.id);
-                              toast.showInfo('Adjustment undone');
-                            },
-                          );
-                        }
-                      },
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        decoration: BoxDecoration(
-                          color: CupertinoColors.systemBlue,
-                          borderRadius: BorderRadius.circular(16),
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const ModalHandle(),
+                        SizedBox(height: Spacing.lg),
+                        Text(
+                          'Adjust Balance',
+                          style: AppStyles.titleStyle(context)
+                              .copyWith(fontSize: 22),
                         ),
-                        child: const Center(
-                          child: Text(
-                            'Confirm',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        SizedBox(height: Spacing.sm),
+                        Text(
+                          account.type == AccountType.credit ||
+                                  account.type == AccountType.payLater
+                              ? 'Add = Pay Card | Subtract = Spend'
+                              : 'Adjust your account balance',
+                          style: TextStyle(
+                            color: AppStyles.getSecondaryTextColor(context),
+                            fontSize: 14,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: Spacing.xxxl),
+
+                        // Add/Subtract Toggle
+                        Container(
+                          decoration: BoxDecoration(
+                            color: AppStyles.getSecondaryTextColor(context)
+                                .withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.all(4),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Haptics.light();
+                                    setModalState(() => isAdding = true);
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 10),
+                                    decoration: BoxDecoration(
+                                      color: isAdding
+                                          ? CupertinoColors.systemGreen
+                                          : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          CupertinoIcons.add_circled_solid,
+                                          size: 18,
+                                          color: isAdding
+                                              ? Colors.white
+                                              : AppStyles.getSecondaryTextColor(
+                                                  context),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          'Add',
+                                          style: TextStyle(
+                                            color: isAdding
+                                                ? Colors.white
+                                                : AppStyles
+                                                    .getSecondaryTextColor(
+                                                        context),
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Haptics.light();
+                                    setModalState(() => isAdding = false);
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 10),
+                                    decoration: BoxDecoration(
+                                      color: !isAdding
+                                          ? CupertinoColors.systemRed
+                                          : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          CupertinoIcons.minus_circle_fill,
+                                          size: 18,
+                                          color: !isAdding
+                                              ? Colors.white
+                                              : AppStyles.getSecondaryTextColor(
+                                                  context),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          'Subtract',
+                                          style: TextStyle(
+                                            color: !isAdding
+                                                ? Colors.white
+                                                : AppStyles
+                                                    .getSecondaryTextColor(
+                                                        context),
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ),
-                    ),
-                    ],
+                        SizedBox(height: Spacing.xxxl),
+
+                        // Amount Input
+                        Center(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text('₹',
+                                  style: AppStyles.titleStyle(context)
+                                      .copyWith(fontSize: 32)),
+                              const SizedBox(width: 8),
+                              IntrinsicWidth(
+                                child: CupertinoTextField(
+                                  controller: amountController,
+                                  placeholder: '0.00',
+                                  keyboardType:
+                                      const TextInputType.numberWithOptions(
+                                          decimal: true),
+                                  autofocus: true,
+                                  decoration: BoxDecoration(
+                                    color: AppStyles.getCardColor(context),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  style: AppStyles.titleStyle(context).copyWith(
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: Spacing.huge),
+
+                        // Confirm Button
+                        BouncyButton(
+                          onPressed: () {
+                            final amount =
+                                double.tryParse(amountController.text);
+                            if (amount != null && amount > 0) {
+                              final newBalance = isAdding
+                                  ? account.balance + amount
+                                  : account.balance - amount;
+                              final updatedAccount =
+                                  account.copyWith(balance: newBalance);
+                              final accountsController =
+                                  Provider.of<AccountsController>(context,
+                                      listen: false);
+                              final oldBalance = account.balance;
+
+                              accountsController.updateAccount(updatedAccount);
+
+                              // Create transaction record
+                              final transactionsController =
+                                  Provider.of<TransactionsController>(context,
+                                      listen: false);
+                              final transaction = Transaction(
+                                id: DateTime.now()
+                                    .millisecondsSinceEpoch
+                                    .toString(),
+                                type: TransactionType.transfer,
+                                description:
+                                    '${isAdding ? "Added" : "Deducted"} ₹${amount.toStringAsFixed(2)}',
+                                dateTime: DateTime.now(),
+                                amount: amount,
+                                sourceAccountId: account.id,
+                                sourceAccountName: account.name,
+                                destinationAccountId: account.id,
+                                destinationAccountName: account.name,
+                                metadata: {
+                                  'type': 'balance_adjustment',
+                                  'adjustment_type':
+                                      isAdding ? 'credit' : 'debit',
+                                },
+                              );
+                              transactionsController
+                                  .addTransaction(transaction);
+
+                              Navigator.pop(modalContext);
+
+                              Haptics.success();
+                              toast.showSuccess(
+                                '${isAdding ? "Added" : "Subtracted"} ₹${amount.toStringAsFixed(2)}',
+                                actionLabel: 'Undo',
+                                onAction: () {
+                                  final revertedAccount =
+                                      account.copyWith(balance: oldBalance);
+                                  accountsController
+                                      .updateAccount(revertedAccount);
+                                  transactionsController
+                                      .removeTransaction(transaction.id);
+                                  toast.showInfo('Adjustment undone');
+                                },
+                              );
+                            }
+                          },
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            decoration: BoxDecoration(
+                              color: CupertinoColors.systemBlue,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: const Center(
+                              child: Text(
+                                'Confirm',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
             );
-            },
-          );
-        },
-      );
+          },
+        );
+      },
+    );
   }
 
   Future<void> _editAccount(Account account) async {
@@ -1010,7 +1143,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
     if (!mounted) return;
 
     if (result != null) {
-      final accountsController = Provider.of<AccountsController>(context, listen: false);
+      final accountsController =
+          Provider.of<AccountsController>(context, listen: false);
       await accountsController.updateAccount(result);
       logger.info('Updated account: ${result.name}', context: 'AccountsScreen');
 
@@ -1026,7 +1160,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
       builder: (dialogContext) {
         return CupertinoAlertDialog(
           title: const Text('Delete Account'),
-          content: Text('Are you sure you want to delete "${account.name}"? This action cannot be undone.'),
+          content: Text(
+              'Are you sure you want to delete "${account.name}"? This action cannot be undone.'),
           actions: [
             CupertinoDialogAction(
               child: const Text('Cancel'),
@@ -1037,11 +1172,13 @@ class _AccountsScreenState extends State<AccountsScreen> {
               child: const Text('Delete'),
               onPressed: () {
                 Haptics.delete();
-                final accountsController = Provider.of<AccountsController>(context, listen: false);
+                final accountsController =
+                    Provider.of<AccountsController>(context, listen: false);
                 final deletedName = account.name;
                 accountsController.removeAccount(account.id);
                 Navigator.pop(dialogContext);
-                logger.info('Deleted account: $deletedName', context: 'AccountsScreen');
+                logger.info('Deleted account: $deletedName',
+                    context: 'AccountsScreen');
                 toast.showSuccess(
                   '"$deletedName" deleted',
                   actionLabel: 'Undo',
@@ -1058,4 +1195,3 @@ class _AccountsScreenState extends State<AccountsScreen> {
     );
   }
 }
-

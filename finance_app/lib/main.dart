@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
+import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/banks_controller.dart';
 import 'package:vittara_fin_os/logic/brokers_controller.dart';
 import 'package:vittara_fin_os/logic/categories_controller.dart';
@@ -21,11 +22,19 @@ import 'package:vittara_fin_os/logic/tags_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/logic/goals_controller.dart';
 import 'package:vittara_fin_os/logic/budgets_controller.dart';
+import 'package:vittara_fin_os/logic/transactions_archive_controller.dart';
 import 'package:vittara_fin_os/ui/fintech_loader.dart';
 import 'package:vittara_fin_os/ui/manage_screen.dart';
 import 'package:vittara_fin_os/ui/settings_screen.dart';
 import 'package:vittara_fin_os/ui/transaction_history_screen.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/logic/notification_helpers.dart';
+import 'package:vittara_fin_os/ui/dashboard/notification_widget.dart';
+import 'package:vittara_fin_os/ui/dashboard/transaction_wizard.dart';
+import 'package:vittara_fin_os/ui/manage/bonds/bond_payout_modal.dart';
+import 'package:vittara_fin_os/ui/manage/bonds/bonds_details_screen.dart';
+import 'package:vittara_fin_os/ui/manage/mf/mf_details_screen.dart';
+import 'package:vittara_fin_os/ui/manage/stocks/stock_details_screen.dart';
 import 'package:vittara_fin_os/ui/notifications_page.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/dashboard/dashboard_settings_modal.dart';
@@ -44,12 +53,10 @@ final AppLogger logger = AppLogger();
 void main() {
   runZonedGuarded(() {
     WidgetsFlutterBinding.ensureInitialized();
-    
+
     FlutterError.onError = (FlutterErrorDetails details) {
-      logger.error('Flutter Framework Error', 
-        context: 'Main', 
-        error: details.exception, 
-        stackTrace: details.stack);
+      logger.error('Flutter Framework Error',
+          context: 'Main', error: details.exception, stackTrace: details.stack);
     };
 
     runApp(
@@ -68,13 +75,14 @@ void main() {
             create: (_) => BrokersController(),
           ),
           ChangeNotifierProvider(
-            create: (_) => PaymentAppsController(),
+            create: (_) => PaymentAppsController()..loadApps(),
           ),
           ChangeNotifierProvider(
             create: (_) => InvestmentsController()..loadInvestments(),
           ),
           ChangeNotifierProvider(
-            create: (_) => InvestmentTypePreferencesController()..loadPreferences(),
+            create: (_) =>
+                InvestmentTypePreferencesController()..loadPreferences(),
           ),
           ChangeNotifierProvider(
             create: (_) => CategoriesController()..loadCategories(),
@@ -92,6 +100,9 @@ void main() {
             create: (_) => TransactionsController()..loadTransactions(),
           ),
           ChangeNotifierProvider(
+            create: (_) => TransactionsArchiveController(),
+          ),
+          ChangeNotifierProvider(
             create: (_) => DashboardController()..initialize(),
           ),
           ChangeNotifierProvider(
@@ -105,10 +116,8 @@ void main() {
       ),
     );
   }, (error, stackTrace) {
-    logger.error('Uncaught Exception', 
-      context: 'ZonedGuarded', 
-      error: error, 
-      stackTrace: stackTrace);
+    logger.error('Uncaught Exception',
+        context: 'ZonedGuarded', error: error, stackTrace: stackTrace);
   });
 }
 
@@ -160,9 +169,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         cupertinoOverrideTheme: CupertinoThemeData(
           primaryColor: const Color(0xFF007AFF),
           textTheme: CupertinoTextThemeData(
-            textStyle: TextStyle(fontFamily: GoogleFonts.inter().fontFamily, color: const Color(0xFF1C1C1E)),
+            textStyle: TextStyle(
+                fontFamily: GoogleFonts.inter().fontFamily,
+                color: const Color(0xFF1C1C1E)),
             navTitleTextStyle: TextStyle(
-              fontFamily: GoogleFonts.inter().fontFamily, 
+              fontFamily: GoogleFonts.inter().fontFamily,
               fontWeight: FontWeight.w600,
               fontSize: 17,
               color: const Color(0xFF1C1C1E),
@@ -182,9 +193,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           scaffoldBackgroundColor: const Color(0xFF000000),
           barBackgroundColor: const Color(0xFF1C1C1E),
           textTheme: CupertinoTextThemeData(
-            textStyle: TextStyle(fontFamily: GoogleFonts.inter().fontFamily, color: Colors.white),
+            textStyle: TextStyle(
+                fontFamily: GoogleFonts.inter().fontFamily,
+                color: Colors.white),
             navTitleTextStyle: TextStyle(
-              fontFamily: GoogleFonts.inter().fontFamily, 
+              fontFamily: GoogleFonts.inter().fontFamily,
               fontWeight: FontWeight.w600,
               fontSize: 17,
               color: Colors.white,
@@ -200,7 +213,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                 style: TextStyle(
                   fontFamily: GoogleFonts.inter().fontFamily,
                   decoration: TextDecoration.none,
-                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1C1C1E),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white
+                      : const Color(0xFF1C1C1E),
                 ),
                 child: child!,
               ),
@@ -229,7 +244,8 @@ class _LockScreenState extends State<LockScreen> {
     super.initState();
     // Automatically trigger biometric authentication when lock screen appears
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<SettingsController>(context, listen: false).authenticateAndUnlock();
+      Provider.of<SettingsController>(context, listen: false)
+          .authenticateAndUnlock();
     });
   }
 
@@ -322,8 +338,10 @@ class _SplashScreenState extends State<SplashScreen> {
 
     Timer(const Duration(milliseconds: 3500), () {
       if (mounted) {
-        logger.info("Navigating from SplashScreen to Dashboard", context: 'SplashScreen');
-        Provider.of<SettingsController>(context, listen: false).setAppLoaded(); // Enable lock screen
+        logger.info("Navigating from SplashScreen to Dashboard",
+            context: 'SplashScreen');
+        Provider.of<SettingsController>(context, listen: false)
+            .setAppLoaded(); // Enable lock screen
         Navigator.of(context).pushReplacement(FadeScalePageRoute(
           page: const DashboardScreen(),
         ));
@@ -375,7 +393,8 @@ class DashboardScreen extends StatelessWidget {
 
         // Debug: Print visible widgets count
         if (kDebugMode) {
-          print('Dashboard: ${visibleWidgets.length} visible widgets out of ${dashboardController.config.widgets.length} total');
+          print(
+              'Dashboard: ${visibleWidgets.length} visible widgets out of ${dashboardController.config.widgets.length} total');
           for (var w in dashboardController.config.widgets) {
             print('  - ${w.id}: visible=${w.isVisible}');
           }
@@ -406,7 +425,8 @@ class DashboardScreen extends StatelessWidget {
                 // Manage button
                 BouncyButton(
                   onPressed: () {
-                    Navigator.of(context).push(FadeScalePageRoute(page: const ManageScreen()));
+                    Navigator.of(context)
+                        .push(FadeScalePageRoute(page: const ManageScreen()));
                   },
                   child: Icon(
                     CupertinoIcons.square_grid_2x2,
@@ -418,7 +438,8 @@ class DashboardScreen extends StatelessWidget {
                 // Settings button
                 BouncyButton(
                   onPressed: () {
-                    Navigator.of(context).push(FadeScalePageRoute(page: const SettingsScreen()));
+                    Navigator.of(context)
+                        .push(FadeScalePageRoute(page: const SettingsScreen()));
                   },
                   child: Icon(
                     CupertinoIcons.settings,
@@ -428,56 +449,102 @@ class DashboardScreen extends StatelessWidget {
                 ),
               ],
             ),
-            backgroundColor: isDark ? const Color(0xFF1C1C1E) : CupertinoColors.systemGroupedBackground,
+            backgroundColor: isDark
+                ? const Color(0xFF1C1C1E)
+                : CupertinoColors.systemGroupedBackground,
             border: null,
           ),
           child: SafeArea(
             child: Container(
-              color: isDark ? Colors.black : CupertinoColors.systemGroupedBackground,
-              child: visibleWidgets.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            CupertinoIcons.square_grid_2x2,
-                            size: 80,
-                            color: isDark
-                                ? CupertinoColors.systemGrey
-                                : CupertinoColors.systemGrey,
+              color: isDark
+                  ? Colors.black
+                  : CupertinoColors.systemGroupedBackground,
+              child: Stack(
+                children: [
+                  visibleWidgets.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                CupertinoIcons.square_grid_2x2,
+                                size: 80,
+                                color: isDark
+                                    ? CupertinoColors.systemGrey
+                                    : CupertinoColors.systemGrey,
+                              ),
+                              SizedBox(height: Spacing.lg),
+                              Text(
+                                'No widgets enabled',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark
+                                      ? Colors.white
+                                      : CupertinoColors.label,
+                                ),
+                              ),
+                              SizedBox(height: Spacing.sm),
+                              Text(
+                                'All dashboard widgets are hidden',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color:
+                                      AppStyles.getSecondaryTextColor(context),
+                                ),
+                              ),
+                              SizedBox(height: Spacing.xl),
+                              CupertinoButton.filled(
+                                onPressed: () async {
+                                  if (kDebugMode)
+                                    print('Resetting dashboard to default');
+                                  await dashboardController.resetToDefault();
+                                  if (context.mounted) {
+                                    toast.showSuccess(
+                                        'Dashboard reset to default');
+                                  }
+                                },
+                                child: const Text('Reset to Default'),
+                              ),
+                            ],
                           ),
-                          SizedBox(height: Spacing.lg),
-                          Text(
-                            'No widgets enabled',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              color: isDark ? Colors.white : CupertinoColors.label,
+                        )
+                      : _buildDashboardGrid(
+                          context, dashboardController, visibleWidgets),
+                  Positioned(
+                    bottom: Spacing.lg,
+                    right: Spacing.lg,
+                    child: BouncyButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          CupertinoPageRoute(
+                              builder: (context) => const TransactionWizard()),
+                        );
+                      },
+                      child: Container(
+                        width: 56,
+                        height: 56,
+                        decoration: BoxDecoration(
+                          color: AppStyles.getPrimaryColor(context),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppStyles.getPrimaryColor(context)
+                                  .withOpacity(0.3),
+                              blurRadius: 12,
+                              offset: const Offset(0, 6),
                             ),
-                          ),
-                          SizedBox(height: Spacing.sm),
-                          Text(
-                            'All dashboard widgets are hidden',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: AppStyles.getSecondaryTextColor(context),
-                            ),
-                          ),
-                          SizedBox(height: Spacing.xl),
-                          CupertinoButton.filled(
-                            onPressed: () async {
-                              if (kDebugMode) print('Resetting dashboard to default');
-                              await dashboardController.resetToDefault();
-                              if (context.mounted) {
-                                toast.showSuccess('Dashboard reset to default');
-                              }
-                            },
-                            child: const Text('Reset to Default'),
-                          ),
-                        ],
+                          ],
+                        ),
+                        child: const Icon(
+                          CupertinoIcons.add,
+                          color: Colors.white,
+                        ),
                       ),
-                    )
-                  : _buildDashboardGrid(context, dashboardController, visibleWidgets),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -516,18 +583,14 @@ class DashboardScreen extends StatelessWidget {
               }
               controller.saveConfig();
             },
-            children: visibleWidgets
-                .asMap()
-                .entries
-                .map((entry) {
+            children: visibleWidgets.asMap().entries.map((entry) {
               final widget = entry.value;
               return Container(
                 key: Key(widget.id),
                 margin: EdgeInsets.only(bottom: Spacing.md),
                 child: _buildDashboardWidgetCard(context, widget),
               );
-            })
-                .toList(),
+            }).toList(),
           ),
         ),
       ],
@@ -675,7 +738,8 @@ class DashboardScreen extends StatelessWidget {
           final metadata = inv.metadata;
           if (metadata == null || !metadata.containsKey('maturityDate'))
             return false;
-          final maturityDate = DateTime.parse(metadata['maturityDate'] as String);
+          final maturityDate =
+              DateTime.parse(metadata['maturityDate'] as String);
           final daysUntil = maturityDate.difference(DateTime.now()).inDays;
           return daysUntil <= 10 && daysUntil >= 0;
         }).toList();
@@ -685,7 +749,8 @@ class DashboardScreen extends StatelessWidget {
           final metadata = inv.metadata;
           if (metadata == null || !metadata.containsKey('maturityDate'))
             return false;
-          final maturityDate = DateTime.parse(metadata['maturityDate'] as String);
+          final maturityDate =
+              DateTime.parse(metadata['maturityDate'] as String);
           final daysUntil = maturityDate.difference(DateTime.now()).inDays;
           return daysUntil < 0;
         }).toList();
@@ -799,13 +864,17 @@ class DashboardScreen extends StatelessWidget {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    _buildQuickActionPill(context, 'Goals', CupertinoIcons.checkmark_circle, Colors.blue),
+                    _buildQuickActionPill(context, 'Goals',
+                        CupertinoIcons.checkmark_circle, Colors.blue),
                     SizedBox(width: Spacing.md),
-                    _buildQuickActionPill(context, 'Budgets', CupertinoIcons.chart_pie, Colors.purple),
+                    _buildQuickActionPill(context, 'Budgets',
+                        CupertinoIcons.chart_pie, Colors.purple),
                     SizedBox(width: Spacing.md),
-                    _buildQuickActionPill(context, 'Savings', CupertinoIcons.heart, Colors.green),
+                    _buildQuickActionPill(
+                        context, 'Savings', CupertinoIcons.heart, Colors.green),
                     SizedBox(width: Spacing.md),
-                    _buildQuickActionPill(context, 'AI Plan', CupertinoIcons.lightbulb, Colors.orange),
+                    _buildQuickActionPill(context, 'AI Plan',
+                        CupertinoIcons.lightbulb, Colors.orange),
                   ],
                 ),
               ),
@@ -829,7 +898,8 @@ class DashboardScreen extends StatelessWidget {
         _handleQuickActionTap(context, label);
       },
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
+        padding:
+            EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
@@ -925,13 +995,21 @@ class DashboardScreen extends StatelessWidget {
       'Nov',
       'Dec'
     ];
-    final days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    final days = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday'
+    ];
 
     return '${days[date.weekday - 1]}, ${date.day} ${months[date.month - 1]} ${date.year}';
   }
 
-
-  Widget _buildWidgetPreview(BuildContext context, DashboardWidgetConfig widgetConfig) {
+  Widget _buildWidgetPreview(
+      BuildContext context, DashboardWidgetConfig widgetConfig) {
     switch (widgetConfig.type) {
       case DashboardWidgetType.netWorth:
         return Consumer2<AccountsController, InvestmentsController>(
@@ -939,7 +1017,8 @@ class DashboardScreen extends StatelessWidget {
             // Calculate Savings (non-credit accounts)
             double totalSavings = 0;
             for (var account in accountsController.accounts) {
-              if (account.type != AccountType.credit && account.type != AccountType.payLater) {
+              if (account.type != AccountType.credit &&
+                  account.type != AccountType.payLater) {
                 totalSavings += account.balance;
               }
             }
@@ -948,7 +1027,8 @@ class DashboardScreen extends StatelessWidget {
             double totalInvestments = 0;
             for (var investment in investmentsController.investments) {
               final metadata = investment.metadata ?? {};
-              final currentValue = (metadata['currentValue'] as num?)?.toDouble();
+              final currentValue =
+                  (metadata['currentValue'] as num?)?.toDouble();
               totalInvestments += currentValue ?? investment.amount;
             }
 
@@ -956,7 +1036,8 @@ class DashboardScreen extends StatelessWidget {
             double totalCreditLimit = 0;
             double totalCreditUsed = 0;
             for (var account in accountsController.accounts) {
-              if (account.type == AccountType.credit || account.type == AccountType.payLater) {
+              if (account.type == AccountType.credit ||
+                  account.type == AccountType.payLater) {
                 totalCreditLimit += (account.creditLimit ?? 0.0);
                 final used = (account.creditLimit ?? 0.0) - account.balance;
                 totalCreditUsed += used;
@@ -964,11 +1045,13 @@ class DashboardScreen extends StatelessWidget {
             }
 
             // Net Worth = Savings + Investments - Credit Used
-            final totalNetWorth = totalSavings + totalInvestments - totalCreditUsed;
+            final totalNetWorth =
+                totalSavings + totalInvestments - totalCreditUsed;
 
             // Determine color based on positive/negative
             final isPositive = totalNetWorth >= 0;
-            final displayColor = isPositive ? AppStyles.getPrimaryColor(context) : Colors.red;
+            final displayColor =
+                isPositive ? AppStyles.getPrimaryColor(context) : Colors.red;
 
             return Column(
               mainAxisSize: MainAxisSize.min,
@@ -1012,7 +1095,8 @@ class DashboardScreen extends StatelessWidget {
                       ),
                       SizedBox(height: 6),
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
                           color: displayColor.withOpacity(0.08),
                           borderRadius: BorderRadius.circular(8),
@@ -1027,7 +1111,8 @@ class DashboardScreen extends StatelessWidget {
                                   'Savings',
                                   style: TextStyle(
                                     fontSize: 11,
-                                    color: AppStyles.getSecondaryTextColor(context),
+                                    color: AppStyles.getSecondaryTextColor(
+                                        context),
                                   ),
                                 ),
                                 Text(
@@ -1043,13 +1128,15 @@ class DashboardScreen extends StatelessWidget {
                             if (totalInvestments > 0) ...[
                               SizedBox(height: 3),
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     'Investments',
                                     style: TextStyle(
                                       fontSize: 11,
-                                      color: AppStyles.getSecondaryTextColor(context),
+                                      color: AppStyles.getSecondaryTextColor(
+                                          context),
                                     ),
                                   ),
                                   Text(
@@ -1066,13 +1153,15 @@ class DashboardScreen extends StatelessWidget {
                             if (totalCreditUsed > 0) ...[
                               SizedBox(height: 3),
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     'Credit Used',
                                     style: TextStyle(
                                       fontSize: 11,
-                                      color: AppStyles.getSecondaryTextColor(context),
+                                      color: AppStyles.getSecondaryTextColor(
+                                          context),
                                     ),
                                   ),
                                   Text(
@@ -1134,7 +1223,8 @@ class DashboardScreen extends StatelessWidget {
                 LinearProgressIndicator(
                   value: progress,
                   minHeight: 6,
-                  backgroundColor: AppStyles.getBackground(context).withOpacity(0.5),
+                  backgroundColor:
+                      AppStyles.getBackground(context).withOpacity(0.5),
                   valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
                 ),
                 SizedBox(height: Spacing.sm),
@@ -1163,7 +1253,8 @@ class DashboardScreen extends StatelessWidget {
           builder: (context, budgetsController, child) {
             final activeCount = budgetsController.activeBudgets.length;
             final warningCount = budgetsController.getBudgetsInWarning().length;
-            final exceededCount = budgetsController.getBudgetsExceedingLimit().length;
+            final exceededCount =
+                budgetsController.getBudgetsExceedingLimit().length;
 
             return Column(
               mainAxisSize: MainAxisSize.min,
@@ -1179,8 +1270,9 @@ class DashboardScreen extends StatelessWidget {
                 ),
                 SizedBox(height: Spacing.md),
                 Row(
-                children: [
-                    _buildBadge(context, 'Warning', warningCount, Colors.orange),
+                  children: [
+                    _buildBadge(
+                        context, 'Warning', warningCount, Colors.orange),
                     SizedBox(width: Spacing.sm),
                     _buildBadge(context, 'Exceeded', exceededCount, Colors.red),
                   ],
@@ -1214,7 +1306,8 @@ class DashboardScreen extends StatelessWidget {
                 LinearProgressIndicator(
                   value: ratio,
                   minHeight: 6,
-                  backgroundColor: AppStyles.getBackground(context).withOpacity(0.5),
+                  backgroundColor:
+                      AppStyles.getBackground(context).withOpacity(0.5),
                   valueColor: const AlwaysStoppedAnimation<Color>(Colors.green),
                 ),
                 SizedBox(height: Spacing.sm),
@@ -1242,8 +1335,10 @@ class DashboardScreen extends StatelessWidget {
         return Consumer2<GoalsController, BudgetsController>(
           builder: (context, goalsController, budgetsController, child) {
             final progress = goalsController.overallProgress;
-            final recommendedSavings = goalsController.totalRecommendedMonthlySavings;
-            final budgetWarnings = budgetsController.getBudgetsInWarning().length;
+            final recommendedSavings =
+                goalsController.totalRecommendedMonthlySavings;
+            final budgetWarnings =
+                budgetsController.getBudgetsInWarning().length;
 
             return Column(
               mainAxisSize: MainAxisSize.min,
@@ -1260,7 +1355,8 @@ class DashboardScreen extends StatelessWidget {
                 SizedBox(height: Spacing.md),
                 Row(
                   children: [
-                    Icon(CupertinoIcons.lightbulb, size: 16, color: Colors.purple),
+                    Icon(CupertinoIcons.lightbulb,
+                        size: 16, color: Colors.purple),
                     SizedBox(width: Spacing.sm),
                     Text(
                       '${progress.toStringAsFixed(0)}% Financial Health',
@@ -1295,7 +1391,8 @@ class DashboardScreen extends StatelessWidget {
       case DashboardWidgetType.transactionHistory:
         return Consumer<TransactionsController>(
           builder: (context, transactionController, child) {
-            final transactions = transactionController.transactions.take(3).toList();
+            final transactions =
+                transactionController.transactions.take(3).toList();
 
             if (transactions.isEmpty) {
               return Center(
@@ -1322,91 +1419,91 @@ class DashboardScreen extends StatelessWidget {
 
             return Column(
               mainAxisSize: MainAxisSize.min,
-              children: transactions
-                  .asMap()
-                  .entries
-                  .map((entry) {
-                    final isLast = entry.key == transactions.length - 1;
-                    final tx = entry.value;
-                    final amount = tx.amount ?? 0;
-                    final isExpense = amount < 0;
+              children: transactions.asMap().entries.map((entry) {
+                final isLast = entry.key == transactions.length - 1;
+                final tx = entry.value;
+                final amount = tx.amount ?? 0;
+                final isExpense = amount < 0;
 
-                    return Column(
+                return Column(
+                  children: [
+                    Row(
                       children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: (isExpense ? Colors.red : Colors.green)
-                                    .withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Icon(
-                                isExpense
-                                    ? CupertinoIcons.arrow_up
-                                    : CupertinoIcons.arrow_down,
-                                size: 18,
-                                color: isExpense ? Colors.red : Colors.green,
-                              ),
-                            ),
-                            SizedBox(width: Spacing.md),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    tx.description ?? 'Transaction',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppStyles.getTextColor(context),
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  Text(
-                                    'Just now',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: AppStyles.getSecondaryTextColor(context),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Text(
-                              '${isExpense ? '-' : '+'}₹${amount.abs().toStringAsFixed(0)}',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: isExpense ? Colors.red : Colors.green,
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (!isLast)
-                          Padding(
-                            padding: EdgeInsets.symmetric(vertical: Spacing.md),
-                            child: Divider(height: 1),
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: (isExpense ? Colors.red : Colors.green)
+                                .withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(8),
                           ),
+                          child: Icon(
+                            isExpense
+                                ? CupertinoIcons.arrow_up
+                                : CupertinoIcons.arrow_down,
+                            size: 18,
+                            color: isExpense ? Colors.red : Colors.green,
+                          ),
+                        ),
+                        SizedBox(width: Spacing.md),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                tx.description ?? 'Transaction',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppStyles.getTextColor(context),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                'Just now',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color:
+                                      AppStyles.getSecondaryTextColor(context),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Text(
+                          '${isExpense ? '-' : '+'}₹${amount.abs().toStringAsFixed(0)}',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: isExpense ? Colors.red : Colors.green,
+                          ),
+                        ),
                       ],
-                    );
-                  })
-                  .toList(),
+                    ),
+                    if (!isLast)
+                      Padding(
+                        padding: EdgeInsets.symmetric(vertical: Spacing.md),
+                        child: Divider(height: 1),
+                      ),
+                  ],
+                );
+              }).toList(),
             );
           },
         );
       case DashboardWidgetType.notificationsAndActions:
         return Consumer<InvestmentsController>(
           builder: (context, investmentsController, child) {
-            final fdsNearMaturity = investmentsController.investments.where((inv) {
+            final fdsNearMaturity =
+                investmentsController.investments.where((inv) {
               if (inv.type.name != 'fixedDeposit') return false;
               final metadata = inv.metadata;
-              if (metadata == null || !metadata.containsKey('maturityDate')) return false;
-              final maturityDate = DateTime.parse(metadata['maturityDate'] as String);
+              if (metadata == null || !metadata.containsKey('maturityDate'))
+                return false;
+              final maturityDate =
+                  DateTime.parse(metadata['maturityDate'] as String);
               final daysUntil = maturityDate.difference(DateTime.now()).inDays;
               return daysUntil <= 10 && daysUntil >= 0;
             }).toList();
@@ -1414,13 +1511,18 @@ class DashboardScreen extends StatelessWidget {
             final fdsMatured = investmentsController.investments.where((inv) {
               if (inv.type.name != 'fixedDeposit') return false;
               final metadata = inv.metadata;
-              if (metadata == null || !metadata.containsKey('maturityDate')) return false;
-              final maturityDate = DateTime.parse(metadata['maturityDate'] as String);
+              if (metadata == null || !metadata.containsKey('maturityDate'))
+                return false;
+              final maturityDate =
+                  DateTime.parse(metadata['maturityDate'] as String);
               final daysUntil = maturityDate.difference(DateTime.now()).inDays;
               return daysUntil < 0;
             }).toList();
 
-            final totalNotifications = fdsNearMaturity.length + fdsMatured.length;
+            final sipNotifications =
+                collectSipNotifications(investmentsController.investments);
+            final bondNotifications = collectBondPayoutNotifications(
+                investmentsController.investments);
 
             return Column(
               mainAxisSize: MainAxisSize.min,
@@ -1511,6 +1613,17 @@ class DashboardScreen extends StatelessWidget {
                       ],
                     ),
                   ),
+                if ((fdsMatured.isNotEmpty || fdsNearMaturity.isNotEmpty) &&
+                    sipNotifications.isNotEmpty)
+                  SizedBox(height: Spacing.md),
+                if (sipNotifications.isNotEmpty)
+                  ...sipNotifications.map((entry) =>
+                      _buildDashboardSipNotification(context, entry)),
+                if (sipNotifications.isNotEmpty && bondNotifications.isNotEmpty)
+                  SizedBox(height: Spacing.md),
+                if (bondNotifications.isNotEmpty)
+                  ...bondNotifications.map((entry) =>
+                      _buildDashboardBondNotification(context, entry)),
               ],
             );
           },
@@ -1572,7 +1685,8 @@ class DashboardScreen extends StatelessWidget {
     Color color,
   ) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: Spacing.sm, vertical: Spacing.xs),
+      padding:
+          EdgeInsets.symmetric(horizontal: Spacing.sm, vertical: Spacing.xs),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
@@ -1653,7 +1767,8 @@ class DashboardScreen extends StatelessWidget {
                       '$count item${count != 1 ? 's' : ''}',
                       style: TextStyle(
                         fontSize: 10,
-                        color: AppStyles.getSecondaryTextColor(context).withOpacity(0.7),
+                        color: AppStyles.getSecondaryTextColor(context)
+                            .withOpacity(0.7),
                       ),
                     ),
                   ],
@@ -1698,11 +1813,13 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  void _handleWidgetTap(BuildContext context, DashboardWidgetConfig widgetConfig) {
+  void _handleWidgetTap(
+      BuildContext context, DashboardWidgetConfig widgetConfig) {
     switch (widgetConfig.type) {
       case DashboardWidgetType.transactionHistory:
         Navigator.of(context).push(
-          CupertinoPageRoute(builder: (context) => const TransactionHistoryScreen()),
+          CupertinoPageRoute(
+              builder: (context) => const TransactionHistoryScreen()),
         );
         break;
       case DashboardWidgetType.netWorth:
@@ -1722,12 +1839,14 @@ class DashboardScreen extends StatelessWidget {
         break;
       case DashboardWidgetType.savingsPlanners:
         Navigator.of(context).push(
-          CupertinoPageRoute(builder: (context) => const SavingsPlannersScreen()),
+          CupertinoPageRoute(
+              builder: (context) => const SavingsPlannersScreen()),
         );
         break;
       case DashboardWidgetType.aiPlanner:
         Navigator.of(context).push(
-          CupertinoPageRoute(builder: (context) => const AIMonthlyPlannerScreen()),
+          CupertinoPageRoute(
+              builder: (context) => const AIMonthlyPlannerScreen()),
         );
         break;
       case DashboardWidgetType.notificationsAndActions:
@@ -1740,10 +1859,231 @@ class DashboardScreen extends StatelessWidget {
     }
   }
 
+  Widget _buildDashboardSipNotification(
+      BuildContext context, SipNotificationInfo entry) {
+    final amountText =
+        entry.amount > 0 ? '₹${entry.amount.toStringAsFixed(2)}' : '₹—';
+    final timeInfo = entry.daysUntil == 0
+        ? 'Due today'
+        : 'In ${entry.daysUntil} day${entry.daysUntil > 1 ? 's' : ''}';
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: NotificationWidget(
+        type: NotificationType.stockSip,
+        title: entry.investment.name,
+        subtitle: entry.frequencyLabel,
+        amount: amountText,
+        timeInfo: timeInfo,
+        badgeColor: Colors.blue,
+        icon: CupertinoIcons.repeat,
+        statusWidget: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: AppStyles.getCardColor(context),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            'Due on ${_formatDashboardDate(entry.dueDate)}',
+            style: TextStyle(
+              color: AppStyles.getSecondaryTextColor(context),
+              fontSize: 12,
+            ),
+          ),
+        ),
+        actionButtons: [
+          Expanded(
+            child: CupertinoButton(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              color: Colors.blue,
+              onPressed: () =>
+                  _openInvestmentDetails(context, entry.investment),
+              child: const Text(
+                'Edit SIP',
+                style: TextStyle(color: Colors.white, fontSize: 12),
+              ),
+            ),
+          ),
+          const SizedBox(width: Spacing.sm),
+          Expanded(
+            child: CupertinoButton(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              color: Colors.grey,
+              onPressed: () =>
+                  _skipSip(context, entry.investment, entry.dueDate),
+              child: const Text(
+                'Skip SIP',
+                style: TextStyle(color: Colors.white, fontSize: 12),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDashboardBondNotification(
+    BuildContext context,
+    BondPayoutNotificationInfo entry,
+  ) {
+    final timeInfo = entry.daysUntil == 0
+        ? 'Due today'
+        : 'In ${entry.daysUntil} day${entry.daysUntil > 1 ? 's' : ''}';
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: NotificationWidget(
+        type: NotificationType.bondPayout,
+        title: entry.investment.name,
+        subtitle: 'Payout #${entry.schedule.payoutNumber}',
+        amount: '₹—',
+        timeInfo: timeInfo,
+        badgeColor: Colors.teal,
+        icon: CupertinoIcons.money_dollar,
+        statusWidget: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: AppStyles.getCardColor(context),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            'Due on ${_formatDashboardDate(entry.schedule.payoutDate)}',
+            style: TextStyle(
+              color: AppStyles.getSecondaryTextColor(context),
+              fontSize: 12,
+            ),
+          ),
+        ),
+        actionButtons: [
+          Expanded(
+            child: CupertinoButton(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              color: Colors.blue,
+              onPressed: () => _showBondPayoutModal(context, entry),
+              child: const Text(
+                'Edit Payout',
+                style: TextStyle(color: Colors.white, fontSize: 12),
+              ),
+            ),
+          ),
+          const SizedBox(width: Spacing.sm),
+          Expanded(
+            child: CupertinoButton(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              color: Colors.grey,
+              onPressed: () => _skipBondPayout(context, entry),
+              child: const Text(
+                'Skip Payout',
+                style: TextStyle(color: Colors.white, fontSize: 12),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openInvestmentDetails(BuildContext context, Investment investment) {
+    Widget? destination;
+    switch (investment.type) {
+      case InvestmentType.stocks:
+        destination = StockDetailsScreen(investment: investment);
+        break;
+      case InvestmentType.mutualFund:
+        destination = MFDetailsScreen(investment: investment);
+        break;
+      case InvestmentType.bonds:
+        destination = BondsDetailsScreen(investment: investment);
+        break;
+      default:
+        destination = null;
+    }
+    final route = destination;
+    if (route == null) return;
+    Navigator.of(context).push(
+      CupertinoPageRoute(builder: (_) => route),
+    );
+  }
+
+  Future<void> _skipSip(
+    BuildContext context,
+    Investment investment,
+    DateTime nextDue,
+  ) async {
+    final controller =
+        Provider.of<InvestmentsController>(context, listen: false);
+    final updatedMetadata =
+        markSipAsExecuted(investment.metadata ?? {}, nextDue);
+    final updatedInvestment = investment.copyWith(metadata: updatedMetadata);
+    await controller.updateInvestment(updatedInvestment);
+    if (context.mounted) {
+      toast.showInfo('Skipped next SIP for ${investment.name}');
+    }
+  }
+
+  Future<void> _skipBondPayout(
+    BuildContext context,
+    BondPayoutNotificationInfo entry,
+  ) async {
+    final controller =
+        Provider.of<InvestmentsController>(context, listen: false);
+    final metadata = Map<String, dynamic>.from(entry.investment.metadata ?? {});
+    final skipped = (metadata['skippedPayouts'] as List?)?.cast<int>() ?? [];
+    if (!skipped.contains(entry.schedule.payoutNumber)) {
+      skipped.add(entry.schedule.payoutNumber);
+      metadata['skippedPayouts'] = skipped;
+      final updatedInvestment = entry.investment.copyWith(metadata: metadata);
+      await controller.updateInvestment(updatedInvestment);
+      if (context.mounted) {
+        toast.showInfo(
+            'Skipped payout #${entry.schedule.payoutNumber} for ${entry.investment.name}');
+      }
+    }
+  }
+
+  void _showBondPayoutModal(
+      BuildContext context, BondPayoutNotificationInfo entry) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (ctx) => BondPayoutModal(
+        bond: entry.investment,
+        notification: entry,
+      ),
+    );
+  }
+
+  String _formatDashboardDate(DateTime date) {
+    final months = [
+      '',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final targetDay = DateTime(date.year, date.month, date.day);
+
+    if (targetDay == today) {
+      return 'Today';
+    } else if (targetDay == today.add(const Duration(days: 1))) {
+      return 'Tomorrow';
+    }
+    return '${date.day} ${months[date.month]}';
+  }
 }
 
 extension on List<DashboardWidgetConfig> {
-  DashboardWidgetConfig? firstWhereOrNull(bool Function(DashboardWidgetConfig) test) {
+  DashboardWidgetConfig? firstWhereOrNull(
+      bool Function(DashboardWidgetConfig) test) {
     try {
       return firstWhere(test);
     } catch (e) {

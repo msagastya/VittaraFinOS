@@ -4,11 +4,12 @@ import 'package:vittara_fin_os/logic/fixed_deposit_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 
 enum NotificationType {
-  fdPayout,        // Fixed Deposit payout
-  rdInstallment,   // Recurring Deposit installment
-  fdAutoRenew,     // FD auto-renew
-  rdAutoPayment,   // RD auto-payment
-  stockSip,        // Stock SIP
+  fdPayout, // Fixed Deposit payout
+  rdInstallment, // Recurring Deposit installment
+  fdAutoRenew, // FD auto-renew
+  rdAutoPayment, // RD auto-payment
+  stockSip, // Stock SIP
+  bondPayout, // Bond payout reminder
 }
 
 class NotificationWidget extends StatelessWidget {
@@ -46,7 +47,8 @@ class NotificationWidget extends StatelessWidget {
       type: NotificationType.fdPayout,
       title: fd.name,
       subtitle: 'Payout on ${_formatDate(record.payoutDate)}',
-      amount: '₹${(record.interestAmount + record.principalAmount).toStringAsFixed(2)}',
+      amount:
+          '₹${(record.interestAmount + record.principalAmount).toStringAsFixed(2)}',
       timeInfo: 'In $daysUntil day${daysUntil > 1 ? 's' : ''}',
       badgeColor: daysUntil <= 3 ? Colors.red : Colors.orange,
       icon: CupertinoIcons.bell_fill,
@@ -271,7 +273,8 @@ class NotificationWidget extends StatelessWidget {
     );
   }
 
-  static Widget _buildRDInstallmentInfo(BuildContext context, String accountName) {
+  static Widget _buildRDInstallmentInfo(
+      BuildContext context, String accountName) {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
@@ -312,6 +315,8 @@ class NotificationWidget extends StatelessWidget {
         return 'RD Auto-Payment';
       case NotificationType.stockSip:
         return 'Stock SIP';
+      case NotificationType.bondPayout:
+        return 'Bond Payout';
     }
   }
 
@@ -327,6 +332,8 @@ class NotificationWidget extends StatelessWidget {
         return 'Payment Amount';
       case NotificationType.stockSip:
         return 'SIP Amount';
+      case NotificationType.bondPayout:
+        return 'Payout Amount';
     }
   }
 

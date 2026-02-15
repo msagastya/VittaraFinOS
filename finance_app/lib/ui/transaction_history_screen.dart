@@ -1,12 +1,15 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:vittara_fin_os/logic/transactions_archive_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
+import 'package:vittara_fin_os/ui/widgets/transaction_details_content.dart';
+import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
 import 'package:vittara_fin_os/utils/logger.dart';
 
 class TransactionHistoryScreen extends StatefulWidget {
@@ -31,6 +34,10 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         return CupertinoColors.systemPurple;
       case TransactionType.investment:
         return CupertinoColors.systemRed;
+      case TransactionType.expense:
+        return CupertinoColors.systemRed;
+      case TransactionType.income:
+        return CupertinoColors.systemGreen;
     }
   }
 
@@ -46,6 +53,10 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         return CupertinoIcons.arrow_down_circle_fill;
       case TransactionType.investment:
         return CupertinoIcons.chart_bar_square_fill;
+      case TransactionType.expense:
+        return CupertinoIcons.arrow_down_circle_fill;
+      case TransactionType.income:
+        return CupertinoIcons.arrow_up_circle_fill;
     }
   }
 
@@ -207,6 +218,9 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     Transaction transaction,
     TransactionsController controller,
   ) {
+    final archiveController =
+        Provider.of<TransactionsArchiveController>(context, listen: false);
+
     showCupertinoModalPopup(
       context: context,
       builder: (modalContext) {
@@ -235,148 +249,18 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                         borderRadius: BorderRadius.circular(2.5),
                       ),
                     ),
-                    const SizedBox(height: 20),
-
-                    // Header with icon and type
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: _getTransactionTypeColor(transaction.type).withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Icon(
-                              _getTransactionTypeIcon(transaction.type),
-                              color: _getTransactionTypeColor(transaction.type),
-                              size: 32,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            transaction.getTypeLabel(),
-                            style: AppStyles.titleStyle(dragContext).copyWith(fontSize: 20),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _formatDate(transaction.dateTime),
-                            style: TextStyle(
-                              color: AppStyles.getSecondaryTextColor(dragContext),
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 32),
-
-                    // Amount display
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Amount',
-                            style: TextStyle(
-                              color: AppStyles.getSecondaryTextColor(dragContext),
-                              fontSize: 12,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '₹${transaction.amount.toStringAsFixed(2)}',
-                            style: AppStyles.titleStyle(dragContext).copyWith(
-                              fontSize: 28,
-                              color: _getTransactionTypeColor(transaction.type),
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 32),
-
-                    // Transaction details based on type
-                    if (transaction.type == TransactionType.transfer) ...[
-                      _buildDetailRow(dragContext, 'From Account', transaction.sourceAccountName ?? 'Unknown'),
-                      _buildDetailRow(dragContext, 'To Account', transaction.destinationAccountName ?? 'Unknown'),
-                      _buildDetailRow(dragContext, 'Description', transaction.description),
-                      if (transaction.paymentAppName != null)
-                        _buildDetailRow(dragContext, 'Payment App', transaction.paymentAppName!),
-                      if (transaction.appWalletAmount != null && transaction.appWalletAmount! > 0)
-                        _buildDetailRow(
-                          dragContext,
-                          'Amount from App Wallet',
-                          '₹${transaction.appWalletAmount!.toStringAsFixed(2)}',
+                    TransactionDetailsContent(
+                      transaction: transaction,
+                      actionButtons: [
+                        _buildDeleteAction(
+                          context,
+                          modalContext,
+                          transaction,
+                          controller,
+                          archiveController,
                         ),
-                      if (transaction.charges != null && transaction.charges! > 0)
-                        _buildDetailRow(
-                          dragContext,
-                          'Extra Charges',
-                          '₹${transaction.charges!.toStringAsFixed(2)}',
-                          isNegative: true,
-                        ),
-                      if (transaction.cashbackAmount != null && transaction.cashbackAmount! > 0) ...[
-                        _buildDetailRow(
-                          dragContext,
-                          'Cashback Amount',
-                          '₹${transaction.cashbackAmount!.toStringAsFixed(2)}',
-                          isPositive: true,
-                        ),
-                        _buildDetailRow(dragContext, 'Cashback to', transaction.cashbackAccountName ?? 'Unknown'),
                       ],
-                    ] else if (transaction.type == TransactionType.cashback) ...[
-                      _buildDetailRow(dragContext, 'From', transaction.description),
-                      _buildDetailRow(dragContext, 'To Account', transaction.cashbackAccountName ?? 'Unknown'),
-                    ],
-
-                    const SizedBox(height: 32),
-
-                    // Delete button
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: BouncyButton(
-                        onPressed: () {
-                          Navigator.pop(modalContext);
-                          _showDeleteConfirmation(context, transaction, controller);
-                        },
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: BoxDecoration(
-                            color: CupertinoColors.systemRed.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                CupertinoIcons.trash,
-                                size: 16,
-                                color: CupertinoColors.systemRed,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                'Delete Transaction',
-                                style: TextStyle(
-                                  color: CupertinoColors.systemRed,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
                     ),
-
-                    const SizedBox(height: 20),
                   ],
                 ),
               ),
@@ -384,6 +268,48 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           },
         );
       },
+    );
+  }
+
+  Widget _buildDeleteAction(
+    BuildContext context,
+    BuildContext modalContext,
+    Transaction transaction,
+    TransactionsController controller,
+    TransactionsArchiveController archiveController,
+  ) {
+    return BouncyButton(
+      onPressed: () {
+        Navigator.pop(modalContext);
+        _showDeleteConfirmation(context, transaction, controller, archiveController);
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: CupertinoColors.systemRed.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              CupertinoIcons.trash,
+              size: 16,
+              color: CupertinoColors.systemRed,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              'Delete Transaction',
+              style: TextStyle(
+                color: CupertinoColors.systemRed,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -427,13 +353,14 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     BuildContext context,
     Transaction transaction,
     TransactionsController controller,
+    TransactionsArchiveController archiveController,
   ) {
     showCupertinoDialog(
       context: context,
       builder: (dialogContext) {
         return CupertinoAlertDialog(
           title: const Text('Delete Transaction'),
-          content: const Text('Are you sure you want to delete this transaction? This action cannot be undone.'),
+          content: const Text('This will move the transaction to Archived. Continue?'),
           actions: [
             CupertinoDialogAction(
               child: const Text('Cancel'),
@@ -441,17 +368,27 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
             ),
             CupertinoDialogAction(
               isDestructiveAction: true,
-              child: const Text('Delete'),
-              onPressed: () {
+              child: const Text('Archive'),
+              onPressed: () async {
                 Haptics.delete();
-                controller.removeTransaction(transaction.id);
+                await _archiveTransaction(transaction, controller, archiveController);
                 Navigator.pop(dialogContext);
-                logger.info('Deleted transaction: ${transaction.id}', context: 'TransactionHistory');
               },
             ),
           ],
         );
       },
     );
+  }
+
+  Future<void> _archiveTransaction(
+    Transaction transaction,
+    TransactionsController controller,
+    TransactionsArchiveController archiveController,
+  ) async {
+    await archiveController.addToArchive(transaction);
+    await controller.removeTransaction(transaction.id);
+    toast_lib.toast.showSuccess('Transaction archived');
+    logger.info('Archived transaction: ${transaction.id}', context: 'TransactionHistory');
   }
 }

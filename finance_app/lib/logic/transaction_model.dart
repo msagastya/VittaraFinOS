@@ -1,4 +1,12 @@
-enum TransactionType { transfer, cashback, lending, borrowing, investment }
+enum TransactionType {
+  transfer,
+  cashback,
+  lending,
+  borrowing,
+  investment,
+  expense,
+  income,
+}
 
 class Transaction {
   final String id;
@@ -97,13 +105,22 @@ class Transaction {
         return 'Borrowing';
       case TransactionType.investment:
         return 'Investment';
+      case TransactionType.expense:
+        return 'Expense';
+      case TransactionType.income:
+        return 'Income';
     }
   }
 
   String getSummary() {
     switch (type) {
       case TransactionType.transfer:
-        return '$sourceAccountName → $destinationAccountName';
+        final base = '$sourceAccountName → $destinationAccountName';
+        final walletUsed = appWalletAmount ?? 0.0;
+        if (walletUsed > 0) {
+          return '$base (Wallet ₹${walletUsed.toStringAsFixed(2)})';
+        }
+        return base;
       case TransactionType.cashback:
         return 'Cashback to $cashbackAccountName';
       case TransactionType.lending:
@@ -112,6 +129,10 @@ class Transaction {
         return 'Borrowed money';
       case TransactionType.investment:
         return 'Investment transaction';
+      case TransactionType.expense:
+        return description;
+      case TransactionType.income:
+        return description;
     }
   }
 }

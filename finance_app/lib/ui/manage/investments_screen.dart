@@ -152,7 +152,10 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
 
     try {
       final controller = Provider.of<InvestmentsController>(context, listen: false);
-      final updated = await controller.refreshCurrentValues(_valueService);
+      final updated = await controller.refreshCurrentValues(
+        _valueService,
+        forceRefresh: true,
+      );
 
       if (!mounted) return;
 
@@ -174,10 +177,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
   double _calculateCurrentValue(Investment investment) {
     final metadata = investment.metadata;
     if (metadata != null) {
-      // Check for currentValue (stocks, and pre-calculated values)
-      if (metadata.containsKey('currentValue') && metadata['currentValue'] != 0) {
-        return (metadata['currentValue'] as num).toDouble();
-      }
+      final isFdOrRd = investment.type == InvestmentType.fixedDeposit ||
+          investment.type == InvestmentType.recurringDeposit;
 
       // For FDs - check if maturity freeze should apply
       if (investment.type == InvestmentType.fixedDeposit) {
@@ -263,6 +264,12 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       }
 
       // Check for estimatedAccruedValue (stocks, other investments)
+      if (!isFdOrRd &&
+          metadata.containsKey('currentValue') &&
+          metadata['currentValue'] != 0) {
+        return (metadata['currentValue'] as num).toDouble();
+      }
+
       if (metadata.containsKey('estimatedAccruedValue')) {
         return (metadata['estimatedAccruedValue'] as num).toDouble();
       }

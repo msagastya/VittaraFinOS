@@ -15,6 +15,7 @@ import 'package:vittara_fin_os/ui/manage/goals/goals_screen.dart';
 import 'package:vittara_fin_os/ui/manage/budgets/budgets_screen.dart';
 import 'package:vittara_fin_os/ui/manage/savings/savings_planners_screen.dart';
 import 'package:vittara_fin_os/ui/manage/ai_planner/ai_monthly_planner_screen.dart';
+import 'package:vittara_fin_os/ui/manage/transactions_archive_screen.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -41,6 +42,7 @@ class _ManageScreenState extends State<ManageScreen> {
     {'id': 'contacts', 'title': 'People', 'icon': CupertinoIcons.person_2_fill, 'color': CupertinoColors.systemBrown},
     {'id': 'lend', 'title': 'Personal Lending & Borrowing', 'icon': CupertinoIcons.money_dollar_circle_fill, 'color': CupertinoColors.systemTeal},
     {'id': 'tags', 'title': 'Tags', 'icon': CupertinoIcons.tag_fill, 'color': CupertinoColors.systemIndigo},
+    {'id': 'archived', 'title': 'Archived Transactions', 'icon': CupertinoIcons.archivebox_fill, 'color': CupertinoColors.systemPurple},
   ];
 
 
@@ -57,11 +59,14 @@ class _ManageScreenState extends State<ManageScreen> {
       child: Consumer2<SettingsController, LendingBorrowingController>(
         builder: (context, settings, lendingController, child) {
           // Filter items based on settings
-          final filteredItems = _items.where((item) {
-            // Hide Investments if Investment Tracking is disabled
-            if (item['id'] == 'invest' && !settings.isInvestmentTrackingEnabled) {
-              return false;
-            }
+    final filteredItems = _items.where((item) {
+      // Hide Investments if Investment Tracking is disabled
+      if (item['id'] == 'invest' && !settings.isInvestmentTrackingEnabled) {
+        return false;
+      }
+      if (item['id'] == 'archived' && !settings.isArchivedTransactionsEnabled) {
+        return false;
+      }
             // Hide People if no contacts are used in lending/borrowing
             if (item['id'] == 'contacts' && lendingController.records.isEmpty) {
               return false;
@@ -108,7 +113,7 @@ class _ManageScreenState extends State<ManageScreen> {
               },
               itemBuilder: (context, index) {
                 final item = filteredItems[index];
-                return _build3DCard(item, index);
+                return _build3DCard(item, index, settings);
               },
             ),
           );
@@ -117,17 +122,14 @@ class _ManageScreenState extends State<ManageScreen> {
     );
   }
 
-  Widget _build3DCard(Map<String, dynamic> item, int index) {
+  Widget _build3DCard(Map<String, dynamic> item, int index, SettingsController settings) {
     return Padding(
       key: ValueKey(item['id']),
       padding: EdgeInsets.only(bottom: Spacing.lg),
       child: Hero(
         tag: 'manage_${item['id']}',
         child: BouncyButton(
-          onPressed: () {
-            logger.info('Tapped on ${item['title']}', context: 'ManageScreen');
-            _navigateToScreen(item['id']);
-          },
+          onPressed: () => _onCardPressed(item, settings),
           child: Container(
             decoration: AppStyles.cardDecoration(context),
             padding: Spacing.cardPadding,
@@ -158,6 +160,14 @@ class _ManageScreenState extends State<ManageScreen> {
     );
   }
 
+  Future<void> _onCardPressed(Map<String, dynamic> item, SettingsController settings) async {
+    if (item['id'] == 'archived' && settings.isArchivedTransactionsEnabled) {
+      final allowed = await settings.authenticateArchivedAccess();
+      if (!allowed) return;
+    }
+    _navigateToScreen(item['id']);
+  }
+
   void _navigateToScreen(String id) {
     Widget? page;
     switch (id) {
@@ -184,6 +194,9 @@ class _ManageScreenState extends State<ManageScreen> {
         break;
       case 'tags':
         page = const TagsScreen();
+        break;
+      case 'archived':
+        page = const TransactionsArchiveScreen();
         break;
     }
     if (page != null) {
