@@ -26,6 +26,11 @@ class DashboardController extends ChangeNotifier {
       try {
         final map = jsonDecode(configJson) as Map<String, dynamic>;
         _config = DashboardConfig.fromMap(map);
+        final changed = _ensureOptionalWidgetsExist();
+        if (changed) {
+          await saveConfig();
+          return;
+        }
 
         // Ensure at least some widgets are visible, otherwise reset
         if (_config.getVisibleWidgets().isEmpty) {
@@ -77,7 +82,7 @@ class DashboardController extends ChangeNotifier {
           id: 'goals_overview',
           type: DashboardWidgetType.goalsOverview,
           title: 'Goals',
-          isVisible: true,
+          isVisible: false,
           gridRow: 6,
           gridColumn: 1,
           columnSpan: 3,
@@ -87,7 +92,7 @@ class DashboardController extends ChangeNotifier {
           id: 'budgets_overview',
           type: DashboardWidgetType.budgetsOverview,
           title: 'Budgets',
-          isVisible: true,
+          isVisible: false,
           gridRow: 7,
           gridColumn: 1,
           columnSpan: 3,
@@ -97,7 +102,7 @@ class DashboardController extends ChangeNotifier {
           id: 'savings_planners',
           type: DashboardWidgetType.savingsPlanners,
           title: 'Savings Planners',
-          isVisible: true,
+          isVisible: false,
           gridRow: 8,
           gridColumn: 1,
           columnSpan: 3,
@@ -107,7 +112,7 @@ class DashboardController extends ChangeNotifier {
           id: 'ai_planner',
           type: DashboardWidgetType.aiPlanner,
           title: 'AI Monthly Planner',
-          isVisible: true,
+          isVisible: false,
           gridRow: 9,
           gridColumn: 1,
           columnSpan: 3,
@@ -115,6 +120,29 @@ class DashboardController extends ChangeNotifier {
         ),
       ],
     );
+  }
+
+  bool _ensureOptionalWidgetsExist() {
+    bool changed = false;
+    final existingIds = _config.widgets.map((w) => w.id).toSet();
+    final updatedWidgets = [..._config.widgets];
+    final defaults = _getDefaultConfig().widgets.where((w) =>
+        w.id == 'goals_overview' ||
+        w.id == 'budgets_overview' ||
+        w.id == 'savings_planners' ||
+        w.id == 'ai_planner');
+
+    for (final optional in defaults) {
+      if (!existingIds.contains(optional.id)) {
+        updatedWidgets.add(optional.copyWith(isVisible: false));
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      _config = _config.copyWith(widgets: updatedWidgets);
+    }
+    return changed;
   }
 
   Future<void> saveConfig() async {

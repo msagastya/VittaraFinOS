@@ -75,7 +75,8 @@ class _DashboardSettingsModalState extends State<DashboardSettingsModal> {
 
                   // Widget toggles
                   ...dashboardController.config.widgets.map((widget) {
-                    return _buildWidgetToggle(context, dashboardController, widget);
+                    return _buildWidgetToggle(
+                        context, dashboardController, widget);
                   }),
 
                   SizedBox(height: Spacing.xl),
