@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/logic/budgets_controller.dart';
 import 'package:vittara_fin_os/logic/goals_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
@@ -51,7 +52,11 @@ class AIMonthlyPlannerScreen extends StatefulWidget {
 }
 
 class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
+  static const String _incomeKey = 'ai_planner_monthly_income';
+  static const String _mustSaveKey = 'ai_planner_must_save';
+
   bool _isGenerating = false;
+  bool _isInitializing = true;
   bool _hasGenerated = false;
   double? _monthlyIncome;
   double? _mustSaveAmount;
@@ -59,6 +64,7 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
   @override
   void initState() {
     super.initState();
+    _loadPlannerInputs();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<BudgetsController>(context, listen: false).initialize();
       Provider.of<GoalsController>(context, listen: false).initialize();
@@ -67,7 +73,36 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
     });
   }
 
-  Future<void> _generateRecommendations() async {
+  Future<void> _loadPlannerInputs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedIncome = prefs.getDouble(_incomeKey);
+    final savedMustSave = prefs.getDouble(_mustSaveKey);
+    if (!mounted) return;
+    setState(() {
+      _monthlyIncome = savedIncome;
+      _mustSaveAmount = savedMustSave;
+      _hasGenerated = (savedIncome ?? 0) > 0;
+      _isInitializing = false;
+    });
+  }
+
+  Future<void> _savePlannerInputs() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    if (_monthlyIncome != null && _monthlyIncome! > 0) {
+      await prefs.setDouble(_incomeKey, _monthlyIncome!);
+    } else {
+      await prefs.remove(_incomeKey);
+    }
+
+    if (_mustSaveAmount != null && _mustSaveAmount! > 0) {
+      await prefs.setDouble(_mustSaveKey, _mustSaveAmount!);
+    } else {
+      await prefs.remove(_mustSaveKey);
+    }
+  }
+
+  Future<bool> _collectPlannerInputs({required bool isEditing}) async {
     final incomeController = TextEditingController(
       text: _monthlyIncome == null ? '' : _monthlyIncome!.toStringAsFixed(0),
     );
@@ -108,7 +143,7 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
                     ),
                     SizedBox(height: Spacing.xl),
                     Text(
-                      'Planner Inputs',
+                      isEditing ? 'Edit Planner Inputs' : 'Planner Inputs',
                       style: TextStyle(
                         fontSize: TypeScale.title2,
                         fontWeight: FontWeight.bold,
@@ -117,7 +152,7 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
                     ),
                     SizedBox(height: Spacing.sm),
                     Text(
-                      'Enter your own numbers to generate plan.',
+                      'These values are saved and reused for future analysis.',
                       style: TextStyle(
                         fontSize: TypeScale.footnote,
                         color: AppStyles.getSecondaryTextColor(ctx),
@@ -188,23 +223,42 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
                           child: CupertinoButton(
                             color: SemanticColors.info,
                             onPressed: () {
-                              final income =
-                                  double.tryParse(incomeController.text.trim());
-                              final mustSave =
-                                  double.tryParse(saveController.text.trim());
+                              final incomeRaw = incomeController.text.trim();
+                              final saveRaw = saveController.text.trim();
+                              final income = double.tryParse(incomeRaw);
+                              final mustSave = saveRaw.isEmpty
+                                  ? null
+                                  : double.tryParse(saveRaw);
                               if (income == null || income <= 0) {
                                 AlertService.showError(
                                     ctx, 'Please enter valid monthly income');
                                 return;
                               }
+
+                              if (saveRaw.isNotEmpty &&
+                                  (mustSave == null || mustSave < 0)) {
+                                AlertService.showError(
+                                    ctx, 'Please enter valid must-save amount');
+                                return;
+                              }
+
+                              if (mustSave != null && mustSave > income) {
+                                AlertService.showError(ctx,
+                                    'Must-save cannot exceed monthly income');
+                                return;
+                              }
+
                               setState(() {
                                 _monthlyIncome = income;
-                                _mustSaveAmount = mustSave;
+                                _mustSaveAmount =
+                                    mustSave == null || mustSave <= 0
+                                        ? null
+                                        : mustSave;
                               });
                               Navigator.pop(ctx, true);
                             },
-                            child: const Text('Generate',
-                                style: TextStyle(color: Colors.white)),
+                            child: Text(isEditing ? 'Save' : 'Continue',
+                                style: const TextStyle(color: Colors.white)),
                           ),
                         ),
                       ],
@@ -217,19 +271,45 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
         ) ??
         false;
 
-    if (!shouldGenerate) return;
+    incomeController.dispose();
+    saveController.dispose();
+
+    if (shouldGenerate) {
+      await _savePlannerInputs();
+    }
+
+    return shouldGenerate;
+  }
+
+  Future<void> _generateRecommendations({bool forceEditInputs = false}) async {
+    if (forceEditInputs || _monthlyIncome == null || _monthlyIncome! <= 0) {
+      final shouldGenerate =
+          await _collectPlannerInputs(isEditing: forceEditInputs);
+      if (!shouldGenerate) return;
+    }
+
+    final hadGeneratedBefore = _hasGenerated;
 
     setState(() {
       _isGenerating = true;
     });
 
-    await Future.delayed(const Duration(milliseconds: 1200));
+    await Future.delayed(const Duration(milliseconds: 850));
 
+    if (!mounted) return;
     setState(() {
       _isGenerating = false;
       _hasGenerated = true;
     });
-    AlertService.showSuccess(context, 'Recommendations generated!');
+
+    AlertService.showSuccess(
+      context,
+      forceEditInputs
+          ? 'Planner updated and analysis refreshed!'
+          : hadGeneratedBefore
+              ? 'Analysis refreshed with latest entries!'
+              : 'Recommendations generated!',
+    );
   }
 
   @override
@@ -296,20 +376,41 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
               totalSpent, totalGoalTarget, totalBudgetLimit);
 
           return SafeArea(
-            child: _isGenerating
-                ? _buildGeneratingState()
-                : !_hasGenerated
-                    ? _buildInitialState(
-                        totalBudgetLimit, totalGoalTarget, totalSpent)
-                    : _buildRecommendationsState(
-                        projectedSavings: projectedSavings,
-                        goalTarget: totalGoalTarget,
-                        healthScore: healthScore,
-                        recommendations: recommendations,
-                        categoryInsights: categoryInsights,
-                      ),
+            child: _isInitializing
+                ? _buildInitializingState()
+                : _isGenerating
+                    ? _buildGeneratingState()
+                    : !_hasGenerated
+                        ? _buildInitialState(
+                            totalBudgetLimit, totalGoalTarget, totalSpent)
+                        : _buildRecommendationsState(
+                            projectedSavings: projectedSavings,
+                            goalTarget: totalGoalTarget,
+                            healthScore: healthScore,
+                            recommendations: recommendations,
+                            categoryInsights: categoryInsights,
+                          ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildInitializingState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const CupertinoActivityIndicator(radius: 16),
+          SizedBox(height: Spacing.lg),
+          Text(
+            'Loading planner profile...',
+            style: TextStyle(
+              fontSize: TypeScale.callout,
+              color: AppStyles.getSecondaryTextColor(context),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -342,6 +443,34 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
             description:
                 'You used ${(ratio * 100).toStringAsFixed(0)}% of income this month. Keep this pace.',
             icon: CupertinoIcons.check_mark_circled_solid,
+            color: SemanticColors.success,
+          ),
+        );
+      }
+
+      final now = DateTime.now();
+      final daysElapsed = now.day.toDouble().clamp(1, 31);
+      final daysInMonth = DateTime(now.year, now.month + 1, 0).day.toDouble();
+      final projectedMonthSpend = (totalSpent / daysElapsed) * daysInMonth;
+      final projectionGap = projectedMonthSpend - _monthlyIncome!;
+
+      if (projectionGap > 0) {
+        list.add(
+          _PlannerRecommendation(
+            title: 'Month-End Overspend Risk',
+            description:
+                'At current pace, spending may exceed income by ₹${projectionGap.toStringAsFixed(0)} this month.',
+            icon: CupertinoIcons.waveform_path_ecg,
+            color: SemanticColors.error,
+          ),
+        );
+      } else if (daysElapsed >= 7 && projectionGap < -(_monthlyIncome! * 0.1)) {
+        list.add(
+          _PlannerRecommendation(
+            title: 'Pace Looks Healthy',
+            description:
+                'Current run-rate suggests ₹${(-projectionGap).toStringAsFixed(0)} buffer by month-end.',
+            icon: CupertinoIcons.speedometer,
             color: SemanticColors.success,
           ),
         );
@@ -530,7 +659,7 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
             ),
             SizedBox(height: Spacing.xxxl),
             BouncyButton(
-              onPressed: _generateRecommendations,
+              onPressed: () => _generateRecommendations(forceEditInputs: true),
               child: Container(
                 padding: EdgeInsets.symmetric(
                     horizontal: Spacing.xxl, vertical: Spacing.lg),
@@ -552,7 +681,7 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
                         color: Colors.white, size: IconSizes.lg),
                     SizedBox(width: Spacing.sm),
                     Text(
-                      'Generate Recommendations',
+                      'Set Up & Analyze',
                       style: TextStyle(
                           fontSize: TypeScale.callout,
                           fontWeight: FontWeight.w600,
@@ -597,7 +726,57 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
                               color: AppStyles.getTextColor(context)),
                         ),
                       ),
+                      CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: () => _generateRecommendations(),
+                        child: const Icon(CupertinoIcons.refresh),
+                      ),
+                      CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: () =>
+                            _generateRecommendations(forceEditInputs: true),
+                        child: const Icon(CupertinoIcons.slider_horizontal_3),
+                      ),
                     ],
+                  ),
+                  SizedBox(height: Spacing.lg),
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(Spacing.md),
+                    decoration: BoxDecoration(
+                      color: SemanticColors.info.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(Radii.md),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Saved Inputs',
+                          style: TextStyle(
+                            fontSize: TypeScale.footnote,
+                            fontWeight: FontWeight.w600,
+                            color: AppStyles.getSecondaryTextColor(context),
+                          ),
+                        ),
+                        SizedBox(height: Spacing.xs),
+                        Text(
+                          'Income: ₹${(_monthlyIncome ?? 0).toStringAsFixed(0)}',
+                          style: TextStyle(
+                            fontSize: TypeScale.callout,
+                            color: AppStyles.getTextColor(context),
+                          ),
+                        ),
+                        Text(
+                          _mustSaveAmount != null && _mustSaveAmount! > 0
+                              ? 'Must-Save: ₹${_mustSaveAmount!.toStringAsFixed(0)}'
+                              : 'Must-Save: Not set',
+                          style: TextStyle(
+                            fontSize: TypeScale.callout,
+                            color: AppStyles.getTextColor(context),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   SizedBox(height: Spacing.xxl),
                   LiquidCircularProgress(

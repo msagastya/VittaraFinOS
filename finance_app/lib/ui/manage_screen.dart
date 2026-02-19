@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/settings_controller.dart';
-import 'package:vittara_fin_os/logic/lending_borrowing_controller.dart';
 import 'package:vittara_fin_os/ui/manage/banks_screen.dart';
 import 'package:vittara_fin_os/ui/manage/accounts_screen.dart';
 import 'package:vittara_fin_os/ui/manage/payment_apps_screen.dart';
@@ -103,8 +102,8 @@ class _ManageScreenState extends State<ManageScreen> {
             AppStyles.getBackground(context).withValues(alpha: 0.9),
         border: null,
       ),
-      child: Consumer2<SettingsController, LendingBorrowingController>(
-        builder: (context, settings, lendingController, child) {
+      child: Consumer<SettingsController>(
+        builder: (context, settings, child) {
           // Filter items based on settings
           final filteredItems = _items.where((item) {
             // Hide Investments if Investment Tracking is disabled
@@ -114,10 +113,6 @@ class _ManageScreenState extends State<ManageScreen> {
             }
             if (item['id'] == 'archived' &&
                 !settings.isArchivedTransactionsEnabled) {
-              return false;
-            }
-            // Hide People if no contacts are used in lending/borrowing
-            if (item['id'] == 'contacts' && lendingController.records.isEmpty) {
               return false;
             }
             return true;

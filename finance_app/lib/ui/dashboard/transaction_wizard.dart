@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_contacts/flutter_contacts.dart' as device_contacts;
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
@@ -13,6 +15,7 @@ import 'package:vittara_fin_os/logic/tags_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/ui/manage/account_wizard.dart';
+import 'package:vittara_fin_os/ui/manage/categories/category_creation_modal.dart';
 import 'package:vittara_fin_os/ui/manage/payment_apps_screen.dart';
 import 'package:vittara_fin_os/ui/manage/transfer_wizard.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -892,6 +895,68 @@ class _TransactionWizardState extends State<TransactionWizard> {
     });
   }
 
+  void _selectPaymentApp(Map<String, dynamic> app, {bool autoAdvance = true}) {
+    setState(() {
+      _selectedPaymentApp = app['name'] as String?;
+      _paymentAppHasWallet = app['hasWallet'] == true;
+      _selectedPaymentAppWalletBalance =
+          (app['walletBalance'] as num?)?.toDouble() ?? 0.0;
+      if (!_paymentAppHasWallet) {
+        _appWalletAmountController.clear();
+      }
+    });
+    if (autoAdvance) {
+      _nextStep();
+    }
+  }
+
+  Future<void> _openPaymentAppsAndAutoSelect(
+      PaymentAppsController appsController) async {
+    final previouslyEnabledIds = appsController.paymentApps
+        .where((app) => app['isEnabled'] == true)
+        .map((app) => app['id'].toString())
+        .toSet();
+
+    await Navigator.of(context).push(
+      CupertinoPageRoute(builder: (_) => const PaymentAppsScreen()),
+    );
+
+    if (!mounted) return;
+
+    final enabledApps = appsController.paymentApps
+        .where((app) => app['isEnabled'] == true)
+        .toList();
+
+    if (enabledApps.isEmpty) {
+      setState(() {
+        _selectedPaymentApp = null;
+        _paymentAppHasWallet = false;
+        _selectedPaymentAppWalletBalance = 0.0;
+        _appWalletAmountController.clear();
+      });
+      return;
+    }
+
+    Map<String, dynamic>? chosenApp;
+    for (final app in enabledApps) {
+      final id = app['id']?.toString();
+      if (id != null && !previouslyEnabledIds.contains(id)) {
+        chosenApp = app;
+        break;
+      }
+    }
+
+    if (chosenApp == null && _selectedPaymentApp != null) {
+      final current = appsController.getAppByName(_selectedPaymentApp!);
+      if (current != null && current['isEnabled'] == true) {
+        chosenApp = current;
+      }
+    }
+
+    chosenApp ??= enabledApps.first;
+    _selectPaymentApp(chosenApp);
+  }
+
   Widget _buildPaymentAppPage() {
     return Consumer<PaymentAppsController>(
       builder: (context, appsController, child) {
@@ -906,7 +971,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                 child: apps.isEmpty
                     ? Center(
                         child: Text(
-                          'Enable a payment app from Manage Apps to continue',
+                          'Enable at least one payment app to continue',
                           style: TextStyle(
                               color: AppStyles.getSecondaryTextColor(context)),
                           textAlign: TextAlign.center,
@@ -918,21 +983,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                           final app = apps[index];
                           final isSelected = _selectedPaymentApp == app['name'];
                           return GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _selectedPaymentApp = app['name'];
-                                _paymentAppHasWallet =
-                                    app['hasWallet'] ?? false;
-                                _selectedPaymentAppWalletBalance =
-                                    (app['walletBalance'] as num?)
-                                            ?.toDouble() ??
-                                        0.0;
-                                if (!_paymentAppHasWallet) {
-                                  _appWalletAmountController.clear();
-                                }
-                              });
-                              _nextStep();
-                            },
+                            onTap: () => _selectPaymentApp(app),
                             child: Container(
                               margin: const EdgeInsets.symmetric(vertical: 6),
                               padding: const EdgeInsets.all(14),
@@ -998,29 +1049,17 @@ class _TransactionWizardState extends State<TransactionWizard> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   CupertinoButton(
-                    onPressed: () => Navigator.of(context).push(
-                      CupertinoPageRoute(
-                          builder: (_) => const PaymentAppsScreen()),
-                    ),
+                    onPressed: () =>
+                        _openPaymentAppsAndAutoSelect(appsController),
                     child: Row(
                       children: [
                         const Icon(CupertinoIcons.add_circled_solid),
                         const SizedBox(width: 6),
-                        Text('Manage Apps',
+                        Text('Manage / Enable Apps',
                             style: TextStyle(
                                 color: AppStyles.getTextColor(context))),
                       ],
                     ),
-                  ),
-                  SizedBox(width: Spacing.md),
-                  CupertinoButton(
-                    onPressed: () => Navigator.of(context).push(
-                      CupertinoPageRoute(
-                          builder: (_) => const PaymentAppsScreen()),
-                    ),
-                    child: Text('Enable Apps',
-                        style: TextStyle(
-                            color: AppStyles.getSecondaryTextColor(context))),
                   ),
                 ],
               ),
@@ -1145,8 +1184,10 @@ class _TransactionWizardState extends State<TransactionWizard> {
                         children: categories.map((category) {
                           final selected = _selectedCategory?.id == category.id;
                           return GestureDetector(
-                            onTap: () =>
-                                setState(() => _selectedCategory = category),
+                            onTap: () {
+                              setState(() => _selectedCategory = category);
+                              _nextStep();
+                            },
                             child: Container(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: Spacing.sm),
@@ -1205,72 +1246,11 @@ class _TransactionWizardState extends State<TransactionWizard> {
   }
 
   void _showAddCategoryModal(CategoriesController controller) {
-    final nameController = TextEditingController();
-    showCupertinoModalPopup(
-      context: context,
-      builder: (ctx) => Container(
-        padding: EdgeInsets.fromLTRB(
-          24,
-          24,
-          24,
-          24 + MediaQuery.of(ctx).viewInsets.bottom,
-        ),
-        decoration: BoxDecoration(
-          color: AppStyles.getCardColor(ctx),
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: SingleChildScrollView(
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('Add category', style: AppStyles.titleStyle(ctx)),
-                const SizedBox(height: Spacing.md),
-                CupertinoTextField(
-                  controller: nameController,
-                  autofocus: true,
-                  textInputAction: TextInputAction.done,
-                  onSubmitted: (_) {
-                    if (nameController.text.isEmpty) return;
-                    final newCategory = Category(
-                      id: DateTime.now().millisecondsSinceEpoch.toString(),
-                      name: nameController.text,
-                      color: CupertinoColors.systemGrey,
-                      icon: CupertinoIcons.tag_fill,
-                      isCustom: true,
-                    );
-                    controller.addCategory(newCategory);
-                    setState(() => _selectedCategory = newCategory);
-                    Navigator.pop(ctx);
-                  },
-                  placeholder: 'Category name',
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppStyles.getBackground(ctx),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                const SizedBox(height: Spacing.md),
-                CupertinoButton.filled(
-                  onPressed: () {
-                    if (nameController.text.isEmpty) return;
-                    final newCategory = Category(
-                      id: DateTime.now().millisecondsSinceEpoch.toString(),
-                      name: nameController.text,
-                      color: CupertinoColors.systemGrey,
-                      icon: CupertinoIcons.tag_fill,
-                      isCustom: true,
-                    );
-                    controller.addCategory(newCategory);
-                    setState(() => _selectedCategory = newCategory);
-                    Navigator.pop(ctx);
-                  },
-                  child: const Text('Save'),
-                ),
-              ],
-            )),
-      ),
-    );
+    showCreateCategoryModal(context, controller: controller).then((category) {
+      if (!mounted || category == null) return;
+      setState(() => _selectedCategory = category);
+      _nextStep();
+    });
   }
 
   Widget _buildMerchantPage() {
@@ -1284,7 +1264,8 @@ class _TransactionWizardState extends State<TransactionWizard> {
               Expanded(
                 child: contacts.isEmpty
                     ? Center(
-                        child: Text('Add people from lending & borrowing',
+                        child: Text(
+                            'No people yet. Add manually or import from contacts',
                             style: TextStyle(
                                 color:
                                     AppStyles.getSecondaryTextColor(context))),
@@ -1337,18 +1318,37 @@ class _TransactionWizardState extends State<TransactionWizard> {
                         },
                       ),
               ),
-              CupertinoButton(
-                onPressed: () => _showAddPersonModal(contactsController),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(CupertinoIcons.add),
-                    const SizedBox(width: 8),
-                    Text('Add person',
-                        style:
-                            TextStyle(color: AppStyles.getTextColor(context))),
-                  ],
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CupertinoButton(
+                    onPressed: () => _showAddPersonModal(contactsController),
+                    child: Row(
+                      children: [
+                        const Icon(CupertinoIcons.add),
+                        const SizedBox(width: 8),
+                        Text('Add person',
+                            style: TextStyle(
+                                color: AppStyles.getTextColor(context))),
+                      ],
+                    ),
+                  ),
+                  CupertinoButton(
+                    onPressed: () => _showPhoneContactsPicker(
+                      controller: contactsController,
+                      advanceAfterPick: true,
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(CupertinoIcons.phone_fill),
+                        const SizedBox(width: 8),
+                        Text('From contacts',
+                            style: TextStyle(
+                                color: AppStyles.getTextColor(context))),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -1385,15 +1385,17 @@ class _TransactionWizardState extends State<TransactionWizard> {
                   autofocus: true,
                   textInputAction: TextInputAction.done,
                   onSubmitted: (_) {
-                    if (nameController.text.isEmpty) return;
+                    final name = nameController.text.trim();
+                    if (name.isEmpty) return;
                     final contact = Contact(
                       id: DateTime.now().millisecondsSinceEpoch.toString(),
-                      name: nameController.text,
+                      name: name,
                       createdDate: DateTime.now(),
                     );
                     controller.addContact(contact);
                     setState(() => _merchantController.text = contact.name);
                     Navigator.pop(ctx);
+                    _nextStep();
                   },
                   placeholder: 'Name',
                   padding: const EdgeInsets.all(16),
@@ -1403,24 +1405,95 @@ class _TransactionWizardState extends State<TransactionWizard> {
                   ),
                 ),
                 const SizedBox(height: Spacing.md),
+                CupertinoButton(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    _showPhoneContactsPicker(
+                      controller: controller,
+                      advanceAfterPick: true,
+                    );
+                  },
+                  child: const Text('Pick from phone contacts'),
+                ),
+                const SizedBox(height: Spacing.sm),
                 CupertinoButton.filled(
                   onPressed: () {
-                    if (nameController.text.isEmpty) return;
+                    final name = nameController.text.trim();
+                    if (name.isEmpty) return;
                     final contact = Contact(
                       id: DateTime.now().millisecondsSinceEpoch.toString(),
-                      name: nameController.text,
+                      name: name,
                       createdDate: DateTime.now(),
                     );
                     controller.addContact(contact);
                     setState(() => _merchantController.text = contact.name);
                     Navigator.pop(ctx);
+                    _nextStep();
                   },
                   child: const Text('Save'),
                 ),
               ],
             )),
       ),
+    ).whenComplete(nameController.dispose);
+  }
+
+  Future<void> _showPhoneContactsPicker({
+    required ContactsController controller,
+    required bool advanceAfterPick,
+  }) async {
+    final permissionStatus = await Permission.contacts.request();
+    if (!permissionStatus.isGranted) {
+      toast_lib.toast.showError('Contacts permission is required');
+      return;
+    }
+
+    List<device_contacts.Contact> rawContacts;
+    try {
+      rawContacts = await device_contacts.FlutterContacts.getContacts(
+          withProperties: true);
+    } catch (_) {
+      toast_lib.toast.showError('Unable to load phone contacts');
+      return;
+    }
+    final seenNames = <String>{};
+    final mappedContacts = <Contact>[];
+    for (final contact in rawContacts) {
+      final name = contact.displayName.trim();
+      if (name.isEmpty) continue;
+      final normalized = name.toLowerCase();
+      if (seenNames.contains(normalized)) continue;
+      seenNames.add(normalized);
+      final phone =
+          contact.phones.isNotEmpty ? contact.phones.first.number.trim() : null;
+      mappedContacts.add(
+        Contact(
+          id: contact.id,
+          name: name,
+          phoneNumber: phone?.isNotEmpty == true ? phone : null,
+          createdDate: DateTime.now(),
+        ),
+      );
+    }
+    mappedContacts.sort((a, b) => a.name.compareTo(b.name));
+
+    if (mappedContacts.isEmpty) {
+      toast_lib.toast.showInfo('No phone contacts available');
+      return;
+    }
+
+    if (!mounted) return;
+    final picked = await showCupertinoModalPopup<Contact>(
+      context: context,
+      builder: (ctx) => _PhoneContactsPickerSheet(contacts: mappedContacts),
     );
+
+    if (!mounted || picked == null) return;
+    controller.addContact(picked);
+    setState(() => _merchantController.text = picked.name);
+    if (advanceAfterPick) {
+      _nextStep();
+    }
   }
 
   Widget _buildDescriptionPage() {
@@ -1611,6 +1684,165 @@ class _TransactionWizardState extends State<TransactionWizard> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _PhoneContactsPickerSheet extends StatefulWidget {
+  final List<Contact> contacts;
+
+  const _PhoneContactsPickerSheet({required this.contacts});
+
+  @override
+  State<_PhoneContactsPickerSheet> createState() =>
+      _PhoneContactsPickerSheetState();
+}
+
+class _PhoneContactsPickerSheetState extends State<_PhoneContactsPickerSheet> {
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final query = _searchController.text.trim().toLowerCase();
+    final filteredContacts = widget.contacts.where((contact) {
+      if (query.isEmpty) return true;
+      return contact.name.toLowerCase().contains(query) ||
+          (contact.phoneNumber?.toLowerCase().contains(query) ?? false);
+    }).toList();
+
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.78,
+      decoration: BoxDecoration(
+        color: AppStyles.getCardColor(context),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            Container(
+              margin: const EdgeInsets.only(top: 12),
+              width: 44,
+              height: 5,
+              decoration: BoxDecoration(
+                color: CupertinoColors.systemGrey3,
+                borderRadius: BorderRadius.circular(100),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 12, 8),
+              child: Row(
+                children: [
+                  Text(
+                    'Phone contacts',
+                    style: AppStyles.titleStyle(context).copyWith(fontSize: 20),
+                  ),
+                  const Spacer(),
+                  CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Close'),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: CupertinoSearchTextField(
+                controller: _searchController,
+                placeholder: 'Search contacts',
+                onChanged: (_) => setState(() {}),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Expanded(
+              child: filteredContacts.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No matching contacts',
+                        style: TextStyle(
+                            color: AppStyles.getSecondaryTextColor(context)),
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(12, 4, 12, 20),
+                      itemCount: filteredContacts.length,
+                      itemBuilder: (context, index) {
+                        final contact = filteredContacts[index];
+                        return GestureDetector(
+                          onTap: () => Navigator.pop(context, contact),
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(vertical: 4),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppStyles.getBackground(context),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 34,
+                                  height: 34,
+                                  decoration: BoxDecoration(
+                                    color: CupertinoColors.systemBlue
+                                        .withValues(alpha: 0.14),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      contact.name[0].toUpperCase(),
+                                      style: const TextStyle(
+                                        color: CupertinoColors.systemBlue,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        contact.name,
+                                        style: TextStyle(
+                                          color:
+                                              AppStyles.getTextColor(context),
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      if (contact.phoneNumber?.isNotEmpty ??
+                                          false)
+                                        Text(
+                                          contact.phoneNumber!,
+                                          style: TextStyle(
+                                            color:
+                                                AppStyles.getSecondaryTextColor(
+                                                    context),
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                                const Icon(CupertinoIcons.chevron_right),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,4 +1,6 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_contacts/flutter_contacts.dart' as device_contacts;
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/contacts_controller.dart';
 import 'package:vittara_fin_os/logic/contact_model.dart';
@@ -6,6 +8,7 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
+import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
 
 class ContactsScreen extends StatefulWidget {
   const ContactsScreen({super.key});
@@ -23,6 +26,18 @@ class _ContactsScreenState extends State<ContactsScreen> {
         middle: Text(
           'People',
           style: TextStyle(color: AppStyles.getTextColor(context)),
+        ),
+        trailing: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: () => _showAddContactOptions(
+            context,
+            context.read<ContactsController>(),
+          ),
+          child: Icon(
+            CupertinoIcons.plus_circle_fill,
+            color: AppStyles.accentBlue,
+            size: 24,
+          ),
         ),
         previousPageTitle: 'Manage',
         backgroundColor: AppStyles.getBackground(context),
@@ -42,7 +57,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
                         subtitle: 'Add people you frequently transact with',
                         actionLabel: 'Add Contact',
                         onAction: () =>
-                            _showAddContactDialog(context, contactsController),
+                            _showAddContactOptions(context, contactsController),
                       )
                     : ListView.builder(
                         padding: EdgeInsets.fromLTRB(
@@ -64,7 +79,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
                 bottom: Spacing.xxxl,
                 child: FadingFAB(
                   onPressed: () =>
-                      _showAddContactDialog(context, contactsController),
+                      _showAddContactOptions(context, contactsController),
                   color: SemanticColors.contacts,
                   heroTag: 'contacts_fab',
                 ),
@@ -187,6 +202,95 @@ class _ContactsScreenState extends State<ContactsScreen> {
         ),
       ),
     );
+  }
+
+  void _showAddContactOptions(
+      BuildContext context, ContactsController controller) {
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (sheetContext) => CupertinoActionSheet(
+        title: const Text('Add Contact'),
+        actions: [
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(sheetContext);
+              _showAddContactDialog(context, controller);
+            },
+            child: const Text('Manual Entry'),
+          ),
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(sheetContext);
+              _pickFromPhoneContacts(controller);
+            },
+            child: const Text('From Phone Contacts'),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(sheetContext),
+          child: const Text('Cancel'),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickFromPhoneContacts(ContactsController controller) async {
+    final permissionStatus = await Permission.contacts.request();
+    if (!permissionStatus.isGranted) {
+      toast_lib.toast.showError('Contacts permission is required');
+      return;
+    }
+
+    List<device_contacts.Contact> rawContacts;
+    try {
+      rawContacts = await device_contacts.FlutterContacts.getContacts(
+          withProperties: true);
+    } catch (_) {
+      toast_lib.toast.showError('Unable to load phone contacts');
+      return;
+    }
+    final seenNames = <String>{};
+    final mappedContacts = <Contact>[];
+    for (final contact in rawContacts) {
+      final name = contact.displayName.trim();
+      if (name.isEmpty) continue;
+      final normalized = name.toLowerCase();
+      if (seenNames.contains(normalized)) continue;
+      seenNames.add(normalized);
+      final phone =
+          contact.phones.isNotEmpty ? contact.phones.first.number.trim() : null;
+      mappedContacts.add(
+        Contact(
+          id: contact.id,
+          name: name,
+          phoneNumber: phone?.isNotEmpty == true ? phone : null,
+          createdDate: DateTime.now(),
+        ),
+      );
+    }
+    mappedContacts.sort((a, b) => a.name.compareTo(b.name));
+
+    if (mappedContacts.isEmpty) {
+      toast_lib.toast.showInfo('No phone contacts available');
+      return;
+    }
+
+    if (!mounted) return;
+    final selected = await showCupertinoModalPopup<Contact>(
+      context: context,
+      builder: (ctx) => _PhoneContactsPickerSheet(contacts: mappedContacts),
+    );
+
+    if (!mounted || selected == null) return;
+    final alreadyExists = controller.contacts.any(
+      (contact) => contact.name.toLowerCase() == selected.name.toLowerCase(),
+    );
+    controller.addContact(selected);
+    if (alreadyExists) {
+      toast_lib.toast.showInfo('Contact already exists in My People');
+      return;
+    }
+    toast_lib.toast.showSuccess('Added ${selected.name}');
   }
 
   void _showAddContactDialog(
@@ -313,6 +417,166 @@ class _ContactsScreenState extends State<ContactsScreen> {
             child: const Text('Save'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _PhoneContactsPickerSheet extends StatefulWidget {
+  final List<Contact> contacts;
+
+  const _PhoneContactsPickerSheet({required this.contacts});
+
+  @override
+  State<_PhoneContactsPickerSheet> createState() =>
+      _PhoneContactsPickerSheetState();
+}
+
+class _PhoneContactsPickerSheetState extends State<_PhoneContactsPickerSheet> {
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final query = _searchController.text.trim().toLowerCase();
+    final filteredContacts = widget.contacts.where((contact) {
+      if (query.isEmpty) return true;
+      return contact.name.toLowerCase().contains(query) ||
+          (contact.phoneNumber?.toLowerCase().contains(query) ?? false);
+    }).toList();
+
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.78,
+      decoration: BoxDecoration(
+        color: AppStyles.getCardColor(context),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            Container(
+              margin: const EdgeInsets.only(top: 12),
+              width: 44,
+              height: 5,
+              decoration: BoxDecoration(
+                color: CupertinoColors.systemGrey3,
+                borderRadius: BorderRadius.circular(100),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 12, 8),
+              child: Row(
+                children: [
+                  Text(
+                    'Phone contacts',
+                    style: AppStyles.titleStyle(context).copyWith(fontSize: 20),
+                  ),
+                  const Spacer(),
+                  CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Close'),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: CupertinoSearchTextField(
+                controller: _searchController,
+                placeholder: 'Search contacts',
+                onChanged: (_) => setState(() {}),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Expanded(
+              child: filteredContacts.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No matching contacts',
+                        style: TextStyle(
+                          color: AppStyles.getSecondaryTextColor(context),
+                        ),
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(12, 4, 12, 20),
+                      itemCount: filteredContacts.length,
+                      itemBuilder: (context, index) {
+                        final contact = filteredContacts[index];
+                        return GestureDetector(
+                          onTap: () => Navigator.pop(context, contact),
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(vertical: 4),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppStyles.getBackground(context),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 34,
+                                  height: 34,
+                                  decoration: BoxDecoration(
+                                    color: CupertinoColors.systemBlue
+                                        .withValues(alpha: 0.14),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      contact.name[0].toUpperCase(),
+                                      style: const TextStyle(
+                                        color: CupertinoColors.systemBlue,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        contact.name,
+                                        style: TextStyle(
+                                          color:
+                                              AppStyles.getTextColor(context),
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      if (contact.phoneNumber?.isNotEmpty ??
+                                          false)
+                                        Text(
+                                          contact.phoneNumber!,
+                                          style: TextStyle(
+                                            color:
+                                                AppStyles.getSecondaryTextColor(
+                                                    context),
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                                const Icon(CupertinoIcons.chevron_right),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -35,6 +35,7 @@ class _TransferWizardState extends State<TransferWizard> {
   final _cashbackAmountController = TextEditingController();
   String? _selectedPaymentApp;
   Account? _cashbackAccount;
+  bool _cashbackToPaymentApp = false;
   bool _paymentAppHasWallet = false;
   double _selectedPaymentAppWalletBalance = 0.0;
 
@@ -120,6 +121,26 @@ class _TransferWizardState extends State<TransferWizard> {
       }
     }
 
+    Account? selectedCashbackAccount;
+    if (_cashbackAccount != null) {
+      for (final account in _cashbackEligibleAccounts()) {
+        if (account.id == _cashbackAccount!.id) {
+          selectedCashbackAccount = account;
+          break;
+        }
+      }
+    }
+    final canCreditCashbackToApp = _cashbackToPaymentApp &&
+        _paymentAppHasWallet &&
+        (_selectedPaymentApp?.isNotEmpty ?? false);
+
+    if (cashbackAmount > 0 &&
+        selectedCashbackAccount == null &&
+        !canCreditCashbackToApp) {
+      toast.showError('Select where cashback should be credited');
+      return;
+    }
+
     // Update source account
     if (_sourceAccount != null) {
       final updatedSource = _sourceAccount!.copyWith(
@@ -144,12 +165,12 @@ class _TransferWizardState extends State<TransferWizard> {
 
     // Add cashback to cashback account
     if (cashbackAmount > 0) {
-      if (_cashbackAccount != null) {
-        final updatedCashback = _cashbackAccount!.copyWith(
-          balance: _cashbackAccount!.balance + cashbackAmount,
+      if (selectedCashbackAccount != null) {
+        final updatedCashback = selectedCashbackAccount.copyWith(
+          balance: selectedCashbackAccount.balance + cashbackAmount,
         );
         accountsController.updateAccount(updatedCashback);
-      } else if (_selectedPaymentApp != null) {
+      } else if (canCreditCashbackToApp && _selectedPaymentApp != null) {
         paymentAppsController.adjustWalletBalanceByName(
             _selectedPaymentApp!, cashbackAmount);
       }
@@ -170,10 +191,12 @@ class _TransferWizardState extends State<TransferWizard> {
       paymentAppName: _selectedPaymentApp,
       appWalletAmount: appWalletAmount > 0 ? appWalletAmount : null,
       cashbackAmount: cashbackAmount > 0 ? cashbackAmount : null,
-      cashbackAccountId: _cashbackAccount?.id,
-      cashbackAccountName: _cashbackAccount?.name,
+      cashbackAccountId: selectedCashbackAccount?.id,
+      cashbackAccountName: selectedCashbackAccount?.name,
       metadata: {
-        'cashbackFlow': _cashbackAccount != null ? 'bank' : 'paymentApp',
+        'cashbackFlow': cashbackAmount > 0
+            ? (canCreditCashbackToApp ? 'paymentApp' : 'bank')
+            : 'bank',
       },
     );
 
@@ -199,12 +222,54 @@ class _TransferWizardState extends State<TransferWizard> {
       case 4: // App wallet amount
         return true;
       case 5: // Cashback
-        return true; // Optional step
+        final cashbackAmount =
+            double.tryParse(_cashbackAmountController.text) ?? 0.0;
+        if (cashbackAmount <= 0) return true;
+
+        final hasSelectedEligibleAccount = _cashbackAccount != null &&
+            _isEligibleCashbackAccount(_cashbackAccount!);
+        final canCreditToApp = _cashbackToPaymentApp &&
+            _paymentAppHasWallet &&
+            (_selectedPaymentApp?.isNotEmpty ?? false);
+        return hasSelectedEligibleAccount || canCreditToApp;
       case 6: // Review
         return true;
       default:
         return false;
     }
+  }
+
+  List<Account> _cashbackEligibleAccounts() {
+    final accounts = <Account>[];
+    final seenIds = <String>{};
+
+    void addIfPresent(Account? account) {
+      if (account == null || seenIds.contains(account.id)) return;
+      seenIds.add(account.id);
+      accounts.add(account);
+    }
+
+    addIfPresent(_sourceAccount);
+    addIfPresent(_destinationAccount);
+    return accounts;
+  }
+
+  bool _isEligibleCashbackAccount(Account account) {
+    return _cashbackEligibleAccounts()
+        .any((candidate) => candidate.id == account.id);
+  }
+
+  String _cashbackDestinationName() {
+    if (_cashbackToPaymentApp &&
+        _paymentAppHasWallet &&
+        (_selectedPaymentApp?.isNotEmpty ?? false)) {
+      return '${_selectedPaymentApp!} Wallet';
+    }
+    if (_cashbackAccount != null &&
+        _isEligibleCashbackAccount(_cashbackAccount!)) {
+      return _cashbackAccount!.name;
+    }
+    return 'Not selected';
   }
 
   @override
@@ -767,6 +832,10 @@ class _TransferWizardState extends State<TransferWizard> {
                                     (app['walletBalance'] as num?)
                                             ?.toDouble() ??
                                         0.0;
+                                if (!_paymentAppHasWallet &&
+                                    _cashbackToPaymentApp) {
+                                  _cashbackToPaymentApp = false;
+                                }
                               });
                               _nextStep();
                             },
@@ -851,6 +920,9 @@ class _TransferWizardState extends State<TransferWizard> {
                                 result.walletBalance;
                             if (!_paymentAppHasWallet) {
                               _appWalletAmountController.clear();
+                              if (_cashbackToPaymentApp) {
+                                _cashbackToPaymentApp = false;
+                              }
                             }
                           });
                           _nextStep();
@@ -985,6 +1057,9 @@ class _TransferWizardState extends State<TransferWizard> {
                   _paymentAppHasWallet = app?['hasWallet'] == true;
                   if (!_paymentAppHasWallet) {
                     _appWalletAmountController.clear();
+                    if (_cashbackToPaymentApp) {
+                      _cashbackToPaymentApp = false;
+                    }
                   }
                 });
               },
@@ -997,122 +1072,230 @@ class _TransferWizardState extends State<TransferWizard> {
   }
 
   Widget _buildCashbackStep() {
-    return Consumer<AccountsController>(
-      builder: (context, accountsController, _) {
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Cashback (Optional)',
-                style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Did you receive cashback? Enter amount and select account',
-                style:
-                    TextStyle(color: AppStyles.getSecondaryTextColor(context)),
-              ),
-              const SizedBox(height: 32),
-              Text('Cashback Amount', style: AppStyles.headerStyle(context)),
-              const SizedBox(height: 12),
-              Center(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('₹',
-                        style: AppStyles.titleStyle(context)
-                            .copyWith(fontSize: 32)),
-                    const SizedBox(width: 8),
-                    IntrinsicWidth(
-                      child: CupertinoTextField(
-                        controller: _cashbackAmountController,
-                        autofocus: _currentStep == 5,
-                        placeholder: '0.00',
-                        keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true),
-                        textInputAction: TextInputAction.next,
-                        onSubmitted: (_) => _nextStep(),
-                        decoration: BoxDecoration(
-                          color: AppStyles.getCardColor(context),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        style: AppStyles.titleStyle(context).copyWith(
-                            fontSize: 32, fontWeight: FontWeight.bold),
-                      ),
+    final eligibleAccounts = _cashbackEligibleAccounts();
+    final canCreditToPaymentApp =
+        _paymentAppHasWallet && (_selectedPaymentApp?.isNotEmpty ?? false);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Cashback (Optional)',
+            style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Enter cashback and choose where it should be credited.',
+            style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+          ),
+          const SizedBox(height: 32),
+          Text('Cashback Amount', style: AppStyles.headerStyle(context)),
+          const SizedBox(height: 12),
+          Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('₹',
+                    style:
+                        AppStyles.titleStyle(context).copyWith(fontSize: 32)),
+                const SizedBox(width: 8),
+                IntrinsicWidth(
+                  child: CupertinoTextField(
+                    controller: _cashbackAmountController,
+                    autofocus: _currentStep == 5,
+                    placeholder: '0.00',
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    textInputAction: TextInputAction.next,
+                    onSubmitted: (_) => _nextStep(),
+                    decoration: BoxDecoration(
+                      color: AppStyles.getCardColor(context),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                  ],
-                ),
-              ),
-              if ((double.tryParse(_cashbackAmountController.text) ?? 0) >
-                  0) ...[
-                const SizedBox(height: 32),
-                Text('Cashback Account', style: AppStyles.headerStyle(context)),
-                const SizedBox(height: 12),
-                Column(
-                  children: accountsController.accounts
-                      .where(
-                          (account) => account.type != AccountType.investment)
-                      .map((account) {
-                    final isSelected = _cashbackAccount?.id == account.id;
-                    return GestureDetector(
-                      onTap: () => setState(() => _cashbackAccount = account),
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppStyles.getCardColor(context),
-                          borderRadius: BorderRadius.circular(12),
-                          border: isSelected
-                              ? Border.all(
-                                  color: CupertinoColors.systemGreen, width: 2)
-                              : Border.all(
-                                  color:
-                                      AppStyles.getSecondaryTextColor(context)
-                                          .withValues(alpha: 0.1),
-                                  width: 1,
-                                ),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: account.color.withValues(alpha: 0.1),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                CupertinoIcons.building_2_fill,
-                                color: account.color,
-                                size: 20,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                account.name,
-                                style: AppStyles.titleStyle(context)
-                                    .copyWith(fontSize: 14),
-                              ),
-                            ),
-                            if (isSelected)
-                              const Icon(
-                                CupertinoIcons.checkmark_circle_fill,
-                                color: CupertinoColors.systemGreen,
-                                size: 20,
-                              ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }).toList(),
+                    style: AppStyles.titleStyle(context)
+                        .copyWith(fontSize: 32, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ],
-            ],
+            ),
           ),
-        );
-      },
+          if ((double.tryParse(_cashbackAmountController.text) ?? 0) > 0) ...[
+            const SizedBox(height: 32),
+            Text('Credit Cashback To', style: AppStyles.headerStyle(context)),
+            const SizedBox(height: 8),
+            Text(
+              'Choose sending account, receiving account, or app wallet (if enabled).',
+              style: TextStyle(
+                fontSize: 12,
+                color: AppStyles.getSecondaryTextColor(context),
+              ),
+            ),
+            const SizedBox(height: 12),
+            if (eligibleAccounts.isEmpty && !canCreditToPaymentApp)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: CupertinoColors.systemGrey6,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'No eligible cashback destination available.',
+                  style: TextStyle(
+                    color: AppStyles.getSecondaryTextColor(context),
+                  ),
+                ),
+              ),
+            Column(
+              children: [
+                ...eligibleAccounts.map((account) {
+                  final isSource = account.id == _sourceAccount?.id;
+                  final isSelected = !_cashbackToPaymentApp &&
+                      _cashbackAccount?.id == account.id;
+                  return GestureDetector(
+                    onTap: () => setState(() {
+                      _cashbackToPaymentApp = false;
+                      _cashbackAccount = account;
+                    }),
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppStyles.getCardColor(context),
+                        borderRadius: BorderRadius.circular(12),
+                        border: isSelected
+                            ? Border.all(
+                                color: CupertinoColors.systemGreen, width: 2)
+                            : Border.all(
+                                color: AppStyles.getSecondaryTextColor(context)
+                                    .withValues(alpha: 0.1),
+                                width: 1,
+                              ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: account.color.withValues(alpha: 0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              CupertinoIcons.building_2_fill,
+                              color: account.color,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  account.name,
+                                  style: AppStyles.titleStyle(context)
+                                      .copyWith(fontSize: 14),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  isSource
+                                      ? 'Sending Account'
+                                      : 'Receiving Account',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppStyles.getSecondaryTextColor(
+                                        context),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (isSelected)
+                            const Icon(
+                              CupertinoIcons.checkmark_circle_fill,
+                              color: CupertinoColors.systemGreen,
+                              size: 20,
+                            ),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+                if (canCreditToPaymentApp)
+                  GestureDetector(
+                    onTap: () => setState(() {
+                      _cashbackToPaymentApp = true;
+                      _cashbackAccount = null;
+                    }),
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppStyles.getCardColor(context),
+                        borderRadius: BorderRadius.circular(12),
+                        border: _cashbackToPaymentApp
+                            ? Border.all(
+                                color: CupertinoColors.systemGreen, width: 2)
+                            : Border.all(
+                                color: AppStyles.getSecondaryTextColor(context)
+                                    .withValues(alpha: 0.1),
+                                width: 1,
+                              ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: CupertinoColors.systemBlue
+                                  .withValues(alpha: 0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              CupertinoIcons.square_stack_3d_down_right_fill,
+                              color: CupertinoColors.systemBlue,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '${_selectedPaymentApp!} Wallet',
+                                  style: AppStyles.titleStyle(context)
+                                      .copyWith(fontSize: 14),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Payment App Wallet',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppStyles.getSecondaryTextColor(
+                                        context),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (_cashbackToPaymentApp)
+                            const Icon(
+                              CupertinoIcons.checkmark_circle_fill,
+                              color: CupertinoColors.systemGreen,
+                              size: 20,
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ],
+      ),
     );
   }
 
@@ -1166,7 +1349,7 @@ class _TransferWizardState extends State<TransferWizard> {
                   _buildReviewRow('Charges', '-₹${charges.toStringAsFixed(2)}',
                       isNegative: true),
                 if (cashbackAmount > 0)
-                  _buildReviewRow('Cashback to ${_cashbackAccount?.name}',
+                  _buildReviewRow('Cashback to ${_cashbackDestinationName()}',
                       '+₹${cashbackAmount.toStringAsFixed(2)}',
                       isPositive: true),
               ],
