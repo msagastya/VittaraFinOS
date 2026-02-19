@@ -28,8 +28,7 @@ class AnimatedGradientBackground extends StatefulWidget {
       _AnimatedGradientBackgroundState();
 }
 
-class _AnimatedGradientBackgroundState
-    extends State<AnimatedGradientBackground>
+class _AnimatedGradientBackgroundState extends State<AnimatedGradientBackground>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
@@ -214,7 +213,8 @@ class _FloatingGradientOrbsState extends State<FloatingGradientOrbs>
     _orbs = List.generate(
       widget.orbCount,
       (index) => OrbData(
-        color: ColorPalettes.gradientPresets[index % ColorPalettes.gradientPresets.length],
+        color: ColorPalettes
+            .gradientPresets[index % ColorPalettes.gradientPresets.length],
         offsetX: (index * 0.3) - 0.3,
         offsetY: (index * 0.25) - 0.25,
         size: 200.0 + (index * 50.0),
@@ -347,7 +347,8 @@ class _SubtleGradientAnimationState extends State<SubtleGradientAnimation>
                 Alignment.bottomLeft,
                 _controller.value,
               )!,
-              colors: widget.colors.map((c) => c.withValues(alpha: 0.8)).toList(),
+              colors:
+                  widget.colors.map((c) => c.withValues(alpha: 0.8)).toList(),
             ),
           ),
           child: widget.child,

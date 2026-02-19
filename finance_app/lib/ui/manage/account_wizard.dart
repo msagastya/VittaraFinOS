@@ -10,7 +10,8 @@ import 'package:vittara_fin_os/ui/widgets/animations.dart';
 class AccountWizard extends StatefulWidget {
   final bool isInvestment;
   final Account? existingAccount; // For editing existing accounts
-  const AccountWizard({super.key, this.isInvestment = false, this.existingAccount});
+  const AccountWizard(
+      {super.key, this.isInvestment = false, this.existingAccount});
 
   @override
   State<AccountWizard> createState() => _AccountWizardState();
@@ -31,11 +32,14 @@ class _AccountWizardState extends State<AccountWizard> {
   final TextEditingController _nameController = TextEditingController();
 
   // Step 3: Account Details (type-specific)
-  final TextEditingController _accountNumberController = TextEditingController();
-  final TextEditingController _debitCardNumberController = TextEditingController();
+  final TextEditingController _accountNumberController =
+      TextEditingController();
+  final TextEditingController _debitCardNumberController =
+      TextEditingController();
   final TextEditingController _creditLimitController = TextEditingController();
   final TextEditingController _amountUsedController = TextEditingController();
-  final TextEditingController _creditCardNumberController = TextEditingController();
+  final TextEditingController _creditCardNumberController =
+      TextEditingController();
   final TextEditingController _balanceController = TextEditingController();
 
   @override
@@ -54,8 +58,10 @@ class _AccountWizardState extends State<AccountWizard> {
       _nameController.text = account.name;
       _balanceController.text = account.balance.toStringAsFixed(2);
 
-      if (account.type == AccountType.credit || account.type == AccountType.payLater) {
-        _creditLimitController.text = (account.creditLimit ?? 0.0).toStringAsFixed(2);
+      if (account.type == AccountType.credit ||
+          account.type == AccountType.payLater) {
+        _creditLimitController.text =
+            (account.creditLimit ?? 0.0).toStringAsFixed(2);
         final amountUsed = (account.creditLimit ?? 0.0) - account.balance;
         _amountUsedController.text = amountUsed.toStringAsFixed(2);
         if (account.creditCardNumber != null) {
@@ -149,7 +155,9 @@ class _AccountWizardState extends State<AccountWizard> {
   void _finishWizard() {
     double finalBalance = 0.0;
     final isEditing = widget.existingAccount != null;
-    final accountId = isEditing ? widget.existingAccount!.id : DateTime.now().millisecondsSinceEpoch.toString();
+    final accountId = isEditing
+        ? widget.existingAccount!.id
+        : DateTime.now().millisecondsSinceEpoch.toString();
 
     if (widget.isInvestment) {
       // Investment account: use balance directly
@@ -166,7 +174,8 @@ class _AccountWizardState extends State<AccountWizard> {
       Navigator.pop(context, account);
     } else {
       // Bank account: calculate balance based on account type
-      if (_selectedAccountType == AccountType.credit || _selectedAccountType == AccountType.payLater) {
+      if (_selectedAccountType == AccountType.credit ||
+          _selectedAccountType == AccountType.payLater) {
         // For credit card and pay later: Balance = Credit Limit - Amount Used
         final creditLimit = double.tryParse(_creditLimitController.text) ?? 0.0;
         final amountUsed = double.tryParse(_amountUsedController.text) ?? 0.0;
@@ -183,10 +192,14 @@ class _AccountWizardState extends State<AccountWizard> {
         type: _selectedAccountType ?? AccountType.savings,
         balance: finalBalance,
         color: _selectedColor ?? CupertinoColors.systemBlue,
-        creditCardNumber: (_selectedAccountType == AccountType.credit || _selectedAccountType == AccountType.payLater)
-            ? (_creditCardNumberController.text.isNotEmpty ? _creditCardNumberController.text : null)
+        creditCardNumber: (_selectedAccountType == AccountType.credit ||
+                _selectedAccountType == AccountType.payLater)
+            ? (_creditCardNumberController.text.isNotEmpty
+                ? _creditCardNumberController.text
+                : null)
             : null,
-        creditLimit: (_selectedAccountType == AccountType.credit || _selectedAccountType == AccountType.payLater)
+        creditLimit: (_selectedAccountType == AccountType.credit ||
+                _selectedAccountType == AccountType.payLater)
             ? (double.tryParse(_creditLimitController.text) ?? 0.0)
             : null,
       );
@@ -205,7 +218,8 @@ class _AccountWizardState extends State<AccountWizard> {
         leading: CupertinoButton(
           padding: EdgeInsets.zero,
           onPressed: _prevStep,
-          child: Icon(_currentStep == 0 ? CupertinoIcons.xmark : CupertinoIcons.back),
+          child: Icon(
+              _currentStep == 0 ? CupertinoIcons.xmark : CupertinoIcons.back),
         ),
         backgroundColor: AppStyles.getBackground(context),
         border: null,
@@ -250,7 +264,9 @@ class _AccountWizardState extends State<AccountWizard> {
               height: 4,
               margin: EdgeInsets.only(right: index == _totalSteps - 1 ? 0 : 8),
               decoration: BoxDecoration(
-                color: isActive ? CupertinoColors.systemBlue : CupertinoColors.systemGrey.withValues(alpha: 0.2),
+                color: isActive
+                    ? CupertinoColors.systemBlue
+                    : CupertinoColors.systemGrey.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -275,7 +291,8 @@ class _AccountWizardState extends State<AccountWizard> {
               const SizedBox(height: 8),
               Text(
                 'Which broker do you use?',
-                style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+                style:
+                    TextStyle(color: AppStyles.getSecondaryTextColor(context)),
               ),
               const SizedBox(height: 32),
               GridView.builder(
@@ -304,7 +321,8 @@ class _AccountWizardState extends State<AccountWizard> {
                     child: Container(
                       decoration: AppStyles.cardDecoration(context).copyWith(
                         border: isSelected
-                            ? Border.all(color: CupertinoColors.systemBlue, width: 2)
+                            ? Border.all(
+                                color: CupertinoColors.systemBlue, width: 2)
                             : null,
                       ),
                       child: Column(
@@ -313,7 +331,8 @@ class _AccountWizardState extends State<AccountWizard> {
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: (broker['color'] as Color).withValues(alpha: 0.1),
+                              color: (broker['color'] as Color)
+                                  .withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
@@ -350,7 +369,8 @@ class _AccountWizardState extends State<AccountWizard> {
               const SizedBox(height: 24),
               if (brokersController.brokers.length < 15)
                 BouncyButton(
-                  onPressed: () => _showAddBrokerSheet(context, brokersController),
+                  onPressed: () =>
+                      _showAddBrokerSheet(context, brokersController),
                   child: Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(vertical: 12),
@@ -366,7 +386,8 @@ class _AccountWizardState extends State<AccountWizard> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(CupertinoIcons.add, color: CupertinoColors.systemBlue),
+                          Icon(CupertinoIcons.add,
+                              color: CupertinoColors.systemBlue),
                           const SizedBox(width: 8),
                           Text(
                             'Add Broker',
@@ -388,7 +409,8 @@ class _AccountWizardState extends State<AccountWizard> {
     );
   }
 
-  void _showAddBrokerSheet(BuildContext context, BrokersController brokersController) {
+  void _showAddBrokerSheet(
+      BuildContext context, BrokersController brokersController) {
     final brokerNameController = TextEditingController();
     Color selectedColor = CupertinoColors.systemBlue;
 
@@ -401,7 +423,8 @@ class _AccountWizardState extends State<AccountWizard> {
               height: MediaQuery.of(context).size.height * 0.6,
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(24)),
               ),
               child: Column(
                 children: [
@@ -420,12 +443,15 @@ class _AccountWizardState extends State<AccountWizard> {
                         const SizedBox(height: 16),
                         Text(
                           'Add New Broker',
-                          style: AppStyles.titleStyle(context).copyWith(fontSize: 20),
+                          style: AppStyles.titleStyle(context)
+                              .copyWith(fontSize: 20),
                         ),
                       ],
                     ),
                   ),
-                  Divider(color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.1)),
+                  Divider(
+                      color: AppStyles.getSecondaryTextColor(context)
+                          .withValues(alpha: 0.1)),
                   Expanded(
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.all(24),
@@ -448,11 +474,13 @@ class _AccountWizardState extends State<AccountWizard> {
                             decoration: BoxDecoration(
                               color: AppStyles.getCardColor(context),
                               border: Border.all(
-                                color: CupertinoColors.systemBlue.withValues(alpha: 0.2),
+                                color: CupertinoColors.systemBlue
+                                    .withValues(alpha: 0.2),
                               ),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            style: TextStyle(color: AppStyles.getTextColor(context)),
+                            style: TextStyle(
+                                color: AppStyles.getTextColor(context)),
                           ),
                           const SizedBox(height: 24),
                           Text(
@@ -478,20 +506,24 @@ class _AccountWizardState extends State<AccountWizard> {
                                 CupertinoColors.systemIndigo,
                               ]
                                   .map((color) => GestureDetector(
-                                    onTap: () => setDialogState(() => selectedColor = color),
-                                    child: Container(
-                                      width: 50,
-                                      height: 50,
-                                      margin: const EdgeInsets.only(right: 12),
-                                      decoration: BoxDecoration(
-                                        color: color,
-                                        shape: BoxShape.circle,
-                                        border: selectedColor == color
-                                            ? Border.all(color: Colors.white, width: 3)
-                                            : null,
-                                      ),
-                                    ),
-                                  ))
+                                        onTap: () => setDialogState(
+                                            () => selectedColor = color),
+                                        child: Container(
+                                          width: 50,
+                                          height: 50,
+                                          margin:
+                                              const EdgeInsets.only(right: 12),
+                                          decoration: BoxDecoration(
+                                            color: color,
+                                            shape: BoxShape.circle,
+                                            border: selectedColor == color
+                                                ? Border.all(
+                                                    color: Colors.white,
+                                                    width: 3)
+                                                : null,
+                                          ),
+                                        ),
+                                      ))
                                   .toList(),
                             ),
                           ),
@@ -604,18 +636,22 @@ class _AccountWizardState extends State<AccountWizard> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('₹', style: AppStyles.titleStyle(context).copyWith(fontSize: 32)),
+                Text('₹',
+                    style:
+                        AppStyles.titleStyle(context).copyWith(fontSize: 32)),
                 const SizedBox(width: 8),
                 IntrinsicWidth(
                   child: CupertinoTextField(
                     controller: _balanceController,
                     placeholder: '0.00',
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
                     decoration: BoxDecoration(
                       color: AppStyles.getCardColor(context),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    style: AppStyles.titleStyle(context).copyWith(fontSize: 32, fontWeight: FontWeight.bold),
+                    style: AppStyles.titleStyle(context)
+                        .copyWith(fontSize: 32, fontWeight: FontWeight.bold),
                     onSubmitted: (value) {
                       // Auto-proceed when user taps Done on keyboard
                       if (_balanceController.text.isNotEmpty) {
@@ -664,7 +700,8 @@ class _AccountWizardState extends State<AccountWizard> {
                   decoration: BoxDecoration(
                     border: Border(
                         top: BorderSide(
-                            color: CupertinoColors.systemGrey.withValues(alpha: 0.2))),
+                            color: CupertinoColors.systemGrey
+                                .withValues(alpha: 0.2))),
                   ),
                 ),
                 Text(
@@ -733,7 +770,10 @@ class _AccountWizardState extends State<AccountWizard> {
                   },
                   child: Container(
                     decoration: AppStyles.cardDecoration(context).copyWith(
-                      border: isSelected ? Border.all(color: CupertinoColors.systemBlue, width: 2) : null,
+                      border: isSelected
+                          ? Border.all(
+                              color: CupertinoColors.systemBlue, width: 2)
+                          : null,
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -741,7 +781,8 @@ class _AccountWizardState extends State<AccountWizard> {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: (item['color'] as Color).withValues(alpha: 0.1),
+                            color:
+                                (item['color'] as Color).withValues(alpha: 0.1),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
@@ -750,7 +791,9 @@ class _AccountWizardState extends State<AccountWizard> {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        Text(item['name'], style: AppStyles.titleStyle(context).copyWith(fontSize: 14)),
+                        Text(item['name'],
+                            style: AppStyles.titleStyle(context)
+                                .copyWith(fontSize: 14)),
                       ],
                     ),
                   ),
@@ -779,7 +822,8 @@ class _AccountWizardState extends State<AccountWizard> {
               const SizedBox(height: 8),
               Text(
                 'Where do you keep your money?',
-                style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+                style:
+                    TextStyle(color: AppStyles.getSecondaryTextColor(context)),
               ),
               const SizedBox(height: 32),
               if (enabledBanks.isEmpty)
@@ -789,7 +833,8 @@ class _AccountWizardState extends State<AccountWizard> {
                       Icon(
                         CupertinoIcons.exclamationmark_circle,
                         size: 48,
-                        color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.3),
+                        color: AppStyles.getSecondaryTextColor(context)
+                            .withValues(alpha: 0.3),
                       ),
                       const SizedBox(height: 16),
                       Text(
@@ -801,7 +846,8 @@ class _AccountWizardState extends State<AccountWizard> {
                       ),
                       const SizedBox(height: 24),
                       BouncyButton(
-                        onPressed: () => _showAddBankModal(context, banksController),
+                        onPressed: () =>
+                            _showAddBankModal(context, banksController),
                         child: Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -812,7 +858,10 @@ class _AccountWizardState extends State<AccountWizard> {
                           child: Center(
                             child: Text(
                               'Add Bank',
-                              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold),
                             ),
                           ),
                         ),
@@ -826,7 +875,8 @@ class _AccountWizardState extends State<AccountWizard> {
                     GridView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
                         crossAxisSpacing: 16,
                         mainAxisSpacing: 16,
@@ -845,8 +895,13 @@ class _AccountWizardState extends State<AccountWizard> {
                             _nextStep();
                           },
                           child: Container(
-                            decoration: AppStyles.cardDecoration(context).copyWith(
-                              border: isSelected ? Border.all(color: CupertinoColors.systemBlue, width: 2) : null,
+                            decoration:
+                                AppStyles.cardDecoration(context).copyWith(
+                              border: isSelected
+                                  ? Border.all(
+                                      color: CupertinoColors.systemBlue,
+                                      width: 2)
+                                  : null,
                             ),
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -854,7 +909,8 @@ class _AccountWizardState extends State<AccountWizard> {
                                 Container(
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: (item['color'] as Color).withValues(alpha: 0.1),
+                                    color: (item['color'] as Color)
+                                        .withValues(alpha: 0.1),
                                     shape: BoxShape.circle,
                                   ),
                                   child: Icon(
@@ -863,7 +919,9 @@ class _AccountWizardState extends State<AccountWizard> {
                                   ),
                                 ),
                                 const SizedBox(height: 12),
-                                Text(item['name'], style: AppStyles.titleStyle(context).copyWith(fontSize: 14)),
+                                Text(item['name'],
+                                    style: AppStyles.titleStyle(context)
+                                        .copyWith(fontSize: 14)),
                               ],
                             ),
                           ),
@@ -872,12 +930,14 @@ class _AccountWizardState extends State<AccountWizard> {
                     ),
                     const SizedBox(height: 24),
                     BouncyButton(
-                      onPressed: () => _showAddBankModal(context, banksController),
+                      onPressed: () =>
+                          _showAddBankModal(context, banksController),
                       child: Container(
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
-                          color: CupertinoColors.systemBlue.withValues(alpha: 0.1),
+                          color:
+                              CupertinoColors.systemBlue.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: CupertinoColors.systemBlue,
@@ -888,7 +948,8 @@ class _AccountWizardState extends State<AccountWizard> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(CupertinoIcons.add, color: CupertinoColors.systemBlue),
+                              Icon(CupertinoIcons.add,
+                                  color: CupertinoColors.systemBlue),
                               const SizedBox(width: 8),
                               Text(
                                 'Add Bank',
@@ -912,7 +973,8 @@ class _AccountWizardState extends State<AccountWizard> {
     );
   }
 
-  void _showAddBankModal(BuildContext context, BanksController banksController) {
+  void _showAddBankModal(
+      BuildContext context, BanksController banksController) {
     showCupertinoModalPopup(
       context: context,
       builder: (context) {
@@ -928,7 +990,8 @@ class _AccountWizardState extends State<AccountWizard> {
             children: [
               // Header with Add button
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 child: Column(
                   children: [
                     Container(
@@ -945,17 +1008,20 @@ class _AccountWizardState extends State<AccountWizard> {
                       children: [
                         Text(
                           'Select Bank',
-                          style: AppStyles.titleStyle(context).copyWith(fontSize: 20),
+                          style: AppStyles.titleStyle(context)
+                              .copyWith(fontSize: 20),
                         ),
                         CupertinoButton(
                           padding: EdgeInsets.zero,
-                          minSize: 40,
-                          onPressed: () => _showAddCustomBankSheet(context, banksController),
+                          onPressed: () =>
+                              _showAddCustomBankSheet(context, banksController),
+                          minimumSize: Size(40, 40),
                           child: Container(
                             width: 32,
                             height: 32,
                             decoration: BoxDecoration(
-                              color: CupertinoColors.systemBlue.withValues(alpha: 0.1),
+                              color: CupertinoColors.systemBlue
+                                  .withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Center(
@@ -972,7 +1038,9 @@ class _AccountWizardState extends State<AccountWizard> {
                   ],
                 ),
               ),
-              Divider(color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.1)),
+              Divider(
+                  color: AppStyles.getSecondaryTextColor(context)
+                      .withValues(alpha: 0.1)),
               // List
               Expanded(
                 child: disabledBanks.isEmpty
@@ -983,18 +1051,22 @@ class _AccountWizardState extends State<AccountWizard> {
                             Icon(
                               CupertinoIcons.exclamationmark_circle,
                               size: 48,
-                              color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.3),
+                              color: AppStyles.getSecondaryTextColor(context)
+                                  .withValues(alpha: 0.3),
                             ),
                             const SizedBox(height: 16),
                             Text(
                               'All banks are already added',
-                              style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+                              style: TextStyle(
+                                  color:
+                                      AppStyles.getSecondaryTextColor(context)),
                             ),
                             const SizedBox(height: 16),
                             Text(
                               'Tap + to add a custom bank',
                               style: TextStyle(
-                                color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.7),
+                                color: AppStyles.getSecondaryTextColor(context)
+                                    .withValues(alpha: 0.7),
                                 fontSize: 12,
                               ),
                             ),
@@ -1019,11 +1091,14 @@ class _AccountWizardState extends State<AccountWizard> {
                               _nextStep();
                             },
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 24, vertical: 16),
                               decoration: BoxDecoration(
                                 border: Border(
                                   bottom: BorderSide(
-                                    color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.1),
+                                    color:
+                                        AppStyles.getSecondaryTextColor(context)
+                                            .withValues(alpha: 0.1),
                                   ),
                                 ),
                               ),
@@ -1033,7 +1108,8 @@ class _AccountWizardState extends State<AccountWizard> {
                                     width: 44,
                                     height: 44,
                                     decoration: BoxDecoration(
-                                      color: (bank['color'] as Color).withValues(alpha: 0.1),
+                                      color: (bank['color'] as Color)
+                                          .withValues(alpha: 0.1),
                                       shape: BoxShape.circle,
                                     ),
                                     child: Center(
@@ -1054,7 +1130,9 @@ class _AccountWizardState extends State<AccountWizard> {
                                   Icon(
                                     CupertinoIcons.chevron_right,
                                     size: 16,
-                                    color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.5),
+                                    color:
+                                        AppStyles.getSecondaryTextColor(context)
+                                            .withValues(alpha: 0.5),
                                   ),
                                 ],
                               ),
@@ -1070,7 +1148,8 @@ class _AccountWizardState extends State<AccountWizard> {
     );
   }
 
-  void _showAddCustomBankSheet(BuildContext context, BanksController banksController) {
+  void _showAddCustomBankSheet(
+      BuildContext context, BanksController banksController) {
     final bankNameController = TextEditingController();
     Color selectedColor = CupertinoColors.systemBlue;
 
@@ -1083,7 +1162,8 @@ class _AccountWizardState extends State<AccountWizard> {
               height: MediaQuery.of(context).size.height * 0.6,
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(24)),
               ),
               child: Column(
                 children: [
@@ -1103,12 +1183,15 @@ class _AccountWizardState extends State<AccountWizard> {
                         const SizedBox(height: 16),
                         Text(
                           'Add New Bank',
-                          style: AppStyles.titleStyle(context).copyWith(fontSize: 20),
+                          style: AppStyles.titleStyle(context)
+                              .copyWith(fontSize: 20),
                         ),
                       ],
                     ),
                   ),
-                  Divider(color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.1)),
+                  Divider(
+                      color: AppStyles.getSecondaryTextColor(context)
+                          .withValues(alpha: 0.1)),
                   // Content
                   Expanded(
                     child: SingleChildScrollView(
@@ -1132,11 +1215,13 @@ class _AccountWizardState extends State<AccountWizard> {
                             decoration: BoxDecoration(
                               color: AppStyles.getCardColor(context),
                               border: Border.all(
-                                color: CupertinoColors.systemBlue.withValues(alpha: 0.2),
+                                color: CupertinoColors.systemBlue
+                                    .withValues(alpha: 0.2),
                               ),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            style: TextStyle(color: AppStyles.getTextColor(context)),
+                            style: TextStyle(
+                                color: AppStyles.getTextColor(context)),
                           ),
                           const SizedBox(height: 24),
                           Text(
@@ -1162,20 +1247,24 @@ class _AccountWizardState extends State<AccountWizard> {
                                 CupertinoColors.systemIndigo,
                               ]
                                   .map((color) => GestureDetector(
-                                    onTap: () => setDialogState(() => selectedColor = color),
-                                    child: Container(
-                                      width: 50,
-                                      height: 50,
-                                      margin: const EdgeInsets.only(right: 12),
-                                      decoration: BoxDecoration(
-                                        color: color,
-                                        shape: BoxShape.circle,
-                                        border: selectedColor == color
-                                            ? Border.all(color: Colors.white, width: 3)
-                                            : null,
-                                      ),
-                                    ),
-                                  ))
+                                        onTap: () => setDialogState(
+                                            () => selectedColor = color),
+                                        child: Container(
+                                          width: 50,
+                                          height: 50,
+                                          margin:
+                                              const EdgeInsets.only(right: 12),
+                                          decoration: BoxDecoration(
+                                            color: color,
+                                            shape: BoxShape.circle,
+                                            border: selectedColor == color
+                                                ? Border.all(
+                                                    color: Colors.white,
+                                                    width: 3)
+                                                : null,
+                                          ),
+                                        ),
+                                      ))
                                   .toList(),
                             ),
                           ),
@@ -1218,8 +1307,9 @@ class _AccountWizardState extends State<AccountWizard> {
                             onPressed: () {
                               if (bankNameController.text.isNotEmpty) {
                                 // Add new bank to controller
-                                final newBankId =
-                                    bankNameController.text.replaceAll(' ', '_').toLowerCase();
+                                final newBankId = bankNameController.text
+                                    .replaceAll(' ', '_')
+                                    .toLowerCase();
                                 final newBank = {
                                   'id': newBankId,
                                   'name': bankNameController.text,
@@ -1239,7 +1329,8 @@ class _AccountWizardState extends State<AccountWizard> {
 
                                 // Close modals and move to next step
                                 Navigator.pop(context); // Close add bank sheet
-                                Navigator.pop(context); // Close select bank modal
+                                Navigator.pop(
+                                    context); // Close select bank modal
                                 _nextStep();
                               }
                             },
@@ -1275,11 +1366,31 @@ class _AccountWizardState extends State<AccountWizard> {
 
   Widget _buildAccountTypeStep() {
     final accountTypes = [
-      {'type': AccountType.savings, 'label': 'Savings Account', 'icon': CupertinoIcons.book_fill},
-      {'type': AccountType.current, 'label': 'Current Account', 'icon': CupertinoIcons.briefcase_fill},
-      {'type': AccountType.credit, 'label': 'Credit Card', 'icon': CupertinoIcons.creditcard_fill},
-      {'type': AccountType.payLater, 'label': 'Pay Later (BNPL)', 'icon': CupertinoIcons.clock_fill},
-      {'type': AccountType.wallet, 'label': 'Digital Wallet', 'icon': CupertinoIcons.square_stack_3d_down_right_fill},
+      {
+        'type': AccountType.savings,
+        'label': 'Savings Account',
+        'icon': CupertinoIcons.book_fill
+      },
+      {
+        'type': AccountType.current,
+        'label': 'Current Account',
+        'icon': CupertinoIcons.briefcase_fill
+      },
+      {
+        'type': AccountType.credit,
+        'label': 'Credit Card',
+        'icon': CupertinoIcons.creditcard_fill
+      },
+      {
+        'type': AccountType.payLater,
+        'label': 'Pay Later (BNPL)',
+        'icon': CupertinoIcons.clock_fill
+      },
+      {
+        'type': AccountType.wallet,
+        'label': 'Digital Wallet',
+        'icon': CupertinoIcons.square_stack_3d_down_right_fill
+      },
     ];
 
     return SingleChildScrollView(
@@ -1315,9 +1426,11 @@ class _AccountWizardState extends State<AccountWizard> {
                     color: AppStyles.getCardColor(context),
                     borderRadius: BorderRadius.circular(12),
                     border: isSelected
-                        ? Border.all(color: CupertinoColors.systemBlue, width: 2)
+                        ? Border.all(
+                            color: CupertinoColors.systemBlue, width: 2)
                         : Border.all(
-                            color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.1),
+                            color: AppStyles.getSecondaryTextColor(context)
+                                .withValues(alpha: 0.1),
                             width: 1,
                           ),
                   ),
@@ -1327,7 +1440,8 @@ class _AccountWizardState extends State<AccountWizard> {
                         width: 48,
                         height: 48,
                         decoration: BoxDecoration(
-                          color: CupertinoColors.systemBlue.withValues(alpha: 0.1),
+                          color:
+                              CupertinoColors.systemBlue.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                         ),
                         child: Center(
@@ -1342,7 +1456,8 @@ class _AccountWizardState extends State<AccountWizard> {
                       Expanded(
                         child: Text(
                           item['label'] as String,
-                          style: AppStyles.titleStyle(context).copyWith(fontSize: 16),
+                          style: AppStyles.titleStyle(context)
+                              .copyWith(fontSize: 16),
                         ),
                       ),
                       if (isSelected)
@@ -1389,12 +1504,15 @@ class _AccountWizardState extends State<AccountWizard> {
             style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
           ),
           const SizedBox(height: 32),
-          if (_selectedAccountType == AccountType.savings || _selectedAccountType == AccountType.current) ...[
+          if (_selectedAccountType == AccountType.savings ||
+              _selectedAccountType == AccountType.current) ...[
             Text('Account Number', style: AppStyles.headerStyle(context)),
             const SizedBox(height: 4),
             Text(
               '(Optional - full or last 4 digits)',
-              style: TextStyle(fontSize: 12, color: AppStyles.getSecondaryTextColor(context)),
+              style: TextStyle(
+                  fontSize: 12,
+                  color: AppStyles.getSecondaryTextColor(context)),
             ),
             const SizedBox(height: 8),
             CupertinoTextField(
@@ -1413,7 +1531,9 @@ class _AccountWizardState extends State<AccountWizard> {
             const SizedBox(height: 4),
             Text(
               '(Optional - full or last 4 digits)',
-              style: TextStyle(fontSize: 12, color: AppStyles.getSecondaryTextColor(context)),
+              style: TextStyle(
+                  fontSize: 12,
+                  color: AppStyles.getSecondaryTextColor(context)),
             ),
             const SizedBox(height: 8),
             CupertinoTextField(
@@ -1434,18 +1554,22 @@ class _AccountWizardState extends State<AccountWizard> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('₹', style: AppStyles.titleStyle(context).copyWith(fontSize: 32)),
+                  Text('₹',
+                      style:
+                          AppStyles.titleStyle(context).copyWith(fontSize: 32)),
                   const SizedBox(width: 8),
                   IntrinsicWidth(
                     child: CupertinoTextField(
                       controller: _balanceController,
                       placeholder: '0.00',
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
                       decoration: BoxDecoration(
                         color: AppStyles.getCardColor(context),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      style: AppStyles.titleStyle(context).copyWith(fontSize: 32, fontWeight: FontWeight.bold),
+                      style: AppStyles.titleStyle(context)
+                          .copyWith(fontSize: 32, fontWeight: FontWeight.bold),
                       onSubmitted: (value) {
                         // Auto-proceed when user taps Done on keyboard
                         if (_balanceController.text.isNotEmpty) {
@@ -1457,25 +1581,30 @@ class _AccountWizardState extends State<AccountWizard> {
                 ],
               ),
             ),
-          ] else if (_selectedAccountType == AccountType.credit || _selectedAccountType == AccountType.payLater) ...[
+          ] else if (_selectedAccountType == AccountType.credit ||
+              _selectedAccountType == AccountType.payLater) ...[
             Text('Credit Limit', style: AppStyles.headerStyle(context)),
             const SizedBox(height: 8),
             Center(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('₹', style: AppStyles.titleStyle(context).copyWith(fontSize: 32)),
+                  Text('₹',
+                      style:
+                          AppStyles.titleStyle(context).copyWith(fontSize: 32)),
                   const SizedBox(width: 8),
                   IntrinsicWidth(
                     child: CupertinoTextField(
                       controller: _creditLimitController,
                       placeholder: '0.00',
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
                       decoration: BoxDecoration(
                         color: AppStyles.getCardColor(context),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      style: AppStyles.titleStyle(context).copyWith(fontSize: 32, fontWeight: FontWeight.bold),
+                      style: AppStyles.titleStyle(context)
+                          .copyWith(fontSize: 32, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
@@ -1488,18 +1617,22 @@ class _AccountWizardState extends State<AccountWizard> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('₹', style: AppStyles.titleStyle(context).copyWith(fontSize: 32)),
+                  Text('₹',
+                      style:
+                          AppStyles.titleStyle(context).copyWith(fontSize: 32)),
                   const SizedBox(width: 8),
                   IntrinsicWidth(
                     child: CupertinoTextField(
                       controller: _amountUsedController,
                       placeholder: '0.00',
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
                       decoration: BoxDecoration(
                         color: AppStyles.getCardColor(context),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      style: AppStyles.titleStyle(context).copyWith(fontSize: 32, fontWeight: FontWeight.bold),
+                      style: AppStyles.titleStyle(context)
+                          .copyWith(fontSize: 32, fontWeight: FontWeight.bold),
                       onSubmitted: (value) {
                         // Auto-proceed when user taps Done on keyboard if credit limit is filled
                         if (_creditLimitController.text.isNotEmpty) {
@@ -1516,7 +1649,9 @@ class _AccountWizardState extends State<AccountWizard> {
             const SizedBox(height: 4),
             Text(
               '(Optional - full or last 4 digits)',
-              style: TextStyle(fontSize: 12, color: AppStyles.getSecondaryTextColor(context)),
+              style: TextStyle(
+                  fontSize: 12,
+                  color: AppStyles.getSecondaryTextColor(context)),
             ),
             const SizedBox(height: 8),
             CupertinoTextField(
@@ -1530,25 +1665,30 @@ class _AccountWizardState extends State<AccountWizard> {
               ),
               style: TextStyle(color: AppStyles.getTextColor(context)),
             ),
-          ] else if (_selectedAccountType == AccountType.wallet || _selectedAccountType == AccountType.investment) ...[
+          ] else if (_selectedAccountType == AccountType.wallet ||
+              _selectedAccountType == AccountType.investment) ...[
             Text('Opening Balance', style: AppStyles.headerStyle(context)),
             const SizedBox(height: 8),
             Center(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('₹', style: AppStyles.titleStyle(context).copyWith(fontSize: 32)),
+                  Text('₹',
+                      style:
+                          AppStyles.titleStyle(context).copyWith(fontSize: 32)),
                   const SizedBox(width: 8),
                   IntrinsicWidth(
                     child: CupertinoTextField(
                       controller: _balanceController,
                       placeholder: '0.00',
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
                       decoration: BoxDecoration(
                         color: AppStyles.getCardColor(context),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      style: AppStyles.titleStyle(context).copyWith(fontSize: 32, fontWeight: FontWeight.bold),
+                      style: AppStyles.titleStyle(context)
+                          .copyWith(fontSize: 32, fontWeight: FontWeight.bold),
                       onSubmitted: (value) {
                         // Auto-proceed when user taps Done on keyboard
                         if (_balanceController.text.isNotEmpty) {
@@ -1568,7 +1708,8 @@ class _AccountWizardState extends State<AccountWizard> {
 
   Widget _buildReviewStep() {
     String displayBalance = '₹0.00';
-    if (_selectedAccountType == AccountType.credit || _selectedAccountType == AccountType.payLater) {
+    if (_selectedAccountType == AccountType.credit ||
+        _selectedAccountType == AccountType.payLater) {
       final creditLimit = double.tryParse(_creditLimitController.text) ?? 0.0;
       final amountUsed = double.tryParse(_amountUsedController.text) ?? 0.0;
       final available = creditLimit - amountUsed;
@@ -1599,14 +1740,20 @@ class _AccountWizardState extends State<AccountWizard> {
               children: [
                 _buildReviewRow('Bank', _selectedBank ?? 'Unknown'),
                 const SizedBox(height: 16),
-                _buildReviewRow('Account Type', _getAccountTypeLabel(_selectedAccountType ?? AccountType.savings)),
+                _buildReviewRow(
+                    'Account Type',
+                    _getAccountTypeLabel(
+                        _selectedAccountType ?? AccountType.savings)),
                 const SizedBox(height: 16),
                 _buildReviewRow('Account Name', _nameController.text),
                 const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
-                    border: Border(top: BorderSide(color: CupertinoColors.systemGrey.withValues(alpha: 0.2))),
+                    border: Border(
+                        top: BorderSide(
+                            color: CupertinoColors.systemGrey
+                                .withValues(alpha: 0.2))),
                   ),
                 ),
                 Text(
@@ -1646,7 +1793,8 @@ class _AccountWizardState extends State<AccountWizard> {
         ),
         Text(
           value,
-          style: AppStyles.titleStyle(context).copyWith(fontWeight: FontWeight.w600),
+          style: AppStyles.titleStyle(context)
+              .copyWith(fontWeight: FontWeight.w600),
         ),
       ],
     );
@@ -1659,7 +1807,8 @@ class _AccountWizardState extends State<AccountWizard> {
       // Investment account validation (3 steps)
       switch (_currentStep) {
         case 0: // Select Broker
-          canGoNext = _selectedBroker != null && _nameController.text.isNotEmpty;
+          canGoNext =
+              _selectedBroker != null && _nameController.text.isNotEmpty;
           break;
         case 1: // Account Balance
           canGoNext = _balanceController.text.isNotEmpty;
@@ -1675,10 +1824,12 @@ class _AccountWizardState extends State<AccountWizard> {
           canGoNext = _selectedBank != null;
           break;
         case 1: // Account Type
-          canGoNext = _selectedAccountType != null && _nameController.text.isNotEmpty;
+          canGoNext =
+              _selectedAccountType != null && _nameController.text.isNotEmpty;
           break;
         case 2: // Account Details
-          if (_selectedAccountType == AccountType.credit || _selectedAccountType == AccountType.payLater) {
+          if (_selectedAccountType == AccountType.credit ||
+              _selectedAccountType == AccountType.payLater) {
             canGoNext = _creditLimitController.text.isNotEmpty;
           } else {
             canGoNext = _balanceController.text.isNotEmpty;
@@ -1706,7 +1857,10 @@ class _AccountWizardState extends State<AccountWizard> {
             child: Center(
               child: Text(
                 _currentStep == _totalSteps - 1 ? 'Finish' : 'Next',
-                style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold),
               ),
             ),
           ),

@@ -94,15 +94,7 @@ class _SIPFrequencyDeductionStepState extends State<SIPFrequencyDeductionStep> {
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: [
-                'Mon',
-                'Tue',
-                'Wed',
-                'Thu',
-                'Fri',
-                'Sat',
-                'Sun'
-              ]
+              children: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
                   .asMap()
                   .entries
                   .map(
@@ -121,17 +113,16 @@ class _SIPFrequencyDeductionStepState extends State<SIPFrequencyDeductionStep> {
                           border: sipController.selectedWeekday == entry.key
                               ? null
                               : Border.all(
-                                  color: Colors.grey.withOpacity(0.3),
+                                  color: Colors.grey.withValues(alpha: 0.3),
                                 ),
                         ),
                         child: Center(
                           child: Text(
                             entry.value,
                             style: TextStyle(
-                              color:
-                                  sipController.selectedWeekday == entry.key
-                                      ? Colors.white
-                                      : AppStyles.getTextColor(context),
+                              color: sipController.selectedWeekday == entry.key
+                                  ? Colors.white
+                                  : AppStyles.getTextColor(context),
                               fontWeight: FontWeight.w600,
                               fontSize: 12,
                             ),
@@ -199,9 +190,10 @@ class _SIPFrequencyDeductionStepState extends State<SIPFrequencyDeductionStep> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.orange.withOpacity(0.1),
+                        color: Colors.orange.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                        border: Border.all(
+                            color: Colors.orange.withValues(alpha: 0.3)),
                       ),
                       child: Text(
                         'No bank accounts found. Please add one.',
@@ -230,7 +222,8 @@ class _SIPFrequencyDeductionStepState extends State<SIPFrequencyDeductionStep> {
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? SemanticColors.investments.withOpacity(0.1)
+                                  ? SemanticColors.investments
+                                      .withValues(alpha: 0.1)
                                   : AppStyles.getCardColor(context),
                               border: isSelected
                                   ? Border.all(
@@ -244,7 +237,7 @@ class _SIPFrequencyDeductionStepState extends State<SIPFrequencyDeductionStep> {
                                 Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: account.color.withOpacity(0.2),
+                                    color: account.color.withValues(alpha: 0.2),
                                     shape: BoxShape.circle,
                                   ),
                                   child: Icon(
@@ -269,8 +262,9 @@ class _SIPFrequencyDeductionStepState extends State<SIPFrequencyDeductionStep> {
                                       Text(
                                         '₹${account.balance.toStringAsFixed(2)}',
                                         style: TextStyle(
-                                          color: AppStyles
-                                              .getSecondaryTextColor(context),
+                                          color:
+                                              AppStyles.getSecondaryTextColor(
+                                                  context),
                                           fontSize: 12,
                                         ),
                                       ),
@@ -334,7 +328,8 @@ class _SIPFrequencyDeductionStepState extends State<SIPFrequencyDeductionStep> {
   }
 
   void _showMonthDayPicker(BuildContext context) {
-    final sipController = Provider.of<SIPWizardController>(context, listen: false);
+    final sipController =
+        Provider.of<SIPWizardController>(context, listen: false);
     showCupertinoModalPopup(
       context: context,
       builder: (context) => Container(

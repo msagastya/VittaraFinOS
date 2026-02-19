@@ -23,9 +23,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
       navigationBar: CupertinoNavigationBar(
-        middle: Text('Settings', style: TextStyle(color: AppStyles.getTextColor(context))),
+        middle: Text('Settings',
+            style: TextStyle(color: AppStyles.getTextColor(context))),
         previousPageTitle: 'Back',
-        backgroundColor: AppStyles.getBackground(context).withValues(alpha: 0.8),
+        backgroundColor:
+            AppStyles.getBackground(context).withValues(alpha: 0.8),
         border: null,
       ),
       child: SafeArea(
@@ -102,18 +104,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   context,
                   icon: CupertinoIcons.chat_bubble_text,
                   title: 'SMS Auto Detection',
-                  value: false, 
+                  value: false,
                   color: CupertinoColors.systemIndigo,
-                  onChanged: (val) {}, 
+                  onChanged: (val) {},
                 ),
                 _buildDivider(context),
                 _buildToggleRow(
                   context,
                   icon: CupertinoIcons.doc_checkmark,
                   title: 'Statement Reconciliation',
-                  value: false, 
+                  value: false,
                   color: CupertinoColors.systemTeal,
-                  onChanged: (val) {}, 
+                  onChanged: (val) {},
                 ),
                 _buildDivider(context),
                 _buildToggleRow(
@@ -136,7 +138,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   onTap: () => _showBackupOptions(context),
                 ),
               ]),
-              
+
               const SizedBox(height: 40),
             ],
           ),
@@ -167,14 +169,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
       padding: const EdgeInsets.only(left: 60),
       child: Container(
         height: 1,
-        color: AppStyles.isDarkMode(context) 
-            ? const Color(0xFF2C2C2E) 
+        color: AppStyles.isDarkMode(context)
+            ? const Color(0xFF2C2C2E)
             : CupertinoColors.systemGrey6,
       ),
     );
   }
 
-  Widget _buildToggleRow(BuildContext context, {
+  Widget _buildToggleRow(
+    BuildContext context, {
     required IconData icon,
     required String title,
     required bool value,
@@ -196,7 +199,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           CupertinoSwitch(
             value: value,
-            activeColor: CupertinoColors.activeGreen,
+            activeTrackColor: CupertinoColors.activeGreen,
             onChanged: onChanged,
           ),
         ],
@@ -204,7 +207,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildNavRow(BuildContext context, {
+  Widget _buildNavRow(
+    BuildContext context, {
     required IconData icon,
     required String title,
     Color? color,
@@ -221,8 +225,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             Container(
               padding: const EdgeInsets.all(8),
-              decoration: AppStyles.iconBoxDecoration(context, color ?? CupertinoColors.systemBlue),
-              child: Icon(icon, size: 20, color: color ?? CupertinoColors.systemBlue),
+              decoration: AppStyles.iconBoxDecoration(
+                  context, color ?? CupertinoColors.systemBlue),
+              child: Icon(icon,
+                  size: 20, color: color ?? CupertinoColors.systemBlue),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -264,17 +270,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return 'System';
   }
 
-  void _showLockTimeoutOptions(BuildContext context, SettingsController settings) {
+  void _showLockTimeoutOptions(
+      BuildContext context, SettingsController settings) {
     showCupertinoModalPopup(
       context: context,
       builder: (context) => CupertinoActionSheet(
         title: const Text('Auto-Lock Timeout'),
         actions: [
-          _buildActionSheetItem(context, 'Immediate', () => settings.setLockTimeout(0)),
-          _buildActionSheetItem(context, 'After 10 seconds', () => settings.setLockTimeout(10)),
-          _buildActionSheetItem(context, 'After 30 seconds', () => settings.setLockTimeout(30)),
-          _buildActionSheetItem(context, 'After 1 minute', () => settings.setLockTimeout(60)),
-          _buildActionSheetItem(context, 'After 5 minutes', () => settings.setLockTimeout(300)),
+          _buildActionSheetItem(
+              context, 'Immediate', () => settings.setLockTimeout(0)),
+          _buildActionSheetItem(
+              context, 'After 10 seconds', () => settings.setLockTimeout(10)),
+          _buildActionSheetItem(
+              context, 'After 30 seconds', () => settings.setLockTimeout(30)),
+          _buildActionSheetItem(
+              context, 'After 1 minute', () => settings.setLockTimeout(60)),
+          _buildActionSheetItem(
+              context, 'After 5 minutes', () => settings.setLockTimeout(300)),
         ],
         cancelButton: CupertinoActionSheetAction(
           onPressed: () => Navigator.pop(context),
@@ -290,9 +302,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (context) => CupertinoActionSheet(
         title: const Text('Appearance'),
         actions: [
-          _buildActionSheetItem(context, 'Light', () => settings.setThemeMode(ThemeMode.light)),
-          _buildActionSheetItem(context, 'Dark (AMOLED)', () => settings.setThemeMode(ThemeMode.dark)),
-          _buildActionSheetItem(context, 'System Default', () => settings.setThemeMode(ThemeMode.system)),
+          _buildActionSheetItem(
+              context, 'Light', () => settings.setThemeMode(ThemeMode.light)),
+          _buildActionSheetItem(context, 'Dark (AMOLED)',
+              () => settings.setThemeMode(ThemeMode.dark)),
+          _buildActionSheetItem(context, 'System Default',
+              () => settings.setThemeMode(ThemeMode.system)),
         ],
         cancelButton: CupertinoActionSheetAction(
           onPressed: () => Navigator.pop(context),
@@ -301,22 +316,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
-  
+
   void _showBackupOptions(BuildContext context) {
     showCupertinoModalPopup(
       context: context,
       builder: (context) => CupertinoActionSheet(
         title: const Text('Backup & Restore'),
         actions: [
-          CupertinoActionSheetAction(onPressed: () => Navigator.pop(context), child: const Text('Local Backup')),
-          CupertinoActionSheetAction(onPressed: () => Navigator.pop(context), child: const Text('Google Drive Backup')),
+          CupertinoActionSheetAction(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Local Backup')),
+          CupertinoActionSheetAction(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Google Drive Backup')),
         ],
-        cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+        cancelButton: CupertinoActionSheetAction(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel')),
       ),
     );
   }
 
-  Widget _buildActionSheetItem(BuildContext context, String text, VoidCallback onPressed) {
+  Widget _buildActionSheetItem(
+      BuildContext context, String text, VoidCallback onPressed) {
     return CupertinoActionSheetAction(
       onPressed: () {
         onPressed();

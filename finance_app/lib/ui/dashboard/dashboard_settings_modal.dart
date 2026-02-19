@@ -153,7 +153,7 @@ class _DashboardSettingsModalState extends State<DashboardSettingsModal> {
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Colors.grey.withOpacity(0.1),
+          color: Colors.grey.withValues(alpha: 0.1),
         ),
       ),
       child: Row(

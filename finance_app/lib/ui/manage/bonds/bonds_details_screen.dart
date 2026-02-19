@@ -31,10 +31,12 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
     final bondType = metadata['bondType'] as String? ?? 'Unknown';
     final faceValue = (metadata['faceValue'] as num?)?.toDouble() ?? 0;
     final purchasePrice = (metadata['purchasePrice'] as num?)?.toDouble() ?? 0;
-    final totalInvested = (metadata['totalInvested'] as num?)?.toDouble() ?? purchasePrice;
+    final totalInvested =
+        (metadata['totalInvested'] as num?)?.toDouble() ?? purchasePrice;
     final totalReceived = (metadata['totalReceived'] as num?)?.toDouble() ?? 0;
     final gainLoss = (metadata['gainLoss'] as num?)?.toDouble() ?? 0;
-    final gainLossPercent = (metadata['gainLossPercent'] as num?)?.toDouble() ?? 0;
+    final gainLossPercent =
+        (metadata['gainLossPercent'] as num?)?.toDouble() ?? 0;
     final ytm = (metadata['yieldToMaturity'] as num?)?.toDouble() ?? 0;
     final paymentsPerYear = metadata['paymentsPerYear'] as int? ?? 1;
     final purchaseDate = metadata['purchaseDate'] != null
@@ -86,7 +88,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                 decoration: BoxDecoration(
                   color: AppStyles.getCardColor(context),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                  border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -127,7 +129,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                 decoration: BoxDecoration(
                   color: AppStyles.getCardColor(context),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                  border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -143,12 +145,14 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                     const SizedBox(height: 16),
                     _DetailRow(
                       label: 'Purchase Date',
-                      value: '${purchaseDate.day}/${purchaseDate.month}/${purchaseDate.year}',
+                      value:
+                          '${purchaseDate.day}/${purchaseDate.month}/${purchaseDate.year}',
                     ),
                     const SizedBox(height: 8),
                     _DetailRow(
                       label: 'Maturity Date',
-                      value: '${maturityDate.day}/${maturityDate.month}/${maturityDate.year}',
+                      value:
+                          '${maturityDate.day}/${maturityDate.month}/${maturityDate.year}',
                     ),
                   ],
                 ),
@@ -159,13 +163,13 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: isProfit
-                      ? Colors.green.withOpacity(0.1)
-                      : Colors.red.withOpacity(0.1),
+                      ? Colors.green.withValues(alpha: 0.1)
+                      : Colors.red.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: isProfit
-                        ? Colors.green.withOpacity(0.3)
-                        : Colors.red.withOpacity(0.3),
+                        ? Colors.green.withValues(alpha: 0.3)
+                        : Colors.red.withValues(alpha: 0.3),
                   ),
                 ),
                 child: Column(
@@ -196,21 +200,24 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                     const SizedBox(height: 12),
                     _DetailRow(
                       label: 'Gain/Loss',
-                      value: '${isProfit ? '+' : ''}₹${gainLoss.toStringAsFixed(2)}',
+                      value:
+                          '${isProfit ? '+' : ''}₹${gainLoss.toStringAsFixed(2)}',
                       color: isProfit ? Colors.green : Colors.red,
                       isBold: true,
                     ),
                     const SizedBox(height: 8),
                     _DetailRow(
                       label: 'Return %',
-                      value: '${isProfit ? '+' : ''}${gainLossPercent.toStringAsFixed(2)}%',
+                      value:
+                          '${isProfit ? '+' : ''}${gainLossPercent.toStringAsFixed(2)}%',
                       color: isProfit ? Colors.green : Colors.red,
                       isBold: true,
                     ),
                     const SizedBox(height: 8),
                     _DetailRow(
                       label: 'Yield to Maturity (IRR)',
-                      value: '${ytm.toStringAsFixed(4)} / ${(ytm * 100).toStringAsFixed(2)}%',
+                      value:
+                          '${ytm.toStringAsFixed(4)} / ${(ytm * 100).toStringAsFixed(2)}%',
                       color: const Color(0xFF00A6CC),
                       isBold: true,
                     ),
@@ -224,7 +231,8 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                   decoration: BoxDecoration(
                     color: AppStyles.getCardColor(context),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                    border:
+                        Border.all(color: Colors.grey.withValues(alpha: 0.2)),
                   ),
                   child: Column(
                     children: [
@@ -232,7 +240,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF00A6CC).withOpacity(0.1),
+                          color: const Color(0xFF00A6CC).withValues(alpha: 0.1),
                           borderRadius: const BorderRadius.only(
                             topLeft: Radius.circular(12),
                             topRight: Radius.circular(12),
@@ -286,7 +294,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                           children: [
                             Divider(
                               height: 1,
-                              color: Colors.grey.withOpacity(0.1),
+                              color: Colors.grey.withValues(alpha: 0.1),
                             ),
                             Padding(
                               padding: const EdgeInsets.all(12),
@@ -307,7 +315,9 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                                       style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.w600,
-                                        color: isNegative ? Colors.red : Colors.green,
+                                        color: isNegative
+                                            ? Colors.red
+                                            : Colors.green,
                                       ),
                                     ),
                                   ),
@@ -318,7 +328,8 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                                       textAlign: TextAlign.right,
                                       style: TextStyle(
                                         fontSize: 11,
-                                        color: AppStyles.getSecondaryTextColor(context),
+                                        color: AppStyles.getSecondaryTextColor(
+                                            context),
                                       ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
@@ -348,7 +359,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
               SizedBox(
                 width: double.infinity,
                 child: CupertinoButton(
-                  color: Colors.red.withOpacity(0.1),
+                  color: Colors.red.withValues(alpha: 0.1),
                   onPressed: () async {
                     showCupertinoDialog(
                       context: context,

@@ -1,4 +1,5 @@
 enum CommodityType { gold, silver, oil, gas, wheat, cotton }
+
 enum TradePosition { long, short }
 
 class Commodity {
@@ -54,32 +55,32 @@ class Commodity {
   }
 
   Map<String, dynamic> toMap() => {
-    'id': id,
-    'name': name,
-    'type': type.index,
-    'quantity': quantity,
-    'unit': unit,
-    'buyPrice': buyPrice,
-    'currentPrice': currentPrice,
-    'position': position.index,
-    'purchaseDate': purchaseDate.toIso8601String(),
-    'exchange': exchange,
-    'createdDate': createdDate.toIso8601String(),
-    'notes': notes,
-  };
+        'id': id,
+        'name': name,
+        'type': type.index,
+        'quantity': quantity,
+        'unit': unit,
+        'buyPrice': buyPrice,
+        'currentPrice': currentPrice,
+        'position': position.index,
+        'purchaseDate': purchaseDate.toIso8601String(),
+        'exchange': exchange,
+        'createdDate': createdDate.toIso8601String(),
+        'notes': notes,
+      };
 
   factory Commodity.fromMap(Map<String, dynamic> map) => Commodity(
-    id: map['id'],
-    name: map['name'],
-    type: CommodityType.values[map['type'] as int],
-    quantity: (map['quantity'] as num).toDouble(),
-    unit: map['unit'],
-    buyPrice: (map['buyPrice'] as num).toDouble(),
-    currentPrice: (map['currentPrice'] as num).toDouble(),
-    position: TradePosition.values[map['position'] as int],
-    purchaseDate: DateTime.parse(map['purchaseDate']),
-    exchange: map['exchange'],
-    createdDate: DateTime.parse(map['createdDate']),
-    notes: map['notes'] as String?,
-  );
+        id: map['id'],
+        name: map['name'],
+        type: CommodityType.values[map['type'] as int],
+        quantity: (map['quantity'] as num).toDouble(),
+        unit: map['unit'],
+        buyPrice: (map['buyPrice'] as num).toDouble(),
+        currentPrice: (map['currentPrice'] as num).toDouble(),
+        position: TradePosition.values[map['position'] as int],
+        purchaseDate: DateTime.parse(map['purchaseDate']),
+        exchange: map['exchange'],
+        createdDate: DateTime.parse(map['createdDate']),
+        notes: map['notes'] as String?,
+      );
 }

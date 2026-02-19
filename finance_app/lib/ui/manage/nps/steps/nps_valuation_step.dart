@@ -41,7 +41,8 @@ class _NPSValuationStepState extends State<NPSValuationStep> {
           Text('Current Valuation', style: AppStyles.titleStyle(context)),
           const SizedBox(height: 8),
           Text('Enter current account value',
-              style: TextStyle(color: AppStyles.getSecondaryTextColor(context))),
+              style:
+                  TextStyle(color: AppStyles.getSecondaryTextColor(context))),
           const SizedBox(height: 30),
           Text('Current Account Value (₹)',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
@@ -57,7 +58,8 @@ class _NPSValuationStepState extends State<NPSValuationStep> {
             ),
             prefix: Padding(
               padding: const EdgeInsets.only(left: 16),
-              child: Text('₹', style: TextStyle(color: AppStyles.getTextColor(context))),
+              child: Text('₹',
+                  style: TextStyle(color: AppStyles.getTextColor(context))),
             ),
             onChanged: (v) {
               final val = double.tryParse(v) ?? 0;
@@ -69,9 +71,10 @@ class _NPSValuationStepState extends State<NPSValuationStep> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF9B59B6).withOpacity(0.1),
+                color: const Color(0xFF9B59B6).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF9B59B6).withOpacity(0.3)),
+                border: Border.all(
+                    color: const Color(0xFF9B59B6).withValues(alpha: 0.3)),
               ),
               child: Column(
                 children: [

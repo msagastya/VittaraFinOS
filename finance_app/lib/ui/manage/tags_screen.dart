@@ -7,7 +7,6 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
-import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class TagsScreen extends StatefulWidget {
   const TagsScreen({super.key});
@@ -44,22 +43,29 @@ class _TagsScreenState extends State<TagsScreen> {
                     children: [
                       Text(
                         'Your Tags',
-                        style: AppStyles.titleStyle(context).copyWith(fontSize: 28, fontWeight: FontWeight.w800),
+                        style: AppStyles.titleStyle(context).copyWith(
+                            fontSize: 28, fontWeight: FontWeight.w800),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'Organize transactions with custom labels',
-                        style: TextStyle(color: AppStyles.getSecondaryTextColor(context), fontSize: 14),
+                        style: TextStyle(
+                            color: AppStyles.getSecondaryTextColor(context),
+                            fontSize: 14),
                       ),
                       const SizedBox(height: 32),
                       if (tags.isEmpty)
                         Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 24),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 60, horizontal: 24),
                           decoration: BoxDecoration(
                             color: AppStyles.accentBlue.withValues(alpha: 0.08),
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppStyles.accentBlue.withValues(alpha: 0.2), width: 2),
+                            border: Border.all(
+                                color:
+                                    AppStyles.accentBlue.withValues(alpha: 0.2),
+                                width: 2),
                           ),
                           child: Column(
                             children: [
@@ -67,11 +73,13 @@ class _TagsScreenState extends State<TagsScreen> {
                                 width: 64,
                                 height: 64,
                                 decoration: BoxDecoration(
-                                  color: AppStyles.accentBlue.withValues(alpha: 0.15),
+                                  color: AppStyles.accentBlue
+                                      .withValues(alpha: 0.15),
                                   shape: BoxShape.circle,
                                 ),
                                 child: Center(
-                                  child: Icon(CupertinoIcons.tag, size: 32, color: AppStyles.accentBlue),
+                                  child: Icon(CupertinoIcons.tag,
+                                      size: 32, color: AppStyles.accentBlue),
                                 ),
                               ),
                               const SizedBox(height: 16),
@@ -88,7 +96,8 @@ class _TagsScreenState extends State<TagsScreen> {
                                 'Tap the + button to create your first tag',
                                 style: TextStyle(
                                   fontSize: 13,
-                                  color: AppStyles.getSecondaryTextColor(context),
+                                  color:
+                                      AppStyles.getSecondaryTextColor(context),
                                 ),
                               ),
                             ],
@@ -100,13 +109,17 @@ class _TagsScreenState extends State<TagsScreen> {
                             Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: AppStyles.accentBlue.withValues(alpha: 0.08),
+                                color: AppStyles.accentBlue
+                                    .withValues(alpha: 0.08),
                                 borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: AppStyles.accentBlue.withValues(alpha: 0.2)),
+                                border: Border.all(
+                                    color: AppStyles.accentBlue
+                                        .withValues(alpha: 0.2)),
                               ),
                               child: Row(
                                 children: [
-                                  Icon(CupertinoIcons.info_circle, size: 20, color: AppStyles.accentBlue),
+                                  Icon(CupertinoIcons.info_circle,
+                                      size: 20, color: AppStyles.accentBlue),
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: Text(
@@ -125,9 +138,12 @@ class _TagsScreenState extends State<TagsScreen> {
                             Wrap(
                               spacing: Spacing.md,
                               runSpacing: Spacing.md,
-                              children: tags.asMap().entries.map((entry) =>
-                                _buildTagChip(entry.value, context, tagsController, entry.key)
-                              ).toList(),
+                              children: tags
+                                  .asMap()
+                                  .entries
+                                  .map((entry) => _buildTagChip(entry.value,
+                                      context, tagsController, entry.key))
+                                  .toList(),
                             ),
                           ],
                         ),
@@ -140,7 +156,8 @@ class _TagsScreenState extends State<TagsScreen> {
                 right: Spacing.lg,
                 bottom: Spacing.xxxl,
                 child: FadingFAB(
-                  onPressed: () => _showCreateTagWizard(context, tagsController),
+                  onPressed: () =>
+                      _showCreateTagWizard(context, tagsController),
                   color: SemanticColors.tags,
                   heroTag: 'tags_fab',
                 ),
@@ -152,7 +169,8 @@ class _TagsScreenState extends State<TagsScreen> {
     );
   }
 
-  Widget _buildTagChip(Tag tag, BuildContext context, TagsController controller, int index) {
+  Widget _buildTagChip(
+      Tag tag, BuildContext context, TagsController controller, int index) {
     return StaggeredItem(
       index: index,
       child: BouncyButton(
@@ -161,11 +179,13 @@ class _TagsScreenState extends State<TagsScreen> {
           _showTagDetailsSheet(context, tag, controller);
         },
         child: Container(
-          padding: EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.md),
+          padding: EdgeInsets.symmetric(
+              horizontal: Spacing.lg, vertical: Spacing.md),
           decoration: BoxDecoration(
             color: tag.color.withValues(alpha: 0.12),
             borderRadius: Radii.pillRadius,
-            border: Border.all(color: tag.color.withValues(alpha: 0.3), width: 1.5),
+            border:
+                Border.all(color: tag.color.withValues(alpha: 0.3), width: 1.5),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -254,7 +274,8 @@ class _TagsScreenState extends State<TagsScreen> {
                   decoration: BoxDecoration(
                     color: AppStyles.getCardColor(context),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: selectedColor.withValues(alpha: 0.3)),
+                    border:
+                        Border.all(color: selectedColor.withValues(alpha: 0.3)),
                   ),
                   style: TextStyle(
                     color: AppStyles.getTextColor(context),
@@ -280,7 +301,8 @@ class _TagsScreenState extends State<TagsScreen> {
                       spacing: 12,
                       runSpacing: 12,
                       children: Tag.colorPalette.map((color) {
-                        final isSelected = selectedColor.value == color.value;
+                        final isSelected =
+                            selectedColor.toARGB32() == color.toARGB32();
                         return GestureDetector(
                           onTap: () => setState(() => selectedColor = color),
                           child: Container(
@@ -290,7 +312,9 @@ class _TagsScreenState extends State<TagsScreen> {
                               color: color,
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: isSelected ? Colors.white : Colors.transparent,
+                                color: isSelected
+                                    ? Colors.white
+                                    : Colors.transparent,
                                 width: 4,
                               ),
                               boxShadow: isSelected
@@ -305,7 +329,8 @@ class _TagsScreenState extends State<TagsScreen> {
                             ),
                             child: isSelected
                                 ? const Center(
-                                    child: Icon(CupertinoIcons.checkmark, color: Colors.white, size: 24),
+                                    child: Icon(CupertinoIcons.checkmark,
+                                        color: Colors.white, size: 24),
                                   )
                                 : null,
                           ),
@@ -349,7 +374,8 @@ class _TagsScreenState extends State<TagsScreen> {
     );
   }
 
-  void _showTagDetailsSheet(BuildContext context, Tag tag, TagsController controller) {
+  void _showTagDetailsSheet(
+      BuildContext context, Tag tag, TagsController controller) {
     showCupertinoModalPopup(
       context: context,
       builder: (context) => CupertinoActionSheet(
@@ -425,7 +451,8 @@ class _TagsScreenState extends State<TagsScreen> {
     );
   }
 
-  void _showEditTagSheet(BuildContext context, Tag tag, TagsController controller) {
+  void _showEditTagSheet(
+      BuildContext context, Tag tag, TagsController controller) {
     final nameController = TextEditingController(text: tag.name);
 
     showCupertinoDialog(
@@ -450,7 +477,9 @@ class _TagsScreenState extends State<TagsScreen> {
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: tag.color.withValues(alpha: 0.3)),
             ),
-            style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600),
+            style: TextStyle(
+                color: AppStyles.getTextColor(context),
+                fontWeight: FontWeight.w600),
           ),
         ),
         actions: [
@@ -473,7 +502,8 @@ class _TagsScreenState extends State<TagsScreen> {
     );
   }
 
-  void _showColorPickerSheet(BuildContext context, Tag tag, TagsController controller) {
+  void _showColorPickerSheet(
+      BuildContext context, Tag tag, TagsController controller) {
     showCupertinoModalPopup(
       context: context,
       builder: (context) => CupertinoActionSheet(
@@ -504,7 +534,7 @@ class _TagsScreenState extends State<TagsScreen> {
             runSpacing: 16,
             alignment: WrapAlignment.center,
             children: Tag.colorPalette.map((color) {
-              final isSelected = tag.color.value == color.value;
+              final isSelected = tag.color.toARGB32() == color.toARGB32();
               return GestureDetector(
                 onTap: () {
                   controller.updateTagColor(tag.id, color);
@@ -532,7 +562,8 @@ class _TagsScreenState extends State<TagsScreen> {
                   ),
                   child: isSelected
                       ? const Center(
-                          child: Icon(CupertinoIcons.checkmark, color: Colors.white, size: 28),
+                          child: Icon(CupertinoIcons.checkmark,
+                              color: Colors.white, size: 28),
                         )
                       : null,
                 ),
@@ -549,13 +580,26 @@ class _TagsScreenState extends State<TagsScreen> {
     );
   }
 
-  void _showTagOptions(BuildContext context, Tag tag, TagsController controller) {
+  void _showTagOptions(
+      BuildContext context, Tag tag, TagsController controller) {
     _showTagDetailsSheet(context, tag, controller);
   }
 
   String _formatDate(DateTime date) {
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
     return '${date.day} ${months[date.month - 1]}';
   }
 }
-

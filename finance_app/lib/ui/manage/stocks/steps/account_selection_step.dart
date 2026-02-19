@@ -23,7 +23,8 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
     // Refresh accounts when entering this step
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (mounted) {
-        await Provider.of<AccountsController>(context, listen: false).loadAccounts();
+        await Provider.of<AccountsController>(context, listen: false)
+            .loadAccounts();
       }
     });
   }
@@ -41,155 +42,181 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
             .toList();
 
         return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Text(
-            'Select Demat Account',
-            style: AppStyles.titleStyle(context),
-          ),
-        ),
-        Expanded(
-          child: accounts.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(CupertinoIcons.chart_pie, size: 48, color: Colors.grey),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No Investment Accounts Found',
-                        style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                'Select Demat Account',
+                style: AppStyles.titleStyle(context),
+              ),
+            ),
+            Expanded(
+              child: accounts.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(CupertinoIcons.chart_pie,
+                              size: 48, color: Colors.grey),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No Investment Accounts Found',
+                            style: TextStyle(
+                                color:
+                                    AppStyles.getSecondaryTextColor(context)),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                )
-              : ListView.builder(
-                  itemCount: accounts.length,
-                  itemBuilder: (context, index) {
-                    final account = accounts[index];
-                    final isSelected = wizardController.selectedAccount?.id == account.id;
+                    )
+                  : ListView.builder(
+                      itemCount: accounts.length,
+                      itemBuilder: (context, index) {
+                        final account = accounts[index];
+                        final isSelected =
+                            wizardController.selectedAccount?.id == account.id;
 
-                    return GestureDetector(
-                      onTap: () {
-                        wizardController.selectAccount(account);
-                        // Auto-proceed to next step
-                        Future.delayed(const Duration(milliseconds: 300), () {
-                          wizardController.nextPage();
-                        });
-                      },
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? SemanticColors.investments.withOpacity(0.1)
-                              : AppStyles.getCardColor(context),
-                          border: isSelected
-                              ? Border.all(color: SemanticColors.investments)
-                              : Border.all(color: Colors.transparent),
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            if (!isSelected)
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: account.color.withOpacity(0.2),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(CupertinoIcons.briefcase_fill, color: account.color),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    account.name,
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                  ),
-                                  Text(
-                                    account.bankName,
-                                    style: TextStyle(
-                                      color: AppStyles.getSecondaryTextColor(context),
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  '₹${account.balance.toStringAsFixed(2)}',
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                if (isSelected)
-                                  const Padding(
-                                    padding: EdgeInsets.only(top: 4),
-                                    child: Icon(CupertinoIcons.check_mark_circled_solid,
-                                        color: SemanticColors.investments, size: 20),
+                        return GestureDetector(
+                          onTap: () {
+                            wizardController.selectAccount(account);
+                            // Auto-proceed to next step
+                            Future.delayed(const Duration(milliseconds: 300),
+                                () {
+                              wizardController.nextPage();
+                            });
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? SemanticColors.investments
+                                      .withValues(alpha: 0.1)
+                                  : AppStyles.getCardColor(context),
+                              border: isSelected
+                                  ? Border.all(
+                                      color: SemanticColors.investments)
+                                  : Border.all(color: Colors.transparent),
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                if (!isSelected)
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.05),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
                                   ),
                               ],
                             ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(20),
-          child: CupertinoButton(
-            color: isDarkMode(context) ? Colors.grey[800] : Colors.grey[200],
-            onPressed: () {
-              final accountsController = Provider.of<AccountsController>(context, listen: false);
-              final wizardCtrl = Provider.of<StocksWizardController>(context, listen: false);
-
-              Navigator.push<Account>(
-                context,
-                FadeScalePageRoute(
-                  page: const AccountWizard(isInvestment: true),
-                ),
-              ).then((result) {
-                if (result != null) {
-                  // Save the newly created account
-                  accountsController.addAccount(result);
-                  // Auto-select the newly added account
-                  wizardCtrl.selectAccount(result);
-                  // Auto-proceed to next step
-                  Future.delayed(const Duration(milliseconds: 300), () {
-                    wizardCtrl.nextPage();
-                  });
-                }
-              });
-            },
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(CupertinoIcons.add, color: AppStyles.getTextColor(context)),
-                const SizedBox(width: 8),
-                Text('Add Demat Account', style: TextStyle(color: AppStyles.getTextColor(context))),
-              ],
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: account.color.withValues(alpha: 0.2),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(CupertinoIcons.briefcase_fill,
+                                      color: account.color),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        account.name,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16),
+                                      ),
+                                      Text(
+                                        account.bankName,
+                                        style: TextStyle(
+                                          color:
+                                              AppStyles.getSecondaryTextColor(
+                                                  context),
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      '₹${account.balance.toStringAsFixed(2)}',
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    if (isSelected)
+                                      const Padding(
+                                        padding: EdgeInsets.only(top: 4),
+                                        child: Icon(
+                                            CupertinoIcons
+                                                .check_mark_circled_solid,
+                                            color: SemanticColors.investments,
+                                            size: 20),
+                                      ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
             ),
-          ),
-        ),
-        ],
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: CupertinoButton(
+                color:
+                    isDarkMode(context) ? Colors.grey[800] : Colors.grey[200],
+                onPressed: () {
+                  final accountsController =
+                      Provider.of<AccountsController>(context, listen: false);
+                  final wizardCtrl = Provider.of<StocksWizardController>(
+                      context,
+                      listen: false);
+
+                  Navigator.push<Account>(
+                    context,
+                    FadeScalePageRoute(
+                      page: const AccountWizard(isInvestment: true),
+                    ),
+                  ).then((result) {
+                    if (result != null) {
+                      // Save the newly created account
+                      accountsController.addAccount(result);
+                      // Auto-select the newly added account
+                      wizardCtrl.selectAccount(result);
+                      // Auto-proceed to next step
+                      Future.delayed(const Duration(milliseconds: 300), () {
+                        wizardCtrl.nextPage();
+                      });
+                    }
+                  });
+                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(CupertinoIcons.add,
+                        color: AppStyles.getTextColor(context)),
+                    const SizedBox(width: 8),
+                    Text('Add Demat Account',
+                        style:
+                            TextStyle(color: AppStyles.getTextColor(context))),
+                  ],
+                ),
+              ),
+            ),
+          ],
         );
       },
     );
   }
 
-  bool isDarkMode(BuildContext context) => Theme.of(context).brightness == Brightness.dark;
+  bool isDarkMode(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark;
 }

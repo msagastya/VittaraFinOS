@@ -27,7 +27,8 @@ class StockSearchResult {
 
 class StockApiService {
   final AppLogger _logger = AppLogger();
-  static const String _baseUrl = 'https://query1.finance.yahoo.com/v1/finance/search';
+  static const String _baseUrl =
+      'https://query1.finance.yahoo.com/v1/finance/search';
 
   Future<List<StockSearchResult>> searchStocks(String query) async {
     if (query.isEmpty) return [];
@@ -35,7 +36,8 @@ class StockApiService {
     try {
       final url = Uri.parse('$_baseUrl?q=$query&quotesCount=20&newsCount=0');
       final response = await http.get(url, headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
       });
 
       if (response.statusCode == 200) {
@@ -47,11 +49,13 @@ class StockApiService {
             .map((q) => StockSearchResult.fromJson(q))
             .toList();
       } else {
-        _logger.error('Failed to search stocks: ${response.statusCode}', error: response.body, context: 'StockApiService');
+        _logger.error('Failed to search stocks: ${response.statusCode}',
+            error: response.body, context: 'StockApiService');
         throw Exception('Failed to load stock data');
       }
     } catch (e) {
-      _logger.error('Error searching stocks', error: e, context: 'StockApiService');
+      _logger.error('Error searching stocks',
+          error: e, context: 'StockApiService');
       rethrow;
     }
   }
@@ -60,9 +64,11 @@ class StockApiService {
     // Note: Yahoo Finance chart API often works without key for simple current price
     // https://query1.finance.yahoo.com/v8/finance/chart/AAPL?interval=1d&range=1d
     try {
-      final url = Uri.parse('https://query1.finance.yahoo.com/v8/finance/chart/$symbol?interval=1d&range=1d');
+      final url = Uri.parse(
+          'https://query1.finance.yahoo.com/v8/finance/chart/$symbol?interval=1d&range=1d');
       final response = await http.get(url, headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
       });
 
       if (response.statusCode == 200) {
@@ -72,7 +78,8 @@ class StockApiService {
         return (meta['regularMarketPrice'] as num?)?.toDouble();
       }
     } catch (e) {
-      _logger.error('Error fetching price for $symbol', error: e, context: 'StockApiService');
+      _logger.error('Error fetching price for $symbol',
+          error: e, context: 'StockApiService');
     }
     return null;
   }

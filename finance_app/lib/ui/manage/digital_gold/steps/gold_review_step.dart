@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/ui/manage/digital_gold/digital_gold_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
-import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/services/gold_price_service.dart';
 
 class GoldReviewStep extends StatefulWidget {
@@ -21,7 +20,8 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
   }
 
   Future<void> _fetchCurrentGoldPrice() async {
-    final controller = Provider.of<DigitalGoldWizardController>(context, listen: false);
+    final controller =
+        Provider.of<DigitalGoldWizardController>(context, listen: false);
 
     controller.setFetchingPrice(true);
 
@@ -64,7 +64,7 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -142,7 +142,7 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
                         child: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Colors.grey.withOpacity(0.1),
+                            color: Colors.grey.withValues(alpha: 0.1),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
@@ -166,7 +166,7 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -184,36 +184,47 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                _buildDetailRow('Provider', controller.selectedCompany?.name ?? '-'),
-                _buildDetailRow('Actual Gold Cost', '₹${controller.actualAmount.toStringAsFixed(2)}'),
-                _buildDetailRow('GST Rate', '${controller.gstRate.toStringAsFixed(1)}%'),
-                _buildDetailRow('Investment Date', _formatDate(controller.investmentDate)),
+                _buildDetailRow(
+                    'Provider', controller.selectedCompany?.name ?? '-'),
+                _buildDetailRow('Actual Gold Cost',
+                    '₹${controller.actualAmount.toStringAsFixed(2)}'),
+                _buildDetailRow(
+                    'GST Rate', '${controller.gstRate.toStringAsFixed(1)}%'),
+                _buildDetailRow(
+                    'Investment Date', _formatDate(controller.investmentDate)),
                 const Divider(height: 16),
-                _buildDetailRow('Actual Gold Cost', '₹${controller.actualAmount.toStringAsFixed(2)}', isBold: true),
-                _buildDetailRow('GST Amount (${controller.gstRate}%)', '₹${controller.gstAmount.toStringAsFixed(2)}', isBold: true),
+                _buildDetailRow('Actual Gold Cost',
+                    '₹${controller.actualAmount.toStringAsFixed(2)}',
+                    isBold: true),
+                _buildDetailRow('GST Amount (${controller.gstRate}%)',
+                    '₹${controller.gstAmount.toStringAsFixed(2)}',
+                    isBold: true),
                 Container(
                   height: 1,
                   margin: const EdgeInsets.symmetric(vertical: 8),
-                  color: Colors.grey.withOpacity(0.2),
+                  color: Colors.grey.withValues(alpha: 0.2),
                 ),
-                _buildDetailRow('Total Investment', '₹${controller.investedAmount.toStringAsFixed(2)}', isBold: true, isHighlight: true),
+                _buildDetailRow('Total Investment',
+                    '₹${controller.investedAmount.toStringAsFixed(2)}',
+                    isBold: true, isHighlight: true),
               ],
             ),
           ),
           const SizedBox(height: 20),
           // Current Value (if price fetched)
-          if (controller.currentGoldPrice != null && controller.currentGoldPrice! > 0)
+          if (controller.currentGoldPrice != null &&
+              controller.currentGoldPrice! > 0)
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: controller.gainLossPercent >= 0
-                    ? CupertinoColors.systemGreen.withOpacity(0.1)
-                    : CupertinoColors.systemRed.withOpacity(0.1),
+                    ? CupertinoColors.systemGreen.withValues(alpha: 0.1)
+                    : CupertinoColors.systemRed.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: controller.gainLossPercent >= 0
-                      ? CupertinoColors.systemGreen.withOpacity(0.3)
-                      : CupertinoColors.systemRed.withOpacity(0.3),
+                      ? CupertinoColors.systemGreen.withValues(alpha: 0.3)
+                      : CupertinoColors.systemRed.withValues(alpha: 0.3),
                 ),
               ),
               child: Column(
@@ -237,7 +248,8 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
-                              color: controller.currentValue >= controller.investedAmount
+                              color: controller.currentValue >=
+                                      controller.investedAmount
                                   ? CupertinoColors.systemGreen
                                   : CupertinoColors.systemRed,
                             ),
@@ -310,7 +322,20 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
   }
 
   String _formatDate(DateTime date) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 }

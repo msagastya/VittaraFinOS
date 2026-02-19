@@ -5,9 +5,7 @@ import 'package:vittara_fin_os/logic/goals_controller.dart';
 import 'package:vittara_fin_os/logic/goal_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
-import 'package:vittara_fin_os/ui/widgets/glass_card.dart';
 import 'package:vittara_fin_os/utils/alert_service.dart';
-import 'package:vittara_fin_os/utils/form_validators.dart';
 
 class AddGoalModal extends StatefulWidget {
   const AddGoalModal({super.key});
@@ -54,7 +52,9 @@ class _AddGoalModalState extends State<AddGoalModal> {
       createdDate: DateTime.now(),
       targetDate: _targetDate,
       color: _selectedColor,
-      notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+      notes: _notesController.text.trim().isEmpty
+          ? null
+          : _notesController.text.trim(),
     );
 
     await Provider.of<GoalsController>(context, listen: false).addGoal(goal);
@@ -97,13 +97,15 @@ class _AddGoalModalState extends State<AddGoalModal> {
                 ),
               ),
               SizedBox(height: Spacing.xxl),
-
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: Spacing.xxl),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Goal Name', style: TextStyle(fontSize: TypeScale.subhead, fontWeight: FontWeight.w600)),
+                    Text('Goal Name',
+                        style: TextStyle(
+                            fontSize: TypeScale.subhead,
+                            fontWeight: FontWeight.w600)),
                     SizedBox(height: Spacing.sm),
                     CupertinoTextField(
                       controller: _nameController,
@@ -114,42 +116,65 @@ class _AddGoalModalState extends State<AddGoalModal> {
                         borderRadius: BorderRadius.circular(Radii.md),
                       ),
                     ),
-
                     SizedBox(height: Spacing.xl),
-                    Text('Goal Type', style: TextStyle(fontSize: TypeScale.subhead, fontWeight: FontWeight.w600)),
+                    Text('Goal Type',
+                        style: TextStyle(
+                            fontSize: TypeScale.subhead,
+                            fontWeight: FontWeight.w600)),
                     SizedBox(height: Spacing.md),
                     Wrap(
                       spacing: Spacing.sm,
                       runSpacing: Spacing.sm,
                       children: GoalType.values.map((type) {
                         final dummyGoal = Goal(
-                          id: '', name: '', type: type, targetAmount: 0, currentAmount: 0,
-                          createdDate: DateTime.now(), targetDate: DateTime.now(), color: Colors.blue,
+                          id: '',
+                          name: '',
+                          type: type,
+                          targetAmount: 0,
+                          currentAmount: 0,
+                          createdDate: DateTime.now(),
+                          targetDate: DateTime.now(),
+                          color: Colors.blue,
                         );
                         final isSelected = _selectedType == type;
                         return GestureDetector(
                           onTap: () => setState(() => _selectedType = type),
                           child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.md),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: Spacing.lg, vertical: Spacing.md),
                             decoration: BoxDecoration(
-                              color: isSelected ? SemanticColors.primary.withValues(alpha: 0.1) : AppStyles.getBackground(context),
+                              color: isSelected
+                                  ? SemanticColors.primary
+                                      .withValues(alpha: 0.1)
+                                  : AppStyles.getBackground(context),
                               borderRadius: BorderRadius.circular(Radii.full),
                               border: Border.all(
-                                color: isSelected ? SemanticColors.primary : Colors.transparent,
+                                color: isSelected
+                                    ? SemanticColors.primary
+                                    : Colors.transparent,
                                 width: 2,
                               ),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(dummyGoal.getTypeIcon(), size: IconSizes.sm, color: isSelected ? SemanticColors.primary : AppStyles.getSecondaryTextColor(context)),
+                                Icon(dummyGoal.getTypeIcon(),
+                                    size: IconSizes.sm,
+                                    color: isSelected
+                                        ? SemanticColors.primary
+                                        : AppStyles.getSecondaryTextColor(
+                                            context)),
                                 SizedBox(width: Spacing.xs),
                                 Text(
                                   dummyGoal.getTypeLabel(),
                                   style: TextStyle(
                                     fontSize: TypeScale.footnote,
-                                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                                    color: isSelected ? SemanticColors.primary : AppStyles.getTextColor(context),
+                                    fontWeight: isSelected
+                                        ? FontWeight.w600
+                                        : FontWeight.normal,
+                                    color: isSelected
+                                        ? SemanticColors.primary
+                                        : AppStyles.getTextColor(context),
                                   ),
                                 ),
                               ],
@@ -158,17 +183,21 @@ class _AddGoalModalState extends State<AddGoalModal> {
                         );
                       }).toList(),
                     ),
-
                     SizedBox(height: Spacing.xl),
-                    Text('Target Amount', style: TextStyle(fontSize: TypeScale.subhead, fontWeight: FontWeight.w600)),
+                    Text('Target Amount',
+                        style: TextStyle(
+                            fontSize: TypeScale.subhead,
+                            fontWeight: FontWeight.w600)),
                     SizedBox(height: Spacing.sm),
                     CupertinoTextField(
                       controller: _targetAmountController,
                       placeholder: '100000',
-                      keyboardType: TextInputType.numberWithOptions(decimal: true),
+                      keyboardType:
+                          TextInputType.numberWithOptions(decimal: true),
                       prefix: Padding(
                         padding: EdgeInsets.only(left: Spacing.lg),
-                        child: Text('₹', style: TextStyle(fontSize: TypeScale.callout)),
+                        child: Text('₹',
+                            style: TextStyle(fontSize: TypeScale.callout)),
                       ),
                       padding: EdgeInsets.all(Spacing.lg),
                       decoration: BoxDecoration(
@@ -176,9 +205,11 @@ class _AddGoalModalState extends State<AddGoalModal> {
                         borderRadius: BorderRadius.circular(Radii.md),
                       ),
                     ),
-
                     SizedBox(height: Spacing.xl),
-                    Text('Target Date', style: TextStyle(fontSize: TypeScale.subhead, fontWeight: FontWeight.w600)),
+                    Text('Target Date',
+                        style: TextStyle(
+                            fontSize: TypeScale.subhead,
+                            fontWeight: FontWeight.w600)),
                     SizedBox(height: Spacing.sm),
                     GestureDetector(
                       onTap: () {
@@ -190,7 +221,8 @@ class _AddGoalModalState extends State<AddGoalModal> {
                             child: Column(
                               children: [
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     CupertinoButton(
                                       child: Text('Cancel'),
@@ -207,7 +239,8 @@ class _AddGoalModalState extends State<AddGoalModal> {
                                     mode: CupertinoDatePickerMode.date,
                                     initialDateTime: _targetDate,
                                     minimumDate: DateTime.now(),
-                                    onDateTimeChanged: (date) => setState(() => _targetDate = date),
+                                    onDateTimeChanged: (date) =>
+                                        setState(() => _targetDate = date),
                                   ),
                                 ),
                               ],
@@ -224,15 +257,18 @@ class _AddGoalModalState extends State<AddGoalModal> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('${_targetDate.day}/${_targetDate.month}/${_targetDate.year}'),
+                            Text(
+                                '${_targetDate.day}/${_targetDate.month}/${_targetDate.year}'),
                             Icon(CupertinoIcons.calendar, size: IconSizes.md),
                           ],
                         ),
                       ),
                     ),
-
                     SizedBox(height: Spacing.xl),
-                    Text('Color', style: TextStyle(fontSize: TypeScale.subhead, fontWeight: FontWeight.w600)),
+                    Text('Color',
+                        style: TextStyle(
+                            fontSize: TypeScale.subhead,
+                            fontWeight: FontWeight.w600)),
                     SizedBox(height: Spacing.md),
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
@@ -242,7 +278,8 @@ class _AddGoalModalState extends State<AddGoalModal> {
                           return Padding(
                             padding: EdgeInsets.only(right: Spacing.md),
                             child: GestureDetector(
-                              onTap: () => setState(() => _selectedColor = color),
+                              onTap: () =>
+                                  setState(() => _selectedColor = color),
                               child: Container(
                                 width: 50,
                                 height: 50,
@@ -250,10 +287,20 @@ class _AddGoalModalState extends State<AddGoalModal> {
                                   color: color,
                                   shape: BoxShape.circle,
                                   border: Border.all(
-                                    color: isSelected ? Colors.white : Colors.transparent,
+                                    color: isSelected
+                                        ? Colors.white
+                                        : Colors.transparent,
                                     width: 3,
                                   ),
-                                  boxShadow: isSelected ? [BoxShadow(color: color.withValues(alpha: 0.5), blurRadius: 10, offset: Offset(0, 4))] : null,
+                                  boxShadow: isSelected
+                                      ? [
+                                          BoxShadow(
+                                              color:
+                                                  color.withValues(alpha: 0.5),
+                                              blurRadius: 10,
+                                              offset: Offset(0, 4))
+                                        ]
+                                      : null,
                                 ),
                               ),
                             ),
@@ -261,9 +308,11 @@ class _AddGoalModalState extends State<AddGoalModal> {
                         }).toList(),
                       ),
                     ),
-
                     SizedBox(height: Spacing.xl),
-                    Text('Notes (Optional)', style: TextStyle(fontSize: TypeScale.subhead, fontWeight: FontWeight.w600)),
+                    Text('Notes (Optional)',
+                        style: TextStyle(
+                            fontSize: TypeScale.subhead,
+                            fontWeight: FontWeight.w600)),
                     SizedBox(height: Spacing.sm),
                     CupertinoTextField(
                       controller: _notesController,
@@ -275,7 +324,6 @@ class _AddGoalModalState extends State<AddGoalModal> {
                         borderRadius: BorderRadius.circular(Radii.md),
                       ),
                     ),
-
                     SizedBox(height: Spacing.xxxl),
                     Row(
                       children: [
@@ -283,7 +331,9 @@ class _AddGoalModalState extends State<AddGoalModal> {
                           child: CupertinoButton(
                             color: CupertinoColors.systemGrey3,
                             onPressed: () => Navigator.pop(context),
-                            child: Text('Cancel', style: TextStyle(color: AppStyles.getTextColor(context))),
+                            child: Text('Cancel',
+                                style: TextStyle(
+                                    color: AppStyles.getTextColor(context))),
                           ),
                         ),
                         SizedBox(width: Spacing.md),
@@ -291,7 +341,8 @@ class _AddGoalModalState extends State<AddGoalModal> {
                           child: CupertinoButton(
                             color: SemanticColors.success,
                             onPressed: _saveGoal,
-                            child: Text('Create Goal', style: TextStyle(color: Colors.white)),
+                            child: Text('Create Goal',
+                                style: TextStyle(color: Colors.white)),
                           ),
                         ),
                       ],

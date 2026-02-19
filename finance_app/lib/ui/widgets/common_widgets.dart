@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
@@ -61,7 +60,8 @@ class EmptyStateView extends StatelessWidget {
                 Text(
                   subtitle!,
                   style: TextStyle(
-                    color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.7),
+                    color: AppStyles.getSecondaryTextColor(context)
+                        .withValues(alpha: 0.7),
                     fontSize: TypeScale.body,
                   ),
                   textAlign: TextAlign.center,
@@ -82,7 +82,8 @@ class EmptyStateView extends StatelessWidget {
     final iconWidget = Icon(
       icon,
       size: IconSizes.emptyStateIcon,
-      color: AppStyles.getSecondaryTextColor(context).withValues(alpha: Opacities.disabled),
+      color: AppStyles.getSecondaryTextColor(context)
+          .withValues(alpha: Opacities.disabled),
     );
 
     if (showPulse && onAction != null) {
@@ -144,7 +145,8 @@ class FadingFAB extends StatefulWidget {
   State<FadingFAB> createState() => _FadingFABState();
 }
 
-class _FadingFABState extends State<FadingFAB> with SingleTickerProviderStateMixin {
+class _FadingFABState extends State<FadingFAB>
+    with SingleTickerProviderStateMixin {
   Timer? _timer;
   late AnimationController _controller;
   late Animation<double> _animation;
@@ -235,7 +237,8 @@ class ModalHandle extends StatelessWidget {
       height: ComponentSizes.modalHandleHeight,
       decoration: BoxDecoration(
         color: CupertinoColors.systemGrey3,
-        borderRadius: BorderRadius.circular(ComponentSizes.modalHandleHeight / 2),
+        borderRadius:
+            BorderRadius.circular(ComponentSizes.modalHandleHeight / 2),
       ),
     );
   }
@@ -543,9 +546,7 @@ class SummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final card = Container(
       padding: Spacing.cardPadding,
-      decoration: useGradientBorder
-          ? null
-          : AppStyles.cardDecoration(context),
+      decoration: useGradientBorder ? null : AppStyles.cardDecoration(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -600,7 +601,8 @@ class SummaryCard extends StatelessWidget {
 
     if (useGradientBorder) {
       return GradientBorderContainer(
-        gradientColors: gradientColors ?? ColorPalettes.gradientPresets.take(3).toList(),
+        gradientColors:
+            gradientColors ?? ColorPalettes.gradientPresets.take(3).toList(),
         borderWidth: 2,
         child: card,
       );

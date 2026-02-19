@@ -126,7 +126,8 @@ class _MFSearchStepState extends State<MFSearchStep> {
         // Scheme Type Filter Chips
         if (_schemeTypes.isNotEmpty)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
@@ -134,7 +135,8 @@ class _MFSearchStepState extends State<MFSearchStep> {
                   GestureDetector(
                     onTap: () => _onSchemeTypeChanged(null),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         color: _selectedSchemeType == null
                             ? SemanticColors.investments
@@ -161,11 +163,14 @@ class _MFSearchStepState extends State<MFSearchStep> {
                       child: GestureDetector(
                         onTap: () => _onSchemeTypeChanged(type),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? SemanticColors.investments
-                                : (isDark ? Colors.grey[800] : Colors.grey[200]),
+                                : (isDark
+                                    ? Colors.grey[800]
+                                    : Colors.grey[200]),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
@@ -181,7 +186,7 @@ class _MFSearchStepState extends State<MFSearchStep> {
                         ),
                       ),
                     );
-                  }).toList(),
+                  }),
                 ],
               ),
             ),
@@ -205,7 +210,9 @@ class _MFSearchStepState extends State<MFSearchStep> {
           textAlign: TextAlign.center,
         ),
       );
-    } else if (_results.isEmpty && _searchController.text.isEmpty && _selectedSchemeType == null) {
+    } else if (_results.isEmpty &&
+        _searchController.text.isEmpty &&
+        _selectedSchemeType == null) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -254,7 +261,7 @@ class _MFSearchStepState extends State<MFSearchStep> {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? SemanticColors.investments.withOpacity(0.1)
+                    ? SemanticColors.investments.withValues(alpha: 0.1)
                     : AppStyles.getCardColor(context),
                 border: isSelected
                     ? Border.all(color: SemanticColors.investments)
@@ -270,7 +277,8 @@ class _MFSearchStepState extends State<MFSearchStep> {
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: SemanticColors.investments.withOpacity(0.2),
+                          color:
+                              SemanticColors.investments.withValues(alpha: 0.2),
                           shape: BoxShape.circle,
                         ),
                         child: Center(
@@ -294,7 +302,8 @@ class _MFSearchStepState extends State<MFSearchStep> {
                               mf.schemeName,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: AppStyles.titleStyle(context).copyWith(fontSize: 14),
+                              style: AppStyles.titleStyle(context)
+                                  .copyWith(fontSize: 14),
                             ),
                             Text(
                               '${mf.fundHouse ?? "Unknown"} • ${mf.schemeType ?? "N/A"}',

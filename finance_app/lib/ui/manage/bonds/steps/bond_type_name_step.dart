@@ -9,7 +9,7 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 class BondTypeNameStep extends StatelessWidget {
   final BondsWizardControllerV2 ctrl;
 
-  const BondTypeNameStep(this.ctrl);
+  const BondTypeNameStep(this.ctrl, {super.key});
 
   void _showAccountPicker(
     BuildContext context,
@@ -17,7 +17,8 @@ class BondTypeNameStep extends StatelessWidget {
     Function(String, String) onSelect,
     String? currentAccountId,
   ) {
-    final accountsController = Provider.of<AccountsController>(context, listen: false);
+    final accountsController =
+        Provider.of<AccountsController>(context, listen: false);
 
     showCupertinoModalPopup(
       context: context,
@@ -31,7 +32,7 @@ class BondTypeNameStep extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 border: Border(
-                  bottom: BorderSide(color: Colors.grey.withOpacity(0.2)),
+                  bottom: BorderSide(color: Colors.grey.withValues(alpha: 0.2)),
                 ),
               ),
               child: Row(
@@ -71,7 +72,7 @@ class BondTypeNameStep extends StatelessWidget {
                         margin: const EdgeInsets.only(bottom: 8),
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? const Color(0xFF00A6CC).withOpacity(0.1)
+                              ? const Color(0xFF00A6CC).withValues(alpha: 0.1)
                               : AppStyles.getBackground(context),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
@@ -101,14 +102,16 @@ class BondTypeNameStep extends StatelessWidget {
                                     account.bankName,
                                     style: TextStyle(
                                       fontSize: 12,
-                                      color: AppStyles.getSecondaryTextColor(context),
+                                      color: AppStyles.getSecondaryTextColor(
+                                          context),
                                     ),
                                   ),
                                 ],
                               ),
                             ),
                             if (isSelected)
-                              const Icon(CupertinoIcons.checkmark_alt, color: Color(0xFF00A6CC)),
+                              const Icon(CupertinoIcons.checkmark_alt,
+                                  color: Color(0xFF00A6CC)),
                           ],
                         ),
                       ),
@@ -136,11 +139,26 @@ class BondTypeNameStep extends StatelessWidget {
             children: BondType.values.map((type) {
               final isSelected = ctrl.selectedType == type;
               final details = {
-                BondType.fixedCoupon: ('Fixed Coupon Bond', 'Regular coupon + principal at maturity'),
-                BondType.zeroCoupon: ('Zero Coupon Bond', 'Buy at discount, single maturity payment'),
-                BondType.monthlyFixed: ('Monthly Fixed Bond', 'Fixed coupon paid monthly'),
-                BondType.amortizing: ('Amortizing Bond', 'Principal repaid gradually with interest'),
-                BondType.floatingRate: ('Floating Rate Bond', 'Coupon varies with reference rate'),
+                BondType.fixedCoupon: (
+                  'Fixed Coupon Bond',
+                  'Regular coupon + principal at maturity'
+                ),
+                BondType.zeroCoupon: (
+                  'Zero Coupon Bond',
+                  'Buy at discount, single maturity payment'
+                ),
+                BondType.monthlyFixed: (
+                  'Monthly Fixed Bond',
+                  'Fixed coupon paid monthly'
+                ),
+                BondType.amortizing: (
+                  'Amortizing Bond',
+                  'Principal repaid gradually with interest'
+                ),
+                BondType.floatingRate: (
+                  'Floating Rate Bond',
+                  'Coupon varies with reference rate'
+                ),
               };
               final (title, desc) = details[type]!;
 
@@ -151,12 +169,12 @@ class BondTypeNameStep extends StatelessWidget {
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? const Color(0xFF00A6CC).withOpacity(0.1)
+                        ? const Color(0xFF00A6CC).withValues(alpha: 0.1)
                         : AppStyles.getCardColor(context),
                     border: Border.all(
                       color: isSelected
                           ? const Color(0xFF00A6CC)
-                          : Colors.grey.withOpacity(0.2),
+                          : Colors.grey.withValues(alpha: 0.2),
                     ),
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -191,11 +209,14 @@ class BondTypeNameStep extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                            Text(title,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold)),
                             Text(desc,
                                 style: TextStyle(
                                     fontSize: 12,
-                                    color: AppStyles.getSecondaryTextColor(context))),
+                                    color: AppStyles.getSecondaryTextColor(
+                                        context))),
                           ],
                         ),
                       ),
@@ -206,7 +227,8 @@ class BondTypeNameStep extends StatelessWidget {
             }).toList(),
           ),
           const SizedBox(height: 24),
-          Text('Bond Name', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+          Text('Bond Name',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
           const SizedBox(height: 12),
           CupertinoTextField(
             placeholder: 'e.g., RBI Bond 2028, Government Securities',
@@ -235,7 +257,7 @@ class BondTypeNameStep extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.withOpacity(0.2)),
+              border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
             ),
             child: CupertinoButton(
               onPressed: () {
@@ -316,7 +338,7 @@ class BondTypeNameStep extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.withOpacity(0.2)),
+              border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
             ),
             child: CupertinoButton(
               onPressed: () {

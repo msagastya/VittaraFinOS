@@ -6,7 +6,6 @@ import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/ui/manage/account_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/bonds/bonds_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
-import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 
 class BondsAccountStep extends StatefulWidget {
@@ -23,7 +22,8 @@ class _BondsAccountStepState extends State<BondsAccountStep> {
     // Refresh accounts when entering this step
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (mounted) {
-        await Provider.of<AccountsController>(context, listen: false).loadAccounts();
+        await Provider.of<AccountsController>(context, listen: false)
+            .loadAccounts();
       }
     });
   }
@@ -88,7 +88,8 @@ class _BondsAccountStepState extends State<BondsAccountStep> {
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? const Color(0xFF007AFF).withValues(alpha: 0.1)
+                                  ? const Color(0xFF007AFF)
+                                      .withValues(alpha: 0.1)
                                   : AppStyles.getCardColor(context),
                               border: isSelected
                                   ? Border.all(
@@ -99,7 +100,7 @@ class _BondsAccountStepState extends State<BondsAccountStep> {
                               boxShadow: [
                                 if (!isSelected)
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
+                                    color: Colors.black.withValues(alpha: 0.05),
                                     blurRadius: 4,
                                     offset: const Offset(0, 2),
                                   ),
@@ -110,7 +111,7 @@ class _BondsAccountStepState extends State<BondsAccountStep> {
                                 Container(
                                   padding: const EdgeInsets.all(10),
                                   decoration: BoxDecoration(
-                                    color: account.color.withOpacity(0.2),
+                                    color: account.color.withValues(alpha: 0.2),
                                     shape: BoxShape.circle,
                                   ),
                                   child: Icon(
@@ -134,8 +135,9 @@ class _BondsAccountStepState extends State<BondsAccountStep> {
                                       Text(
                                         account.bankName,
                                         style: TextStyle(
-                                          color: AppStyles
-                                              .getSecondaryTextColor(context),
+                                          color:
+                                              AppStyles.getSecondaryTextColor(
+                                                  context),
                                           fontSize: 13,
                                         ),
                                       ),
@@ -173,12 +175,13 @@ class _BondsAccountStepState extends State<BondsAccountStep> {
             Padding(
               padding: const EdgeInsets.all(20),
               child: CupertinoButton(
-                color: isDarkMode(context) ? Colors.grey[800] : Colors.grey[200],
+                color:
+                    isDarkMode(context) ? Colors.grey[800] : Colors.grey[200],
                 onPressed: () {
                   final accountsController =
                       Provider.of<AccountsController>(context, listen: false);
-                  final wizardCtrl =
-                      Provider.of<BondsWizardController>(context, listen: false);
+                  final wizardCtrl = Provider.of<BondsWizardController>(context,
+                      listen: false);
 
                   Navigator.push<Account>(
                     context,

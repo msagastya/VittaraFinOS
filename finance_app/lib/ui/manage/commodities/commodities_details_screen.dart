@@ -24,8 +24,8 @@ class _CommoditiesDetailsScreenState extends State<CommoditiesDetailsScreen> {
   void initState() {
     super.initState();
     final meta = widget.investment.metadata ?? {};
-    commodity = Commodity.fromMap(
-        meta['commodityData'] as Map<String, dynamic>? ?? {});
+    commodity =
+        Commodity.fromMap(meta['commodityData'] as Map<String, dynamic>? ?? {});
   }
 
   @override
@@ -37,7 +37,7 @@ class _CommoditiesDetailsScreenState extends State<CommoditiesDetailsScreen> {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
       navigationBar: CupertinoNavigationBar(
-        middle: Text('${commodity.name}',
+        middle: Text(commodity.name,
             style: TextStyle(color: AppStyles.getTextColor(context))),
         backgroundColor: AppStyles.getBackground(context),
         leading: CupertinoButton(
@@ -58,8 +58,7 @@ class _CommoditiesDetailsScreenState extends State<CommoditiesDetailsScreen> {
                   _DetailRow('Name', commodity.name),
                   _DetailRow('Type', commodity.getTypeLabel()),
                   _DetailRow('Exchange', commodity.exchange),
-                  _DetailRow('Position',
-                      commodity.position.name.toUpperCase()),
+                  _DetailRow('Position', commodity.position.name.toUpperCase()),
                 ],
               ),
               const SizedBox(height: 20),
@@ -129,7 +128,7 @@ class _CommoditiesDetailsScreenState extends State<CommoditiesDetailsScreen> {
               SizedBox(
                 width: double.infinity,
                 child: CupertinoButton(
-                  color: Colors.red.withOpacity(0.1),
+                  color: Colors.red.withValues(alpha: 0.1),
                   onPressed: () {
                     showCupertinoDialog(
                       context: context,
@@ -185,14 +184,13 @@ class _DetailCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withOpacity(0.2)),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title,
-              style: TextStyle(
-                  fontWeight: FontWeight.bold, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
           const SizedBox(height: 16),
           ...List.generate(
             children.length,
@@ -236,8 +234,7 @@ class _DetailRow extends StatelessWidget {
       children: [
         Text(label,
             style: TextStyle(
-                color: AppStyles.getSecondaryTextColor(context),
-                fontSize: 13)),
+                color: AppStyles.getSecondaryTextColor(context), fontSize: 13)),
         Text(value,
             style: TextStyle(
                 fontWeight: isBold ? FontWeight.bold : FontWeight.w500,

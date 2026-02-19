@@ -17,7 +17,7 @@ class Tag {
     return {
       'id': id,
       'name': name,
-      'colorValue': color.value,
+      'colorValue': color.toARGB32(),
       'createdDate': createdDate.toIso8601String(),
     };
   }

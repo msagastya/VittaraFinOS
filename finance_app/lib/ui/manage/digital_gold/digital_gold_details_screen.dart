@@ -5,7 +5,6 @@ import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/services/gold_price_service.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
-import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 
@@ -15,7 +14,8 @@ class DigitalGoldDetailsScreen extends StatefulWidget {
   const DigitalGoldDetailsScreen({super.key, required this.investment});
 
   @override
-  State<DigitalGoldDetailsScreen> createState() => _DigitalGoldDetailsScreenState();
+  State<DigitalGoldDetailsScreen> createState() =>
+      _DigitalGoldDetailsScreenState();
 }
 
 class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
@@ -50,7 +50,8 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
         setState(() {
           isFetchingPrice = false;
         });
-        logger.error('Failed to fetch gold price: $e', context: 'DigitalGoldDetails');
+        logger.error('Failed to fetch gold price: $e',
+            context: 'DigitalGoldDetails');
       }
     }
   }
@@ -67,7 +68,8 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
       context: context,
       builder: (context) => CupertinoAlertDialog(
         title: const Text('Delete Investment'),
-        content: const Text('Are you sure you want to delete this investment? This action cannot be undone.'),
+        content: const Text(
+            'Are you sure you want to delete this investment? This action cannot be undone.'),
         actions: [
           CupertinoDialogAction(
             child: const Text('Cancel'),
@@ -77,12 +79,14 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
             isDestructiveAction: true,
             child: const Text('Delete'),
             onPressed: () {
-              final controller = Provider.of<InvestmentsController>(context, listen: false);
+              final controller =
+                  Provider.of<InvestmentsController>(context, listen: false);
               controller.deleteInvestment(_investment.id);
               Navigator.pop(context);
               Navigator.pop(context);
               toast.showSuccess('Investment deleted');
-              logger.info('Deleted investment: ${_investment.id}', context: 'DigitalGoldDetails');
+              logger.info('Deleted investment: ${_investment.id}',
+                  context: 'DigitalGoldDetails');
             },
           ),
         ],
@@ -94,17 +98,21 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
   Widget build(BuildContext context) {
     final investment = widget.investment;
     final metadata = investment.metadata ?? {};
-    final investedAmount = (metadata['investedAmount'] as num?)?.toDouble() ?? investment.amount;
+    final investedAmount =
+        (metadata['investedAmount'] as num?)?.toDouble() ?? investment.amount;
     final gstRate = (metadata['gstRate'] as num?)?.toDouble() ?? 3.0;
     final actualGoldCost = investedAmount / (1 + (gstRate / 100));
     final gstAmount = investedAmount - actualGoldCost;
 
     // Use fetched current price if available
-    final currentRate = currentGoldPrice ?? (metadata['currentRate'] as num?)?.toDouble() ?? 0;
+    final currentRate =
+        currentGoldPrice ?? (metadata['currentRate'] as num?)?.toDouble() ?? 0;
     final weightInGrams = (metadata['weightInGrams'] as num?)?.toDouble() ?? 0;
-    final currentValue = currentRate > 0 && weightInGrams > 0 ? weightInGrams * currentRate : 0;
+    final currentValue =
+        currentRate > 0 && weightInGrams > 0 ? weightInGrams * currentRate : 0;
     final gainLoss = currentValue - investedAmount;
-    final gainPercent = investedAmount > 0 ? (gainLoss / investedAmount) * 100 : 0;
+    final gainPercent =
+        investedAmount > 0 ? (gainLoss / investedAmount) * 100 : 0;
 
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
@@ -131,7 +139,7 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -214,13 +222,13 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: gainPercent >= 0
-                      ? CupertinoColors.systemGreen.withOpacity(0.1)
-                      : CupertinoColors.systemRed.withOpacity(0.1),
+                      ? CupertinoColors.systemGreen.withValues(alpha: 0.1)
+                      : CupertinoColors.systemRed.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: gainPercent >= 0
-                        ? CupertinoColors.systemGreen.withOpacity(0.3)
-                        : CupertinoColors.systemRed.withOpacity(0.3),
+                        ? CupertinoColors.systemGreen.withValues(alpha: 0.3)
+                        : CupertinoColors.systemRed.withValues(alpha: 0.3),
                   ),
                 ),
                 child: Row(
@@ -287,10 +295,14 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-              _buildDetailRow('Provider', metadata['company'] as String? ?? '-'),
-              _buildDetailRow('Weight', '${weightInGrams.toStringAsFixed(4)} g'),
-              _buildDetailRow('Investment Rate', '₹${(metadata['investmentRate'] as num?)?.toDouble().toStringAsFixed(2) ?? '-'}/g'),
-              _buildDetailRow('Actual Gold Cost', '₹${actualGoldCost.toStringAsFixed(2)}'),
+              _buildDetailRow(
+                  'Provider', metadata['company'] as String? ?? '-'),
+              _buildDetailRow(
+                  'Weight', '${weightInGrams.toStringAsFixed(4)} g'),
+              _buildDetailRow('Investment Rate',
+                  '₹${(metadata['investmentRate'] as num?)?.toDouble().toStringAsFixed(2) ?? '-'}/g'),
+              _buildDetailRow(
+                  'Actual Gold Cost', '₹${actualGoldCost.toStringAsFixed(2)}'),
               _buildDetailRow('GST Rate', '${gstRate.toStringAsFixed(1)}%'),
               _buildDetailRow('GST Amount', '₹${gstAmount.toStringAsFixed(2)}'),
               _buildDetailRow(
@@ -317,7 +329,9 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Text(
                     'Current Rate: Unable to fetch (check internet connection)',
-                    style: TextStyle(color: AppStyles.getSecondaryTextColor(context), fontSize: 12),
+                    style: TextStyle(
+                        color: AppStyles.getSecondaryTextColor(context),
+                        fontSize: 12),
                   ),
                 )
               else
@@ -388,7 +402,20 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
     if (isoDate == null) return '-';
     try {
       final date = DateTime.parse(isoDate);
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const months = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec'
+      ];
       return '${date.day} ${months[date.month - 1]} ${date.year}';
     } catch (e) {
       return isoDate;
@@ -458,10 +485,12 @@ class _EditModalState extends State<_EditModal> {
       text: widget.investment.amount.toStringAsFixed(2),
     );
     _investmentRateController = TextEditingController(
-      text: ((metadata['investmentRate'] as num?)?.toDouble() ?? 0).toStringAsFixed(2),
+      text: ((metadata['investmentRate'] as num?)?.toDouble() ?? 0)
+          .toStringAsFixed(2),
     );
     _gstRateController = TextEditingController(
-      text: ((metadata['gstRate'] as num?)?.toDouble() ?? 3.0).toStringAsFixed(1),
+      text:
+          ((metadata['gstRate'] as num?)?.toDouble() ?? 3.0).toStringAsFixed(1),
     );
   }
 
@@ -566,7 +595,8 @@ class _EditModalState extends State<_EditModal> {
                 const SizedBox(height: 8),
                 CupertinoTextField(
                   controller: _investedAmountController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
                   placeholder: '0.00',
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
@@ -590,7 +620,8 @@ class _EditModalState extends State<_EditModal> {
                 const SizedBox(height: 8),
                 CupertinoTextField(
                   controller: _investmentRateController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
                   placeholder: '0.00',
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
@@ -618,7 +649,8 @@ class _EditModalState extends State<_EditModal> {
                 const SizedBox(height: 8),
                 CupertinoTextField(
                   controller: _gstRateController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
                   placeholder: '3.0',
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
@@ -636,8 +668,11 @@ class _EditModalState extends State<_EditModal> {
                     Expanded(
                       child: CupertinoButton(
                         color: CupertinoColors.systemGrey4,
-                        onPressed: _isLoading ? null : () => Navigator.pop(context),
-                        child: const Text('Cancel', style: TextStyle(color: CupertinoColors.destructiveRed)),
+                        onPressed:
+                            _isLoading ? null : () => Navigator.pop(context),
+                        child: const Text('Cancel',
+                            style: TextStyle(
+                                color: CupertinoColors.destructiveRed)),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -645,7 +680,8 @@ class _EditModalState extends State<_EditModal> {
                       child: CupertinoButton.filled(
                         onPressed: _isLoading ? null : _saveChanges,
                         child: _isLoading
-                            ? const CupertinoActivityIndicator(color: CupertinoColors.white)
+                            ? const CupertinoActivityIndicator(
+                                color: CupertinoColors.white)
                             : const Text('Save'),
                       ),
                     ),

@@ -49,7 +49,8 @@ class _NPSAccountStepState extends State<NPSAccountStep> {
           Text('NPS Account Details', style: AppStyles.titleStyle(context)),
           const SizedBox(height: 8),
           Text('Enter your NPS account information',
-              style: TextStyle(color: AppStyles.getSecondaryTextColor(context))),
+              style:
+                  TextStyle(color: AppStyles.getSecondaryTextColor(context))),
           const SizedBox(height: 30),
           // PRN
           Text('Permanent Retirement Number (PRN)',
@@ -130,7 +131,8 @@ class _NPSAccountStepState extends State<NPSAccountStep> {
               return GestureDetector(
                 onTap: () => ctrl.updateAccountType(type),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? const Color(0xFF9B59B6)
@@ -139,7 +141,7 @@ class _NPSAccountStepState extends State<NPSAccountStep> {
                     border: Border.all(
                       color: isSelected
                           ? const Color(0xFF9B59B6)
-                          : Colors.grey.withOpacity(0.2),
+                          : Colors.grey.withValues(alpha: 0.2),
                     ),
                   ),
                   child: Text(label,
@@ -160,7 +162,9 @@ class _NPSAccountStepState extends State<NPSAccountStep> {
           Row(
             children: NPSTier.values.map((tier) {
               final isSelected = ctrl.selectedTier == tier;
-              final label = tier == NPSTier.tier1 ? 'Tier 1 (Locked)' : 'Tier 2 (Flexible)';
+              final label = tier == NPSTier.tier1
+                  ? 'Tier 1 (Locked)'
+                  : 'Tier 2 (Flexible)';
               return Expanded(
                 child: GestureDetector(
                   onTap: () => ctrl.updateTier(tier),
@@ -174,7 +178,7 @@ class _NPSAccountStepState extends State<NPSAccountStep> {
                       border: Border.all(
                         color: isSelected
                             ? const Color(0xFF9B59B6)
-                            : Colors.grey.withOpacity(0.2),
+                            : Colors.grey.withValues(alpha: 0.2),
                       ),
                     ),
                     child: Text(label,

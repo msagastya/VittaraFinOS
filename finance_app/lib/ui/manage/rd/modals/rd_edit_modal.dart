@@ -38,7 +38,8 @@ class _RDEditModalState extends State<RDEditModal> {
     _nameController = TextEditingController(text: widget.rd.name);
     _notesController = TextEditingController(text: widget.rd.notes ?? '');
     _bankNameController = TextEditingController(text: widget.rd.bankName ?? '');
-    _bankAccountController = TextEditingController(text: widget.rd.bankAccountNumber ?? '');
+    _bankAccountController =
+        TextEditingController(text: widget.rd.bankAccountNumber ?? '');
     _autoPaymentEnabled = widget.rd.autoPaymentEnabled;
   }
 
@@ -82,10 +83,11 @@ class _RDEditModalState extends State<RDEditModal> {
               Container(
                 padding: EdgeInsets.all(Spacing.md),
                 decoration: BoxDecoration(
-                  color: SemanticColors.getInfo(context).withOpacity(0.1),
+                  color: SemanticColors.getInfo(context).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: SemanticColors.getInfo(context).withOpacity(0.3),
+                    color:
+                        SemanticColors.getInfo(context).withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),
@@ -246,7 +248,7 @@ class _RDEditModalState extends State<RDEditModal> {
               Container(
                 padding: EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
-                  color: AppStyles.getCardColor(context).withOpacity(0.5),
+                  color: AppStyles.getCardColor(context).withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: AppStyles.getDividerColor(context),
@@ -254,11 +256,16 @@ class _RDEditModalState extends State<RDEditModal> {
                 ),
                 child: Column(
                   children: [
-                    _buildReadOnlyRow('Monthly Amount', '₹${widget.rd.monthlyAmount.toStringAsFixed(2)}'),
-                    _buildReadOnlyRow('Interest Rate', '${widget.rd.interestRate}% p.a.'),
-                    _buildReadOnlyRow('Total Installments', '${widget.rd.totalInstallments}'),
-                    _buildReadOnlyRow('Start Date', _formatDate(widget.rd.startDate)),
-                    _buildReadOnlyRow('Maturity Date', _formatDate(widget.rd.maturityDate)),
+                    _buildReadOnlyRow('Monthly Amount',
+                        '₹${widget.rd.monthlyAmount.toStringAsFixed(2)}'),
+                    _buildReadOnlyRow(
+                        'Interest Rate', '${widget.rd.interestRate}% p.a.'),
+                    _buildReadOnlyRow(
+                        'Total Installments', '${widget.rd.totalInstallments}'),
+                    _buildReadOnlyRow(
+                        'Start Date', _formatDate(widget.rd.startDate)),
+                    _buildReadOnlyRow(
+                        'Maturity Date', _formatDate(widget.rd.maturityDate)),
                   ],
                 ),
               ),
@@ -313,15 +320,22 @@ class _RDEditModalState extends State<RDEditModal> {
     }
 
     try {
-      final investmentsController = Provider.of<InvestmentsController>(context, listen: false);
+      final investmentsController =
+          Provider.of<InvestmentsController>(context, listen: false);
 
       // Create updated RD with new details
       final updatedRD = widget.rd.copyWith(
         name: _nameController.text.trim(),
         autoPaymentEnabled: _autoPaymentEnabled,
-        bankName: _bankNameController.text.trim().isEmpty ? null : _bankNameController.text.trim(),
-        bankAccountNumber: _bankAccountController.text.trim().isEmpty ? null : _bankAccountController.text.trim(),
-        notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+        bankName: _bankNameController.text.trim().isEmpty
+            ? null
+            : _bankNameController.text.trim(),
+        bankAccountNumber: _bankAccountController.text.trim().isEmpty
+            ? null
+            : _bankAccountController.text.trim(),
+        notes: _notesController.text.trim().isEmpty
+            ? null
+            : _notesController.text.trim(),
       );
 
       // Update the investment

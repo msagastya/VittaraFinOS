@@ -23,7 +23,9 @@ class _BondsDetailsStepState extends State<BondsDetailsStep> {
     final controller =
         Provider.of<BondsWizardController>(context, listen: false);
     _couponRateController = TextEditingController(
-      text: controller.couponRate != null ? controller.couponRate!.toString() : '',
+      text: controller.couponRate != null
+          ? controller.couponRate!.toString()
+          : '',
     );
     _quantityController = TextEditingController(
       text: controller.purchaseQuantity.toString(),
@@ -83,7 +85,8 @@ class _BondsDetailsStepState extends State<BondsDetailsStep> {
               padding: const EdgeInsets.only(right: 16),
               child: Text(
                 '%',
-                style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+                style:
+                    TextStyle(color: AppStyles.getSecondaryTextColor(context)),
               ),
             ),
             style: TextStyle(color: AppStyles.getTextColor(context)),

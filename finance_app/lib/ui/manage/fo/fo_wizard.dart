@@ -208,7 +208,8 @@ class _FOWizardContentState extends State<_FOWizardContent> {
                           }
                         }
                       : null,
-                  child: Text(ctrl.currentStep >= 5 ? 'Confirm & Save' : 'Continue'),
+                  child: Text(
+                      ctrl.currentStep >= 5 ? 'Confirm & Save' : 'Continue'),
                 ),
               ),
             ),

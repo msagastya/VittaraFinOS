@@ -27,6 +27,7 @@ dependencies:
   flutter_slidable: ^3.1.1
   smooth_page_indicator: ^1.2.0+3
 
+  intl: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

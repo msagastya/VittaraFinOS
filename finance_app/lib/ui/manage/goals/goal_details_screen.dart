@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:vittara_fin_os/logic/goals_controller.dart';
@@ -9,8 +8,8 @@ import 'package:vittara_fin_os/ui/manage/goals/modals/edit_goal_modal.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
-import 'package:vittara_fin_os/ui/widgets/animated_counter.dart' as counter_widgets;
-import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
+import 'package:vittara_fin_os/ui/widgets/animated_counter.dart'
+    as counter_widgets;
 import 'package:vittara_fin_os/ui/widgets/glass_card.dart';
 import 'package:vittara_fin_os/ui/widgets/neumorphic_glass_card.dart';
 import 'package:vittara_fin_os/ui/widgets/liquid_progress_indicators.dart';
@@ -33,7 +32,8 @@ class GoalDetailsScreen extends StatelessWidget {
         return CupertinoPageScaffold(
           backgroundColor: AppStyles.getBackground(context),
           navigationBar: CupertinoNavigationBar(
-            middle: Text('Goal Details', style: TextStyle(color: AppStyles.getTextColor(context))),
+            middle: Text('Goal Details',
+                style: TextStyle(color: AppStyles.getTextColor(context))),
             previousPageTitle: 'Goals',
             backgroundColor: AppStyles.getBackground(context),
             border: null,
@@ -88,7 +88,8 @@ class GoalDetailsScreen extends StatelessWidget {
                                       goal.getTypeLabel(),
                                       style: TextStyle(
                                         fontSize: TypeScale.subhead,
-                                        color: AppStyles.getSecondaryTextColor(context),
+                                        color: AppStyles.getSecondaryTextColor(
+                                            context),
                                       ),
                                     ),
                                   ],
@@ -119,7 +120,8 @@ class GoalDetailsScreen extends StatelessWidget {
                                   'Complete',
                                   style: TextStyle(
                                     fontSize: TypeScale.footnote,
-                                    color: AppStyles.getSecondaryTextColor(context),
+                                    color: AppStyles.getSecondaryTextColor(
+                                        context),
                                   ),
                                 ),
                               ],
@@ -135,7 +137,8 @@ class GoalDetailsScreen extends StatelessWidget {
                                       'Current',
                                       style: TextStyle(
                                         fontSize: TypeScale.footnote,
-                                        color: AppStyles.getSecondaryTextColor(context),
+                                        color: AppStyles.getSecondaryTextColor(
+                                            context),
                                       ),
                                     ),
                                     SizedBox(height: Spacing.xs),
@@ -154,7 +157,8 @@ class GoalDetailsScreen extends StatelessWidget {
                               Container(
                                 width: 1,
                                 height: 40,
-                                color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.2),
+                                color: AppStyles.getSecondaryTextColor(context)
+                                    .withValues(alpha: 0.2),
                               ),
                               Expanded(
                                 child: Column(
@@ -163,7 +167,8 @@ class GoalDetailsScreen extends StatelessWidget {
                                       'Target',
                                       style: TextStyle(
                                         fontSize: TypeScale.footnote,
-                                        color: AppStyles.getSecondaryTextColor(context),
+                                        color: AppStyles.getSecondaryTextColor(
+                                            context),
                                       ),
                                     ),
                                     SizedBox(height: Spacing.xs),
@@ -208,7 +213,8 @@ class GoalDetailsScreen extends StatelessWidget {
                                   'Remaining',
                                   style: TextStyle(
                                     fontSize: TypeScale.footnote,
-                                    color: AppStyles.getSecondaryTextColor(context),
+                                    color: AppStyles.getSecondaryTextColor(
+                                        context),
                                   ),
                                 ),
                                 SizedBox(height: Spacing.xs),
@@ -241,7 +247,8 @@ class GoalDetailsScreen extends StatelessWidget {
                                   'Days Left',
                                   style: TextStyle(
                                     fontSize: TypeScale.footnote,
-                                    color: AppStyles.getSecondaryTextColor(context),
+                                    color: AppStyles.getSecondaryTextColor(
+                                        context),
                                   ),
                                 ),
                                 SizedBox(height: Spacing.xs),
@@ -280,14 +287,20 @@ class GoalDetailsScreen extends StatelessWidget {
                           Row(
                             children: [
                               Icon(
-                                goal.isOnTrack ? CupertinoIcons.checkmark_seal_fill : CupertinoIcons.info_circle_fill,
-                                color: goal.isOnTrack ? SemanticColors.success : SemanticColors.warning,
+                                goal.isOnTrack
+                                    ? CupertinoIcons.checkmark_seal_fill
+                                    : CupertinoIcons.info_circle_fill,
+                                color: goal.isOnTrack
+                                    ? SemanticColors.success
+                                    : SemanticColors.warning,
                                 size: IconSizes.lg,
                               ),
                               SizedBox(width: Spacing.md),
                               Expanded(
                                 child: Text(
-                                  goal.isOnTrack ? 'On Track!' : 'Behind Schedule',
+                                  goal.isOnTrack
+                                      ? 'On Track!'
+                                      : 'Behind Schedule',
                                   style: TextStyle(
                                     fontSize: TypeScale.callout,
                                     fontWeight: FontWeight.w600,
@@ -311,7 +324,9 @@ class GoalDetailsScreen extends StatelessWidget {
                             textStyle: TextStyle(
                               fontSize: TypeScale.title1,
                               fontWeight: FontWeight.bold,
-                              color: goal.isOnTrack ? SemanticColors.success : SemanticColors.warning,
+                              color: goal.isOnTrack
+                                  ? SemanticColors.success
+                                  : SemanticColors.warning,
                             ),
                           ),
                           SizedBox(height: Spacing.sm),
@@ -401,7 +416,9 @@ class GoalDetailsScreen extends StatelessWidget {
                     sliver: SliverList(
                       delegate: SliverChildBuilderDelegate(
                         (context, index) {
-                          final sortedContributions = goal.contributions.toList()..sort((a, b) => b.date.compareTo(a.date));
+                          final sortedContributions = goal.contributions
+                              .toList()
+                            ..sort((a, b) => b.date.compareTo(a.date));
                           final contribution = sortedContributions[index];
                           return StaggeredItem(
                             index: index,
@@ -414,8 +431,10 @@ class GoalDetailsScreen extends StatelessWidget {
                                     Container(
                                       padding: EdgeInsets.all(Spacing.md),
                                       decoration: BoxDecoration(
-                                        color: goal.color.withValues(alpha: 0.15),
-                                        borderRadius: BorderRadius.circular(Radii.md),
+                                        color:
+                                            goal.color.withValues(alpha: 0.15),
+                                        borderRadius:
+                                            BorderRadius.circular(Radii.md),
                                       ),
                                       child: Icon(
                                         CupertinoIcons.arrow_down_circle_fill,
@@ -426,32 +445,41 @@ class GoalDetailsScreen extends StatelessWidget {
                                     SizedBox(width: Spacing.md),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           counter_widgets.CurrencyCounter(
                                             value: contribution.amount,
                                             textStyle: TextStyle(
                                               fontSize: TypeScale.callout,
                                               fontWeight: FontWeight.bold,
-                                              color: AppStyles.getTextColor(context),
+                                              color: AppStyles.getTextColor(
+                                                  context),
                                             ),
                                             decimalPlaces: 2,
                                           ),
                                           SizedBox(height: Spacing.xxs),
                                           Text(
-                                            DateFormat('MMM dd, yyyy').format(contribution.date),
+                                            DateFormat('MMM dd, yyyy')
+                                                .format(contribution.date),
                                             style: TextStyle(
                                               fontSize: TypeScale.footnote,
-                                              color: AppStyles.getSecondaryTextColor(context),
+                                              color: AppStyles
+                                                  .getSecondaryTextColor(
+                                                      context),
                                             ),
                                           ),
-                                          if (contribution.notes != null && contribution.notes!.isNotEmpty) ...[
+                                          if (contribution.notes != null &&
+                                              contribution
+                                                  .notes!.isNotEmpty) ...[
                                             SizedBox(height: Spacing.xxs),
                                             Text(
                                               contribution.notes!,
                                               style: TextStyle(
                                                 fontSize: TypeScale.footnote,
-                                                color: AppStyles.getSecondaryTextColor(context),
+                                                color: AppStyles
+                                                    .getSecondaryTextColor(
+                                                        context),
                                                 fontStyle: FontStyle.italic,
                                               ),
                                               maxLines: 1,
@@ -481,7 +509,8 @@ class GoalDetailsScreen extends StatelessWidget {
     );
   }
 
-  void _showOptionsSheet(BuildContext context, Goal goal, GoalsController controller) {
+  void _showOptionsSheet(
+      BuildContext context, Goal goal, GoalsController controller) {
     showCupertinoModalPopup(
       context: context,
       builder: (context) => CupertinoActionSheet(
@@ -496,7 +525,8 @@ class GoalDetailsScreen extends StatelessWidget {
             },
             child: Row(
               children: [
-                Icon(CupertinoIcons.add_circled_solid, color: SemanticColors.success),
+                Icon(CupertinoIcons.add_circled_solid,
+                    color: SemanticColors.success),
                 SizedBox(width: Spacing.md),
                 Text('Add Contribution'),
               ],
@@ -524,7 +554,8 @@ class GoalDetailsScreen extends StatelessWidget {
               final confirmed = await AlertService.showConfirmDialog(
                 context,
                 title: 'Delete Goal',
-                message: 'Are you sure you want to delete "${goal.name}"? This action cannot be undone.',
+                message:
+                    'Are you sure you want to delete "${goal.name}"? This action cannot be undone.',
                 confirmText: 'Delete',
                 isDestructive: true,
               );

@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/logic/bond_cashflow_model.dart';
 import 'package:vittara_fin_os/ui/manage/bonds/bonds_wizard_controller_v2.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -7,7 +6,7 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 class BondRatesStep extends StatefulWidget {
   final BondsWizardControllerV2 ctrl;
 
-  const BondRatesStep(this.ctrl);
+  const BondRatesStep(this.ctrl, {super.key});
 
   @override
   State<BondRatesStep> createState() => _BondRatesStepState();
@@ -112,12 +111,13 @@ class _FixedCouponRateInputState extends State<_FixedCouponRateInput> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0xFF00A6CC).withOpacity(0.05),
+            color: const Color(0xFF00A6CC).withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
             'This rate is used for all coupon payments.',
-            style: TextStyle(fontSize: 12, color: AppStyles.getSecondaryTextColor(context)),
+            style: TextStyle(
+                fontSize: 12, color: AppStyles.getSecondaryTextColor(context)),
           ),
         ),
       ],
@@ -141,7 +141,8 @@ class _ZeroCouponInputState extends State<_ZeroCouponInput> {
   void initState() {
     super.initState();
     _maturityValueController = TextEditingController(
-      text: widget.ctrl.zeroMaturityValue?.toString() ?? widget.ctrl.faceValue.toString(),
+      text: widget.ctrl.zeroMaturityValue?.toString() ??
+          widget.ctrl.faceValue.toString(),
     );
   }
 
@@ -181,7 +182,7 @@ class _ZeroCouponInputState extends State<_ZeroCouponInput> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0xFF00A6CC).withOpacity(0.05),
+            color: const Color(0xFF00A6CC).withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
@@ -189,12 +190,16 @@ class _ZeroCouponInputState extends State<_ZeroCouponInput> {
             children: [
               Text(
                 'No coupon payments. You receive only the maturity value at the end.',
-                style: TextStyle(fontSize: 12, color: AppStyles.getSecondaryTextColor(context)),
+                style: TextStyle(
+                    fontSize: 12,
+                    color: AppStyles.getSecondaryTextColor(context)),
               ),
               const SizedBox(height: 8),
               Text(
                 'Implicit yield: (${widget.ctrl.zeroMaturityValue?.toStringAsFixed(0) ?? widget.ctrl.faceValue.toStringAsFixed(0)} / ${widget.ctrl.purchasePrice.toStringAsFixed(2)})^(1/years) - 1',
-                style: TextStyle(fontSize: 11, color: AppStyles.getSecondaryTextColor(context)),
+                style: TextStyle(
+                    fontSize: 11,
+                    color: AppStyles.getSecondaryTextColor(context)),
               ),
             ],
           ),
@@ -260,12 +265,13 @@ class _AmortizingRateInputState extends State<_AmortizingRateInput> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0xFF00A6CC).withOpacity(0.05),
+            color: const Color(0xFF00A6CC).withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
             'Principal is repaid gradually. Interest decreases over time as balance decreases.',
-            style: TextStyle(fontSize: 12, color: AppStyles.getSecondaryTextColor(context)),
+            style: TextStyle(
+                fontSize: 12, color: AppStyles.getSecondaryTextColor(context)),
           ),
         ),
       ],
@@ -306,7 +312,8 @@ class _FloatingRateInputState extends State<_FloatingRateInput> {
 
   @override
   Widget build(BuildContext context) {
-    final currentRate = ((widget.ctrl.referenceRate ?? 0) + (widget.ctrl.spread ?? 0));
+    final currentRate =
+        ((widget.ctrl.referenceRate ?? 0) + (widget.ctrl.spread ?? 0));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -358,7 +365,7 @@ class _FloatingRateInputState extends State<_FloatingRateInput> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0xFF00A6CC).withOpacity(0.05),
+            color: const Color(0xFF00A6CC).withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
@@ -366,19 +373,25 @@ class _FloatingRateInputState extends State<_FloatingRateInput> {
             children: [
               Text(
                 'Current Coupon Rate = Reference Rate + Spread',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600,
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
                     color: AppStyles.getTextColor(context)),
               ),
               const SizedBox(height: 8),
               Text(
                 'Current Rate: ${currentRate.toStringAsFixed(2)}%',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
+                style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
                     color: const Color(0xFF00A6CC)),
               ),
               const SizedBox(height: 8),
               Text(
                 'Coupon adjusts as reference rate changes. You maintain this record manually as rates change.',
-                style: TextStyle(fontSize: 12, color: AppStyles.getSecondaryTextColor(context)),
+                style: TextStyle(
+                    fontSize: 12,
+                    color: AppStyles.getSecondaryTextColor(context)),
               ),
             ],
           ),

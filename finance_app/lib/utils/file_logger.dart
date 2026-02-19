@@ -22,6 +22,7 @@ class CustomFileOutput extends LogOutput {
 
   @override
   void output(OutputEvent event) {
-    _file?.writeAsStringSync('${event.lines.join('\n')}\n', mode: FileMode.append);
+    _file?.writeAsStringSync('${event.lines.join('\n')}\n',
+        mode: FileMode.append);
   }
 }

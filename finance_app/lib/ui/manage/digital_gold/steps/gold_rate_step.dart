@@ -17,14 +17,18 @@ class _GoldRateStepState extends State<GoldRateStep> {
   @override
   void initState() {
     super.initState();
-    final controller = Provider.of<DigitalGoldWizardController>(context, listen: false);
+    final controller =
+        Provider.of<DigitalGoldWizardController>(context, listen: false);
     _rateController = TextEditingController(
-      text: controller.investmentRate > 0 ? controller.investmentRate.toString() : '',
+      text: controller.investmentRate > 0
+          ? controller.investmentRate.toString()
+          : '',
     );
   }
 
   void _updateRate() {
-    final controller = Provider.of<DigitalGoldWizardController>(context, listen: false);
+    final controller =
+        Provider.of<DigitalGoldWizardController>(context, listen: false);
     final rate = double.tryParse(_rateController.text) ?? 0;
     controller.updateInvestmentRate(rate);
   }
@@ -83,14 +87,15 @@ class _GoldRateStepState extends State<GoldRateStep> {
           ),
           const SizedBox(height: 30),
           // Summary calculation
-          if (controller.investedAmount > 0 && controller.investmentRate > 0) ...{
+          if (controller.investedAmount > 0 &&
+              controller.investmentRate > 0) ...{
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFFFB81C).withOpacity(0.1),
+                color: const Color(0xFFFFB81C).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: const Color(0xFFFFB81C).withOpacity(0.3),
+                  color: const Color(0xFFFFB81C).withValues(alpha: 0.3),
                 ),
               ),
               child: Column(

@@ -37,8 +37,7 @@ class MFWizardController extends ChangeNotifier {
   final MFWizardIntent? intent;
 
   MFWizardController({this.intent})
-      : pageController =
-            PageController(initialPage: intent?.initialStep ?? 0) {
+      : pageController = PageController(initialPage: intent?.initialStep ?? 0) {
     _currentStep = intent?.initialStep ?? 0;
     final initialIntent = intent;
     if (initialIntent != null) {

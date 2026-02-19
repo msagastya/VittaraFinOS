@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/models/digital_gold_model.dart';
 import 'package:vittara_fin_os/ui/manage/digital_gold/digital_gold_wizard_controller.dart';
@@ -62,13 +61,14 @@ class GoldCompanyStep extends StatelessWidget {
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? SemanticColors.investments.withOpacity(0.1)
+                        ? SemanticColors.investments.withValues(alpha: 0.1)
                         : AppStyles.getCardColor(context),
                     border: isSelected
-                        ? Border.all(color: SemanticColors.investments, width: 2)
+                        ? Border.all(
+                            color: SemanticColors.investments, width: 2)
                         : Border.all(
                             color: AppStyles.getSecondaryTextColor(context)
-                                .withOpacity(0.1),
+                                .withValues(alpha: 0.1),
                           ),
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -78,7 +78,7 @@ class GoldCompanyStep extends StatelessWidget {
                         width: 50,
                         height: 50,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFFB81C).withOpacity(0.2),
+                          color: const Color(0xFFFFB81C).withValues(alpha: 0.2),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(

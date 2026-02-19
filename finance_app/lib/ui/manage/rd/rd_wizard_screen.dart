@@ -171,13 +171,17 @@ class _RDWizardScreenState extends State<RDWizardScreen> {
                       child: LinearProgressIndicator(
                         value: progress,
                         minHeight: 4,
-                        backgroundColor: AppStyles.getSecondaryTextColor(context).withOpacity(0.1),
-                        valueColor: AlwaysStoppedAnimation(AppStyles.getPrimaryColor(context)),
+                        backgroundColor:
+                            AppStyles.getSecondaryTextColor(context)
+                                .withValues(alpha: 0.1),
+                        valueColor: AlwaysStoppedAnimation(
+                            AppStyles.getPrimaryColor(context)),
                       ),
                     ),
                     // Step Title
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
                       color: AppStyles.getBackground(context),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -236,7 +240,8 @@ class _RDWizardScreenState extends State<RDWizardScreen> {
                             onPressed: _isSubmitting
                                 ? null
                                 : () => controller.previousStep(),
-                            color: AppStyles.getSecondaryTextColor(context).withOpacity(0.15),
+                            color: AppStyles.getSecondaryTextColor(context)
+                                .withValues(alpha: 0.15),
                             child: Text(
                               'Back',
                               style: TextStyle(
@@ -250,12 +255,12 @@ class _RDWizardScreenState extends State<RDWizardScreen> {
                       // Next or Submit button
                       Expanded(
                         child: CupertinoButton(
-                          onPressed: _isSubmitting ||
-                                  !controller.canProceedToNextStep
-                              ? null
-                              : controller.currentStep == 6
-                                  ? _submitRD
-                                  : () => controller.nextStep(),
+                          onPressed:
+                              _isSubmitting || !controller.canProceedToNextStep
+                                  ? null
+                                  : controller.currentStep == 6
+                                      ? _submitRD
+                                      : () => controller.nextStep(),
                           color: AppStyles.getPrimaryColor(context),
                           child: _isSubmitting
                               ? SizedBox(

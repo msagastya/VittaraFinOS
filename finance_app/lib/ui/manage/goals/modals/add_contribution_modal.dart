@@ -38,10 +38,13 @@ class _AddContributionModalState extends State<AddContributionModal> {
       id: 'contrib_${DateTime.now().millisecondsSinceEpoch}',
       amount: amount,
       date: DateTime.now(),
-      notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+      notes: _notesController.text.trim().isEmpty
+          ? null
+          : _notesController.text.trim(),
     );
 
-    await Provider.of<GoalsController>(context, listen: false).addContribution(widget.goal.id, contribution);
+    await Provider.of<GoalsController>(context, listen: false)
+        .addContribution(widget.goal.id, contribution);
     Navigator.pop(context);
     AlertService.showSuccess(context, 'Contribution added successfully!');
   }
@@ -55,7 +58,8 @@ class _AddContributionModalState extends State<AddContributionModal> {
       ),
       child: SingleChildScrollView(
         child: Padding(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom + Spacing.xxl),
+          padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom + Spacing.xxl),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -63,43 +67,75 @@ class _AddContributionModalState extends State<AddContributionModal> {
                 margin: EdgeInsets.only(top: Spacing.md),
                 width: 40,
                 height: 5,
-                decoration: BoxDecoration(color: CupertinoColors.systemGrey3, borderRadius: BorderRadius.circular(2.5)),
+                decoration: BoxDecoration(
+                    color: CupertinoColors.systemGrey3,
+                    borderRadius: BorderRadius.circular(2.5)),
               ),
               SizedBox(height: Spacing.xl),
-              Text('Add Contribution', style: TextStyle(fontSize: TypeScale.title2, fontWeight: FontWeight.bold, color: AppStyles.getTextColor(context))),
+              Text('Add Contribution',
+                  style: TextStyle(
+                      fontSize: TypeScale.title2,
+                      fontWeight: FontWeight.bold,
+                      color: AppStyles.getTextColor(context))),
               SizedBox(height: Spacing.xxl),
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: Spacing.xxl),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Amount', style: TextStyle(fontSize: TypeScale.subhead, fontWeight: FontWeight.w600)),
+                    Text('Amount',
+                        style: TextStyle(
+                            fontSize: TypeScale.subhead,
+                            fontWeight: FontWeight.w600)),
                     SizedBox(height: Spacing.sm),
                     CupertinoTextField(
                       controller: _amountController,
                       placeholder: '0.00',
-                      keyboardType: TextInputType.numberWithOptions(decimal: true),
-                      prefix: Padding(padding: EdgeInsets.only(left: Spacing.lg), child: Text('₹', style: TextStyle(fontSize: TypeScale.callout))),
+                      keyboardType:
+                          TextInputType.numberWithOptions(decimal: true),
+                      prefix: Padding(
+                          padding: EdgeInsets.only(left: Spacing.lg),
+                          child: Text('₹',
+                              style: TextStyle(fontSize: TypeScale.callout))),
                       padding: EdgeInsets.all(Spacing.lg),
-                      decoration: BoxDecoration(color: AppStyles.getBackground(context), borderRadius: BorderRadius.circular(Radii.md)),
+                      decoration: BoxDecoration(
+                          color: AppStyles.getBackground(context),
+                          borderRadius: BorderRadius.circular(Radii.md)),
                       autofocus: true,
                     ),
                     SizedBox(height: Spacing.xl),
-                    Text('Notes (Optional)', style: TextStyle(fontSize: TypeScale.subhead, fontWeight: FontWeight.w600)),
+                    Text('Notes (Optional)',
+                        style: TextStyle(
+                            fontSize: TypeScale.subhead,
+                            fontWeight: FontWeight.w600)),
                     SizedBox(height: Spacing.sm),
                     CupertinoTextField(
                       controller: _notesController,
                       placeholder: 'Add a note',
                       maxLines: 3,
                       padding: EdgeInsets.all(Spacing.lg),
-                      decoration: BoxDecoration(color: AppStyles.getBackground(context), borderRadius: BorderRadius.circular(Radii.md)),
+                      decoration: BoxDecoration(
+                          color: AppStyles.getBackground(context),
+                          borderRadius: BorderRadius.circular(Radii.md)),
                     ),
                     SizedBox(height: Spacing.xxxl),
                     Row(
                       children: [
-                        Expanded(child: CupertinoButton(color: CupertinoColors.systemGrey3, onPressed: () => Navigator.pop(context), child: Text('Cancel', style: TextStyle(color: AppStyles.getTextColor(context))))),
+                        Expanded(
+                            child: CupertinoButton(
+                                color: CupertinoColors.systemGrey3,
+                                onPressed: () => Navigator.pop(context),
+                                child: Text('Cancel',
+                                    style: TextStyle(
+                                        color:
+                                            AppStyles.getTextColor(context))))),
                         SizedBox(width: Spacing.md),
-                        Expanded(child: CupertinoButton(color: widget.goal.color, onPressed: _saveContribution, child: Text('Add', style: TextStyle(color: Colors.white)))),
+                        Expanded(
+                            child: CupertinoButton(
+                                color: widget.goal.color,
+                                onPressed: _saveContribution,
+                                child: Text('Add',
+                                    style: TextStyle(color: Colors.white)))),
                       ],
                     ),
                   ],

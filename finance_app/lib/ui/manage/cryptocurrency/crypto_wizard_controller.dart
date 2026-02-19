@@ -118,7 +118,8 @@ class CryptoWizardController extends ChangeNotifier {
       case 1:
         return walletAddress != null &&
             walletAddress!.isNotEmpty &&
-            (walletType != CryptoWalletType.exchange || selectedExchange != null);
+            (walletType != CryptoWalletType.exchange ||
+                selectedExchange != null);
       case 2:
         return quantity != null &&
             quantity! > 0 &&

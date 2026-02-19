@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/transactions_archive_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
@@ -16,7 +15,8 @@ class TransactionHistoryScreen extends StatefulWidget {
   const TransactionHistoryScreen({super.key});
 
   @override
-  State<TransactionHistoryScreen> createState() => _TransactionHistoryScreenState();
+  State<TransactionHistoryScreen> createState() =>
+      _TransactionHistoryScreenState();
 }
 
 class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
@@ -76,7 +76,20 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   }
 
   String _getMonthName(int month) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
     return months[month - 1];
   }
 
@@ -85,7 +98,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
       navigationBar: CupertinoNavigationBar(
-        middle: Text('Transaction History', style: TextStyle(color: AppStyles.getTextColor(context))),
+        middle: Text('Transaction History',
+            style: TextStyle(color: AppStyles.getTextColor(context))),
         previousPageTitle: 'Dashboard',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
@@ -105,13 +119,15 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
 
           return SafeArea(
             child: ListView.builder(
-              padding: EdgeInsets.fromLTRB(Spacing.lg, Spacing.lg, Spacing.lg, Spacing.xxxl),
+              padding: EdgeInsets.fromLTRB(
+                  Spacing.lg, Spacing.lg, Spacing.lg, Spacing.xxxl),
               itemCount: transactions.length,
               itemBuilder: (context, index) {
                 return StaggeredItem(
                   key: ValueKey(transactions[index].id),
                   index: index,
-                  child: _buildTransactionCard(context, transactions[index], transactionsController),
+                  child: _buildTransactionCard(
+                      context, transactions[index], transactionsController),
                 );
               },
             ),
@@ -130,7 +146,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     final typeIcon = _getTransactionTypeIcon(transaction.type);
 
     return BouncyButton(
-      onPressed: () => _showTransactionDetails(context, transaction, controller),
+      onPressed: () =>
+          _showTransactionDetails(context, transaction, controller),
       child: Container(
         margin: EdgeInsets.only(bottom: Spacing.lg),
         decoration: AppStyles.cardDecoration(context),
@@ -177,7 +194,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                       _formatDate(transaction.dateTime),
                       style: TextStyle(
                         fontSize: TypeScale.caption,
-                        color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.7),
+                        color: AppStyles.getSecondaryTextColor(context)
+                            .withValues(alpha: 0.7),
                       ),
                     ),
                   ],
@@ -233,7 +251,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
             return Container(
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(dragContext),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(24)),
               ),
               child: SingleChildScrollView(
                 controller: scrollController,
@@ -281,7 +300,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     return BouncyButton(
       onPressed: () {
         Navigator.pop(modalContext);
-        _showDeleteConfirmation(context, transaction, controller, archiveController);
+        _showDeleteConfirmation(
+            context, transaction, controller, archiveController);
       },
       child: Container(
         width: double.infinity,
@@ -360,7 +380,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
       builder: (dialogContext) {
         return CupertinoAlertDialog(
           title: const Text('Delete Transaction'),
-          content: const Text('This will move the transaction to Archived. Continue?'),
+          content: const Text(
+              'This will move the transaction to Archived. Continue?'),
           actions: [
             CupertinoDialogAction(
               child: const Text('Cancel'),
@@ -371,7 +392,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
               child: const Text('Archive'),
               onPressed: () async {
                 Haptics.delete();
-                await _archiveTransaction(transaction, controller, archiveController);
+                await _archiveTransaction(
+                    transaction, controller, archiveController);
                 Navigator.pop(dialogContext);
               },
             ),
@@ -389,6 +411,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     await archiveController.addToArchive(transaction);
     await controller.removeTransaction(transaction.id);
     toast_lib.toast.showSuccess('Transaction archived');
-    logger.info('Archived transaction: ${transaction.id}', context: 'TransactionHistory');
+    logger.info('Archived transaction: ${transaction.id}',
+        context: 'TransactionHistory');
   }
 }

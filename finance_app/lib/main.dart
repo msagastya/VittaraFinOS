@@ -324,7 +324,7 @@ class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  _SplashScreenState createState() => _SplashScreenState();
+  State<SplashScreen> createState() => _SplashScreenState();
 }
 
 class _SplashScreenState extends State<SplashScreen> {
@@ -496,8 +496,9 @@ class DashboardScreen extends StatelessWidget {
                               SizedBox(height: Spacing.xl),
                               CupertinoButton.filled(
                                 onPressed: () async {
-                                  if (kDebugMode)
+                                  if (kDebugMode) {
                                     print('Resetting dashboard to default');
+                                  }
                                   await dashboardController.resetToDefault();
                                   if (context.mounted) {
                                     toast.showSuccess(
@@ -530,7 +531,7 @@ class DashboardScreen extends StatelessWidget {
                           boxShadow: [
                             BoxShadow(
                               color: AppStyles.getPrimaryColor(context)
-                                  .withOpacity(0.3),
+                                  .withValues(alpha: 0.3),
                               blurRadius: 12,
                               offset: const Offset(0, 6),
                             ),
@@ -618,7 +619,7 @@ class DashboardScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -642,7 +643,7 @@ class DashboardScreen extends StatelessWidget {
                           CupertinoIcons.line_horizontal_3,
                           size: 18,
                           color: AppStyles.getPrimaryColor(context)
-                              .withOpacity(0.4),
+                              .withValues(alpha: 0.4),
                         ),
                         SizedBox(width: Spacing.md),
                         // Title
@@ -694,7 +695,7 @@ class DashboardScreen extends StatelessWidget {
                       Icon(
                         CupertinoIcons.checkmark_circle_fill,
                         size: 32,
-                        color: Colors.green.withOpacity(0.7),
+                        color: Colors.green.withValues(alpha: 0.7),
                       ),
                       SizedBox(height: Spacing.md),
                       Text(
@@ -736,8 +737,9 @@ class DashboardScreen extends StatelessWidget {
         final fdsNearMaturity = investmentsController.investments.where((inv) {
           if (inv.type.name != 'fixedDeposit') return false;
           final metadata = inv.metadata;
-          if (metadata == null || !metadata.containsKey('maturityDate'))
+          if (metadata == null || !metadata.containsKey('maturityDate')) {
             return false;
+          }
           final maturityDate =
               DateTime.parse(metadata['maturityDate'] as String);
           final daysUntil = maturityDate.difference(DateTime.now()).inDays;
@@ -747,8 +749,9 @@ class DashboardScreen extends StatelessWidget {
         final fdsMatured = investmentsController.investments.where((inv) {
           if (inv.type.name != 'fixedDeposit') return false;
           final metadata = inv.metadata;
-          if (metadata == null || !metadata.containsKey('maturityDate'))
+          if (metadata == null || !metadata.containsKey('maturityDate')) {
             return false;
+          }
           final maturityDate =
               DateTime.parse(metadata['maturityDate'] as String);
           final daysUntil = maturityDate.difference(DateTime.now()).inDays;
@@ -779,13 +782,13 @@ class DashboardScreen extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            SemanticColors.primary.withOpacity(0.1),
-            SemanticColors.primary.withOpacity(0.05),
+            SemanticColors.primary.withValues(alpha: 0.1),
+            SemanticColors.primary.withValues(alpha: 0.05),
           ],
         ),
         border: Border(
           bottom: BorderSide(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             width: 1,
           ),
         ),
@@ -829,10 +832,10 @@ class DashboardScreen extends StatelessWidget {
                       vertical: Spacing.xs,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.green.withOpacity(0.15),
+                      color: Colors.green.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: Colors.green.withOpacity(0.3),
+                        color: Colors.green.withValues(alpha: 0.3),
                       ),
                     ),
                     child: Row(
@@ -903,20 +906,20 @@ class DashboardScreen extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              color.withOpacity(0.15),
-              color.withOpacity(0.08),
+              color.withValues(alpha: 0.15),
+              color.withValues(alpha: 0.08),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: color.withOpacity(0.2),
+            color: color.withValues(alpha: 0.2),
             width: 1.5,
           ),
           boxShadow: [
             BoxShadow(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -1064,13 +1067,13 @@ class DashboardScreen extends StatelessWidget {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        displayColor.withOpacity(0.15),
-                        displayColor.withOpacity(0.05),
+                        displayColor.withValues(alpha: 0.15),
+                        displayColor.withValues(alpha: 0.05),
                       ],
                     ),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: displayColor.withOpacity(0.2),
+                      color: displayColor.withValues(alpha: 0.2),
                     ),
                   ),
                   child: Column(
@@ -1098,7 +1101,7 @@ class DashboardScreen extends StatelessWidget {
                         padding:
                             EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
-                          color: displayColor.withOpacity(0.08),
+                          color: displayColor.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Column(
@@ -1224,7 +1227,7 @@ class DashboardScreen extends StatelessWidget {
                   value: progress,
                   minHeight: 6,
                   backgroundColor:
-                      AppStyles.getBackground(context).withOpacity(0.5),
+                      AppStyles.getBackground(context).withValues(alpha: 0.5),
                   valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
                 ),
                 SizedBox(height: Spacing.sm),
@@ -1307,7 +1310,7 @@ class DashboardScreen extends StatelessWidget {
                   value: ratio,
                   minHeight: 6,
                   backgroundColor:
-                      AppStyles.getBackground(context).withOpacity(0.5),
+                      AppStyles.getBackground(context).withValues(alpha: 0.5),
                   valueColor: const AlwaysStoppedAnimation<Color>(Colors.green),
                 ),
                 SizedBox(height: Spacing.sm),
@@ -1434,7 +1437,7 @@ class DashboardScreen extends StatelessWidget {
                           height: 40,
                           decoration: BoxDecoration(
                             color: (isExpense ? Colors.red : Colors.green)
-                                .withOpacity(0.15),
+                                .withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Icon(
@@ -1500,8 +1503,9 @@ class DashboardScreen extends StatelessWidget {
                 investmentsController.investments.where((inv) {
               if (inv.type.name != 'fixedDeposit') return false;
               final metadata = inv.metadata;
-              if (metadata == null || !metadata.containsKey('maturityDate'))
+              if (metadata == null || !metadata.containsKey('maturityDate')) {
                 return false;
+              }
               final maturityDate =
                   DateTime.parse(metadata['maturityDate'] as String);
               final daysUntil = maturityDate.difference(DateTime.now()).inDays;
@@ -1511,8 +1515,9 @@ class DashboardScreen extends StatelessWidget {
             final fdsMatured = investmentsController.investments.where((inv) {
               if (inv.type.name != 'fixedDeposit') return false;
               final metadata = inv.metadata;
-              if (metadata == null || !metadata.containsKey('maturityDate'))
+              if (metadata == null || !metadata.containsKey('maturityDate')) {
                 return false;
+              }
               final maturityDate =
                   DateTime.parse(metadata['maturityDate'] as String);
               final daysUntil = maturityDate.difference(DateTime.now()).inDays;
@@ -1531,9 +1536,10 @@ class DashboardScreen extends StatelessWidget {
                   Container(
                     padding: EdgeInsets.all(Spacing.md),
                     decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.1),
+                      color: Colors.red.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.red.withOpacity(0.2)),
+                      border:
+                          Border.all(color: Colors.red.withValues(alpha: 0.2)),
                     ),
                     child: Row(
                       children: [
@@ -1560,7 +1566,7 @@ class DashboardScreen extends StatelessWidget {
                                 'Action required',
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: Colors.red.withOpacity(0.7),
+                                  color: Colors.red.withValues(alpha: 0.7),
                                 ),
                               ),
                             ],
@@ -1575,9 +1581,10 @@ class DashboardScreen extends StatelessWidget {
                   Container(
                     padding: EdgeInsets.all(Spacing.md),
                     decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(0.1),
+                      color: Colors.orange.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.orange.withOpacity(0.2)),
+                      border: Border.all(
+                          color: Colors.orange.withValues(alpha: 0.2)),
                     ),
                     child: Row(
                       children: [
@@ -1604,7 +1611,7 @@ class DashboardScreen extends StatelessWidget {
                                 'Within 10 days',
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: Colors.orange.withOpacity(0.7),
+                                  color: Colors.orange.withValues(alpha: 0.7),
                                 ),
                               ),
                             ],
@@ -1642,9 +1649,9 @@ class DashboardScreen extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(Spacing.md),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
@@ -1652,7 +1659,7 @@ class DashboardScreen extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
+              color: color.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, size: 16, color: color),
@@ -1688,9 +1695,9 @@ class DashboardScreen extends StatelessWidget {
       padding:
           EdgeInsets.symmetric(horizontal: Spacing.sm, vertical: Spacing.xs),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
@@ -1729,7 +1736,7 @@ class DashboardScreen extends StatelessWidget {
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: color.withOpacity(0.15),
+          color: color.withValues(alpha: 0.15),
         ),
       ),
       child: Column(
@@ -1740,7 +1747,7 @@ class DashboardScreen extends StatelessWidget {
               Container(
                 padding: EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.15),
+                  color: color.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
@@ -1768,7 +1775,7 @@ class DashboardScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 10,
                         color: AppStyles.getSecondaryTextColor(context)
-                            .withOpacity(0.7),
+                            .withValues(alpha: 0.7),
                       ),
                     ),
                   ],

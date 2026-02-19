@@ -78,14 +78,15 @@ List<BondPayoutNotificationInfo> collectBondPayoutNotifications(
       ...?((metadata['pastPayouts'] as List?)
           ?.map<int?>((entry) =>
               (entry as Map<String, dynamic>)['payoutNumber'] as int?)
-          ?.whereType<int>()),
+          .whereType<int>()),
     };
 
     for (final scheduleMap in scheduleList) {
       final schedule = BondPayoutSchedule.fromMap(scheduleMap);
       final payoutNumber = schedule.payoutNumber;
-      if (skipped.contains(payoutNumber) || recorded.contains(payoutNumber))
+      if (skipped.contains(payoutNumber) || recorded.contains(payoutNumber)) {
         continue;
+      }
 
       final daysUntil = schedule.payoutDate.difference(now).inDays;
       if (daysUntil >= 0 && daysUntil <= daysAhead) {

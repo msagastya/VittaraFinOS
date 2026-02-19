@@ -7,7 +7,7 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 class FOTypeStep extends StatelessWidget {
   final FOWizardController ctrl;
 
-  const FOTypeStep(this.ctrl);
+  const FOTypeStep(this.ctrl, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -22,9 +22,18 @@ class FOTypeStep extends StatelessWidget {
             children: FOType.values.map((type) {
               final isSelected = ctrl.selectedType == type;
               final details = {
-                FOType.futures: ('Futures', 'Obligation to buy/sell at fixed price'),
-                FOType.callOption: ('Call Option', 'Right to buy at strike price'),
-                FOType.putOption: ('Put Option', 'Right to sell at strike price'),
+                FOType.futures: (
+                  'Futures',
+                  'Obligation to buy/sell at fixed price'
+                ),
+                FOType.callOption: (
+                  'Call Option',
+                  'Right to buy at strike price'
+                ),
+                FOType.putOption: (
+                  'Put Option',
+                  'Right to sell at strike price'
+                ),
               };
               final (title, desc) = details[type]!;
 
@@ -35,12 +44,12 @@ class FOTypeStep extends StatelessWidget {
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? const Color(0xFF1ABC9C).withOpacity(0.1)
+                        ? const Color(0xFF1ABC9C).withValues(alpha: 0.1)
                         : AppStyles.getCardColor(context),
                     border: Border.all(
                       color: isSelected
                           ? const Color(0xFF1ABC9C)
-                          : Colors.grey.withOpacity(0.2),
+                          : Colors.grey.withValues(alpha: 0.2),
                     ),
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -75,11 +84,14 @@ class FOTypeStep extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                            Text(title,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold)),
                             Text(desc,
                                 style: TextStyle(
                                     fontSize: 12,
-                                    color: AppStyles.getSecondaryTextColor(context))),
+                                    color: AppStyles.getSecondaryTextColor(
+                                        context))),
                           ],
                         ),
                       ),
@@ -90,7 +102,8 @@ class FOTypeStep extends StatelessWidget {
             }).toList(),
           ),
           const SizedBox(height: 24),
-          Text('Symbol', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+          Text('Symbol',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
           const SizedBox(height: 12),
           CupertinoTextField(
             placeholder: 'e.g., NIFTY, BANKNIFTY, GOLD',
@@ -102,7 +115,8 @@ class FOTypeStep extends StatelessWidget {
             onChanged: (v) => ctrl.updateSymbol(v),
           ),
           const SizedBox(height: 20),
-          Text('Contract Name', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+          Text('Contract Name',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
           const SizedBox(height: 12),
           CupertinoTextField(
             placeholder: 'e.g., NIFTY 50 Index Futures',

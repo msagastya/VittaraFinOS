@@ -20,7 +20,9 @@ class _NPSContributionStepState extends State<NPSContributionStep> {
     super.initState();
     final ctrl = Provider.of<NPSWizardController>(context, listen: false);
     _contributedController = TextEditingController(
-      text: ctrl.totalContributed != null ? ctrl.totalContributed!.toString() : '',
+      text: ctrl.totalContributed != null
+          ? ctrl.totalContributed!.toString()
+          : '',
     );
   }
 
@@ -42,7 +44,8 @@ class _NPSContributionStepState extends State<NPSContributionStep> {
           Text('Contribution Summary', style: AppStyles.titleStyle(context)),
           const SizedBox(height: 8),
           Text('Enter total contribution till date',
-              style: TextStyle(color: AppStyles.getSecondaryTextColor(context))),
+              style:
+                  TextStyle(color: AppStyles.getSecondaryTextColor(context))),
           const SizedBox(height: 30),
           // Total Contributed
           Text('Total Contributed (₹)',
@@ -59,7 +62,8 @@ class _NPSContributionStepState extends State<NPSContributionStep> {
             ),
             prefix: Padding(
               padding: const EdgeInsets.only(left: 16),
-              child: Text('₹', style: TextStyle(color: AppStyles.getTextColor(context))),
+              child: Text('₹',
+                  style: TextStyle(color: AppStyles.getTextColor(context))),
             ),
             onChanged: (v) {
               final amt = double.tryParse(v) ?? 0;
@@ -86,18 +90,24 @@ class _NPSContributionStepState extends State<NPSContributionStep> {
               return GestureDetector(
                 onTap: () => ctrl.updateSchemeType(scheme),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
-                    color: isSelected ? const Color(0xFF9B59B6) : AppStyles.getCardColor(context),
+                    color: isSelected
+                        ? const Color(0xFF9B59B6)
+                        : AppStyles.getCardColor(context),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: isSelected ? const Color(0xFF9B59B6) : Colors.grey.withOpacity(0.2),
+                      color: isSelected
+                          ? const Color(0xFF9B59B6)
+                          : Colors.grey.withValues(alpha: 0.2),
                     ),
                   ),
                   child: Text(label,
                       style: TextStyle(
                           color: isSelected ? Colors.white : null,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                          fontWeight:
+                              isSelected ? FontWeight.bold : FontWeight.w500,
                           fontSize: 12)),
                 ),
               );
@@ -169,9 +179,10 @@ class _NPSContributionStepState extends State<NPSContributionStep> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF9B59B6).withOpacity(0.1),
+                color: const Color(0xFF9B59B6).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF9B59B6).withOpacity(0.3)),
+                border: Border.all(
+                    color: const Color(0xFF9B59B6).withValues(alpha: 0.3)),
               ),
               child: Column(
                 children: [

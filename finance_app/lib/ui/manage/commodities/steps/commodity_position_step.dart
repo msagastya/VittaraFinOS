@@ -7,7 +7,7 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 class CommodityPositionStep extends StatefulWidget {
   final CommoditiesWizardController ctrl;
 
-  const CommodityPositionStep(this.ctrl);
+  const CommodityPositionStep(this.ctrl, {super.key});
 
   @override
   State<CommodityPositionStep> createState() => _CommodityPositionStepState();
@@ -37,7 +37,8 @@ class _CommodityPositionStepState extends State<CommodityPositionStep> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Current Price & Position', style: AppStyles.titleStyle(context)),
+          Text('Current Price & Position',
+              style: AppStyles.titleStyle(context)),
           const SizedBox(height: 30),
           Text('Current Price Per ${widget.ctrl.unit ?? 'Unit'} (₹)',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
@@ -68,7 +69,7 @@ class _CommodityPositionStepState extends State<CommodityPositionStep> {
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.withOpacity(0.2)),
+              border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
             ),
             child: Column(
               children: [
@@ -78,10 +79,11 @@ class _CommodityPositionStepState extends State<CommodityPositionStep> {
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: widget.ctrl.position == TradePosition.long
-                          ? const Color(0xFF8B4513).withOpacity(0.1)
+                          ? const Color(0xFF8B4513).withValues(alpha: 0.1)
                           : Colors.transparent,
                       border: Border(
-                        bottom: BorderSide(color: Colors.grey.withOpacity(0.2)),
+                        bottom: BorderSide(
+                            color: Colors.grey.withValues(alpha: 0.2)),
                       ),
                     ),
                     child: Row(
@@ -116,11 +118,13 @@ class _CommodityPositionStepState extends State<CommodityPositionStep> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text('Long Position',
-                                  style: const TextStyle(fontWeight: FontWeight.bold)),
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold)),
                               Text('Profit if price increases',
                                   style: TextStyle(
                                       fontSize: 12,
-                                      color: AppStyles.getSecondaryTextColor(context))),
+                                      color: AppStyles.getSecondaryTextColor(
+                                          context))),
                             ],
                           ),
                         ),
@@ -133,7 +137,7 @@ class _CommodityPositionStepState extends State<CommodityPositionStep> {
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     color: widget.ctrl.position == TradePosition.short
-                        ? const Color(0xFF8B4513).withOpacity(0.1)
+                        ? const Color(0xFF8B4513).withValues(alpha: 0.1)
                         : Colors.transparent,
                     child: Row(
                       children: [
@@ -167,11 +171,13 @@ class _CommodityPositionStepState extends State<CommodityPositionStep> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text('Short Position',
-                                  style: const TextStyle(fontWeight: FontWeight.bold)),
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold)),
                               Text('Profit if price decreases',
                                   style: TextStyle(
                                       fontSize: 12,
-                                      color: AppStyles.getSecondaryTextColor(context))),
+                                      color: AppStyles.getSecondaryTextColor(
+                                          context))),
                             ],
                           ),
                         ),
@@ -189,21 +195,18 @@ class _CommodityPositionStepState extends State<CommodityPositionStep> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: (widget.ctrl.gainLoss >= 0
-                        ? Colors.green
-                        : Colors.red)
-                    .withOpacity(0.1),
+                color: (widget.ctrl.gainLoss >= 0 ? Colors.green : Colors.red)
+                    .withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                    color: (widget.ctrl.gainLoss >= 0
-                            ? Colors.green
-                            : Colors.red)
-                        .withOpacity(0.3)),
+                    color:
+                        (widget.ctrl.gainLoss >= 0 ? Colors.green : Colors.red)
+                            .withValues(alpha: 0.3)),
               ),
               child: Column(
                 children: [
-                  _Summary('Current Value', '₹${widget.ctrl.currentValue.toStringAsFixed(2)}',
-                      true),
+                  _Summary('Current Value',
+                      '₹${widget.ctrl.currentValue.toStringAsFixed(2)}', true),
                   const SizedBox(height: 12),
                   _Summary(
                       'Gain/Loss',
@@ -231,7 +234,8 @@ class _Summary extends StatelessWidget {
   final bool isPositive;
   final bool isBold;
 
-  const _Summary(this.label, this.value, this.isPositive, {this.isBold = false});
+  const _Summary(this.label, this.value, this.isPositive,
+      {this.isBold = false});
 
   @override
   Widget build(BuildContext context) {

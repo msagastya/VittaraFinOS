@@ -176,7 +176,8 @@ class _PensionWizardContentState extends State<_PensionWizardContent> {
                           }
                         }
                       : null,
-                  child: Text(ctrl.currentStep >= 3 ? 'Confirm & Save' : 'Continue'),
+                  child: Text(
+                      ctrl.currentStep >= 3 ? 'Confirm & Save' : 'Continue'),
                 ),
               ),
             ),
@@ -205,9 +206,18 @@ class _SchemeSelectionStep extends StatelessWidget {
             children: PensionSchemeType.values.map((scheme) {
               final isSelected = ctrl.selectedScheme == scheme;
               final details = {
-                PensionSchemeType.apy: ('Atal Pension Yojana (APY)', '₹1000-₹5000/month, Govt. backed'),
-                PensionSchemeType.epf: ('EPF', 'Employee Provident Fund, 12% employee'),
-                PensionSchemeType.ppf: ('PPF', 'Public Provident Fund, ₹500-₹150K/year'),
+                PensionSchemeType.apy: (
+                  'Atal Pension Yojana (APY)',
+                  '₹1000-₹5000/month, Govt. backed'
+                ),
+                PensionSchemeType.epf: (
+                  'EPF',
+                  'Employee Provident Fund, 12% employee'
+                ),
+                PensionSchemeType.ppf: (
+                  'PPF',
+                  'Public Provident Fund, ₹500-₹150K/year'
+                ),
               };
               final (title, desc) = details[scheme]!;
 
@@ -218,12 +228,12 @@ class _SchemeSelectionStep extends StatelessWidget {
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? const Color(0xFF27AE60).withOpacity(0.1)
+                        ? const Color(0xFF27AE60).withValues(alpha: 0.1)
                         : AppStyles.getCardColor(context),
                     border: Border.all(
                       color: isSelected
                           ? const Color(0xFF27AE60)
-                          : Colors.grey.withOpacity(0.2),
+                          : Colors.grey.withValues(alpha: 0.2),
                     ),
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -258,11 +268,14 @@ class _SchemeSelectionStep extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                            Text(title,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold)),
                             Text(desc,
                                 style: TextStyle(
                                     fontSize: 12,
-                                    color: AppStyles.getSecondaryTextColor(context))),
+                                    color: AppStyles.getSecondaryTextColor(
+                                        context))),
                           ],
                         ),
                       ),
@@ -293,7 +306,8 @@ class _AccountDetailsStepState extends State<_AccountDetailsStep> {
   @override
   void initState() {
     super.initState();
-    _accountController = TextEditingController(text: widget.ctrl.accountNumber ?? '');
+    _accountController =
+        TextEditingController(text: widget.ctrl.accountNumber ?? '');
   }
 
   @override
@@ -370,7 +384,8 @@ class _ContributionStepState extends State<_ContributionStep> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Contributions & Valuation', style: AppStyles.titleStyle(context)),
+          Text('Contributions & Valuation',
+              style: AppStyles.titleStyle(context)),
           const SizedBox(height: 30),
           Text('Total Contributed (₹)',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
@@ -416,21 +431,26 @@ class _ContributionStepState extends State<_ContributionStep> {
             },
           ),
           const SizedBox(height: 24),
-          if (ctrl.principalContributed != null && ctrl.currentValue != null) ...{
+          if (ctrl.principalContributed != null &&
+              ctrl.currentValue != null) ...{
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF27AE60).withOpacity(0.1),
+                color: const Color(0xFF27AE60).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF27AE60).withOpacity(0.3)),
+                border: Border.all(
+                    color: const Color(0xFF27AE60).withValues(alpha: 0.3)),
               ),
               child: Column(
                 children: [
                   _Summary('Return', '₹${ctrl.gainLoss.toStringAsFixed(2)}',
                       ctrl.gainLoss >= 0),
                   const SizedBox(height: 12),
-                  _Summary('Return %', '${ctrl.gainLossPercent.toStringAsFixed(2)}%',
-                      ctrl.gainLossPercent >= 0, isBold: true),
+                  _Summary(
+                      'Return %',
+                      '${ctrl.gainLossPercent.toStringAsFixed(2)}%',
+                      ctrl.gainLossPercent >= 0,
+                      isBold: true),
                 ],
               ),
             ),
@@ -459,9 +479,13 @@ class _ReviewStep extends StatelessWidget {
             children: [
               _Row('Scheme', ctrl.selectedScheme.toString().split('.').last),
               _Row('Account', ctrl.accountNumber ?? 'N/A'),
-              _Row('Contributed', '₹${ctrl.principalContributed?.toStringAsFixed(2) ?? '0'}'),
-              _Row('Current Value', '₹${ctrl.currentValue?.toStringAsFixed(2) ?? '0'}', isBold: true),
-              _Row('Gain/Loss', '₹${ctrl.gainLoss.toStringAsFixed(2)}', isGain: ctrl.gainLoss >= 0),
+              _Row('Contributed',
+                  '₹${ctrl.principalContributed?.toStringAsFixed(2) ?? '0'}'),
+              _Row('Current Value',
+                  '₹${ctrl.currentValue?.toStringAsFixed(2) ?? '0'}',
+                  isBold: true),
+              _Row('Gain/Loss', '₹${ctrl.gainLoss.toStringAsFixed(2)}',
+                  isGain: ctrl.gainLoss >= 0),
             ],
           ),
         ],
@@ -482,7 +506,7 @@ class _Card extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withOpacity(0.2)),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
       ),
       child: Column(
         children: List.generate(
@@ -512,7 +536,9 @@ class _Row extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: TextStyle(color: AppStyles.getSecondaryTextColor(context), fontSize: 13)),
+        Text(label,
+            style: TextStyle(
+                color: AppStyles.getSecondaryTextColor(context), fontSize: 13)),
         Text(value,
             style: TextStyle(
                 fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
@@ -529,7 +555,8 @@ class _Summary extends StatelessWidget {
   final bool isPositive;
   final bool isBold;
 
-  const _Summary(this.label, this.value, this.isPositive, {this.isBold = false});
+  const _Summary(this.label, this.value, this.isPositive,
+      {this.isBold = false});
 
   @override
   Widget build(BuildContext context) {

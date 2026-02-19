@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/bond_payout_generator.dart';
-import 'package:vittara_fin_os/logic/account_model.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
@@ -10,7 +9,6 @@ import 'package:vittara_fin_os/logic/notification_helpers.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
-import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class BondPayoutModal extends StatefulWidget {
   final Investment bond;
@@ -81,7 +79,7 @@ class _BondPayoutModalState extends State<BondPayoutModal> {
                             horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? Colors.blue.withOpacity(0.1)
+                              ? Colors.blue.withValues(alpha: 0.1)
                               : AppStyles.getBackground(context),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
@@ -144,7 +142,8 @@ class _BondPayoutModalState extends State<BondPayoutModal> {
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 border: Border(
-                    bottom: BorderSide(color: Colors.grey.withOpacity(0.2))),
+                    bottom:
+                        BorderSide(color: Colors.grey.withValues(alpha: 0.2))),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -247,7 +246,7 @@ class _BondPayoutModalState extends State<BondPayoutModal> {
               decoration: BoxDecoration(
                 color: AppStyles.getBackground(context),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
               ),
               prefix: const Padding(
                 padding: EdgeInsets.only(left: 12),
@@ -266,7 +265,7 @@ class _BondPayoutModalState extends State<BondPayoutModal> {
                 decoration: BoxDecoration(
                   color: AppStyles.getBackground(context),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                  border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -292,7 +291,7 @@ class _BondPayoutModalState extends State<BondPayoutModal> {
                 decoration: BoxDecoration(
                   color: AppStyles.getBackground(context),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                  border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,

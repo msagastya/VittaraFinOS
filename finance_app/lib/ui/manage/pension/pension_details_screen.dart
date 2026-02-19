@@ -23,18 +23,20 @@ class _PensionDetailsScreenState extends State<PensionDetailsScreen> {
   void initState() {
     super.initState();
     final meta = widget.investment.metadata ?? {};
-    pension = PensionScheme.fromMap(meta['pensionData'] as Map<String, dynamic>? ?? {});
+    pension = PensionScheme.fromMap(
+        meta['pensionData'] as Map<String, dynamic>? ?? {});
   }
 
   @override
   Widget build(BuildContext context) {
-    final investmentsCtrl = Provider.of<InvestmentsController>(context, listen: false);
+    final investmentsCtrl =
+        Provider.of<InvestmentsController>(context, listen: false);
     final isPositive = pension.gainLoss >= 0;
 
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
       navigationBar: CupertinoNavigationBar(
-        middle: Text('${pension.getTypeLabel()}',
+        middle: Text(pension.getTypeLabel(),
             style: TextStyle(color: AppStyles.getTextColor(context))),
         backgroundColor: AppStyles.getBackground(context),
         leading: CupertinoButton(
@@ -103,7 +105,7 @@ class _PensionDetailsScreenState extends State<PensionDetailsScreen> {
               SizedBox(
                 width: double.infinity,
                 child: CupertinoButton(
-                  color: Colors.red.withOpacity(0.1),
+                  color: Colors.red.withValues(alpha: 0.1),
                   onPressed: () {
                     showCupertinoDialog(
                       context: context,
@@ -119,7 +121,8 @@ class _PensionDetailsScreenState extends State<PensionDetailsScreen> {
                             isDestructiveAction: true,
                             onPressed: () async {
                               Navigator.pop(ctx);
-                              await investmentsCtrl.deleteInvestment(widget.investment.id);
+                              await investmentsCtrl
+                                  .deleteInvestment(widget.investment.id);
                               if (context.mounted) {
                                 toast.showSuccess('Pension account deleted!');
                                 Navigator.pop(context);
@@ -131,7 +134,8 @@ class _PensionDetailsScreenState extends State<PensionDetailsScreen> {
                       ),
                     );
                   },
-                  child: const Text('Delete Account', style: TextStyle(color: Colors.red)),
+                  child: const Text('Delete Account',
+                      style: TextStyle(color: Colors.red)),
                 ),
               ),
               const SizedBox(height: 20),
@@ -156,14 +160,13 @@ class _DetailCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withOpacity(0.2)),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title,
-              style: TextStyle(
-                  fontWeight: FontWeight.bold, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
           const SizedBox(height: 16),
           ...List.generate(
             children.length,
@@ -207,8 +210,7 @@ class _DetailRow extends StatelessWidget {
       children: [
         Text(label,
             style: TextStyle(
-                color: AppStyles.getSecondaryTextColor(context),
-                fontSize: 13)),
+                color: AppStyles.getSecondaryTextColor(context), fontSize: 13)),
         Text(value,
             style: TextStyle(
                 fontWeight: isBold ? FontWeight.bold : FontWeight.w500,

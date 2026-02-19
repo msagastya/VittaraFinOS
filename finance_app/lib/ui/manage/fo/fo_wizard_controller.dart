@@ -140,8 +140,7 @@ class FOWizardController extends ChangeNotifier {
   void _calculateGreeks() {
     if (selectedType == FOType.futures || strikePrice == null) return;
 
-    final timeToExpiry =
-        expiryDate.difference(DateTime.now()).inDays / 365.0;
+    final timeToExpiry = expiryDate.difference(DateTime.now()).inDays / 365.0;
     if (timeToExpiry <= 0) return;
 
     greeks = FuturesOptions.calculateGreeks(

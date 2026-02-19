@@ -422,8 +422,10 @@ class _IconPickerModalState extends State<IconPickerModal> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: CupertinoTextField(
-                placeholder: 'Search icons (${_filteredIcons.length} available)',
-                placeholderStyle: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+                placeholder:
+                    'Search icons (${_filteredIcons.length} available)',
+                placeholderStyle:
+                    TextStyle(color: AppStyles.getSecondaryTextColor(context)),
                 style: TextStyle(color: AppStyles.getTextColor(context)),
                 decoration: BoxDecoration(
                   color: Colors.transparent,
@@ -463,7 +465,8 @@ class _IconPickerModalState extends State<IconPickerModal> {
                           color: AppStyles.getBackground(context),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.2),
+                            color: AppStyles.getSecondaryTextColor(context)
+                                .withValues(alpha: 0.2),
                           ),
                         ),
                         child: Center(

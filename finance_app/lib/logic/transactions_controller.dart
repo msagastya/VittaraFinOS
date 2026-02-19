@@ -19,7 +19,8 @@ class TransactionsController with ChangeNotifier {
     final transactionsJson = _prefs.getStringList(_storageKey) ?? [];
 
     _transactions = transactionsJson
-        .map((json) => Transaction.fromMap(jsonDecode(json) as Map<String, dynamic>))
+        .map((json) =>
+            Transaction.fromMap(jsonDecode(json) as Map<String, dynamic>))
         .toList();
 
     // Sort by date descending (newest first)

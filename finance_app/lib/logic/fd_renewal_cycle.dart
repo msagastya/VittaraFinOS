@@ -4,7 +4,8 @@ class FDRenewalCycle {
   final DateTime investmentDate; // Start date of this cycle
   final DateTime maturityDate; // Expected maturity date
   final double principal; // Principal for this cycle
-  final double interestRate; // Annual rate for this cycle (can differ from previous)
+  final double
+      interestRate; // Annual rate for this cycle (can differ from previous)
   final int tenureMonths; // Duration in months
   final double maturityValue; // Expected value at maturity
   final DateTime? withdrawalDate; // If withdrawn before maturity
@@ -73,8 +74,12 @@ class FDRenewalCycle {
       interestRate: (map['interestRate'] as num).toDouble(),
       tenureMonths: map['tenureMonths'] as int,
       maturityValue: (map['maturityValue'] as num).toDouble(),
-      withdrawalDate: map['withdrawalDate'] != null ? DateTime.parse(map['withdrawalDate'] as String) : null,
-      withdrawalAmount: map['withdrawalAmount'] != null ? (map['withdrawalAmount'] as num).toDouble() : null,
+      withdrawalDate: map['withdrawalDate'] != null
+          ? DateTime.parse(map['withdrawalDate'] as String)
+          : null,
+      withdrawalAmount: map['withdrawalAmount'] != null
+          ? (map['withdrawalAmount'] as num).toDouble()
+          : null,
       withdrawalReason: map['withdrawalReason'] as String?,
       isWithdrawn: map['isWithdrawn'] as bool? ?? false,
       isCompleted: map['isCompleted'] as bool? ?? false,

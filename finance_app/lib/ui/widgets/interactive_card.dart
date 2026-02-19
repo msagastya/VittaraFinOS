@@ -1,5 +1,3 @@
-import 'dart:ui';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
@@ -94,8 +92,8 @@ class _InteractiveCardState extends State<InteractiveCard>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final backgroundColor = widget.backgroundColor ??
-        (isDark ? Colors.grey[900]! : Colors.white);
+    final backgroundColor =
+        widget.backgroundColor ?? (isDark ? Colors.grey[900]! : Colors.white);
 
     return GestureDetector(
       onPanUpdate: _handlePanUpdate,
@@ -123,7 +121,9 @@ class _InteractiveCardState extends State<InteractiveCard>
                 (_pressController.value * 0.03);
 
             final elevation = widget.enableDepth
-                ? 4.0 + (_hoverController.value * 8.0) - (_pressController.value * 2.0)
+                ? 4.0 +
+                    (_hoverController.value * 8.0) -
+                    (_pressController.value * 2.0)
                 : 4.0;
 
             return Transform(
@@ -131,7 +131,7 @@ class _InteractiveCardState extends State<InteractiveCard>
                 ..setEntry(3, 2, 0.001)
                 ..rotateX(tiltY)
                 ..rotateY(tiltX)
-                ..scale(scale),
+                ..scaleByDouble(scale, scale, 1.0, 1.0),
               alignment: Alignment.center,
               child: Container(
                 margin: widget.margin,
@@ -219,8 +219,8 @@ class _PressableCardState extends State<PressableCard>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final backgroundColor = widget.backgroundColor ??
-        (isDark ? Colors.grey[900]! : Colors.white);
+    final backgroundColor =
+        widget.backgroundColor ?? (isDark ? Colors.grey[900]! : Colors.white);
 
     return GestureDetector(
       onTapDown: (_) => _controller.forward(),
@@ -307,7 +307,9 @@ class _ShimmerCardState extends State<ShimmerCard>
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final shimmerColor = widget.shimmerColor ??
-        (isDark ? Colors.white.withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.3));
+        (isDark
+            ? Colors.white.withValues(alpha: 0.1)
+            : Colors.white.withValues(alpha: 0.3));
 
     return GestureDetector(
       onTap: widget.onTap,

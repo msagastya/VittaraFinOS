@@ -30,7 +30,8 @@ class FDRenewalWizardController extends ChangeNotifier {
   int tenureTotalDays = 0;
 
   // Compounding Frequency
-  FDCompoundingFrequency compoundingFrequency = FDCompoundingFrequency.quarterly;
+  FDCompoundingFrequency compoundingFrequency =
+      FDCompoundingFrequency.quarterly;
 
   // FD Type & Payout Frequency
   bool isCumulative = true;
@@ -291,15 +292,18 @@ class FDRenewalWizardController extends ChangeNotifier {
   }
 
   num pow(num x, num y) {
-    return x == 0 ? 0 : x > 0 ? _pow(x, y) : -_pow(-x, y);
+    return x == 0
+        ? 0
+        : x > 0
+            ? _pow(x, y)
+            : -_pow(-x, y);
   }
 
   num _pow(num x, num y) {
-    return y < 0 ? 1 / _pow(x, -y) : y == 0 ? 1 : x * _pow(x, y - 1);
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
+    return y < 0
+        ? 1 / _pow(x, -y)
+        : y == 0
+            ? 1
+            : x * _pow(x, y - 1);
   }
 }

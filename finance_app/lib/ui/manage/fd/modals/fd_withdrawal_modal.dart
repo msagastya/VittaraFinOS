@@ -58,12 +58,14 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
 
     // If withdrawal date is before maturity, calculate pro-rata interest
     final daysInvested = date.difference(widget.fd.investmentDate).inDays;
-    final totalDays = widget.fd.maturityDate.difference(widget.fd.investmentDate).inDays;
+    final totalDays =
+        widget.fd.maturityDate.difference(widget.fd.investmentDate).inDays;
 
     if (totalDays == 0) return widget.fd.principal;
 
     final proportionOfTenure = daysInvested / totalDays;
-    final proportionOfInterest = widget.fd.totalInterestAtMaturity * proportionOfTenure;
+    final proportionOfInterest =
+        widget.fd.totalInterestAtMaturity * proportionOfTenure;
 
     return widget.fd.principal + proportionOfInterest;
   }
@@ -107,9 +109,12 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                       ),
                     ),
                     SizedBox(height: Spacing.md),
-                    _buildDetailRow(context, 'Principal', '₹${widget.fd.principal.toStringAsFixed(2)}'),
-                    _buildDetailRow(context, 'Maturity Date', _formatDate(widget.fd.maturityDate)),
-                    _buildDetailRow(context, 'Maturity Value', '₹${widget.fd.maturityValue.toStringAsFixed(2)}'),
+                    _buildDetailRow(context, 'Principal',
+                        '₹${widget.fd.principal.toStringAsFixed(2)}'),
+                    _buildDetailRow(context, 'Maturity Date',
+                        _formatDate(widget.fd.maturityDate)),
+                    _buildDetailRow(context, 'Maturity Value',
+                        '₹${widget.fd.maturityValue.toStringAsFixed(2)}'),
                   ],
                 ),
               ),
@@ -162,10 +167,12 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
               Container(
                 padding: EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
-                  color: AppStyles.getPrimaryColor(context).withOpacity(0.1),
+                  color:
+                      AppStyles.getPrimaryColor(context).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: AppStyles.getPrimaryColor(context).withOpacity(0.3),
+                    color: AppStyles.getPrimaryColor(context)
+                        .withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),
@@ -197,7 +204,8 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                                 ),
                               ),
                             ),
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true),
                             style: TextStyle(
                               color: AppStyles.getPrimaryColor(context),
                               fontSize: 28,
@@ -215,7 +223,8 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                             ),
                             onChanged: (value) {
                               setState(() {
-                                _withdrawalValue = double.tryParse(value) ?? _withdrawalValue;
+                                _withdrawalValue =
+                                    double.tryParse(value) ?? _withdrawalValue;
                               });
                             },
                           ),
@@ -275,18 +284,23 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                   color: Colors.green,
                   onPressed: () async {
                     // If we have the investment controller, persist the withdrawal
-                    if (widget.investmentController != null && widget.originalInvestment != null) {
+                    if (widget.investmentController != null &&
+                        widget.originalInvestment != null) {
                       try {
                         // Read the user-entered withdrawal amount from text field
-                        final userEnteredAmount = double.tryParse(_withdrawalAmountController.text) ?? _withdrawalValue;
+                        final userEnteredAmount =
+                            double.tryParse(_withdrawalAmountController.text) ??
+                                _withdrawalValue;
                         final withdrawalAmount = userEnteredAmount;
 
                         final originalInvestment = widget.originalInvestment!;
-                        final investmentsController = widget.investmentController!;
+                        final investmentsController =
+                            widget.investmentController!;
 
                         // Get existing renewal cycles with safe casting
                         final existingCycles = <FDRenewalCycle>[];
-                        final cyclesData = originalInvestment.metadata?['renewalCycles'];
+                        final cyclesData =
+                            originalInvestment.metadata?['renewalCycles'];
                         if (cyclesData is List) {
                           for (var c in cyclesData) {
                             try {
@@ -294,7 +308,8 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                                 existingCycles.add(FDRenewalCycle.fromMap(c));
                               } else if (c is Map) {
                                 final cycleMap = Map<String, dynamic>.from(c);
-                                existingCycles.add(FDRenewalCycle.fromMap(cycleMap));
+                                existingCycles
+                                    .add(FDRenewalCycle.fromMap(cycleMap));
                               }
                             } catch (e) {
                               // Skip invalid renewal cycle data
@@ -320,7 +335,8 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                         // Mark the last cycle as withdrawn
                         if (existingCycles.isNotEmpty) {
                           final lastCycle = existingCycles.last;
-                          existingCycles[existingCycles.length - 1] = lastCycle.copyWith(
+                          existingCycles[existingCycles.length - 1] =
+                              lastCycle.copyWith(
                             isWithdrawn: true,
                             withdrawalDate: _withdrawalDate,
                             withdrawalAmount: withdrawalAmount,
@@ -329,13 +345,16 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                         }
 
                         // Update the investment with withdrawal cycle
-                        final existingMetadata = originalInvestment.metadata ?? {};
-                        final safeMetadata = Map<String, dynamic>.from(existingMetadata);
+                        final existingMetadata =
+                            originalInvestment.metadata ?? {};
+                        final safeMetadata =
+                            Map<String, dynamic>.from(existingMetadata);
 
                         final updatedInvestment = originalInvestment.copyWith(
                           metadata: {
                             ...safeMetadata,
-                            'renewalCycles': existingCycles.map((c) => c.toMap()).toList(),
+                            'renewalCycles':
+                                existingCycles.map((c) => c.toMap()).toList(),
                             'withdrawalDate': _withdrawalDate.toIso8601String(),
                             'withdrawalAmount': withdrawalAmount,
                             'withdrawalReason': 'Withdrawal from notification',
@@ -344,7 +363,8 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                         );
 
                         // Update the investment
-                        await investmentsController.updateInvestment(updatedInvestment);
+                        await investmentsController
+                            .updateInvestment(updatedInvestment);
                         if (!mounted) return;
 
                         // Credit the linked account
@@ -353,15 +373,19 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                           try {
                             if (!mounted) return;
                             final accountsController =
-                                Provider.of<AccountsController>(context, listen: false);
+                                Provider.of<AccountsController>(context,
+                                    listen: false);
                             try {
-                              final linkedAccount = accountsController.accounts.firstWhere(
+                              final linkedAccount =
+                                  accountsController.accounts.firstWhere(
                                 (acc) => acc.id == linkedAccountId,
                               );
                               final updatedAccount = linkedAccount.copyWith(
-                                balance: linkedAccount.balance + withdrawalAmount,
+                                balance:
+                                    linkedAccount.balance + withdrawalAmount,
                               );
-                              await accountsController.updateAccount(updatedAccount);
+                              await accountsController
+                                  .updateAccount(updatedAccount);
                               if (!mounted) return;
                             } catch (e) {
                               // Account not found
@@ -426,7 +450,8 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                     _withdrawalDate = newDate;
                     _withdrawalValue = _calculateWithdrawalValue(newDate);
                     // Update the text field with new calculated value
-                    _withdrawalAmountController.text = _withdrawalValue.toStringAsFixed(2);
+                    _withdrawalAmountController.text =
+                        _withdrawalValue.toStringAsFixed(2);
                   });
                 },
               ),

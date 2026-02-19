@@ -28,7 +28,8 @@ class _EditGoalModalState extends State<EditGoalModal> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.goal.name);
-    _targetAmountController = TextEditingController(text: widget.goal.targetAmount.toString());
+    _targetAmountController =
+        TextEditingController(text: widget.goal.targetAmount.toString());
     _notesController = TextEditingController(text: widget.goal.notes ?? '');
     _selectedType = widget.goal.type;
     _selectedColor = widget.goal.color;
@@ -61,10 +62,13 @@ class _EditGoalModalState extends State<EditGoalModal> {
       targetAmount: targetAmount,
       targetDate: _targetDate,
       color: _selectedColor,
-      notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+      notes: _notesController.text.trim().isEmpty
+          ? null
+          : _notesController.text.trim(),
     );
 
-    await Provider.of<GoalsController>(context, listen: false).updateGoal(updatedGoal);
+    await Provider.of<GoalsController>(context, listen: false)
+        .updateGoal(updatedGoal);
     Navigator.pop(context);
     AlertService.showSuccess(context, 'Goal updated successfully!');
   }
@@ -72,41 +76,82 @@ class _EditGoalModalState extends State<EditGoalModal> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(color: AppStyles.getCardColor(context), borderRadius: BorderRadius.vertical(top: Radius.circular(Radii.xxl))),
+      decoration: BoxDecoration(
+          color: AppStyles.getCardColor(context),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(Radii.xxl))),
       child: SingleChildScrollView(
         child: Padding(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom + Spacing.xxl),
+          padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom + Spacing.xxl),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(margin: EdgeInsets.only(top: Spacing.md), width: 40, height: 5, decoration: BoxDecoration(color: CupertinoColors.systemGrey3, borderRadius: BorderRadius.circular(2.5))),
+              Container(
+                  margin: EdgeInsets.only(top: Spacing.md),
+                  width: 40,
+                  height: 5,
+                  decoration: BoxDecoration(
+                      color: CupertinoColors.systemGrey3,
+                      borderRadius: BorderRadius.circular(2.5))),
               SizedBox(height: Spacing.xl),
-              Text('Edit Goal', style: TextStyle(fontSize: TypeScale.title2, fontWeight: FontWeight.bold, color: AppStyles.getTextColor(context))),
+              Text('Edit Goal',
+                  style: TextStyle(
+                      fontSize: TypeScale.title2,
+                      fontWeight: FontWeight.bold,
+                      color: AppStyles.getTextColor(context))),
               SizedBox(height: Spacing.xxl),
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: Spacing.xxl),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Goal Name', style: TextStyle(fontSize: TypeScale.subhead, fontWeight: FontWeight.w600)),
+                    Text('Goal Name',
+                        style: TextStyle(
+                            fontSize: TypeScale.subhead,
+                            fontWeight: FontWeight.w600)),
                     SizedBox(height: Spacing.sm),
-                    CupertinoTextField(controller: _nameController, padding: EdgeInsets.all(Spacing.lg), decoration: BoxDecoration(color: AppStyles.getBackground(context), borderRadius: BorderRadius.circular(Radii.md))),
+                    CupertinoTextField(
+                        controller: _nameController,
+                        padding: EdgeInsets.all(Spacing.lg),
+                        decoration: BoxDecoration(
+                            color: AppStyles.getBackground(context),
+                            borderRadius: BorderRadius.circular(Radii.md))),
                     SizedBox(height: Spacing.xl),
-                    Text('Target Amount', style: TextStyle(fontSize: TypeScale.subhead, fontWeight: FontWeight.w600)),
+                    Text('Target Amount',
+                        style: TextStyle(
+                            fontSize: TypeScale.subhead,
+                            fontWeight: FontWeight.w600)),
                     SizedBox(height: Spacing.sm),
                     CupertinoTextField(
                       controller: _targetAmountController,
-                      keyboardType: TextInputType.numberWithOptions(decimal: true),
-                      prefix: Padding(padding: EdgeInsets.only(left: Spacing.lg), child: Text('₹')),
+                      keyboardType:
+                          TextInputType.numberWithOptions(decimal: true),
+                      prefix: Padding(
+                          padding: EdgeInsets.only(left: Spacing.lg),
+                          child: Text('₹')),
                       padding: EdgeInsets.all(Spacing.lg),
-                      decoration: BoxDecoration(color: AppStyles.getBackground(context), borderRadius: BorderRadius.circular(Radii.md)),
+                      decoration: BoxDecoration(
+                          color: AppStyles.getBackground(context),
+                          borderRadius: BorderRadius.circular(Radii.md)),
                     ),
                     SizedBox(height: Spacing.xxxl),
                     Row(
                       children: [
-                        Expanded(child: CupertinoButton(color: CupertinoColors.systemGrey3, onPressed: () => Navigator.pop(context), child: Text('Cancel', style: TextStyle(color: AppStyles.getTextColor(context))))),
+                        Expanded(
+                            child: CupertinoButton(
+                                color: CupertinoColors.systemGrey3,
+                                onPressed: () => Navigator.pop(context),
+                                child: Text('Cancel',
+                                    style: TextStyle(
+                                        color:
+                                            AppStyles.getTextColor(context))))),
                         SizedBox(width: Spacing.md),
-                        Expanded(child: CupertinoButton(color: SemanticColors.primary, onPressed: _updateGoal, child: Text('Update', style: TextStyle(color: Colors.white)))),
+                        Expanded(
+                            child: CupertinoButton(
+                                color: SemanticColors.primary,
+                                onPressed: _updateGoal,
+                                child: Text('Update',
+                                    style: TextStyle(color: Colors.white)))),
                       ],
                     ),
                   ],

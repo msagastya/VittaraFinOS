@@ -11,7 +11,6 @@ import 'package:vittara_fin_os/ui/manage/mf/mf_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/manage/mf/sip_wizard.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
-import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
@@ -57,7 +56,7 @@ class MFDetailsScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -140,13 +139,13 @@ class MFDetailsScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: gainPercent >= 0
-                      ? CupertinoColors.systemGreen.withOpacity(0.1)
-                      : CupertinoColors.systemRed.withOpacity(0.1),
+                      ? CupertinoColors.systemGreen.withValues(alpha: 0.1)
+                      : CupertinoColors.systemRed.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: gainPercent >= 0
-                        ? CupertinoColors.systemGreen.withOpacity(0.3)
-                        : CupertinoColors.systemRed.withOpacity(0.3),
+                        ? CupertinoColors.systemGreen.withValues(alpha: 0.3)
+                        : CupertinoColors.systemRed.withValues(alpha: 0.3),
                   ),
                 ),
                 child: Row(
@@ -247,10 +246,10 @@ class MFDetailsScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: SemanticColors.investments.withOpacity(0.1),
+                    color: SemanticColors.investments.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: SemanticColors.investments.withOpacity(0.3),
+                      color: SemanticColors.investments.withValues(alpha: 0.3),
                     ),
                   ),
                   child: Text(
@@ -580,7 +579,6 @@ class MFDetailsScreen extends StatelessWidget {
             as Map<String, dynamic>?)?['deductionAccountId'] as String? ??
         metadata['sipLinkedAccount'] as String?;
     if (accountId == null) return null;
-    if (accountId == null) return null;
     final accounts =
         Provider.of<AccountsController>(context, listen: false).accounts;
     for (final account in accounts) {
@@ -621,7 +619,7 @@ class MFDetailsScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.15),
+                color: color.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, size: 28, color: color),
@@ -646,7 +644,7 @@ class MFDetailsScreen extends StatelessWidget {
 class _MFDividendModal extends StatefulWidget {
   final Investment investment;
 
-  const _MFDividendModal({super.key, required this.investment});
+  const _MFDividendModal({required this.investment});
 
   @override
   State<_MFDividendModal> createState() => _MFDividendModalState();
@@ -795,7 +793,7 @@ class _MFDividendModalState extends State<_MFDividendModal> {
 class _EditMFModal extends StatefulWidget {
   final Investment investment;
 
-  const _EditMFModal({super.key, required this.investment});
+  const _EditMFModal({required this.investment});
 
   @override
   State<_EditMFModal> createState() => _EditMFModalState();

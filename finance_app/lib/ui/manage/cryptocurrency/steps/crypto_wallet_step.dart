@@ -84,12 +84,12 @@ class _CryptoWalletStepState extends State<CryptoWalletStep> {
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? const Color(0xFFF7931A).withOpacity(0.1)
+                          ? const Color(0xFFF7931A).withValues(alpha: 0.1)
                           : AppStyles.getCardColor(context),
                       border: Border.all(
                         color: isSelected
                             ? const Color(0xFFF7931A)
-                            : Colors.grey.withOpacity(0.2),
+                            : Colors.grey.withValues(alpha: 0.2),
                       ),
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -98,7 +98,8 @@ class _CryptoWalletStepState extends State<CryptoWalletStep> {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF7931A).withOpacity(0.15),
+                            color:
+                                const Color(0xFFF7931A).withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Icon(
@@ -126,7 +127,8 @@ class _CryptoWalletStepState extends State<CryptoWalletStep> {
                               Text(
                                 descriptions[type] ?? '',
                                 style: TextStyle(
-                                  color: AppStyles.getSecondaryTextColor(context),
+                                  color:
+                                      AppStyles.getSecondaryTextColor(context),
                                   fontSize: 12,
                                 ),
                               ),
@@ -145,7 +147,7 @@ class _CryptoWalletStepState extends State<CryptoWalletStep> {
                 const SizedBox(height: 12),
               ],
             );
-          }).toList(),
+          }),
           const SizedBox(height: 20),
           // Exchange Selection (only for exchange wallet type)
           if (controller.walletType == CryptoWalletType.exchange) ...[
@@ -191,7 +193,7 @@ class _CryptoWalletStepState extends State<CryptoWalletStep> {
                       border: Border.all(
                         color: isSelected
                             ? const Color(0xFFF7931A)
-                            : Colors.grey.withOpacity(0.2),
+                            : Colors.grey.withValues(alpha: 0.2),
                       ),
                     ),
                     child: Text(

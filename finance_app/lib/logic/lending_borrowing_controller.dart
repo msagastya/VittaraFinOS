@@ -15,7 +15,10 @@ class LendingBorrowingController extends ChangeNotifier {
     if (jsonString != null) {
       try {
         final List<dynamic> jsonList = jsonDecode(jsonString);
-        _records = jsonList.map((item) => LendingBorrowing.fromMap(Map<String, dynamic>.from(item))).toList();
+        _records = jsonList
+            .map((item) =>
+                LendingBorrowing.fromMap(Map<String, dynamic>.from(item)))
+            .toList();
       } catch (e) {
         _records = [];
       }

@@ -140,7 +140,7 @@ class Goal {
       'currentAmount': currentAmount,
       'createdDate': createdDate.toIso8601String(),
       'targetDate': targetDate.toIso8601String(),
-      'color': color.value,
+      'color': color.toARGB32(),
       'notes': notes,
       'linkedAccountId': linkedAccountId,
       'contributions': contributions.map((c) => c.toMap()).toList(),

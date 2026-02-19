@@ -20,12 +20,14 @@ class Haptics {
       HapticFeedback.lightImpact();
     });
   }
+
   static void error() {
     HapticFeedback.heavyImpact();
     Future.delayed(const Duration(milliseconds: 100), () {
       HapticFeedback.heavyImpact();
     });
   }
+
   static void warning() => HapticFeedback.mediumImpact();
   static void delete() => HapticFeedback.heavyImpact();
   static void reorder() => HapticFeedback.mediumImpact();
@@ -109,15 +111,16 @@ class GlassContainer extends StatelessWidget {
             padding: padding,
             decoration: BoxDecoration(
               color: isDark
-                  ? Colors.white.withOpacity(opacity)
-                  : Colors.white.withOpacity(opacity + 0.6),
+                  ? Colors.white.withValues(alpha: opacity)
+                  : Colors.white.withValues(alpha: opacity + 0.6),
               borderRadius: radius,
-              border: border ?? Border.all(
-                color: isDark
-                    ? Colors.white.withOpacity(0.15)
-                    : Colors.white.withOpacity(0.8),
-                width: 1.5,
-              ),
+              border: border ??
+                  Border.all(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.15)
+                        : Colors.white.withValues(alpha: 0.8),
+                    width: 1.5,
+                  ),
             ),
             child: child,
           ),
@@ -126,7 +129,6 @@ class GlassContainer extends StatelessWidget {
     );
   }
 }
-
 
 // ============================================================
 // FADE IN ANIMATION WRAPPER
@@ -310,7 +312,8 @@ class GradientBorderContainer extends StatelessWidget {
       padding: EdgeInsets.all(borderWidth),
       child: Container(
         decoration: BoxDecoration(
-          color: backgroundColor ?? (isDark ? const Color(0xFF1C1C1E) : Colors.white),
+          color: backgroundColor ??
+              (isDark ? const Color(0xFF1C1C1E) : Colors.white),
           borderRadius: BorderRadius.circular(radius.topLeft.x - borderWidth),
         ),
         child: child,
@@ -365,7 +368,8 @@ class BouncyButton extends StatefulWidget {
   State<BouncyButton> createState() => _BouncyButtonState();
 }
 
-class _BouncyButtonState extends State<BouncyButton> with SingleTickerProviderStateMixin {
+class _BouncyButtonState extends State<BouncyButton>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
 
@@ -378,7 +382,8 @@ class _BouncyButtonState extends State<BouncyButton> with SingleTickerProviderSt
       reverseDuration: AppDurations.buttonPress,
     );
     _scaleAnimation = Tween<double>(begin: 1.0, end: widget.scaleFactor)
-        .animate(CurvedAnimation(parent: _controller, curve: MotionCurves.standard));
+        .animate(
+            CurvedAnimation(parent: _controller, curve: MotionCurves.standard));
   }
 
   @override
@@ -549,7 +554,8 @@ class SuccessPulseState extends State<SuccessPulse>
     _animation = TweenSequence<double>([
       TweenSequenceItem(tween: Tween(begin: 0.0, end: 0.3), weight: 30),
       TweenSequenceItem(tween: Tween(begin: 0.3, end: 0.0), weight: 70),
-    ]).animate(CurvedAnimation(parent: _controller, curve: MotionCurves.standard));
+    ]).animate(
+        CurvedAnimation(parent: _controller, curve: MotionCurves.standard));
 
     _controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
@@ -724,8 +730,8 @@ class _ScaleInAnimationState extends State<ScaleInAnimation>
     _controller = AnimationController(vsync: this, duration: widget.duration);
     _scaleAnimation = Tween<double>(begin: widget.beginScale, end: 1.0)
         .animate(CurvedAnimation(parent: _controller, curve: widget.curve));
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0)
-        .animate(CurvedAnimation(parent: _controller, curve: MotionCurves.standard));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(parent: _controller, curve: MotionCurves.standard));
 
     Future.delayed(widget.delay, () {
       if (mounted) _controller.forward();

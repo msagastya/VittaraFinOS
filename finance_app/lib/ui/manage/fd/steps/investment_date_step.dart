@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/ui/manage/fd/fd_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -59,7 +58,8 @@ class InvestmentDateStep extends StatelessWidget {
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: AppStyles.getPrimaryColor(context).withOpacity(0.3),
+                  color:
+                      AppStyles.getPrimaryColor(context).withValues(alpha: 0.3),
                   width: 1.5,
                 ),
               ),
@@ -100,7 +100,7 @@ class InvestmentDateStep extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppStyles.getPrimaryColor(context).withOpacity(0.1),
+              color: AppStyles.getPrimaryColor(context).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(

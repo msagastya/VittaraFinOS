@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/payment_apps_controller.dart';
@@ -13,7 +12,6 @@ import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/transaction_details_content.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
-import 'package:vittara_fin_os/utils/logger.dart';
 
 class TransactionsArchiveScreen extends StatelessWidget {
   const TransactionsArchiveScreen({super.key});

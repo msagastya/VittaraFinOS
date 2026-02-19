@@ -1,17 +1,16 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class AppStyles {
   // --- Colors ---
   static const Color lightBackground = Color(0xFFF5F5F7);
   static const Color darkBackground = Color(0xFF000000); // AMOLED
-  
+
   static const Color lightCard = Color(0xFFFFFFFF);
   static const Color darkCard = Color(0xFF111111); // AMOLED black
-  
+
   static const Color lightText = Color(0xFF1C1C1E);
   static const Color darkText = Color(0xFFFFFFFF);
-  
+
   static const Color accentBlue = Color(0xFF007AFF);
   static const Color accentGreen = Color(0xFF34C759);
   static const Color accentOrange = Color(0xFFFF9500);
@@ -28,9 +27,11 @@ class AppStyles {
   static Color getTextColor(BuildContext context) {
     return isDarkMode(context) ? darkText : lightText;
   }
-  
+
   static Color getSecondaryTextColor(BuildContext context) {
-    return isDarkMode(context) ? const Color(0xFF8E8E93) : const Color(0xFF8E8E93);
+    return isDarkMode(context)
+        ? const Color(0xFF8E8E93)
+        : const Color(0xFF8E8E93);
   }
 
   static Color getPrimaryColor(BuildContext context) {
@@ -38,7 +39,9 @@ class AppStyles {
   }
 
   static Color getDividerColor(BuildContext context) {
-    return isDarkMode(context) ? const Color(0xFF3A3A3C) : const Color(0xFFE5E5EA);
+    return isDarkMode(context)
+        ? const Color(0xFF3A3A3C)
+        : const Color(0xFFE5E5EA);
   }
 
   static bool isDarkMode(BuildContext context) {
@@ -90,11 +93,13 @@ class AppStyles {
     return TextStyle(
       fontSize: 13,
       fontWeight: FontWeight.w600,
-      color: isDarkMode(context) ? const Color(0xFF8E8E93) : const Color(0xFF636366),
+      color: isDarkMode(context)
+          ? const Color(0xFF8E8E93)
+          : const Color(0xFF636366),
       letterSpacing: 0.5,
     );
   }
-  
+
   static TextStyle titleStyle(BuildContext context) {
     return TextStyle(
       fontSize: 17,

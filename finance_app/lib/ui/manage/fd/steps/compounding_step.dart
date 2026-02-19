@@ -55,8 +55,8 @@ class CompoundingStep extends StatelessWidget {
                   controller.compoundingFrequency == option['value'];
 
               return GestureDetector(
-                onTap: () => controller
-                    .updateCompoundingFrequency(option['value'] as FDCompoundingFrequency),
+                onTap: () => controller.updateCompoundingFrequency(
+                    option['value'] as FDCompoundingFrequency),
                 child: Container(
                   margin: const EdgeInsets.only(bottom: 12),
                   padding: const EdgeInsets.all(16),

@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
@@ -546,7 +545,8 @@ class TextWidgets {
   static Widget screenTitle(String text, {Color? color}) {
     return Text(
       text,
-      style: AppTypography.largeTitle(color: color, fontWeight: AppTypography.bold),
+      style: AppTypography.largeTitle(
+          color: color, fontWeight: AppTypography.bold),
     );
   }
 
@@ -554,7 +554,8 @@ class TextWidgets {
   static Widget sectionHeader(String text, {Color? color}) {
     return Text(
       text,
-      style: AppTypography.headline(color: color, fontWeight: AppTypography.semiBold),
+      style: AppTypography.headline(
+          color: color, fontWeight: AppTypography.semiBold),
     );
   }
 
@@ -562,7 +563,8 @@ class TextWidgets {
   static Widget cardTitle(String text, {Color? color}) {
     return Text(
       text,
-      style: AppTypography.title3(color: color, fontWeight: AppTypography.semiBold),
+      style: AppTypography.title3(
+          color: color, fontWeight: AppTypography.semiBold),
     );
   }
 
@@ -570,7 +572,8 @@ class TextWidgets {
   static Widget listItemTitle(String text, {Color? color}) {
     return Text(
       text,
-      style: AppTypography.callout(color: color, fontWeight: AppTypography.medium),
+      style:
+          AppTypography.callout(color: color, fontWeight: AppTypography.medium),
     );
   }
 

@@ -60,7 +60,8 @@ class _FuturisticLoaderPainter extends CustomPainter {
   final bool isDark;
   final Random _random = Random(42);
 
-  _FuturisticLoaderPainter(this.animation, this.isDark) : super(repaint: animation);
+  _FuturisticLoaderPainter(this.animation, this.isDark)
+      : super(repaint: animation);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -71,9 +72,11 @@ class _FuturisticLoaderPainter extends CustomPainter {
     final scale = min(w, h) / 100.0;
 
     // --- Palette ---
-    const deepBlue = Color(0xFF1565C0); 
-    const vibrantTeal = Color(0xFF00BFA5); 
-    final gridColor = isDark ? Colors.white.withValues(alpha: 0.05) : deepBlue.withValues(alpha: 0.1);
+    const deepBlue = Color(0xFF1565C0);
+    const vibrantTeal = Color(0xFF00BFA5);
+    final gridColor = isDark
+        ? Colors.white.withValues(alpha: 0.05)
+        : deepBlue.withValues(alpha: 0.1);
 
     final Paint fillPaint = Paint()..style = PaintingStyle.fill;
     final Paint strokePaint = Paint()
@@ -85,7 +88,7 @@ class _FuturisticLoaderPainter extends CustomPainter {
     Paint gridPaint = Paint()
       ..color = gridColor
       ..strokeWidth = 1 * scale;
-    
+
     for (int i = 0; i < 10; i++) {
       double y = h * 0.6 + (i * 15 * scale);
       double offset = (gridSpeed + i * 20) % (w / 2);
@@ -96,21 +99,25 @@ class _FuturisticLoaderPainter extends CustomPainter {
     }
 
     // --- Layer 2: Fast Radar Sweep ---
-    double sweepAngle = (t * 4 * pi) % (2 * pi); 
+    double sweepAngle = (t * 4 * pi) % (2 * pi);
     Paint radarPaint = Paint()
       ..shader = SweepGradient(
-        colors: [vibrantTeal.withValues(alpha: 0.0), vibrantTeal.withValues(alpha: 0.2)],
+        colors: [
+          vibrantTeal.withValues(alpha: 0.0),
+          vibrantTeal.withValues(alpha: 0.2)
+        ],
         startAngle: sweepAngle - 0.5,
         endAngle: sweepAngle,
         transform: GradientRotation(sweepAngle),
       ).createShader(Rect.fromCircle(center: center, radius: 100 * scale));
-    
+
     canvas.drawCircle(center, 90 * scale, radarPaint);
 
     // --- Layer 3: Corner HUD Brackets ---
     if (t > 0.05) {
       double bracketProgress = ((t - 0.05) / 0.2).clamp(0.0, 1.0);
-      double offset = (1.0 - Curves.easeOutExpo.transform(bracketProgress)) * 50 * scale;
+      double offset =
+          (1.0 - Curves.easeOutExpo.transform(bracketProgress)) * 50 * scale;
       double margin = 20 * scale;
       double len = 40 * scale;
 
@@ -120,13 +127,25 @@ class _FuturisticLoaderPainter extends CustomPainter {
         ..strokeWidth = 3 * scale;
 
       // Draw brackets (TL, TR, BL, BR)
-      Path tl = Path()..moveTo(margin - offset, margin + len - offset)..lineTo(margin - offset, margin - offset)..lineTo(margin + len - offset, margin - offset);
+      Path tl = Path()
+        ..moveTo(margin - offset, margin + len - offset)
+        ..lineTo(margin - offset, margin - offset)
+        ..lineTo(margin + len - offset, margin - offset);
       canvas.drawPath(tl, bracketPaint);
-      Path tr = Path()..moveTo(w - margin - len + offset, margin - offset)..lineTo(w - margin + offset, margin - offset)..lineTo(w - margin + offset, margin + len - offset);
+      Path tr = Path()
+        ..moveTo(w - margin - len + offset, margin - offset)
+        ..lineTo(w - margin + offset, margin - offset)
+        ..lineTo(w - margin + offset, margin + len - offset);
       canvas.drawPath(tr, bracketPaint);
-      Path bl = Path()..moveTo(margin - offset, h - margin - len + offset)..lineTo(margin - offset, h - margin + offset)..lineTo(margin + len - offset, h - margin + offset);
+      Path bl = Path()
+        ..moveTo(margin - offset, h - margin - len + offset)
+        ..lineTo(margin - offset, h - margin + offset)
+        ..lineTo(margin + len - offset, h - margin + offset);
       canvas.drawPath(bl, bracketPaint);
-      Path br = Path()..moveTo(w - margin - len + offset, h - margin + offset)..lineTo(w - margin + offset, h - margin + offset)..lineTo(w - margin + offset, h - margin - len + offset);
+      Path br = Path()
+        ..moveTo(w - margin - len + offset, h - margin + offset)
+        ..lineTo(w - margin + offset, h - margin + offset)
+        ..lineTo(w - margin + offset, h - margin - len + offset);
       canvas.drawPath(br, bracketPaint);
     }
 
@@ -144,21 +163,29 @@ class _FuturisticLoaderPainter extends CustomPainter {
     double trendProgress = (t / 0.6).clamp(0.0, 1.0);
     if (trendProgress > 0) {
       PathMetric trendMetric = trendPath.computeMetrics().first;
-      Path animatedTrend = trendMetric.extractPath(0.0, trendMetric.length * trendProgress);
-      
+      Path animatedTrend =
+          trendMetric.extractPath(0.0, trendMetric.length * trendProgress);
+
       Paint trendPaint = Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2.5 * scale
         ..color = vibrantTeal
         ..maskFilter = const MaskFilter.blur(BlurStyle.solid, 4.0);
-        
+
       canvas.drawPath(animatedTrend, trendPaint);
 
       if (trendProgress < 1.0) {
-        Tangent? tip = trendMetric.getTangentForOffset(trendMetric.length * trendProgress);
+        Tangent? tip =
+            trendMetric.getTangentForOffset(trendMetric.length * trendProgress);
         if (tip != null) {
-          canvas.drawCircle(tip.position, 5 * scale, fillPaint..color = vibrantTeal);
-          canvas.drawCircle(tip.position, 10 * scale, strokePaint..color = vibrantTeal.withValues(alpha:0.4)..strokeWidth=1);
+          canvas.drawCircle(
+              tip.position, 5 * scale, fillPaint..color = vibrantTeal);
+          canvas.drawCircle(
+              tip.position,
+              10 * scale,
+              strokePaint
+                ..color = vibrantTeal.withValues(alpha: 0.4)
+                ..strokeWidth = 1);
         }
       }
     }
@@ -167,81 +194,88 @@ class _FuturisticLoaderPainter extends CustomPainter {
     canvas.save();
     canvas.translate(center.dx, center.dy);
     canvas.rotate(t * 3 * pi);
-    
+
     Paint ringPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2 * scale
       ..color = deepBlue.withValues(alpha: 0.3);
-      
+
     for (int i = 0; i < 4; i++) {
-      canvas.drawArc(Rect.fromCircle(center: Offset.zero, radius: 60 * scale), (i * 90 * pi / 180), 1.0, false, ringPaint);
+      canvas.drawArc(Rect.fromCircle(center: Offset.zero, radius: 60 * scale),
+          (i * 90 * pi / 180), 1.0, false, ringPaint);
     }
     canvas.restore();
 
     // --- Layer 6: The "V" Assembly ---
     if (t > 0.05 && t < 0.95) {
-       double vProgress = ((t - 0.05) / 0.4).clamp(0.0, 1.0);
-       
-       Path vPath = Path();
-       vPath.moveTo(center.dx - 35 * scale, center.dy - 30 * scale); 
-       vPath.lineTo(center.dx, center.dy + 35 * scale); 
-       vPath.lineTo(center.dx + 35 * scale, center.dy - 30 * scale);
+      double vProgress = ((t - 0.05) / 0.4).clamp(0.0, 1.0);
 
-       final Shader vGradient = LinearGradient(
-         colors: [deepBlue, vibrantTeal, deepBlue, vibrantTeal],
-         stops: const [0.0, 0.4, 0.6, 1.0],
-         begin: Alignment.topLeft,
-         end: Alignment.bottomRight,
-         transform: GradientRotation(t * 4 * pi),
-       ).createShader(Rect.fromLTWH(center.dx - 40*scale, center.dy - 40*scale, 80*scale, 80*scale));
+      Path vPath = Path();
+      vPath.moveTo(center.dx - 35 * scale, center.dy - 30 * scale);
+      vPath.lineTo(center.dx, center.dy + 35 * scale);
+      vPath.lineTo(center.dx + 35 * scale, center.dy - 30 * scale);
 
-       Paint vStrokePaint = Paint()
-         ..style = PaintingStyle.stroke
-         ..strokeWidth = 14 * scale
-         ..strokeCap = StrokeCap.round
-         ..strokeJoin = StrokeJoin.round
-         ..shader = vGradient;
+      final Shader vGradient = LinearGradient(
+        colors: [deepBlue, vibrantTeal, deepBlue, vibrantTeal],
+        stops: const [0.0, 0.4, 0.6, 1.0],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        transform: GradientRotation(t * 4 * pi),
+      ).createShader(Rect.fromLTWH(center.dx - 40 * scale,
+          center.dy - 40 * scale, 80 * scale, 80 * scale));
 
-       PathMetric metric = vPath.computeMetrics().first;
-       double drawLen = metric.length * Curves.easeInOutQuart.transform(vProgress);
-       Path partialV = metric.extractPath(0.0, drawLen);
-       
-       Paint shadowPaint = Paint()
-         ..style = PaintingStyle.stroke
-         ..strokeWidth = 20 * scale
-         ..color = deepBlue.withValues(alpha: 0.4)
-         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12.0);
-       canvas.drawPath(partialV, shadowPaint);
-       canvas.drawPath(partialV, vStrokePaint);
+      Paint vStrokePaint = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 14 * scale
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round
+        ..shader = vGradient;
 
-       if (vProgress < 1.0 && vProgress > 0.01) {
-         Tangent? pos = metric.getTangentForOffset(drawLen);
-         if (pos != null) {
-           canvas.drawCircle(pos.position, 10 * scale, fillPaint..color = Colors.white);
-         }
-       }
+      PathMetric metric = vPath.computeMetrics().first;
+      double drawLen =
+          metric.length * Curves.easeInOutQuart.transform(vProgress);
+      Path partialV = metric.extractPath(0.0, drawLen);
+
+      Paint shadowPaint = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 20 * scale
+        ..color = deepBlue.withValues(alpha: 0.4)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12.0);
+      canvas.drawPath(partialV, shadowPaint);
+      canvas.drawPath(partialV, vStrokePaint);
+
+      if (vProgress < 1.0 && vProgress > 0.01) {
+        Tangent? pos = metric.getTangentForOffset(drawLen);
+        if (pos != null) {
+          canvas.drawCircle(
+              pos.position, 10 * scale, fillPaint..color = Colors.white);
+        }
+      }
     } else if (t >= 0.95) {
-       Path vPath = Path();
-       vPath.moveTo(center.dx - 35 * scale, center.dy - 30 * scale); 
-       vPath.lineTo(center.dx, center.dy + 35 * scale); 
-       vPath.lineTo(center.dx + 35 * scale, center.dy - 30 * scale);
-       
-       double flash = 1.0 - ((t - 0.95) / 0.05);
-       final Shader vFinalGradient = const LinearGradient(
-         colors: [deepBlue, vibrantTeal],
-         begin: Alignment.centerLeft,
-         end: Alignment.centerRight,
-       ).createShader(Rect.fromLTWH(center.dx - 40*scale, center.dy - 40*scale, 80*scale, 80*scale));
+      Path vPath = Path();
+      vPath.moveTo(center.dx - 35 * scale, center.dy - 30 * scale);
+      vPath.lineTo(center.dx, center.dy + 35 * scale);
+      vPath.lineTo(center.dx + 35 * scale, center.dy - 30 * scale);
 
-       Paint vSolidPaint = Paint()
-         ..style = PaintingStyle.stroke
-         ..strokeWidth = 14 * scale 
-         ..strokeCap = StrokeCap.round
-         ..strokeJoin = StrokeJoin.round
-         ..shader = flash > 0.1 ? null : vFinalGradient
-         ..color = flash > 0.1 ? Color.lerp(deepBlue, Colors.white, flash)! : Colors.white;
+      double flash = 1.0 - ((t - 0.95) / 0.05);
+      final Shader vFinalGradient = const LinearGradient(
+        colors: [deepBlue, vibrantTeal],
+        begin: Alignment.centerLeft,
+        end: Alignment.centerRight,
+      ).createShader(Rect.fromLTWH(center.dx - 40 * scale,
+          center.dy - 40 * scale, 80 * scale, 80 * scale));
 
-       canvas.drawPath(vPath, vSolidPaint);
+      Paint vSolidPaint = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 14 * scale
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round
+        ..shader = flash > 0.1 ? null : vFinalGradient
+        ..color = flash > 0.1
+            ? Color.lerp(deepBlue, Colors.white, flash)!
+            : Colors.white;
+
+      canvas.drawPath(vPath, vSolidPaint);
     }
   }
 

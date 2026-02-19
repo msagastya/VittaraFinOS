@@ -1,8 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:vittara_fin_os/logic/accounts_controller.dart';
-import 'package:vittara_fin_os/logic/bond_payout_generator.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/fixed_deposit_model.dart';
@@ -13,7 +11,6 @@ import 'package:vittara_fin_os/ui/manage/fd/modals/fd_withdrawal_modal.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
-import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
 import 'package:vittara_fin_os/ui/manage/bonds/bond_payout_modal.dart';
 import 'package:vittara_fin_os/ui/manage/bonds/bonds_details_screen.dart';
@@ -46,8 +43,9 @@ class NotificationsPage extends StatelessWidget {
               final fdsNearMaturity = investments.where((inv) {
                 if (inv.type.name != 'fixedDeposit') return false;
                 final metadata = inv.metadata;
-                if (metadata == null || !metadata.containsKey('maturityDate'))
+                if (metadata == null || !metadata.containsKey('maturityDate')) {
                   return false;
+                }
                 final maturityDate =
                     DateTime.parse(metadata['maturityDate'] as String);
                 final daysUntil =
@@ -59,8 +57,9 @@ class NotificationsPage extends StatelessWidget {
               final fdsMatured = investments.where((inv) {
                 if (inv.type.name != 'fixedDeposit') return false;
                 final metadata = inv.metadata;
-                if (metadata == null || !metadata.containsKey('maturityDate'))
+                if (metadata == null || !metadata.containsKey('maturityDate')) {
                   return false;
+                }
                 final maturityDate =
                     DateTime.parse(metadata['maturityDate'] as String);
                 final daysUntil =
@@ -169,7 +168,7 @@ class NotificationsPage extends StatelessWidget {
                             statusWidget: Container(
                               padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
-                                color: Colors.purple.withOpacity(0.1),
+                                color: Colors.purple.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Row(
@@ -341,8 +340,7 @@ class NotificationsPage extends StatelessWidget {
                           .map((entry) => _buildBondNotificationWidget(
                                 context,
                                 entry,
-                              ))
-                          .toList(),
+                              )),
 
                     // Empty State
                     if (fdsNearMaturity.isEmpty &&

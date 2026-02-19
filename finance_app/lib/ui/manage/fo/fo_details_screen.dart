@@ -35,7 +35,7 @@ class _FODetailsScreenState extends State<FODetailsScreen> {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
       navigationBar: CupertinoNavigationBar(
-        middle: Text('${fo.name}',
+        middle: Text(fo.name,
             style: TextStyle(color: AppStyles.getTextColor(context))),
         backgroundColor: AppStyles.getBackground(context),
         leading: CupertinoButton(
@@ -67,20 +67,23 @@ class _FODetailsScreenState extends State<FODetailsScreen> {
                 title: 'Pricing & Quantity',
                 children: [
                   _DetailRow('Quantity', fo.quantity.toString()),
-                  _DetailRow('Entry Price', '₹${fo.entryPrice.toStringAsFixed(2)}'),
-                  _DetailRow('Current Price', '₹${fo.currentPrice.toStringAsFixed(2)}'),
+                  _DetailRow(
+                      'Entry Price', '₹${fo.entryPrice.toStringAsFixed(2)}'),
+                  _DetailRow('Current Price',
+                      '₹${fo.currentPrice.toStringAsFixed(2)}'),
                   if (fo.strikePrice != null)
-                    _DetailRow('Strike Price', '₹${fo.strikePrice!.toStringAsFixed(2)}'),
+                    _DetailRow('Strike Price',
+                        '₹${fo.strikePrice!.toStringAsFixed(2)}'),
                 ],
               ),
               const SizedBox(height: 20),
               _DetailCard(
                 title: 'Financial Summary',
                 children: [
-                  _DetailRow('Total Cost',
-                      '₹${fo.totalCost.toStringAsFixed(2)}'),
-                  _DetailRow('Current Value',
-                      '₹${fo.currentValue.toStringAsFixed(2)}',
+                  _DetailRow(
+                      'Total Cost', '₹${fo.totalCost.toStringAsFixed(2)}'),
+                  _DetailRow(
+                      'Current Value', '₹${fo.currentValue.toStringAsFixed(2)}',
                       isBold: true),
                   _DetailRow(
                     'Unrealized P&L',
@@ -133,7 +136,7 @@ class _FODetailsScreenState extends State<FODetailsScreen> {
               SizedBox(
                 width: double.infinity,
                 child: CupertinoButton(
-                  color: Colors.red.withOpacity(0.1),
+                  color: Colors.red.withValues(alpha: 0.1),
                   onPressed: () {
                     showCupertinoDialog(
                       context: context,
@@ -152,8 +155,7 @@ class _FODetailsScreenState extends State<FODetailsScreen> {
                               await investmentsCtrl
                                   .deleteInvestment(widget.investment.id);
                               if (context.mounted) {
-                                toast.showSuccess(
-                                    'F&O investment deleted!');
+                                toast.showSuccess('F&O investment deleted!');
                                 Navigator.pop(context);
                               }
                             },
@@ -189,14 +191,13 @@ class _DetailCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withOpacity(0.2)),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title,
-              style: TextStyle(
-                  fontWeight: FontWeight.bold, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
           const SizedBox(height: 16),
           ...List.generate(
             children.length,
@@ -240,8 +241,7 @@ class _DetailRow extends StatelessWidget {
       children: [
         Text(label,
             style: TextStyle(
-                color: AppStyles.getSecondaryTextColor(context),
-                fontSize: 13)),
+                color: AppStyles.getSecondaryTextColor(context), fontSize: 13)),
         Text(value,
             style: TextStyle(
                 fontWeight: isBold ? FontWeight.bold : FontWeight.w500,

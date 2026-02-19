@@ -9,7 +9,6 @@ import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/ui/manage/account_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/bonds/bonds_wizard_controller_v2.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
-import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
@@ -45,9 +44,7 @@ class _BondsWizardContent extends StatelessWidget {
       );
 
       // Convert schedule to map for storage
-      final payoutsMap = payoutSchedule
-          .map((p) => p.toMap())
-          .toList();
+      final payoutsMap = payoutSchedule.map((p) => p.toMap()).toList();
 
       final investment = Investment(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -58,7 +55,8 @@ class _BondsWizardContent extends StatelessWidget {
         metadata: {
           'purchaseDate': DateTime.now().toIso8601String(),
           'maturityDate': controller.maturityDate.toIso8601String(),
-          'payoutFrequency': controller.payoutFrequency.toString().split('.').last,
+          'payoutFrequency':
+              controller.payoutFrequency.toString().split('.').last,
           'firstPayoutMonth': controller.firstPayoutMonth,
           'firstPayoutDay': controller.firstPayoutDay,
           'linkedAccountId': controller.linkedAccountId,
@@ -158,7 +156,8 @@ class _BondsWizardContent extends StatelessWidget {
                 child: CupertinoButton.filled(
                   onPressed: controller.canProceed()
                       ? () async {
-                          if (controller.currentStep < controller.totalSteps - 1) {
+                          if (controller.currentStep <
+                              controller.totalSteps - 1) {
                             controller.nextPage();
                           } else {
                             await _saveInvestment(context, controller);
@@ -166,7 +165,9 @@ class _BondsWizardContent extends StatelessWidget {
                         }
                       : null,
                   child: Text(
-                    controller.currentStep >= controller.totalSteps - 1 ? 'Save Bond' : 'Continue',
+                    controller.currentStep >= controller.totalSteps - 1
+                        ? 'Save Bond'
+                        : 'Continue',
                   ),
                 ),
               ),
@@ -204,7 +205,7 @@ class _BondNameStep extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.withOpacity(0.2)),
+              border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
             ),
             onChanged: ctrl.updateBondName,
           ),
@@ -241,7 +242,7 @@ class _BondAmountStep extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.withOpacity(0.2)),
+              border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
             ),
             prefix: Padding(
               padding: const EdgeInsets.only(left: 16),
@@ -274,7 +275,8 @@ class _AccountSelectionStepState extends State<_AccountSelectionStep> {
     // Refresh accounts when entering this step
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (mounted) {
-        await Provider.of<AccountsController>(context, listen: false).loadAccounts();
+        await Provider.of<AccountsController>(context, listen: false)
+            .loadAccounts();
       }
     });
   }
@@ -304,11 +306,13 @@ class _AccountSelectionStepState extends State<_AccountSelectionStep> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(CupertinoIcons.briefcase, size: 48, color: Colors.grey),
+                      const Icon(CupertinoIcons.briefcase,
+                          size: 48, color: Colors.grey),
                       const SizedBox(height: 16),
                       Text(
                         'No Accounts Found',
-                        style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+                        style: TextStyle(
+                            color: AppStyles.getSecondaryTextColor(context)),
                       ),
                     ],
                   ),
@@ -330,7 +334,7 @@ class _AccountSelectionStepState extends State<_AccountSelectionStep> {
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? const Color(0xFF00A6CC).withOpacity(0.1)
+                            ? const Color(0xFF00A6CC).withValues(alpha: 0.1)
                             : AppStyles.getCardColor(context),
                         border: isSelected
                             ? Border.all(color: const Color(0xFF00A6CC))
@@ -339,7 +343,7 @@ class _AccountSelectionStepState extends State<_AccountSelectionStep> {
                         boxShadow: [
                           if (!isSelected)
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
+                              color: Colors.black.withValues(alpha: 0.05),
                               blurRadius: 4,
                               offset: const Offset(0, 2),
                             ),
@@ -350,10 +354,11 @@ class _AccountSelectionStepState extends State<_AccountSelectionStep> {
                           Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: account.color.withOpacity(0.2),
+                              color: account.color.withValues(alpha: 0.2),
                               shape: BoxShape.circle,
                             ),
-                            child: Icon(CupertinoIcons.briefcase_fill, color: account.color),
+                            child: Icon(CupertinoIcons.briefcase_fill,
+                                color: account.color),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
@@ -362,12 +367,15 @@ class _AccountSelectionStepState extends State<_AccountSelectionStep> {
                               children: [
                                 Text(
                                   account.name,
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16),
                                 ),
                                 Text(
                                   account.bankName,
                                   style: TextStyle(
-                                    color: AppStyles.getSecondaryTextColor(context),
+                                    color: AppStyles.getSecondaryTextColor(
+                                        context),
                                     fontSize: 13,
                                   ),
                                 ),
@@ -379,13 +387,16 @@ class _AccountSelectionStepState extends State<_AccountSelectionStep> {
                             children: [
                               Text(
                                 '₹${account.balance.toStringAsFixed(2)}',
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
                               ),
                               if (isSelected)
                                 const Padding(
                                   padding: EdgeInsets.only(top: 4),
-                                  child: Icon(CupertinoIcons.check_mark_circled_solid,
-                                      color: Color(0xFF00A6CC), size: 20),
+                                  child: Icon(
+                                      CupertinoIcons.check_mark_circled_solid,
+                                      color: Color(0xFF00A6CC),
+                                      size: 20),
                                 ),
                             ],
                           ),
@@ -396,9 +407,11 @@ class _AccountSelectionStepState extends State<_AccountSelectionStep> {
                 }),
               const SizedBox(height: 20),
               CupertinoButton(
-                color: isDarkMode(context) ? Colors.grey[800] : Colors.grey[200],
+                color:
+                    isDarkMode(context) ? Colors.grey[800] : Colors.grey[200],
                 onPressed: () {
-                  final accountsController = Provider.of<AccountsController>(context, listen: false);
+                  final accountsController =
+                      Provider.of<AccountsController>(context, listen: false);
 
                   Navigator.push<Account>(
                     context,
@@ -421,9 +434,12 @@ class _AccountSelectionStepState extends State<_AccountSelectionStep> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(CupertinoIcons.add, color: AppStyles.getTextColor(context)),
+                    Icon(CupertinoIcons.add,
+                        color: AppStyles.getTextColor(context)),
                     const SizedBox(width: 8),
-                    Text('Add Account', style: TextStyle(color: AppStyles.getTextColor(context))),
+                    Text('Add Account',
+                        style:
+                            TextStyle(color: AppStyles.getTextColor(context))),
                   ],
                 ),
               ),
@@ -454,7 +470,8 @@ class _AccountSelectionStepState extends State<_AccountSelectionStep> {
     );
   }
 
-  bool isDarkMode(BuildContext context) => Theme.of(context).brightness == Brightness.dark;
+  bool isDarkMode(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark;
 }
 
 // ============ STEP 3: Payout Frequency ============
@@ -488,12 +505,12 @@ class _PayoutFrequencyStep extends StatelessWidget {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? const Color(0xFF00A6CC).withOpacity(0.1)
+                      ? const Color(0xFF00A6CC).withValues(alpha: 0.1)
                       : AppStyles.getCardColor(context),
                   border: Border.all(
                     color: isSelected
                         ? const Color(0xFF00A6CC)
-                        : Colors.grey.withOpacity(0.2),
+                        : Colors.grey.withValues(alpha: 0.2),
                   ),
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -505,7 +522,9 @@ class _PayoutFrequencyStep extends StatelessWidget {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: isSelected ? const Color(0xFF00A6CC) : Colors.grey,
+                          color: isSelected
+                              ? const Color(0xFF00A6CC)
+                              : Colors.grey,
                         ),
                       ),
                       child: isSelected
@@ -527,7 +546,8 @@ class _PayoutFrequencyStep extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(f.$2,
-                              style: const TextStyle(fontWeight: FontWeight.bold)),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold)),
                           Text(f.$3,
                               style: TextStyle(
                                 fontSize: 12,
@@ -577,7 +597,8 @@ class _PayoutDatesStep extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: AppStyles.getCardColor(context),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                      border:
+                          Border.all(color: Colors.grey.withValues(alpha: 0.2)),
                     ),
                     onChanged: (v) {
                       final month = int.tryParse(v) ?? 1;
@@ -594,7 +615,8 @@ class _PayoutDatesStep extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: AppStyles.getCardColor(context),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                      border:
+                          Border.all(color: Colors.grey.withValues(alpha: 0.2)),
                     ),
                     onChanged: (v) {
                       final day = int.tryParse(v) ?? 1;
@@ -623,7 +645,8 @@ class _PayoutDatesStep extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: AppStyles.getCardColor(context),
                           border: Border(
-                            bottom: BorderSide(color: Colors.grey.withOpacity(0.2)),
+                            bottom: BorderSide(
+                                color: Colors.grey.withValues(alpha: 0.2)),
                           ),
                         ),
                         child: Row(
@@ -656,7 +679,7 @@ class _PayoutDatesStep extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -695,21 +718,24 @@ class _ReviewStep extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.withOpacity(0.2)),
+              border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _ReviewRow('Bond Name', ctrl.bondName),
                 const SizedBox(height: 12),
-                _ReviewRow('Investment Amount', '₹${ctrl.bondAmount.toStringAsFixed(2)}'),
+                _ReviewRow('Investment Amount',
+                    '₹${ctrl.bondAmount.toStringAsFixed(2)}'),
                 const SizedBox(height: 12),
                 _ReviewRow('Payout Frequency', ctrl.payoutFrequencyLabel),
                 if (ctrl.linkedAccountId != null) ...[
                   const SizedBox(height: 12),
-                  _ReviewRow('Linked Account', ctrl.linkedAccountName ?? 'Unknown'),
+                  _ReviewRow(
+                      'Linked Account', ctrl.linkedAccountName ?? 'Unknown'),
                   const SizedBox(height: 12),
-                  _ReviewRow('Auto-Debit', ctrl.autoDebit ? 'Enabled' : 'Disabled'),
+                  _ReviewRow(
+                      'Auto-Debit', ctrl.autoDebit ? 'Enabled' : 'Disabled'),
                 ],
                 const SizedBox(height: 12),
                 _ReviewRow(
@@ -723,9 +749,10 @@ class _ReviewStep extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF00A6CC).withOpacity(0.1),
+              color: const Color(0xFF00A6CC).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFF00A6CC).withOpacity(0.3)),
+              border: Border.all(
+                  color: const Color(0xFF00A6CC).withValues(alpha: 0.3)),
             ),
             child: Text(
               'You will receive payout reminders 2 days before each scheduled payout date via Notifications and Actions.',

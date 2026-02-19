@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/ui/manage/fd/fd_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -22,13 +21,19 @@ class _TenureStepState extends State<TenureStep> {
     super.initState();
     final controller = Provider.of<FDWizardController>(context, listen: false);
     _yearsController = TextEditingController(
-      text: controller.tenureYearsInput > 0 ? controller.tenureYearsInput.toString() : '',
+      text: controller.tenureYearsInput > 0
+          ? controller.tenureYearsInput.toString()
+          : '',
     );
     _monthsController = TextEditingController(
-      text: controller.tenureMonthsInput > 0 ? controller.tenureMonthsInput.toString() : '',
+      text: controller.tenureMonthsInput > 0
+          ? controller.tenureMonthsInput.toString()
+          : '',
     );
     _daysController = TextEditingController(
-      text: controller.tenureDaysInput > 0 ? controller.tenureDaysInput.toString() : '',
+      text: controller.tenureDaysInput > 0
+          ? controller.tenureDaysInput.toString()
+          : '',
     );
   }
 
@@ -50,7 +55,6 @@ class _TenureStepState extends State<TenureStep> {
       controller.updateTenureWithMultipleUnits(years, months, days);
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -183,18 +187,23 @@ class _TenureStepState extends State<TenureStep> {
               // Build duration breakdown string
               List<String> parts = [];
               if (years > 0) parts.add('$years year${years > 1 ? 's' : ''}');
-              if (months > 0) parts.add('$months month${months > 1 ? 's' : ''}');
+              if (months > 0) {
+                parts.add('$months month${months > 1 ? 's' : ''}');
+              }
               if (days > 0) parts.add('$days day${days > 1 ? 's' : ''}');
 
-              String durationText = parts.isNotEmpty ? parts.join(', ') : 'No tenure entered';
+              String durationText =
+                  parts.isNotEmpty ? parts.join(', ') : 'No tenure entered';
 
               return Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppStyles.getBackground(context).withOpacity(0.5),
+                  color:
+                      AppStyles.getBackground(context).withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: AppStyles.getPrimaryColor(context).withOpacity(0.3),
+                    color: AppStyles.getPrimaryColor(context)
+                        .withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),
@@ -215,8 +224,8 @@ class _TenureStepState extends State<TenureStep> {
                       children: [
                         Text(
                           'Duration',
-                          style:
-                              TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+                          style: TextStyle(
+                              color: AppStyles.getSecondaryTextColor(context)),
                         ),
                         Text(
                           durationText,
@@ -233,8 +242,8 @@ class _TenureStepState extends State<TenureStep> {
                       children: [
                         Text(
                           'Total Months',
-                          style:
-                              TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+                          style: TextStyle(
+                              color: AppStyles.getSecondaryTextColor(context)),
                         ),
                         Text(
                           '$totalMonths month${totalMonths > 1 ? 's' : ''}',
@@ -251,8 +260,8 @@ class _TenureStepState extends State<TenureStep> {
                       children: [
                         Text(
                           'Maturity Date',
-                          style:
-                              TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+                          style: TextStyle(
+                              color: AppStyles.getSecondaryTextColor(context)),
                         ),
                         Text(
                           '${maturityDate.day} ${_monthName(maturityDate.month)} ${maturityDate.year}',

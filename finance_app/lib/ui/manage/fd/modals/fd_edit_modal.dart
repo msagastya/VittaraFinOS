@@ -37,7 +37,8 @@ class _FDEditModalState extends State<FDEditModal> {
     _nameController = TextEditingController(text: widget.fd.name);
     _notesController = TextEditingController(text: widget.fd.notes ?? '');
     _bankNameController = TextEditingController(text: widget.fd.bankName ?? '');
-    _bankAccountController = TextEditingController(text: widget.fd.bankAccountNumber ?? '');
+    _bankAccountController =
+        TextEditingController(text: widget.fd.bankAccountNumber ?? '');
   }
 
   @override
@@ -80,10 +81,11 @@ class _FDEditModalState extends State<FDEditModal> {
               Container(
                 padding: EdgeInsets.all(Spacing.md),
                 decoration: BoxDecoration(
-                  color: SemanticColors.getInfo(context).withOpacity(0.1),
+                  color: SemanticColors.getInfo(context).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: SemanticColors.getInfo(context).withOpacity(0.3),
+                    color:
+                        SemanticColors.getInfo(context).withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),
@@ -195,7 +197,7 @@ class _FDEditModalState extends State<FDEditModal> {
               Container(
                 padding: EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
-                  color: AppStyles.getCardColor(context).withOpacity(0.5),
+                  color: AppStyles.getCardColor(context).withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: AppStyles.getDividerColor(context),
@@ -203,11 +205,16 @@ class _FDEditModalState extends State<FDEditModal> {
                 ),
                 child: Column(
                   children: [
-                    _buildReadOnlyRow('Principal', '₹${widget.fd.principal.toStringAsFixed(2)}'),
-                    _buildReadOnlyRow('Interest Rate', '${widget.fd.interestRate}% p.a.'),
-                    _buildReadOnlyRow('Tenure', '${widget.fd.tenureMonths} months'),
-                    _buildReadOnlyRow('Investment Date', _formatDate(widget.fd.investmentDate)),
-                    _buildReadOnlyRow('Maturity Date', _formatDate(widget.fd.maturityDate)),
+                    _buildReadOnlyRow('Principal',
+                        '₹${widget.fd.principal.toStringAsFixed(2)}'),
+                    _buildReadOnlyRow(
+                        'Interest Rate', '${widget.fd.interestRate}% p.a.'),
+                    _buildReadOnlyRow(
+                        'Tenure', '${widget.fd.tenureMonths} months'),
+                    _buildReadOnlyRow('Investment Date',
+                        _formatDate(widget.fd.investmentDate)),
+                    _buildReadOnlyRow(
+                        'Maturity Date', _formatDate(widget.fd.maturityDate)),
                   ],
                 ),
               ),
@@ -262,14 +269,21 @@ class _FDEditModalState extends State<FDEditModal> {
     }
 
     try {
-      final investmentsController = Provider.of<InvestmentsController>(context, listen: false);
+      final investmentsController =
+          Provider.of<InvestmentsController>(context, listen: false);
 
       // Create updated FD with new details
       final updatedFD = widget.fd.copyWith(
         name: _nameController.text.trim(),
-        bankName: _bankNameController.text.trim().isEmpty ? null : _bankNameController.text.trim(),
-        bankAccountNumber: _bankAccountController.text.trim().isEmpty ? null : _bankAccountController.text.trim(),
-        notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+        bankName: _bankNameController.text.trim().isEmpty
+            ? null
+            : _bankNameController.text.trim(),
+        bankAccountNumber: _bankAccountController.text.trim().isEmpty
+            ? null
+            : _bankAccountController.text.trim(),
+        notes: _notesController.text.trim().isEmpty
+            ? null
+            : _notesController.text.trim(),
       );
 
       // Update the investment

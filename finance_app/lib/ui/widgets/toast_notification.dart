@@ -47,7 +47,8 @@ class ToastController {
     _toastStreamController.add(toast);
   }
 
-  void showSuccess(String message, {String? actionLabel, VoidCallback? onAction}) {
+  void showSuccess(String message,
+      {String? actionLabel, VoidCallback? onAction}) {
     show(ToastData(
       message: message,
       type: ToastType.success,
@@ -56,7 +57,8 @@ class ToastController {
     ));
   }
 
-  void showError(String message, {String? actionLabel, VoidCallback? onAction}) {
+  void showError(String message,
+      {String? actionLabel, VoidCallback? onAction}) {
     show(ToastData(
       message: message,
       type: ToastType.error,
@@ -66,7 +68,8 @@ class ToastController {
     ));
   }
 
-  void showWarning(String message, {String? actionLabel, VoidCallback? onAction}) {
+  void showWarning(String message,
+      {String? actionLabel, VoidCallback? onAction}) {
     show(ToastData(
       message: message,
       type: ToastType.warning,
@@ -195,10 +198,11 @@ class _ToastWidgetState extends State<_ToastWidget>
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 1),
       end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _controller, curve: MotionCurves.standard));
+    ).animate(
+        CurvedAnimation(parent: _controller, curve: MotionCurves.standard));
 
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0)
-        .animate(CurvedAnimation(parent: _controller, curve: MotionCurves.standard));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(parent: _controller, curve: MotionCurves.standard));
 
     _controller.forward();
 
@@ -362,19 +366,23 @@ class _ToastWidgetState extends State<_ToastWidget>
 // ============================================================
 
 extension ToastExtension on BuildContext {
-  void showSuccessToast(String message, {String? actionLabel, VoidCallback? onAction}) {
+  void showSuccessToast(String message,
+      {String? actionLabel, VoidCallback? onAction}) {
     toast.showSuccess(message, actionLabel: actionLabel, onAction: onAction);
   }
 
-  void showErrorToast(String message, {String? actionLabel, VoidCallback? onAction}) {
+  void showErrorToast(String message,
+      {String? actionLabel, VoidCallback? onAction}) {
     toast.showError(message, actionLabel: actionLabel, onAction: onAction);
   }
 
-  void showWarningToast(String message, {String? actionLabel, VoidCallback? onAction}) {
+  void showWarningToast(String message,
+      {String? actionLabel, VoidCallback? onAction}) {
     toast.showWarning(message, actionLabel: actionLabel, onAction: onAction);
   }
 
-  void showInfoToast(String message, {String? actionLabel, VoidCallback? onAction}) {
+  void showInfoToast(String message,
+      {String? actionLabel, VoidCallback? onAction}) {
     toast.showInfo(message, actionLabel: actionLabel, onAction: onAction);
   }
 }

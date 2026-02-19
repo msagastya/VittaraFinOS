@@ -9,8 +9,10 @@ class CategoriesController with ChangeNotifier {
   static const String _storageKey = 'categories';
 
   List<Category> get categories => _categories;
-  List<Category> get defaultCats => _categories.where((cat) => !cat.isCustom).toList();
-  List<Category> get customCats => _categories.where((cat) => cat.isCustom).toList();
+  List<Category> get defaultCats =>
+      _categories.where((cat) => !cat.isCustom).toList();
+  List<Category> get customCats =>
+      _categories.where((cat) => cat.isCustom).toList();
 
   CategoriesController() {
     _categories = List.from(defaultCategories);
@@ -25,7 +27,8 @@ class CategoriesController with ChangeNotifier {
 
     // Add saved custom categories
     final customCategories = customCategoriesJson
-        .map((json) => Category.fromMap(jsonDecode(json) as Map<String, dynamic>))
+        .map((json) =>
+            Category.fromMap(jsonDecode(json) as Map<String, dynamic>))
         .toList();
 
     _categories.addAll(customCategories);

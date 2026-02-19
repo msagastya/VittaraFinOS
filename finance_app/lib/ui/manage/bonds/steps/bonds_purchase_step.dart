@@ -86,8 +86,8 @@ class _BondsPurchaseStepState extends State<BondsPurchaseStep> {
                               ),
                               CupertinoButton(
                                 padding: EdgeInsets.zero,
-                                onPressed: () =>
-                                    Navigator.pop(context, controller.purchaseDate),
+                                onPressed: () => Navigator.pop(
+                                    context, controller.purchaseDate),
                                 child: const Text('Done'),
                               ),
                             ],

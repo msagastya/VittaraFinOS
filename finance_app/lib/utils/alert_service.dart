@@ -185,8 +185,8 @@ class AlertService {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => WillPopScope(
-        onWillPop: () async => false,
+      builder: (context) => PopScope(
+        canPop: false,
         child: Center(
           child: Container(
             padding: EdgeInsets.all(Spacing.xxl),
@@ -302,9 +302,11 @@ class AlertService {
     dynamic error, {
     String? operation,
   }) {
-    final message = 'Failed to ${operation ?? "perform operation"}. Please try again.';
+    final message =
+        'Failed to ${operation ?? "perform operation"}. Please try again.';
     showError(context, message);
-    logError(error.toString(), context: 'Database Error', metadata: {'operation': operation});
+    logError(error.toString(),
+        context: 'Database Error', metadata: {'operation': operation});
   }
 
   /// Show retry dialog
@@ -523,7 +525,8 @@ extension AlertServiceExtension on BuildContext {
   }
 
   /// Show error message
-  void showError(String message, {String? actionLabel, VoidCallback? onAction}) {
+  void showError(String message,
+      {String? actionLabel, VoidCallback? onAction}) {
     AlertService.showError(
       this,
       message,

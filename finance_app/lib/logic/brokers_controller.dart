@@ -45,8 +45,7 @@ class BrokersController with ChangeNotifier {
 
   void sortBrokers(bool ascending) {
     _brokers.sort((a, b) {
-      final comparison =
-          (a['name'] as String).compareTo(b['name'] as String);
+      final comparison = (a['name'] as String).compareTo(b['name'] as String);
       return ascending ? comparison : -comparison;
     });
     notifyListeners();

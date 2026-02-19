@@ -8,11 +8,11 @@ import 'package:vittara_fin_os/ui/manage/goals/modals/add_goal_modal.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
-import 'package:vittara_fin_os/ui/widgets/animated_counter.dart' as counter_widgets;
+import 'package:vittara_fin_os/ui/widgets/animated_counter.dart'
+    as counter_widgets;
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/glass_card.dart';
 import 'package:vittara_fin_os/ui/widgets/liquid_progress_indicators.dart';
-import 'package:vittara_fin_os/utils/alert_service.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 
 class GoalsScreen extends StatefulWidget {
@@ -47,7 +47,8 @@ class _GoalsScreenState extends State<GoalsScreen> {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
       navigationBar: CupertinoNavigationBar(
-        middle: Text('Goals', style: TextStyle(color: AppStyles.getTextColor(context))),
+        middle: Text('Goals',
+            style: TextStyle(color: AppStyles.getTextColor(context))),
         previousPageTitle: 'Manage',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
@@ -63,8 +64,10 @@ class _GoalsScreenState extends State<GoalsScreen> {
       child: Consumer<GoalsController>(
         builder: (context, controller, child) {
           final filteredGoals = controller.activeGoals.where((goal) {
-            final matchesSearch = goal.name.toLowerCase().contains(_searchQuery.toLowerCase());
-            final matchesFilter = _filterType == null || goal.type == _filterType;
+            final matchesSearch =
+                goal.name.toLowerCase().contains(_searchQuery.toLowerCase());
+            final matchesFilter =
+                _filterType == null || goal.type == _filterType;
             return matchesSearch && matchesFilter;
           }).toList();
 
@@ -73,7 +76,9 @@ class _GoalsScreenState extends State<GoalsScreen> {
           return Stack(
             children: [
               SafeArea(
-                child: filteredGoals.isEmpty && _searchQuery.isEmpty && _filterType == null
+                child: filteredGoals.isEmpty &&
+                        _searchQuery.isEmpty &&
+                        _filterType == null
                     ? _buildEmptyState()
                     : CustomScrollView(
                         slivers: [
@@ -88,15 +93,20 @@ class _GoalsScreenState extends State<GoalsScreen> {
                           // Search Bar
                           SliverToBoxAdapter(
                             child: Padding(
-                              padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
+                              padding:
+                                  EdgeInsets.symmetric(horizontal: Spacing.lg),
                               child: GlassCard(
                                 padding: EdgeInsets.zero,
                                 child: CupertinoSearchTextField(
                                   backgroundColor: Colors.transparent,
-                                  style: TextStyle(color: AppStyles.getTextColor(context)),
+                                  style: TextStyle(
+                                      color: AppStyles.getTextColor(context)),
                                   placeholder: 'Search Goals',
-                                  placeholderStyle: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
-                                  onChanged: (value) => setState(() => _searchQuery = value),
+                                  placeholderStyle: TextStyle(
+                                      color: AppStyles.getSecondaryTextColor(
+                                          context)),
+                                  onChanged: (value) =>
+                                      setState(() => _searchQuery = value),
                                 ),
                               ),
                             ),
@@ -115,14 +125,21 @@ class _GoalsScreenState extends State<GoalsScreen> {
                           if (_filterType != null)
                             SliverToBoxAdapter(
                               child: Padding(
-                                padding: EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.sm),
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: Spacing.lg,
+                                    vertical: Spacing.sm),
                                 child: Row(
                                   children: [
                                     Container(
-                                      padding: EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: Spacing.md,
+                                          vertical: Spacing.sm),
                                       decoration: BoxDecoration(
-                                        color: SemanticColors.getPrimary(context).withValues(alpha: 0.1),
-                                        borderRadius: BorderRadius.circular(Radii.full),
+                                        color:
+                                            SemanticColors.getPrimary(context)
+                                                .withValues(alpha: 0.1),
+                                        borderRadius:
+                                            BorderRadius.circular(Radii.full),
                                       ),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
@@ -139,18 +156,21 @@ class _GoalsScreenState extends State<GoalsScreen> {
                                               color: Colors.blue,
                                             ).getTypeLabel(),
                                             style: TextStyle(
-                                              color: SemanticColors.getPrimary(context),
+                                              color: SemanticColors.getPrimary(
+                                                  context),
                                               fontSize: TypeScale.footnote,
                                               fontWeight: FontWeight.w600,
                                             ),
                                           ),
                                           SizedBox(width: Spacing.sm),
                                           GestureDetector(
-                                            onTap: () => setState(() => _filterType = null),
+                                            onTap: () => setState(
+                                                () => _filterType = null),
                                             child: Icon(
                                               CupertinoIcons.xmark_circle_fill,
                                               size: IconSizes.sm,
-                                              color: SemanticColors.getPrimary(context),
+                                              color: SemanticColors.getPrimary(
+                                                  context),
                                             ),
                                           ),
                                         ],
@@ -171,7 +191,8 @@ class _GoalsScreenState extends State<GoalsScreen> {
                                     Icon(
                                       CupertinoIcons.search,
                                       size: IconSizes.emptyStateIcon,
-                                      color: AppStyles.getSecondaryTextColor(context),
+                                      color: AppStyles.getSecondaryTextColor(
+                                          context),
                                     ),
                                     SizedBox(height: Spacing.lg),
                                     Text(
@@ -187,7 +208,8 @@ class _GoalsScreenState extends State<GoalsScreen> {
                                       'Try adjusting your search or filter',
                                       style: TextStyle(
                                         fontSize: TypeScale.body,
-                                        color: AppStyles.getSecondaryTextColor(context),
+                                        color: AppStyles.getSecondaryTextColor(
+                                            context),
                                       ),
                                     ),
                                   ],
@@ -204,7 +226,8 @@ class _GoalsScreenState extends State<GoalsScreen> {
                                     return StaggeredItem(
                                       index: index,
                                       child: Padding(
-                                        padding: EdgeInsets.only(bottom: Spacing.lg),
+                                        padding:
+                                            EdgeInsets.only(bottom: Spacing.lg),
                                         child: _buildGoalCard(goal),
                                       ),
                                     );
@@ -457,7 +480,8 @@ class _GoalsScreenState extends State<GoalsScreen> {
                 ),
                 if (isOverdue)
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: Spacing.sm, vertical: Spacing.xxs),
+                    padding: EdgeInsets.symmetric(
+                        horizontal: Spacing.sm, vertical: Spacing.xxs),
                     decoration: BoxDecoration(
                       color: SemanticColors.error.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(Radii.xs),
@@ -473,7 +497,8 @@ class _GoalsScreenState extends State<GoalsScreen> {
                   )
                 else if (isExpiringSoon)
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: Spacing.sm, vertical: Spacing.xxs),
+                    padding: EdgeInsets.symmetric(
+                        horizontal: Spacing.sm, vertical: Spacing.xxs),
                     decoration: BoxDecoration(
                       color: SemanticColors.warning.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(Radii.xs),
@@ -618,10 +643,14 @@ class _GoalsScreenState extends State<GoalsScreen> {
             BouncyButton(
               onPressed: _showAddGoalModal,
               child: Container(
-                padding: EdgeInsets.symmetric(horizontal: Spacing.xxl, vertical: Spacing.lg),
+                padding: EdgeInsets.symmetric(
+                    horizontal: Spacing.xxl, vertical: Spacing.lg),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [SemanticColors.success, SemanticColors.success.withValues(alpha: 0.8)],
+                    colors: [
+                      SemanticColors.success,
+                      SemanticColors.success.withValues(alpha: 0.8)
+                    ],
                   ),
                   borderRadius: BorderRadius.circular(Radii.full),
                   boxShadow: [
@@ -635,7 +664,8 @@ class _GoalsScreenState extends State<GoalsScreen> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(CupertinoIcons.add, color: Colors.white, size: IconSizes.lg),
+                    Icon(CupertinoIcons.add,
+                        color: Colors.white, size: IconSizes.lg),
                     SizedBox(width: Spacing.sm),
                     Text(
                       'Create Your First Goal',
@@ -685,7 +715,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                 ],
               ),
             );
-          }).toList(),
+          }),
           if (_filterType != null)
             CupertinoActionSheetAction(
               onPressed: () {

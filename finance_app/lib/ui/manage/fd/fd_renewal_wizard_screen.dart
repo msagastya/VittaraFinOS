@@ -77,7 +77,8 @@ class _FDRenewalWizardScreenState extends State<FDRenewalWizardScreen> {
     _isSubmitting = true;
 
     try {
-      final investmentsController = Provider.of<InvestmentsController>(context, listen: false);
+      final investmentsController =
+          Provider.of<InvestmentsController>(context, listen: false);
 
       // Create renewed FD using copyWith
       final renewedFD = widget.fd.copyWith(
@@ -98,8 +99,10 @@ class _FDRenewalWizardScreenState extends State<FDRenewalWizardScreen> {
       // Create renewal cycle for tracking
       final renewalCycle = FDRenewalCycle(
         cycleNumber: (widget.fd.metadata?['renewalCycle'] != null
-            ? (widget.fd.metadata!['renewalCycle'] as Map)['cycleNumber'] as int
-            : 1) + 1,
+                ? (widget.fd.metadata!['renewalCycle'] as Map)['cycleNumber']
+                    as int
+                : 1) +
+            1,
         investmentDate: _controller.renewalDate,
         maturityDate: _controller.maturityDate,
         principal: _controller.principal,
@@ -202,11 +205,13 @@ class _FDRenewalWizardScreenState extends State<FDRenewalWizardScreen> {
                               onPressed: () => controller.previousStep(),
                               child: Text(
                                 'Previous',
-                                style: TextStyle(color: AppStyles.getTextColor(context)),
+                                style: TextStyle(
+                                    color: AppStyles.getTextColor(context)),
                               ),
                             ),
                           ),
-                        if (controller.currentStep > 0) const SizedBox(width: 12),
+                        if (controller.currentStep > 0)
+                          const SizedBox(width: 12),
                         Expanded(
                           child: CupertinoButton(
                             color: controller.canProceedToNextStep
@@ -218,8 +223,11 @@ class _FDRenewalWizardScreenState extends State<FDRenewalWizardScreen> {
                                     : () => controller.nextStep())
                                 : null,
                             child: Text(
-                              controller.currentStep == 4 ? 'Complete Renewal' : 'Next',
-                              style: const TextStyle(color: CupertinoColors.white),
+                              controller.currentStep == 4
+                                  ? 'Complete Renewal'
+                                  : 'Next',
+                              style:
+                                  const TextStyle(color: CupertinoColors.white),
                             ),
                           ),
                         ),

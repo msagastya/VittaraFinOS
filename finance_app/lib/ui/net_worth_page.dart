@@ -62,7 +62,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                     Icon(
                       CupertinoIcons.exclamationmark_circle,
                       size: 50,
-                      color: Colors.red.withOpacity(0.7),
+                      color: Colors.red.withValues(alpha: 0.7),
                     ),
                     SizedBox(height: Spacing.lg),
                     Text(
@@ -140,13 +140,13 @@ class _NetWorthPageState extends State<NetWorthPage> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            netWorthColor.withOpacity(0.12),
-            netWorthColor.withOpacity(0.04),
+            netWorthColor.withValues(alpha: 0.12),
+            netWorthColor.withValues(alpha: 0.04),
           ],
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: netWorthColor.withOpacity(0.2),
+          color: netWorthColor.withValues(alpha: 0.2),
         ),
       ),
       child: Column(
@@ -177,7 +177,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.withOpacity(0.1)),
+              border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -309,7 +309,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
         decoration: BoxDecoration(
           color: AppStyles.getCardColor(context),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.withOpacity(0.1)),
+          border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
         ),
         child: Center(
           child: Text(
@@ -332,7 +332,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -344,7 +344,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                 Container(
                   padding: EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.15),
+                    color: Colors.blue.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(CupertinoIcons.creditcard_fill,
@@ -468,7 +468,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -480,7 +480,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                 Container(
                   padding: EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.15),
+                    color: Colors.orange.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(CupertinoIcons.chart_bar_fill,
@@ -608,7 +608,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -620,7 +620,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                 Container(
                   padding: EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.15),
+                    color: Colors.red.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(CupertinoIcons.creditcard_fill,
@@ -794,7 +794,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                       child: LinearProgressIndicator(
                         value: utilization / 100,
                         minHeight: 6,
-                        backgroundColor: Colors.grey.withOpacity(0.2),
+                        backgroundColor: Colors.grey.withValues(alpha: 0.2),
                         valueColor: AlwaysStoppedAnimation<Color>(
                           utilization > 80 ? Colors.red : Colors.orange,
                         ),
@@ -847,7 +847,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
         decoration: BoxDecoration(
           color: AppStyles.getCardColor(context),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.withOpacity(0.1)),
+          border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
         ),
         child: Center(
           child: Text(
@@ -880,8 +880,12 @@ class _NetWorthPageState extends State<NetWorthPage> {
     final sortedEntries = investmentsByType.entries.toList();
     sortedEntries.sort((a, b) {
       double totalA = 0, totalB = 0;
-      for (var inv in a.value) totalA += inv.amount;
-      for (var inv in b.value) totalB += inv.amount;
+      for (var inv in a.value) {
+        totalA += inv.amount;
+      }
+      for (var inv in b.value) {
+        totalB += inv.amount;
+      }
       return totalB.compareTo(totalA);
     });
 
@@ -893,7 +897,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -905,7 +909,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                 Container(
                   padding: EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.15),
+                    color: Colors.green.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(CupertinoIcons.chart_bar_fill,
@@ -1044,7 +1048,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                         ),
                     ],
                   );
-                }).toList(),
+                }),
                 if (hasMore)
                   Padding(
                     padding: EdgeInsets.only(top: Spacing.md),
@@ -1126,8 +1130,9 @@ class _NetWorthPageState extends State<NetWorthPage> {
     if (units != null && currentNav != null) return units * currentNav;
     final pricePerUnit = (metadata['pricePerShare'] as num?)?.toDouble();
     final quantity = (metadata['qty'] as num?)?.toDouble();
-    if (pricePerUnit != null && quantity != null)
+    if (pricePerUnit != null && quantity != null) {
       return pricePerUnit * quantity;
+    }
     return investment.amount;
   }
 }

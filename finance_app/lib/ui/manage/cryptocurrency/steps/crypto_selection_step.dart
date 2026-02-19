@@ -101,12 +101,12 @@ class _CryptoSelectionStepState extends State<CryptoSelectionStep> {
                 child: Container(
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? const Color(0xFFF7931A).withOpacity(0.1)
+                        ? const Color(0xFFF7931A).withValues(alpha: 0.1)
                         : AppStyles.getCardColor(context),
                     border: Border.all(
                       color: isSelected
                           ? const Color(0xFFF7931A)
-                          : Colors.grey.withOpacity(0.2),
+                          : Colors.grey.withValues(alpha: 0.2),
                     ),
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -116,7 +116,8 @@ class _CryptoSelectionStepState extends State<CryptoSelectionStep> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF7931A).withOpacity(0.15),
+                          color:
+                              const Color(0xFFF7931A).withValues(alpha: 0.15),
                           shape: BoxShape.circle,
                         ),
                         child: Text(

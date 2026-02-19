@@ -29,7 +29,8 @@ class FDWizardController extends ChangeNotifier {
   int tenureTotalDays = 0; // Exact total days (never lose precision)
 
   // Step 5: Compounding Frequency
-  FDCompoundingFrequency compoundingFrequency = FDCompoundingFrequency.quarterly;
+  FDCompoundingFrequency compoundingFrequency =
+      FDCompoundingFrequency.quarterly;
 
   // Step 6: FD Type & Payout Frequency
   bool isCumulative = true;
@@ -117,7 +118,9 @@ class FDWizardController extends ChangeNotifier {
     // For validation and reference: calculate approximate total months
     // (This is just for display/validation, actual maturity date uses proper date arithmetic)
     int totalMonths = (years * 12) + months;
-    if (totalMonths < 1 && days > 0) totalMonths = 1; // At least 1 month if only days
+    if (totalMonths < 1 && days > 0) {
+      totalMonths = 1; // At least 1 month if only days
+    }
 
     tenureMonths = totalMonths;
     tenureUnit = null; // Clear single unit since we're using multiple

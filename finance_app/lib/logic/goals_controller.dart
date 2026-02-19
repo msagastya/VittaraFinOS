@@ -38,7 +38,8 @@ class GoalsController extends ChangeNotifier {
   Future<void> _saveGoals() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final String goalsJson = json.encode(_goals.map((g) => g.toMap()).toList());
+      final String goalsJson =
+          json.encode(_goals.map((g) => g.toMap()).toList());
       await prefs.setString(_storageKey, goalsJson);
     } catch (e) {
       debugPrint('Error saving goals: $e');
@@ -104,7 +105,9 @@ class GoalsController extends ChangeNotifier {
     final index = _goals.indexWhere((g) => g.id == goalId);
     if (index != -1) {
       final goal = _goals[index];
-      final newCurrentAmount = ((goal.currentAmount - amount).clamp(0, goal.targetAmount) as num).toDouble();
+      final newCurrentAmount =
+          ((goal.currentAmount - amount).clamp(0, goal.targetAmount))
+              .toDouble();
 
       _goals[index] = goal.copyWith(
         currentAmount: newCurrentAmount,
@@ -167,9 +170,7 @@ class GoalsController extends ChangeNotifier {
   /// Get goals expiring soon (within days)
   List<Goal> getGoalsExpiringSoon({int days = 30}) {
     final cutoffDate = DateTime.now().add(Duration(days: days));
-    return activeGoals
-        .where((g) => g.targetDate.isBefore(cutoffDate))
-        .toList()
+    return activeGoals.where((g) => g.targetDate.isBefore(cutoffDate)).toList()
       ..sort((a, b) => a.targetDate.compareTo(b.targetDate));
   }
 
@@ -180,6 +181,7 @@ class GoalsController extends ChangeNotifier {
 
   /// Get recommended monthly savings across all goals
   double get totalRecommendedMonthlySavings {
-    return activeGoals.fold(0, (sum, goal) => sum + goal.recommendedMonthlySavings);
+    return activeGoals.fold(
+        0, (sum, goal) => sum + goal.recommendedMonthlySavings);
   }
 }

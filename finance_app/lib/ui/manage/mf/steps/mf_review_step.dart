@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/ui/manage/mf/mf_wizard_controller.dart';
@@ -30,7 +29,7 @@ class MFReviewStep extends StatelessWidget {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: SemanticColors.investments.withOpacity(0.1),
+                color: SemanticColors.investments.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Center(
@@ -69,7 +68,8 @@ class MFReviewStep extends StatelessWidget {
           _buildRow(context, 'Scheme Type', mf.schemeType ?? 'N/A'),
           _buildRow(context, 'Scheme Code', mf.schemeCode),
           _buildRow(context, 'Account', account.name),
-          _buildRow(context, 'Units', controller.calculatedUnits.toStringAsFixed(4)),
+          _buildRow(
+              context, 'Units', controller.calculatedUnits.toStringAsFixed(4)),
           _buildRow(context, 'NAV', '₹${displayNAV.toStringAsFixed(2)}'),
           _buildRow(
             context,
@@ -90,10 +90,10 @@ class MFReviewStep extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: SemanticColors.investments.withOpacity(0.1),
+              color: SemanticColors.investments.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: SemanticColors.investments.withOpacity(0.3),
+                color: SemanticColors.investments.withValues(alpha: 0.3),
               ),
             ),
             child: Column(

@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/ui/manage/cryptocurrency/crypto_wizard_controller.dart';
@@ -33,7 +32,7 @@ class CryptoReviewStep extends StatelessWidget {
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Colors.grey.withOpacity(0.2),
+                color: Colors.grey.withValues(alpha: 0.2),
               ),
             ),
             child: Column(
@@ -68,7 +67,7 @@ class CryptoReviewStep extends StatelessWidget {
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Colors.grey.withOpacity(0.2),
+                color: Colors.grey.withValues(alpha: 0.2),
               ),
             ),
             child: Column(
@@ -88,14 +87,14 @@ class CryptoReviewStep extends StatelessWidget {
                   value: controller.walletType.toString().split('.').last,
                 ),
                 const SizedBox(height: 12),
-                if (controller.selectedExchange != null)
-                  ...[
-                    _ReviewRow(
-                      label: 'Exchange',
-                      value: controller.selectedExchange.toString().split('.').last,
-                    ),
-                    const SizedBox(height: 12),
-                  ],
+                if (controller.selectedExchange != null) ...[
+                  _ReviewRow(
+                    label: 'Exchange',
+                    value:
+                        controller.selectedExchange.toString().split('.').last,
+                  ),
+                  const SizedBox(height: 12),
+                ],
                 _ReviewRow(
                   label: 'Address/Account',
                   value: controller.walletAddress ?? 'N/A',
@@ -111,7 +110,7 @@ class CryptoReviewStep extends StatelessWidget {
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Colors.grey.withOpacity(0.2),
+                color: Colors.grey.withValues(alpha: 0.2),
               ),
             ),
             child: Column(
@@ -134,12 +133,14 @@ class CryptoReviewStep extends StatelessWidget {
                 const SizedBox(height: 12),
                 _ReviewRow(
                   label: 'Quantity',
-                  value: '${controller.quantity?.toStringAsFixed(8) ?? '0'} ${controller.cryptoSymbol ?? 'coins'}',
+                  value:
+                      '${controller.quantity?.toStringAsFixed(8) ?? '0'} ${controller.cryptoSymbol ?? 'coins'}',
                 ),
                 const SizedBox(height: 12),
                 _ReviewRow(
                   label: 'Price per Unit',
-                  value: '₹${controller.pricePerUnit?.toStringAsFixed(2) ?? '0.00'}',
+                  value:
+                      '₹${controller.pricePerUnit?.toStringAsFixed(2) ?? '0.00'}',
                 ),
                 const SizedBox(height: 12),
                 _ReviewRow(
@@ -173,7 +174,7 @@ class CryptoReviewStep extends StatelessWidget {
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: Colors.grey.withOpacity(0.2),
+                  color: Colors.grey.withValues(alpha: 0.2),
                 ),
               ),
               child: Column(

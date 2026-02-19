@@ -6,7 +6,7 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 class BondDatesPricesStep extends StatefulWidget {
   final BondsWizardControllerV2 ctrl;
 
-  const BondDatesPricesStep(this.ctrl);
+  const BondDatesPricesStep(this.ctrl, {super.key});
 
   @override
   State<BondDatesPricesStep> createState() => _BondDatesPricesStepState();
@@ -20,10 +20,13 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
   void initState() {
     super.initState();
     _purchasePriceController = TextEditingController(
-      text: widget.ctrl.purchasePrice > 0 ? widget.ctrl.purchasePrice.toString() : '',
+      text: widget.ctrl.purchasePrice > 0
+          ? widget.ctrl.purchasePrice.toString()
+          : '',
     );
     _faceValueController = TextEditingController(
-      text: widget.ctrl.faceValue > 0 ? widget.ctrl.faceValue.toString() : '1000',
+      text:
+          widget.ctrl.faceValue > 0 ? widget.ctrl.faceValue.toString() : '1000',
     );
   }
 
@@ -43,7 +46,8 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
         children: [
           Text('Bond Dates & Prices', style: AppStyles.titleStyle(context)),
           const SizedBox(height: 30),
-          Text('Purchase Date', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+          Text('Purchase Date',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
           const SizedBox(height: 12),
           GestureDetector(
             onTap: () {
@@ -59,7 +63,8 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
                         decoration: BoxDecoration(
                           color: AppStyles.getCardColor(context),
                           border: Border(
-                            bottom: BorderSide(color: Colors.grey.withOpacity(0.2)),
+                            bottom: BorderSide(
+                                color: Colors.grey.withValues(alpha: 0.2)),
                           ),
                         ),
                         child: Row(
@@ -94,7 +99,7 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -109,7 +114,8 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
             ),
           ),
           const SizedBox(height: 24),
-          Text('Maturity Date', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+          Text('Maturity Date',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
           const SizedBox(height: 12),
           GestureDetector(
             onTap: () {
@@ -125,7 +131,8 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
                         decoration: BoxDecoration(
                           color: AppStyles.getCardColor(context),
                           border: Border(
-                            bottom: BorderSide(color: Colors.grey.withOpacity(0.2)),
+                            bottom: BorderSide(
+                                color: Colors.grey.withValues(alpha: 0.2)),
                           ),
                         ),
                         child: Row(
@@ -160,7 +167,7 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -175,7 +182,8 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
             ),
           ),
           const SizedBox(height: 24),
-          Text('Purchase Price (₹)', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+          Text('Purchase Price (₹)',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
           const SizedBox(height: 12),
           CupertinoTextField(
             controller: _purchasePriceController,
@@ -196,7 +204,8 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
             },
           ),
           const SizedBox(height: 24),
-          Text('Face Value (₹)', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+          Text('Face Value (₹)',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
           const SizedBox(height: 12),
           CupertinoTextField(
             controller: _faceValueController,
@@ -217,7 +226,8 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
             },
           ),
           const SizedBox(height: 24),
-          Text('Payment Frequency', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+          Text('Payment Frequency',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
           const SizedBox(height: 12),
           Row(
             children: [
@@ -271,12 +281,12 @@ class _FrequencyButton extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: isSelected
-              ? const Color(0xFF00A6CC).withOpacity(0.1)
+              ? const Color(0xFF00A6CC).withValues(alpha: 0.1)
               : AppStyles.getCardColor(context),
           border: Border.all(
             color: isSelected
                 ? const Color(0xFF00A6CC)
-                : Colors.grey.withOpacity(0.2),
+                : Colors.grey.withValues(alpha: 0.2),
           ),
           borderRadius: BorderRadius.circular(8),
         ),

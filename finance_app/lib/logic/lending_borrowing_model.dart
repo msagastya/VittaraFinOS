@@ -42,7 +42,9 @@ class LendingBorrowing {
       id: map['id'],
       personName: map['personName'],
       amount: (map['amount'] as num).toDouble(),
-      type: map['type'].toString().contains('lent') ? LendingType.lent : LendingType.borrowed,
+      type: map['type'].toString().contains('lent')
+          ? LendingType.lent
+          : LendingType.borrowed,
       description: map['description'],
       date: DateTime.parse(map['date']),
       dueDate: map['dueDate'] != null ? DateTime.parse(map['dueDate']) : null,

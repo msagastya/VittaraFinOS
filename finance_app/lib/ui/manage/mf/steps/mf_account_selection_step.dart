@@ -23,7 +23,8 @@ class _MFAccountSelectionStepState extends State<MFAccountSelectionStep> {
     // Refresh accounts when entering this step
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (mounted) {
-        await Provider.of<AccountsController>(context, listen: false).loadAccounts();
+        await Provider.of<AccountsController>(context, listen: false)
+            .loadAccounts();
       }
     });
   }
@@ -80,7 +81,8 @@ class _MFAccountSelectionStepState extends State<MFAccountSelectionStep> {
                           onTap: () {
                             wizardController.selectAccount(account);
                             // Auto-proceed to next step
-                            Future.delayed(const Duration(milliseconds: 300), () {
+                            Future.delayed(const Duration(milliseconds: 300),
+                                () {
                               wizardController.nextPage();
                             });
                           },
@@ -92,7 +94,8 @@ class _MFAccountSelectionStepState extends State<MFAccountSelectionStep> {
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? SemanticColors.investments.withOpacity(0.1)
+                                  ? SemanticColors.investments
+                                      .withValues(alpha: 0.1)
                                   : AppStyles.getCardColor(context),
                               border: isSelected
                                   ? Border.all(
@@ -103,7 +106,7 @@ class _MFAccountSelectionStepState extends State<MFAccountSelectionStep> {
                               boxShadow: [
                                 if (!isSelected)
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
+                                    color: Colors.black.withValues(alpha: 0.05),
                                     blurRadius: 4,
                                     offset: const Offset(0, 2),
                                   ),
@@ -114,7 +117,7 @@ class _MFAccountSelectionStepState extends State<MFAccountSelectionStep> {
                                 Container(
                                   padding: const EdgeInsets.all(10),
                                   decoration: BoxDecoration(
-                                    color: account.color.withOpacity(0.2),
+                                    color: account.color.withValues(alpha: 0.2),
                                     shape: BoxShape.circle,
                                   ),
                                   child: Icon(
@@ -138,8 +141,9 @@ class _MFAccountSelectionStepState extends State<MFAccountSelectionStep> {
                                       Text(
                                         account.bankName,
                                         style: TextStyle(
-                                          color: AppStyles
-                                              .getSecondaryTextColor(context),
+                                          color:
+                                              AppStyles.getSecondaryTextColor(
+                                                  context),
                                           fontSize: 13,
                                         ),
                                       ),
@@ -161,8 +165,7 @@ class _MFAccountSelectionStepState extends State<MFAccountSelectionStep> {
                                         child: Icon(
                                           CupertinoIcons
                                               .check_mark_circled_solid,
-                                          color:
-                                              SemanticColors.investments,
+                                          color: SemanticColors.investments,
                                           size: 20,
                                         ),
                                       ),
@@ -178,7 +181,8 @@ class _MFAccountSelectionStepState extends State<MFAccountSelectionStep> {
             Padding(
               padding: const EdgeInsets.all(20),
               child: CupertinoButton(
-                color: isDarkMode(context) ? Colors.grey[800] : Colors.grey[200],
+                color:
+                    isDarkMode(context) ? Colors.grey[800] : Colors.grey[200],
                 onPressed: () {
                   final accountsController =
                       Provider.of<AccountsController>(context, listen: false);

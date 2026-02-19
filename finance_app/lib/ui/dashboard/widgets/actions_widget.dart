@@ -1,16 +1,15 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:vittara_fin_os/logic/dashboard_widget_model.dart';
 import 'package:vittara_fin_os/ui/dashboard/base_dashboard_widget.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class ActionsWidget extends BaseDashboardWidget {
   const ActionsWidget({
-    required DashboardWidgetConfig config,
-    VoidCallback? onTap,
+    required super.config,
+    super.onTap,
     super.key,
-  }) : super(config: config, onTap: onTap);
+  });
 
   @override
   Widget buildHeader(BuildContext context, {bool compact = false}) {
@@ -54,32 +53,33 @@ class ActionsWidget extends BaseDashboardWidget {
 
     final actions = [
       ('Send Payment', '₹0', CupertinoIcons.paperplane_fill, Colors.blue),
-      ('Request Money', 'Quick', CupertinoIcons.arrow_down_circle_fill, Colors.green),
+      (
+        'Request Money',
+        'Quick',
+        CupertinoIcons.arrow_down_circle_fill,
+        Colors.green
+      ),
       ('View All', 'More', CupertinoIcons.ellipsis, Colors.orange),
     ].take(actionCount).toList();
 
     return Column(
       mainAxisSize: MainAxisSize.min,
-      children: actions
-          .asMap()
-          .entries
-          .map((entry) {
-            final isLast = entry.key == actions.length - 1;
-            return Column(
-              children: [
-                _buildActionItem(
-                  context,
-                  entry.value.$1,
-                  entry.value.$2,
-                  entry.value.$3,
-                  entry.value.$4,
-                  compact: columnSpan == 1,
-                ),
-                if (!isLast) SizedBox(height: columnSpan == 1 ? 8 : 12),
-              ],
-            );
-          })
-          .toList(),
+      children: actions.asMap().entries.map((entry) {
+        final isLast = entry.key == actions.length - 1;
+        return Column(
+          children: [
+            _buildActionItem(
+              context,
+              entry.value.$1,
+              entry.value.$2,
+              entry.value.$3,
+              entry.value.$4,
+              compact: columnSpan == 1,
+            ),
+            if (!isLast) SizedBox(height: columnSpan == 1 ? 8 : 12),
+          ],
+        );
+      }).toList(),
     );
   }
 
@@ -99,7 +99,7 @@ class ActionsWidget extends BaseDashboardWidget {
           color: AppStyles.getCardColor(context),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
           ),
         ),
         child: Column(
@@ -113,12 +113,12 @@ class ActionsWidget extends BaseDashboardWidget {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    color.withOpacity(0.15),
-                    color.withOpacity(0.08),
+                    color.withValues(alpha: 0.15),
+                    color.withValues(alpha: 0.08),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: color.withOpacity(0.15)),
+                border: Border.all(color: color.withValues(alpha: 0.15)),
               ),
               child: Icon(icon, size: 18, color: color),
             ),
@@ -139,7 +139,7 @@ class ActionsWidget extends BaseDashboardWidget {
               subtitle,
               style: TextStyle(
                 fontSize: 10,
-                color: color.withOpacity(0.7),
+                color: color.withValues(alpha: 0.7),
                 fontWeight: FontWeight.w500,
               ),
               textAlign: TextAlign.center,
@@ -157,18 +157,18 @@ class ActionsWidget extends BaseDashboardWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            color.withOpacity(0.08),
-            color.withOpacity(0.03),
+            color.withValues(alpha: 0.08),
+            color.withValues(alpha: 0.03),
           ],
         ),
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: color.withOpacity(0.15),
+          color: color.withValues(alpha: 0.15),
         ),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.05),
+            color: color.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -185,12 +185,12 @@ class ActionsWidget extends BaseDashboardWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  color.withOpacity(0.2),
-                  color.withOpacity(0.1),
+                  color.withValues(alpha: 0.2),
+                  color.withValues(alpha: 0.1),
                 ],
               ),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: color.withOpacity(0.2)),
+              border: Border.all(color: color.withValues(alpha: 0.2)),
             ),
             child: Icon(icon, size: 20, color: color),
           ),
@@ -216,7 +216,7 @@ class ActionsWidget extends BaseDashboardWidget {
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.12),
+                    color: color.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
@@ -236,7 +236,7 @@ class ActionsWidget extends BaseDashboardWidget {
           Icon(
             CupertinoIcons.chevron_right,
             size: 14,
-            color: color.withOpacity(0.5),
+            color: color.withValues(alpha: 0.5),
           ),
         ],
       ),

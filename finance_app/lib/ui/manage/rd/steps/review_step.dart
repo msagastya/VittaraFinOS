@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/ui/manage/rd/rd_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -88,16 +87,18 @@ class _ReviewStepState extends State<ReviewStep> {
               borderRadius: BorderRadius.circular(8),
             ),
             style: TextStyle(color: AppStyles.getTextColor(context)),
-            onChanged: (value) => controller.updateRDNotes(value.isEmpty ? null : value),
+            onChanged: (value) =>
+                controller.updateRDNotes(value.isEmpty ? null : value),
           ),
           const SizedBox(height: 30),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppStyles.getBackground(context).withOpacity(0.5),
+              color: AppStyles.getBackground(context).withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: AppStyles.getPrimaryColor(context).withOpacity(0.3),
+                color:
+                    AppStyles.getPrimaryColor(context).withValues(alpha: 0.3),
                 width: 1,
               ),
             ),
@@ -146,7 +147,8 @@ class _ReviewStepState extends State<ReviewStep> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppStyles.getPrimaryColor(context).withOpacity(0.1),
+                    color: AppStyles.getPrimaryColor(context)
+                        .withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -201,7 +203,8 @@ class _ReviewStepState extends State<ReviewStep> {
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: AppStyles.getPrimaryColor(context).withOpacity(0.2),
+                color:
+                    AppStyles.getPrimaryColor(context).withValues(alpha: 0.2),
                 width: 1,
               ),
             ),
@@ -236,7 +239,8 @@ class _ReviewStepState extends State<ReviewStep> {
                     ),
                     CupertinoSwitch(
                       value: controller.debitFromAccount,
-                      onChanged: (value) => controller.toggleDebitFromAccount(value),
+                      onChanged: (value) =>
+                          controller.toggleDebitFromAccount(value),
                     ),
                   ],
                 ),
@@ -244,7 +248,8 @@ class _ReviewStepState extends State<ReviewStep> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: AppStyles.getBackground(context).withOpacity(0.7),
+                    color:
+                        AppStyles.getBackground(context).withValues(alpha: 0.7),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Row(

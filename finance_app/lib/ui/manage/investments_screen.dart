@@ -1,7 +1,6 @@
 import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/fixed_deposit_model.dart';
@@ -870,7 +869,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
         padding: EdgeInsets.all(Spacing.lg),
         decoration: BoxDecoration(
           color: isSelected
-              ? SemanticColors.investments.withOpacity(0.15)
+              ? SemanticColors.investments.withValues(alpha: 0.15)
               : AppStyles.getCardColor(context),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
@@ -992,7 +991,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
         padding: EdgeInsets.all(Spacing.lg),
         decoration: BoxDecoration(
           color: isSelected
-              ? SemanticColors.investments.withOpacity(0.15)
+              ? SemanticColors.investments.withValues(alpha: 0.15)
               : AppStyles.getCardColor(context),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
@@ -1072,7 +1071,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                     color: AppStyles.getBackground(context),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: SemanticColors.investments.withOpacity(0.3),
+                      color: SemanticColors.investments.withValues(alpha: 0.3),
                       width: 1.5,
                     ),
                   ),
@@ -1139,7 +1138,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                             color: _selectedFilter == null
                                 ? SemanticColors.investments
                                 : AppStyles.getSecondaryTextColor(context)
-                                    .withOpacity(0.2),
+                                    .withValues(alpha: 0.2),
                             width: 1.5,
                           ),
                         ),
@@ -1180,7 +1179,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                               color: isSelected
                                   ? SemanticColors.investments
                                   : AppStyles.getSecondaryTextColor(context)
-                                      .withOpacity(0.2),
+                                      .withValues(alpha: 0.2),
                               width: 1.5,
                             ),
                           ),
@@ -1203,7 +1202,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
                                   color: isSelected
-                                      ? Colors.white.withOpacity(0.8)
+                                      ? Colors.white.withValues(alpha: 0.8)
                                       : AppStyles.getSecondaryTextColor(
                                           context),
                                 ),
@@ -1251,14 +1250,15 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                           margin: EdgeInsets.only(right: Spacing.md),
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? SemanticColors.investments.withOpacity(0.15)
+                                ? SemanticColors.investments
+                                    .withValues(alpha: 0.15)
                                 : AppStyles.getBackground(context),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                               color: isSelected
                                   ? SemanticColors.investments
                                   : AppStyles.getSecondaryTextColor(context)
-                                      .withOpacity(0.2),
+                                      .withValues(alpha: 0.2),
                               width: 1.5,
                             ),
                           ),
@@ -1324,7 +1324,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                       color: _selectedFilter == null
                           ? SemanticColors.investments
                           : AppStyles.getSecondaryTextColor(context)
-                              .withOpacity(0.2),
+                              .withValues(alpha: 0.2),
                       width: 1.5,
                     ),
                   ),
@@ -1363,7 +1363,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                           color: isSelected
                               ? SemanticColors.investments
                               : AppStyles.getSecondaryTextColor(context)
-                                  .withOpacity(0.2),
+                                  .withValues(alpha: 0.2),
                           width: 1.5,
                         ),
                       ),
@@ -1385,7 +1385,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                               '($count)',
                               style: TextStyle(
                                 color: isSelected
-                                    ? Colors.white.withOpacity(0.8)
+                                    ? Colors.white.withValues(alpha: 0.8)
                                     : AppStyles.getSecondaryTextColor(context),
                                 fontSize: 11,
                                 fontWeight: FontWeight.w500,
@@ -1432,7 +1432,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: AppStyles.getSecondaryTextColor(context)
-                          .withOpacity(0.2),
+                          .withValues(alpha: 0.2),
                       width: 1,
                     ),
                   ),
@@ -1492,7 +1492,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               border: Border.all(
                 color: isSelected
                     ? SemanticColors.investments
-                    : AppStyles.getSecondaryTextColor(context).withOpacity(0.2),
+                    : AppStyles.getSecondaryTextColor(context)
+                        .withValues(alpha: 0.2),
                 width: 1.5,
               ),
             ),
@@ -2028,8 +2029,10 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                               horizontal: Spacing.md, vertical: Spacing.xs),
                           decoration: BoxDecoration(
                             color: isProfit
-                                ? CupertinoColors.systemGreen.withOpacity(0.15)
-                                : CupertinoColors.systemRed.withOpacity(0.15),
+                                ? CupertinoColors.systemGreen
+                                    .withValues(alpha: 0.15)
+                                : CupertinoColors.systemRed
+                                    .withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
@@ -2276,8 +2279,9 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                           horizontal: Spacing.md, vertical: Spacing.xs),
                       decoration: BoxDecoration(
                         color: isProfit
-                            ? CupertinoColors.systemGreen.withOpacity(0.15)
-                            : CupertinoColors.systemRed.withOpacity(0.15),
+                            ? CupertinoColors.systemGreen
+                                .withValues(alpha: 0.15)
+                            : CupertinoColors.systemRed.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(

@@ -39,7 +39,8 @@ class MFDatabaseService {
 
         if (!hasValidSchemeTypes) {
           // Old format data without scheme types: force refresh
-          _logger.i('Detected old data format - forcing refresh to get scheme types');
+          _logger.i(
+              'Detected old data format - forcing refresh to get scheme types');
           await _fetchAndStoreAMFIData();
         } else {
           // Check if data needs refresh based on timestamp
@@ -56,7 +57,8 @@ class MFDatabaseService {
       _isInitialized = true;
     } catch (e) {
       _logger.e('Error initializing MF database: $e');
-      _isInitialized = true; // Mark as initialized even on error to avoid blocking
+      _isInitialized =
+          true; // Mark as initialized even on error to avoid blocking
     } finally {
       _isInitializing = false;
     }

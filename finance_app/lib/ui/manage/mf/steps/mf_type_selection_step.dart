@@ -47,23 +47,25 @@ class MFTypeSelectionStep extends StatelessWidget {
                     });
                   },
                   child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    margin: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 12),
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
                       color: controller.selectedMFType == MFType.existing
-                          ? SemanticColors.investments.withOpacity(0.1)
+                          ? SemanticColors.investments.withValues(alpha: 0.1)
                           : AppStyles.getCardColor(context),
                       border: controller.selectedMFType == MFType.existing
-                          ? Border.all(color: SemanticColors.investments, width: 2)
+                          ? Border.all(
+                              color: SemanticColors.investments, width: 2)
                           : Border.all(
-                              color: Colors.grey.withOpacity(0.3),
+                              color: Colors.grey.withValues(alpha: 0.3),
                               width: 1,
                             ),
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         if (controller.selectedMFType != MFType.existing)
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withValues(alpha: 0.05),
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),
@@ -75,7 +77,8 @@ class MFTypeSelectionStep extends StatelessWidget {
                           width: 60,
                           height: 60,
                           decoration: BoxDecoration(
-                            color: SemanticColors.investments.withOpacity(0.15),
+                            color: SemanticColors.investments
+                                .withValues(alpha: 0.15),
                             shape: BoxShape.circle,
                           ),
                           child: const Center(
@@ -103,7 +106,8 @@ class MFTypeSelectionStep extends StatelessWidget {
                               Text(
                                 'Adding more units to existing investment',
                                 style: TextStyle(
-                                  color: AppStyles.getSecondaryTextColor(context),
+                                  color:
+                                      AppStyles.getSecondaryTextColor(context),
                                   fontSize: 12,
                                 ),
                               ),
@@ -132,23 +136,25 @@ class MFTypeSelectionStep extends StatelessWidget {
                     });
                   },
                   child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    margin: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 12),
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
                       color: controller.selectedMFType == MFType.newMF
-                          ? SemanticColors.investments.withOpacity(0.1)
+                          ? SemanticColors.investments.withValues(alpha: 0.1)
                           : AppStyles.getCardColor(context),
                       border: controller.selectedMFType == MFType.newMF
-                          ? Border.all(color: SemanticColors.investments, width: 2)
+                          ? Border.all(
+                              color: SemanticColors.investments, width: 2)
                           : Border.all(
-                              color: Colors.grey.withOpacity(0.3),
+                              color: Colors.grey.withValues(alpha: 0.3),
                               width: 1,
                             ),
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         if (controller.selectedMFType != MFType.newMF)
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withValues(alpha: 0.05),
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),
@@ -160,7 +166,7 @@ class MFTypeSelectionStep extends StatelessWidget {
                           width: 60,
                           height: 60,
                           decoration: BoxDecoration(
-                            color: Colors.blue.withOpacity(0.15),
+                            color: Colors.blue.withValues(alpha: 0.15),
                             shape: BoxShape.circle,
                           ),
                           child: const Center(
@@ -188,7 +194,8 @@ class MFTypeSelectionStep extends StatelessWidget {
                               Text(
                                 'Starting a new mutual fund investment',
                                 style: TextStyle(
-                                  color: AppStyles.getSecondaryTextColor(context),
+                                  color:
+                                      AppStyles.getSecondaryTextColor(context),
                                   fontSize: 12,
                                 ),
                               ),

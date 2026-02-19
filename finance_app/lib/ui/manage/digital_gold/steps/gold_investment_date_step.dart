@@ -7,7 +7,8 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 class GoldInvestmentDateStep extends StatelessWidget {
   const GoldInvestmentDateStep({super.key});
 
-  void _showDatePicker(BuildContext context, DigitalGoldWizardController controller) {
+  void _showDatePicker(
+      BuildContext context, DigitalGoldWizardController controller) {
     showCupertinoModalPopup(
       context: context,
       builder: (context) => Container(
@@ -87,10 +88,10 @@ class GoldInvestmentDateStep extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFFFFB81C).withOpacity(0.1),
+              color: const Color(0xFFFFB81C).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: const Color(0xFFFFB81C).withOpacity(0.3),
+                color: const Color(0xFFFFB81C).withValues(alpha: 0.3),
               ),
             ),
             child: Column(
@@ -194,7 +195,20 @@ class GoldInvestmentDateStep extends StatelessWidget {
   }
 
   String _formatDate(DateTime date) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 }

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -16,7 +15,9 @@ class TagsController extends ChangeNotifier {
     if (jsonString != null) {
       try {
         final List<dynamic> jsonList = jsonDecode(jsonString);
-        _tags = jsonList.map((item) => Tag.fromMap(Map<String, dynamic>.from(item))).toList();
+        _tags = jsonList
+            .map((item) => Tag.fromMap(Map<String, dynamic>.from(item)))
+            .toList();
         // Sort by name
         _tags.sort((a, b) => a.name.compareTo(b.name));
       } catch (e) {
@@ -69,7 +70,8 @@ class TagsController extends ChangeNotifier {
 
   Tag? getTagByName(String name) {
     try {
-      return _tags.firstWhere((t) => t.name.toLowerCase() == name.toLowerCase());
+      return _tags
+          .firstWhere((t) => t.name.toLowerCase() == name.toLowerCase());
     } catch (e) {
       return null;
     }

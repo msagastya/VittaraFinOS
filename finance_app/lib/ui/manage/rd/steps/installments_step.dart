@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/ui/manage/rd/rd_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -80,10 +79,12 @@ class _InstallmentsStepState extends State<InstallmentsStep> {
               return Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppStyles.getBackground(context).withOpacity(0.5),
+                  color:
+                      AppStyles.getBackground(context).withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: AppStyles.getPrimaryColor(context).withOpacity(0.3),
+                    color: AppStyles.getPrimaryColor(context)
+                        .withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),
@@ -104,8 +105,8 @@ class _InstallmentsStepState extends State<InstallmentsStep> {
                       children: [
                         Text(
                           'Installments',
-                          style:
-                              TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+                          style: TextStyle(
+                              color: AppStyles.getSecondaryTextColor(context)),
                         ),
                         Text(
                           '${controller.totalInstallments}',
@@ -122,8 +123,8 @@ class _InstallmentsStepState extends State<InstallmentsStep> {
                       children: [
                         Text(
                           'Maturity Date',
-                          style:
-                              TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+                          style: TextStyle(
+                              color: AppStyles.getSecondaryTextColor(context)),
                         ),
                         Text(
                           '${controller.maturityDate.day}/${controller.maturityDate.month}/${controller.maturityDate.year}',
@@ -138,7 +139,8 @@ class _InstallmentsStepState extends State<InstallmentsStep> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: AppStyles.getPrimaryColor(context).withOpacity(0.1),
+                        color: AppStyles.getPrimaryColor(context)
+                            .withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Row(

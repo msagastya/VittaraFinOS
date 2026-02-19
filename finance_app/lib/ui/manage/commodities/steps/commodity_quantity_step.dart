@@ -6,7 +6,7 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 class CommodityQuantityStep extends StatefulWidget {
   final CommoditiesWizardController ctrl;
 
-  const CommodityQuantityStep(this.ctrl);
+  const CommodityQuantityStep(this.ctrl, {super.key});
 
   @override
   State<CommodityQuantityStep> createState() => _CommodityQuantityStepState();
@@ -36,7 +36,15 @@ class _CommodityQuantityStepState extends State<CommodityQuantityStep> {
 
   @override
   Widget build(BuildContext context) {
-    final defaultUnits = ['Grams', 'Kg', 'Tonnes', 'Ounces', 'Barrels', 'Liters', 'Units'];
+    final defaultUnits = [
+      'Grams',
+      'Kg',
+      'Tonnes',
+      'Ounces',
+      'Barrels',
+      'Liters',
+      'Units'
+    ];
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -71,7 +79,7 @@ class _CommodityQuantityStepState extends State<CommodityQuantityStep> {
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.withOpacity(0.2)),
+              border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
             ),
             child: CupertinoButton(
               onPressed: () {
@@ -88,7 +96,7 @@ class _CommodityQuantityStepState extends State<CommodityQuantityStep> {
                             color: AppStyles.getCardColor(context),
                             border: Border(
                               bottom: BorderSide(
-                                color: Colors.grey.withOpacity(0.2),
+                                color: Colors.grey.withValues(alpha: 0.2),
                               ),
                             ),
                           ),
@@ -130,7 +138,8 @@ class _CommodityQuantityStepState extends State<CommodityQuantityStep> {
                                   margin: const EdgeInsets.only(bottom: 8),
                                   decoration: BoxDecoration(
                                     color: widget.ctrl.unit == unit
-                                        ? const Color(0xFF8B4513).withOpacity(0.1)
+                                        ? const Color(0xFF8B4513)
+                                            .withValues(alpha: 0.1)
                                         : AppStyles.getBackground(context),
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(

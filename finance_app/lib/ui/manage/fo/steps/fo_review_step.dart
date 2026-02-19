@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/logic/fo_model.dart';
 import 'package:vittara_fin_os/ui/manage/fo/fo_wizard_controller.dart';
@@ -7,7 +6,7 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 class FOReviewStep extends StatelessWidget {
   final FOWizardController ctrl;
 
-  const FOReviewStep(this.ctrl);
+  const FOReviewStep(this.ctrl, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -22,18 +21,23 @@ class FOReviewStep extends StatelessWidget {
           const SizedBox(height: 30),
           _Card(
             children: [
-              _Row('Type', ctrl.selectedType.name == 'futures'
-                  ? 'Futures'
-                  : (ctrl.selectedType.name == 'callOption'
-                      ? 'Call Option'
-                      : 'Put Option')),
+              _Row(
+                  'Type',
+                  ctrl.selectedType.name == 'futures'
+                      ? 'Futures'
+                      : (ctrl.selectedType.name == 'callOption'
+                          ? 'Call Option'
+                          : 'Put Option')),
               _Row('Symbol', ctrl.symbol),
               _Row('Contract', ctrl.contractName),
               _Row('Quantity', ctrl.quantity?.toString() ?? '0'),
-              _Row('Entry Price', '₹${ctrl.entryPrice?.toStringAsFixed(2) ?? '0'}'),
-              _Row('Current Price', '₹${ctrl.currentPrice?.toStringAsFixed(2) ?? '0'}'),
+              _Row('Entry Price',
+                  '₹${ctrl.entryPrice?.toStringAsFixed(2) ?? '0'}'),
+              _Row('Current Price',
+                  '₹${ctrl.currentPrice?.toStringAsFixed(2) ?? '0'}'),
               if (ctrl.selectedType != FOType.futures)
-                _Row('Strike Price', '₹${ctrl.strikePrice?.toStringAsFixed(2) ?? '0'}'),
+                _Row('Strike Price',
+                    '₹${ctrl.strikePrice?.toStringAsFixed(2) ?? '0'}'),
               _Row('Entry Date',
                   '${ctrl.entryDate.day}/${ctrl.entryDate.month}/${ctrl.entryDate.year}'),
               _Row('Expiry Date',
@@ -51,8 +55,7 @@ class FOReviewStep extends StatelessWidget {
                   isGain: isGain),
               _Row('Return %',
                   '${isGain ? '+' : ''}${ctrl.gainLossPercent.toStringAsFixed(2)}%',
-                  isBold: true,
-                  isGain: isGain),
+                  isBold: true, isGain: isGain),
             ],
           ),
           if (ctrl.selectedType != FOType.futures && ctrl.greeks != null) ...[
@@ -85,7 +88,7 @@ class _Card extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withOpacity(0.2)),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
       ),
       child: Column(
         children: List.generate(
@@ -120,7 +123,9 @@ class _Row extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: TextStyle(color: AppStyles.getSecondaryTextColor(context), fontSize: 13)),
+        Text(label,
+            style: TextStyle(
+                color: AppStyles.getSecondaryTextColor(context), fontSize: 13)),
         Text(value,
             style: TextStyle(
                 fontWeight: isBold ? FontWeight.bold : FontWeight.w500,

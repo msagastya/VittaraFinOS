@@ -5,12 +5,9 @@ import 'package:vittara_fin_os/logic/account_model.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
-import 'package:vittara_fin_os/logic/stock_transaction_model.dart';
 import 'package:vittara_fin_os/services/stock_api_service.dart';
-import 'package:vittara_fin_os/ui/manage/account_wizard.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
-import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
@@ -35,16 +32,20 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
   }
 
   double get _investedAmount => _investment.amount;
-  double get _currentValue => (_investment.metadata?['currentValue'] as num?)?.toDouble() ?? _investedAmount;
+  double get _currentValue =>
+      (_investment.metadata?['currentValue'] as num?)?.toDouble() ??
+      _investedAmount;
   double get _gainLoss => _currentValue - _investedAmount;
-  double get _gainLossPercent => _investedAmount > 0 ? (_gainLoss / _investedAmount) * 100 : 0;
+  double get _gainLossPercent =>
+      _investedAmount > 0 ? (_gainLoss / _investedAmount) * 100 : 0;
   bool get _isGain => _gainLoss >= 0;
 
   String get _symbol => _investment.metadata?['symbol'] ?? _investment.name;
   String get _stockName => _investment.metadata?['name'] ?? 'Stock';
   String get _exchange => _investment.metadata?['exchange'] ?? '';
   double get _qty => (_investment.metadata?['qty'] as num?)?.toDouble() ?? 0;
-  double get _pricePerShare => (_investment.metadata?['pricePerShare'] as num?)?.toDouble() ?? 0;
+  double get _pricePerShare =>
+      (_investment.metadata?['pricePerShare'] as num?)?.toDouble() ?? 0;
 
   void _showBuyMoreModal() {
     showCupertinoModalPopup(
@@ -56,7 +57,8 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
   void _showSellModal() {
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => _SellModal(investment: _investment, currentQty: _qty),
+      builder: (context) =>
+          _SellModal(investment: _investment, currentQty: _qty),
     );
   }
 
@@ -86,7 +88,8 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
       context: context,
       builder: (context) => CupertinoAlertDialog(
         title: const Text('Delete Investment'),
-        content: const Text('Are you sure you want to delete this investment? This action cannot be undone.'),
+        content: const Text(
+            'Are you sure you want to delete this investment? This action cannot be undone.'),
         actions: [
           CupertinoDialogAction(
             child: const Text('Cancel'),
@@ -96,12 +99,14 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
             isDestructiveAction: true,
             child: const Text('Delete'),
             onPressed: () {
-              final controller = Provider.of<InvestmentsController>(context, listen: false);
+              final controller =
+                  Provider.of<InvestmentsController>(context, listen: false);
               controller.removeInvestment(_investment.id);
               Navigator.pop(context);
               Navigator.pop(context);
               toast.showSuccess('Investment deleted');
-              logger.info('Deleted investment: ${_investment.id}', context: 'StockDetails');
+              logger.info('Deleted investment: ${_investment.id}',
+                  context: 'StockDetails');
             },
           ),
         ],
@@ -116,7 +121,8 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
       navigationBar: CupertinoNavigationBar(
-        middle: Text(_symbol, style: TextStyle(color: AppStyles.getTextColor(context))),
+        middle: Text(_symbol,
+            style: TextStyle(color: AppStyles.getTextColor(context))),
         backgroundColor: AppStyles.getBackground(context),
         border: null,
       ),
@@ -154,12 +160,14 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                             children: [
                               Text(
                                 _symbol,
-                                style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
+                                style: AppStyles.titleStyle(context)
+                                    .copyWith(fontSize: 24),
                               ),
                               Text(
                                 _stockName,
                                 style: TextStyle(
-                                  color: AppStyles.getSecondaryTextColor(context),
+                                  color:
+                                      AppStyles.getSecondaryTextColor(context),
                                   fontSize: 14,
                                 ),
                               ),
@@ -167,7 +175,8 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                                 Text(
                                   _exchange,
                                   style: TextStyle(
-                                    color: AppStyles.getSecondaryTextColor(context),
+                                    color: AppStyles.getSecondaryTextColor(
+                                        context),
                                     fontSize: 12,
                                   ),
                                 ),
@@ -193,7 +202,8 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                             SizedBox(height: Spacing.xs),
                             Text(
                               '₹${_investedAmount.toStringAsFixed(2)}',
-                              style: AppStyles.titleStyle(context).copyWith(fontSize: 20),
+                              style: AppStyles.titleStyle(context)
+                                  .copyWith(fontSize: 20),
                             ),
                           ],
                         ),
@@ -264,12 +274,14 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
               ),
               SizedBox(height: Spacing.lg),
               _buildDetailRow(context, 'Quantity', '$_qty shares'),
-              _buildDetailRow(context, 'Price per Share', '₹${_pricePerShare.toStringAsFixed(2)}'),
+              _buildDetailRow(context, 'Price per Share',
+                  '₹${_pricePerShare.toStringAsFixed(2)}'),
               if (_investment.metadata?['purchaseDate'] != null)
                 _buildDetailRow(
                   context,
                   'Purchase Date',
-                  _formatDate(DateTime.parse(_investment.metadata!['purchaseDate'] as String)),
+                  _formatDate(DateTime.parse(
+                      _investment.metadata!['purchaseDate'] as String)),
                 ),
               if (_investment.broker != null)
                 _buildDetailRow(context, 'Broker', _investment.broker!),
@@ -405,7 +417,20 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
   }
 
   String _formatDate(DateTime date) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 }
@@ -435,7 +460,8 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
     _qtyController = TextEditingController();
     _priceController = TextEditingController();
     _chargesController = TextEditingController();
-    _dateController = TextEditingController(text: _formatDate(_transactionDate));
+    _dateController =
+        TextEditingController(text: _formatDate(_transactionDate));
   }
 
   @override
@@ -458,7 +484,8 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
       builder: (context) => Container(
         height: 216,
         padding: const EdgeInsets.only(top: 6.0),
-        margin: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        margin:
+            EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
         color: CupertinoColors.systemBackground.resolveFrom(context),
         child: SafeArea(
           top: false,
@@ -495,7 +522,8 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
     try {
       // Get current invested amount and quantity
       final currentInvested = widget.investment.amount;
-      final currentQty = (widget.investment.metadata?['qty'] as num?)?.toDouble() ?? 0;
+      final currentQty =
+          (widget.investment.metadata?['qty'] as num?)?.toDouble() ?? 0;
 
       // Calculate new totals
       final newInvested = currentInvested + _totalCost;
@@ -522,7 +550,8 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
 
       // Update account if linked
       if (_linkAccount && _selectedAccount != null) {
-        final accountsController = Provider.of<AccountsController>(context, listen: false);
+        final accountsController =
+            Provider.of<AccountsController>(context, listen: false);
         final newBalance = _selectedAccount!.balance - _totalCost;
         accountsController.updateAccount(
           _selectedAccount!.copyWith(balance: newBalance),
@@ -530,11 +559,13 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
       }
 
       // Update investment with new quantities, average price, and recalculated current value
-      final investmentsController = Provider.of<InvestmentsController>(context, listen: false);
+      final investmentsController =
+          Provider.of<InvestmentsController>(context, listen: false);
       final updatedMetadata = {...?widget.investment.metadata};
       updatedMetadata['qty'] = newQty;
       updatedMetadata['pricePerShare'] = averageCostBasis; // Average cost basis
-      updatedMetadata['currentValue'] = newCurrentValue; // Recalculated for all shares
+      updatedMetadata['currentValue'] =
+          newCurrentValue; // Recalculated for all shares
 
       final updatedInvestment = widget.investment.copyWith(
         amount: newInvested,
@@ -544,7 +575,8 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
       investmentsController.updateInvestment(updatedInvestment);
       if (!mounted) return;
 
-      toast.showSuccess('Added $_qty shares!\nTotal: $newQty shares @ ₹${averageCostBasis.toStringAsFixed(2)} avg\nInvested: ₹${newInvested.toStringAsFixed(2)}\nCurrent: ₹${newCurrentValue.toStringAsFixed(2)}');
+      toast.showSuccess(
+          'Added $_qty shares!\nTotal: $newQty shares @ ₹${averageCostBasis.toStringAsFixed(2)} avg\nInvested: ₹${newInvested.toStringAsFixed(2)}\nCurrent: ₹${newCurrentValue.toStringAsFixed(2)}');
       Navigator.pop(context);
     } catch (e) {
       toast.showError('Error saving transaction: $e');
@@ -643,7 +675,9 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                       child: CupertinoButton.filled(
                         onPressed: _step < 3
                             ? () => setState(() => _step++)
-                            : (_qty > 0 && _price > 0 ? () => _saveBuyTransaction() : null),
+                            : (_qty > 0 && _price > 0
+                                ? () => _saveBuyTransaction()
+                                : null),
                         child: Text(_step < 3 ? 'Next' : 'Confirm Purchase'),
                       ),
                     ),
@@ -731,7 +765,8 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                       Container(
                         padding: EdgeInsets.all(Spacing.sm),
                         decoration: BoxDecoration(
-                          color: SemanticColors.investments.withValues(alpha: 0.2),
+                          color:
+                              SemanticColors.investments.withValues(alpha: 0.2),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
@@ -775,7 +810,8 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                       Container(
                         padding: EdgeInsets.all(Spacing.sm),
                         decoration: BoxDecoration(
-                          color: SemanticColors.investments.withValues(alpha: 0.2),
+                          color:
+                              SemanticColors.investments.withValues(alpha: 0.2),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
@@ -847,14 +883,17 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
             color: AppStyles.getBackground(context),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.2),
+              color: AppStyles.getSecondaryTextColor(context)
+                  .withValues(alpha: 0.2),
               width: 1,
             ),
           ),
           prefix: prefix != null
               ? Padding(
                   padding: const EdgeInsets.only(left: 16),
-                  child: Text(prefix, style: TextStyle(color: AppStyles.getSecondaryTextColor(context))),
+                  child: Text(prefix,
+                      style: TextStyle(
+                          color: AppStyles.getSecondaryTextColor(context))),
                 )
               : null,
           style: TextStyle(color: AppStyles.getTextColor(context)),
@@ -895,7 +934,8 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
               color: AppStyles.getBackground(context),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.2),
+                color: AppStyles.getSecondaryTextColor(context)
+                    .withValues(alpha: 0.2),
                 width: 1,
               ),
             ),
@@ -933,11 +973,16 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Link to Account', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
+                Text('Link to Account',
+                    style: TextStyle(
+                        color: AppStyles.getTextColor(context),
+                        fontWeight: FontWeight.w600)),
                 SizedBox(height: Spacing.xs),
                 Text(
                   'Auto-debit the purchase amount',
-                  style: TextStyle(color: AppStyles.getSecondaryTextColor(context), fontSize: 12),
+                  style: TextStyle(
+                      color: AppStyles.getSecondaryTextColor(context),
+                      fontSize: 12),
                 ),
               ],
             ),
@@ -961,7 +1006,9 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                 children: [
                   Text(
                     'Selected Account',
-                    style: TextStyle(color: AppStyles.getSecondaryTextColor(context), fontSize: 12),
+                    style: TextStyle(
+                        color: AppStyles.getSecondaryTextColor(context),
+                        fontSize: 12),
                   ),
                   SizedBox(height: Spacing.sm),
                   Text(
@@ -971,7 +1018,8 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                   SizedBox(height: Spacing.xs),
                   Text(
                     'Balance: ₹${_selectedAccount!.balance.toStringAsFixed(2)}',
-                    style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+                    style: TextStyle(
+                        color: AppStyles.getSecondaryTextColor(context)),
                   ),
                 ],
               ),
@@ -979,7 +1027,8 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
           SizedBox(height: Spacing.md),
           CupertinoButton.filled(
             onPressed: _showAccountSelector,
-            child: Text(_selectedAccount != null ? 'Change Account' : 'Select Account'),
+            child: Text(
+                _selectedAccount != null ? 'Change Account' : 'Select Account'),
           ),
         ],
       ],
@@ -1006,7 +1055,8 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
             children: [
               Row(
                 children: [
-                  Icon(CupertinoIcons.plus_circle, size: 18, color: CupertinoColors.systemOrange),
+                  Icon(CupertinoIcons.plus_circle,
+                      size: 18, color: CupertinoColors.systemOrange),
                   SizedBox(width: Spacing.sm),
                   Text(
                     'Extra Charges (Optional)',
@@ -1029,20 +1079,25 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
               SizedBox(height: Spacing.lg),
               CupertinoTextField(
                 controller: _chargesController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
                 placeholder: '0.00',
-                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
                 decoration: BoxDecoration(
                   color: AppStyles.getBackground(context),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.2),
+                    color: AppStyles.getSecondaryTextColor(context)
+                        .withValues(alpha: 0.2),
                     width: 1,
                   ),
                 ),
                 prefix: Padding(
                   padding: const EdgeInsets.only(left: 16),
-                  child: Text('₹', style: TextStyle(color: AppStyles.getSecondaryTextColor(context))),
+                  child: Text('₹',
+                      style: TextStyle(
+                          color: AppStyles.getSecondaryTextColor(context))),
                 ),
                 style: TextStyle(color: AppStyles.getTextColor(context)),
                 onChanged: (_) => setState(() {}),
@@ -1074,7 +1129,8 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Purchase Cost', style: TextStyle(fontWeight: FontWeight.w600)),
+                  const Text('Purchase Cost',
+                      style: TextStyle(fontWeight: FontWeight.w600)),
                   Text('₹${(_qty * _price).toStringAsFixed(2)}'),
                 ],
               ),
@@ -1082,7 +1138,8 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Extra Charges', style: TextStyle(fontWeight: FontWeight.w600)),
+                  const Text('Extra Charges',
+                      style: TextStyle(fontWeight: FontWeight.w600)),
                   Text('₹${_charges.toStringAsFixed(2)}'),
                 ],
               ),
@@ -1090,10 +1147,15 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Total Amount', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  const Text('Total Amount',
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                   Text(
                     '₹${_totalCost.toStringAsFixed(2)}',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: SemanticColors.investments),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: SemanticColors.investments),
                   ),
                 ],
               ),
@@ -1118,15 +1180,18 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
             children: [
               _reviewRow('Quantity', '$_qty shares'),
               _reviewRow('Price per Share', '₹${_price.toStringAsFixed(2)}'),
-              _reviewRow('Purchase Cost', '₹${(_qty * _price).toStringAsFixed(2)}'),
-              if (_charges > 0) _reviewRow('Extra Charges', '₹${_charges.toStringAsFixed(2)}'),
+              _reviewRow(
+                  'Purchase Cost', '₹${(_qty * _price).toStringAsFixed(2)}'),
+              if (_charges > 0)
+                _reviewRow('Extra Charges', '₹${_charges.toStringAsFixed(2)}'),
               _reviewRow('Date', _dateController.text),
               if (_linkAccount && _selectedAccount != null) ...[
                 SizedBox(height: Spacing.md),
                 Divider(),
                 SizedBox(height: Spacing.md),
                 _reviewRow('Linked Account', _selectedAccount!.name),
-                _reviewRow('Account Balance', '₹${_selectedAccount!.balance.toStringAsFixed(2)}'),
+                _reviewRow('Account Balance',
+                    '₹${_selectedAccount!.balance.toStringAsFixed(2)}'),
                 _reviewRow(
                   'Balance After Purchase',
                   '₹${(_selectedAccount!.balance - _totalCost).toStringAsFixed(2)}',
@@ -1139,10 +1204,15 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Total Amount', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  const Text('Total Amount',
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                   Text(
                     '₹${_totalCost.toStringAsFixed(2)}',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: SemanticColors.investments),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: SemanticColors.investments),
                   ),
                 ],
               ),
@@ -1159,7 +1229,9 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(color: AppStyles.getSecondaryTextColor(context))),
+          Text(label,
+              style:
+                  TextStyle(color: AppStyles.getSecondaryTextColor(context))),
           Text(
             value,
             style: TextStyle(
@@ -1173,7 +1245,20 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
   }
 
   String _formatDate(DateTime date) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 }
@@ -1204,7 +1289,8 @@ class _SellModalState extends State<_SellModal> {
     _qtyController = TextEditingController();
     _priceController = TextEditingController();
     _chargesController = TextEditingController();
-    _dateController = TextEditingController(text: _formatDate(_transactionDate));
+    _dateController =
+        TextEditingController(text: _formatDate(_transactionDate));
   }
 
   @override
@@ -1228,7 +1314,8 @@ class _SellModalState extends State<_SellModal> {
       builder: (context) => Container(
         height: 216,
         padding: const EdgeInsets.only(top: 6.0),
-        margin: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        margin:
+            EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
         color: CupertinoColors.systemBackground.resolveFrom(context),
         child: SafeArea(
           top: false,
@@ -1278,7 +1365,8 @@ class _SellModalState extends State<_SellModal> {
       // Fetch current market price to recalculate current value for remaining shares
       final symbol = (widget.investment.metadata?['symbol'] as String?) ?? '';
       final apiService = StockApiService();
-      double currentMarketPrice = _price; // Default to sell price if fetch fails
+      double currentMarketPrice =
+          _price; // Default to sell price if fetch fails
 
       if (symbol.isNotEmpty) {
         final fetchedPrice = await apiService.getStockPrice(symbol);
@@ -1296,7 +1384,8 @@ class _SellModalState extends State<_SellModal> {
 
       // Update account if linked (credit proceeds)
       if (_linkAccount && _selectedAccount != null) {
-        final accountsController = Provider.of<AccountsController>(context, listen: false);
+        final accountsController =
+            Provider.of<AccountsController>(context, listen: false);
         final newBalance = _selectedAccount!.balance + _netProceeds;
         accountsController.updateAccount(
           _selectedAccount!.copyWith(balance: newBalance),
@@ -1304,11 +1393,14 @@ class _SellModalState extends State<_SellModal> {
       }
 
       // Update investment with new quantities, average price, and recalculated current value
-      final investmentsController = Provider.of<InvestmentsController>(context, listen: false);
+      final investmentsController =
+          Provider.of<InvestmentsController>(context, listen: false);
       final updatedMetadata = {...?widget.investment.metadata};
       updatedMetadata['qty'] = newQty;
-      updatedMetadata['pricePerShare'] = newAverageCostBasis; // Average cost basis for remaining
-      updatedMetadata['currentValue'] = newCurrentValue; // Recalculated for remaining shares
+      updatedMetadata['pricePerShare'] =
+          newAverageCostBasis; // Average cost basis for remaining
+      updatedMetadata['currentValue'] =
+          newCurrentValue; // Recalculated for remaining shares
 
       final updatedInvestment = widget.investment.copyWith(
         amount: newInvested > 0 ? newInvested : 0,
@@ -1318,7 +1410,8 @@ class _SellModalState extends State<_SellModal> {
       investmentsController.updateInvestment(updatedInvestment);
       if (!mounted) return;
 
-      toast.showSuccess('Sold $_qty shares!\nRemaining: $newQty shares @ ₹${newAverageCostBasis.toStringAsFixed(2)} avg\nProceeds: ₹${_netProceeds.toStringAsFixed(2)}\nCurrent: ₹${newCurrentValue.toStringAsFixed(2)}');
+      toast.showSuccess(
+          'Sold $_qty shares!\nRemaining: $newQty shares @ ₹${newAverageCostBasis.toStringAsFixed(2)} avg\nProceeds: ₹${_netProceeds.toStringAsFixed(2)}\nCurrent: ₹${newCurrentValue.toStringAsFixed(2)}');
       Navigator.pop(context);
     } catch (e) {
       toast.showError('Error saving transaction: $e');
@@ -1414,7 +1507,9 @@ class _SellModalState extends State<_SellModal> {
                       child: CupertinoButton.filled(
                         onPressed: _step < 3
                             ? () => setState(() => _step++)
-                            : (_qty > 0 && _qty <= widget.currentQty && _price > 0
+                            : (_qty > 0 &&
+                                    _qty <= widget.currentQty &&
+                                    _price > 0
                                 ? () => _saveSellTransaction()
                                 : null),
                         child: Text(_step < 3 ? 'Next' : 'Confirm Sale'),
@@ -1434,7 +1529,10 @@ class _SellModalState extends State<_SellModal> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Shares to Sell', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
+        Text('Shares to Sell',
+            style: TextStyle(
+                color: AppStyles.getTextColor(context),
+                fontWeight: FontWeight.w600)),
         SizedBox(height: Spacing.md),
         CupertinoTextField(
           controller: _qtyController,
@@ -1449,7 +1547,10 @@ class _SellModalState extends State<_SellModal> {
           onChanged: (_) => setState(() {}),
         ),
         SizedBox(height: Spacing.lg),
-        Text('Selling Price per Share', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
+        Text('Selling Price per Share',
+            style: TextStyle(
+                color: AppStyles.getTextColor(context),
+                fontWeight: FontWeight.w600)),
         SizedBox(height: Spacing.md),
         CupertinoTextField(
           controller: _priceController,
@@ -1462,13 +1563,17 @@ class _SellModalState extends State<_SellModal> {
           ),
           prefix: Padding(
             padding: const EdgeInsets.only(left: 16),
-            child: Text('₹', style: TextStyle(color: AppStyles.getTextColor(context))),
+            child: Text('₹',
+                style: TextStyle(color: AppStyles.getTextColor(context))),
           ),
           style: TextStyle(color: AppStyles.getTextColor(context)),
           onChanged: (_) => setState(() {}),
         ),
         SizedBox(height: Spacing.lg),
-        Text('Date of Sale', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
+        Text('Date of Sale',
+            style: TextStyle(
+                color: AppStyles.getTextColor(context),
+                fontWeight: FontWeight.w600)),
         SizedBox(height: Spacing.md),
         GestureDetector(
           onTap: _showDatePicker,
@@ -1485,7 +1590,8 @@ class _SellModalState extends State<_SellModal> {
                   _dateController.text,
                   style: TextStyle(color: AppStyles.getTextColor(context)),
                 ),
-                Icon(CupertinoIcons.calendar, color: AppStyles.getSecondaryTextColor(context)),
+                Icon(CupertinoIcons.calendar,
+                    color: AppStyles.getSecondaryTextColor(context)),
               ],
             ),
           ),
@@ -1500,7 +1606,8 @@ class _SellModalState extends State<_SellModal> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Gross Proceeds', style: TextStyle(fontWeight: FontWeight.w600)),
+              const Text('Gross Proceeds',
+                  style: TextStyle(fontWeight: FontWeight.w600)),
               Text(
                 '₹${_grossProceeds.toStringAsFixed(2)}',
                 style: const TextStyle(
@@ -1526,11 +1633,16 @@ class _SellModalState extends State<_SellModal> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Link to Account', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
+                Text('Link to Account',
+                    style: TextStyle(
+                        color: AppStyles.getTextColor(context),
+                        fontWeight: FontWeight.w600)),
                 SizedBox(height: Spacing.xs),
                 Text(
                   'Auto-credit the sale proceeds',
-                  style: TextStyle(color: AppStyles.getSecondaryTextColor(context), fontSize: 12),
+                  style: TextStyle(
+                      color: AppStyles.getSecondaryTextColor(context),
+                      fontSize: 12),
                 ),
               ],
             ),
@@ -1554,7 +1666,9 @@ class _SellModalState extends State<_SellModal> {
                 children: [
                   Text(
                     'Selected Account',
-                    style: TextStyle(color: AppStyles.getSecondaryTextColor(context), fontSize: 12),
+                    style: TextStyle(
+                        color: AppStyles.getSecondaryTextColor(context),
+                        fontSize: 12),
                   ),
                   SizedBox(height: Spacing.sm),
                   Text(
@@ -1564,7 +1678,8 @@ class _SellModalState extends State<_SellModal> {
                   SizedBox(height: Spacing.xs),
                   Text(
                     'Current Balance: ₹${_selectedAccount!.balance.toStringAsFixed(2)}',
-                    style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+                    style: TextStyle(
+                        color: AppStyles.getSecondaryTextColor(context)),
                   ),
                 ],
               ),
@@ -1572,7 +1687,8 @@ class _SellModalState extends State<_SellModal> {
           SizedBox(height: Spacing.md),
           CupertinoButton.filled(
             onPressed: _showAccountSelector,
-            child: Text(_selectedAccount != null ? 'Change Account' : 'Select Account'),
+            child: Text(
+                _selectedAccount != null ? 'Change Account' : 'Select Account'),
           ),
         ],
       ],
@@ -1583,11 +1699,15 @@ class _SellModalState extends State<_SellModal> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Extra Charges (Optional)', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
+        Text('Extra Charges (Optional)',
+            style: TextStyle(
+                color: AppStyles.getTextColor(context),
+                fontWeight: FontWeight.w600)),
         SizedBox(height: Spacing.sm),
         Text(
           'Brokerage fees, taxes, or other charges',
-          style: TextStyle(color: AppStyles.getSecondaryTextColor(context), fontSize: 12),
+          style: TextStyle(
+              color: AppStyles.getSecondaryTextColor(context), fontSize: 12),
         ),
         SizedBox(height: Spacing.md),
         CupertinoTextField(
@@ -1601,7 +1721,8 @@ class _SellModalState extends State<_SellModal> {
           ),
           prefix: Padding(
             padding: const EdgeInsets.only(left: 16),
-            child: Text('₹', style: TextStyle(color: AppStyles.getTextColor(context))),
+            child: Text('₹',
+                style: TextStyle(color: AppStyles.getTextColor(context))),
           ),
           style: TextStyle(color: AppStyles.getTextColor(context)),
           onChanged: (_) => setState(() {}),
@@ -1618,7 +1739,8 @@ class _SellModalState extends State<_SellModal> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Gross Proceeds', style: TextStyle(fontWeight: FontWeight.w600)),
+                  const Text('Gross Proceeds',
+                      style: TextStyle(fontWeight: FontWeight.w600)),
                   Text('₹${_grossProceeds.toStringAsFixed(2)}'),
                 ],
               ),
@@ -1626,7 +1748,8 @@ class _SellModalState extends State<_SellModal> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Extra Charges', style: TextStyle(fontWeight: FontWeight.w600)),
+                  const Text('Extra Charges',
+                      style: TextStyle(fontWeight: FontWeight.w600)),
                   Text('- ₹${_charges.toStringAsFixed(2)}'),
                 ],
               ),
@@ -1634,10 +1757,15 @@ class _SellModalState extends State<_SellModal> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Net Proceeds', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  const Text('Net Proceeds',
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                   Text(
                     '₹${_netProceeds.toStringAsFixed(2)}',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: CupertinoColors.systemGreen),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: CupertinoColors.systemGreen),
                   ),
                 ],
               ),
@@ -1662,15 +1790,18 @@ class _SellModalState extends State<_SellModal> {
             children: [
               _reviewRow('Quantity', '$_qty shares'),
               _reviewRow('Selling Price', '₹${_price.toStringAsFixed(2)}'),
-              _reviewRow('Gross Proceeds', '₹${_grossProceeds.toStringAsFixed(2)}'),
-              if (_charges > 0) _reviewRow('Charges', '- ₹${_charges.toStringAsFixed(2)}'),
+              _reviewRow(
+                  'Gross Proceeds', '₹${_grossProceeds.toStringAsFixed(2)}'),
+              if (_charges > 0)
+                _reviewRow('Charges', '- ₹${_charges.toStringAsFixed(2)}'),
               _reviewRow('Date', _dateController.text),
               if (_linkAccount && _selectedAccount != null) ...[
                 SizedBox(height: Spacing.md),
                 Divider(),
                 SizedBox(height: Spacing.md),
                 _reviewRow('Credit to Account', _selectedAccount!.name),
-                _reviewRow('Current Balance', '₹${_selectedAccount!.balance.toStringAsFixed(2)}'),
+                _reviewRow('Current Balance',
+                    '₹${_selectedAccount!.balance.toStringAsFixed(2)}'),
                 _reviewRow(
                   'Balance After Sale',
                   '₹${(_selectedAccount!.balance + _netProceeds).toStringAsFixed(2)}',
@@ -1683,10 +1814,15 @@ class _SellModalState extends State<_SellModal> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Net Proceeds', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  const Text('Net Proceeds',
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                   Text(
                     '₹${_netProceeds.toStringAsFixed(2)}',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: CupertinoColors.systemGreen),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: CupertinoColors.systemGreen),
                   ),
                 ],
               ),
@@ -1703,7 +1839,9 @@ class _SellModalState extends State<_SellModal> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(color: AppStyles.getSecondaryTextColor(context))),
+          Text(label,
+              style:
+                  TextStyle(color: AppStyles.getSecondaryTextColor(context))),
           Text(
             value,
             style: TextStyle(
@@ -1717,7 +1855,20 @@ class _SellModalState extends State<_SellModal> {
   }
 
   String _formatDate(DateTime date) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 }
@@ -1732,7 +1883,8 @@ class _SIPModal extends StatefulWidget {
 }
 
 class _SIPModalState extends State<_SIPModal> {
-  int _step = 0; // 0: Start Date, 1: Type, 2: Amount, 3: Frequency, 4: Account, 5: Review
+  int _step =
+      0; // 0: Start Date, 1: Type, 2: Amount, 3: Frequency, 4: Account, 5: Review
   late TextEditingController _amountController;
   late TextEditingController _qtyController;
   late TextEditingController _chargesController;
@@ -1759,7 +1911,8 @@ class _SIPModalState extends State<_SIPModal> {
       builder: (context) => Container(
         height: 216,
         padding: const EdgeInsets.only(top: 6.0),
-        margin: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        margin:
+            EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
         color: CupertinoColors.systemBackground.resolveFrom(context),
         child: SafeArea(
           top: false,
@@ -1779,7 +1932,20 @@ class _SIPModalState extends State<_SIPModal> {
   }
 
   String _formatDate(DateTime date) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 
@@ -1813,8 +1979,11 @@ class _SIPModalState extends State<_SIPModal> {
     try {
       // Get current state of investment
       final currentInvested = widget.investment.amount;
-      final currentQty = (widget.investment.metadata?['qty'] as num?)?.toDouble() ?? 0;
-      final currentPrice = (widget.investment.metadata?['pricePerShare'] as num?)?.toDouble() ?? 0;
+      final currentQty =
+          (widget.investment.metadata?['qty'] as num?)?.toDouble() ?? 0;
+      final currentPrice =
+          (widget.investment.metadata?['pricePerShare'] as num?)?.toDouble() ??
+              0;
 
       // Fetch current market price for calculation
       // For now, use current price or default to price from metadata
@@ -1836,7 +2005,8 @@ class _SIPModalState extends State<_SIPModal> {
 
       // Update account if linked (debit for first transaction)
       if (_linkAccount && _selectedAccount != null) {
-        final accountsController = Provider.of<AccountsController>(context, listen: false);
+        final accountsController =
+            Provider.of<AccountsController>(context, listen: false);
         final newBalance = _selectedAccount!.balance - firstTransactionAmount;
         accountsController.updateAccount(
           _selectedAccount!.copyWith(balance: newBalance),
@@ -1844,7 +2014,8 @@ class _SIPModalState extends State<_SIPModal> {
       }
 
       // Update investment with first SIP execution added to current holdings
-      final investmentsController = Provider.of<InvestmentsController>(context, listen: false);
+      final investmentsController =
+          Provider.of<InvestmentsController>(context, listen: false);
       final newTotalInvested = currentInvested + firstTransactionAmount;
       final newTotalQty = currentQty + firstTransactionQty;
 
@@ -1857,7 +2028,8 @@ class _SIPModalState extends State<_SIPModal> {
       updatedMetadata['sipAmount'] = _isFixedAmount ? _amount : null;
       updatedMetadata['sipQty'] = !_isFixedAmount ? _qty : null;
       updatedMetadata['sipFrequency'] = _frequency;
-      updatedMetadata['sipLinkedAccount'] = _linkAccount ? _selectedAccount?.id : null;
+      updatedMetadata['sipLinkedAccount'] =
+          _linkAccount ? _selectedAccount?.id : null;
       updatedMetadata['sipLastExecutionDate'] = _sipStartDate.toIso8601String();
       updatedMetadata['sipExecutionLog'] = [
         {
@@ -1989,7 +2161,9 @@ class _SIPModalState extends State<_SIPModal> {
                       child: CupertinoButton.filled(
                         onPressed: _step < 5
                             ? () => setState(() => _step++)
-                            : (_isFixedAmount ? _amount > 0 : _qty > 0) ? _saveSIP : null,
+                            : (_isFixedAmount ? _amount > 0 : _qty > 0)
+                                ? _saveSIP
+                                : null,
                         child: Text(_step < 5 ? 'Next' : 'Setup SIP'),
                       ),
                     ),
@@ -2024,7 +2198,8 @@ class _SIPModalState extends State<_SIPModal> {
               color: AppStyles.getBackground(context),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.2),
+                color: AppStyles.getSecondaryTextColor(context)
+                    .withValues(alpha: 0.2),
                 width: 1,
               ),
             ),
@@ -2051,7 +2226,7 @@ class _SIPModalState extends State<_SIPModal> {
         Container(
           padding: EdgeInsets.all(Spacing.md),
           decoration: BoxDecoration(
-            color: CupertinoColors.systemBlue.withOpacity(0.1),
+            color: CupertinoColors.systemBlue.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
@@ -2103,13 +2278,16 @@ class _SIPModalState extends State<_SIPModal> {
     );
   }
 
-  Widget _buildTypeCard(String title, String subtitle, bool isSelected, VoidCallback onTap) {
+  Widget _buildTypeCard(
+      String title, String subtitle, bool isSelected, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.all(Spacing.lg),
         decoration: BoxDecoration(
-          color: isSelected ? SemanticColors.investments.withValues(alpha: 0.1) : AppStyles.getBackground(context),
+          color: isSelected
+              ? SemanticColors.investments.withValues(alpha: 0.1)
+              : AppStyles.getBackground(context),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected ? SemanticColors.investments : Colors.transparent,
@@ -2123,7 +2301,9 @@ class _SIPModalState extends State<_SIPModal> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? SemanticColors.investments : AppStyles.getSecondaryTextColor(context),
+                  color: isSelected
+                      ? SemanticColors.investments
+                      : AppStyles.getSecondaryTextColor(context),
                 ),
               ),
               child: isSelected
@@ -2174,7 +2354,9 @@ class _SIPModalState extends State<_SIPModal> {
       children: [
         Text(
           _isFixedAmount ? 'Amount per SIP' : 'Shares per SIP',
-          style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600),
+          style: TextStyle(
+              color: AppStyles.getTextColor(context),
+              fontWeight: FontWeight.w600),
         ),
         SizedBox(height: Spacing.md),
         CupertinoTextField(
@@ -2188,7 +2370,8 @@ class _SIPModalState extends State<_SIPModal> {
           ),
           prefix: Padding(
             padding: const EdgeInsets.only(left: 16),
-            child: Text(_isFixedAmount ? '₹' : 'Qty', style: TextStyle(color: AppStyles.getTextColor(context))),
+            child: Text(_isFixedAmount ? '₹' : 'Qty',
+                style: TextStyle(color: AppStyles.getTextColor(context))),
           ),
           style: TextStyle(color: AppStyles.getTextColor(context)),
           onChanged: (_) => setState(() {}),
@@ -2201,7 +2384,10 @@ class _SIPModalState extends State<_SIPModal> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Select Frequency', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
+        Text('Select Frequency',
+            style: TextStyle(
+                color: AppStyles.getTextColor(context),
+                fontWeight: FontWeight.w600)),
         SizedBox(height: Spacing.lg),
         Wrap(
           spacing: Spacing.md,
@@ -2210,7 +2396,8 @@ class _SIPModalState extends State<_SIPModal> {
             return GestureDetector(
               onTap: () => setState(() => _frequency = freq),
               child: Container(
-                padding: EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.md),
+                padding: EdgeInsets.symmetric(
+                    horizontal: Spacing.lg, vertical: Spacing.md),
                 decoration: BoxDecoration(
                   color: _frequency == freq
                       ? CupertinoColors.systemBlue.withValues(alpha: 0.1)
@@ -2225,7 +2412,8 @@ class _SIPModalState extends State<_SIPModal> {
                 child: Text(
                   freq,
                   style: TextStyle(
-                    fontWeight: _frequency == freq ? FontWeight.bold : FontWeight.w500,
+                    fontWeight:
+                        _frequency == freq ? FontWeight.bold : FontWeight.w500,
                     color: AppStyles.getTextColor(context),
                   ),
                 ),
@@ -2247,11 +2435,16 @@ class _SIPModalState extends State<_SIPModal> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Link to Account', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
+                Text('Link to Account',
+                    style: TextStyle(
+                        color: AppStyles.getTextColor(context),
+                        fontWeight: FontWeight.w600)),
                 SizedBox(height: Spacing.xs),
                 Text(
                   'Auto-debit each SIP installment',
-                  style: TextStyle(color: AppStyles.getSecondaryTextColor(context), fontSize: 12),
+                  style: TextStyle(
+                      color: AppStyles.getSecondaryTextColor(context),
+                      fontSize: 12),
                 ),
               ],
             ),
@@ -2275,7 +2468,9 @@ class _SIPModalState extends State<_SIPModal> {
                 children: [
                   Text(
                     'Selected Account',
-                    style: TextStyle(color: AppStyles.getSecondaryTextColor(context), fontSize: 12),
+                    style: TextStyle(
+                        color: AppStyles.getSecondaryTextColor(context),
+                        fontSize: 12),
                   ),
                   SizedBox(height: Spacing.sm),
                   Text(
@@ -2285,7 +2480,8 @@ class _SIPModalState extends State<_SIPModal> {
                   SizedBox(height: Spacing.xs),
                   Text(
                     'Balance: ₹${_selectedAccount!.balance.toStringAsFixed(2)}',
-                    style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+                    style: TextStyle(
+                        color: AppStyles.getSecondaryTextColor(context)),
                   ),
                 ],
               ),
@@ -2293,7 +2489,8 @@ class _SIPModalState extends State<_SIPModal> {
           SizedBox(height: Spacing.md),
           CupertinoButton.filled(
             onPressed: _showAccountSelector,
-            child: Text(_selectedAccount != null ? 'Change Account' : 'Select Account'),
+            child: Text(
+                _selectedAccount != null ? 'Change Account' : 'Select Account'),
           ),
         ],
       ],
@@ -2309,7 +2506,8 @@ class _SIPModalState extends State<_SIPModal> {
       ),
       child: Column(
         children: [
-          _reviewRow('Type', _isFixedAmount ? 'Fixed Amount' : 'Fixed Quantity'),
+          _reviewRow(
+              'Type', _isFixedAmount ? 'Fixed Amount' : 'Fixed Quantity'),
           _reviewRow(
             _isFixedAmount ? 'Amount per SIP' : 'Shares per SIP',
             _isFixedAmount ? '₹${_amount.toStringAsFixed(2)}' : '$_qty shares',
@@ -2320,7 +2518,8 @@ class _SIPModalState extends State<_SIPModal> {
             Divider(),
             SizedBox(height: Spacing.md),
             _reviewRow('Debit Account', _selectedAccount!.name),
-            _reviewRow('Account Balance', '₹${_selectedAccount!.balance.toStringAsFixed(2)}'),
+            _reviewRow('Account Balance',
+                '₹${_selectedAccount!.balance.toStringAsFixed(2)}'),
           ],
         ],
       ),
@@ -2333,7 +2532,9 @@ class _SIPModalState extends State<_SIPModal> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(color: AppStyles.getSecondaryTextColor(context))),
+          Text(label,
+              style:
+                  TextStyle(color: AppStyles.getSecondaryTextColor(context))),
           Text(value, style: TextStyle(fontWeight: FontWeight.w600)),
         ],
       ),
@@ -2359,7 +2560,8 @@ class _EditModalState extends State<_EditModal> {
     super.initState();
     _nameController = TextEditingController(text: widget.investment.name);
     _currentValueController = TextEditingController(
-      text: (widget.investment.metadata?['currentValue'] as num?)?.toString() ?? '',
+      text: (widget.investment.metadata?['currentValue'] as num?)?.toString() ??
+          '',
     );
   }
 
@@ -2396,7 +2598,10 @@ class _EditModalState extends State<_EditModal> {
                   style: AppStyles.titleStyle(context).copyWith(fontSize: 22),
                 ),
                 SizedBox(height: Spacing.xxxl),
-                Text('Investment Name', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
+                Text('Investment Name',
+                    style: TextStyle(
+                        color: AppStyles.getTextColor(context),
+                        fontWeight: FontWeight.w600)),
                 SizedBox(height: Spacing.md),
                 CupertinoTextField(
                   controller: _nameController,
@@ -2409,11 +2614,15 @@ class _EditModalState extends State<_EditModal> {
                   style: TextStyle(color: AppStyles.getTextColor(context)),
                 ),
                 SizedBox(height: Spacing.lg),
-                Text('Current Value', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
+                Text('Current Value',
+                    style: TextStyle(
+                        color: AppStyles.getTextColor(context),
+                        fontWeight: FontWeight.w600)),
                 SizedBox(height: Spacing.md),
                 CupertinoTextField(
                   controller: _currentValueController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
                   placeholder: '0.00',
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -2422,7 +2631,9 @@ class _EditModalState extends State<_EditModal> {
                   ),
                   prefix: Padding(
                     padding: const EdgeInsets.only(left: 16),
-                    child: Text('₹', style: TextStyle(color: AppStyles.getTextColor(context))),
+                    child: Text('₹',
+                        style:
+                            TextStyle(color: AppStyles.getTextColor(context))),
                   ),
                   style: TextStyle(color: AppStyles.getTextColor(context)),
                 ),
@@ -2459,7 +2670,7 @@ class _DividendModalState extends State<_DividendModal> {
   late TextEditingController _dateController;
   DateTime _dividendDate = DateTime.now();
   Account? _selectedAccount;
-  bool _linkAccount = true; // Default to linking account
+  final bool _linkAccount = true; // Default to linking account
 
   @override
   void initState() {
@@ -2494,7 +2705,8 @@ class _DividendModalState extends State<_DividendModal> {
       builder: (context) => Container(
         height: 216,
         padding: const EdgeInsets.only(top: 6.0),
-        margin: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        margin:
+            EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
         color: CupertinoColors.systemBackground.resolveFrom(context),
         child: SafeArea(
           top: false,
@@ -2566,7 +2778,8 @@ class _DividendModalState extends State<_DividendModal> {
                       // Dividend Amount
                       Row(
                         children: [
-                          Icon(CupertinoIcons.money_dollar_circle, size: 18, color: CupertinoColors.systemBrown),
+                          Icon(CupertinoIcons.money_dollar_circle,
+                              size: 18, color: CupertinoColors.systemBrown),
                           SizedBox(width: Spacing.sm),
                           Text(
                             'Dividend Amount',
@@ -2581,29 +2794,37 @@ class _DividendModalState extends State<_DividendModal> {
                       SizedBox(height: Spacing.md),
                       CupertinoTextField(
                         controller: _amountController,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
                         placeholder: '0.00',
-                        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 14, horizontal: 16),
                         decoration: BoxDecoration(
                           color: AppStyles.getBackground(context),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.2),
+                            color: AppStyles.getSecondaryTextColor(context)
+                                .withValues(alpha: 0.2),
                             width: 1,
                           ),
                         ),
                         prefix: Padding(
                           padding: const EdgeInsets.only(left: 16),
-                          child: Text('₹', style: TextStyle(color: AppStyles.getSecondaryTextColor(context))),
+                          child: Text('₹',
+                              style: TextStyle(
+                                  color: AppStyles.getSecondaryTextColor(
+                                      context))),
                         ),
-                        style: TextStyle(color: AppStyles.getTextColor(context)),
+                        style:
+                            TextStyle(color: AppStyles.getTextColor(context)),
                         onChanged: (_) => setState(() {}),
                       ),
                       SizedBox(height: Spacing.lg),
                       // Dividend Date
                       Row(
                         children: [
-                          Icon(CupertinoIcons.calendar, size: 18, color: CupertinoColors.systemBrown),
+                          Icon(CupertinoIcons.calendar,
+                              size: 18, color: CupertinoColors.systemBrown),
                           SizedBox(width: Spacing.sm),
                           Text(
                             'Dividend Date',
@@ -2619,12 +2840,14 @@ class _DividendModalState extends State<_DividendModal> {
                       GestureDetector(
                         onTap: _showDatePicker,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 14, horizontal: 16),
                           decoration: BoxDecoration(
                             color: AppStyles.getBackground(context),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.2),
+                              color: AppStyles.getSecondaryTextColor(context)
+                                  .withValues(alpha: 0.2),
                               width: 1,
                             ),
                           ),
@@ -2638,7 +2861,8 @@ class _DividendModalState extends State<_DividendModal> {
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              Icon(CupertinoIcons.calendar, color: CupertinoColors.systemBrown, size: 18),
+                              Icon(CupertinoIcons.calendar,
+                                  color: CupertinoColors.systemBrown, size: 18),
                             ],
                           ),
                         ),
@@ -2666,7 +2890,8 @@ class _DividendModalState extends State<_DividendModal> {
                         children: [
                           Row(
                             children: [
-                              Icon(CupertinoIcons.building_2_fill, size: 18, color: CupertinoColors.systemBrown),
+                              Icon(CupertinoIcons.building_2_fill,
+                                  size: 18, color: CupertinoColors.systemBrown),
                               SizedBox(width: Spacing.sm),
                               Text(
                                 'Credit to Account',
@@ -2693,7 +2918,8 @@ class _DividendModalState extends State<_DividendModal> {
                         Container(
                           padding: EdgeInsets.all(Spacing.md),
                           decoration: BoxDecoration(
-                            color: CupertinoColors.systemBrown.withValues(alpha: 0.08),
+                            color: CupertinoColors.systemBrown
+                                .withValues(alpha: 0.08),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Column(
@@ -2711,7 +2937,8 @@ class _DividendModalState extends State<_DividendModal> {
                               Text(
                                 'Balance: ₹${_selectedAccount!.balance.toStringAsFixed(2)}',
                                 style: TextStyle(
-                                  color: AppStyles.getSecondaryTextColor(context),
+                                  color:
+                                      AppStyles.getSecondaryTextColor(context),
                                   fontSize: 12,
                                 ),
                               ),
@@ -2735,7 +2962,9 @@ class _DividendModalState extends State<_DividendModal> {
                         width: double.infinity,
                         child: CupertinoButton(
                           onPressed: _showAccountSelector,
-                          child: Text(_selectedAccount != null ? 'Change Account' : 'Select Account'),
+                          child: Text(_selectedAccount != null
+                              ? 'Change Account'
+                              : 'Select Account'),
                         ),
                       ),
                     ],
@@ -2747,12 +2976,16 @@ class _DividendModalState extends State<_DividendModal> {
                   child: CupertinoButton.filled(
                     onPressed: amount > 0 && _selectedAccount != null
                         ? () {
-                            final accountsController = Provider.of<AccountsController>(context, listen: false);
-                            final newBalance = _selectedAccount!.balance + amount;
+                            final accountsController =
+                                Provider.of<AccountsController>(context,
+                                    listen: false);
+                            final newBalance =
+                                _selectedAccount!.balance + amount;
                             accountsController.updateAccount(
                               _selectedAccount!.copyWith(balance: newBalance),
                             );
-                            toast.showSuccess('Dividend recorded: ₹${amount.toStringAsFixed(2)} credited to ${_selectedAccount!.name}');
+                            toast.showSuccess(
+                                'Dividend recorded: ₹${amount.toStringAsFixed(2)} credited to ${_selectedAccount!.name}');
                             Navigator.pop(context);
                           }
                         : null,
@@ -2768,7 +3001,20 @@ class _DividendModalState extends State<_DividendModal> {
   }
 
   String _formatDate(DateTime date) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 }
@@ -2792,7 +3038,8 @@ class _AccountSelector extends StatelessWidget {
       ),
       child: Consumer<AccountsController>(
         builder: (context, controller, _) {
-          final accounts = controller.accounts.where((a) => a.type == accountType).toList();
+          final accounts =
+              controller.accounts.where((a) => a.type == accountType).toList();
 
           return SingleChildScrollView(
             child: Padding(
@@ -2805,14 +3052,16 @@ class _AccountSelector extends StatelessWidget {
                     SizedBox(height: Spacing.lg),
                     Text(
                       'Select Account',
-                      style: AppStyles.titleStyle(context).copyWith(fontSize: 22),
+                      style:
+                          AppStyles.titleStyle(context).copyWith(fontSize: 22),
                     ),
                     SizedBox(height: Spacing.xxxl),
                     if (accounts.isEmpty)
                       Center(
                         child: Text(
                           'No accounts found',
-                          style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+                          style: TextStyle(
+                              color: AppStyles.getSecondaryTextColor(context)),
                         ),
                       )
                     else
@@ -2837,7 +3086,8 @@ class _AccountSelector extends StatelessWidget {
                                 Text(
                                   account.bankName,
                                   style: TextStyle(
-                                    color: AppStyles.getSecondaryTextColor(context),
+                                    color: AppStyles.getSecondaryTextColor(
+                                        context),
                                     fontSize: 12,
                                   ),
                                 ),
@@ -2853,7 +3103,7 @@ class _AccountSelector extends StatelessWidget {
                             ),
                           ),
                         );
-                      }).toList(),
+                      }),
                   ],
                 ),
               ),

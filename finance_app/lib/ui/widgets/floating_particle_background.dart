@@ -1,7 +1,5 @@
 import 'dart:math' as math;
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 /// Floating particle background with animated particles
 class FloatingParticleBackground extends StatefulWidget {
@@ -29,8 +27,7 @@ class FloatingParticleBackground extends StatefulWidget {
       _FloatingParticleBackgroundState();
 }
 
-class _FloatingParticleBackgroundState
-    extends State<FloatingParticleBackground>
+class _FloatingParticleBackgroundState extends State<FloatingParticleBackground>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   final List<Particle> _particles = [];
@@ -60,7 +57,7 @@ class _FloatingParticleBackgroundState
       final size = MediaQuery.of(context).size;
       for (int i = 0; i < widget.particleCount; i++) {
         _particles.add(Particle(
-          size: size,
+          screenSize: size,
           minSize: widget.minSize,
           maxSize: widget.maxSize,
         ));
@@ -243,9 +240,8 @@ class _GlowingParticleBackgroundState extends State<GlowingParticleBackground>
       final size = MediaQuery.of(context).size;
       for (int i = 0; i < widget.particleCount; i++) {
         _particles.add(GlowingParticle(
-          size: size,
-          color: widget.particleColors[
-              i % widget.particleColors.length],
+          screenSize: size,
+          color: widget.particleColors[i % widget.particleColors.length],
         ));
       }
     }
@@ -396,7 +392,7 @@ class _ConnectedParticleBackgroundState
       final size = MediaQuery.of(context).size;
       for (int i = 0; i < widget.particleCount; i++) {
         _particles.add(Particle(
-          size: size,
+          screenSize: size,
           minSize: 3.0,
           maxSize: 5.0,
         ));
@@ -414,9 +410,13 @@ class _ConnectedParticleBackgroundState
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final particleColor = widget.particleColor ??
-        (isDark ? Colors.white.withValues(alpha: 0.2) : Colors.black.withValues(alpha: 0.15));
+        (isDark
+            ? Colors.white.withValues(alpha: 0.2)
+            : Colors.black.withValues(alpha: 0.15));
     final lineColor = widget.lineColor ??
-        (isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05));
+        (isDark
+            ? Colors.white.withValues(alpha: 0.1)
+            : Colors.black.withValues(alpha: 0.05));
 
     return Stack(
       children: [
@@ -541,7 +541,7 @@ class _SubtleParticleOverlayState extends State<SubtleParticleOverlay>
       final size = MediaQuery.of(context).size;
       for (int i = 0; i < widget.particleCount; i++) {
         _particles.add(Particle(
-          size: size,
+          screenSize: size,
           minSize: 1.0,
           maxSize: 2.5,
         ));
@@ -643,7 +643,9 @@ class _StarFieldBackgroundState extends State<StarFieldBackground>
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final starColor = widget.starColor ??
-        (isDark ? Colors.white.withValues(alpha: 0.8) : Colors.black.withValues(alpha: 0.2));
+        (isDark
+            ? Colors.white.withValues(alpha: 0.8)
+            : Colors.black.withValues(alpha: 0.2));
 
     return Stack(
       children: [

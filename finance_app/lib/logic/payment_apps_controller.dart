@@ -55,7 +55,7 @@ class PaymentAppsController with ChangeNotifier {
         .map((app) => {
               'id': app['id'],
               'name': app['name'],
-              'color': (app['color'] as Color).value,
+              'color': (app['color'] as Color).toARGB32(),
               'isEnabled': app['isEnabled'] ?? false,
               'hasWallet': app['hasWallet'] ?? false,
               'walletBalance':

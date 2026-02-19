@@ -22,13 +22,15 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
     // Refresh accounts when entering this step
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (mounted) {
-        await Provider.of<AccountsController>(context, listen: false).loadAccounts();
+        await Provider.of<AccountsController>(context, listen: false)
+            .loadAccounts();
       }
     });
   }
 
   void _selectAccountAndProceed(Account account) {
-    final wizardController = Provider.of<RDWizardController>(context, listen: false);
+    final wizardController =
+        Provider.of<RDWizardController>(context, listen: false);
     wizardController.selectAccount(account);
     // Auto-proceed to next step
     Future.delayed(const Duration(milliseconds: 300), () {
@@ -37,7 +39,8 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
   }
 
   void _openAccountWizard() {
-    final accountsController = Provider.of<AccountsController>(context, listen: false);
+    final accountsController =
+        Provider.of<AccountsController>(context, listen: false);
     final wizardCtrl = Provider.of<RDWizardController>(context, listen: false);
 
     Navigator.push<Account>(
@@ -79,7 +82,8 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
                   const SizedBox(height: 8),
                   Text(
                     'Installments will be debited from this account',
-                    style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+                    style: TextStyle(
+                        color: AppStyles.getSecondaryTextColor(context)),
                   ),
                 ],
               ),
@@ -90,11 +94,14 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(CupertinoIcons.money_dollar_circle, size: 48, color: Colors.grey),
+                          const Icon(CupertinoIcons.money_dollar_circle,
+                              size: 48, color: Colors.grey),
                           const SizedBox(height: 16),
                           Text(
                             'No Accounts Found',
-                            style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+                            style: TextStyle(
+                                color:
+                                    AppStyles.getSecondaryTextColor(context)),
                           ),
                         ],
                       ),
@@ -103,25 +110,29 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
                       itemCount: accountsController.accounts.length,
                       itemBuilder: (context, index) {
                         final account = accountsController.accounts[index];
-                        final isSelected = controller.selectedAccount?.id == account.id;
+                        final isSelected =
+                            controller.selectedAccount?.id == account.id;
 
                         return GestureDetector(
                           onTap: () => _selectAccountAndProceed(account),
                           child: Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            margin: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? AppStyles.getPrimaryColor(context).withOpacity(0.1)
+                                  ? AppStyles.getPrimaryColor(context)
+                                      .withValues(alpha: 0.1)
                                   : AppStyles.getCardColor(context),
                               border: isSelected
-                                  ? Border.all(color: AppStyles.getPrimaryColor(context))
+                                  ? Border.all(
+                                      color: AppStyles.getPrimaryColor(context))
                                   : Border.all(color: Colors.transparent),
                               borderRadius: BorderRadius.circular(12),
                               boxShadow: [
                                 if (!isSelected)
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
+                                    color: Colors.black.withValues(alpha: 0.05),
                                     blurRadius: 4,
                                     offset: const Offset(0, 2),
                                   ),
@@ -137,7 +148,8 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
                                     border: Border.all(
                                       color: isSelected
                                           ? AppStyles.getPrimaryColor(context)
-                                          : AppStyles.getSecondaryTextColor(context),
+                                          : AppStyles.getSecondaryTextColor(
+                                              context),
                                       width: 2,
                                     ),
                                   ),
@@ -148,7 +160,8 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
                                             height: 8,
                                             decoration: BoxDecoration(
                                               shape: BoxShape.circle,
-                                              color: AppStyles.getPrimaryColor(context),
+                                              color: AppStyles.getPrimaryColor(
+                                                  context),
                                             ),
                                           ),
                                         )
@@ -157,16 +170,21 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         account.name,
-                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16),
                                       ),
                                       Text(
                                         account.bankName ?? 'Bank Account',
                                         style: TextStyle(
-                                          color: AppStyles.getSecondaryTextColor(context),
+                                          color:
+                                              AppStyles.getSecondaryTextColor(
+                                                  context),
                                           fontSize: 13,
                                         ),
                                       ),
@@ -178,14 +196,17 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
                                   children: [
                                     Text(
                                       '₹${account.balance.toStringAsFixed(2)}',
-                                      style: const TextStyle(fontWeight: FontWeight.bold),
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold),
                                     ),
                                     if (isSelected)
                                       Padding(
                                         padding: const EdgeInsets.only(top: 4),
                                         child: Icon(
-                                          CupertinoIcons.check_mark_circled_solid,
-                                          color: AppStyles.getPrimaryColor(context),
+                                          CupertinoIcons
+                                              .check_mark_circled_solid,
+                                          color: AppStyles.getPrimaryColor(
+                                              context),
                                           size: 20,
                                         ),
                                       ),
@@ -201,14 +222,18 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
             Padding(
               padding: const EdgeInsets.all(20),
               child: CupertinoButton(
-                color: isDarkMode(context) ? Colors.grey[800] : Colors.grey[200],
+                color:
+                    isDarkMode(context) ? Colors.grey[800] : Colors.grey[200],
                 onPressed: _openAccountWizard,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(CupertinoIcons.add, color: AppStyles.getTextColor(context)),
+                    Icon(CupertinoIcons.add,
+                        color: AppStyles.getTextColor(context)),
                     const SizedBox(width: 8),
-                    Text('Add Bank Account', style: TextStyle(color: AppStyles.getTextColor(context))),
+                    Text('Add Bank Account',
+                        style:
+                            TextStyle(color: AppStyles.getTextColor(context))),
                   ],
                 ),
               ),
@@ -219,5 +244,6 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
     );
   }
 
-  bool isDarkMode(BuildContext context) => Theme.of(context).brightness == Brightness.dark;
+  bool isDarkMode(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark;
 }

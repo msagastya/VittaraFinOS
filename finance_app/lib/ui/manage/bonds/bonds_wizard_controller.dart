@@ -108,7 +108,8 @@ class BondsWizardController extends ChangeNotifier {
     }
 
     final now = DateTime.now();
-    final yearsToMaturity = 5.0; // Placeholder, should be calculated from maturity date
+    final yearsToMaturity =
+        5.0; // Placeholder, should be calculated from maturity date
     final annualCoupon = (couponRate! / 100) * faceValue!;
 
     try {
@@ -131,14 +132,13 @@ class BondsWizardController extends ChangeNotifier {
   double get couponPerPayment {
     if (couponRate == null || faceValue == null) return 0;
     final annual = (couponRate! / 100) * faceValue!;
-    final paymentsPerYear =
-        couponFrequency == CouponFrequency.annual
-            ? 1
-            : couponFrequency == CouponFrequency.semiAnnual
-                ? 2
-                : couponFrequency == CouponFrequency.quarterly
-                    ? 4
-                    : 12;
+    final paymentsPerYear = couponFrequency == CouponFrequency.annual
+        ? 1
+        : couponFrequency == CouponFrequency.semiAnnual
+            ? 2
+            : couponFrequency == CouponFrequency.quarterly
+                ? 4
+                : 12;
     return (annual / paymentsPerYear) * purchaseQuantity;
   }
 
@@ -152,9 +152,7 @@ class BondsWizardController extends ChangeNotifier {
             bondName != null &&
             bondName!.isNotEmpty;
       case 1:
-        return couponRate != null &&
-            couponRate! > 0 &&
-            purchaseQuantity > 0;
+        return couponRate != null && couponRate! > 0 && purchaseQuantity > 0;
       case 2:
         return purchasePrice != null && purchasePrice! > 0;
       case 3:

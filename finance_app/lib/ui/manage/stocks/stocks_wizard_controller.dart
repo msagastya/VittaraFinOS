@@ -26,7 +26,8 @@ class StocksWizardController extends ChangeNotifier {
   double get totalAmount => qty * price;
   double get totalDeduction => totalAmount + extraCharges;
   double get gainLoss => currentValue - totalAmount;
-  double get gainLossPercent => totalAmount > 0 ? (gainLoss / totalAmount) * 100 : 0;
+  double get gainLossPercent =>
+      totalAmount > 0 ? (gainLoss / totalAmount) * 100 : 0;
 
   void selectStock(StockSearchResult stock) {
     selectedStock = stock;

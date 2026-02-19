@@ -98,9 +98,12 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
                       ),
                     ),
                     SizedBox(height: Spacing.md),
-                    _buildDetailRow(context, 'Total Invested', '₹${widget.rd.amountInvestedSoFar.toStringAsFixed(2)}'),
-                    _buildDetailRow(context, 'Maturity Date', _formatDate(widget.rd.maturityDate)),
-                    _buildDetailRow(context, 'Maturity Value', '₹${widget.rd.maturityValue.toStringAsFixed(2)}'),
+                    _buildDetailRow(context, 'Total Invested',
+                        '₹${widget.rd.amountInvestedSoFar.toStringAsFixed(2)}'),
+                    _buildDetailRow(context, 'Maturity Date',
+                        _formatDate(widget.rd.maturityDate)),
+                    _buildDetailRow(context, 'Maturity Value',
+                        '₹${widget.rd.maturityValue.toStringAsFixed(2)}'),
                   ],
                 ),
               ),
@@ -153,10 +156,12 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
               Container(
                 padding: EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
-                  color: AppStyles.getPrimaryColor(context).withOpacity(0.1),
+                  color:
+                      AppStyles.getPrimaryColor(context).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: AppStyles.getPrimaryColor(context).withOpacity(0.3),
+                    color: AppStyles.getPrimaryColor(context)
+                        .withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),
@@ -188,7 +193,8 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
                                 ),
                               ),
                             ),
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true),
                             style: TextStyle(
                               color: AppStyles.getPrimaryColor(context),
                               fontSize: 28,
@@ -206,7 +212,8 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
                             ),
                             onChanged: (value) {
                               setState(() {
-                                _withdrawalValue = double.tryParse(value) ?? _withdrawalValue;
+                                _withdrawalValue =
+                                    double.tryParse(value) ?? _withdrawalValue;
                               });
                             },
                           ),
@@ -245,18 +252,24 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
                   color: Colors.green,
                   onPressed: () async {
                     // If we have the investment controller, persist the withdrawal
-                    if (widget.investmentController != null && widget.originalInvestment != null) {
+                    if (widget.investmentController != null &&
+                        widget.originalInvestment != null) {
                       try {
                         // Read the user-entered withdrawal amount from text field
-                        final userEnteredAmount = double.tryParse(_withdrawalAmountController.text) ?? _withdrawalValue;
+                        final userEnteredAmount =
+                            double.tryParse(_withdrawalAmountController.text) ??
+                                _withdrawalValue;
                         final withdrawalAmount = userEnteredAmount;
 
                         final originalInvestment = widget.originalInvestment!;
-                        final investmentsController = widget.investmentController!;
+                        final investmentsController =
+                            widget.investmentController!;
 
                         // Update the investment with withdrawal information
-                        final existingMetadata = originalInvestment.metadata ?? {};
-                        final safeMetadata = Map<String, dynamic>.from(existingMetadata);
+                        final existingMetadata =
+                            originalInvestment.metadata ?? {};
+                        final safeMetadata =
+                            Map<String, dynamic>.from(existingMetadata);
 
                         final updatedInvestment = originalInvestment.copyWith(
                           metadata: {
@@ -269,7 +282,8 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
                         );
 
                         // Update the investment
-                        await investmentsController.updateInvestment(updatedInvestment);
+                        await investmentsController
+                            .updateInvestment(updatedInvestment);
                         if (!mounted) return;
 
                         // Credit the linked account
@@ -278,15 +292,19 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
                           try {
                             if (!mounted) return;
                             final accountsController =
-                                Provider.of<AccountsController>(context, listen: false);
+                                Provider.of<AccountsController>(context,
+                                    listen: false);
                             try {
-                              final linkedAccount = accountsController.accounts.firstWhere(
+                              final linkedAccount =
+                                  accountsController.accounts.firstWhere(
                                 (acc) => acc.id == linkedAccountId,
                               );
                               final updatedAccount = linkedAccount.copyWith(
-                                balance: linkedAccount.balance + withdrawalAmount,
+                                balance:
+                                    linkedAccount.balance + withdrawalAmount,
                               );
-                              await accountsController.updateAccount(updatedAccount);
+                              await accountsController
+                                  .updateAccount(updatedAccount);
                               if (!mounted) return;
                             } catch (e) {
                               // Account not found
@@ -351,7 +369,8 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
                     _withdrawalDate = newDate;
                     _withdrawalValue = _calculateWithdrawalValue(newDate);
                     // Update the text field with new calculated value
-                    _withdrawalAmountController.text = _withdrawalValue.toStringAsFixed(2);
+                    _withdrawalAmountController.text =
+                        _withdrawalValue.toStringAsFixed(2);
                   });
                 },
               ),

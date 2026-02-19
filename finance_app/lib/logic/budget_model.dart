@@ -71,7 +71,10 @@ class Budget {
 
   /// Calculate days remaining in period
   int get daysRemaining {
-    return endDate.difference(DateTime.now()).inDays.clamp(0, double.infinity.toInt());
+    return endDate
+        .difference(DateTime.now())
+        .inDays
+        .clamp(0, double.infinity.toInt());
   }
 
   /// Calculate daily budget remaining
@@ -149,7 +152,7 @@ class Budget {
       'period': period.index,
       'startDate': startDate.toIso8601String(),
       'endDate': endDate.toIso8601String(),
-      'color': color.value,
+      'color': color.toARGB32(),
       'isActive': isActive,
       'excludedAccountIds': excludedAccountIds,
       'rollover': rollover,
@@ -241,7 +244,8 @@ class SavingsPlanner {
   }
 
   double get totalSaved {
-    return history.fold(0.0, (sum, month) => sum + month.amount) + currentMonthSaved;
+    return history.fold(0.0, (sum, month) => sum + month.amount) +
+        currentMonthSaved;
   }
 
   Map<String, dynamic> toMap() {

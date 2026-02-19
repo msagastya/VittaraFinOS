@@ -8,7 +8,7 @@ class DashboardController extends ChangeNotifier {
   late SharedPreferences _prefs;
   bool _isInitialized = false;
 
-  static const int GRID_COLUMNS = 3;
+  static const int gridColumns = 3;
 
   DashboardConfig get config => _config;
   bool get isInitialized => _isInitialized;
@@ -174,8 +174,8 @@ class DashboardController extends ChangeNotifier {
     int clampedRow = newRow;
 
     // Ensure widget doesn't go off right edge
-    if (widget.columnSpan + clampedColumn - 1 > GRID_COLUMNS) {
-      clampedColumn = GRID_COLUMNS - widget.columnSpan + 1;
+    if (widget.columnSpan + clampedColumn - 1 > gridColumns) {
+      clampedColumn = gridColumns - widget.columnSpan + 1;
     }
 
     // Ensure minimum position
@@ -198,13 +198,13 @@ class DashboardController extends ChangeNotifier {
     );
 
     // Clamp spans
-    int clampedColSpan = newColumnSpan.clamp(1, GRID_COLUMNS);
+    int clampedColSpan = newColumnSpan.clamp(1, gridColumns);
     int clampedRowSpan = newRowSpan.clamp(1, 10);
 
     // Adjust position if widget would go off-grid
     int newCol = widget.gridColumn;
-    if (widget.gridColumn + clampedColSpan - 1 > GRID_COLUMNS) {
-      newCol = GRID_COLUMNS - clampedColSpan + 1;
+    if (widget.gridColumn + clampedColSpan - 1 > gridColumns) {
+      newCol = gridColumns - clampedColSpan + 1;
     }
 
     final newWidget = widget.copyWith(
@@ -268,8 +268,8 @@ class DashboardController extends ChangeNotifier {
   // Find next available position (for adding new widgets)
   (int, int) findNextAvailablePosition(int columnSpan, int rowSpan) {
     for (int row = 1; row <= 20; row++) {
-      for (int col = 1; col <= GRID_COLUMNS; col++) {
-        if (col + columnSpan - 1 <= GRID_COLUMNS) {
+      for (int col = 1; col <= gridColumns; col++) {
+        if (col + columnSpan - 1 <= gridColumns) {
           bool canPlace = true;
           for (int r = row; r < row + rowSpan; r++) {
             for (int c = col; c < col + columnSpan; c++) {

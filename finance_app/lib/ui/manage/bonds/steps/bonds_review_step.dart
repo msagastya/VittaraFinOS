@@ -55,7 +55,9 @@ class BondsReviewStep extends StatelessWidget {
                 const SizedBox(height: 12),
                 _ReviewRow(
                   label: 'Type',
-                  value: controller.selectedBondType?.toString().split('.').last ?? 'N/A',
+                  value:
+                      controller.selectedBondType?.toString().split('.').last ??
+                          'N/A',
                 ),
                 const SizedBox(height: 12),
                 _ReviewRow(
@@ -65,7 +67,8 @@ class BondsReviewStep extends StatelessWidget {
                 const SizedBox(height: 12),
                 _ReviewRow(
                   label: 'Face Value',
-                  value: '₹${controller.faceValue?.toStringAsFixed(2) ?? '0.00'}',
+                  value:
+                      '₹${controller.faceValue?.toStringAsFixed(2) ?? '0.00'}',
                 ),
                 if (controller.creditRating != null) ...[
                   const SizedBox(height: 12),
@@ -107,7 +110,8 @@ class BondsReviewStep extends StatelessWidget {
                 const SizedBox(height: 12),
                 _ReviewRow(
                   label: 'Purchase Price per Bond',
-                  value: '₹${controller.purchasePrice?.toStringAsFixed(2) ?? '0.00'}',
+                  value:
+                      '₹${controller.purchasePrice?.toStringAsFixed(2) ?? '0.00'}',
                 ),
                 const SizedBox(height: 12),
                 _ReviewRow(
@@ -149,7 +153,8 @@ class BondsReviewStep extends StatelessWidget {
                 const SizedBox(height: 16),
                 _ReviewRow(
                   label: 'Annual Coupon Rate',
-                  value: '${controller.couponRate?.toStringAsFixed(2) ?? '0.00'}%',
+                  value:
+                      '${controller.couponRate?.toStringAsFixed(2) ?? '0.00'}%',
                 ),
                 const SizedBox(height: 12),
                 _ReviewRow(
@@ -159,7 +164,8 @@ class BondsReviewStep extends StatelessWidget {
                 const SizedBox(height: 12),
                 _ReviewRow(
                   label: 'Annual Coupon Payment',
-                  value: '₹${controller.annualCouponPayment.toStringAsFixed(2)}',
+                  value:
+                      '₹${controller.annualCouponPayment.toStringAsFixed(2)}',
                   isHighlight: true,
                 ),
                 const SizedBox(height: 12),

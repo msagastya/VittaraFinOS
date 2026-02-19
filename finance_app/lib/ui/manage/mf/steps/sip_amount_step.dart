@@ -1,9 +1,7 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/ui/manage/mf/sip_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
-import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class SIPAmountStep extends StatefulWidget {
   const SIPAmountStep({super.key});
@@ -84,10 +82,10 @@ class _SIPAmountStepState extends State<SIPAmountStep> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: CupertinoColors.systemBlue.withOpacity(0.1),
+              color: CupertinoColors.systemBlue.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: CupertinoColors.systemBlue.withOpacity(0.3),
+                color: CupertinoColors.systemBlue.withValues(alpha: 0.3),
               ),
             ),
             child: Row(

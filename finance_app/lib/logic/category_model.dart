@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 
 class Category {
   final String id;
@@ -45,9 +44,7 @@ class Category {
 
   static IconData _getIconFromCodePoint(int codePoint) {
     // Map of code points to Cupertino icons for deserialization
-    final iconMap = {
-      for (var icon in _allAvailableIcons) icon.codePoint: icon
-    };
+    final iconMap = {for (var icon in _allAvailableIcons) icon.codePoint: icon};
 
     return iconMap[codePoint] ?? CupertinoIcons.question;
   }

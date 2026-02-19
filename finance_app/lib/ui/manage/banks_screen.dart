@@ -39,9 +39,11 @@ class _BanksScreenState extends State<BanksScreen> {
   }
 
   void _showBankBottomSheet({Map<String, dynamic>? existingBank}) {
-    final nameController = TextEditingController(text: existingBank?['name'] ?? '');
+    final nameController =
+        TextEditingController(text: existingBank?['name'] ?? '');
     final senderIdController = TextEditingController();
-    List<String> tempSenderIds = List<String>.from(existingBank?['senderIds'] ?? []);
+    List<String> tempSenderIds =
+        List<String>.from(existingBank?['senderIds'] ?? []);
     final isEditMode = existingBank != null;
 
     showCupertinoModalPopup(
@@ -62,7 +64,8 @@ class _BanksScreenState extends State<BanksScreen> {
                       height: MediaQuery.of(context).size.height * 0.75,
                       decoration: BoxDecoration(
                         color: AppStyles.getCardColor(context),
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                        borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(20)),
                       ),
                       child: SafeArea(
                         child: Column(
@@ -70,25 +73,33 @@ class _BanksScreenState extends State<BanksScreen> {
                             Padding(
                               padding: const EdgeInsets.only(top: 8.0),
                               child: Container(
-                                width: 36, height: 5,
-                                decoration: BoxDecoration(color: CupertinoColors.systemGrey3, borderRadius: BorderRadius.circular(2.5)),
+                                width: 36,
+                                height: 5,
+                                decoration: BoxDecoration(
+                                    color: CupertinoColors.systemGrey3,
+                                    borderRadius: BorderRadius.circular(2.5)),
                               ),
                             ),
                             const SizedBox(height: 16),
                             Text(
                               isEditMode ? 'Edit Bank' : 'Add Bank',
-                              style: AppStyles.titleStyle(context).copyWith(fontSize: 20),
+                              style: AppStyles.titleStyle(context)
+                                  .copyWith(fontSize: 20),
                             ),
                             const SizedBox(height: 16),
                             Container(
                               height: 1,
-                              color: isDark ? Colors.grey[800] : CupertinoColors.systemGrey5,
-                              margin: const EdgeInsets.symmetric(horizontal: 16),
+                              color: isDark
+                                  ? Colors.grey[800]
+                                  : CupertinoColors.systemGrey5,
+                              margin:
+                                  const EdgeInsets.symmetric(horizontal: 16),
                             ),
                             const SizedBox(height: 16),
                             Expanded(
                               child: SingleChildScrollView(
-                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 16),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -98,15 +109,21 @@ class _BanksScreenState extends State<BanksScreen> {
                                       controller: nameController,
                                       enabled: !isEditMode,
                                       placeholder: 'Bank Name',
-                                      style: TextStyle(color: AppStyles.getTextColor(context)),
+                                      style: TextStyle(
+                                          color:
+                                              AppStyles.getTextColor(context)),
                                       decoration: BoxDecoration(
-                                        color: isDark ? const Color(0xFF2C2C2E) : CupertinoColors.systemGrey6,
+                                        color: isDark
+                                            ? const Color(0xFF2C2C2E)
+                                            : CupertinoColors.systemGrey6,
                                         borderRadius: BorderRadius.circular(8),
                                       ),
-                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 12),
                                     ),
                                     const SizedBox(height: 24),
-                                    _buildLabel(context, 'Sender IDs (${tempSenderIds.length})'),
+                                    _buildLabel(context,
+                                        'Sender IDs (${tempSenderIds.length})'),
                                     const SizedBox(height: 8),
                                     Row(
                                       children: [
@@ -114,23 +131,36 @@ class _BanksScreenState extends State<BanksScreen> {
                                           child: CupertinoTextField(
                                             controller: senderIdController,
                                             placeholder: 'Enter Sender ID',
-                                            style: TextStyle(color: AppStyles.getTextColor(context)),
+                                            style: TextStyle(
+                                                color: AppStyles.getTextColor(
+                                                    context)),
                                             decoration: BoxDecoration(
-                                              color: isDark ? const Color(0xFF2C2C2E) : CupertinoColors.systemGrey6,
-                                              borderRadius: BorderRadius.circular(8),
+                                              color: isDark
+                                                  ? const Color(0xFF2C2C2E)
+                                                  : CupertinoColors.systemGrey6,
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
                                             ),
-                                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 12, vertical: 12),
                                           ),
                                         ),
                                         const SizedBox(width: 8),
                                         CupertinoButton(
-                                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 16, vertical: 8),
                                           color: CupertinoColors.systemBlue,
-                                          child: const Text('Add', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                          child: const Text('Add',
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold)),
                                           onPressed: () {
-                                            if (senderIdController.text.isNotEmpty) {
+                                            if (senderIdController
+                                                .text.isNotEmpty) {
                                               setDialogState(() {
-                                                tempSenderIds.add(senderIdController.text.toUpperCase());
+                                                tempSenderIds.add(
+                                                    senderIdController.text
+                                                        .toUpperCase());
                                                 senderIdController.clear();
                                               });
                                             }
@@ -140,26 +170,53 @@ class _BanksScreenState extends State<BanksScreen> {
                                     ),
                                     const SizedBox(height: 16),
                                     Wrap(
-                                      spacing: 8, runSpacing: 8,
-                                      children: tempSenderIds.map((id) => Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                        decoration: BoxDecoration(
-                                          color: CupertinoColors.systemBlue.withValues(alpha:0.1),
-                                          borderRadius: BorderRadius.circular(12),
-                                          border: Border.all(color: CupertinoColors.systemBlue),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Text(id, style: const TextStyle(color: CupertinoColors.systemBlue, fontWeight: FontWeight.w500)),
-                                            const SizedBox(width: 6),
-                                            GestureDetector(
-                                              onTap: () => setDialogState(() => tempSenderIds.remove(id)),
-                                              child: const Icon(CupertinoIcons.xmark_circle_fill, size: 16, color: CupertinoColors.systemBlue),
-                                            ),
-                                          ],
-                                        ),
-                                      )).toList(),
+                                      spacing: 8,
+                                      runSpacing: 8,
+                                      children: tempSenderIds
+                                          .map((id) => Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 12,
+                                                        vertical: 6),
+                                                decoration: BoxDecoration(
+                                                  color: CupertinoColors
+                                                      .systemBlue
+                                                      .withValues(alpha: 0.1),
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                  border: Border.all(
+                                                      color: CupertinoColors
+                                                          .systemBlue),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    Text(id,
+                                                        style: const TextStyle(
+                                                            color:
+                                                                CupertinoColors
+                                                                    .systemBlue,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .w500)),
+                                                    const SizedBox(width: 6),
+                                                    GestureDetector(
+                                                      onTap: () =>
+                                                          setDialogState(() =>
+                                                              tempSenderIds
+                                                                  .remove(id)),
+                                                      child: const Icon(
+                                                          CupertinoIcons
+                                                              .xmark_circle_fill,
+                                                          size: 16,
+                                                          color: CupertinoColors
+                                                              .systemBlue),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ))
+                                          .toList(),
                                     ),
                                   ],
                                 ),
@@ -171,8 +228,14 @@ class _BanksScreenState extends State<BanksScreen> {
                                 children: [
                                   Expanded(
                                     child: CupertinoButton(
-                                      color: isDark ? Colors.grey[800] : CupertinoColors.systemGrey5,
-                                      child: Text('Cancel', style: TextStyle(color: isDark ? Colors.white : Colors.black)),
+                                      color: isDark
+                                          ? Colors.grey[800]
+                                          : CupertinoColors.systemGrey5,
+                                      child: Text('Cancel',
+                                          style: TextStyle(
+                                              color: isDark
+                                                  ? Colors.white
+                                                  : Colors.black)),
                                       onPressed: () => Navigator.pop(context),
                                     ),
                                   ),
@@ -180,11 +243,14 @@ class _BanksScreenState extends State<BanksScreen> {
                                   Expanded(
                                     child: CupertinoButton(
                                       color: CupertinoColors.systemBlue,
-                                      child: Text(isEditMode ? 'Update' : 'Add', style: const TextStyle(color: Colors.white)),
+                                      child: Text(isEditMode ? 'Update' : 'Add',
+                                          style: const TextStyle(
+                                              color: Colors.white)),
                                       onPressed: () {
-                                        if (isEditMode && existingBank != null) {
+                                        if (isEditMode) {
                                           // Update existing bank with new sender IDs
-                                          existingBank['senderIds'] = tempSenderIds;
+                                          existingBank['senderIds'] =
+                                              tempSenderIds;
                                           banksController.notifyListeners();
                                         } else {
                                           // Add new bank
@@ -218,7 +284,9 @@ class _BanksScreenState extends State<BanksScreen> {
       style: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w500,
-        color: AppStyles.isDarkMode(context) ? Colors.grey[400] : CupertinoColors.systemGrey,
+        color: AppStyles.isDarkMode(context)
+            ? Colors.grey[400]
+            : CupertinoColors.systemGrey,
       ),
     );
   }
@@ -228,13 +296,17 @@ class _BanksScreenState extends State<BanksScreen> {
     return Consumer<BanksController>(
       builder: (context, banksController, child) {
         final filteredBanks = banksController.banks.where((bank) {
-          return bank['name'].toString().toLowerCase().contains(_searchQuery.toLowerCase());
+          return bank['name']
+              .toString()
+              .toLowerCase()
+              .contains(_searchQuery.toLowerCase());
         }).toList();
 
         return CupertinoPageScaffold(
           backgroundColor: AppStyles.getBackground(context),
           navigationBar: CupertinoNavigationBar(
-            middle: Text('Banks', style: TextStyle(color: AppStyles.getTextColor(context))),
+            middle: Text('Banks',
+                style: TextStyle(color: AppStyles.getTextColor(context))),
             previousPageTitle: 'Manage',
             backgroundColor: AppStyles.getBackground(context),
             border: null,
@@ -242,7 +314,9 @@ class _BanksScreenState extends State<BanksScreen> {
               padding: EdgeInsets.zero,
               onPressed: () => _sortBanks(banksController),
               child: Icon(
-                _isAscending ? CupertinoIcons.sort_down : CupertinoIcons.sort_up,
+                _isAscending
+                    ? CupertinoIcons.sort_down
+                    : CupertinoIcons.sort_up,
                 size: 24,
                 color: AppStyles.accentBlue,
               ),
@@ -261,10 +335,13 @@ class _BanksScreenState extends State<BanksScreen> {
                       ),
                       child: CupertinoSearchTextField(
                         backgroundColor: Colors.transparent,
-                        style: TextStyle(color: AppStyles.getTextColor(context)),
+                        style:
+                            TextStyle(color: AppStyles.getTextColor(context)),
                         placeholder: 'Search Banks',
-                        placeholderStyle: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
-                        onChanged: (value) => setState(() => _searchQuery = value),
+                        placeholderStyle: TextStyle(
+                            color: AppStyles.getSecondaryTextColor(context)),
+                        onChanged: (value) =>
+                            setState(() => _searchQuery = value),
                       ),
                     ),
                     Expanded(
@@ -302,8 +379,10 @@ class _BanksScreenState extends State<BanksScreen> {
                 ),
               ),
               Positioned(
-                right: 16, bottom: 32,
-                child: FadingFloatingActionButton(onPressed: () => _showBankBottomSheet()),
+                right: 16,
+                bottom: 32,
+                child: FadingFloatingActionButton(
+                    onPressed: () => _showBankBottomSheet()),
               ),
             ],
           ),
@@ -312,7 +391,8 @@ class _BanksScreenState extends State<BanksScreen> {
     );
   }
 
-  Widget _build3DBankCard(Map<String, dynamic> bank, BanksController banksController) {
+  Widget _build3DBankCard(
+      Map<String, dynamic> bank, BanksController banksController) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: AppStyles.cardDecoration(context),
@@ -321,9 +401,12 @@ class _BanksScreenState extends State<BanksScreen> {
         child: Row(
           children: [
             Container(
-              width: 48, height: 48,
+              width: 48,
+              height: 48,
               decoration: AppStyles.iconBoxDecoration(context, bank['color']),
-              child: Center(child: Icon(CupertinoIcons.building_2_fill, color: bank['color'], size: 24)),
+              child: Center(
+                  child: Icon(CupertinoIcons.building_2_fill,
+                      color: bank['color'], size: 24)),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -336,7 +419,9 @@ class _BanksScreenState extends State<BanksScreen> {
                       padding: const EdgeInsets.only(top: 4.0),
                       child: Text(
                         '${(bank['senderIds'] as List).length} Sender IDs',
-                        style: TextStyle(fontSize: 12, color: AppStyles.getSecondaryTextColor(context)),
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: AppStyles.getSecondaryTextColor(context)),
                       ),
                     ),
                 ],
@@ -349,7 +434,7 @@ class _BanksScreenState extends State<BanksScreen> {
                   scale: 0.8,
                   child: CupertinoSwitch(
                     value: bank['isEnabled'],
-                    activeColor: CupertinoColors.activeGreen,
+                    activeTrackColor: CupertinoColors.activeGreen,
                     onChanged: (bool value) =>
                         _toggleBank(bank['id'], value, banksController),
                   ),
@@ -359,25 +444,34 @@ class _BanksScreenState extends State<BanksScreen> {
                   data: Theme.of(context).copyWith(
                     popupMenuTheme: PopupMenuThemeData(
                       color: AppStyles.getCardColor(context),
-                      textStyle: TextStyle(color: AppStyles.getTextColor(context)),
+                      textStyle:
+                          TextStyle(color: AppStyles.getTextColor(context)),
                     ),
                   ),
                   child: PopupMenuButton<String>(
-                    icon: Icon(Icons.more_vert, color: AppStyles.getSecondaryTextColor(context)),
+                    icon: Icon(Icons.more_vert,
+                        color: AppStyles.getSecondaryTextColor(context)),
                     onSelected: (String result) {
-                      if (result == 'edit') _showBankBottomSheet(existingBank: bank);
-                      else if (result == 'delete')
+                      if (result == 'edit') {
+                        _showBankBottomSheet(existingBank: bank);
+                      } else if (result == 'delete') {
                         _deleteBank(bank['id'], banksController);
+                      }
                     },
-                    itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                    itemBuilder: (BuildContext context) =>
+                        <PopupMenuEntry<String>>[
                       PopupMenuItem<String>(
                         value: 'edit',
-                        child: Text('Edit Sender IDs', style: TextStyle(color: AppStyles.getTextColor(context))),
+                        child: Text('Edit Sender IDs',
+                            style: TextStyle(
+                                color: AppStyles.getTextColor(context))),
                       ),
                       const PopupMenuDivider(),
                       const PopupMenuItem<String>(
                         value: 'delete',
-                        child: Text('Delete', style: TextStyle(color: CupertinoColors.destructiveRed)),
+                        child: Text('Delete',
+                            style: TextStyle(
+                                color: CupertinoColors.destructiveRed)),
                       ),
                     ],
                   ),
@@ -396,27 +490,39 @@ class FadingFloatingActionButton extends StatefulWidget {
   final VoidCallback onPressed;
   const FadingFloatingActionButton({super.key, required this.onPressed});
   @override
-  State<FadingFloatingActionButton> createState() => _FadingFloatingActionButtonState();
+  State<FadingFloatingActionButton> createState() =>
+      _FadingFloatingActionButtonState();
 }
 
-class _FadingFloatingActionButtonState extends State<FadingFloatingActionButton> with SingleTickerProviderStateMixin {
+class _FadingFloatingActionButtonState extends State<FadingFloatingActionButton>
+    with SingleTickerProviderStateMixin {
   Timer? _timer;
   late AnimationController _controller;
   late Animation<double> _animation;
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
+    _controller = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 300));
     _animation = Tween<double>(begin: 1.0, end: 0.1).animate(_controller);
     _startInactivityTimer();
   }
+
   void _startInactivityTimer() {
     _timer?.cancel();
     if (_controller.value > 0) _controller.reverse();
-    _timer = Timer(const Duration(seconds: 4), () { if (mounted) _controller.forward(); });
+    _timer = Timer(const Duration(seconds: 4), () {
+      if (mounted) _controller.forward();
+    });
   }
+
   @override
-  void dispose() { _timer?.cancel(); _controller.dispose(); super.dispose(); }
+  void dispose() {
+    _timer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -426,15 +532,25 @@ class _FadingFloatingActionButtonState extends State<FadingFloatingActionButton>
           opacity: _animation.value,
           child: GestureDetector(
             onTapDown: (_) => _startInactivityTimer(),
-            onTap: () { _startInactivityTimer(); widget.onPressed(); },
+            onTap: () {
+              _startInactivityTimer();
+              widget.onPressed();
+            },
             child: Container(
-              width: 56, height: 56,
+              width: 56,
+              height: 56,
               decoration: BoxDecoration(
                 color: CupertinoColors.systemBlue,
                 shape: BoxShape.circle,
-                boxShadow: [BoxShadow(color: CupertinoColors.systemBlue.withValues(alpha:0.4), blurRadius: 10, offset: const Offset(0, 4))],
+                boxShadow: [
+                  BoxShadow(
+                      color: CupertinoColors.systemBlue.withValues(alpha: 0.4),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4))
+                ],
               ),
-              child: const Icon(CupertinoIcons.add, color: Colors.white, size: 28),
+              child:
+                  const Icon(CupertinoIcons.add, color: Colors.white, size: 28),
             ),
           ),
         );

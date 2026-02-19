@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/ui/manage/rd/rd_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -19,7 +18,9 @@ class _AmountStepState extends State<AmountStep> {
     super.initState();
     final controller = Provider.of<RDWizardController>(context, listen: false);
     _amountController = TextEditingController(
-      text: controller.monthlyAmount > 0 ? controller.monthlyAmount.toString() : '',
+      text: controller.monthlyAmount > 0
+          ? controller.monthlyAmount.toString()
+          : '',
     );
   }
 
@@ -71,8 +72,8 @@ class _AmountStepState extends State<AmountStep> {
             ),
             prefix: Padding(
               padding: const EdgeInsets.only(left: 16),
-              child:
-                  Text('₹', style: TextStyle(color: AppStyles.getTextColor(context))),
+              child: Text('₹',
+                  style: TextStyle(color: AppStyles.getTextColor(context))),
             ),
             style: TextStyle(color: AppStyles.getTextColor(context)),
             onChanged: (_) => _updateAmount(),
@@ -88,10 +89,12 @@ class _AmountStepState extends State<AmountStep> {
               return Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppStyles.getBackground(context).withOpacity(0.5),
+                  color:
+                      AppStyles.getBackground(context).withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: AppStyles.getPrimaryColor(context).withOpacity(0.3),
+                    color: AppStyles.getPrimaryColor(context)
+                        .withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),
@@ -146,7 +149,8 @@ class _AmountStepState extends State<AmountStep> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: AppStyles.getPrimaryColor(context).withOpacity(0.1),
+                        color: AppStyles.getPrimaryColor(context)
+                            .withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Row(

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:vittara_fin_os/logic/fixed_deposit_model.dart';
-import 'package:vittara_fin_os/logic/recurring_deposit_model.dart';
+import 'package:vittara_fin_os/logic/fd_renewal_cycle.dart';
 
 /// Base metadata interface for all investments
 abstract class InvestmentMetadata {
   Map<String, dynamic> toMap();
 
-  static InvestmentMetadata? fromMap(Map<String, dynamic> map, String investmentType) {
+  static InvestmentMetadata? fromMap(
+      Map<String, dynamic> map, String investmentType) {
     switch (investmentType) {
       case 'fixedDeposit':
         return FDMetadata.fromMap(map);
@@ -97,10 +97,13 @@ class FDMetadata implements InvestmentMetadata {
       'isCumulative': isCumulative,
       'originalPrincipal': originalPrincipal,
       'debitedFromAccount': debitedFromAccount,
-      if (renewalCycles != null) 'renewalCycles': renewalCycles!.map((c) => c.toMap()).toList(),
+      if (renewalCycles != null)
+        'renewalCycles': renewalCycles!.map((c) => c.toMap()).toList(),
       if (currentCycleIndex != null) 'currentCycleIndex': currentCycleIndex,
-      if (lastRenewalDate != null) 'lastRenewalDate': lastRenewalDate!.toIso8601String(),
-      if (withdrawalDate != null) 'withdrawalDate': withdrawalDate!.toIso8601String(),
+      if (lastRenewalDate != null)
+        'lastRenewalDate': lastRenewalDate!.toIso8601String(),
+      if (withdrawalDate != null)
+        'withdrawalDate': withdrawalDate!.toIso8601String(),
       if (withdrawalAmount != null) 'withdrawalAmount': withdrawalAmount,
       'isWithdrawn': isWithdrawn,
     };
@@ -133,7 +136,9 @@ class FDMetadata implements InvestmentMetadata {
       createdDate: DateTime.parse(map['createdDate'] as String),
       estimatedAccruedValue: (map['estimatedAccruedValue'] as num).toDouble(),
       maturityValue: (map['maturityValue'] as num).toDouble(),
-      realizedValue: map['realizedValue'] != null ? (map['realizedValue'] as num).toDouble() : null,
+      realizedValue: map['realizedValue'] != null
+          ? (map['realizedValue'] as num).toDouble()
+          : null,
       interestRate: (map['interestRate'] as num).toDouble(),
       tenureMonths: map['tenureMonths'] as int,
       compoundingFrequency: map['compoundingFrequency'] as String,
@@ -187,7 +192,8 @@ class FDMetadata implements InvestmentMetadata {
       maturityDate: maturityDate ?? this.maturityDate,
       investmentDate: investmentDate ?? this.investmentDate,
       createdDate: createdDate ?? this.createdDate,
-      estimatedAccruedValue: estimatedAccruedValue ?? this.estimatedAccruedValue,
+      estimatedAccruedValue:
+          estimatedAccruedValue ?? this.estimatedAccruedValue,
       maturityValue: maturityValue ?? this.maturityValue,
       realizedValue: realizedValue ?? this.realizedValue,
       interestRate: interestRate ?? this.interestRate,
@@ -256,7 +262,8 @@ class RDMetadata implements InvestmentMetadata {
       'interestRate': interestRate,
       'tenureMonths': tenureMonths,
       'compoundingFrequency': compoundingFrequency,
-      if (withdrawalDate != null) 'withdrawalDate': withdrawalDate!.toIso8601String(),
+      if (withdrawalDate != null)
+        'withdrawalDate': withdrawalDate!.toIso8601String(),
       if (withdrawalAmount != null) 'withdrawalAmount': withdrawalAmount,
       'isWithdrawn': isWithdrawn,
       'paymentDates': paymentDates.map((d) => d.toIso8601String()).toList(),
@@ -285,7 +292,8 @@ class RDMetadata implements InvestmentMetadata {
       isWithdrawn: map['isWithdrawn'] as bool? ?? false,
       paymentDates: (map['paymentDates'] as List?)
               ?.map((d) => DateTime.parse(d as String))
-              .toList() ?? [],
+              .toList() ??
+          [],
       totalPaid: (map['totalPaid'] as num).toDouble(),
     );
   }
@@ -355,7 +363,8 @@ class StockMetadata implements InvestmentMetadata {
       linkedAccountName: map['linkedAccountName'] as String?,
       transactions: (map['transactions'] as List?)
               ?.map((t) => StockTransaction.fromMap(t as Map<String, dynamic>))
-              .toList() ?? [],
+              .toList() ??
+          [],
     );
   }
 }

@@ -39,15 +39,21 @@ class SettingsController with ChangeNotifier {
     _prefs = await SharedPreferences.getInstance();
 
     final themeIndex = _prefs.getInt('themeMode') ?? 0;
-    if (themeIndex == 1) _themeMode = ThemeMode.light;
-    else if (themeIndex == 2) _themeMode = ThemeMode.dark;
-    else _themeMode = ThemeMode.system;
+    if (themeIndex == 1) {
+      _themeMode = ThemeMode.light;
+    } else if (themeIndex == 2) {
+      _themeMode = ThemeMode.dark;
+    } else {
+      _themeMode = ThemeMode.system;
+    }
 
     _isBiometricEnabled = _prefs.getBool('isBiometricEnabled') ?? true;
     _lockOnMinimize = _prefs.getBool('lockOnMinimize') ?? false;
     _lockTimeoutSeconds = _prefs.getInt('lockTimeoutSeconds') ?? 10;
-    _isInvestmentTrackingEnabled = _prefs.getBool('isInvestmentTrackingEnabled') ?? false;
-    _isArchivedTransactionsEnabled = _prefs.getBool('showArchivedTransactions') ?? false;
+    _isInvestmentTrackingEnabled =
+        _prefs.getBool('isInvestmentTrackingEnabled') ?? false;
+    _isArchivedTransactionsEnabled =
+        _prefs.getBool('showArchivedTransactions') ?? false;
 
     // Skip biometric setup on web
     if (!kIsWeb) {
@@ -55,7 +61,8 @@ class SettingsController with ChangeNotifier {
       _updateSecureFlag();
 
       if (_isBiometricEnabled) {
-        logger.info('Startup: Biometric enabled, locking app.', context: 'SettingsController');
+        logger.info('Startup: Biometric enabled, locking app.',
+            context: 'SettingsController');
         _isLocked = true;
       }
     }
@@ -106,7 +113,8 @@ class SettingsController with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> authenticateArchivedAccess({String reason = 'Authenticate to view archived transactions'}) async {
+  Future<bool> authenticateArchivedAccess(
+      {String reason = 'Authenticate to view archived transactions'}) async {
     if (!_isArchivedTransactionsEnabled || !_isBiometricEnabled || kIsWeb) {
       return true;
     }
@@ -139,7 +147,8 @@ class SettingsController with ChangeNotifier {
         await platform.invokeMethod('disableSecure');
       }
     } catch (e) {
-      logger.error('Failed to update secure flag', error: e, context: 'SettingsController');
+      logger.error('Failed to update secure flag',
+          error: e, context: 'SettingsController');
     }
   }
 
@@ -154,7 +163,8 @@ class SettingsController with ChangeNotifier {
     if (kIsWeb || !_lockOnMinimize || _lastPausedTime == null) return;
 
     final durationPaused = DateTime.now().difference(_lastPausedTime!);
-    logger.info('App Resumed after ${durationPaused.inSeconds}s', context: 'SettingsController');
+    logger.info('App Resumed after ${durationPaused.inSeconds}s',
+        context: 'SettingsController');
 
     if (durationPaused.inSeconds >= _lockTimeoutSeconds) {
       _isLocked = true;
@@ -166,7 +176,8 @@ class SettingsController with ChangeNotifier {
     _lastPausedTime = null;
   }
 
-  Future<bool> _authenticate({String reason = 'Please authenticate to change settings'}) async {
+  Future<bool> _authenticate(
+      {String reason = 'Please authenticate to change settings'}) async {
     if (kIsWeb) return false; // Biometric not available on web
 
     try {

@@ -17,14 +17,16 @@ class _GoldWeightStepState extends State<GoldWeightStep> {
   @override
   void initState() {
     super.initState();
-    final controller = Provider.of<DigitalGoldWizardController>(context, listen: false);
+    final controller =
+        Provider.of<DigitalGoldWizardController>(context, listen: false);
     _weightController = TextEditingController(
       text: controller.weight > 0 ? controller.weight.toString() : '',
     );
   }
 
   void _updateWeight() {
-    final controller = Provider.of<DigitalGoldWizardController>(context, listen: false);
+    final controller =
+        Provider.of<DigitalGoldWizardController>(context, listen: false);
     final weight = double.tryParse(_weightController.text) ?? 0;
     controller.updateWeight(weight);
   }
@@ -75,7 +77,8 @@ class _GoldWeightStepState extends State<GoldWeightStep> {
               padding: const EdgeInsets.only(right: 16),
               child: Text(
                 'g',
-                style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+                style:
+                    TextStyle(color: AppStyles.getSecondaryTextColor(context)),
               ),
             ),
             style: TextStyle(color: AppStyles.getTextColor(context)),
@@ -85,7 +88,7 @@ class _GoldWeightStepState extends State<GoldWeightStep> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.1),
+              color: Colors.blue.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(

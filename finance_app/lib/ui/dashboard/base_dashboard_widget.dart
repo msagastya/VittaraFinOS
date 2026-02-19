@@ -16,7 +16,8 @@ abstract class BaseDashboardWidget extends StatelessWidget {
 
   /// Build widget content based on available space
   /// Override this in child classes
-  Widget buildContent(BuildContext context, {
+  Widget buildContent(
+    BuildContext context, {
     required int columnSpan,
     required int rowSpan,
     required double width,
@@ -44,7 +45,6 @@ abstract class BaseDashboardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -53,7 +53,7 @@ abstract class BaseDashboardWidget extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -98,7 +98,8 @@ abstract class BaseDashboardWidget extends StatelessWidget {
                   child: Icon(
                     Icons.open_in_new,
                     size: 14,
-                    color: AppStyles.getPrimaryColor(context).withOpacity(0.4),
+                    color: AppStyles.getPrimaryColor(context)
+                        .withValues(alpha: 0.4),
                   ),
                 ),
             ],

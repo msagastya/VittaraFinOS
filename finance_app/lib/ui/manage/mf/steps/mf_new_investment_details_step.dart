@@ -17,7 +17,8 @@ class MFNewInvestmentDetailsStep extends StatefulWidget {
       _MFNewInvestmentDetailsStepState();
 }
 
-class _MFNewInvestmentDetailsStepState extends State<MFNewInvestmentDetailsStep> {
+class _MFNewInvestmentDetailsStepState
+    extends State<MFNewInvestmentDetailsStep> {
   late TextEditingController _amountController;
   bool _isFetchingNAV = false;
   String _navError = '';
@@ -27,10 +28,9 @@ class _MFNewInvestmentDetailsStepState extends State<MFNewInvestmentDetailsStep>
     super.initState();
     final controller = Provider.of<MFWizardController>(context, listen: false);
     _amountController = TextEditingController(
-      text:
-          controller.investmentAmount > 0
-              ? controller.investmentAmount.toString()
-              : '',
+      text: controller.investmentAmount > 0
+          ? controller.investmentAmount.toString()
+          : '',
     );
   }
 
@@ -154,8 +154,7 @@ class _MFNewInvestmentDetailsStepState extends State<MFNewInvestmentDetailsStep>
           const SizedBox(height: 8),
           CupertinoTextField(
             controller: _amountController,
-            keyboardType:
-                const TextInputType.numberWithOptions(decimal: true),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
             placeholder: '0.00',
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -243,9 +242,9 @@ class _MFNewInvestmentDetailsStepState extends State<MFNewInvestmentDetailsStep>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
+                color: Colors.red.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.red.withOpacity(0.3)),
+                border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
               ),
               child: Text(
                 _navError,
@@ -298,7 +297,9 @@ class _MFNewInvestmentDetailsStepState extends State<MFNewInvestmentDetailsStep>
             Consumer<AccountsController>(
               builder: (context, accountsController, child) {
                 final bankAccounts = accountsController.accounts
-                    .where((acc) => acc.type == AccountType.savings || acc.type == AccountType.current)
+                    .where((acc) =>
+                        acc.type == AccountType.savings ||
+                        acc.type == AccountType.current)
                     .toList();
 
                 return Column(
@@ -307,7 +308,7 @@ class _MFNewInvestmentDetailsStepState extends State<MFNewInvestmentDetailsStep>
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.orange.withOpacity(0.1),
+                          color: Colors.orange.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -344,7 +345,7 @@ class _MFNewInvestmentDetailsStepState extends State<MFNewInvestmentDetailsStep>
                               decoration: BoxDecoration(
                                 color: isSelected
                                     ? SemanticColors.investments
-                                        .withOpacity(0.1)
+                                        .withValues(alpha: 0.1)
                                     : AppStyles.getCardColor(context),
                                 border: isSelected
                                     ? Border.all(
@@ -359,7 +360,7 @@ class _MFNewInvestmentDetailsStepState extends State<MFNewInvestmentDetailsStep>
                                     padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(
                                       color:
-                                          account.color.withOpacity(0.2),
+                                          account.color.withValues(alpha: 0.2),
                                       shape: BoxShape.circle,
                                     ),
                                     child: Icon(
@@ -384,8 +385,9 @@ class _MFNewInvestmentDetailsStepState extends State<MFNewInvestmentDetailsStep>
                                         Text(
                                           '₹${account.balance.toStringAsFixed(2)}',
                                           style: TextStyle(
-                                            color: AppStyles
-                                                .getSecondaryTextColor(context),
+                                            color:
+                                                AppStyles.getSecondaryTextColor(
+                                                    context),
                                             fontSize: 12,
                                           ),
                                         ),
@@ -394,8 +396,7 @@ class _MFNewInvestmentDetailsStepState extends State<MFNewInvestmentDetailsStep>
                                   ),
                                   if (isSelected)
                                     const Icon(
-                                      CupertinoIcons
-                                          .check_mark_circled_solid,
+                                      CupertinoIcons.check_mark_circled_solid,
                                       color: SemanticColors.investments,
                                     ),
                                 ],
@@ -459,10 +460,10 @@ class _MFNewInvestmentDetailsStepState extends State<MFNewInvestmentDetailsStep>
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: SemanticColors.investments.withOpacity(0.1),
+                color: SemanticColors.investments.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: SemanticColors.investments.withOpacity(0.3),
+                  color: SemanticColors.investments.withValues(alpha: 0.3),
                 ),
               ),
               child: Column(

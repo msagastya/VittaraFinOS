@@ -51,12 +51,11 @@ class FrequencyStep extends StatelessWidget {
           const SizedBox(height: 30),
           Column(
             children: options.map((option) {
-              final isSelected =
-                  controller.paymentFrequency == option['value'];
+              final isSelected = controller.paymentFrequency == option['value'];
 
               return GestureDetector(
-                onTap: () => controller
-                    .updatePaymentFrequency(option['value'] as RDPaymentFrequency),
+                onTap: () => controller.updatePaymentFrequency(
+                    option['value'] as RDPaymentFrequency),
                 child: Container(
                   margin: const EdgeInsets.only(bottom: 12),
                   padding: const EdgeInsets.all(16),

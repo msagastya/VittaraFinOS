@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 // ============================================================
@@ -27,9 +26,11 @@ class Spacing {
   // Common padding presets
   static const EdgeInsets screenPadding = EdgeInsets.symmetric(horizontal: lg);
   static const EdgeInsets cardPadding = EdgeInsets.all(xl);
-  static const EdgeInsets listItemPadding = EdgeInsets.symmetric(horizontal: lg, vertical: md);
+  static const EdgeInsets listItemPadding =
+      EdgeInsets.symmetric(horizontal: lg, vertical: md);
   static const EdgeInsets modalPadding = EdgeInsets.all(xxl);
-  static const EdgeInsets buttonPadding = EdgeInsets.symmetric(horizontal: lg, vertical: md);
+  static const EdgeInsets buttonPadding =
+      EdgeInsets.symmetric(horizontal: lg, vertical: md);
 }
 
 /// Animation durations for consistent timing
@@ -78,7 +79,8 @@ class Radii {
   static BorderRadius get cardRadius => BorderRadius.circular(xxl);
   static BorderRadius get buttonRadius => BorderRadius.circular(md);
   static BorderRadius get inputRadius => BorderRadius.circular(md);
-  static BorderRadius get modalRadius => const BorderRadius.vertical(top: Radius.circular(24));
+  static BorderRadius get modalRadius =>
+      const BorderRadius.vertical(top: Radius.circular(24));
   static BorderRadius get iconBoxRadius => BorderRadius.circular(lg);
   static BorderRadius get pillRadius => BorderRadius.circular(full);
   static BorderRadius get chipRadius => BorderRadius.circular(sm);
@@ -115,12 +117,12 @@ class Shadows {
 
   // FAB shadow
   static List<BoxShadow> fab(Color color) => [
-    BoxShadow(
-      color: color.withValues(alpha: 0.4),
-      blurRadius: 10,
-      offset: const Offset(0, 4),
-    ),
-  ];
+        BoxShadow(
+          color: color.withValues(alpha: 0.4),
+          blurRadius: 10,
+          offset: const Offset(0, 4),
+        ),
+      ];
 
   // Elevated shadow for modals/sheets
   static List<BoxShadow> elevated = [
@@ -134,12 +136,12 @@ class Shadows {
 
   // Icon glow effect
   static List<BoxShadow> iconGlow(Color color) => [
-    BoxShadow(
-      color: color.withValues(alpha: 0.2),
-      blurRadius: 10,
-      offset: const Offset(0, 4),
-    ),
-  ];
+        BoxShadow(
+          color: color.withValues(alpha: 0.2),
+          blurRadius: 10,
+          offset: const Offset(0, 4),
+        ),
+      ];
 }
 
 /// Semantic colors for different states and actions
@@ -179,15 +181,21 @@ class SemanticColors {
 
   /// Get color based on theme
   static Color getPrimary(BuildContext context) {
-    return Theme.of(context).brightness == Brightness.dark ? primaryDark : primary;
+    return Theme.of(context).brightness == Brightness.dark
+        ? primaryDark
+        : primary;
   }
 
   static Color getSuccess(BuildContext context) {
-    return Theme.of(context).brightness == Brightness.dark ? successDark : success;
+    return Theme.of(context).brightness == Brightness.dark
+        ? successDark
+        : success;
   }
 
   static Color getWarning(BuildContext context) {
-    return Theme.of(context).brightness == Brightness.dark ? warningDark : warning;
+    return Theme.of(context).brightness == Brightness.dark
+        ? warningDark
+        : warning;
   }
 
   static Color getError(BuildContext context) {
@@ -337,17 +345,17 @@ class InvestmentColors {
   InvestmentColors._();
 
   // Investment types
-  static const Color fixedDeposit = Color(0xFFFF6B00);      // Orange
-  static const Color recurringDeposit = Color(0xFFD600CC);  // Magenta
-  static const Color stocks = Color(0xFF00B050);             // Green
-  static const Color bonds = Color(0xFF00A6CC);              // Cyan
-  static const Color mutualFunds = Color(0xFF0066CC);        // Blue
-  static const Color nps = Color(0xFF9B59B6);                // Purple
-  static const Color cryptocurrency = Color(0xFFF7931A);     // Bitcoin Orange
-  static const Color digitalGold = Color(0xFFFFB81C);        // Gold Yellow
-  static const Color pension = Color(0xFF8E44AD);            // Dark Purple
-  static const Color commodities = Color(0xFFC0922B);        // Bronze
-  static const Color futuresOptions = Color(0xFFE74C3C);     // Red
+  static const Color fixedDeposit = Color(0xFFFF6B00); // Orange
+  static const Color recurringDeposit = Color(0xFFD600CC); // Magenta
+  static const Color stocks = Color(0xFF00B050); // Green
+  static const Color bonds = Color(0xFF00A6CC); // Cyan
+  static const Color mutualFunds = Color(0xFF0066CC); // Blue
+  static const Color nps = Color(0xFF9B59B6); // Purple
+  static const Color cryptocurrency = Color(0xFFF7931A); // Bitcoin Orange
+  static const Color digitalGold = Color(0xFFFFB81C); // Gold Yellow
+  static const Color pension = Color(0xFF8E44AD); // Dark Purple
+  static const Color commodities = Color(0xFFC0922B); // Bronze
+  static const Color futuresOptions = Color(0xFFE74C3C); // Red
 }
 
 /// Preset color palettes for pickers

@@ -22,7 +22,7 @@ class SIPReviewStep extends StatelessWidget {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: SemanticColors.investments.withOpacity(0.1),
+                color: SemanticColors.investments.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Center(
@@ -42,9 +42,11 @@ class SIPReviewStep extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 32),
-          _buildRow(context, 'SIP Amount', '₹${controller.sipAmount.toStringAsFixed(2)}/month'),
+          _buildRow(context, 'SIP Amount',
+              '₹${controller.sipAmount.toStringAsFixed(2)}/month'),
           _buildRow(context, 'Frequency', _getFrequencyLabel(controller)),
-          _buildRow(context, 'Deduction Account', controller.deductionAccount?.name ?? 'Not selected'),
+          _buildRow(context, 'Deduction Account',
+              controller.deductionAccount?.name ?? 'Not selected'),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 16),
             child: Divider(),
@@ -59,7 +61,7 @@ class SIPReviewStep extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: CupertinoColors.systemGreen.withOpacity(0.1),
+                color: CupertinoColors.systemGreen.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(
@@ -75,8 +77,15 @@ class SIPReviewStep extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   _buildProjectionRow('Year 1', controller.sipAmount),
-                  _buildProjectionRow('Year 2', controller.sipAmount * (1 + controller.stepUpPercent / 100)),
-                  _buildProjectionRow('Year 3', controller.sipAmount * ((1 + controller.stepUpPercent / 100) * (1 + controller.stepUpPercent / 100))),
+                  _buildProjectionRow(
+                      'Year 2',
+                      controller.sipAmount *
+                          (1 + controller.stepUpPercent / 100)),
+                  _buildProjectionRow(
+                      'Year 3',
+                      controller.sipAmount *
+                          ((1 + controller.stepUpPercent / 100) *
+                              (1 + controller.stepUpPercent / 100))),
                 ],
               ),
             ),
@@ -139,7 +148,15 @@ class SIPReviewStep extends StatelessWidget {
       case SIPFrequency.daily:
         return 'Daily';
       case SIPFrequency.weekly:
-        final days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        final days = [
+          'Monday',
+          'Tuesday',
+          'Wednesday',
+          'Thursday',
+          'Friday',
+          'Saturday',
+          'Sunday'
+        ];
         return 'Weekly (${days[controller.selectedWeekday ?? 0]})';
       case SIPFrequency.monthly:
         return 'Monthly (${controller.selectedMonthDay}${_getDaySuffix(controller.selectedMonthDay)})';

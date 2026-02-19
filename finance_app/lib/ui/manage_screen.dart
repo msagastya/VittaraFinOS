@@ -11,10 +11,6 @@ import 'package:vittara_fin_os/ui/manage/categories_screen.dart';
 import 'package:vittara_fin_os/ui/manage/lending_borrowing_screen.dart';
 import 'package:vittara_fin_os/ui/manage/contacts_screen.dart';
 import 'package:vittara_fin_os/ui/manage/tags_screen.dart';
-import 'package:vittara_fin_os/ui/manage/goals/goals_screen.dart';
-import 'package:vittara_fin_os/ui/manage/budgets/budgets_screen.dart';
-import 'package:vittara_fin_os/ui/manage/savings/savings_planners_screen.dart';
-import 'package:vittara_fin_os/ui/manage/ai_planner/ai_monthly_planner_screen.dart';
 import 'package:vittara_fin_os/ui/manage/transactions_archive_screen.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
@@ -33,40 +29,93 @@ class _ManageScreenState extends State<ManageScreen> {
   final AppLogger logger = AppLogger();
 
   final List<Map<String, dynamic>> _items = [
-    {'id': 'banks', 'title': 'Banks', 'icon': CupertinoIcons.building_2_fill, 'color': CupertinoColors.systemBlue},
-    {'id': 'accounts', 'title': 'Accounts', 'icon': CupertinoIcons.creditcard_fill, 'color': CupertinoColors.systemGreen},
-    {'id': 'pay', 'title': 'Payment Apps', 'icon': CupertinoIcons.device_phone_portrait, 'color': CupertinoColors.systemIndigo},
-    {'id': 'invest', 'title': 'Investments', 'icon': CupertinoIcons.graph_square_fill, 'color': CupertinoColors.systemOrange},
-    {'id': 'debt', 'title': 'Liabilities', 'icon': CupertinoIcons.money_dollar_circle_fill, 'color': CupertinoColors.systemRed},
-    {'id': 'cats', 'title': 'Categories', 'icon': CupertinoIcons.square_grid_2x2_fill, 'color': CupertinoColors.systemPurple},
-    {'id': 'contacts', 'title': 'People', 'icon': CupertinoIcons.person_2_fill, 'color': CupertinoColors.systemBrown},
-    {'id': 'lend', 'title': 'Personal Lending & Borrowing', 'icon': CupertinoIcons.money_dollar_circle_fill, 'color': CupertinoColors.systemTeal},
-    {'id': 'tags', 'title': 'Tags', 'icon': CupertinoIcons.tag_fill, 'color': CupertinoColors.systemIndigo},
-    {'id': 'archived', 'title': 'Archived Transactions', 'icon': CupertinoIcons.archivebox_fill, 'color': CupertinoColors.systemPurple},
+    {
+      'id': 'banks',
+      'title': 'Banks',
+      'icon': CupertinoIcons.building_2_fill,
+      'color': CupertinoColors.systemBlue
+    },
+    {
+      'id': 'accounts',
+      'title': 'Accounts',
+      'icon': CupertinoIcons.creditcard_fill,
+      'color': CupertinoColors.systemGreen
+    },
+    {
+      'id': 'pay',
+      'title': 'Payment Apps',
+      'icon': CupertinoIcons.device_phone_portrait,
+      'color': CupertinoColors.systemIndigo
+    },
+    {
+      'id': 'invest',
+      'title': 'Investments',
+      'icon': CupertinoIcons.graph_square_fill,
+      'color': CupertinoColors.systemOrange
+    },
+    {
+      'id': 'debt',
+      'title': 'Liabilities',
+      'icon': CupertinoIcons.money_dollar_circle_fill,
+      'color': CupertinoColors.systemRed
+    },
+    {
+      'id': 'cats',
+      'title': 'Categories',
+      'icon': CupertinoIcons.square_grid_2x2_fill,
+      'color': CupertinoColors.systemPurple
+    },
+    {
+      'id': 'contacts',
+      'title': 'People',
+      'icon': CupertinoIcons.person_2_fill,
+      'color': CupertinoColors.systemBrown
+    },
+    {
+      'id': 'lend',
+      'title': 'Personal Lending & Borrowing',
+      'icon': CupertinoIcons.money_dollar_circle_fill,
+      'color': CupertinoColors.systemTeal
+    },
+    {
+      'id': 'tags',
+      'title': 'Tags',
+      'icon': CupertinoIcons.tag_fill,
+      'color': CupertinoColors.systemIndigo
+    },
+    {
+      'id': 'archived',
+      'title': 'Archived Transactions',
+      'icon': CupertinoIcons.archivebox_fill,
+      'color': CupertinoColors.systemPurple
+    },
   ];
-
 
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
       navigationBar: CupertinoNavigationBar(
-        middle: Text('Manage', style: TextStyle(color: AppStyles.getTextColor(context))),
+        middle: Text('Manage',
+            style: TextStyle(color: AppStyles.getTextColor(context))),
         previousPageTitle: 'Back',
-        backgroundColor: AppStyles.getBackground(context).withValues(alpha: 0.9),
+        backgroundColor:
+            AppStyles.getBackground(context).withValues(alpha: 0.9),
         border: null,
       ),
       child: Consumer2<SettingsController, LendingBorrowingController>(
         builder: (context, settings, lendingController, child) {
           // Filter items based on settings
-    final filteredItems = _items.where((item) {
-      // Hide Investments if Investment Tracking is disabled
-      if (item['id'] == 'invest' && !settings.isInvestmentTrackingEnabled) {
-        return false;
-      }
-      if (item['id'] == 'archived' && !settings.isArchivedTransactionsEnabled) {
-        return false;
-      }
+          final filteredItems = _items.where((item) {
+            // Hide Investments if Investment Tracking is disabled
+            if (item['id'] == 'invest' &&
+                !settings.isInvestmentTrackingEnabled) {
+              return false;
+            }
+            if (item['id'] == 'archived' &&
+                !settings.isArchivedTransactionsEnabled) {
+              return false;
+            }
             // Hide People if no contacts are used in lending/borrowing
             if (item['id'] == 'contacts' && lendingController.records.isEmpty) {
               return false;
@@ -76,7 +125,8 @@ class _ManageScreenState extends State<ManageScreen> {
 
           return SafeArea(
             child: ReorderableListView.builder(
-              padding: EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.xl),
+              padding: EdgeInsets.symmetric(
+                  horizontal: Spacing.lg, vertical: Spacing.xl),
               itemCount: filteredItems.length,
               onReorder: (oldIndex, newIndex) {
                 Haptics.reorder();
@@ -98,7 +148,8 @@ class _ManageScreenState extends State<ManageScreen> {
                         decoration: AppStyles.cardDecoration(context).copyWith(
                           boxShadow: [
                             BoxShadow(
-                              color: SemanticColors.getPrimary(context).withValues(alpha: 0.2),
+                              color: SemanticColors.getPrimary(context)
+                                  .withValues(alpha: 0.2),
                               blurRadius: 20,
                               offset: const Offset(0, 8),
                             ),
@@ -122,7 +173,8 @@ class _ManageScreenState extends State<ManageScreen> {
     );
   }
 
-  Widget _build3DCard(Map<String, dynamic> item, int index, SettingsController settings) {
+  Widget _build3DCard(
+      Map<String, dynamic> item, int index, SettingsController settings) {
     return Padding(
       key: ValueKey(item['id']),
       padding: EdgeInsets.only(bottom: Spacing.lg),
@@ -160,7 +212,8 @@ class _ManageScreenState extends State<ManageScreen> {
     );
   }
 
-  Future<void> _onCardPressed(Map<String, dynamic> item, SettingsController settings) async {
+  Future<void> _onCardPressed(
+      Map<String, dynamic> item, SettingsController settings) async {
     if (item['id'] == 'archived' && settings.isArchivedTransactionsEnabled) {
       final allowed = await settings.authenticateArchivedAccess();
       if (!allowed) return;

@@ -12,16 +12,17 @@ class PensionContribution {
   });
 
   Map<String, dynamic> toMap() => {
-    'date': date.toIso8601String(),
-    'amount': amount,
-    'employerContribution': employerContribution,
-  };
+        'date': date.toIso8601String(),
+        'amount': amount,
+        'employerContribution': employerContribution,
+      };
 
-  factory PensionContribution.fromMap(Map<String, dynamic> map) => PensionContribution(
-    date: DateTime.parse(map['date']),
-    amount: (map['amount'] as num).toDouble(),
-    employerContribution: map['employerContribution'] as double?,
-  );
+  factory PensionContribution.fromMap(Map<String, dynamic> map) =>
+      PensionContribution(
+        date: DateTime.parse(map['date']),
+        amount: (map['amount'] as num).toDouble(),
+        employerContribution: map['employerContribution'] as double?,
+      );
 }
 
 class PensionScheme {
@@ -61,27 +62,28 @@ class PensionScheme {
   }
 
   Map<String, dynamic> toMap() => {
-    'id': id,
-    'accountNumber': accountNumber,
-    'type': type.index,
-    'principalContributed': principalContributed,
-    'currentValue': currentValue,
-    'contributions': contributions.map((c) => c.toMap()).toList(),
-    'createdDate': createdDate.toIso8601String(),
-    'notes': notes,
-  };
+        'id': id,
+        'accountNumber': accountNumber,
+        'type': type.index,
+        'principalContributed': principalContributed,
+        'currentValue': currentValue,
+        'contributions': contributions.map((c) => c.toMap()).toList(),
+        'createdDate': createdDate.toIso8601String(),
+        'notes': notes,
+      };
 
   factory PensionScheme.fromMap(Map<String, dynamic> map) => PensionScheme(
-    id: map['id'],
-    accountNumber: map['accountNumber'],
-    type: PensionSchemeType.values[map['type'] as int],
-    principalContributed: (map['principalContributed'] as num).toDouble(),
-    currentValue: (map['currentValue'] as num).toDouble(),
-    contributions: (map['contributions'] as List?)
-        ?.map((c) => PensionContribution.fromMap(c as Map<String, dynamic>))
-        .toList() ??
-        [],
-    createdDate: DateTime.parse(map['createdDate']),
-    notes: map['notes'] as String?,
-  );
+        id: map['id'],
+        accountNumber: map['accountNumber'],
+        type: PensionSchemeType.values[map['type'] as int],
+        principalContributed: (map['principalContributed'] as num).toDouble(),
+        currentValue: (map['currentValue'] as num).toDouble(),
+        contributions: (map['contributions'] as List?)
+                ?.map((c) =>
+                    PensionContribution.fromMap(c as Map<String, dynamic>))
+                .toList() ??
+            [],
+        createdDate: DateTime.parse(map['createdDate']),
+        notes: map['notes'] as String?,
+      );
 }

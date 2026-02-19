@@ -73,10 +73,11 @@ class _MFWizardContent extends StatelessWidget {
           'currentNAV': controller.selectedMF!.nav,
           'currentValue': (controller.selectedMF!.nav ?? 0) * units,
           'investmentType': controller.selectedMFType?.name,
-          'deductedFromAccount':
-              controller.deductFromAccount && controller.selectedMFType == MFType.newMF,
-          'deductionAccountId':
-              controller.deductFromAccount ? controller.deductionAccount?.id : null,
+          'deductedFromAccount': controller.deductFromAccount &&
+              controller.selectedMFType == MFType.newMF,
+          'deductionAccountId': controller.deductFromAccount
+              ? controller.deductionAccount?.id
+              : null,
           'sipActive': controller.sipActive,
           'sipData': controller.sipData,
         },
@@ -99,7 +100,8 @@ class _MFWizardContent extends StatelessWidget {
     BuildContext context,
     MFWizardController controller,
   ) async {
-    if (controller.mode != MFWizardMode.add && controller.targetInvestment != null) {
+    if (controller.mode != MFWizardMode.add &&
+        controller.targetInvestment != null) {
       await _updateInvestment(context, controller);
       return;
     }
@@ -116,7 +118,8 @@ class _MFWizardContent extends StatelessWidget {
     final target = controller.targetInvestment!;
     final metadata = Map<String, dynamic>.from(target.metadata ?? {});
     final currentUnits = (metadata['units'] as num?)?.toDouble() ?? 0;
-    final currentAmount = (metadata['investmentAmount'] as num?)?.toDouble() ?? target.amount;
+    final currentAmount =
+        (metadata['investmentAmount'] as num?)?.toDouble() ?? target.amount;
 
     final transactionAmount = controller.investmentAmount;
     final transactionUnits = controller.selectedMFType == MFType.existing &&
@@ -129,8 +132,10 @@ class _MFWizardContent extends StatelessWidget {
     final amountDelta = sign * transactionAmount;
 
     final freshUnits = (currentUnits + unitsDelta).clamp(0.0, double.infinity);
-    final freshAmount = (currentAmount + amountDelta).clamp(0.0, double.infinity);
-    final avgNav = freshUnits > 0 ? freshAmount / freshUnits : controller.averageNAV;
+    final freshAmount =
+        (currentAmount + amountDelta).clamp(0.0, double.infinity);
+    final avgNav =
+        freshUnits > 0 ? freshAmount / freshUnits : controller.averageNAV;
     final currentMarketNav =
         controller.selectedMF?.nav ?? controller.averageNAV;
 
@@ -143,7 +148,8 @@ class _MFWizardContent extends StatelessWidget {
       metadata['sipActive'] = true;
     }
 
-    final updatedInvestment = target.copyWith(amount: freshAmount, metadata: metadata);
+    final updatedInvestment =
+        target.copyWith(amount: freshAmount, metadata: metadata);
     await investmentsController.updateInvestment(updatedInvestment);
 
     if (context.mounted) {
@@ -172,7 +178,8 @@ class _MFWizardContent extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // Determine progress steps based on MF type
-    int totalSteps = 5; // Default for Existing MF (Search, Type, Account, Details, SIP/Review)
+    int totalSteps =
+        5; // Default for Existing MF (Search, Type, Account, Details, SIP/Review)
     if (controller.selectedMFType == MFType.newMF) {
       totalSteps = 6; // New MF has an extra step (different details)
     }
@@ -297,9 +304,9 @@ class _MFWizardContent extends StatelessWidget {
               Navigator.pop(dialogContext); // Close dialog
               controller.setSIPData(null); // No SIP
               // Save investment without SIP (use main context)
-                  if (context.mounted) {
-                    await _saveOrUpdateInvestment(context, controller);
-                  }
+              if (context.mounted) {
+                await _saveOrUpdateInvestment(context, controller);
+              }
             },
           ),
           CupertinoDialogAction(

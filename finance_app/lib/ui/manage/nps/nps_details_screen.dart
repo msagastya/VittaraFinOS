@@ -28,7 +28,8 @@ class _NPSDetailsScreenState extends State<NPSDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final investmentsCtrl = Provider.of<InvestmentsController>(context, listen: false);
+    final investmentsCtrl =
+        Provider.of<InvestmentsController>(context, listen: false);
     final isPositive = nps.gainLoss >= 0;
 
     return CupertinoPageScaffold(
@@ -128,7 +129,7 @@ class _NPSDetailsScreenState extends State<NPSDetailsScreen> {
               SizedBox(
                 width: double.infinity,
                 child: CupertinoButton(
-                  color: Colors.red.withOpacity(0.1),
+                  color: Colors.red.withValues(alpha: 0.1),
                   onPressed: () {
                     showCupertinoDialog(
                       context: context,
@@ -144,7 +145,8 @@ class _NPSDetailsScreenState extends State<NPSDetailsScreen> {
                             isDestructiveAction: true,
                             onPressed: () async {
                               Navigator.pop(ctx);
-                              await investmentsCtrl.deleteInvestment(widget.investment.id);
+                              await investmentsCtrl
+                                  .deleteInvestment(widget.investment.id);
                               if (context.mounted) {
                                 toast.showSuccess('NPS account deleted!');
                                 Navigator.pop(context);
@@ -156,7 +158,8 @@ class _NPSDetailsScreenState extends State<NPSDetailsScreen> {
                       ),
                     );
                   },
-                  child: const Text('Delete Account', style: TextStyle(color: Colors.red)),
+                  child: const Text('Delete Account',
+                      style: TextStyle(color: Colors.red)),
                 ),
               ),
               const SizedBox(height: 20),
@@ -181,14 +184,13 @@ class _DetailCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withOpacity(0.2)),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title,
-              style: TextStyle(
-                  fontWeight: FontWeight.bold, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
           const SizedBox(height: 16),
           ...List.generate(
             children.length,

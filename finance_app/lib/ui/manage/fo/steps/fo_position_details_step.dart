@@ -6,7 +6,7 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 class FOPositionDetailsStep extends StatefulWidget {
   final FOWizardController ctrl;
 
-  const FOPositionDetailsStep(this.ctrl);
+  const FOPositionDetailsStep(this.ctrl, {super.key});
 
   @override
   State<FOPositionDetailsStep> createState() => _FOPositionDetailsStepState();
@@ -77,7 +77,8 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
                         decoration: BoxDecoration(
                           color: AppStyles.getCardColor(context),
                           border: Border(
-                            bottom: BorderSide(color: Colors.grey.withOpacity(0.2)),
+                            bottom: BorderSide(
+                                color: Colors.grey.withValues(alpha: 0.2)),
                           ),
                         ),
                         child: Row(
@@ -112,7 +113,7 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -144,7 +145,8 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
                         decoration: BoxDecoration(
                           color: AppStyles.getCardColor(context),
                           border: Border(
-                            bottom: BorderSide(color: Colors.grey.withOpacity(0.2)),
+                            bottom: BorderSide(
+                                color: Colors.grey.withValues(alpha: 0.2)),
                           ),
                         ),
                         child: Row(
@@ -179,7 +181,7 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -193,25 +195,24 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
               ),
             ),
           ),
-          if (widget.ctrl.entryPrice != null && widget.ctrl.currentPrice != null) ...[
+          if (widget.ctrl.entryPrice != null &&
+              widget.ctrl.currentPrice != null) ...[
             const SizedBox(height: 24),
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: (widget.ctrl.gainLoss >= 0
-                        ? Colors.green
-                        : Colors.red)
-                    .withOpacity(0.1),
+                color: (widget.ctrl.gainLoss >= 0 ? Colors.green : Colors.red)
+                    .withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                    color: (widget.ctrl.gainLoss >= 0
-                            ? Colors.green
-                            : Colors.red)
-                        .withOpacity(0.3)),
+                    color:
+                        (widget.ctrl.gainLoss >= 0 ? Colors.green : Colors.red)
+                            .withValues(alpha: 0.3)),
               ),
               child: Column(
                 children: [
-                  _Summary('Current Value', '₹${widget.ctrl.currentValue.toStringAsFixed(2)}', true),
+                  _Summary('Current Value',
+                      '₹${widget.ctrl.currentValue.toStringAsFixed(2)}', true),
                   const SizedBox(height: 12),
                   _Summary(
                       'Gain/Loss',
@@ -239,7 +240,8 @@ class _Summary extends StatelessWidget {
   final bool isPositive;
   final bool isBold;
 
-  const _Summary(this.label, this.value, this.isPositive, {this.isBold = false});
+  const _Summary(this.label, this.value, this.isPositive,
+      {this.isBold = false});
 
   @override
   Widget build(BuildContext context) {

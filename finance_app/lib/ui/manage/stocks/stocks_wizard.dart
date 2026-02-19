@@ -29,16 +29,19 @@ class StocksWizard extends StatelessWidget {
 class _StocksWizardContent extends StatelessWidget {
   const _StocksWizardContent();
 
-  Future<void> _saveInvestment(BuildContext context, StocksWizardController controller) async {
-    final investmentsController = Provider.of<InvestmentsController>(context, listen: false);
-    final accountsController = Provider.of<AccountsController>(context, listen: false);
+  Future<void> _saveInvestment(
+      BuildContext context, StocksWizardController controller) async {
+    final investmentsController =
+        Provider.of<InvestmentsController>(context, listen: false);
+    final accountsController =
+        Provider.of<AccountsController>(context, listen: false);
 
     try {
       // 1. Deduct from account if needed
       if (controller.deductFromAccount && controller.selectedAccount != null) {
         final account = controller.selectedAccount!;
         final newBalance = account.balance - controller.totalDeduction;
-        
+
         final updatedAccount = account.copyWith(balance: newBalance);
         await accountsController.updateAccount(updatedAccount);
       }
@@ -61,7 +64,9 @@ class _StocksWizardContent extends StatelessWidget {
           'extraCharges': controller.extraCharges,
           'deductedFromAccount': controller.deductFromAccount,
           'purchaseDate': controller.purchaseDate.toIso8601String(),
-          'currentValue': controller.currentValue > 0 ? controller.currentValue : controller.totalAmount,
+          'currentValue': controller.currentValue > 0
+              ? controller.currentValue
+              : controller.totalAmount,
         },
       );
 
@@ -86,7 +91,8 @@ class _StocksWizardContent extends StatelessWidget {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
       navigationBar: CupertinoNavigationBar(
-        middle: Text('Add Stock Investment', style: TextStyle(color: AppStyles.getTextColor(context))),
+        middle: Text('Add Stock Investment',
+            style: TextStyle(color: AppStyles.getTextColor(context))),
         backgroundColor: AppStyles.getBackground(context),
         leading: CupertinoButton(
           padding: EdgeInsets.zero,
@@ -141,14 +147,18 @@ class _StocksWizardContent extends StatelessWidget {
               child: SizedBox(
                 width: double.infinity,
                 child: CupertinoButton.filled(
-                  onPressed: controller.canProceed() ? () async {
-                    if (controller.currentStep == 4) {
-                      await _saveInvestment(context, controller);
-                    } else {
-                      controller.nextPage();
-                    }
-                  } : null,
-                  child: Text(controller.currentStep == 4 ? 'Confirm & Save' : 'Continue'),
+                  onPressed: controller.canProceed()
+                      ? () async {
+                          if (controller.currentStep == 4) {
+                            await _saveInvestment(context, controller);
+                          } else {
+                            controller.nextPage();
+                          }
+                        }
+                      : null,
+                  child: Text(controller.currentStep == 4
+                      ? 'Confirm & Save'
+                      : 'Continue'),
                 ),
               ),
             ),

@@ -61,17 +61,20 @@ class FDTypePayoutStep extends StatelessWidget {
               context: context,
               label: 'Monthly',
               description: 'Every month',
-              isSelected: controller.payoutFrequency == FDPayoutFrequency.monthly,
-              onTap: () => controller.updatePayoutFrequency(FDPayoutFrequency.monthly),
+              isSelected:
+                  controller.payoutFrequency == FDPayoutFrequency.monthly,
+              onTap: () =>
+                  controller.updatePayoutFrequency(FDPayoutFrequency.monthly),
             ),
             const SizedBox(height: 10),
             _buildPayoutOption(
               context: context,
               label: 'Quarterly',
               description: 'Every 3 months',
-              isSelected: controller.payoutFrequency == FDPayoutFrequency.quarterly,
-              onTap: () => controller
-                  .updatePayoutFrequency(FDPayoutFrequency.quarterly),
+              isSelected:
+                  controller.payoutFrequency == FDPayoutFrequency.quarterly,
+              onTap: () =>
+                  controller.updatePayoutFrequency(FDPayoutFrequency.quarterly),
             ),
             const SizedBox(height: 10),
             _buildPayoutOption(
@@ -80,15 +83,16 @@ class FDTypePayoutStep extends StatelessWidget {
               description: 'Every 6 months',
               isSelected:
                   controller.payoutFrequency == FDPayoutFrequency.semiAnnual,
-              onTap: () =>
-                  controller.updatePayoutFrequency(FDPayoutFrequency.semiAnnual),
+              onTap: () => controller
+                  .updatePayoutFrequency(FDPayoutFrequency.semiAnnual),
             ),
             const SizedBox(height: 10),
             _buildPayoutOption(
               context: context,
               label: 'Annually',
               description: 'Every year',
-              isSelected: controller.payoutFrequency == FDPayoutFrequency.annual,
+              isSelected:
+                  controller.payoutFrequency == FDPayoutFrequency.annual,
               onTap: () =>
                   controller.updatePayoutFrequency(FDPayoutFrequency.annual),
             ),
@@ -97,16 +101,18 @@ class FDTypePayoutStep extends StatelessWidget {
               context: context,
               label: 'At Maturity',
               description: 'Single payout at maturity',
-              isSelected: controller.payoutFrequency == FDPayoutFrequency.atMaturity,
-              onTap: () =>
-                  controller.updatePayoutFrequency(FDPayoutFrequency.atMaturity),
+              isSelected:
+                  controller.payoutFrequency == FDPayoutFrequency.atMaturity,
+              onTap: () => controller
+                  .updatePayoutFrequency(FDPayoutFrequency.atMaturity),
             ),
           ] else
             Container(
               margin: const EdgeInsets.only(top: 40),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppStyles.getPrimaryColor(context).withOpacity(0.1),
+                color:
+                    AppStyles.getPrimaryColor(context).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(

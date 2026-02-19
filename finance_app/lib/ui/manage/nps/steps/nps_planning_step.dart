@@ -20,7 +20,8 @@ class NPSPlanningStep extends StatelessWidget {
           Text('Retirement Planning', style: AppStyles.titleStyle(context)),
           const SizedBox(height: 8),
           Text('Plan your NPS withdrawal strategy',
-              style: TextStyle(color: AppStyles.getSecondaryTextColor(context))),
+              style:
+                  TextStyle(color: AppStyles.getSecondaryTextColor(context))),
           const SizedBox(height: 30),
           Text('Planned Retirement Date',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
@@ -41,16 +42,21 @@ class NPSPlanningStep extends StatelessWidget {
                               onPressed: () => Navigator.pop(ctx),
                               child: const Text('Cancel')),
                           CupertinoButton(
-                              onPressed: () => Navigator.pop(ctx, ctrl.plannedRetirementDate),
+                              onPressed: () => Navigator.pop(
+                                  ctx, ctrl.plannedRetirementDate),
                               child: const Text('Done')),
                         ],
                       ),
                       Expanded(
                         child: CupertinoDatePicker(
                           mode: CupertinoDatePickerMode.date,
-                          initialDateTime: ctrl.plannedRetirementDate ?? DateTime.now().add(const Duration(days: 365 * 30)),
-                          minimumDate: DateTime.now().add(const Duration(days: 365)),
-                          onDateTimeChanged: (d) => ctrl.updateRetirementDate(d),
+                          initialDateTime: ctrl.plannedRetirementDate ??
+                              DateTime.now()
+                                  .add(const Duration(days: 365 * 30)),
+                          minimumDate:
+                              DateTime.now().add(const Duration(days: 365)),
+                          onDateTimeChanged: (d) =>
+                              ctrl.updateRetirementDate(d),
                         ),
                       ),
                     ],
@@ -64,7 +70,7 @@ class NPSPlanningStep extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.withOpacity(0.3)),
+                border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -105,12 +111,12 @@ class NPSPlanningStep extends StatelessWidget {
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? const Color(0xFF9B59B6).withOpacity(0.1)
+                        ? const Color(0xFF9B59B6).withValues(alpha: 0.1)
                         : AppStyles.getCardColor(context),
                     border: Border.all(
                       color: isSelected
                           ? const Color(0xFF9B59B6)
-                          : Colors.grey.withOpacity(0.2),
+                          : Colors.grey.withValues(alpha: 0.2),
                     ),
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -146,12 +152,13 @@ class NPSPlanningStep extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(labels[wtype] ?? '',
-                                style:
-                                    const TextStyle(fontWeight: FontWeight.bold)),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold)),
                             Text(desc[wtype] ?? '',
                                 style: TextStyle(
                                     fontSize: 12,
-                                    color: AppStyles.getSecondaryTextColor(context))),
+                                    color: AppStyles.getSecondaryTextColor(
+                                        context))),
                           ],
                         ),
                       ),

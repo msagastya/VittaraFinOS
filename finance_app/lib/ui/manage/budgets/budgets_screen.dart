@@ -8,11 +8,11 @@ import 'package:vittara_fin_os/ui/manage/budgets/modals/add_budget_modal.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
-import 'package:vittara_fin_os/ui/widgets/animated_counter.dart' as counter_widgets;
+import 'package:vittara_fin_os/ui/widgets/animated_counter.dart'
+    as counter_widgets;
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/glass_card.dart';
 import 'package:vittara_fin_os/ui/widgets/liquid_progress_indicators.dart';
-import 'package:vittara_fin_os/utils/alert_service.dart';
 
 class BudgetsScreen extends StatefulWidget {
   const BudgetsScreen({super.key});
@@ -44,14 +44,16 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
       navigationBar: CupertinoNavigationBar(
-        middle: Text('Budgets', style: TextStyle(color: AppStyles.getTextColor(context))),
+        middle: Text('Budgets',
+            style: TextStyle(color: AppStyles.getTextColor(context))),
         previousPageTitle: 'Manage',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
         trailing: CupertinoButton(
           padding: EdgeInsets.zero,
           onPressed: () => _showPeriodFilter(),
-          child: Icon(CupertinoIcons.line_horizontal_3_decrease, color: AppStyles.accentBlue),
+          child: Icon(CupertinoIcons.line_horizontal_3_decrease,
+              color: AppStyles.accentBlue),
         ),
       ),
       child: Consumer<BudgetsController>(
@@ -74,42 +76,70 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                             SliverToBoxAdapter(
                               child: Padding(
                                 padding: EdgeInsets.all(Spacing.lg),
-                                child: _buildWarningBanner(exceededBudgets.length, true),
+                                child: _buildWarningBanner(
+                                    exceededBudgets.length, true),
                               ),
                             ),
-                          if (warningBudgets.isNotEmpty && exceededBudgets.isEmpty)
+                          if (warningBudgets.isNotEmpty &&
+                              exceededBudgets.isEmpty)
                             SliverToBoxAdapter(
                               child: Padding(
                                 padding: EdgeInsets.all(Spacing.lg),
-                                child: _buildWarningBanner(warningBudgets.length, false),
+                                child: _buildWarningBanner(
+                                    warningBudgets.length, false),
                               ),
                             ),
                           if (_filterPeriod != null)
                             SliverToBoxAdapter(
                               child: Padding(
-                                padding: EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.sm),
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: Spacing.lg,
+                                    vertical: Spacing.sm),
                                 child: Row(
                                   children: [
                                     Container(
-                                      padding: EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: Spacing.md,
+                                          vertical: Spacing.sm),
                                       decoration: BoxDecoration(
-                                        color: SemanticColors.getPrimary(context).withValues(alpha: 0.1),
-                                        borderRadius: BorderRadius.circular(Radii.full),
+                                        color:
+                                            SemanticColors.getPrimary(context)
+                                                .withValues(alpha: 0.1),
+                                        borderRadius:
+                                            BorderRadius.circular(Radii.full),
                                       ),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Text(
                                             Budget(
-                                              id: '', name: '', limitAmount: 0, spentAmount: 0, period: _filterPeriod!,
-                                              startDate: DateTime.now(), endDate: DateTime.now(), color: Colors.blue,
+                                              id: '',
+                                              name: '',
+                                              limitAmount: 0,
+                                              spentAmount: 0,
+                                              period: _filterPeriod!,
+                                              startDate: DateTime.now(),
+                                              endDate: DateTime.now(),
+                                              color: Colors.blue,
                                             ).getPeriodLabel(),
-                                            style: TextStyle(color: SemanticColors.getPrimary(context), fontSize: TypeScale.footnote, fontWeight: FontWeight.w600),
+                                            style: TextStyle(
+                                                color:
+                                                    SemanticColors.getPrimary(
+                                                        context),
+                                                fontSize: TypeScale.footnote,
+                                                fontWeight: FontWeight.w600),
                                           ),
                                           SizedBox(width: Spacing.sm),
                                           GestureDetector(
-                                            onTap: () => setState(() => _filterPeriod = null),
-                                            child: Icon(CupertinoIcons.xmark_circle_fill, size: IconSizes.sm, color: SemanticColors.getPrimary(context)),
+                                            onTap: () => setState(
+                                                () => _filterPeriod = null),
+                                            child: Icon(
+                                                CupertinoIcons
+                                                    .xmark_circle_fill,
+                                                size: IconSizes.sm,
+                                                color:
+                                                    SemanticColors.getPrimary(
+                                                        context)),
                                           ),
                                         ],
                                       ),
@@ -124,11 +154,24 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Icon(CupertinoIcons.search, size: IconSizes.emptyStateIcon, color: AppStyles.getSecondaryTextColor(context)),
+                                    Icon(CupertinoIcons.search,
+                                        size: IconSizes.emptyStateIcon,
+                                        color: AppStyles.getSecondaryTextColor(
+                                            context)),
                                     SizedBox(height: Spacing.lg),
-                                    Text('No budgets found', style: TextStyle(fontSize: TypeScale.title3, fontWeight: FontWeight.w600, color: AppStyles.getTextColor(context))),
+                                    Text('No budgets found',
+                                        style: TextStyle(
+                                            fontSize: TypeScale.title3,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppStyles.getTextColor(
+                                                context))),
                                     SizedBox(height: Spacing.sm),
-                                    Text('Try adjusting your filter', style: TextStyle(fontSize: TypeScale.body, color: AppStyles.getSecondaryTextColor(context))),
+                                    Text('Try adjusting your filter',
+                                        style: TextStyle(
+                                            fontSize: TypeScale.body,
+                                            color:
+                                                AppStyles.getSecondaryTextColor(
+                                                    context))),
                                   ],
                                 ),
                               ),
@@ -143,7 +186,8 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                                     return StaggeredItem(
                                       index: index,
                                       child: Padding(
-                                        padding: EdgeInsets.only(bottom: Spacing.lg),
+                                        padding:
+                                            EdgeInsets.only(bottom: Spacing.lg),
                                         child: _buildBudgetCard(budget),
                                       ),
                                     );
@@ -175,17 +219,23 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
 
   Widget _buildWarningBanner(int count, bool isExceeded) {
     return GlassCard(
-      backgroundColor: (isExceeded ? SemanticColors.error : SemanticColors.warning).withValues(alpha: 0.15),
+      backgroundColor:
+          (isExceeded ? SemanticColors.error : SemanticColors.warning)
+              .withValues(alpha: 0.15),
       child: Row(
         children: [
           Container(
             padding: EdgeInsets.all(Spacing.md),
             decoration: BoxDecoration(
-              color: (isExceeded ? SemanticColors.error : SemanticColors.warning).withValues(alpha: 0.2),
+              color:
+                  (isExceeded ? SemanticColors.error : SemanticColors.warning)
+                      .withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(Radii.md),
             ),
             child: Icon(
-              isExceeded ? CupertinoIcons.exclamationmark_octagon_fill : CupertinoIcons.exclamationmark_triangle_fill,
+              isExceeded
+                  ? CupertinoIcons.exclamationmark_octagon_fill
+                  : CupertinoIcons.exclamationmark_triangle_fill,
               color: isExceeded ? SemanticColors.error : SemanticColors.warning,
               size: IconSizes.lg,
             ),
@@ -196,13 +246,20 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  isExceeded ? '$count budget${count > 1 ? 's' : ''} exceeded' : '$count budget${count > 1 ? 's' : ''} near limit',
-                  style: TextStyle(fontSize: TypeScale.callout, fontWeight: FontWeight.w600, color: AppStyles.getTextColor(context)),
+                  isExceeded
+                      ? '$count budget${count > 1 ? 's' : ''} exceeded'
+                      : '$count budget${count > 1 ? 's' : ''} near limit',
+                  style: TextStyle(
+                      fontSize: TypeScale.callout,
+                      fontWeight: FontWeight.w600,
+                      color: AppStyles.getTextColor(context)),
                 ),
                 SizedBox(height: Spacing.xxs),
                 Text(
                   isExceeded ? 'Review your spending' : 'Monitor your expenses',
-                  style: TextStyle(fontSize: TypeScale.footnote, color: AppStyles.getSecondaryTextColor(context)),
+                  style: TextStyle(
+                      fontSize: TypeScale.footnote,
+                      color: AppStyles.getSecondaryTextColor(context)),
                 ),
               ],
             ),
@@ -222,7 +279,8 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
     return BouncyButton(
       onPressed: () {
         Navigator.of(context).push(
-          CupertinoPageRoute(builder: (context) => BudgetDetailsScreen(budgetId: budget.id)),
+          CupertinoPageRoute(
+              builder: (context) => BudgetDetailsScreen(budgetId: budget.id)),
         );
       },
       child: GlassCard(
@@ -237,35 +295,54 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                     color: budget.color.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(Radii.md),
                   ),
-                  child: Icon(budget.getPeriodIcon(), color: budget.color, size: IconSizes.lg),
+                  child: Icon(budget.getPeriodIcon(),
+                      color: budget.color, size: IconSizes.lg),
                 ),
                 SizedBox(width: Spacing.md),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(budget.name, style: TextStyle(fontSize: TypeScale.callout, fontWeight: FontWeight.w600, color: AppStyles.getTextColor(context)), maxLines: 1, overflow: TextOverflow.ellipsis),
+                      Text(budget.name,
+                          style: TextStyle(
+                              fontSize: TypeScale.callout,
+                              fontWeight: FontWeight.w600,
+                              color: AppStyles.getTextColor(context)),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis),
                       SizedBox(height: Spacing.xxs),
-                      Text(budget.getPeriodLabel(), style: TextStyle(fontSize: TypeScale.footnote, color: AppStyles.getSecondaryTextColor(context))),
+                      Text(budget.getPeriodLabel(),
+                          style: TextStyle(
+                              fontSize: TypeScale.footnote,
+                              color: AppStyles.getSecondaryTextColor(context))),
                     ],
                   ),
                 ),
                 if (budget.status != BudgetStatus.onTrack)
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: Spacing.sm, vertical: Spacing.xxs),
+                    padding: EdgeInsets.symmetric(
+                        horizontal: Spacing.sm, vertical: Spacing.xxs),
                     decoration: BoxDecoration(
                       color: statusColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(Radii.xs),
                     ),
                     child: Text(
-                      budget.status == BudgetStatus.exceeded ? 'OVER' : 'WARNING',
-                      style: TextStyle(fontSize: TypeScale.caption, fontWeight: FontWeight.w700, color: statusColor),
+                      budget.status == BudgetStatus.exceeded
+                          ? 'OVER'
+                          : 'WARNING',
+                      style: TextStyle(
+                          fontSize: TypeScale.caption,
+                          fontWeight: FontWeight.w700,
+                          color: statusColor),
                     ),
                   ),
               ],
             ),
             SizedBox(height: Spacing.lg),
-            LiquidLinearProgress(progress: (budget.usagePercentage / 100).clamp(0, 1), height: 12, color: statusColor),
+            LiquidLinearProgress(
+                progress: (budget.usagePercentage / 100).clamp(0, 1),
+                height: 12,
+                color: statusColor),
             SizedBox(height: Spacing.md),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -273,22 +350,47 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Spent', style: TextStyle(fontSize: TypeScale.footnote, color: AppStyles.getSecondaryTextColor(context))),
+                    Text('Spent',
+                        style: TextStyle(
+                            fontSize: TypeScale.footnote,
+                            color: AppStyles.getSecondaryTextColor(context))),
                     SizedBox(height: Spacing.xxs),
-                    counter_widgets.CurrencyCounter(value: budget.spentAmount, textStyle: TextStyle(fontSize: TypeScale.callout, fontWeight: FontWeight.w700, color: statusColor), decimalPlaces: 0),
+                    counter_widgets.CurrencyCounter(
+                        value: budget.spentAmount,
+                        textStyle: TextStyle(
+                            fontSize: TypeScale.callout,
+                            fontWeight: FontWeight.w700,
+                            color: statusColor),
+                        decimalPlaces: 0),
                   ],
                 ),
                 Column(
                   children: [
-                    counter_widgets.AnimatedCounter(value: budget.usagePercentage, suffix: '%', decimalPlaces: 1, textStyle: TextStyle(fontSize: TypeScale.title2, fontWeight: FontWeight.bold, color: statusColor)),
+                    counter_widgets.AnimatedCounter(
+                        value: budget.usagePercentage,
+                        suffix: '%',
+                        decimalPlaces: 1,
+                        textStyle: TextStyle(
+                            fontSize: TypeScale.title2,
+                            fontWeight: FontWeight.bold,
+                            color: statusColor)),
                   ],
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text('Limit', style: TextStyle(fontSize: TypeScale.footnote, color: AppStyles.getSecondaryTextColor(context))),
+                    Text('Limit',
+                        style: TextStyle(
+                            fontSize: TypeScale.footnote,
+                            color: AppStyles.getSecondaryTextColor(context))),
                     SizedBox(height: Spacing.xxs),
-                    counter_widgets.CurrencyCounter(value: budget.limitAmount, textStyle: TextStyle(fontSize: TypeScale.callout, fontWeight: FontWeight.w700, color: AppStyles.getTextColor(context)), decimalPlaces: 0),
+                    counter_widgets.CurrencyCounter(
+                        value: budget.limitAmount,
+                        textStyle: TextStyle(
+                            fontSize: TypeScale.callout,
+                            fontWeight: FontWeight.w700,
+                            color: AppStyles.getTextColor(context)),
+                        decimalPlaces: 0),
                   ],
                 ),
               ],
@@ -297,9 +399,14 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
               SizedBox(height: Spacing.md),
               Row(
                 children: [
-                  Icon(CupertinoIcons.time, size: IconSizes.sm, color: AppStyles.getSecondaryTextColor(context)),
+                  Icon(CupertinoIcons.time,
+                      size: IconSizes.sm,
+                      color: AppStyles.getSecondaryTextColor(context)),
                   SizedBox(width: Spacing.xs),
-                  Text('${budget.daysRemaining} days remaining', style: TextStyle(fontSize: TypeScale.footnote, color: AppStyles.getSecondaryTextColor(context))),
+                  Text('${budget.daysRemaining} days remaining',
+                      style: TextStyle(
+                          fontSize: TypeScale.footnote,
+                          color: AppStyles.getSecondaryTextColor(context))),
                 ],
               ),
             ],
@@ -318,29 +425,55 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
           children: [
             Container(
               padding: EdgeInsets.all(Spacing.xxxl),
-              decoration: BoxDecoration(color: SemanticColors.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
-              child: Icon(CupertinoIcons.chart_pie_fill, size: IconSizes.emptyStateIcon, color: SemanticColors.primary),
+              decoration: BoxDecoration(
+                  color: SemanticColors.primary.withValues(alpha: 0.1),
+                  shape: BoxShape.circle),
+              child: Icon(CupertinoIcons.chart_pie_fill,
+                  size: IconSizes.emptyStateIcon,
+                  color: SemanticColors.primary),
             ),
             SizedBox(height: Spacing.xxl),
-            Text('No Budgets Yet', style: TextStyle(fontSize: TypeScale.largeTitle, fontWeight: FontWeight.bold, color: AppStyles.getTextColor(context))),
+            Text('No Budgets Yet',
+                style: TextStyle(
+                    fontSize: TypeScale.largeTitle,
+                    fontWeight: FontWeight.bold,
+                    color: AppStyles.getTextColor(context))),
             SizedBox(height: Spacing.md),
-            Text('Start tracking your spending by\ncreating your first budget', textAlign: TextAlign.center, style: TextStyle(fontSize: TypeScale.callout, color: AppStyles.getSecondaryTextColor(context))),
+            Text('Start tracking your spending by\ncreating your first budget',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: TypeScale.callout,
+                    color: AppStyles.getSecondaryTextColor(context))),
             SizedBox(height: Spacing.xxxl),
             BouncyButton(
               onPressed: _showAddBudgetModal,
               child: Container(
-                padding: EdgeInsets.symmetric(horizontal: Spacing.xxl, vertical: Spacing.lg),
+                padding: EdgeInsets.symmetric(
+                    horizontal: Spacing.xxl, vertical: Spacing.lg),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: [SemanticColors.primary, SemanticColors.primary.withValues(alpha: 0.8)]),
+                  gradient: LinearGradient(colors: [
+                    SemanticColors.primary,
+                    SemanticColors.primary.withValues(alpha: 0.8)
+                  ]),
                   borderRadius: BorderRadius.circular(Radii.full),
-                  boxShadow: [BoxShadow(color: SemanticColors.primary.withValues(alpha: 0.4), blurRadius: 20, offset: Offset(0, 8))],
+                  boxShadow: [
+                    BoxShadow(
+                        color: SemanticColors.primary.withValues(alpha: 0.4),
+                        blurRadius: 20,
+                        offset: Offset(0, 8))
+                  ],
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(CupertinoIcons.add, color: Colors.white, size: IconSizes.lg),
+                    Icon(CupertinoIcons.add,
+                        color: Colors.white, size: IconSizes.lg),
                     SizedBox(width: Spacing.sm),
-                    Text('Create Your First Budget', style: TextStyle(fontSize: TypeScale.callout, fontWeight: FontWeight.w600, color: Colors.white)),
+                    Text('Create Your First Budget',
+                        style: TextStyle(
+                            fontSize: TypeScale.callout,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white)),
                   ],
                 ),
               ),
@@ -358,7 +491,15 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
         title: Text('Filter by Period'),
         actions: [
           ...BudgetPeriod.values.map((period) {
-            final dummyBudget = Budget(id: '', name: '', limitAmount: 0, spentAmount: 0, period: period, startDate: DateTime.now(), endDate: DateTime.now(), color: Colors.blue);
+            final dummyBudget = Budget(
+                id: '',
+                name: '',
+                limitAmount: 0,
+                spentAmount: 0,
+                period: period,
+                startDate: DateTime.now(),
+                endDate: DateTime.now(),
+                color: Colors.blue);
             return CupertinoActionSheetAction(
               onPressed: () {
                 setState(() => _filterPeriod = period);
@@ -372,7 +513,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                 ],
               ),
             );
-          }).toList(),
+          }),
           if (_filterPeriod != null)
             CupertinoActionSheetAction(
               onPressed: () {
@@ -383,7 +524,8 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
               child: Text('Clear Filter'),
             ),
         ],
-        cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.pop(context), child: Text('Cancel')),
+        cancelButton: CupertinoActionSheetAction(
+            onPressed: () => Navigator.pop(context), child: Text('Cancel')),
       ),
     );
   }

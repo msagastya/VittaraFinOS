@@ -79,7 +79,8 @@ class _AnimatedCounterState extends State<AnimatedCounter>
     return AnimatedBuilder(
       animation: _animation,
       builder: (context, child) {
-        final displayValue = _animation.value.toStringAsFixed(widget.decimalPlaces);
+        final displayValue =
+            _animation.value.toStringAsFixed(widget.decimalPlaces);
         return Text(
           '${widget.prefix}$displayValue${widget.suffix}',
           style: widget.textStyle,
@@ -274,9 +275,10 @@ class CurrencyCounter extends StatelessWidget {
           ),
         Text(
           currencySymbol,
-          style: symbolStyle ?? textStyle?.copyWith(
-            fontSize: (textStyle?.fontSize ?? 16) * 0.8,
-          ),
+          style: symbolStyle ??
+              textStyle?.copyWith(
+                fontSize: (textStyle?.fontSize ?? 16) * 0.8,
+              ),
         ),
         AnimatedCounter(
           value: value.abs(),
@@ -538,7 +540,8 @@ class _ParticleCounterState extends State<ParticleCounter>
                     height: 4,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: widget.particleColor ?? SemanticColors.getPrimary(context),
+                      color: widget.particleColor ??
+                          SemanticColors.getPrimary(context),
                     ),
                   ),
                 ),

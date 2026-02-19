@@ -48,10 +48,12 @@ class _BondsTypeIssuerStepState extends State<BondsTypeIssuerStep> {
     super.initState();
     final controller =
         Provider.of<BondsWizardController>(context, listen: false);
-    _issuerController = TextEditingController(text: controller.selectedIssuer ?? '');
+    _issuerController =
+        TextEditingController(text: controller.selectedIssuer ?? '');
     _nameController = TextEditingController(text: controller.bondName ?? '');
     _faceValueController = TextEditingController(
-      text: controller.faceValue != null ? controller.faceValue!.toString() : '',
+      text:
+          controller.faceValue != null ? controller.faceValue!.toString() : '',
     );
   }
 
@@ -177,7 +179,8 @@ class _BondsTypeIssuerStepState extends State<BondsTypeIssuerStep> {
               height: 40,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
-                itemCount: getIssuersForType(controller.selectedBondType!).length,
+                itemCount:
+                    getIssuersForType(controller.selectedBondType!).length,
                 separatorBuilder: (_, __) => const SizedBox(width: 8),
                 itemBuilder: (context, index) {
                   final issuer =
@@ -256,7 +259,8 @@ class _BondsTypeIssuerStepState extends State<BondsTypeIssuerStep> {
             const SizedBox(height: 12),
             CupertinoTextField(
               controller: _faceValueController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
               placeholder: '1000',
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(

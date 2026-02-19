@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/contacts_controller.dart';
 import 'package:vittara_fin_os/logic/contact_model.dart';
@@ -7,7 +6,6 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
-import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class ContactsScreen extends StatefulWidget {
   const ContactsScreen({super.key});
@@ -43,16 +41,19 @@ class _ContactsScreenState extends State<ContactsScreen> {
                         title: 'No contacts yet',
                         subtitle: 'Add people you frequently transact with',
                         actionLabel: 'Add Contact',
-                        onAction: () => _showAddContactDialog(context, contactsController),
+                        onAction: () =>
+                            _showAddContactDialog(context, contactsController),
                       )
                     : ListView.builder(
-                        padding: EdgeInsets.fromLTRB(Spacing.lg, Spacing.md, Spacing.lg, 100),
+                        padding: EdgeInsets.fromLTRB(
+                            Spacing.lg, Spacing.md, Spacing.lg, 100),
                         itemCount: contacts.length,
                         itemBuilder: (context, index) {
                           final contact = contacts[index];
                           return StaggeredItem(
                             index: index,
-                            child: _buildContactCard(contact, context, contactsController),
+                            child: _buildContactCard(
+                                contact, context, contactsController),
                           );
                         },
                       ),
@@ -62,7 +63,8 @@ class _ContactsScreenState extends State<ContactsScreen> {
                 right: Spacing.lg,
                 bottom: Spacing.xxxl,
                 child: FadingFAB(
-                  onPressed: () => _showAddContactDialog(context, contactsController),
+                  onPressed: () =>
+                      _showAddContactDialog(context, contactsController),
                   color: SemanticColors.contacts,
                   heroTag: 'contacts_fab',
                 ),
@@ -80,7 +82,8 @@ class _ContactsScreenState extends State<ContactsScreen> {
     ContactsController controller,
   ) {
     final contactName = contact.name.isNotEmpty ? contact.name : 'Unknown';
-    final firstLetter = contactName.isNotEmpty ? contactName[0].toUpperCase() : '?';
+    final firstLetter =
+        contactName.isNotEmpty ? contactName[0].toUpperCase() : '?';
 
     return BouncyButton(
       onPressed: () {
@@ -91,18 +94,21 @@ class _ContactsScreenState extends State<ContactsScreen> {
         margin: EdgeInsets.only(bottom: Spacing.md),
         decoration: AppStyles.cardDecoration(context).copyWith(
           border: Border.all(
-            color: SemanticColors.contacts.withValues(alpha: Opacities.borderSubtle),
+            color: SemanticColors.contacts
+                .withValues(alpha: Opacities.borderSubtle),
             width: 1,
           ),
         ),
-        padding: EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.md),
+        padding:
+            EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.md),
         child: Row(
           children: [
             Container(
               width: ComponentSizes.avatarMedium,
               height: ComponentSizes.avatarMedium,
               decoration: BoxDecoration(
-                color: SemanticColors.contacts.withValues(alpha: Opacities.iconBackground),
+                color: SemanticColors.contacts
+                    .withValues(alpha: Opacities.iconBackground),
                 shape: BoxShape.circle,
               ),
               child: Center(
@@ -183,7 +189,8 @@ class _ContactsScreenState extends State<ContactsScreen> {
     );
   }
 
-  void _showAddContactDialog(BuildContext context, ContactsController controller) {
+  void _showAddContactDialog(
+      BuildContext context, ContactsController controller) {
     final nameController = TextEditingController();
     final phoneController = TextEditingController();
 
@@ -229,7 +236,9 @@ class _ContactsScreenState extends State<ContactsScreen> {
                 final contact = Contact(
                   id: DateTime.now().millisecondsSinceEpoch.toString(),
                   name: nameController.text,
-                  phoneNumber: phoneController.text.isNotEmpty ? phoneController.text : null,
+                  phoneNumber: phoneController.text.isNotEmpty
+                      ? phoneController.text
+                      : null,
                   createdDate: DateTime.now(),
                 );
                 controller.addContact(contact);
@@ -292,7 +301,9 @@ class _ContactsScreenState extends State<ContactsScreen> {
               if (nameController.text.isNotEmpty) {
                 final updatedContact = contact.copyWith(
                   name: nameController.text,
-                  phoneNumber: phoneController.text.isNotEmpty ? phoneController.text : null,
+                  phoneNumber: phoneController.text.isNotEmpty
+                      ? phoneController.text
+                      : null,
                 );
                 controller.removeContact(contact.id);
                 controller.addContact(updatedContact);
@@ -306,4 +317,3 @@ class _ContactsScreenState extends State<ContactsScreen> {
     );
   }
 }
-

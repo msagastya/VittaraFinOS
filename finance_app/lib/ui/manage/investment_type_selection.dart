@@ -16,25 +16,63 @@ class InvestmentTypeSelectionModal extends StatefulWidget {
   });
 
   @override
-  State<InvestmentTypeSelectionModal> createState() => _InvestmentTypeSelectionModalState();
+  State<InvestmentTypeSelectionModal> createState() =>
+      _InvestmentTypeSelectionModalState();
 }
 
-class _InvestmentTypeSelectionModalState extends State<InvestmentTypeSelectionModal> {
+class _InvestmentTypeSelectionModalState
+    extends State<InvestmentTypeSelectionModal> {
   bool _showAll = false;
 
   final Map<InvestmentType, Map<String, dynamic>> _investmentTypeDetails = {
-    InvestmentType.stocks: {'label': 'Stocks & ETFs', 'icon': CupertinoIcons.chart_bar_fill},
-    InvestmentType.mutualFund: {'label': 'Mutual Fund', 'icon': CupertinoIcons.chart_pie_fill},
-    InvestmentType.fixedDeposit: {'label': 'Fixed Deposit (FD)', 'icon': CupertinoIcons.lock_circle_fill},
-    InvestmentType.recurringDeposit: {'label': 'Recurring Deposit (RD)', 'icon': CupertinoIcons.arrow_2_circlepath_circle_fill},
-    InvestmentType.bonds: {'label': 'Bonds', 'icon': CupertinoIcons.doc_circle_fill},
-    InvestmentType.nationalSavingsScheme: {'label': 'National Savings Scheme', 'icon': CupertinoIcons.flag_circle_fill},
-    InvestmentType.digitalGold: {'label': 'Digital Gold', 'icon': CupertinoIcons.star_circle_fill},
-    InvestmentType.pensionSchemes: {'label': 'Pension Schemes', 'icon': CupertinoIcons.calendar_circle_fill},
-    InvestmentType.cryptocurrency: {'label': 'Cryptocurrency', 'icon': CupertinoIcons.cube_box_fill},
-    InvestmentType.futuresOptions: {'label': 'Futures & Options', 'icon': CupertinoIcons.arrow_up_arrow_down_circle_fill},
-    InvestmentType.forexCurrency: {'label': 'Forex/Currency', 'icon': CupertinoIcons.money_dollar_circle_fill},
-    InvestmentType.commodities: {'label': 'Commodities', 'icon': CupertinoIcons.square_fill},
+    InvestmentType.stocks: {
+      'label': 'Stocks & ETFs',
+      'icon': CupertinoIcons.chart_bar_fill
+    },
+    InvestmentType.mutualFund: {
+      'label': 'Mutual Fund',
+      'icon': CupertinoIcons.chart_pie_fill
+    },
+    InvestmentType.fixedDeposit: {
+      'label': 'Fixed Deposit (FD)',
+      'icon': CupertinoIcons.lock_circle_fill
+    },
+    InvestmentType.recurringDeposit: {
+      'label': 'Recurring Deposit (RD)',
+      'icon': CupertinoIcons.arrow_2_circlepath_circle_fill
+    },
+    InvestmentType.bonds: {
+      'label': 'Bonds',
+      'icon': CupertinoIcons.doc_circle_fill
+    },
+    InvestmentType.nationalSavingsScheme: {
+      'label': 'National Savings Scheme',
+      'icon': CupertinoIcons.flag_circle_fill
+    },
+    InvestmentType.digitalGold: {
+      'label': 'Digital Gold',
+      'icon': CupertinoIcons.star_circle_fill
+    },
+    InvestmentType.pensionSchemes: {
+      'label': 'Pension Schemes',
+      'icon': CupertinoIcons.calendar_circle_fill
+    },
+    InvestmentType.cryptocurrency: {
+      'label': 'Cryptocurrency',
+      'icon': CupertinoIcons.cube_box_fill
+    },
+    InvestmentType.futuresOptions: {
+      'label': 'Futures & Options',
+      'icon': CupertinoIcons.arrow_up_arrow_down_circle_fill
+    },
+    InvestmentType.forexCurrency: {
+      'label': 'Forex/Currency',
+      'icon': CupertinoIcons.money_dollar_circle_fill
+    },
+    InvestmentType.commodities: {
+      'label': 'Commodities',
+      'icon': CupertinoIcons.square_fill
+    },
   };
 
   @override
@@ -44,9 +82,8 @@ class _InvestmentTypeSelectionModalState extends State<InvestmentTypeSelectionMo
         final preferredTypes = prefsController.preferredTypes;
         final hiddenTypes = prefsController.hiddenTypes;
 
-        final displayedTypes = _showAll ?
-          [...preferredTypes, ...hiddenTypes] :
-          preferredTypes;
+        final displayedTypes =
+            _showAll ? [...preferredTypes, ...hiddenTypes] : preferredTypes;
 
         return _buildContent(context, displayedTypes, prefsController);
       },
@@ -58,7 +95,6 @@ class _InvestmentTypeSelectionModalState extends State<InvestmentTypeSelectionMo
     List<InvestmentType> displayedTypes,
     InvestmentTypePreferencesController prefsController,
   ) {
-
     return BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
       child: Container(
@@ -90,7 +126,8 @@ class _InvestmentTypeSelectionModalState extends State<InvestmentTypeSelectionMo
                   children: [
                     Text(
                       'Select Investment Type',
-                      style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
+                      style:
+                          AppStyles.titleStyle(context).copyWith(fontSize: 24),
                     ),
                     if (_showAll)
                       CupertinoButton(
@@ -100,7 +137,8 @@ class _InvestmentTypeSelectionModalState extends State<InvestmentTypeSelectionMo
                           color: AppStyles.accentBlue,
                           size: 24,
                         ),
-                        onPressed: () => _showSettingsModal(context, prefsController),
+                        onPressed: () =>
+                            _showSettingsModal(context, prefsController),
                       ),
                   ],
                 ),
@@ -176,7 +214,8 @@ class _InvestmentTypeSelectionModalState extends State<InvestmentTypeSelectionMo
                             ),
                             const SizedBox(height: 12),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 8),
                               child: Text(
                                 details['label'],
                                 textAlign: TextAlign.center,
@@ -203,7 +242,8 @@ class _InvestmentTypeSelectionModalState extends State<InvestmentTypeSelectionMo
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: CupertinoButton(
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 12, horizontal: 24),
                     color: AppStyles.accentBlue.withValues(alpha: 0.1),
                     onPressed: () => setState(() => _showAll = true),
                     child: Row(
@@ -230,7 +270,8 @@ class _InvestmentTypeSelectionModalState extends State<InvestmentTypeSelectionMo
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: CupertinoButton(
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 12, horizontal: 24),
                     color: AppStyles.accentBlue.withValues(alpha: 0.1),
                     onPressed: () => setState(() => _showAll = false),
                     child: Row(
@@ -286,10 +327,12 @@ class InvestmentTypePreferencesModal extends StatefulWidget {
   });
 
   @override
-  State<InvestmentTypePreferencesModal> createState() => _InvestmentTypePreferencesModalState();
+  State<InvestmentTypePreferencesModal> createState() =>
+      _InvestmentTypePreferencesModalState();
 }
 
-class _InvestmentTypePreferencesModalState extends State<InvestmentTypePreferencesModal> {
+class _InvestmentTypePreferencesModalState
+    extends State<InvestmentTypePreferencesModal> {
   late List<InvestmentType> _tempSelectedTypes;
 
   @override
@@ -331,7 +374,8 @@ class _InvestmentTypePreferencesModalState extends State<InvestmentTypePreferenc
                   children: [
                     Text(
                       'Customize First Screen',
-                      style: AppStyles.titleStyle(context).copyWith(fontSize: 20),
+                      style:
+                          AppStyles.titleStyle(context).copyWith(fontSize: 20),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -378,7 +422,8 @@ class _InvestmentTypePreferencesModalState extends State<InvestmentTypePreferenc
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
-                  children: InvestmentTypePreferencesController.allTypes.map((type) {
+                  children:
+                      InvestmentTypePreferencesController.allTypes.map((type) {
                     final isSelected = _tempSelectedTypes.contains(type);
                     final details = widget.investmentTypeDetails[type]!;
                     final investment = Investment(
@@ -413,7 +458,8 @@ class _InvestmentTypePreferencesModalState extends State<InvestmentTypePreferenc
                             border: Border.all(
                               color: isSelected
                                   ? color
-                                  : AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.2),
+                                  : AppStyles.getSecondaryTextColor(context)
+                                      .withValues(alpha: 0.2),
                               width: 1.5,
                             ),
                             borderRadius: BorderRadius.circular(12),
@@ -441,15 +487,18 @@ class _InvestmentTypePreferencesModalState extends State<InvestmentTypePreferenc
                                   details['label'],
                                   style: TextStyle(
                                     fontSize: 14,
-                                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                                    fontWeight: isSelected
+                                        ? FontWeight.w600
+                                        : FontWeight.w500,
                                     color: AppStyles.getTextColor(context),
                                   ),
                                 ),
                               ),
                               CupertinoSwitch(
                                 value: isSelected,
-                                activeColor: color,
-                                onChanged: (_tempSelectedTypes.length < 6 || isSelected)
+                                activeTrackColor: color,
+                                onChanged: (_tempSelectedTypes.length < 6 ||
+                                        isSelected)
                                     ? (value) {
                                         setState(() {
                                           if (value) {
@@ -494,7 +543,8 @@ class _InvestmentTypePreferencesModalState extends State<InvestmentTypePreferenc
                       child: CupertinoButton(
                         color: AppStyles.accentBlue,
                         onPressed: () {
-                          widget.prefsController.savePreferences(_tempSelectedTypes);
+                          widget.prefsController
+                              .savePreferences(_tempSelectedTypes);
                           Navigator.pop(context);
                         },
                         child: const Text(

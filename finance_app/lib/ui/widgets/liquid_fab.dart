@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
@@ -25,8 +24,7 @@ class LiquidFAB extends StatefulWidget {
   State<LiquidFAB> createState() => _LiquidFABState();
 }
 
-class _LiquidFABState extends State<LiquidFAB>
-    with TickerProviderStateMixin {
+class _LiquidFABState extends State<LiquidFAB> with TickerProviderStateMixin {
   late AnimationController _hoverController;
   late AnimationController _pressController;
   late AnimationController _rippleController;
@@ -91,7 +89,8 @@ class _LiquidFABState extends State<LiquidFAB>
         ]),
         builder: (context, child) {
           final scale = 1.0 - (_pressController.value * 0.1);
-          final elevation = 8.0 + (_hoverController.value * 4.0) -
+          final elevation = 8.0 +
+              (_hoverController.value * 4.0) -
               (_pressController.value * 4.0);
 
           return Transform.scale(
@@ -354,7 +353,8 @@ class _LiquidMiniFABState extends State<LiquidMiniFAB>
                 color: color,
                 boxShadow: [
                   BoxShadow(
-                    color: color.withValues(alpha: 0.3 + (_pulseController.value * 0.2)),
+                    color: color.withValues(
+                        alpha: 0.3 + (_pulseController.value * 0.2)),
                     blurRadius: 8 + (_pulseController.value * 4),
                     offset: const Offset(0, 4),
                   ),

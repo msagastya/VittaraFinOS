@@ -34,7 +34,8 @@ class BudgetsController extends ChangeNotifier {
       final String? plannersJson = prefs.getString(_plannersKey);
       if (plannersJson != null && plannersJson.isNotEmpty) {
         final List<dynamic> decodedList = json.decode(plannersJson);
-        _planners = decodedList.map((item) => SavingsPlanner.fromMap(item)).toList();
+        _planners =
+            decodedList.map((item) => SavingsPlanner.fromMap(item)).toList();
       }
 
       _isInitialized = true;
@@ -100,11 +101,15 @@ class BudgetsController extends ChangeNotifier {
   }
 
   List<Budget> getBudgetsExceedingLimit() {
-    return activeBudgets.where((b) => b.status == BudgetStatus.exceeded).toList();
+    return activeBudgets
+        .where((b) => b.status == BudgetStatus.exceeded)
+        .toList();
   }
 
   List<Budget> getBudgetsInWarning() {
-    return activeBudgets.where((b) => b.status == BudgetStatus.warning).toList();
+    return activeBudgets
+        .where((b) => b.status == BudgetStatus.warning)
+        .toList();
   }
 
   // Savings Planner operations

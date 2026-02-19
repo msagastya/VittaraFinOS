@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:vittara_fin_os/logic/dashboard_widget_model.dart';
+import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/ui/dashboard/base_dashboard_widget.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -9,10 +9,10 @@ import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class TransactionHistoryWidget extends BaseDashboardWidget {
   const TransactionHistoryWidget({
-    required DashboardWidgetConfig config,
-    VoidCallback? onTap,
+    required super.config,
+    super.onTap,
     super.key,
-  }) : super(config: config, onTap: onTap);
+  });
 
   @override
   Widget buildHeader(BuildContext context, {bool compact = false}) {
@@ -65,7 +65,8 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
 
     return Consumer<TransactionsController>(
       builder: (context, transactionController, child) {
-        final transactions = transactionController.transactions.take(txCount).toList();
+        final transactions =
+            transactionController.transactions.take(txCount).toList();
 
         if (transactions.isEmpty) {
           return Center(
@@ -94,23 +95,19 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
 
         return Column(
           mainAxisSize: MainAxisSize.min,
-          children: transactions
-              .asMap()
-              .entries
-              .map((entry) {
-                final isLast = entry.key == transactions.length - 1;
-                return Column(
-                  children: [
-                    _buildTransactionItem(
-                      context,
-                      entry.value,
-                      compact: columnSpan == 1,
-                    ),
-                    if (!isLast) Divider(height: 12),
-                  ],
-                );
-              })
-              .toList(),
+          children: transactions.asMap().entries.map((entry) {
+            final isLast = entry.key == transactions.length - 1;
+            return Column(
+              children: [
+                _buildTransactionItem(
+                  context,
+                  entry.value,
+                  compact: columnSpan == 1,
+                ),
+                if (!isLast) Divider(height: 12),
+              ],
+            );
+          }).toList(),
         );
       },
     );
@@ -118,14 +115,19 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
 
   Widget _buildTransactionItem(
     BuildContext context,
-    dynamic transaction, {
+    Transaction transaction, {
     bool compact = false,
   }) {
-    final amount = transaction.amount ?? 0;
-    final description = transaction.description ?? 'Transaction';
-    final category = transaction.category?.name ?? 'Other';
-    final isExpense = amount < 0;
+    final amount = transaction.amount;
+    final description = transaction.description;
+    final metadata = transaction.metadata ?? const <String, dynamic>{};
+    final category =
+        (metadata['categoryName'] as String?) ?? transaction.getTypeLabel();
+    final type = transaction.type;
+    final amountColor = _getAmountColor(type);
     final displayAmount = amount.abs();
+    final amountPrefix = _getAmountPrefix(type);
+    final leadingIcon = _getTransactionIcon(type);
 
     // Get category color
     Color getCategoryColor(String categoryName) {
@@ -170,11 +172,11 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
                   width: 24,
                   height: 24,
                   decoration: BoxDecoration(
-                    color: categoryColor.withOpacity(0.15),
+                    color: categoryColor.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Icon(
-                    isExpense ? CupertinoIcons.arrow_up : CupertinoIcons.arrow_down,
+                    leadingIcon,
                     size: 12,
                     color: categoryColor,
                   ),
@@ -206,11 +208,11 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
                   ),
                 ),
                 Text(
-                  '${isExpense ? '-' : '+'}₹${displayAmount.toStringAsFixed(0)}',
+                  '$amountPrefix₹${displayAmount.toStringAsFixed(0)}',
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
-                    color: isExpense ? Colors.red : Colors.green,
+                    color: amountColor,
                   ),
                 ),
               ],
@@ -227,7 +229,7 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: categoryColor.withOpacity(0.1),
+          color: categoryColor.withValues(alpha: 0.1),
         ),
       ),
       child: Row(
@@ -237,11 +239,11 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: categoryColor.withOpacity(0.15),
+              color: categoryColor.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
-              isExpense ? CupertinoIcons.arrow_up : CupertinoIcons.arrow_down,
+              leadingIcon,
               size: 18,
               color: categoryColor,
             ),
@@ -270,7 +272,7 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
                     Container(
                       padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: categoryColor.withOpacity(0.15),
+                        color: categoryColor.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
@@ -298,15 +300,68 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
 
           // Amount
           Text(
-            '${isExpense ? '-' : '+'}₹${displayAmount.toStringAsFixed(0)}',
+            '$amountPrefix₹${displayAmount.toStringAsFixed(0)}',
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: isExpense ? Colors.red : Colors.green,
+              color: amountColor,
             ),
           ),
         ],
       ),
     );
+  }
+
+  Color _getAmountColor(TransactionType type) {
+    switch (type) {
+      case TransactionType.expense:
+        return CupertinoColors.systemRed;
+      case TransactionType.income:
+        return CupertinoColors.systemGreen;
+      case TransactionType.transfer:
+        return CupertinoColors.systemBlue;
+      case TransactionType.cashback:
+        return CupertinoColors.systemGreen;
+      case TransactionType.lending:
+        return CupertinoColors.systemOrange;
+      case TransactionType.borrowing:
+        return CupertinoColors.systemPurple;
+      case TransactionType.investment:
+        return CupertinoColors.systemIndigo;
+    }
+  }
+
+  String _getAmountPrefix(TransactionType type) {
+    switch (type) {
+      case TransactionType.expense:
+      case TransactionType.investment:
+      case TransactionType.lending:
+        return '-';
+      case TransactionType.income:
+      case TransactionType.cashback:
+      case TransactionType.borrowing:
+        return '+';
+      case TransactionType.transfer:
+        return '';
+    }
+  }
+
+  IconData _getTransactionIcon(TransactionType type) {
+    switch (type) {
+      case TransactionType.transfer:
+        return CupertinoIcons.arrow_right_arrow_left;
+      case TransactionType.expense:
+        return CupertinoIcons.arrow_down_circle_fill;
+      case TransactionType.income:
+        return CupertinoIcons.arrow_up_circle_fill;
+      case TransactionType.cashback:
+        return CupertinoIcons.gift_fill;
+      case TransactionType.lending:
+        return CupertinoIcons.arrow_up_circle;
+      case TransactionType.borrowing:
+        return CupertinoIcons.arrow_down_circle;
+      case TransactionType.investment:
+        return CupertinoIcons.chart_bar_square_fill;
+    }
   }
 }

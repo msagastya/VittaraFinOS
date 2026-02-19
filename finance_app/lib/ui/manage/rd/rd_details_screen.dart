@@ -79,7 +79,8 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: _getStatusColor(widget.rd.status).withOpacity(0.2),
+                          color: _getStatusColor(widget.rd.status)
+                              .withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
@@ -147,7 +148,9 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                     context,
                     'Maturity',
                     _formatDate(widget.rd.maturityDate),
-                    widget.rd.daysUntilMaturity <= 0 ? Icons.check_circle : Icons.schedule,
+                    widget.rd.daysUntilMaturity <= 0
+                        ? Icons.check_circle
+                        : Icons.schedule,
                   ),
                   const SizedBox(height: 20),
                   // Details Grid
@@ -160,12 +163,18 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  _buildDetailRow('Monthly Amount', '₹${widget.rd.monthlyAmount.toStringAsFixed(2)}'),
-                  _buildDetailRow('Total Installments', '${widget.rd.totalInstallments}'),
-                  _buildDetailRow('Completed', '${widget.rd.completedInstallments}'),
-                  _buildDetailRow('Pending', '${widget.rd.pendingInstallments}'),
-                  _buildDetailRow('Interest Rate', '${widget.rd.interestRate}% p.a.'),
-                  _buildDetailRow('Payment Frequency', widget.rd.paymentFrequency.name),
+                  _buildDetailRow('Monthly Amount',
+                      '₹${widget.rd.monthlyAmount.toStringAsFixed(2)}'),
+                  _buildDetailRow(
+                      'Total Installments', '${widget.rd.totalInstallments}'),
+                  _buildDetailRow(
+                      'Completed', '${widget.rd.completedInstallments}'),
+                  _buildDetailRow(
+                      'Pending', '${widget.rd.pendingInstallments}'),
+                  _buildDetailRow(
+                      'Interest Rate', '${widget.rd.interestRate}% p.a.'),
+                  _buildDetailRow(
+                      'Payment Frequency', widget.rd.paymentFrequency.name),
                   _buildDetailRow(
                     'Total Interest',
                     '₹${widget.rd.totalInterestAtMaturity.toStringAsFixed(2)}',
@@ -350,7 +359,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
           color: AppStyles.getCardColor(context),
           borderRadius: BorderRadius.circular(12),
           border: isDangerous
-              ? Border.all(color: color.withOpacity(0.3), width: 1)
+              ? Border.all(color: color.withValues(alpha: 0.3), width: 1)
               : null,
         ),
         child: Row(
@@ -359,7 +368,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.15),
+                color: color.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, color: color, size: 20),
@@ -453,7 +462,8 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      ...List.generate(widget.rd.completedInstallments, (index) {
+                      ...List.generate(widget.rd.completedInstallments,
+                          (index) {
                         return _buildInstallmentItem(
                           context,
                           'Installment ${index + 1}',
@@ -461,7 +471,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                           'Completed',
                           Colors.green,
                         );
-                      }).toList(),
+                      }),
                       const SizedBox(height: 20),
                     ],
                     if (widget.rd.pendingInstallments > 0) ...[
@@ -481,7 +491,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                           'Upcoming',
                           AppStyles.getPrimaryColor(context),
                         );
-                      }).toList(),
+                      }),
                     ],
                   ],
                 ),
@@ -629,7 +639,8 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                                   Text(
                                     'Auto-debit future installments',
                                     style: TextStyle(
-                                      color: AppStyles.getSecondaryTextColor(context),
+                                      color: AppStyles.getSecondaryTextColor(
+                                          context),
                                       fontSize: 12,
                                     ),
                                   ),
@@ -640,7 +651,8 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                               value: widget.rd.autoPaymentEnabled,
                               onChanged: (value) {
                                 Navigator.of(context).pop();
-                                toast.showSuccess('Auto-payment setting updated');
+                                toast.showSuccess(
+                                    'Auto-payment setting updated');
                               },
                             ),
                           ],
@@ -758,10 +770,11 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppStyles.getPrimaryColor(context).withOpacity(0.1),
+              color: AppStyles.getPrimaryColor(context).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: AppStyles.getPrimaryColor(context), size: 20),
+            child:
+                Icon(icon, color: AppStyles.getPrimaryColor(context), size: 20),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -818,7 +831,8 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
             onPressed: () async {
               if (!mounted) return;
               // Delete RD from investments controller
-              final investmentsController = Provider.of<InvestmentsController>(context, listen: false);
+              final investmentsController =
+                  Provider.of<InvestmentsController>(context, listen: false);
               await investmentsController.deleteInvestment(widget.rd.id);
 
               if (mounted) {

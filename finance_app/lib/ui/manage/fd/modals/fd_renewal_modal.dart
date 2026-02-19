@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/fixed_deposit_model.dart';
-import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
@@ -56,12 +55,17 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
     _controller.compoundingFrequency = widget.fd.compoundingFrequency;
     _controller.isCumulative = widget.fd.isCumulative;
     _controller.payoutFrequency = widget.fd.payoutFrequency;
-    _controller.investmentDate = DateTime.now(); // Start from today (renewal date)
+    _controller.investmentDate =
+        DateTime.now(); // Start from today (renewal date)
 
-    _fdNameController = TextEditingController(text: '${widget.fd.name} (Renewal)');
-    _tenureDurationController = TextEditingController(text: widget.fd.tenureMonths.toString());
-    _principalController = TextEditingController(text: widget.fd.maturityValue.toStringAsFixed(2));
-    _interestRateController = TextEditingController(text: widget.fd.interestRate.toStringAsFixed(2));
+    _fdNameController =
+        TextEditingController(text: '${widget.fd.name} (Renewal)');
+    _tenureDurationController =
+        TextEditingController(text: widget.fd.tenureMonths.toString());
+    _principalController =
+        TextEditingController(text: widget.fd.maturityValue.toStringAsFixed(2));
+    _interestRateController =
+        TextEditingController(text: widget.fd.interestRate.toStringAsFixed(2));
 
     // Initialize tenure from widget.fd
     _tenureDuration = widget.fd.tenureMonths;
@@ -109,16 +113,19 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                 CupertinoTextField(
                   controller: _principalController,
                   placeholder: 'Principal Amount',
-                  placeholderStyle: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+                  placeholderStyle: TextStyle(
+                      color: AppStyles.getSecondaryTextColor(context)),
                   padding: EdgeInsets.all(Spacing.md),
                   decoration: BoxDecoration(
                     color: AppStyles.getCardColor(context),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   style: TextStyle(color: AppStyles.getTextColor(context)),
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
                   onChanged: (value) {
-                    _controller.updatePrincipal(double.tryParse(value) ?? widget.fd.maturityValue);
+                    _controller.updatePrincipal(
+                        double.tryParse(value) ?? widget.fd.maturityValue);
                   },
                 ),
                 SizedBox(height: Spacing.lg),
@@ -187,16 +194,19 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                 CupertinoTextField(
                   controller: _interestRateController,
                   placeholder: 'Annual Interest Rate (%)',
-                  placeholderStyle: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+                  placeholderStyle: TextStyle(
+                      color: AppStyles.getSecondaryTextColor(context)),
                   padding: EdgeInsets.all(Spacing.md),
                   decoration: BoxDecoration(
                     color: AppStyles.getCardColor(context),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   style: TextStyle(color: AppStyles.getTextColor(context)),
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
                   onChanged: (value) {
-                    _controller.updateInterestRate(double.tryParse(value) ?? widget.fd.interestRate);
+                    _controller.updateInterestRate(
+                        double.tryParse(value) ?? widget.fd.interestRate);
                   },
                 ),
                 SizedBox(height: Spacing.lg),
@@ -217,13 +227,15 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                       child: CupertinoTextField(
                         controller: _tenureDurationController,
                         placeholder: 'Enter duration',
-                        placeholderStyle: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+                        placeholderStyle: TextStyle(
+                            color: AppStyles.getSecondaryTextColor(context)),
                         padding: EdgeInsets.all(Spacing.md),
                         decoration: BoxDecoration(
                           color: AppStyles.getCardColor(context),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        style: TextStyle(color: AppStyles.getTextColor(context)),
+                        style:
+                            TextStyle(color: AppStyles.getTextColor(context)),
                         keyboardType: TextInputType.number,
                         onChanged: (value) {
                           setState(() {
@@ -318,7 +330,8 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                         color: AppStyles.getCardColor(context),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: AppStyles.getPrimaryColor(context).withOpacity(0.3),
+                          color: AppStyles.getPrimaryColor(context)
+                              .withValues(alpha: 0.3),
                           width: 1,
                         ),
                       ),
@@ -360,10 +373,12 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                 Container(
                   padding: EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
-                    color: AppStyles.getPrimaryColor(context).withOpacity(0.1),
+                    color: AppStyles.getPrimaryColor(context)
+                        .withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: AppStyles.getPrimaryColor(context).withOpacity(0.3),
+                      color: AppStyles.getPrimaryColor(context)
+                          .withValues(alpha: 0.3),
                       width: 1,
                     ),
                   ),
@@ -427,114 +442,146 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                   width: double.infinity,
                   child: CupertinoButton(
                     color: AppStyles.getPrimaryColor(context),
-                    onPressed: _isSubmitting ? null : () async {
-                      if (_isSubmitting) return;
+                    onPressed: _isSubmitting
+                        ? null
+                        : () async {
+                            if (_isSubmitting) return;
 
-                      setState(() => _isSubmitting = true);
+                            setState(() => _isSubmitting = true);
 
-                      try {
-                        // Update controller with current values from text fields
-                        _controller.updateFDName(_fdNameController.text);
-                        final principal = double.tryParse(_principalController.text) ?? widget.fd.maturityValue;
-                        final interestRate = double.tryParse(_interestRateController.text) ?? widget.fd.interestRate;
-
-                        _controller.updatePrincipal(principal);
-                        _controller.updateInterestRate(interestRate);
-
-                        // Get accounts controller to find the original linked account
-                        final accountsController = Provider.of<AccountsController>(context, listen: false);
-                        Account? linkedAccount;
-                        try {
-                          linkedAccount = accountsController.accounts.firstWhere(
-                            (a) => a.id == widget.fd.linkedAccountId,
-                          );
-                        } catch (e) {
-                          if (context.mounted) {
-                            toast.showError('Linked account not found');
-                          }
-                          return;
-                        }
-
-                        _controller.selectedAccount = linkedAccount;
-
-                        // Get investments controller
-                        final investmentsController = widget.investmentController ??
-                            Provider.of<InvestmentsController>(context, listen: false);
-
-                        // Build the renewed FD
-                        final renewedFD = _controller.buildFD();
-
-                        // Create a renewal cycle for this renewal
-                        final renewalCycle = FDRenewalCycle(
-                          cycleNumber: ((widget.originalInvestment?.metadata?['renewalCycles'] as List?)?.length ?? 0) + 1,
-                          investmentDate: renewedFD.investmentDate,
-                          maturityDate: renewedFD.maturityDate,
-                          principal: renewedFD.principal,
-                          interestRate: renewedFD.interestRate,
-                          tenureMonths: renewedFD.tenureMonths,
-                          maturityValue: renewedFD.maturityValue,
-                          isWithdrawn: false,
-                          isCompleted: false,
-                        );
-
-                        // Get existing renewal cycles with safe casting
-                        final existingCycles = <FDRenewalCycle>[];
-                        final cyclesData = widget.originalInvestment?.metadata?['renewalCycles'];
-                        if (cyclesData is List) {
-                          for (var c in cyclesData) {
                             try {
-                              if (c is Map<String, dynamic>) {
-                                existingCycles.add(FDRenewalCycle.fromMap(c));
-                              } else if (c is Map) {
-                                final cycleMap = Map<String, dynamic>.from(c);
-                                existingCycles.add(FDRenewalCycle.fromMap(cycleMap));
+                              // Update controller with current values from text fields
+                              _controller.updateFDName(_fdNameController.text);
+                              final principal =
+                                  double.tryParse(_principalController.text) ??
+                                      widget.fd.maturityValue;
+                              final interestRate = double.tryParse(
+                                      _interestRateController.text) ??
+                                  widget.fd.interestRate;
+
+                              _controller.updatePrincipal(principal);
+                              _controller.updateInterestRate(interestRate);
+
+                              // Get accounts controller to find the original linked account
+                              final accountsController =
+                                  Provider.of<AccountsController>(context,
+                                      listen: false);
+                              Account? linkedAccount;
+                              try {
+                                linkedAccount =
+                                    accountsController.accounts.firstWhere(
+                                  (a) => a.id == widget.fd.linkedAccountId,
+                                );
+                              } catch (e) {
+                                if (context.mounted) {
+                                  toast.showError('Linked account not found');
+                                }
+                                return;
+                              }
+
+                              _controller.selectedAccount = linkedAccount;
+
+                              // Get investments controller
+                              final investmentsController = widget
+                                      .investmentController ??
+                                  Provider.of<InvestmentsController>(context,
+                                      listen: false);
+
+                              // Build the renewed FD
+                              final renewedFD = _controller.buildFD();
+
+                              // Create a renewal cycle for this renewal
+                              final renewalCycle = FDRenewalCycle(
+                                cycleNumber: ((widget.originalInvestment
+                                                    ?.metadata?['renewalCycles']
+                                                as List?)
+                                            ?.length ??
+                                        0) +
+                                    1,
+                                investmentDate: renewedFD.investmentDate,
+                                maturityDate: renewedFD.maturityDate,
+                                principal: renewedFD.principal,
+                                interestRate: renewedFD.interestRate,
+                                tenureMonths: renewedFD.tenureMonths,
+                                maturityValue: renewedFD.maturityValue,
+                                isWithdrawn: false,
+                                isCompleted: false,
+                              );
+
+                              // Get existing renewal cycles with safe casting
+                              final existingCycles = <FDRenewalCycle>[];
+                              final cyclesData = widget.originalInvestment
+                                  ?.metadata?['renewalCycles'];
+                              if (cyclesData is List) {
+                                for (var c in cyclesData) {
+                                  try {
+                                    if (c is Map<String, dynamic>) {
+                                      existingCycles
+                                          .add(FDRenewalCycle.fromMap(c));
+                                    } else if (c is Map) {
+                                      final cycleMap =
+                                          Map<String, dynamic>.from(c);
+                                      existingCycles.add(
+                                          FDRenewalCycle.fromMap(cycleMap));
+                                    }
+                                  } catch (e) {
+                                    // Skip invalid renewal cycle data
+                                  }
+                                }
+                              }
+
+                              // Add new cycle to the list
+                              existingCycles.add(renewalCycle);
+
+                              // Update the original investment with new renewal cycle
+                              final existingMetadata =
+                                  widget.originalInvestment?.metadata ?? {};
+                              final safeMetadata =
+                                  Map<String, dynamic>.from(existingMetadata);
+
+                              final updatedInvestment =
+                                  widget.originalInvestment!.copyWith(
+                                amount: widget.originalInvestment!
+                                    .amount, // KEEP ORIGINAL PRINCIPAL
+                                metadata: {
+                                  ...safeMetadata,
+                                  'renewalCycles': existingCycles
+                                      .map((c) => c.toMap())
+                                      .toList(),
+                                  'currentCycleIndex':
+                                      existingCycles.length - 1,
+                                  'lastRenewalDate':
+                                      DateTime.now().toIso8601String(),
+                                  'interestRate': renewedFD
+                                      .interestRate, // Update to current rate
+                                  'maturityDate':
+                                      renewedFD.maturityDate.toIso8601String(),
+                                  'estimatedAccruedValue':
+                                      renewedFD.estimatedAccruedValue,
+                                  'linkedAccountId': linkedAccount.id,
+                                  'linkedAccountName': linkedAccount.name,
+                                },
+                              );
+
+                              // Update the investment (not create new one)
+                              await investmentsController
+                                  .updateInvestment(updatedInvestment);
+
+                              if (context.mounted) {
+                                toast.showSuccess('FD Renewed Successfully!');
+                                Navigator.of(context).pop();
+                                Navigator.of(context).pop();
                               }
                             } catch (e) {
-                              // Skip invalid renewal cycle data
+                              if (context.mounted) {
+                                toast.showError('Error: $e');
+                              }
+                            } finally {
+                              if (mounted) {
+                                setState(() => _isSubmitting = false);
+                              }
                             }
-                          }
-                        }
-
-                        // Add new cycle to the list
-                        existingCycles.add(renewalCycle);
-
-                        // Update the original investment with new renewal cycle
-                        final existingMetadata = widget.originalInvestment?.metadata ?? {};
-                        final safeMetadata = Map<String, dynamic>.from(existingMetadata);
-
-                        final updatedInvestment = widget.originalInvestment!.copyWith(
-                          amount: widget.originalInvestment!.amount, // KEEP ORIGINAL PRINCIPAL
-                          metadata: {
-                            ...safeMetadata,
-                            'renewalCycles': existingCycles.map((c) => c.toMap()).toList(),
-                            'currentCycleIndex': existingCycles.length - 1,
-                            'lastRenewalDate': DateTime.now().toIso8601String(),
-                            'interestRate': renewedFD.interestRate, // Update to current rate
-                            'maturityDate': renewedFD.maturityDate.toIso8601String(),
-                            'estimatedAccruedValue': renewedFD.estimatedAccruedValue,
-                            'linkedAccountId': linkedAccount.id,
-                            'linkedAccountName': linkedAccount.name,
                           },
-                        );
-
-                        // Update the investment (not create new one)
-                        await investmentsController.updateInvestment(updatedInvestment);
-
-                        if (context.mounted) {
-                          toast.showSuccess('FD Renewed Successfully!');
-                          Navigator.of(context).pop();
-                          Navigator.of(context).pop();
-                        }
-                      } catch (e) {
-                        if (context.mounted) {
-                          toast.showError('Error: $e');
-                        }
-                      } finally {
-                        if (mounted) {
-                          setState(() => _isSubmitting = false);
-                        }
-                      }
-                    },
                     child: Text(
                       _isSubmitting ? 'Processing...' : 'Confirm Renewal',
                       style: const TextStyle(
@@ -688,7 +735,8 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.md),
+              padding: EdgeInsets.symmetric(
+                  horizontal: Spacing.lg, vertical: Spacing.md),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: const BorderRadius.only(
@@ -718,7 +766,8 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
             ...TenureUnit.values.map((unit) {
               final isSelected = _selectedUnit == unit;
               return CupertinoButton(
-                padding: EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.md),
+                padding: EdgeInsets.symmetric(
+                    horizontal: Spacing.lg, vertical: Spacing.md),
                 onPressed: () {
                   setState(() {
                     _selectedUnit = unit;
@@ -731,7 +780,8 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                   padding: EdgeInsets.all(Spacing.md),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? AppStyles.getPrimaryColor(context).withOpacity(0.1)
+                        ? AppStyles.getPrimaryColor(context)
+                            .withValues(alpha: 0.1)
                         : AppStyles.getCardColor(context),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
@@ -747,7 +797,8 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                       color: isSelected
                           ? AppStyles.getPrimaryColor(context)
                           : AppStyles.getTextColor(context),
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                      fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.w600,
                     ),
                   ),
                 ),
@@ -771,10 +822,14 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
       child: Container(
         padding: EdgeInsets.all(Spacing.md),
         decoration: BoxDecoration(
-          color: isSelected ? AppStyles.getPrimaryColor(context).withOpacity(0.15) : AppStyles.getCardColor(context),
+          color: isSelected
+              ? AppStyles.getPrimaryColor(context).withValues(alpha: 0.15)
+              : AppStyles.getCardColor(context),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: isSelected ? AppStyles.getPrimaryColor(context) : Colors.transparent,
+            color: isSelected
+                ? AppStyles.getPrimaryColor(context)
+                : Colors.transparent,
             width: 1.5,
           ),
         ),

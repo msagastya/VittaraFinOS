@@ -7,7 +7,7 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 class FOGreeksStep extends StatefulWidget {
   final FOWizardController ctrl;
 
-  const FOGreeksStep(this.ctrl);
+  const FOGreeksStep(this.ctrl, {super.key});
 
   @override
   State<FOGreeksStep> createState() => _FOGreeksStepState();
@@ -50,8 +50,7 @@ class _FOGreeksStepState extends State<FOGreeksStep> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(CupertinoIcons.info_circle_fill,
-                  size: 48,
-                  color: AppStyles.getSecondaryTextColor(context)),
+                  size: 48, color: AppStyles.getSecondaryTextColor(context)),
               const SizedBox(height: 16),
               Text('Greeks are not applicable for Futures',
                   style: AppStyles.titleStyle(context),
@@ -149,24 +148,31 @@ class _FOGreeksStepState extends State<FOGreeksStep> {
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
               ),
               child: Column(
                 children: [
-                  _GreekRow('Delta', widget.ctrl.greeks!.delta.toStringAsFixed(4),
+                  _GreekRow(
+                      'Delta',
+                      widget.ctrl.greeks!.delta.toStringAsFixed(4),
                       'Sensitivity to underlying price'),
                   _Divider(),
-                  _GreekRow('Gamma', widget.ctrl.greeks!.gamma.toStringAsFixed(6),
+                  _GreekRow(
+                      'Gamma',
+                      widget.ctrl.greeks!.gamma.toStringAsFixed(6),
                       'Rate of change of Delta'),
                   _Divider(),
-                  _GreekRow('Theta', widget.ctrl.greeks!.theta.toStringAsFixed(4),
+                  _GreekRow(
+                      'Theta',
+                      widget.ctrl.greeks!.theta.toStringAsFixed(4),
                       'Time decay per day'),
                   _Divider(),
                   _GreekRow('Vega', widget.ctrl.greeks!.vega.toStringAsFixed(4),
                       'Sensitivity to volatility (per 1%)'),
                   _Divider(),
                   _GreekRow('Rho', widget.ctrl.greeks!.rho.toStringAsFixed(4),
-                      'Sensitivity to interest rates (per 1%)', isLast: true),
+                      'Sensitivity to interest rates (per 1%)',
+                      isLast: true),
                 ],
               ),
             ),
@@ -183,7 +189,8 @@ class _GreekRow extends StatelessWidget {
   final String description;
   final bool isLast;
 
-  const _GreekRow(this.label, this.value, this.description, {this.isLast = false});
+  const _GreekRow(this.label, this.value, this.description,
+      {this.isLast = false});
 
   @override
   Widget build(BuildContext context) {
@@ -223,7 +230,7 @@ class _Divider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Divider(color: Colors.grey.withOpacity(0.2), height: 1),
+      child: Divider(color: Colors.grey.withValues(alpha: 0.2), height: 1),
     );
   }
 }

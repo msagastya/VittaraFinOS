@@ -19,7 +19,8 @@ class _InterestRateStepState extends State<InterestRateStep> {
     super.initState();
     final controller = Provider.of<RDWizardController>(context, listen: false);
     _rateController = TextEditingController(
-      text: controller.interestRate > 0 ? controller.interestRate.toString() : '',
+      text:
+          controller.interestRate > 0 ? controller.interestRate.toString() : '',
     );
   }
 
@@ -82,7 +83,8 @@ class _InterestRateStepState extends State<InterestRateStep> {
           const SizedBox(height: 30),
           Consumer<RDWizardController>(
             builder: (context, controller, child) {
-              if (controller.interestRate <= 0 || controller.monthlyAmount <= 0) {
+              if (controller.interestRate <= 0 ||
+                  controller.monthlyAmount <= 0) {
                 return const SizedBox.shrink();
               }
 
@@ -93,10 +95,12 @@ class _InterestRateStepState extends State<InterestRateStep> {
               return Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppStyles.getBackground(context).withOpacity(0.5),
+                  color:
+                      AppStyles.getBackground(context).withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: AppStyles.getPrimaryColor(context).withOpacity(0.3),
+                    color: AppStyles.getPrimaryColor(context)
+                        .withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),
@@ -117,8 +121,8 @@ class _InterestRateStepState extends State<InterestRateStep> {
                       children: [
                         Text(
                           'Interest Earned',
-                          style:
-                              TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+                          style: TextStyle(
+                              color: AppStyles.getSecondaryTextColor(context)),
                         ),
                         Text(
                           '₹${controller.totalInterestAtMaturity.toStringAsFixed(2)}',

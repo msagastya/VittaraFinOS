@@ -250,7 +250,8 @@ class BulkAccountOperations {
           (acc) => acc.id == accountId,
         );
 
-        final existingTags = (account.metadata?['tags'] as List?)?.cast<String>() ?? [];
+        final existingTags =
+            (account.metadata?['tags'] as List?)?.cast<String>() ?? [];
         if (!existingTags.contains(tag)) {
           existingTags.add(tag);
         }
@@ -289,7 +290,8 @@ class BulkAccountOperations {
           (acc) => acc.id == accountId,
         );
 
-        final existingTags = (account.metadata?['tags'] as List?)?.cast<String>() ?? [];
+        final existingTags =
+            (account.metadata?['tags'] as List?)?.cast<String>() ?? [];
         existingTags.remove(tag);
 
         final updatedAccount = account.copyWith(
@@ -323,7 +325,8 @@ class BulkAccountOperations {
     final csvRows = <String>[];
 
     // Header
-    csvRows.add('ID,Name,Type,Balance,Currency,Credit Limit,Institution Name,Created Date');
+    csvRows.add(
+        'ID,Name,Type,Balance,Currency,Credit Limit,Institution Name,Created Date');
 
     // Data rows
     for (final account in accountsToExport) {

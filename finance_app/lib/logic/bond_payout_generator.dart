@@ -11,14 +11,15 @@ class BondPayoutSchedule {
   });
 
   Map<String, dynamic> toMap() => {
-    'payoutDate': payoutDate.toIso8601String(),
-    'payoutNumber': payoutNumber,
-  };
+        'payoutDate': payoutDate.toIso8601String(),
+        'payoutNumber': payoutNumber,
+      };
 
-  factory BondPayoutSchedule.fromMap(Map<String, dynamic> map) => BondPayoutSchedule(
-    payoutDate: DateTime.parse(map['payoutDate']),
-    payoutNumber: map['payoutNumber'] as int,
-  );
+  factory BondPayoutSchedule.fromMap(Map<String, dynamic> map) =>
+      BondPayoutSchedule(
+        payoutDate: DateTime.parse(map['payoutDate']),
+        payoutNumber: map['payoutNumber'] as int,
+      );
 }
 
 /// Represents a bond payout record with user-entered data
@@ -42,24 +43,25 @@ class BondPayoutRecord {
   });
 
   Map<String, dynamic> toMap() => {
-    'payoutNumber': payoutNumber,
-    'scheduledPayoutDate': scheduledPayoutDate.toIso8601String(),
-    'payoutAmount': payoutAmount,
-    'actualPayoutDate': actualPayoutDate.toIso8601String(),
-    'creditAccountId': creditAccountId,
-    'creditAccountName': creditAccountName,
-    'recordedDate': recordedDate.toIso8601String(),
-  };
+        'payoutNumber': payoutNumber,
+        'scheduledPayoutDate': scheduledPayoutDate.toIso8601String(),
+        'payoutAmount': payoutAmount,
+        'actualPayoutDate': actualPayoutDate.toIso8601String(),
+        'creditAccountId': creditAccountId,
+        'creditAccountName': creditAccountName,
+        'recordedDate': recordedDate.toIso8601String(),
+      };
 
-  factory BondPayoutRecord.fromMap(Map<String, dynamic> map) => BondPayoutRecord(
-    payoutNumber: map['payoutNumber'] as int,
-    scheduledPayoutDate: DateTime.parse(map['scheduledPayoutDate']),
-    payoutAmount: (map['payoutAmount'] as num).toDouble(),
-    actualPayoutDate: DateTime.parse(map['actualPayoutDate']),
-    creditAccountId: map['creditAccountId'] as String?,
-    creditAccountName: map['creditAccountName'] as String?,
-    recordedDate: DateTime.parse(map['recordedDate']),
-  );
+  factory BondPayoutRecord.fromMap(Map<String, dynamic> map) =>
+      BondPayoutRecord(
+        payoutNumber: map['payoutNumber'] as int,
+        scheduledPayoutDate: DateTime.parse(map['scheduledPayoutDate']),
+        payoutAmount: (map['payoutAmount'] as num).toDouble(),
+        actualPayoutDate: DateTime.parse(map['actualPayoutDate']),
+        creditAccountId: map['creditAccountId'] as String?,
+        creditAccountName: map['creditAccountName'] as String?,
+        recordedDate: DateTime.parse(map['recordedDate']),
+      );
 }
 
 /// Generates bond payout schedules based on frequency and first payout date
@@ -91,7 +93,8 @@ class BondPayoutGenerator {
 
       // Adjust day to be valid for the month
       final lastDayOfMonth = _daysInMonth(firstPayout.year, firstPayout.month);
-      final actualDay = firstPayoutDay > lastDayOfMonth ? lastDayOfMonth : firstPayoutDay;
+      final actualDay =
+          firstPayoutDay > lastDayOfMonth ? lastDayOfMonth : firstPayoutDay;
       firstPayout = DateTime(year, firstPayoutMonth, actualDay);
 
       // If first payout is in the past, move to next cycle
@@ -103,7 +106,8 @@ class BondPayoutGenerator {
       DateTime currentPayout = firstPayout;
       int payoutNumber = 1;
 
-      while (currentPayout.isBefore(maturityDate) || currentPayout.isAtSameMomentAs(maturityDate)) {
+      while (currentPayout.isBefore(maturityDate) ||
+          currentPayout.isAtSameMomentAs(maturityDate)) {
         payouts.add(BondPayoutSchedule(
           payoutDate: currentPayout,
           payoutNumber: payoutNumber,
@@ -125,12 +129,14 @@ class BondPayoutGenerator {
     final notifications = <BondPayoutNotification>[];
 
     for (final payout in payouts) {
-      final notificationDate = payout.payoutDate.subtract(const Duration(days: 2));
+      final notificationDate =
+          payout.payoutDate.subtract(const Duration(days: 2));
 
       // Check if notification should be shown (within 10 days before payout)
       final daysUntil = payout.payoutDate.difference(now).inDays;
 
-      if (daysUntil >= -7 && daysUntil <= 10) { // Show up to 7 days after for overdue
+      if (daysUntil >= -7 && daysUntil <= 10) {
+        // Show up to 7 days after for overdue
         notifications.add(BondPayoutNotification(
           payoutNumber: payout.payoutNumber,
           payoutDate: payout.payoutDate,

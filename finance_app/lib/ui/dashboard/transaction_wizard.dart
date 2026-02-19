@@ -18,7 +18,6 @@ import 'package:vittara_fin_os/ui/manage/transfer_wizard.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
-import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
 
 enum TransactionWizardBranch { expense, income, transfer }
@@ -452,14 +451,14 @@ class _TransactionWizardState extends State<TransactionWizard> {
           decoration: BoxDecoration(
             color: AppStyles.getCardColor(context),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: color.withOpacity(0.3)),
+            border: Border.all(color: color.withValues(alpha: 0.3)),
           ),
           child: Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.2),
+                  color: color.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, color: color, size: 24),
@@ -664,7 +663,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
   }) {
     final color = selected
         ? CupertinoColors.systemBlue
-        : AppStyles.getCardColor(context).withOpacity(0.0);
+        : AppStyles.getCardColor(context).withValues(alpha: 0.0);
     return Padding(
       padding: const EdgeInsets.only(bottom: Spacing.sm),
       child: GestureDetector(
@@ -673,7 +672,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: selected
-                ? CupertinoColors.systemBlue.withOpacity(0.12)
+                ? CupertinoColors.systemBlue.withValues(alpha: 0.12)
                 : AppStyles.getCardColor(context),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
@@ -685,7 +684,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: CupertinoColors.systemBlue.withOpacity(0.15),
+                  color: CupertinoColors.systemBlue.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, color: CupertinoColors.systemBlue),
@@ -755,7 +754,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                               decoration: BoxDecoration(
                                 color: isSelected
                                     ? CupertinoColors.systemBlue
-                                        .withOpacity(0.12)
+                                        .withValues(alpha: 0.12)
                                     : AppStyles.getCardColor(context),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
@@ -770,7 +769,8 @@ class _TransactionWizardState extends State<TransactionWizard> {
                                     width: 40,
                                     height: 40,
                                     decoration: BoxDecoration(
-                                      color: account.color.withOpacity(0.2),
+                                      color:
+                                          account.color.withValues(alpha: 0.2),
                                       shape: BoxShape.circle,
                                     ),
                                     child: Icon(
@@ -939,7 +939,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                               decoration: BoxDecoration(
                                 color: isSelected
                                     ? CupertinoColors.systemBlue
-                                        .withOpacity(0.12)
+                                        .withValues(alpha: 0.12)
                                     : AppStyles.getCardColor(context),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
@@ -955,7 +955,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                                     height: 40,
                                     decoration: BoxDecoration(
                                       color: (app['color'] as Color)
-                                          .withOpacity(0.2),
+                                          .withValues(alpha: 0.2),
                                       shape: BoxShape.circle,
                                     ),
                                     child: Icon(CupertinoIcons.app,
@@ -1152,7 +1152,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                                   horizontal: Spacing.sm),
                               decoration: BoxDecoration(
                                 color: selected
-                                    ? category.color.withOpacity(0.2)
+                                    ? category.color.withValues(alpha: 0.2)
                                     : AppStyles.getCardColor(context),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
@@ -1307,7 +1307,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                               decoration: BoxDecoration(
                                 color: isSelected
                                     ? CupertinoColors.systemGreen
-                                        .withOpacity(0.12)
+                                        .withValues(alpha: 0.12)
                                     : AppStyles.getCardColor(context),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
@@ -1478,7 +1478,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                           horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? tag.color.withOpacity(0.2)
+                            ? tag.color.withValues(alpha: 0.2)
                             : AppStyles.getCardColor(context),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(

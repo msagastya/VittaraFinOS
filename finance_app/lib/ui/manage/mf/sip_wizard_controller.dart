@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
 
 enum SIPFrequency { daily, weekly, monthly }
+
 enum StepUpTenure { monthly, yearly }
 
 class SIPWizardController extends ChangeNotifier {
-  SIPWizardController({Map<String, dynamic>? initialData, Account? initialAccount}) {
+  SIPWizardController(
+      {Map<String, dynamic>? initialData, Account? initialAccount}) {
     _initializeFromData(initialData);
     deductionAccount = initialAccount;
   }
@@ -103,8 +105,10 @@ class SIPWizardController extends ChangeNotifier {
     selectedWeekday = (data['weekday'] as int?) ?? selectedWeekday;
     selectedMonthDay = (data['monthDay'] as int?) ?? selectedMonthDay;
     stepUpEnabled = data['stepUpEnabled'] == true;
-    stepUpPercent = (data['stepUpPercent'] as num?)?.toDouble() ?? stepUpPercent;
-    stepUpTenure = _parseStepUpTenure(data['stepUpTenure'] as String?) ?? stepUpTenure;
+    stepUpPercent =
+        (data['stepUpPercent'] as num?)?.toDouble() ?? stepUpPercent;
+    stepUpTenure =
+        _parseStepUpTenure(data['stepUpTenure'] as String?) ?? stepUpTenure;
     stepUpDuration = (data['stepUpDuration'] as int?) ?? stepUpDuration;
   }
 

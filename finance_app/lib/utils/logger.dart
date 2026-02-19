@@ -17,7 +17,7 @@ class AppLogger {
         lineLength: 120,
         colors: true,
         printEmojis: true,
-        printTime: true,
+        dateTimeFormat: DateTimeFormat.onlyTimeAndSinceStart,
       ),
       output: MultiOutput([
         ConsoleOutput(),
@@ -30,23 +30,33 @@ class AppLogger {
     return context != null ? '[$context] $message' : message;
   }
 
-  void debug(dynamic message, {String? context, dynamic error, StackTrace? stackTrace}) {
-    _logger.d(_formatContext(context, message.toString()), error: error, stackTrace: stackTrace);
+  void debug(dynamic message,
+      {String? context, dynamic error, StackTrace? stackTrace}) {
+    _logger.d(_formatContext(context, message.toString()),
+        error: error, stackTrace: stackTrace);
   }
 
-  void info(dynamic message, {String? context, dynamic error, StackTrace? stackTrace}) {
-    _logger.i(_formatContext(context, message.toString()), error: error, stackTrace: stackTrace);
+  void info(dynamic message,
+      {String? context, dynamic error, StackTrace? stackTrace}) {
+    _logger.i(_formatContext(context, message.toString()),
+        error: error, stackTrace: stackTrace);
   }
 
-  void warning(dynamic message, {String? context, dynamic error, StackTrace? stackTrace}) {
-    _logger.w(_formatContext(context, message.toString()), error: error, stackTrace: stackTrace);
+  void warning(dynamic message,
+      {String? context, dynamic error, StackTrace? stackTrace}) {
+    _logger.w(_formatContext(context, message.toString()),
+        error: error, stackTrace: stackTrace);
   }
 
-  void error(dynamic message, {String? context, dynamic error, StackTrace? stackTrace}) {
-    _logger.e(_formatContext(context, message.toString()), error: error, stackTrace: stackTrace);
+  void error(dynamic message,
+      {String? context, dynamic error, StackTrace? stackTrace}) {
+    _logger.e(_formatContext(context, message.toString()),
+        error: error, stackTrace: stackTrace);
   }
 
-  void verbose(dynamic message, {String? context, dynamic error, StackTrace? stackTrace}) {
-    _logger.v(_formatContext(context, message.toString()), error: error, stackTrace: stackTrace);
+  void verbose(dynamic message,
+      {String? context, dynamic error, StackTrace? stackTrace}) {
+    _logger.t(_formatContext(context, message.toString()),
+        error: error, stackTrace: stackTrace);
   }
 }

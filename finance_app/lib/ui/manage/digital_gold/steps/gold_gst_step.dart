@@ -17,14 +17,16 @@ class _GoldGSTStepState extends State<GoldGSTStep> {
   @override
   void initState() {
     super.initState();
-    final controller = Provider.of<DigitalGoldWizardController>(context, listen: false);
+    final controller =
+        Provider.of<DigitalGoldWizardController>(context, listen: false);
     _gstController = TextEditingController(
       text: controller.gstRate.toString(),
     );
   }
 
   void _updateGST() {
-    final controller = Provider.of<DigitalGoldWizardController>(context, listen: false);
+    final controller =
+        Provider.of<DigitalGoldWizardController>(context, listen: false);
     final gst = double.tryParse(_gstController.text) ?? 3.0;
     controller.updateGSTRate(gst);
   }
@@ -75,7 +77,8 @@ class _GoldGSTStepState extends State<GoldGSTStep> {
               padding: const EdgeInsets.only(right: 16),
               child: Text(
                 '%',
-                style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+                style:
+                    TextStyle(color: AppStyles.getSecondaryTextColor(context)),
               ),
             ),
             style: TextStyle(color: AppStyles.getTextColor(context)),
@@ -85,10 +88,10 @@ class _GoldGSTStepState extends State<GoldGSTStep> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.orange.withOpacity(0.1),
+              color: Colors.orange.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Colors.orange.withOpacity(0.3),
+                color: Colors.orange.withValues(alpha: 0.3),
               ),
             ),
             child: Column(
@@ -120,10 +123,10 @@ class _GoldGSTStepState extends State<GoldGSTStep> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFFFB81C).withOpacity(0.1),
+                color: const Color(0xFFFFB81C).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: const Color(0xFFFFB81C).withOpacity(0.3),
+                  color: const Color(0xFFFFB81C).withValues(alpha: 0.3),
                 ),
               ),
               child: Column(

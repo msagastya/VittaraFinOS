@@ -82,7 +82,8 @@ class FDCalculations {
   static double calculateEffectiveRate(List<FDRenewalCycle> cycles) {
     if (cycles.isEmpty) return 0;
     // Simple average of all cycle rates
-    final totalRate = cycles.fold<double>(0, (sum, cycle) => sum + cycle.interestRate);
+    final totalRate =
+        cycles.fold<double>(0, (sum, cycle) => sum + cycle.interestRate);
     return totalRate / cycles.length;
   }
 }

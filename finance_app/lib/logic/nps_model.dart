@@ -180,7 +180,8 @@ class NPSAccount {
     );
   }
 
-  String getTierLabel() => tier == NPSTier.tier1 ? 'Tier 1 (Locked)' : 'Tier 2 (Flexible)';
+  String getTierLabel() =>
+      tier == NPSTier.tier1 ? 'Tier 1 (Locked)' : 'Tier 2 (Flexible)';
   String getAccountTypeLabel() {
     switch (accountType) {
       case NPSAccountType.individual:

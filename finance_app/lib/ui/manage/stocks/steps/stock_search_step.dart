@@ -85,14 +85,18 @@ class _StockSearchStepState extends State<StockSearchStep> {
         if (_isLoading)
           const Expanded(child: Center(child: CupertinoActivityIndicator()))
         else if (_error.isNotEmpty)
-          Expanded(child: Center(child: Text(_error, style: const TextStyle(color: Colors.red))))
+          Expanded(
+              child: Center(
+                  child:
+                      Text(_error, style: const TextStyle(color: Colors.red))))
         else
           Expanded(
             child: ListView.builder(
               itemCount: _results.length,
               itemBuilder: (context, index) {
                 final stock = _results[index];
-                final isSelected = controller.selectedStock?.symbol == stock.symbol;
+                final isSelected =
+                    controller.selectedStock?.symbol == stock.symbol;
 
                 return GestureDetector(
                   onTap: () {
@@ -104,11 +108,12 @@ class _StockSearchStepState extends State<StockSearchStep> {
                     });
                   },
                   child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    margin:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? SemanticColors.investments.withOpacity(0.1)
+                          ? SemanticColors.investments.withValues(alpha: 0.1)
                           : AppStyles.getCardColor(context),
                       border: isSelected
                           ? Border.all(color: SemanticColors.investments)
@@ -121,7 +126,8 @@ class _StockSearchStepState extends State<StockSearchStep> {
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: SemanticColors.investments.withOpacity(0.2),
+                            color: SemanticColors.investments
+                                .withValues(alpha: 0.2),
                             shape: BoxShape.circle,
                           ),
                           child: Center(
@@ -141,12 +147,14 @@ class _StockSearchStepState extends State<StockSearchStep> {
                             children: [
                               Text(
                                 stock.symbol,
-                                style: AppStyles.titleStyle(context).copyWith(fontSize: 16),
+                                style: AppStyles.titleStyle(context)
+                                    .copyWith(fontSize: 16),
                               ),
                               Text(
                                 '${stock.name} • ${stock.exchange}',
                                 style: TextStyle(
-                                  color: AppStyles.getSecondaryTextColor(context),
+                                  color:
+                                      AppStyles.getSecondaryTextColor(context),
                                   fontSize: 12,
                                 ),
                               ),

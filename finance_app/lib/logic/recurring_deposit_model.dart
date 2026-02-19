@@ -108,7 +108,8 @@ class RecurringDeposit {
   final double totalInvestedAmount; // Total of all installments
   final double totalInterestAtMaturity;
   final double maturityValue; // Total amount at maturity
-  final double estimatedAccruedValue; // Current value based on paid installments
+  final double
+      estimatedAccruedValue; // Current value based on paid installments
   final double realizedValue; // Sum of paid installments + accrued interest
 
   // Notes
@@ -145,12 +146,10 @@ class RecurringDeposit {
   });
 
   /// Get completed installments count
-  int get completedInstallments =>
-      installments.where((i) => i.isPaid).length;
+  int get completedInstallments => installments.where((i) => i.isPaid).length;
 
   /// Get pending installments count
-  int get pendingInstallments =>
-      installments.where((i) => !i.isPaid).length;
+  int get pendingInstallments => installments.where((i) => !i.isPaid).length;
 
   /// Get days until maturity
   int get daysUntilMaturity {
@@ -230,7 +229,8 @@ class RecurringDeposit {
       monthlyAmount: (map['monthlyAmount'] as num).toDouble(),
       interestRate: (map['interestRate'] as num).toDouble(),
       totalInstallments: map['totalInstallments'] as int,
-      paymentFrequency: RDPaymentFrequency.values[map['paymentFrequency'] as int],
+      paymentFrequency:
+          RDPaymentFrequency.values[map['paymentFrequency'] as int],
       linkedAccountId: map['linkedAccountId'],
       linkedAccountName: map['linkedAccountName'],
       autoPaymentEnabled: map['autoPaymentEnabled'] as bool,
@@ -249,8 +249,7 @@ class RecurringDeposit {
       totalInterestAtMaturity:
           (map['totalInterestAtMaturity'] as num).toDouble(),
       maturityValue: (map['maturityValue'] as num).toDouble(),
-      estimatedAccruedValue:
-          (map['estimatedAccruedValue'] as num).toDouble(),
+      estimatedAccruedValue: (map['estimatedAccruedValue'] as num).toDouble(),
       realizedValue: (map['realizedValue'] as num).toDouble(),
       notes: map['notes'] as String?,
       bankName: map['bankName'] as String?,
@@ -390,11 +389,11 @@ class RDCalculator {
     final periodRate = monthlyRate * monthsPerInstallment;
 
     for (int i = 1; i <= totalInstallments; i++) {
-      final dueDate =
-          _addMonths(startDate, (i - 1) * monthsPerInstallment);
+      final dueDate = _addMonths(startDate, (i - 1) * monthsPerInstallment);
 
       // Interest earned on this installment
-      final periodsRemaining = (totalInstallments - i) * monthsPerInstallment / 12;
+      final periodsRemaining =
+          (totalInstallments - i) * monthsPerInstallment / 12;
       final interestEarned =
           (monthlyAmount * math.pow(1 + periodRate, periodsRemaining)) -
               monthlyAmount;

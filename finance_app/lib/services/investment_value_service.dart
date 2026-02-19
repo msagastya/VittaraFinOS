@@ -29,7 +29,8 @@ class InvestmentValueService {
       case InvestmentType.digitalGold:
         return _fetchDigitalGoldValue(investment);
       default:
-        return Future.value(InvestmentValueResult(currentValue: _calculateFallbackCurrentValue(investment)));
+        return Future.value(InvestmentValueResult(
+            currentValue: _calculateFallbackCurrentValue(investment)));
     }
   }
 
@@ -39,9 +40,11 @@ class InvestmentValueService {
     final qty = _asDouble(metadata['qty']) ?? 0;
 
     if (symbol?.isEmpty ?? true || qty == 0) {
-      _logger.warning('Missing stock symbol/qty for ${investment.name}', context: 'InvestmentValueService');
+      _logger.warning('Missing stock symbol/qty for ${investment.name}',
+          context: 'InvestmentValueService');
       return metadata.containsKey('currentValue')
-          ? InvestmentValueResult(currentValue: _asDouble(metadata['currentValue']))
+          ? InvestmentValueResult(
+              currentValue: _asDouble(metadata['currentValue']))
           : null;
     }
 
@@ -51,7 +54,8 @@ class InvestmentValueService {
     }
 
     return metadata.containsKey('currentValue')
-        ? InvestmentValueResult(currentValue: _asDouble(metadata['currentValue']))
+        ? InvestmentValueResult(
+            currentValue: _asDouble(metadata['currentValue']))
         : null;
   }
 
@@ -94,13 +98,15 @@ class InvestmentValueService {
         : null;
   }
 
-  Future<InvestmentValueResult?> _fetchDigitalGoldValue(Investment investment) async {
+  Future<InvestmentValueResult?> _fetchDigitalGoldValue(
+      Investment investment) async {
     final metadata = investment.metadata ?? {};
     final weight = _asDouble(metadata['weightInGrams']) ?? 0;
 
     if (weight == 0) {
       return metadata.containsKey('currentValue')
-          ? InvestmentValueResult(currentValue: _asDouble(metadata['currentValue']))
+          ? InvestmentValueResult(
+              currentValue: _asDouble(metadata['currentValue']))
           : null;
     }
 
@@ -110,7 +116,8 @@ class InvestmentValueService {
     }
 
     return metadata.containsKey('currentValue')
-        ? InvestmentValueResult(currentValue: _asDouble(metadata['currentValue']))
+        ? InvestmentValueResult(
+            currentValue: _asDouble(metadata['currentValue']))
         : null;
   }
 
@@ -202,7 +209,8 @@ class InvestmentValueService {
               final compoundsElapsed = daysElapsed / daysPerCompound;
               final rate = interestRate / 100.0;
               final ratePerCompound = rate / compoundsPerYear;
-              currentValue = principal * pow(1 + ratePerCompound, compoundsElapsed).toDouble();
+              currentValue = principal *
+                  pow(1 + ratePerCompound, compoundsElapsed).toDouble();
 
               return currentValue;
             }

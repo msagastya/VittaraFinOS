@@ -19,7 +19,8 @@ class AccountsController with ChangeNotifier {
     final accountsJson = _prefs.getStringList(_storageKey) ?? [];
 
     _accounts = accountsJson
-        .map((json) => Account.fromMap(jsonDecode(json) as Map<String, dynamic>))
+        .map(
+            (json) => Account.fromMap(jsonDecode(json) as Map<String, dynamic>))
         .toList();
 
     notifyListeners();
@@ -27,13 +28,13 @@ class AccountsController with ChangeNotifier {
 
   Future<void> addAccount(Account account) async {
     // Validate credit card balance doesn't exceed limit
-    if ((account.type == AccountType.credit || account.type == AccountType.payLater) &&
+    if ((account.type == AccountType.credit ||
+            account.type == AccountType.payLater) &&
         account.creditLimit != null &&
         account.balance > account.creditLimit!) {
       throw Exception(
-        'Credit card balance (₹${account.balance.toStringAsFixed(2)}) '
-        'cannot exceed credit limit (₹${account.creditLimit!.toStringAsFixed(2)})'
-      );
+          'Credit card balance (₹${account.balance.toStringAsFixed(2)}) '
+          'cannot exceed credit limit (₹${account.creditLimit!.toStringAsFixed(2)})');
     }
 
     _accounts.add(account);
@@ -49,13 +50,13 @@ class AccountsController with ChangeNotifier {
 
   Future<void> updateAccount(Account account) async {
     // Validate credit card balance doesn't exceed limit
-    if ((account.type == AccountType.credit || account.type == AccountType.payLater) &&
+    if ((account.type == AccountType.credit ||
+            account.type == AccountType.payLater) &&
         account.creditLimit != null &&
         account.balance > account.creditLimit!) {
       throw Exception(
-        'Credit card balance (₹${account.balance.toStringAsFixed(2)}) '
-        'cannot exceed credit limit (₹${account.creditLimit!.toStringAsFixed(2)})'
-      );
+          'Credit card balance (₹${account.balance.toStringAsFixed(2)}) '
+          'cannot exceed credit limit (₹${account.creditLimit!.toStringAsFixed(2)})');
     }
 
     final index = _accounts.indexWhere((acc) => acc.id == account.id);
@@ -67,9 +68,8 @@ class AccountsController with ChangeNotifier {
   }
 
   Future<void> _saveAccounts() async {
-    final accountsJson = _accounts
-        .map((account) => jsonEncode(account.toMap()))
-        .toList();
+    final accountsJson =
+        _accounts.map((account) => jsonEncode(account.toMap())).toList();
     await _prefs.setStringList(_storageKey, accountsJson);
   }
 

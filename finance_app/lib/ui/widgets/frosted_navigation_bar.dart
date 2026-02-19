@@ -1,5 +1,4 @@
 import 'dart:ui';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
@@ -175,8 +174,10 @@ class _FrostedNavigationButtonState extends State<_FrostedNavigationButton>
                     color: widget.isSelected
                         ? color
                         : (isDark
-                            ? Colors.white.withValues(alpha: _opacityAnimation.value * 0.6)
-                            : Colors.black.withValues(alpha: _opacityAnimation.value * 0.6)),
+                            ? Colors.white.withValues(
+                                alpha: _opacityAnimation.value * 0.6)
+                            : Colors.black.withValues(
+                                alpha: _opacityAnimation.value * 0.6)),
                     size: IconSizes.md,
                   ),
                 ),
@@ -190,8 +191,10 @@ class _FrostedNavigationButtonState extends State<_FrostedNavigationButton>
                     color: widget.isSelected
                         ? color
                         : (isDark
-                            ? Colors.white.withValues(alpha: _opacityAnimation.value * 0.6)
-                            : Colors.black.withValues(alpha: _opacityAnimation.value * 0.6)),
+                            ? Colors.white.withValues(
+                                alpha: _opacityAnimation.value * 0.6)
+                            : Colors.black.withValues(
+                                alpha: _opacityAnimation.value * 0.6)),
                   ),
                 ),
               ],
@@ -325,7 +328,8 @@ class FrostedIndicatorNavigationBar extends StatelessWidget {
                       gradient: LinearGradient(
                         colors: [
                           SemanticColors.getPrimary(context),
-                          SemanticColors.getPrimary(context).withValues(alpha: 0.5),
+                          SemanticColors.getPrimary(context)
+                              .withValues(alpha: 0.5),
                         ],
                       ),
                       borderRadius: const BorderRadius.vertical(
@@ -387,8 +391,8 @@ class MinimalFrostedNavigationBar extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: List.generate(items.length, (index) {
                 final isSelected = currentIndex == index;
-                final color = items[index].color ??
-                    SemanticColors.getPrimary(context);
+                final color =
+                    items[index].color ?? SemanticColors.getPrimary(context);
 
                 return GestureDetector(
                   onTap: () => onTap(index),

@@ -14,7 +14,8 @@ class PayoutRecord {
   final double principalAmount; // Only for maturity/withdrawal
   final bool isProcessed; // true = already credited to account
   final DateTime? processedDate;
-  final String payoutType; // 'interest', 'principal', 'both' (maturity/withdrawal)
+  final String
+      payoutType; // 'interest', 'principal', 'both' (maturity/withdrawal)
 
   PayoutRecord({
     required this.id,
@@ -167,8 +168,8 @@ class FixedDeposit {
       return 0;
     }
     final now = DateTime.now();
-    final months = (maturityDate.year - now.year) * 12 +
-                   (maturityDate.month - now.month);
+    final months =
+        (maturityDate.year - now.year) * 12 + (maturityDate.month - now.month);
     return months > 0 ? months : 0;
   }
 
@@ -176,7 +177,7 @@ class FixedDeposit {
   int get elapsedMonths {
     final now = DateTime.now();
     final months = (now.year - investmentDate.year) * 12 +
-                   (now.month - investmentDate.month);
+        (now.month - investmentDate.month);
     return months > 0 ? months : 0;
   }
 
@@ -256,10 +257,9 @@ class FixedDeposit {
       principal: (map['principal'] as num).toDouble(),
       interestRate: (map['interestRate'] as num).toDouble(),
       tenureMonths: map['tenureMonths'] as int,
-      compoundingFrequency: FDCompoundingFrequency
-          .values[map['compoundingFrequency'] as int],
-      payoutFrequency:
-          FDPayoutFrequency.values[map['payoutFrequency'] as int],
+      compoundingFrequency:
+          FDCompoundingFrequency.values[map['compoundingFrequency'] as int],
+      payoutFrequency: FDPayoutFrequency.values[map['payoutFrequency'] as int],
       isCumulative: map['isCumulative'] as bool,
       linkedAccountId: map['linkedAccountId'],
       linkedAccountName: map['linkedAccountName'],
@@ -284,8 +284,7 @@ class FixedDeposit {
       maturityValue: (map['maturityValue'] as num).toDouble(),
       totalInterestAtMaturity:
           (map['totalInterestAtMaturity'] as num).toDouble(),
-      estimatedAccruedValue:
-          (map['estimatedAccruedValue'] as num).toDouble(),
+      estimatedAccruedValue: (map['estimatedAccruedValue'] as num).toDouble(),
       realizedValue: (map['realizedValue'] as num).toDouble(),
       notes: map['notes'] as String?,
       bankName: map['bankName'] as String?,
@@ -330,8 +329,7 @@ class FixedDeposit {
       principal: principal ?? this.principal,
       interestRate: interestRate ?? this.interestRate,
       tenureMonths: tenureMonths ?? this.tenureMonths,
-      compoundingFrequency:
-          compoundingFrequency ?? this.compoundingFrequency,
+      compoundingFrequency: compoundingFrequency ?? this.compoundingFrequency,
       payoutFrequency: payoutFrequency ?? this.payoutFrequency,
       isCumulative: isCumulative ?? this.isCumulative,
       linkedAccountId: linkedAccountId ?? this.linkedAccountId,
@@ -546,7 +544,8 @@ class FDCalculator {
       // Calculate interest for this payout
       final prevPayoutDate = payoutNumber == 1
           ? investmentDate
-          : _addMonths(investmentDate, (payoutNumber - 1) * payoutIntervalMonths);
+          : _addMonths(
+              investmentDate, (payoutNumber - 1) * payoutIntervalMonths);
 
       final prevAccruedValue = calculateAccruedValue(
         principal: principal,
@@ -572,7 +571,7 @@ class FDCalculator {
       final isLastPayout = currentPayoutDate.isAtSameMomentAs(maturityDate);
 
       payouts.add(PayoutRecord(
-        id: '${fdId}_payout_${payoutNumber}',
+        id: '${fdId}_payout_$payoutNumber',
         payoutDate: currentPayoutDate,
         interestAmount: interestAmount,
         principalAmount: isLastPayout ? principal : 0,

@@ -6,7 +6,7 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 class CommodityPriceStep extends StatefulWidget {
   final CommoditiesWizardController ctrl;
 
-  const CommodityPriceStep(this.ctrl);
+  const CommodityPriceStep(this.ctrl, {super.key});
 
   @override
   State<CommodityPriceStep> createState() => _CommodityPriceStepState();
@@ -31,14 +31,22 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
 
   @override
   Widget build(BuildContext context) {
-    final exchanges = ['MCX (India)', 'NCDEX (India)', 'COMEX (US)', 'LME (London)', 'TOCOM (Japan)', 'Other'];
+    final exchanges = [
+      'MCX (India)',
+      'NCDEX (India)',
+      'COMEX (US)',
+      'LME (London)',
+      'TOCOM (Japan)',
+      'Other'
+    ];
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Purchase Price & Exchange', style: AppStyles.titleStyle(context)),
+          Text('Purchase Price & Exchange',
+              style: AppStyles.titleStyle(context)),
           const SizedBox(height: 30),
           Text('Price Per ${widget.ctrl.unit ?? 'Unit'} (₹)',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
@@ -79,7 +87,8 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
                         decoration: BoxDecoration(
                           color: AppStyles.getCardColor(context),
                           border: Border(
-                            bottom: BorderSide(color: Colors.grey.withOpacity(0.2)),
+                            bottom: BorderSide(
+                                color: Colors.grey.withValues(alpha: 0.2)),
                           ),
                         ),
                         child: Row(
@@ -114,7 +123,7 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -137,7 +146,7 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.withOpacity(0.2)),
+              border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
             ),
             child: CupertinoButton(
               onPressed: () {
@@ -153,7 +162,8 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
                           decoration: BoxDecoration(
                             color: AppStyles.getCardColor(context),
                             border: Border(
-                              bottom: BorderSide(color: Colors.grey.withOpacity(0.2)),
+                              bottom: BorderSide(
+                                  color: Colors.grey.withValues(alpha: 0.2)),
                             ),
                           ),
                           child: Row(
@@ -193,7 +203,8 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
                                   margin: const EdgeInsets.only(bottom: 8),
                                   decoration: BoxDecoration(
                                     color: widget.ctrl.exchange == exchange
-                                        ? const Color(0xFF8B4513).withOpacity(0.1)
+                                        ? const Color(0xFF8B4513)
+                                            .withValues(alpha: 0.1)
                                         : AppStyles.getBackground(context),
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(
@@ -243,9 +254,10 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF8B4513).withOpacity(0.1),
+                color: const Color(0xFF8B4513).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF8B4513).withOpacity(0.3)),
+                border: Border.all(
+                    color: const Color(0xFF8B4513).withValues(alpha: 0.3)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

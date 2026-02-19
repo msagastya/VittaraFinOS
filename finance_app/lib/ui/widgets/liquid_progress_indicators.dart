@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
@@ -114,8 +113,12 @@ class LiquidCircularPainter extends CustomPainter {
     // Draw wave
     for (double x = 0; x <= size.width; x += 2) {
       final normalized = x / size.width;
-      final wave1 = math.sin((normalized * math.pi * 2) + (wavePhase * math.pi * 2)) * waveHeight;
-      final wave2 = math.sin((normalized * math.pi * 3) + (wavePhase * math.pi * 3)) * (waveHeight * 0.5);
+      final wave1 =
+          math.sin((normalized * math.pi * 2) + (wavePhase * math.pi * 2)) *
+              waveHeight;
+      final wave2 =
+          math.sin((normalized * math.pi * 3) + (wavePhase * math.pi * 3)) *
+              (waveHeight * 0.5);
       path.lineTo(x, fillHeight + wave1 + wave2);
     }
 
@@ -125,7 +128,8 @@ class LiquidCircularPainter extends CustomPainter {
     path.close();
 
     // Clip to circle
-    canvas.clipPath(Path()..addOval(Rect.fromCircle(center: center, radius: radius)));
+    canvas.clipPath(
+        Path()..addOval(Rect.fromCircle(center: center, radius: radius)));
 
     // Draw liquid
     final paint = Paint()
@@ -140,7 +144,9 @@ class LiquidCircularPainter extends CustomPainter {
 
     for (double x = 0; x <= size.width; x += 2) {
       final normalized = x / size.width;
-      final wave = math.sin((normalized * math.pi * 2.5) + (wavePhase * math.pi * 2.5)) * (waveHeight * 0.7);
+      final wave =
+          math.sin((normalized * math.pi * 2.5) + (wavePhase * math.pi * 2.5)) *
+              (waveHeight * 0.7);
       overlayPath.lineTo(x, fillHeight - 3 + wave);
     }
 
@@ -215,10 +221,12 @@ class _LiquidLinearProgressState extends State<LiquidLinearProgress>
       height: widget.height,
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: widget.borderRadius ?? BorderRadius.circular(widget.height / 2),
+        borderRadius:
+            widget.borderRadius ?? BorderRadius.circular(widget.height / 2),
       ),
       child: ClipRRect(
-        borderRadius: widget.borderRadius ?? BorderRadius.circular(widget.height / 2),
+        borderRadius:
+            widget.borderRadius ?? BorderRadius.circular(widget.height / 2),
         child: AnimatedBuilder(
           animation: _controller,
           builder: (context, child) {
@@ -260,7 +268,9 @@ class LiquidLinearPainter extends CustomPainter {
     // Draw top wave
     for (double x = 0; x <= progressWidth; x += 2) {
       final normalized = x / size.width;
-      final wave = math.sin((normalized * math.pi * 4) + (wavePhase * math.pi * 2)) * waveHeight;
+      final wave =
+          math.sin((normalized * math.pi * 4) + (wavePhase * math.pi * 2)) *
+              waveHeight;
       path.lineTo(x, wave);
     }
 
@@ -292,9 +302,11 @@ class LiquidLinearPainter extends CustomPainter {
     );
 
     final gradientPaint = Paint()
-      ..shader = gradient.createShader(Rect.fromLTWH(0, 0, progressWidth, size.height));
+      ..shader = gradient
+          .createShader(Rect.fromLTWH(0, 0, progressWidth, size.height));
 
-    canvas.drawRect(Rect.fromLTWH(0, 0, progressWidth, size.height), gradientPaint);
+    canvas.drawRect(
+        Rect.fromLTWH(0, 0, progressWidth, size.height), gradientPaint);
   }
 
   @override
@@ -539,7 +551,8 @@ class _LiquidSkeletonState extends State<LiquidSkeleton>
           width: widget.width,
           height: widget.height,
           decoration: BoxDecoration(
-            borderRadius: widget.borderRadius ?? BorderRadius.circular(widget.height / 2),
+            borderRadius:
+                widget.borderRadius ?? BorderRadius.circular(widget.height / 2),
             gradient: LinearGradient(
               begin: Alignment.centerLeft,
               end: Alignment.centerRight,

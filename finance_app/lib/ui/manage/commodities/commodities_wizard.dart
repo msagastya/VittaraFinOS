@@ -187,7 +187,8 @@ class _CommoditiesWizardContentState extends State<_CommoditiesWizardContent> {
                           }
                         }
                       : null,
-                  child: Text(ctrl.currentStep >= 4 ? 'Confirm & Save' : 'Continue'),
+                  child: Text(
+                      ctrl.currentStep >= 4 ? 'Confirm & Save' : 'Continue'),
                 ),
               ),
             ),

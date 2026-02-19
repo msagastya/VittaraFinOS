@@ -150,7 +150,8 @@ class DashboardConfig {
   factory DashboardConfig.fromMap(Map<String, dynamic> map) {
     return DashboardConfig(
       widgets: (map['widgets'] as List?)
-              ?.map((w) => DashboardWidgetConfig.fromMap(w as Map<String, dynamic>))
+              ?.map((w) =>
+                  DashboardWidgetConfig.fromMap(w as Map<String, dynamic>))
               .toList() ??
           [],
       lastModified: map['lastModified'] != null

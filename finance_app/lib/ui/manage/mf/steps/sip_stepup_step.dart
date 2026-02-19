@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/ui/manage/mf/sip_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -21,7 +20,9 @@ class _SIPStepUpStepState extends State<SIPStepUpStep> {
     super.initState();
     final controller = Provider.of<SIPWizardController>(context, listen: false);
     _percentController = TextEditingController(
-      text: controller.stepUpPercent > 0 ? controller.stepUpPercent.toString() : '',
+      text: controller.stepUpPercent > 0
+          ? controller.stepUpPercent.toString()
+          : '',
     );
     _durationController = TextEditingController(
       text: controller.stepUpDuration.toString(),
@@ -82,7 +83,7 @@ class _SIPStepUpStepState extends State<SIPStepUpStep> {
                 onChanged: (value) {
                   sipController.toggleStepUp(value);
                 },
-                activeColor: SemanticColors.investments,
+                activeTrackColor: SemanticColors.investments,
               ),
             ],
           ),
@@ -180,10 +181,10 @@ class _SIPStepUpStepState extends State<SIPStepUpStep> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: CupertinoColors.systemBlue.withOpacity(0.1),
+                color: CupertinoColors.systemBlue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: CupertinoColors.systemBlue.withOpacity(0.3),
+                  color: CupertinoColors.systemBlue.withValues(alpha: 0.3),
                 ),
               ),
               child: Column(
@@ -218,7 +219,7 @@ class _SIPStepUpStepState extends State<SIPStepUpStep> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: CupertinoColors.systemGrey.withOpacity(0.1),
+                color: CupertinoColors.systemGrey.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(

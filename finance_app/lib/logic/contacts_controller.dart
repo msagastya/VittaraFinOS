@@ -15,7 +15,9 @@ class ContactsController extends ChangeNotifier {
     if (jsonString != null) {
       try {
         final List<dynamic> jsonList = jsonDecode(jsonString);
-        _contacts = jsonList.map((item) => Contact.fromMap(Map<String, dynamic>.from(item))).toList();
+        _contacts = jsonList
+            .map((item) => Contact.fromMap(Map<String, dynamic>.from(item)))
+            .toList();
         // Sort by name
         _contacts.sort((a, b) => a.name.compareTo(b.name));
       } catch (e) {
@@ -33,7 +35,8 @@ class ContactsController extends ChangeNotifier {
 
   void addContact(Contact contact) {
     // Check if contact already exists
-    if (!_contacts.any((c) => c.name.toLowerCase() == contact.name.toLowerCase())) {
+    if (!_contacts
+        .any((c) => c.name.toLowerCase() == contact.name.toLowerCase())) {
       _contacts.add(contact);
       _contacts.sort((a, b) => a.name.compareTo(b.name));
       _saveContacts();
@@ -65,7 +68,8 @@ class ContactsController extends ChangeNotifier {
 
   Contact? getContactByName(String name) {
     try {
-      return _contacts.firstWhere((c) => c.name.toLowerCase() == name.toLowerCase());
+      return _contacts
+          .firstWhere((c) => c.name.toLowerCase() == name.toLowerCase());
     } catch (e) {
       return null;
     }

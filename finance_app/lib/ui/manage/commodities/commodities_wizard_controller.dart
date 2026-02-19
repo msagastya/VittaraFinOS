@@ -32,10 +32,16 @@ class CommoditiesWizardController extends ChangeNotifier {
         return commodityName.isNotEmpty;
       case 1:
         // Quantity and unit step
-        return quantity != null && quantity! > 0 && unit != null && unit!.isNotEmpty;
+        return quantity != null &&
+            quantity! > 0 &&
+            unit != null &&
+            unit!.isNotEmpty;
       case 2:
         // Price and exchange step
-        return buyPrice != null && buyPrice! > 0 && exchange != null && exchange!.isNotEmpty;
+        return buyPrice != null &&
+            buyPrice! > 0 &&
+            exchange != null &&
+            exchange!.isNotEmpty;
       case 3:
         // Current price and position step
         return currentPrice != null && currentPrice! > 0;

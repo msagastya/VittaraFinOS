@@ -116,7 +116,9 @@ class Investment {
       color: Color(map['color']),
       notes: map['notes'],
       broker: map['broker'],
-      metadata: map['metadata'] != null ? Map<String, dynamic>.from(map['metadata']) : null,
+      metadata: map['metadata'] != null
+          ? Map<String, dynamic>.from(map['metadata'])
+          : null,
     );
   }
 

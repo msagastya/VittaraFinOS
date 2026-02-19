@@ -3,8 +3,10 @@ import 'dart:math' as math;
 /// Represents a single cash flow event for a bond
 class BondCashFlow {
   final DateTime date;
-  final double amount; // negative = outflow (purchase), positive = inflow (payment)
-  final String description; // "Purchase", "Coupon Payment", "Principal Repayment", etc.
+  final double
+      amount; // negative = outflow (purchase), positive = inflow (payment)
+  final String
+      description; // "Purchase", "Coupon Payment", "Principal Repayment", etc.
 
   BondCashFlow({
     required this.date,
@@ -13,25 +15,25 @@ class BondCashFlow {
   });
 
   Map<String, dynamic> toMap() => {
-    'date': date.toIso8601String(),
-    'amount': amount,
-    'description': description,
-  };
+        'date': date.toIso8601String(),
+        'amount': amount,
+        'description': description,
+      };
 
   factory BondCashFlow.fromMap(Map<String, dynamic> map) => BondCashFlow(
-    date: DateTime.parse(map['date']),
-    amount: (map['amount'] as num).toDouble(),
-    description: map['description'],
-  );
+        date: DateTime.parse(map['date']),
+        amount: (map['amount'] as num).toDouble(),
+        description: map['description'],
+      );
 }
 
 /// Bond types - only affects how cash flows are GENERATED
 enum BondType {
-  fixedCoupon,      // Regular coupon payments + principal at maturity
-  zeroCoupon,       // Single payment at maturity
-  monthlyFixed,     // Fixed coupon paid monthly
-  amortizing,       // Principal repaid gradually with interest
-  floatingRate,     // Coupon varies with reference rate
+  fixedCoupon, // Regular coupon payments + principal at maturity
+  zeroCoupon, // Single payment at maturity
+  monthlyFixed, // Fixed coupon paid monthly
+  amortizing, // Principal repaid gradually with interest
+  floatingRate, // Coupon varies with reference rate
 }
 
 /// Represents the complete bond with its cash flow schedule
@@ -51,7 +53,8 @@ class Bond {
   final double? fixedCouponRate; // For fixed/monthly bonds (annual %)
   final double? referenceRate; // For floating bonds (current reference rate %)
   final double? spread; // Spread over reference rate for floating bonds
-  final int paymentsPerYear; // Coupon frequency (1=annual, 2=semi-annual, 12=monthly)
+  final int
+      paymentsPerYear; // Coupon frequency (1=annual, 2=semi-annual, 12=monthly)
 
   // The CORE: Cash flow schedule
   final List<BondCashFlow> cashFlows; // Sorted by date
@@ -125,44 +128,44 @@ class Bond {
   }
 
   Map<String, dynamic> toMap() => {
-    'id': id,
-    'name': name,
-    'type': type.index,
-    'faceValue': faceValue,
-    'issueDate': issueDate.toIso8601String(),
-    'maturityDate': maturityDate.toIso8601String(),
-    'purchaseDate': purchaseDate.toIso8601String(),
-    'purchasePrice': purchasePrice,
-    'fixedCouponRate': fixedCouponRate,
-    'referenceRate': referenceRate,
-    'spread': spread,
-    'paymentsPerYear': paymentsPerYear,
-    'cashFlows': cashFlows.map((cf) => cf.toMap()).toList(),
-    'yieldToMaturity': yieldToMaturity,
-    'createdDate': createdDate.toIso8601String(),
-    'notes': notes,
-  };
+        'id': id,
+        'name': name,
+        'type': type.index,
+        'faceValue': faceValue,
+        'issueDate': issueDate.toIso8601String(),
+        'maturityDate': maturityDate.toIso8601String(),
+        'purchaseDate': purchaseDate.toIso8601String(),
+        'purchasePrice': purchasePrice,
+        'fixedCouponRate': fixedCouponRate,
+        'referenceRate': referenceRate,
+        'spread': spread,
+        'paymentsPerYear': paymentsPerYear,
+        'cashFlows': cashFlows.map((cf) => cf.toMap()).toList(),
+        'yieldToMaturity': yieldToMaturity,
+        'createdDate': createdDate.toIso8601String(),
+        'notes': notes,
+      };
 
   factory Bond.fromMap(Map<String, dynamic> map) => Bond(
-    id: map['id'],
-    name: map['name'],
-    type: BondType.values[map['type'] as int],
-    faceValue: (map['faceValue'] as num).toDouble(),
-    issueDate: DateTime.parse(map['issueDate']),
-    maturityDate: DateTime.parse(map['maturityDate']),
-    purchaseDate: DateTime.parse(map['purchaseDate']),
-    purchasePrice: (map['purchasePrice'] as num).toDouble(),
-    fixedCouponRate: map['fixedCouponRate'] as double?,
-    referenceRate: map['referenceRate'] as double?,
-    spread: map['spread'] as double?,
-    paymentsPerYear: map['paymentsPerYear'] as int,
-    cashFlows: (map['cashFlows'] as List)
-        .map((cf) => BondCashFlow.fromMap(cf as Map<String, dynamic>))
-        .toList(),
-    yieldToMaturity: map['yieldToMaturity'] as double?,
-    createdDate: DateTime.parse(map['createdDate']),
-    notes: map['notes'] as String?,
-  );
+        id: map['id'],
+        name: map['name'],
+        type: BondType.values[map['type'] as int],
+        faceValue: (map['faceValue'] as num).toDouble(),
+        issueDate: DateTime.parse(map['issueDate']),
+        maturityDate: DateTime.parse(map['maturityDate']),
+        purchaseDate: DateTime.parse(map['purchaseDate']),
+        purchasePrice: (map['purchasePrice'] as num).toDouble(),
+        fixedCouponRate: map['fixedCouponRate'] as double?,
+        referenceRate: map['referenceRate'] as double?,
+        spread: map['spread'] as double?,
+        paymentsPerYear: map['paymentsPerYear'] as int,
+        cashFlows: (map['cashFlows'] as List)
+            .map((cf) => BondCashFlow.fromMap(cf as Map<String, dynamic>))
+            .toList(),
+        yieldToMaturity: map['yieldToMaturity'] as double?,
+        createdDate: DateTime.parse(map['createdDate']),
+        notes: map['notes'] as String?,
+      );
 }
 
 /// UNIVERSAL YIELD CALCULATOR
@@ -190,8 +193,7 @@ class BondYieldCalculator {
       final baseDate = sorted.first.date;
 
       for (final cf in sorted) {
-        final yearsFromStart =
-            cf.date.difference(baseDate).inDays / 365.25;
+        final yearsFromStart = cf.date.difference(baseDate).inDays / 365.25;
         final discountFactor = math.pow(1 + rate, yearsFromStart);
 
         npv += cf.amount / discountFactor;
@@ -219,15 +221,15 @@ class BondYieldCalculator {
   }
 
   /// Calculate NPV at a given discount rate
-  static double calculateNPV(List<BondCashFlow> cashFlows, double discountRate) {
+  static double calculateNPV(
+      List<BondCashFlow> cashFlows, double discountRate) {
     if (cashFlows.isEmpty) return 0;
 
     double npv = 0;
     final baseDate = cashFlows.first.date;
 
     for (final cf in cashFlows) {
-      final yearsFromStart =
-          cf.date.difference(baseDate).inDays / 365.25;
+      final yearsFromStart = cf.date.difference(baseDate).inDays / 365.25;
       npv += cf.amount / math.pow(1 + discountRate, yearsFromStart);
     }
 
@@ -262,7 +264,8 @@ class CashFlowGenerator {
     final couponAmount = (faceValue * annualCouponRate) / paymentsPerYear;
 
     // Calculate months between payments based on frequency
-    final monthsPerPeriod = 12 ~/ paymentsPerYear; // 12 for annual, 6 for semi-annual, 1 for monthly
+    final monthsPerPeriod = 12 ~/
+        paymentsPerYear; // 12 for annual, 6 for semi-annual, 1 for monthly
 
     DateTime currentDate = _addMonths(purchaseDate, monthsPerPeriod);
 

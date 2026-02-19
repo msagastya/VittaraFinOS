@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/ui/manage/bonds/bonds_wizard_controller_v2.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -6,7 +5,7 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 class BondCashFlowReviewStep extends StatelessWidget {
   final BondsWizardControllerV2 ctrl;
 
-  const BondCashFlowReviewStep(this.ctrl);
+  const BondCashFlowReviewStep(this.ctrl, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +31,7 @@ class BondCashFlowReviewStep extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.withOpacity(0.2)),
+              border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
             ),
             child: Column(
               children: [
@@ -40,7 +39,7 @@ class BondCashFlowReviewStep extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF00A6CC).withOpacity(0.1),
+                    color: const Color(0xFF00A6CC).withValues(alpha: 0.1),
                     borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(12),
                       topRight: Radius.circular(12),
@@ -94,7 +93,7 @@ class BondCashFlowReviewStep extends StatelessWidget {
                     children: [
                       Divider(
                         height: 1,
-                        color: Colors.grey.withOpacity(0.1),
+                        color: Colors.grey.withValues(alpha: 0.1),
                       ),
                       Padding(
                         padding: const EdgeInsets.all(12),
@@ -115,9 +114,7 @@ class BondCashFlowReviewStep extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
-                                  color: isNegative
-                                      ? Colors.red
-                                      : Colors.green,
+                                  color: isNegative ? Colors.red : Colors.green,
                                 ),
                               ),
                             ),
@@ -128,7 +125,8 @@ class BondCashFlowReviewStep extends StatelessWidget {
                                 textAlign: TextAlign.right,
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: AppStyles.getSecondaryTextColor(context),
+                                  color:
+                                      AppStyles.getSecondaryTextColor(context),
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -149,13 +147,13 @@ class BondCashFlowReviewStep extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: isProfit
-                  ? Colors.green.withOpacity(0.1)
-                  : Colors.red.withOpacity(0.1),
+                  ? Colors.green.withValues(alpha: 0.1)
+                  : Colors.red.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: isProfit
-                    ? Colors.green.withOpacity(0.3)
-                    : Colors.red.withOpacity(0.3),
+                    ? Colors.green.withValues(alpha: 0.3)
+                    : Colors.red.withValues(alpha: 0.3),
               ),
             ),
             child: Column(
@@ -176,21 +174,24 @@ class BondCashFlowReviewStep extends StatelessWidget {
                 const SizedBox(height: 12),
                 _SummaryRow(
                   label: 'Gain/Loss',
-                  value: '${isProfit ? '+' : ''}₹${ctrl.gainLoss.toStringAsFixed(2)}',
+                  value:
+                      '${isProfit ? '+' : ''}₹${ctrl.gainLoss.toStringAsFixed(2)}',
                   color: isProfit ? Colors.green : Colors.red,
                   isBold: true,
                 ),
                 const SizedBox(height: 12),
                 _SummaryRow(
                   label: 'Return %',
-                  value: '${isProfit ? '+' : ''}${ctrl.gainLossPercent.toStringAsFixed(2)}%',
+                  value:
+                      '${isProfit ? '+' : ''}${ctrl.gainLossPercent.toStringAsFixed(2)}%',
                   color: isProfit ? Colors.green : Colors.red,
                   isBold: true,
                 ),
                 const SizedBox(height: 12),
                 _SummaryRow(
                   label: 'Yield to Maturity (IRR)',
-                  value: '${(ctrl.calculatedYield ?? 0).toStringAsFixed(4)} / ${((ctrl.calculatedYield ?? 0) * 100).toStringAsFixed(2)}%',
+                  value:
+                      '${(ctrl.calculatedYield ?? 0).toStringAsFixed(4)} / ${((ctrl.calculatedYield ?? 0) * 100).toStringAsFixed(2)}%',
                   color: const Color(0xFF00A6CC),
                   isBold: true,
                 ),

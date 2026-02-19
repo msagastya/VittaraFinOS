@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/logic/fixed_deposit_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
-import 'package:vittara_fin_os/utils/common_utils.dart';
+import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class PrematureWithdrawalModal extends StatefulWidget {
   final FixedDeposit fd;
@@ -41,11 +41,14 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
 
   void _calculateWithdrawalAmount() {
     // Calculate interest based on withdrawal date
-    final daysSinceInvestment = _withdrawalDate.difference(widget.fd.investmentDate).inDays;
-    final totalDays = widget.fd.maturityDate.difference(widget.fd.investmentDate).inDays;
+    final daysSinceInvestment =
+        _withdrawalDate.difference(widget.fd.investmentDate).inDays;
+    final totalDays =
+        widget.fd.maturityDate.difference(widget.fd.investmentDate).inDays;
 
     // Ensure we don't go beyond maturity date
-    final adjustedDays = daysSinceInvestment > totalDays ? totalDays : daysSinceInvestment;
+    final adjustedDays =
+        daysSinceInvestment > totalDays ? totalDays : daysSinceInvestment;
     final elapsedFraction = adjustedDays / totalDays;
 
     // Calculate interest proportional to elapsed time
@@ -56,8 +59,7 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
     final penaltyPercentage = monthsElapsed < 12 ? 1.0 : 0.5;
 
     _penaltyAmount = (accruedInterest * penaltyPercentage) / 100;
-    _calculatedAmount =
-        widget.fd.principal + accruedInterest - _penaltyAmount;
+    _calculatedAmount = widget.fd.principal + accruedInterest - _penaltyAmount;
     _netAmount = _calculatedAmount;
   }
 
@@ -159,7 +161,7 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
         'date': _withdrawalDate,
         'creditAccount': true,
       });
-      ShowToast.showSuccess('Withdrawal initiated');
+      toast.showSuccess('Withdrawal initiated');
     }
   }
 
@@ -206,7 +208,8 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
           // Content
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.only(top: 32, left: 20, right: 20, bottom: 20),
+              padding: const EdgeInsets.only(
+                  top: 32, left: 20, right: 20, bottom: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -214,10 +217,10 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(0.1),
+                      color: Colors.orange.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: Colors.orange.withOpacity(0.3),
+                        color: Colors.orange.withValues(alpha: 0.3),
                         width: 1,
                       ),
                     ),
@@ -266,7 +269,8 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppStyles.getPrimaryColor(context).withOpacity(0.1),
+                      color: AppStyles.getPrimaryColor(context)
+                          .withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
@@ -449,7 +453,7 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
                   child: CupertinoButton(
                     onPressed: () => Navigator.of(context).pop(),
                     color: AppStyles.getSecondaryTextColor(context)
-                        .withOpacity(0.3),
+                        .withValues(alpha: 0.3),
                     child: Text(
                       'Cancel',
                       style: TextStyle(

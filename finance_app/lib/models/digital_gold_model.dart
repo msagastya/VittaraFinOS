@@ -40,7 +40,8 @@ class DigitalGoldInvestment {
   double get gainLoss => currentValue - investedAmount;
 
   // Calculate gain/loss percentage
-  double get gainLossPercent => investedAmount > 0 ? (gainLoss / investedAmount) * 100 : 0;
+  double get gainLossPercent =>
+      investedAmount > 0 ? (gainLoss / investedAmount) * 100 : 0;
 
   // Amount per gram including GST
   double get amountPerGram => investedRate * (1 + (gstRate / 100));

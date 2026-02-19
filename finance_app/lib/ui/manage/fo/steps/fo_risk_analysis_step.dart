@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/logic/fo_model.dart';
 import 'package:vittara_fin_os/ui/manage/fo/fo_wizard_controller.dart';
@@ -7,7 +6,7 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 class FORiskAnalysisStep extends StatelessWidget {
   final FOWizardController ctrl;
 
-  const FORiskAnalysisStep(this.ctrl);
+  const FORiskAnalysisStep(this.ctrl, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -39,26 +38,26 @@ class FORiskAnalysisStep extends StatelessWidget {
           _AnalysisCard(
             title: 'Position Overview',
             children: [
-              _AnalysisRow('Type', ctrl.selectedType.name == 'futures'
-                  ? 'Futures'
-                  : (ctrl.selectedType.name == 'callOption'
-                      ? 'Call Option'
-                      : 'Put Option')),
+              _AnalysisRow(
+                  'Type',
+                  ctrl.selectedType.name == 'futures'
+                      ? 'Futures'
+                      : (ctrl.selectedType.name == 'callOption'
+                          ? 'Call Option'
+                          : 'Put Option')),
               _AnalysisRow('Symbol', ctrl.symbol),
               _AnalysisRow('Quantity', ctrl.quantity?.toString() ?? '0'),
-              _AnalysisRow('Days to Expiry', '${ctrl.expiryDate.difference(DateTime.now()).inDays}'),
+              _AnalysisRow('Days to Expiry',
+                  '${ctrl.expiryDate.difference(DateTime.now()).inDays}'),
             ],
           ),
           const SizedBox(height: 20),
           _AnalysisCard(
             title: 'Risk/Reward Profile',
             children: [
-              _AnalysisRow('Max Profit', maxProfit,
-                  isProfit: true),
-              _AnalysisRow('Max Loss', maxLoss,
-                  isProfit: false),
-              _AnalysisRow('Breakeven Price', breakeven,
-                  isBold: true),
+              _AnalysisRow('Max Profit', maxProfit, isProfit: true),
+              _AnalysisRow('Max Loss', maxLoss, isProfit: false),
+              _AnalysisRow('Breakeven Price', breakeven, isBold: true),
             ],
           ),
           const SizedBox(height: 20),
@@ -67,14 +66,14 @@ class FORiskAnalysisStep extends StatelessWidget {
             children: [
               _AnalysisRow('Entry Price', '₹${ctrl.entryPrice}'),
               _AnalysisRow('Current Price', '₹${ctrl.currentPrice}'),
-              _AnalysisRow('Total Cost', '₹${ctrl.totalCost.toStringAsFixed(2)}'),
-              _AnalysisRow('Current Value', '₹${ctrl.currentValue.toStringAsFixed(2)}',
-                  isBold: true),
               _AnalysisRow(
-                  'Unrealized P&L',
-                  '${ctrl.gainLoss >= 0 ? '+' : ''}₹${ctrl.gainLoss.toStringAsFixed(2)}',
-                  isProfit: ctrl.gainLoss >= 0,
+                  'Total Cost', '₹${ctrl.totalCost.toStringAsFixed(2)}'),
+              _AnalysisRow(
+                  'Current Value', '₹${ctrl.currentValue.toStringAsFixed(2)}',
                   isBold: true),
+              _AnalysisRow('Unrealized P&L',
+                  '${ctrl.gainLoss >= 0 ? '+' : ''}₹${ctrl.gainLoss.toStringAsFixed(2)}',
+                  isProfit: ctrl.gainLoss >= 0, isBold: true),
             ],
           ),
           if (ctrl.selectedType != FOType.futures) ...[
@@ -83,17 +82,16 @@ class FORiskAnalysisStep extends StatelessWidget {
               title: 'Greeks Impact',
               children: [
                 _AnalysisRow(
-                    'Delta',
-                    ctrl.greeks?.delta.toStringAsFixed(4) ?? 'N/A',
-                    note: '1 unit move in underlying = ${(ctrl.greeks?.delta ?? 0).toStringAsFixed(4)} point change'),
-                _AnalysisRow(
-                    'Theta (Time Decay)',
+                    'Delta', ctrl.greeks?.delta.toStringAsFixed(4) ?? 'N/A',
+                    note:
+                        '1 unit move in underlying = ${(ctrl.greeks?.delta ?? 0).toStringAsFixed(4)} point change'),
+                _AnalysisRow('Theta (Time Decay)',
                     ctrl.greeks?.theta.toStringAsFixed(4) ?? 'N/A',
                     note: 'Per day loss from time decay'),
                 _AnalysisRow(
-                    'Vega',
-                    ctrl.greeks?.vega.toStringAsFixed(4) ?? 'N/A',
-                    note: '1% volatility increase = ${(ctrl.greeks?.vega ?? 0).toStringAsFixed(4)} point change'),
+                    'Vega', ctrl.greeks?.vega.toStringAsFixed(4) ?? 'N/A',
+                    note:
+                        '1% volatility increase = ${(ctrl.greeks?.vega ?? 0).toStringAsFixed(4)} point change'),
               ],
             ),
           ],
@@ -116,7 +114,7 @@ class _AnalysisCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withOpacity(0.2)),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

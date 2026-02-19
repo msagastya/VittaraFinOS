@@ -1,5 +1,4 @@
 import 'dart:ui';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
@@ -209,10 +208,11 @@ class _NeumorphicGlassButtonState extends State<NeumorphicGlassButton> {
       },
       onTapCancel: () => setState(() => _isPressed = false),
       child: NeumorphicGlassCard(
-        padding: widget.padding ?? EdgeInsets.symmetric(
-          horizontal: Spacing.xl,
-          vertical: Spacing.md,
-        ),
+        padding: widget.padding ??
+            EdgeInsets.symmetric(
+              horizontal: Spacing.xl,
+              vertical: Spacing.md,
+            ),
         width: widget.width,
         height: widget.height,
         isPressed: _isPressed,
@@ -360,7 +360,9 @@ class NeumorphicGlassToggle extends StatelessWidget {
                 height: 24,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: value ? color : (isDark ? Colors.grey[700] : Colors.white),
+                  color: value
+                      ? color
+                      : (isDark ? Colors.grey[700] : Colors.white),
                   boxShadow: [
                     BoxShadow(
                       color: isDark
@@ -427,9 +429,13 @@ class NeumorphicGlassSlider extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              isDark ? Colors.black.withValues(alpha: 0.4) : Colors.grey[400]!.withValues(alpha: 0.4),
+              isDark
+                  ? Colors.black.withValues(alpha: 0.4)
+                  : Colors.grey[400]!.withValues(alpha: 0.4),
               isDark ? Colors.grey[900]! : Colors.grey[200]!,
-              isDark ? Colors.white.withValues(alpha: 0.02) : Colors.white.withValues(alpha: 0.5),
+              isDark
+                  ? Colors.white.withValues(alpha: 0.02)
+                  : Colors.white.withValues(alpha: 0.5),
             ],
           ),
         ),

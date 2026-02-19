@@ -20,7 +20,8 @@ class InvestmentsController with ChangeNotifier {
     final investmentsJson = _prefs.getStringList(_storageKey) ?? [];
 
     _investments = investmentsJson
-        .map((json) => Investment.fromMap(jsonDecode(json) as Map<String, dynamic>))
+        .map((json) =>
+            Investment.fromMap(jsonDecode(json) as Map<String, dynamic>))
         .toList();
 
     notifyListeners();
@@ -96,7 +97,8 @@ class InvestmentsController with ChangeNotifier {
         investment,
         forceRefresh: forceRefresh,
       );
-      if (result != null && (result.currentValue != null || result.currentNAV != null)) {
+      if (result != null &&
+          (result.currentValue != null || result.currentNAV != null)) {
         final metadata = Map<String, dynamic>.from(investment.metadata ?? {});
         final oldValue = _asDouble(metadata['currentValue']);
         final oldNav = _asDouble(metadata['currentNAV']);

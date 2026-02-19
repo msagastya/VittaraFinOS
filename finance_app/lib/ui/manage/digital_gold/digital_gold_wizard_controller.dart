@@ -20,6 +20,11 @@ class DigitalGoldWizardController extends ChangeNotifier {
   // Step 5: Investment Date
   DateTime investmentDate = DateTime.now();
 
+  // Legacy review step compatibility state
+  bool isFetchingPrice = false;
+  double? currentGoldPrice;
+  String priceError = '';
+
   int get currentStep => _currentStep;
 
   // Calculate actual amount (before GST)
@@ -32,6 +37,14 @@ class DigitalGoldWizardController extends ChangeNotifier {
   double get weightInGrams =>
       investmentRate > 0 ? actualAmount / investmentRate : 0;
 
+  // Legacy alias used by older weight step
+  double get weight => weightInGrams;
+
+  // Current valuation fields used by older review step
+  double get currentValue => (currentGoldPrice ?? 0.0) * weightInGrams;
+  double get gainLoss => currentValue - investedAmount;
+  double get gainLossPercent =>
+      investedAmount > 0 ? (gainLoss / investedAmount) * 100 : 0.0;
 
   void selectCompany(DigitalGoldCompany company) {
     selectedCompany = company;
@@ -55,6 +68,39 @@ class DigitalGoldWizardController extends ChangeNotifier {
 
   void updateInvestmentDate(DateTime date) {
     investmentDate = date;
+    notifyListeners();
+  }
+
+  // Legacy setter used by older weight step.
+  void updateWeight(double value) {
+    final safeWeight = value < 0 ? 0.0 : value;
+    if (investmentRate <= 0) {
+      notifyListeners();
+      return;
+    }
+    final actual = safeWeight * investmentRate;
+    investedAmount = actual * (1 + (gstRate / 100));
+    notifyListeners();
+  }
+
+  void setFetchingPrice(bool value) {
+    isFetchingPrice = value;
+    if (value) {
+      priceError = '';
+    }
+    notifyListeners();
+  }
+
+  void setCurrentGoldPrice(double? value) {
+    currentGoldPrice = value;
+    isFetchingPrice = false;
+    priceError = '';
+    notifyListeners();
+  }
+
+  void setPriceError(String error) {
+    priceError = error;
+    isFetchingPrice = false;
     notifyListeners();
   }
 

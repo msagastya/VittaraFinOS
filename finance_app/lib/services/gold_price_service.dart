@@ -17,7 +17,8 @@ class GoldPriceService {
     if (price != null) return price;
 
     // All sources failed
-    _logger.w('❌ All gold price sources failed - unable to fetch current price');
+    _logger
+        .w('❌ All gold price sources failed - unable to fetch current price');
     return null;
   }
 
@@ -59,7 +60,8 @@ class GoldPriceService {
                   // MCX includes GST, making charges, and local market factors
                   pricePerGram = pricePerGram * 1.185; // 18.5% markup
 
-                  _logger.i('✓ GoldPrice.org (MCX Adjusted): ₹${pricePerGram.toStringAsFixed(2)}/gram');
+                  _logger.i(
+                      '✓ GoldPrice.org (MCX Adjusted): ₹${pricePerGram.toStringAsFixed(2)}/gram');
                   return pricePerGram;
                 }
               }
@@ -108,12 +110,14 @@ class GoldPriceService {
                   final exchangeRate = await _getExchangeRate();
                   if (exchangeRate != null && exchangeRate > 0) {
                     // Convert: (USD/oz) * (INR/USD) / (grams/oz)
-                    var priceINRPerGram = (priceUsdPerOz * exchangeRate) / 31.1035;
+                    var priceINRPerGram =
+                        (priceUsdPerOz * exchangeRate) / 31.1035;
 
                     // Apply MCX adjustment: spot prices need ~18-20% markup to match MCX retail prices
                     priceINRPerGram = priceINRPerGram * 1.185; // 18.5% markup
 
-                    _logger.i('✓ USD Gold + ExRate (MCX Adjusted): ₹${priceINRPerGram.toStringAsFixed(2)}/gram');
+                    _logger.i(
+                        '✓ USD Gold + ExRate (MCX Adjusted): ₹${priceINRPerGram.toStringAsFixed(2)}/gram');
                     return priceINRPerGram;
                   }
                 }

@@ -17,14 +17,18 @@ class _GoldInvestedAmountStepState extends State<GoldInvestedAmountStep> {
   @override
   void initState() {
     super.initState();
-    final controller = Provider.of<DigitalGoldWizardController>(context, listen: false);
+    final controller =
+        Provider.of<DigitalGoldWizardController>(context, listen: false);
     _amountController = TextEditingController(
-      text: controller.investedAmount > 0 ? controller.investedAmount.toString() : '',
+      text: controller.investedAmount > 0
+          ? controller.investedAmount.toString()
+          : '',
     );
   }
 
   void _updateAmount() {
-    final controller = Provider.of<DigitalGoldWizardController>(context, listen: false);
+    final controller =
+        Provider.of<DigitalGoldWizardController>(context, listen: false);
     final amount = double.tryParse(_amountController.text) ?? 0;
     controller.updateInvestedAmount(amount);
   }
@@ -85,9 +89,9 @@ class _GoldInvestedAmountStepState extends State<GoldInvestedAmountStep> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.1),
+              color: Colors.blue.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.blue.withOpacity(0.3)),
+              border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -118,10 +122,10 @@ class _GoldInvestedAmountStepState extends State<GoldInvestedAmountStep> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFFFB81C).withOpacity(0.1),
+                color: const Color(0xFFFFB81C).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: const Color(0xFFFFB81C).withOpacity(0.3),
+                  color: const Color(0xFFFFB81C).withValues(alpha: 0.3),
                 ),
               ),
               child: Column(

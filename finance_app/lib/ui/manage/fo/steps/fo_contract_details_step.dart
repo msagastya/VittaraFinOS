@@ -1,12 +1,11 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/ui/manage/fo/fo_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 
 class FOContractDetailsStep extends StatefulWidget {
   final FOWizardController ctrl;
 
-  const FOContractDetailsStep(this.ctrl);
+  const FOContractDetailsStep(this.ctrl, {super.key});
 
   @override
   State<FOContractDetailsStep> createState() => _FOContractDetailsStepState();
@@ -82,14 +81,16 @@ class _FOContractDetailsStepState extends State<FOContractDetailsStep> {
               if (qty > 0) widget.ctrl.updateQuantity(qty);
             },
           ),
-          if (widget.ctrl.entryPrice != null && widget.ctrl.quantity != null) ...[
+          if (widget.ctrl.entryPrice != null &&
+              widget.ctrl.quantity != null) ...[
             const SizedBox(height: 24),
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF1ABC9C).withOpacity(0.1),
+                color: const Color(0xFF1ABC9C).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF1ABC9C).withOpacity(0.3)),
+                border: Border.all(
+                    color: const Color(0xFF1ABC9C).withValues(alpha: 0.3)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

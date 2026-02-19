@@ -98,8 +98,8 @@ class _CryptoPurchaseStepState extends State<CryptoPurchaseStep> {
                               ),
                               CupertinoButton(
                                 padding: EdgeInsets.zero,
-                                onPressed: () =>
-                                    Navigator.pop(context, controller.purchaseDate),
+                                onPressed: () => Navigator.pop(
+                                    context, controller.purchaseDate),
                                 child: const Text('Done'),
                               ),
                             ],
@@ -131,7 +131,7 @@ class _CryptoPurchaseStepState extends State<CryptoPurchaseStep> {
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: Colors.grey.withOpacity(0.3),
+                  color: Colors.grey.withValues(alpha: 0.3),
                 ),
               ),
               child: Row(
@@ -162,8 +162,7 @@ class _CryptoPurchaseStepState extends State<CryptoPurchaseStep> {
           const SizedBox(height: 12),
           CupertinoTextField(
             controller: _quantityController,
-            keyboardType:
-                const TextInputType.numberWithOptions(decimal: true),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
             placeholder: '0.00',
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -191,8 +190,7 @@ class _CryptoPurchaseStepState extends State<CryptoPurchaseStep> {
           const SizedBox(height: 12),
           CupertinoTextField(
             controller: _priceController,
-            keyboardType:
-                const TextInputType.numberWithOptions(decimal: true),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
             placeholder: '0.00',
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -227,8 +225,7 @@ class _CryptoPurchaseStepState extends State<CryptoPurchaseStep> {
           const SizedBox(height: 12),
           CupertinoTextField(
             controller: _feeController,
-            keyboardType:
-                const TextInputType.numberWithOptions(decimal: true),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
             placeholder: '0.00',
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -282,10 +279,10 @@ class _CryptoPurchaseStepState extends State<CryptoPurchaseStep> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFF7931A).withOpacity(0.1),
+                color: const Color(0xFFF7931A).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: const Color(0xFFF7931A).withOpacity(0.3),
+                  color: const Color(0xFFF7931A).withValues(alpha: 0.3),
                 ),
               ),
               child: Column(
@@ -298,7 +295,8 @@ class _CryptoPurchaseStepState extends State<CryptoPurchaseStep> {
                   const SizedBox(height: 12),
                   _SummaryRow(
                     label: 'Transaction Fee',
-                    value: '₹${(controller.transactionFee ?? 0).toStringAsFixed(2)}',
+                    value:
+                        '₹${(controller.transactionFee ?? 0).toStringAsFixed(2)}',
                   ),
                   const SizedBox(height: 12),
                   _SummaryRow(

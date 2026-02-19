@@ -22,16 +22,14 @@ class _MFTransactionDetailsStepState extends State<MFTransactionDetailsStep> {
     super.initState();
     final controller = Provider.of<MFWizardController>(context, listen: false);
     _amountController = TextEditingController(
-      text:
-          controller.investmentAmount > 0
-              ? controller.investmentAmount.toString()
-              : '',
+      text: controller.investmentAmount > 0
+          ? controller.investmentAmount.toString()
+          : '',
     );
     _navController = TextEditingController(
-      text:
-          controller.averageNAV > 0
-              ? controller.averageNAV.toStringAsFixed(2)
-              : '',
+      text: controller.averageNAV > 0
+          ? controller.averageNAV.toStringAsFixed(2)
+          : '',
     );
   }
 
@@ -108,8 +106,7 @@ class _MFTransactionDetailsStepState extends State<MFTransactionDetailsStep> {
           const SizedBox(height: 8),
           CupertinoTextField(
             controller: _amountController,
-            keyboardType:
-                const TextInputType.numberWithOptions(decimal: true),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
             placeholder: '0.00',
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -138,8 +135,7 @@ class _MFTransactionDetailsStepState extends State<MFTransactionDetailsStep> {
           const SizedBox(height: 8),
           CupertinoTextField(
             controller: _navController,
-            keyboardType:
-                const TextInputType.numberWithOptions(decimal: true),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
             placeholder: '0.00',
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -202,10 +198,10 @@ class _MFTransactionDetailsStepState extends State<MFTransactionDetailsStep> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppStyles.getBackground(context).withOpacity(0.5),
+              color: AppStyles.getBackground(context).withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Colors.grey.withOpacity(0.2),
+                color: Colors.grey.withValues(alpha: 0.2),
               ),
             ),
             child: Row(
@@ -233,10 +229,10 @@ class _MFTransactionDetailsStepState extends State<MFTransactionDetailsStep> {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: SemanticColors.investments.withOpacity(0.1),
+              color: SemanticColors.investments.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: SemanticColors.investments.withOpacity(0.3),
+                color: SemanticColors.investments.withValues(alpha: 0.3),
               ),
             ),
             child: Column(

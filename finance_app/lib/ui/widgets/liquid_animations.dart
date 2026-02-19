@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
@@ -78,7 +77,8 @@ class LiquidClipper extends CustomClipper<Path> {
 
     for (double i = 0; i <= size.width; i++) {
       final normalized = i / size.width;
-      final wave = math.sin(normalized * math.pi * 4 + progress * math.pi * 2) * waveHeight;
+      final wave = math.sin(normalized * math.pi * 4 + progress * math.pi * 2) *
+          waveHeight;
       path.lineTo(i, size.height - progressHeight + wave);
     }
 
@@ -90,7 +90,8 @@ class LiquidClipper extends CustomClipper<Path> {
   }
 
   @override
-  bool shouldReclip(LiquidClipper oldClipper) => oldClipper.progress != progress;
+  bool shouldReclip(LiquidClipper oldClipper) =>
+      oldClipper.progress != progress;
 }
 
 /// Morphing container with liquid effect
@@ -107,7 +108,8 @@ class LiquidMorphingContainer extends StatefulWidget {
   });
 
   @override
-  State<LiquidMorphingContainer> createState() => _LiquidMorphingContainerState();
+  State<LiquidMorphingContainer> createState() =>
+      _LiquidMorphingContainerState();
 }
 
 class _LiquidMorphingContainerState extends State<LiquidMorphingContainer>
@@ -192,8 +194,8 @@ class _LiquidShimmerState extends State<LiquidShimmer>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final baseColor = widget.baseColor ??
-        (isDark ? Colors.grey[800]! : Colors.grey[300]!);
+    final baseColor =
+        widget.baseColor ?? (isDark ? Colors.grey[800]! : Colors.grey[300]!);
     final highlightColor = widget.highlightColor ??
         (isDark ? Colors.grey[700]! : Colors.grey[100]!);
 
@@ -311,8 +313,12 @@ class WavePainter extends CustomPainter {
 
     for (double i = 0; i <= size.width; i++) {
       final normalized = i / size.width;
-      final wave1 = math.sin((normalized * math.pi * 2) + (wavePhase * math.pi * 2)) * waveHeight;
-      final wave2 = math.sin((normalized * math.pi * 3) + (wavePhase * math.pi * 3)) * (waveHeight * 0.5);
+      final wave1 =
+          math.sin((normalized * math.pi * 2) + (wavePhase * math.pi * 2)) *
+              waveHeight;
+      final wave2 =
+          math.sin((normalized * math.pi * 3) + (wavePhase * math.pi * 3)) *
+              (waveHeight * 0.5);
       path.lineTo(i, progressHeight + wave1 + wave2);
     }
 
@@ -332,7 +338,9 @@ class WavePainter extends CustomPainter {
 
     for (double i = 0; i <= size.width; i++) {
       final normalized = i / size.width;
-      final wave = math.sin((normalized * math.pi * 2.5) + (wavePhase * math.pi * 2.5)) * (waveHeight * 0.7);
+      final wave =
+          math.sin((normalized * math.pi * 2.5) + (wavePhase * math.pi * 2.5)) *
+              (waveHeight * 0.7);
       overlayPath.lineTo(i, progressHeight - 5 + wave);
     }
 

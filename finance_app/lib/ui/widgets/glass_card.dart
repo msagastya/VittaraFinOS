@@ -1,5 +1,4 @@
 import 'dart:ui';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
@@ -60,28 +59,30 @@ class GlassCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: effectiveBackgroundColor,
             borderRadius: BorderRadius.circular(borderRadius),
-            border: border ?? Border.all(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.15)
-                  : Colors.white.withValues(alpha: 0.3),
-              width: 1.5,
-            ),
-            boxShadow: shadows ?? [
-              BoxShadow(
-                color: isDark
-                    ? Colors.black.withValues(alpha: 0.2)
-                    : Colors.black.withValues(alpha: 0.08),
-                blurRadius: 24,
-                offset: const Offset(0, 8),
-              ),
-              BoxShadow(
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.03)
-                    : Colors.white.withValues(alpha: 0.05),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            border: border ??
+                Border.all(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.15)
+                      : Colors.white.withValues(alpha: 0.3),
+                  width: 1.5,
+                ),
+            boxShadow: shadows ??
+                [
+                  BoxShadow(
+                    color: isDark
+                        ? Colors.black.withValues(alpha: 0.2)
+                        : Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 24,
+                    offset: const Offset(0, 8),
+                  ),
+                  BoxShadow(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.03)
+                        : Colors.white.withValues(alpha: 0.05),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
           ),
           child: child,
         ),
@@ -238,10 +239,11 @@ class GlassCardCompact extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GlassCard(
-      padding: padding ?? EdgeInsets.symmetric(
-        horizontal: Spacing.lg,
-        vertical: Spacing.md,
-      ),
+      padding: padding ??
+          EdgeInsets.symmetric(
+            horizontal: Spacing.lg,
+            vertical: Spacing.md,
+          ),
       margin: margin,
       borderRadius: Radii.md,
       blurAmount: 8.0,

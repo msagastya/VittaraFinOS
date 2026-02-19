@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
@@ -7,10 +6,14 @@ import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 class HapticFeedback {
   HapticFeedback._();
 
-  static void light() => SystemChannels.platform.invokeMethod('HapticFeedback.lightImpact');
-  static void medium() => SystemChannels.platform.invokeMethod('HapticFeedback.mediumImpact');
-  static void heavy() => SystemChannels.platform.invokeMethod('HapticFeedback.heavyImpact');
-  static void selection() => SystemChannels.platform.invokeMethod('HapticFeedback.selectionClick');
+  static void light() =>
+      SystemChannels.platform.invokeMethod('HapticFeedback.lightImpact');
+  static void medium() =>
+      SystemChannels.platform.invokeMethod('HapticFeedback.mediumImpact');
+  static void heavy() =>
+      SystemChannels.platform.invokeMethod('HapticFeedback.heavyImpact');
+  static void selection() =>
+      SystemChannels.platform.invokeMethod('HapticFeedback.selectionClick');
   static void success() => heavy();
   static void error() => heavy();
 }
@@ -638,7 +641,8 @@ class _LongPressButtonState extends State<LongPressButton>
     final fillColor = widget.fillColor ?? SemanticColors.getPrimary(context);
 
     return GestureDetector(
-      onLongPressStart: widget.onLongPress != null ? _handleLongPressStart : null,
+      onLongPressStart:
+          widget.onLongPress != null ? _handleLongPressStart : null,
       onLongPressEnd: widget.onLongPress != null ? _handleLongPressEnd : null,
       child: Stack(
         children: [

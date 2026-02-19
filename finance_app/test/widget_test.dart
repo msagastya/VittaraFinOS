@@ -1,30 +1,63 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/material.dart';
 
-import 'package:vittara_fin_os/main.dart';
+import 'package:vittara_fin_os/logic/account_model.dart';
+import 'package:vittara_fin_os/logic/bond_cashflow_model.dart';
+import 'package:vittara_fin_os/ui/manage/bonds/bonds_wizard_controller_v2.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  test('Account round-trip preserves extended fields', () {
+    final now = DateTime(2025, 1, 2, 3, 4, 5);
+    final original = Account(
+      id: 'acc-1',
+      name: 'Primary Savings',
+      bankName: 'Test Bank',
+      type: AccountType.savings,
+      balance: 1234.56,
+      color: const Color(0xFF123456),
+      creditCardNumber: null,
+      creditLimit: null,
+      currency: 'INR',
+      institutionName: 'Test Institution',
+      createdDate: now,
+      metadata: const {
+        'archived': true,
+        'tags': ['test']
+      },
+    );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    final roundTripped = Account.fromMap(original.toMap());
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    expect(roundTripped.id, original.id);
+    expect(roundTripped.name, original.name);
+    expect(roundTripped.bankName, original.bankName);
+    expect(roundTripped.type, original.type);
+    expect(roundTripped.balance, original.balance);
+    expect(roundTripped.color.toARGB32(), original.color.toARGB32());
+    expect(roundTripped.currency, 'INR');
+    expect(roundTripped.institutionName, 'Test Institution');
+    expect(roundTripped.createdDate.toIso8601String(), now.toIso8601String());
+    expect(roundTripped.metadata?['archived'], true);
+  });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  test('BondsWizardControllerV2 generates fixed coupon cash flows', () {
+    final ctrl = BondsWizardControllerV2()
+      ..selectType(BondType.fixedCoupon)
+      ..updatePurchaseDate(DateTime(2024, 1, 1))
+      ..updateMaturityDate(DateTime(2026, 1, 1))
+      ..updatePurchasePrice(950)
+      ..updateFaceValue(1000)
+      ..updateFixedCouponRate(8)
+      ..updatePaymentsPerYear(2);
+
+    final flows = ctrl.generatedCashFlows;
+
+    expect(flows, isNotEmpty);
+    expect(flows.first.amount, lessThan(0)); // Initial purchase outflow.
+    expect(ctrl.totalInvested, greaterThan(0));
+    expect(ctrl.totalReceived, greaterThan(0));
+    expect(ctrl.calculatedYield, isNotNull);
+
+    ctrl.dispose();
   });
 }

@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/services/stock_api_service.dart';
 import 'package:vittara_fin_os/ui/manage/stocks/stocks_wizard_controller.dart';
@@ -18,14 +17,18 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
   late TextEditingController _priceController;
   final StockApiService _apiService = StockApiService();
   bool _isLoadingPrice = false;
-  double _currentMarketPrice = 0; // Current market price (auto-fetched, read-only)
+  double _currentMarketPrice =
+      0; // Current market price (auto-fetched, read-only)
 
   @override
   void initState() {
     super.initState();
-    final controller = Provider.of<StocksWizardController>(context, listen: false);
-    _qtyController = TextEditingController(text: controller.qty > 0 ? controller.qty.toString() : '');
-    _priceController = TextEditingController(text: controller.price > 0 ? controller.price.toString() : '');
+    final controller =
+        Provider.of<StocksWizardController>(context, listen: false);
+    _qtyController = TextEditingController(
+        text: controller.qty > 0 ? controller.qty.toString() : '');
+    _priceController = TextEditingController(
+        text: controller.price > 0 ? controller.price.toString() : '');
 
     // Fetch current market price
     if (controller.selectedStock != null) {
@@ -50,10 +53,12 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
   }
 
   void _updateController() {
-    final controller = Provider.of<StocksWizardController>(context, listen: false);
+    final controller =
+        Provider.of<StocksWizardController>(context, listen: false);
     final qty = double.tryParse(_qtyController.text) ?? 0;
     final price = double.tryParse(_priceController.text) ?? 0;
-    final currentValue = qty * _currentMarketPrice; // Current value = qty × current market price
+    final currentValue =
+        qty * _currentMarketPrice; // Current value = qty × current market price
     controller.updateDetails(
       quantity: qty,
       pricePerShare: price,
@@ -62,7 +67,8 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
   }
 
   void _showDatePicker() {
-    final controller = Provider.of<StocksWizardController>(context, listen: false);
+    final controller =
+        Provider.of<StocksWizardController>(context, listen: false);
     showCupertinoModalPopup(
       context: context,
       builder: (context) => Container(
@@ -113,9 +119,12 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
           ),
           const SizedBox(height: 30),
-          
+
           // Quantity
-          Text('Quantity', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
+          Text('Quantity',
+              style: TextStyle(
+                  color: AppStyles.getTextColor(context),
+                  fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
           CupertinoTextField(
             controller: _qtyController,
@@ -135,9 +144,11 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Price per Share', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
-              if (_isLoadingPrice)
-                const CupertinoActivityIndicator(radius: 8),
+              Text('Price per Share',
+                  style: TextStyle(
+                      color: AppStyles.getTextColor(context),
+                      fontWeight: FontWeight.w600)),
+              if (_isLoadingPrice) const CupertinoActivityIndicator(radius: 8),
             ],
           ),
           const SizedBox(height: 8),
@@ -152,7 +163,8 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
             ),
             prefix: Padding(
               padding: const EdgeInsets.only(left: 16),
-              child: Text('₹', style: TextStyle(color: AppStyles.getTextColor(context))),
+              child: Text('₹',
+                  style: TextStyle(color: AppStyles.getTextColor(context))),
             ),
             style: TextStyle(color: AppStyles.getTextColor(context)),
             onChanged: (_) => _updateController(),
@@ -160,7 +172,10 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
           const SizedBox(height: 30),
 
           // Date of Purchase
-          Text('Date of Purchase', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
+          Text('Date of Purchase',
+              style: TextStyle(
+                  color: AppStyles.getTextColor(context),
+                  fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
           GestureDetector(
             onTap: _showDatePicker,
@@ -177,7 +192,8 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
                     '${controller.purchaseDate.day} ${_monthName(controller.purchaseDate.month)} ${controller.purchaseDate.year}',
                     style: TextStyle(color: AppStyles.getTextColor(context)),
                   ),
-                  Icon(CupertinoIcons.calendar, color: AppStyles.getSecondaryTextColor(context)),
+                  Icon(CupertinoIcons.calendar,
+                      color: AppStyles.getSecondaryTextColor(context)),
                 ],
               ),
             ),
@@ -185,15 +201,18 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
           const SizedBox(height: 30),
 
           // Current Value (Read-only)
-          Text('Current Market Value', style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w600)),
+          Text('Current Market Value',
+              style: TextStyle(
+                  color: AppStyles.getTextColor(context),
+                  fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppStyles.getBackground(context).withOpacity(0.7),
+              color: AppStyles.getBackground(context).withValues(alpha: 0.7),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: CupertinoColors.systemGreen.withOpacity(0.3),
+                color: CupertinoColors.systemGreen.withValues(alpha: 0.3),
                 width: 1,
               ),
             ),
@@ -224,10 +243,10 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: CupertinoColors.systemGreen.withOpacity(0.15),
+              color: CupertinoColors.systemGreen.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: CupertinoColors.systemGreen.withOpacity(0.4),
+                color: CupertinoColors.systemGreen.withValues(alpha: 0.4),
                 width: 1.5,
               ),
             ),
@@ -263,9 +282,10 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: SemanticColors.investments.withOpacity(0.1),
+              color: SemanticColors.investments.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: SemanticColors.investments.withOpacity(0.3)),
+              border: Border.all(
+                  color: SemanticColors.investments.withValues(alpha: 0.3)),
             ),
             child: Column(
               children: [
@@ -300,9 +320,10 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
-                          color: controller.currentValue >= controller.totalAmount
-                              ? CupertinoColors.systemGreen
-                              : CupertinoColors.systemRed,
+                          color:
+                              controller.currentValue >= controller.totalAmount
+                                  ? CupertinoColors.systemGreen
+                                  : CupertinoColors.systemRed,
                         ),
                       ),
                     ],
@@ -313,16 +334,18 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
                     children: [
                       const Text(
                         'Gain/Loss (Initial)',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 13),
                       ),
                       Text(
                         '${controller.currentValue >= controller.totalAmount ? '+' : ''}₹${(controller.currentValue - controller.totalAmount).toStringAsFixed(2)}',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
-                          color: controller.currentValue >= controller.totalAmount
-                              ? CupertinoColors.systemGreen
-                              : CupertinoColors.systemRed,
+                          color:
+                              controller.currentValue >= controller.totalAmount
+                                  ? CupertinoColors.systemGreen
+                                  : CupertinoColors.systemRed,
                         ),
                       ),
                     ],
@@ -337,7 +360,20 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
   }
 
   String _monthName(int month) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
     return months[month - 1];
   }
 }

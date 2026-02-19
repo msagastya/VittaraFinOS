@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/categories_controller.dart';
 import 'package:vittara_fin_os/logic/category_model.dart';
@@ -35,7 +34,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           return Container(
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(stateContext),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(24)),
             ),
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -46,200 +46,208 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                  // Handle bar
-                  Container(
-                    margin: const EdgeInsets.only(top: 12),
-                    width: 40,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: CupertinoColors.systemGrey3,
-                      borderRadius: BorderRadius.circular(2.5),
+                    // Handle bar
+                    Container(
+                      margin: const EdgeInsets.only(top: 12),
+                      width: 40,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: CupertinoColors.systemGrey3,
+                        borderRadius: BorderRadius.circular(2.5),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
+                    const SizedBox(height: 20),
 
-                  // Title
-                  Text(
-                    'Create Custom Category',
-                    style: AppStyles.titleStyle(stateContext).copyWith(fontSize: 20),
-                  ),
-                  const SizedBox(height: 24),
+                    // Title
+                    Text(
+                      'Create Custom Category',
+                      style: AppStyles.titleStyle(stateContext)
+                          .copyWith(fontSize: 20),
+                    ),
+                    const SizedBox(height: 24),
 
-                  // Icon Preview (Centered)
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          color: selectedColor.withValues(alpha: 0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: Icon(
-                            selectedIcon,
-                            size: 40,
-                            color: selectedColor,
+                    // Icon Preview (Centered)
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            color: selectedColor.withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
                           ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      CupertinoButton(
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            CupertinoPageRoute(
-                              builder: (newContext) => _IconPickerScreen(
-                                onIconSelected: (icon) {
-                                  setModalState(() => selectedIcon = icon);
-                                  Navigator.of(newContext).pop();
-                                },
-                              ),
+                          child: Center(
+                            child: Icon(
+                              selectedIcon,
+                              size: 40,
+                              color: selectedColor,
                             ),
-                          );
-                        },
-                        child: Text(
-                          'Choose Icon',
-                          style: TextStyle(
-                            color: AppStyles.accentBlue,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
+                        const SizedBox(height: 16),
+                        CupertinoButton(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              CupertinoPageRoute(
+                                builder: (newContext) => _IconPickerScreen(
+                                  onIconSelected: (icon) {
+                                    setModalState(() => selectedIcon = icon);
+                                    Navigator.of(newContext).pop();
+                                  },
+                                ),
+                              ),
+                            );
+                          },
+                          child: Text(
+                            'Choose Icon',
+                            style: TextStyle(
+                              color: AppStyles.accentBlue,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
 
-                  // Color Picker (Centered)
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Color',
-                        style: AppStyles.headerStyle(stateContext),
-                      ),
-                      const SizedBox(height: 16),
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Color(0xFFFF6B6B),
-                            const Color(0xFF51CF66),
-                            const Color(0xFF0099FF),
-                            const Color(0xFFFF9800),
-                            const Color(0xFF9C27B0),
-                            const Color(0xFFE91E63),
-                            const Color(0xFF00BCD4),
-                            const Color(0xFF4CAF50),
-                            const Color(0xFF8B4513),
-                            const Color(0xFF607D8B),
-                          ]
-                              .map((color) => Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                                    child: GestureDetector(
-                                      onTap: () => setModalState(() => selectedColor = color),
-                                      child: Container(
-                                        width: 50,
-                                        height: 50,
-                                        decoration: BoxDecoration(
-                                          color: color,
-                                          shape: BoxShape.circle,
-                                          border: Border.all(
-                                            color: selectedColor == color
-                                                ? Colors.white
-                                                : Colors.transparent,
-                                            width: 3,
+                    // Color Picker (Centered)
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Color',
+                          style: AppStyles.headerStyle(stateContext),
+                        ),
+                        const SizedBox(height: 16),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Color(0xFFFF6B6B),
+                              const Color(0xFF51CF66),
+                              const Color(0xFF0099FF),
+                              const Color(0xFFFF9800),
+                              const Color(0xFF9C27B0),
+                              const Color(0xFFE91E63),
+                              const Color(0xFF00BCD4),
+                              const Color(0xFF4CAF50),
+                              const Color(0xFF8B4513),
+                              const Color(0xFF607D8B),
+                            ]
+                                .map((color) => Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8),
+                                      child: GestureDetector(
+                                        onTap: () => setModalState(
+                                            () => selectedColor = color),
+                                        child: Container(
+                                          width: 50,
+                                          height: 50,
+                                          decoration: BoxDecoration(
+                                            color: color,
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: selectedColor == color
+                                                  ? Colors.white
+                                                  : Colors.transparent,
+                                              width: 3,
+                                            ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                  ))
-                              .toList(),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Category Name (Centered)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text('Category Name', style: AppStyles.headerStyle(stateContext)),
-                        const SizedBox(height: 12),
-                        CupertinoTextField(
-                          controller: nameController,
-                          placeholder: 'Enter category name',
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: AppStyles.getBackground(stateContext),
-                            borderRadius: BorderRadius.circular(12),
+                                    ))
+                                .toList(),
                           ),
-                          style: TextStyle(color: AppStyles.getTextColor(stateContext)),
-                          textAlign: TextAlign.center,
                         ),
                       ],
                     ),
-                  ),
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
-                  // Buttons
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: CupertinoButton(
-                            color: CupertinoColors.systemGrey3,
-                            onPressed: () => Navigator.pop(context),
-                            child: Text(
-                              'Cancel',
-                              style: TextStyle(
-                                color: AppStyles.getTextColor(context),
-                                fontWeight: FontWeight.w600,
+                    // Category Name (Centered)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text('Category Name',
+                              style: AppStyles.headerStyle(stateContext)),
+                          const SizedBox(height: 12),
+                          CupertinoTextField(
+                            controller: nameController,
+                            placeholder: 'Enter category name',
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppStyles.getBackground(stateContext),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            style: TextStyle(
+                                color: AppStyles.getTextColor(stateContext)),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Buttons
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: CupertinoButton(
+                              color: CupertinoColors.systemGrey3,
+                              onPressed: () => Navigator.pop(context),
+                              child: Text(
+                                'Cancel',
+                                style: TextStyle(
+                                  color: AppStyles.getTextColor(context),
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: CupertinoButton(
-                            color: AppStyles.accentBlue,
-                            onPressed: () {
-                              if (nameController.text.isNotEmpty) {
-                                final newCategory = Category(
-                                  id: 'custom_${DateTime.now().millisecondsSinceEpoch}',
-                                  name: nameController.text,
-                                  color: selectedColor,
-                                  icon: selectedIcon,
-                                  isCustom: true,
-                                );
-                                Provider.of<CategoriesController>(context, listen: false)
-                                    .addCategory(newCategory);
-                                Navigator.pop(context);
-                                logger.info(
-                                  'Created custom category: ${newCategory.name}',
-                                  context: 'CategoriesScreen',
-                                );
-                              }
-                            },
-                            child: const Text(
-                              'Create',
-                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: CupertinoButton(
+                              color: AppStyles.accentBlue,
+                              onPressed: () {
+                                if (nameController.text.isNotEmpty) {
+                                  final newCategory = Category(
+                                    id: 'custom_${DateTime.now().millisecondsSinceEpoch}',
+                                    name: nameController.text,
+                                    color: selectedColor,
+                                    icon: selectedIcon,
+                                    isCustom: true,
+                                  );
+                                  Provider.of<CategoriesController>(context,
+                                          listen: false)
+                                      .addCategory(newCategory);
+                                  Navigator.pop(context);
+                                  logger.info(
+                                    'Created custom category: ${newCategory.name}',
+                                    context: 'CategoriesScreen',
+                                  );
+                                }
+                              },
+                              child: const Text(
+                                'Create',
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600),
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                ],
+                    const SizedBox(height: 24),
+                  ],
                 ),
               ),
             ),
@@ -254,19 +262,23 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
       navigationBar: CupertinoNavigationBar(
-        middle: Text('Categories', style: TextStyle(color: AppStyles.getTextColor(context))),
+        middle: Text('Categories',
+            style: TextStyle(color: AppStyles.getTextColor(context))),
         previousPageTitle: 'Manage',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
       ),
       child: Consumer<CategoriesController>(
         builder: (context, categoriesController, child) {
-          final filteredCategories = categoriesController.categories.where((cat) {
+          final filteredCategories =
+              categoriesController.categories.where((cat) {
             return cat.name.toLowerCase().contains(_searchQuery.toLowerCase());
           }).toList();
 
-          final defaultCats = filteredCategories.where((cat) => !cat.isCustom).toList();
-          final customCats = filteredCategories.where((cat) => cat.isCustom).toList();
+          final defaultCats =
+              filteredCategories.where((cat) => !cat.isCustom).toList();
+          final customCats =
+              filteredCategories.where((cat) => cat.isCustom).toList();
 
           return Stack(
             children: [
@@ -282,10 +294,13 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                       ),
                       child: CupertinoSearchTextField(
                         backgroundColor: Colors.transparent,
-                        style: TextStyle(color: AppStyles.getTextColor(context)),
+                        style:
+                            TextStyle(color: AppStyles.getTextColor(context)),
                         placeholder: 'Search Categories',
-                        placeholderStyle: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
-                        onChanged: (value) => setState(() => _searchQuery = value),
+                        placeholderStyle: TextStyle(
+                            color: AppStyles.getSecondaryTextColor(context)),
+                        onChanged: (value) =>
+                            setState(() => _searchQuery = value),
                       ),
                     ),
                     // Categories List
@@ -298,20 +313,23 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                             // Default Categories
                             if (defaultCats.isNotEmpty) ...[
                               Padding(
-                                padding: const EdgeInsets.only(left: 8, top: 16, bottom: 12),
+                                padding: const EdgeInsets.only(
+                                    left: 8, top: 16, bottom: 12),
                                 child: Text(
                                   'Built-in Categories (${defaultCats.length})',
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
-                                    color: AppStyles.getSecondaryTextColor(context),
+                                    color: AppStyles.getSecondaryTextColor(
+                                        context),
                                   ),
                                 ),
                               ),
                               GridView.builder(
                                 shrinkWrap: true,
                                 physics: const NeverScrollableScrollPhysics(),
-                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                gridDelegate:
+                                    const SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: 3,
                                   crossAxisSpacing: 12,
                                   mainAxisSpacing: 12,
@@ -322,7 +340,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                                   final category = defaultCats[index];
                                   return StaggeredItem(
                                     index: index,
-                                    child: _buildCategoryCard(category, context, categoriesController),
+                                    child: _buildCategoryCard(category, context,
+                                        categoriesController),
                                   );
                                 },
                               ),
@@ -330,20 +349,23 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                             // Custom Categories
                             if (customCats.isNotEmpty) ...[
                               Padding(
-                                padding: const EdgeInsets.only(left: 8, top: 24, bottom: 12),
+                                padding: const EdgeInsets.only(
+                                    left: 8, top: 24, bottom: 12),
                                 child: Text(
                                   'Your Custom Categories (${customCats.length})',
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
-                                    color: AppStyles.getSecondaryTextColor(context),
+                                    color: AppStyles.getSecondaryTextColor(
+                                        context),
                                   ),
                                 ),
                               ),
                               GridView.builder(
                                 shrinkWrap: true,
                                 physics: const NeverScrollableScrollPhysics(),
-                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                gridDelegate:
+                                    const SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: 3,
                                   crossAxisSpacing: 12,
                                   mainAxisSpacing: 12,
@@ -395,7 +417,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   }) {
     return BouncyButton(
       onPressed: () {
-        logger.info('Tapped category: ${category.name}', context: 'CategoriesScreen');
+        logger.info('Tapped category: ${category.name}',
+            context: 'CategoriesScreen');
       },
       child: Container(
         decoration: BoxDecoration(
@@ -471,7 +494,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                     final deletedName = category.name;
                     final deletedCategory = category;
                     controller.removeCategory(category.id);
-                    logger.info('Deleted category: $deletedName', context: 'CategoriesScreen');
+                    logger.info('Deleted category: $deletedName',
+                        context: 'CategoriesScreen');
                     toast.showSuccess(
                       '"$deletedName" deleted',
                       actionLabel: 'Undo',
@@ -521,4 +545,3 @@ class _IconPickerScreen extends StatelessWidget {
     );
   }
 }
-

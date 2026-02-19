@@ -141,7 +141,9 @@ class SIPRecord {
       isFixedAmount: map['isFixedAmount'] as bool,
       frequency: map['frequency'] as String,
       startDate: DateTime.parse(map['startDate'] as String),
-      endDate: map['endDate'] != null ? DateTime.parse(map['endDate'] as String) : null,
+      endDate: map['endDate'] != null
+          ? DateTime.parse(map['endDate'] as String)
+          : null,
       linkedAccountId: map['linkedAccountId'] as String?,
       linkedAccountName: map['linkedAccountName'] as String?,
       extraCharges: map['extraCharges'] as double?,

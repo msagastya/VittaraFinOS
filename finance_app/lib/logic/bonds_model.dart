@@ -38,7 +38,8 @@ class CouponPayment {
       paymentDate: DateTime.parse(map['paymentDate']),
       couponAmount: (map['couponAmount'] as num).toDouble(),
       isPaid: map['isPaid'] as bool,
-      paidDate: map['paidDate'] != null ? DateTime.parse(map['paidDate']) : null,
+      paidDate:
+          map['paidDate'] != null ? DateTime.parse(map['paidDate']) : null,
     );
   }
 
@@ -149,8 +150,8 @@ class Bond {
   /// Get months until maturity
   int get monthsUntilMaturity {
     final now = DateTime.now();
-    final months = (maturityDate.year - now.year) * 12 +
-        (maturityDate.month - now.month);
+    final months =
+        (maturityDate.year - now.year) * 12 + (maturityDate.month - now.month);
     return months > 0 ? months : 0;
   }
 
@@ -175,9 +176,8 @@ class Bond {
   /// Total accrued coupon (earned but not yet paid)
   double get accruedCoupon {
     final now = DateTime.now();
-    final last = paidCoupons.isNotEmpty
-        ? paidCoupons.last.paymentDate
-        : purchaseDate;
+    final last =
+        paidCoupons.isNotEmpty ? paidCoupons.last.paymentDate : purchaseDate;
 
     if (last.isAfter(now)) return 0;
 
@@ -330,10 +330,12 @@ class Bond {
       upcomingCoupons: upcomingCoupons ?? this.upcomingCoupons,
       totalCost: totalCost ?? this.totalCost,
       maturityValue: maturityValue ?? this.maturityValue,
-      totalCouponAtMaturity: totalCouponAtMaturity ?? this.totalCouponAtMaturity,
+      totalCouponAtMaturity:
+          totalCouponAtMaturity ?? this.totalCouponAtMaturity,
       currentMarketValue: currentMarketValue ?? this.currentMarketValue,
       yieldToMaturity: yieldToMaturity ?? this.yieldToMaturity,
-      estimatedAccruedValue: estimatedAccruedValue ?? this.estimatedAccruedValue,
+      estimatedAccruedValue:
+          estimatedAccruedValue ?? this.estimatedAccruedValue,
       realizedValue: realizedValue ?? this.realizedValue,
       notes: notes ?? this.notes,
       creditRating: creditRating ?? this.creditRating,
@@ -412,7 +414,8 @@ class BondCalculator {
       for (int t = 1; t <= yearsToMaturity; t++) {
         derivative -= t * annualCoupon / math.pow(1 + ytm, t + 1);
       }
-      derivative -= yearsToMaturity * faceValue / math.pow(1 + ytm, yearsToMaturity + 1);
+      derivative -=
+          yearsToMaturity * faceValue / math.pow(1 + ytm, yearsToMaturity + 1);
 
       // Newton-Raphson iteration
       final priceError = price - currentPrice;
@@ -574,8 +577,7 @@ class BondCalculator {
     }
 
     final daysSinceLastCoupon = now.difference(lastCouponDate).inDays;
-    final daysBetweenCoupons =
-        nextCouponDate.difference(lastCouponDate).inDays;
+    final daysBetweenCoupons = nextCouponDate.difference(lastCouponDate).inDays;
 
     if (daysBetweenCoupons == 0) return 0;
     return (couponPayment * daysSinceLastCoupon) / daysBetweenCoupons;

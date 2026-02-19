@@ -47,22 +47,19 @@ class _CryptoDetailsScreenState extends State<CryptoDetailsScreen> {
       totalInvested: (metadata['totalInvested'] as num?)?.toDouble() ?? 0,
       currentPrice: (metadata['currentPrice'] as num?)?.toDouble() ?? 0,
       lastPriceUpdate: DateTime.parse(
-        metadata['lastUpdated'] as String? ??
-            DateTime.now().toIso8601String(),
+        metadata['lastUpdated'] as String? ?? DateTime.now().toIso8601String(),
       ),
       transactions: transactions,
-      walletType: CryptoWalletType.values[
-          int.tryParse(
-                metadata['walletType']?.toString().split('.').last ?? '0',
-              ) ??
-              0],
+      walletType: CryptoWalletType.values[int.tryParse(
+            metadata['walletType']?.toString().split('.').last ?? '0',
+          ) ??
+          0],
       walletAddress: metadata['walletAddress'] as String? ?? '',
       exchange: metadata['exchange'] != null
-          ? CryptoExchange.values[
-              int.tryParse(
-                    metadata['exchange']?.toString().split('.').last ?? '0',
-                  ) ??
-                  0]
+          ? CryptoExchange.values[int.tryParse(
+                metadata['exchange']?.toString().split('.').last ?? '0',
+              ) ??
+              0]
           : null,
       createdDate: DateTime.now(),
       notes: metadata['notes'] as String?,
@@ -173,7 +170,8 @@ class _CryptoDetailsScreenState extends State<CryptoDetailsScreen> {
                     const SizedBox(height: 8),
                     _DetailRow(
                       label: 'Gain/Loss',
-                      value: '${isProfit ? '+' : ''}₹${crypto.gainLoss.toStringAsFixed(2)}',
+                      value:
+                          '${isProfit ? '+' : ''}₹${crypto.gainLoss.toStringAsFixed(2)}',
                       isGainLoss: true,
                       isPositive: isProfit,
                     ),
@@ -217,14 +215,13 @@ class _CryptoDetailsScreenState extends State<CryptoDetailsScreen> {
                       value: crypto.getWalletTypeLabel(),
                     ),
                     const SizedBox(height: 8),
-                    if (crypto.exchange != null)
-                      ...[
-                        _DetailRow(
-                          label: 'Exchange',
-                          value: crypto.getExchangeLabel(),
-                        ),
-                        const SizedBox(height: 8),
-                      ],
+                    if (crypto.exchange != null) ...[
+                      _DetailRow(
+                        label: 'Exchange',
+                        value: crypto.getExchangeLabel(),
+                      ),
+                      const SizedBox(height: 8),
+                    ],
                     _DetailRow(
                       label: 'Address/Account',
                       value: crypto.walletAddress,
