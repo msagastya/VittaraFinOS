@@ -1,6 +1,16 @@
 import 'package:flutter/material.dart';
 
-enum AccountType { savings, current, credit, payLater, wallet, investment }
+// Keep new values appended to preserve backward compatibility for persisted
+// enum indexes in local storage.
+enum AccountType {
+  savings,
+  current,
+  credit,
+  payLater,
+  wallet,
+  investment,
+  cash
+}
 
 class Account {
   final String id;

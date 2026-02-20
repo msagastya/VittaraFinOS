@@ -726,6 +726,9 @@ class _TransactionWizardState extends State<TransactionWizard> {
     return Consumer<AccountsController>(
       builder: (context, accountsController, child) {
         final accounts = _filteredAccounts(accountsController.accounts);
+        final emptyStateMessage = _paymentType == TransactionPaymentType.cash
+            ? 'No cash account available. Add one to track cash flow.'
+            : 'No eligible accounts available';
         return _buildStepShell(
           title: 'Select account',
           child: Column(
@@ -734,9 +737,10 @@ class _TransactionWizardState extends State<TransactionWizard> {
                 child: accounts.isEmpty
                     ? Center(
                         child: Text(
-                          'No eligible accounts available',
+                          emptyStateMessage,
                           style: TextStyle(
                               color: AppStyles.getSecondaryTextColor(context)),
+                          textAlign: TextAlign.center,
                         ),
                       )
                     : ListView.builder(
@@ -850,6 +854,8 @@ class _TransactionWizardState extends State<TransactionWizard> {
         return CupertinoIcons.money_dollar_circle_fill;
       case AccountType.investment:
         return CupertinoIcons.building_2_fill;
+      case AccountType.cash:
+        return CupertinoIcons.money_dollar_circle;
     }
   }
 
@@ -857,6 +863,12 @@ class _TransactionWizardState extends State<TransactionWizard> {
     if (_paymentType == null) return [];
     switch (_paymentType!) {
       case TransactionPaymentType.cash:
+        final dedicatedCash =
+            list.where((acct) => acct.type == AccountType.cash).toList();
+        if (dedicatedCash.isNotEmpty) {
+          return dedicatedCash;
+        }
+        // Backward compatibility for users tracking cash in wallet accounts.
         return list.where((acct) => acct.type == AccountType.wallet).toList();
       case TransactionPaymentType.upi:
         return list

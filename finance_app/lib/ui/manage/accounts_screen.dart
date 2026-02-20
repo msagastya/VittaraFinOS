@@ -204,6 +204,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
         return 'Digital Wallets';
       case AccountType.investment:
         return 'Brokers';
+      case AccountType.cash:
+        return 'Cash in Hand';
     }
   }
 
@@ -221,6 +223,25 @@ class _AccountsScreenState extends State<AccountsScreen> {
         return const Color(0xFF5AC8FA);
       case AccountType.investment:
         return const Color(0xFFAF52DE);
+      case AccountType.cash:
+        return const Color(0xFF30D158);
+    }
+  }
+
+  IconData _getAccountTypeIcon(AccountType type) {
+    switch (type) {
+      case AccountType.savings:
+      case AccountType.current:
+        return CupertinoIcons.building_2_fill;
+      case AccountType.credit:
+      case AccountType.payLater:
+        return CupertinoIcons.creditcard_fill;
+      case AccountType.wallet:
+        return CupertinoIcons.square_stack_3d_down_right_fill;
+      case AccountType.investment:
+        return CupertinoIcons.chart_bar_square_fill;
+      case AccountType.cash:
+        return CupertinoIcons.money_dollar_circle_fill;
     }
   }
 
@@ -228,6 +249,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
     const order = <AccountType>[
       AccountType.savings,
       AccountType.current,
+      AccountType.cash,
       AccountType.credit,
       AccountType.payLater,
       AccountType.wallet,
@@ -534,9 +556,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
             child: Row(
               children: [
                 IconBox(
-                  icon: account.type == AccountType.investment
-                      ? CupertinoIcons.chart_bar_square_fill
-                      : CupertinoIcons.building_2_fill,
+                  icon: _getAccountTypeIcon(account.type),
                   color: account.color,
                   showGlow: true,
                 ),

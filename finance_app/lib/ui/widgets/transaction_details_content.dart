@@ -159,6 +159,18 @@ class TransactionDetailsContent extends StatelessWidget {
       maybeAdd('Payment Type', metadata['paymentType'] as String?);
     }
 
+    final transferFlowType = metadata['transferFlowType'] as String?;
+    if (transferFlowType != null && transferFlowType != 'standard') {
+      final flowLabel = transferFlowType == 'cash_withdrawal'
+          ? 'Cash Withdrawal'
+          : transferFlowType == 'cash_deposit'
+              ? 'Cash Deposit'
+              : transferFlowType == 'cash_to_cash'
+                  ? 'Cash Transfer'
+                  : transferFlowType;
+      maybeAdd('Transfer Flow', flowLabel);
+    }
+
     if (transaction.type == TransactionType.transfer &&
         transaction.charges != null &&
         transaction.charges! > 0) {

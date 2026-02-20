@@ -60,4 +60,21 @@ void main() {
 
     ctrl.dispose();
   });
+
+  test('Account round-trip supports cash account type', () {
+    final original = Account(
+      id: 'cash-1',
+      name: 'Cash in Hand',
+      bankName: 'Cash',
+      type: AccountType.cash,
+      balance: 10000,
+      color: const Color(0xFF30D158),
+    );
+
+    final restored = Account.fromMap(original.toMap());
+
+    expect(restored.type, AccountType.cash);
+    expect(restored.bankName, 'Cash');
+    expect(restored.balance, 10000);
+  });
 }

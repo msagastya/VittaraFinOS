@@ -115,7 +115,17 @@ class Transaction {
   String getSummary() {
     switch (type) {
       case TransactionType.transfer:
+        final flowType = metadata?['transferFlowType'] as String?;
         final base = '$sourceAccountName → $destinationAccountName';
+        if (flowType == 'cash_withdrawal') {
+          return 'Cash Withdrawal ($base)';
+        }
+        if (flowType == 'cash_deposit') {
+          return 'Cash Deposit ($base)';
+        }
+        if (flowType == 'cash_to_cash') {
+          return 'Cash Transfer ($base)';
+        }
         final walletUsed = appWalletAmount ?? 0.0;
         if (walletUsed > 0) {
           return '$base (Wallet ₹${walletUsed.toStringAsFixed(2)})';

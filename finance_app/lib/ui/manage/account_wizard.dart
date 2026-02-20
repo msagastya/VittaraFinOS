@@ -18,6 +18,8 @@ class AccountWizard extends StatefulWidget {
 }
 
 class _AccountWizardState extends State<AccountWizard> {
+  static const String _cashBankName = 'Cash';
+
   final PageController _pageController = PageController();
   int _currentStep = 0;
   late final int _totalSteps;
@@ -104,7 +106,9 @@ class _AccountWizardState extends State<AccountWizard> {
         _nameController.text = '$_selectedBroker - Demat';
       }
     } else {
-      if (_selectedBank != null && _selectedAccountType != null) {
+      if (_selectedAccountType == AccountType.cash) {
+        _nameController.text = 'Cash in Hand';
+      } else if (_selectedBank != null && _selectedAccountType != null) {
         final typeLabel = _getAccountTypeLabel(_selectedAccountType!);
         _nameController.text = '$_selectedBank - $typeLabel';
       }
@@ -125,6 +129,8 @@ class _AccountWizardState extends State<AccountWizard> {
         return 'Digital Wallet';
       case AccountType.investment:
         return 'Investment';
+      case AccountType.cash:
+        return 'Cash in Hand';
     }
   }
 
@@ -188,10 +194,14 @@ class _AccountWizardState extends State<AccountWizard> {
       final account = Account(
         id: accountId,
         name: _nameController.text,
-        bankName: _selectedBank ?? 'Other',
+        bankName: _selectedAccountType == AccountType.cash
+            ? _cashBankName
+            : _selectedBank ?? 'Other',
         type: _selectedAccountType ?? AccountType.savings,
         balance: finalBalance,
-        color: _selectedColor ?? CupertinoColors.systemBlue,
+        color: _selectedAccountType == AccountType.cash
+            ? CupertinoColors.systemGreen
+            : _selectedColor ?? CupertinoColors.systemBlue,
         creditCardNumber: (_selectedAccountType == AccountType.credit ||
                 _selectedAccountType == AccountType.payLater)
             ? (_creditCardNumberController.text.isNotEmpty
@@ -821,11 +831,77 @@ class _AccountWizardState extends State<AccountWizard> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Where do you keep your money?',
+                'Where do you keep your money? You can also track cash in hand.',
                 style:
                     TextStyle(color: AppStyles.getSecondaryTextColor(context)),
               ),
               const SizedBox(height: 32),
+              BouncyButton(
+                onPressed: () {
+                  setState(() {
+                    _selectedBank = _cashBankName;
+                    _selectedColor = CupertinoColors.systemGreen;
+                  });
+                  _nextStep();
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: CupertinoColors.systemGreen.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: CupertinoColors.systemGreen.withValues(alpha: 0.5),
+                      width: 1.2,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: CupertinoColors.systemGreen
+                              .withValues(alpha: 0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            CupertinoIcons.money_dollar_circle_fill,
+                            color: CupertinoColors.systemGreen,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Cash in Hand',
+                              style: AppStyles.titleStyle(context),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Track your physical cash balance',
+                              style: TextStyle(
+                                color: AppStyles.getSecondaryTextColor(context),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(
+                        CupertinoIcons.chevron_right,
+                        size: 16,
+                        color: CupertinoColors.systemGreen,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
               if (enabledBanks.isEmpty)
                 Center(
                   child: Column(
@@ -1391,6 +1467,11 @@ class _AccountWizardState extends State<AccountWizard> {
         'label': 'Digital Wallet',
         'icon': CupertinoIcons.square_stack_3d_down_right_fill
       },
+      {
+        'type': AccountType.cash,
+        'label': 'Cash in Hand',
+        'icon': CupertinoIcons.money_dollar_circle_fill
+      },
     ];
 
     return SingleChildScrollView(
@@ -1413,8 +1494,15 @@ class _AccountWizardState extends State<AccountWizard> {
               final isSelected = _selectedAccountType == item['type'];
               return GestureDetector(
                 onTap: () {
+                  final selectedType = item['type'] as AccountType;
                   setState(() {
-                    _selectedAccountType = item['type'] as AccountType;
+                    _selectedAccountType = selectedType;
+                    if (selectedType == AccountType.cash) {
+                      _selectedBank = _cashBankName;
+                      _selectedColor = CupertinoColors.systemGreen;
+                    } else if (_selectedBank == _cashBankName) {
+                      _selectedBank = 'Other';
+                    }
                     _updateNickname();
                   });
                   _nextStep();
@@ -1666,8 +1754,14 @@ class _AccountWizardState extends State<AccountWizard> {
               style: TextStyle(color: AppStyles.getTextColor(context)),
             ),
           ] else if (_selectedAccountType == AccountType.wallet ||
-              _selectedAccountType == AccountType.investment) ...[
-            Text('Opening Balance', style: AppStyles.headerStyle(context)),
+              _selectedAccountType == AccountType.investment ||
+              _selectedAccountType == AccountType.cash) ...[
+            Text(
+              _selectedAccountType == AccountType.cash
+                  ? 'Cash in Hand Balance'
+                  : 'Opening Balance',
+              style: AppStyles.headerStyle(context),
+            ),
             const SizedBox(height: 8),
             Center(
               child: Row(
@@ -1738,7 +1832,12 @@ class _AccountWizardState extends State<AccountWizard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildReviewRow('Bank', _selectedBank ?? 'Unknown'),
+                _buildReviewRow(
+                  _selectedAccountType == AccountType.cash ? 'Source' : 'Bank',
+                  _selectedAccountType == AccountType.cash
+                      ? _cashBankName
+                      : _selectedBank ?? 'Unknown',
+                ),
                 const SizedBox(height: 16),
                 _buildReviewRow(
                     'Account Type',

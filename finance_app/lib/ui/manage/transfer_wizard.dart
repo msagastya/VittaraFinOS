@@ -180,7 +180,7 @@ class _TransferWizardState extends State<TransferWizard> {
     final transaction = Transaction(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       type: TransactionType.transfer,
-      description: '${_sourceAccount?.name} → ${_destinationAccount?.name}',
+      description: _transferDescription(),
       dateTime: DateTime.now(),
       amount: amount,
       sourceAccountId: _sourceAccount?.id,
@@ -194,6 +194,7 @@ class _TransferWizardState extends State<TransferWizard> {
       cashbackAccountId: selectedCashbackAccount?.id,
       cashbackAccountName: selectedCashbackAccount?.name,
       metadata: {
+        'transferFlowType': _cashFlowType(),
         'cashbackFlow': cashbackAmount > 0
             ? (canCreditCashbackToApp ? 'paymentApp' : 'bank')
             : 'bank',
@@ -270,6 +271,49 @@ class _TransferWizardState extends State<TransferWizard> {
       return _cashbackAccount!.name;
     }
     return 'Not selected';
+  }
+
+  String _cashFlowType() {
+    final sourceType = _sourceAccount?.type;
+    final destinationType = _destinationAccount?.type;
+    if (sourceType == AccountType.cash && destinationType != AccountType.cash) {
+      return 'cash_deposit';
+    }
+    if (destinationType == AccountType.cash && sourceType != AccountType.cash) {
+      return 'cash_withdrawal';
+    }
+    if (destinationType == AccountType.cash && sourceType == AccountType.cash) {
+      return 'cash_to_cash';
+    }
+    return 'standard';
+  }
+
+  String _transferDescription() {
+    final flowType = _cashFlowType();
+    if (flowType == 'cash_withdrawal') {
+      return 'Cash withdrawal: ${_sourceAccount?.name} → ${_destinationAccount?.name}';
+    }
+    if (flowType == 'cash_deposit') {
+      return 'Cash deposit: ${_sourceAccount?.name} → ${_destinationAccount?.name}';
+    }
+    return '${_sourceAccount?.name} → ${_destinationAccount?.name}';
+  }
+
+  IconData _iconForAccount(Account account) {
+    switch (account.type) {
+      case AccountType.investment:
+        return CupertinoIcons.chart_bar_square_fill;
+      case AccountType.credit:
+      case AccountType.payLater:
+        return CupertinoIcons.creditcard_fill;
+      case AccountType.wallet:
+        return CupertinoIcons.square_stack_3d_down_right_fill;
+      case AccountType.cash:
+        return CupertinoIcons.money_dollar_circle_fill;
+      case AccountType.savings:
+      case AccountType.current:
+        return CupertinoIcons.building_2_fill;
+    }
   }
 
   @override
@@ -395,9 +439,7 @@ class _TransferWizardState extends State<TransferWizard> {
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
-                              account.type == AccountType.investment
-                                  ? CupertinoIcons.chart_bar_square_fill
-                                  : CupertinoIcons.building_2_fill,
+                              _iconForAccount(account),
                               color: account.color,
                               size: 24,
                             ),
@@ -553,9 +595,7 @@ class _TransferWizardState extends State<TransferWizard> {
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
-                              account.type == AccountType.investment
-                                  ? CupertinoIcons.chart_bar_square_fill
-                                  : CupertinoIcons.building_2_fill,
+                              _iconForAccount(account),
                               color: account.color,
                               size: 24,
                             ),
@@ -1183,7 +1223,7 @@ class _TransferWizardState extends State<TransferWizard> {
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
-                              CupertinoIcons.building_2_fill,
+                              _iconForAccount(account),
                               color: account.color,
                               size: 20,
                             ),
@@ -1307,6 +1347,14 @@ class _TransferWizardState extends State<TransferWizard> {
     final cashbackAmount =
         double.tryParse(_cashbackAmountController.text) ?? 0.0;
     final deductFromSource = amount - appWalletAmount;
+    final transferFlowType = _cashFlowType();
+    final transferFlowLabel = transferFlowType == 'cash_withdrawal'
+        ? 'Cash Withdrawal'
+        : transferFlowType == 'cash_deposit'
+            ? 'Cash Deposit'
+            : transferFlowType == 'cash_to_cash'
+                ? 'Cash Transfer'
+                : null;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -1330,6 +1378,10 @@ class _TransferWizardState extends State<TransferWizard> {
                 _buildReviewRow('From', _sourceAccount?.name ?? 'Unknown'),
                 const SizedBox(height: 12),
                 _buildReviewRow('To', _destinationAccount?.name ?? 'Unknown'),
+                if (transferFlowLabel != null) ...[
+                  const SizedBox(height: 12),
+                  _buildReviewRow('Flow', transferFlowLabel),
+                ],
                 const SizedBox(height: 12),
                 Container(
                   height: 1,
