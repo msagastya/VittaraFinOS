@@ -99,11 +99,13 @@ class RDWizardController extends ChangeNotifier {
   }
 
   void goToStep(int step) {
+    FocusManager.instance.primaryFocus?.unfocus();
     currentStep = step;
     notifyListeners();
   }
 
   void nextStep() {
+    FocusManager.instance.primaryFocus?.unfocus();
     if (currentStep < 6) {
       currentStep++;
       notifyListeners();

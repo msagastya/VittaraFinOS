@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:vittara_fin_os/models/cryptocurrency_model.dart';
 
 class CryptoWizardController extends ChangeNotifier {
@@ -133,6 +133,7 @@ class CryptoWizardController extends ChangeNotifier {
   }
 
   void nextPage() {
+    FocusManager.instance.primaryFocus?.unfocus();
     if (_currentStep < 3 && canProceed()) {
       _currentStep++;
       notifyListeners();

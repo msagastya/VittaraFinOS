@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:vittara_fin_os/logic/bonds_model.dart';
 
 class BondsWizardController extends ChangeNotifier {
@@ -163,6 +163,7 @@ class BondsWizardController extends ChangeNotifier {
   }
 
   void nextPage() {
+    FocusManager.instance.primaryFocus?.unfocus();
     if (_currentStep < 3 && canProceed()) {
       _currentStep++;
       notifyListeners();

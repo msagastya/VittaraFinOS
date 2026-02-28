@@ -170,11 +170,13 @@ class FDWizardController extends ChangeNotifier {
   }
 
   void goToStep(int step) {
+    FocusManager.instance.primaryFocus?.unfocus();
     currentStep = step;
     notifyListeners();
   }
 
   void nextStep() {
+    FocusManager.instance.primaryFocus?.unfocus();
     if (currentStep < 7) {
       currentStep++;
       notifyListeners();

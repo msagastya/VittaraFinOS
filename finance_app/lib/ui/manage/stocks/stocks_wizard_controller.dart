@@ -87,6 +87,7 @@ class StocksWizardController extends ChangeNotifier {
   }
 
   void nextPage() {
+    FocusManager.instance.primaryFocus?.unfocus();
     if (_currentStep < 4) {
       _currentStep++;
       pageController.animateToPage(

@@ -135,6 +135,7 @@ class _AccountWizardState extends State<AccountWizard> {
   }
 
   void _nextStep() {
+    FocusManager.instance.primaryFocus?.unfocus();
     if (_currentStep < _totalSteps - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 400),

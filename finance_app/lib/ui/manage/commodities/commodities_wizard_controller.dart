@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:vittara_fin_os/logic/commodities_model.dart';
 
 class CommoditiesWizardController extends ChangeNotifier {
@@ -104,6 +104,7 @@ class CommoditiesWizardController extends ChangeNotifier {
   }
 
   void nextPage() {
+    FocusManager.instance.primaryFocus?.unfocus();
     if (_currentStep < 4 && canProceed()) {
       _currentStep++;
       notifyListeners();

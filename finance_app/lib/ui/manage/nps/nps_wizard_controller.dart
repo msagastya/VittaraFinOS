@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:vittara_fin_os/logic/nps_model.dart';
 
 class NPSWizardController extends ChangeNotifier {
@@ -134,6 +134,7 @@ class NPSWizardController extends ChangeNotifier {
   }
 
   void nextPage() {
+    FocusManager.instance.primaryFocus?.unfocus();
     if (_currentStep < 4 && canProceed()) {
       _currentStep++;
       notifyListeners();

@@ -122,6 +122,7 @@ class DigitalGoldWizardController extends ChangeNotifier {
   }
 
   void nextPage() {
+    FocusManager.instance.primaryFocus?.unfocus();
     if (_currentStep < 5) {
       _currentStep++;
       pageController.animateToPage(

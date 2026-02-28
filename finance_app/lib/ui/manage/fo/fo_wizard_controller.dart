@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:vittara_fin_os/logic/fo_model.dart';
 
 class FOWizardController extends ChangeNotifier {
@@ -154,6 +154,7 @@ class FOWizardController extends ChangeNotifier {
   }
 
   void nextPage() {
+    FocusManager.instance.primaryFocus?.unfocus();
     if (_currentStep < 5 && canProceed()) {
       _currentStep++;
       notifyListeners();

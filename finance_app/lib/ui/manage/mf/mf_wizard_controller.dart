@@ -123,6 +123,7 @@ class MFWizardController extends ChangeNotifier {
   }
 
   void jumpToStep(int step) {
+    FocusManager.instance.primaryFocus?.unfocus();
     if (step < 0 || step > 5) return;
     _currentStep = step;
     pageController.jumpToPage(step);
@@ -203,6 +204,7 @@ class MFWizardController extends ChangeNotifier {
   }
 
   void nextPage() {
+    FocusManager.instance.primaryFocus?.unfocus();
     if (_currentStep < 6) {
       _currentStep++;
       pageController.animateToPage(

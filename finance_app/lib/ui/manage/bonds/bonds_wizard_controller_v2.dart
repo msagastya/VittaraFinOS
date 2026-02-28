@@ -370,6 +370,7 @@ class BondsWizardControllerV2 extends ChangeNotifier {
   }
 
   void nextPage() {
+    FocusManager.instance.primaryFocus?.unfocus();
     if (_currentStep < totalSteps - 1 && canProceed()) {
       _currentStep++;
       pageController.animateToPage(
