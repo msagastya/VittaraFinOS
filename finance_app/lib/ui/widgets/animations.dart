@@ -331,20 +331,27 @@ class FadeScalePageRoute<T> extends PageRouteBuilder<T> {
       : super(
           pageBuilder: (context, animation, secondaryAnimation) => page,
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            var tween = Tween(begin: 0.95, end: 1.0)
+            final scaleTween = Tween(begin: 0.94, end: 1.0)
+                .chain(CurveTween(curve: MotionCurves.emphasis));
+            final fadeTween = Tween(begin: 0.0, end: 1.0)
                 .chain(CurveTween(curve: MotionCurves.standard));
-            var fadeTween = Tween(begin: 0.0, end: 1.0)
-                .chain(CurveTween(curve: MotionCurves.standard));
+            final slideTween = Tween(
+              begin: const Offset(0.0, 0.03),
+              end: Offset.zero,
+            ).chain(CurveTween(curve: MotionCurves.emphasis));
 
             return FadeTransition(
               opacity: animation.drive(fadeTween),
-              child: ScaleTransition(
-                scale: animation.drive(tween),
-                child: child,
+              child: SlideTransition(
+                position: animation.drive(slideTween),
+                child: ScaleTransition(
+                  scale: animation.drive(scaleTween),
+                  child: child,
+                ),
               ),
             );
           },
-          transitionDuration: AppDurations.pageTransition,
+          transitionDuration: AppDurations.medium,
           reverseTransitionDuration: AppDurations.pageTransitionReverse,
         );
 }

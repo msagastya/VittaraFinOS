@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/logic/budgets_controller.dart';
 import 'package:vittara_fin_os/logic/goals_controller.dart';
+import 'package:vittara_fin_os/logic/investment_model.dart';
+import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -44,6 +46,26 @@ class _CategoryInsight {
   });
 }
 
+class _PlannerExpenseBreakdown {
+  final double totalSpent;
+  final double essentialSpent;
+  final double discretionarySpent;
+  final double monthlySipCommitment;
+  final double monthlyRdCommitment;
+  final double totalCommitments;
+  final double plannedOutflow;
+
+  const _PlannerExpenseBreakdown({
+    required this.totalSpent,
+    required this.essentialSpent,
+    required this.discretionarySpent,
+    required this.monthlySipCommitment,
+    required this.monthlyRdCommitment,
+    required this.totalCommitments,
+    required this.plannedOutflow,
+  });
+}
+
 class AIMonthlyPlannerScreen extends StatefulWidget {
   const AIMonthlyPlannerScreen({super.key});
 
@@ -70,6 +92,8 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
       Provider.of<GoalsController>(context, listen: false).initialize();
       Provider.of<TransactionsController>(context, listen: false)
           .loadTransactions();
+      Provider.of<InvestmentsController>(context, listen: false)
+          .loadInvestments();
     });
   }
 
@@ -323,10 +347,10 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
         backgroundColor: AppStyles.getBackground(context),
         border: null,
       ),
-      child:
-          Consumer3<BudgetsController, GoalsController, TransactionsController>(
+      child: Consumer4<BudgetsController, GoalsController,
+          TransactionsController, InvestmentsController>(
         builder: (context, budgetsController, goalsController,
-            transactionsController, child) {
+            transactionsController, investmentsController, child) {
           final totalBudgetLimit = budgetsController.activeBudgets
               .fold(0.0, (sum, b) => sum + b.limitAmount);
           final totalGoalTarget =
@@ -362,18 +386,39 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
             }
           }
 
+          final monthlySipCommitment =
+              _calculateMonthlySipCommitment(investmentsController.investments);
+          final monthlyRdCommitment =
+              _calculateMonthlyRDCommitment(investmentsController.investments);
+          final expenseBreakdown = _buildExpenseBreakdown(
+            thisMonthExpenses: thisMonthExpenses,
+            monthlySipCommitment: monthlySipCommitment,
+            monthlyRdCommitment: monthlyRdCommitment,
+          );
+
           final recommendations = _buildRecommendations(
             totalSpent: totalSpent,
             totalGoalTarget: totalGoalTarget,
             totalBudgetLimit: totalBudgetLimit,
             categorySpent: categorySpent,
             categoryBudgets: budgetByCategory,
+            monthlySipCommitment: monthlySipCommitment,
+            monthlyRdCommitment: monthlyRdCommitment,
+            plannedOutflow: expenseBreakdown.plannedOutflow,
+            essentialSpent: expenseBreakdown.essentialSpent,
+            discretionarySpent: expenseBreakdown.discretionarySpent,
           );
           final categoryInsights =
               _buildCategoryInsights(categorySpent, budgetByCategory);
-          final projectedSavings = (_monthlyIncome ?? 0) - totalSpent;
+          final projectedSavings =
+              (_monthlyIncome ?? 0) - expenseBreakdown.plannedOutflow;
           final healthScore = _computeHealthScore(
-              totalSpent, totalGoalTarget, totalBudgetLimit);
+            totalSpent: totalSpent,
+            plannedOutflow: expenseBreakdown.plannedOutflow,
+            goalTarget: totalGoalTarget,
+            budgetLimit: totalBudgetLimit,
+            totalCommitments: expenseBreakdown.totalCommitments,
+          );
 
           return SafeArea(
             child: _isInitializing
@@ -389,6 +434,7 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
                             healthScore: healthScore,
                             recommendations: recommendations,
                             categoryInsights: categoryInsights,
+                            breakdown: expenseBreakdown,
                           ),
           );
         },
@@ -415,17 +461,206 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
     );
   }
 
+  _PlannerExpenseBreakdown _buildExpenseBreakdown({
+    required List<Transaction> thisMonthExpenses,
+    required double monthlySipCommitment,
+    required double monthlyRdCommitment,
+  }) {
+    final totalSpent = thisMonthExpenses.fold<double>(
+      0.0,
+      (sum, tx) => sum + tx.amount,
+    );
+
+    double essentialSpent = 0.0;
+    for (final tx in thisMonthExpenses) {
+      if (_isEssentialExpense(tx)) {
+        essentialSpent += tx.amount;
+      }
+    }
+
+    final discretionarySpent = (totalSpent - essentialSpent).clamp(
+      0.0,
+      double.infinity,
+    );
+    final totalCommitments = monthlySipCommitment + monthlyRdCommitment;
+    final plannedOutflow = totalSpent + totalCommitments;
+
+    return _PlannerExpenseBreakdown(
+      totalSpent: totalSpent,
+      essentialSpent: essentialSpent,
+      discretionarySpent: discretionarySpent,
+      monthlySipCommitment: monthlySipCommitment,
+      monthlyRdCommitment: monthlyRdCommitment,
+      totalCommitments: totalCommitments,
+      plannedOutflow: plannedOutflow,
+    );
+  }
+
+  bool _isEssentialExpense(Transaction tx) {
+    final metadata = tx.metadata ?? {};
+    final category = (metadata['categoryName'] as String?)?.toLowerCase() ?? '';
+    final merchant = (metadata['merchant'] as String?)?.toLowerCase() ?? '';
+    final description = tx.description.toLowerCase();
+    final bucket = '$category $merchant $description';
+
+    const keywords = [
+      'rent',
+      'emi',
+      'loan',
+      'insurance',
+      'electricity',
+      'water',
+      'gas',
+      'broadband',
+      'internet',
+      'wifi',
+      'phone bill',
+      'mobile bill',
+      'school fee',
+      'fees',
+      'subscription',
+      'maintenance',
+      'society',
+      'utility',
+    ];
+
+    for (final keyword in keywords) {
+      if (bucket.contains(keyword)) return true;
+    }
+    return false;
+  }
+
+  double _calculateMonthlySipCommitment(List<Investment> investments) {
+    double total = 0.0;
+
+    for (final investment in investments) {
+      final metadata = investment.metadata ?? {};
+      if (metadata['sipActive'] != true) continue;
+
+      final frequency =
+          (metadata['sipFrequency'] as String?)?.toLowerCase().trim();
+      double amount = 0.0;
+
+      if (investment.type == InvestmentType.stocks) {
+        amount = (metadata['sipAmount'] as num?)?.toDouble() ?? 0.0;
+        if (amount <= 0) {
+          final qty = (metadata['sipQty'] as num?)?.toDouble() ?? 0.0;
+          final price = (metadata['pricePerShare'] as num?)?.toDouble() ??
+              (metadata['currentPrice'] as num?)?.toDouble() ??
+              0.0;
+          amount = qty * price;
+        }
+      } else {
+        final rawSipData = metadata['sipData'];
+        final sipData = rawSipData is Map<String, dynamic>
+            ? rawSipData
+            : rawSipData is Map
+                ? Map<String, dynamic>.from(rawSipData)
+                : null;
+        amount = (sipData?['sipAmount'] as num?)?.toDouble() ??
+            (metadata['sipAmount'] as num?)?.toDouble() ??
+            0.0;
+      }
+
+      final normalizedFrequency = frequency ??
+          ((metadata['sipData'] as Map?)?['frequency'] as String?)
+              ?.toLowerCase()
+              .trim() ??
+          'monthly';
+      total += _monthlyEquivalentForFrequency(amount, normalizedFrequency);
+    }
+
+    return total;
+  }
+
+  double _calculateMonthlyRDCommitment(List<Investment> investments) {
+    double total = 0.0;
+
+    for (final investment in investments) {
+      if (investment.type != InvestmentType.recurringDeposit) continue;
+
+      final metadata = investment.metadata ?? {};
+      final rawRdData = metadata['rdData'];
+      final rdData = rawRdData is Map<String, dynamic>
+          ? rawRdData
+          : rawRdData is Map
+              ? Map<String, dynamic>.from(rawRdData)
+              : null;
+
+      final statusIndex = (rdData?['status'] as num?)?.toInt();
+      if (statusIndex != null && statusIndex != 0) continue;
+
+      final installmentAmount =
+          (rdData?['monthlyAmount'] as num?)?.toDouble() ??
+              (metadata['monthlyAmount'] as num?)?.toDouble() ??
+              0.0;
+      if (installmentAmount <= 0) continue;
+
+      final frequencyIndex =
+          (rdData?['paymentFrequency'] as num?)?.toInt() ?? 0;
+      total +=
+          _monthlyEquivalentForRdFrequency(installmentAmount, frequencyIndex);
+    }
+
+    return total;
+  }
+
+  double _monthlyEquivalentForRdFrequency(double amount, int frequencyIndex) {
+    switch (frequencyIndex) {
+      case 1: // quarterly
+        return amount / 3;
+      case 2: // semi-annual
+        return amount / 6;
+      case 3: // annual
+        return amount / 12;
+      case 0: // monthly
+      default:
+        return amount;
+    }
+  }
+
+  double _monthlyEquivalentForFrequency(double amount, String frequency) {
+    if (amount <= 0) return 0.0;
+    switch (frequency) {
+      case 'daily':
+      case 'dailyauto':
+        return amount * 30.0;
+      case 'weekly':
+        return amount * 4.33;
+      case 'quarterly':
+        return amount / 3.0;
+      case 'semiannual':
+      case 'semi-annual':
+        return amount / 6.0;
+      case 'yearly':
+      case 'annual':
+        return amount / 12.0;
+      case 'monthly':
+      case 'monthlyauto':
+      default:
+        return amount;
+    }
+  }
+
   List<_PlannerRecommendation> _buildRecommendations({
     required double totalSpent,
     required double totalGoalTarget,
     required double totalBudgetLimit,
     required Map<String, double> categorySpent,
     required Map<String, double> categoryBudgets,
+    required double monthlySipCommitment,
+    required double monthlyRdCommitment,
+    required double plannedOutflow,
+    required double essentialSpent,
+    required double discretionarySpent,
   }) {
     final list = <_PlannerRecommendation>[];
+    final totalCommitments = monthlySipCommitment + monthlyRdCommitment;
 
     if (_monthlyIncome != null && _monthlyIncome! > 0) {
       final ratio = totalSpent / _monthlyIncome!;
+      final effectiveOutflowRatio = plannedOutflow / _monthlyIncome!;
+
       if (ratio > 0.85) {
         list.add(
           _PlannerRecommendation(
@@ -448,18 +683,56 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
         );
       }
 
+      if (totalCommitments > 0) {
+        final commitmentRatio = totalCommitments / _monthlyIncome!;
+        list.add(
+          _PlannerRecommendation(
+            title: 'Recurring Commitments',
+            description:
+                'SIP + RD commitments are ₹${totalCommitments.toStringAsFixed(0)}/month (${(commitmentRatio * 100).toStringAsFixed(0)}% of income).',
+            icon: CupertinoIcons.repeat,
+            color: commitmentRatio > 0.3
+                ? SemanticColors.warning
+                : SemanticColors.info,
+          ),
+        );
+      }
+
+      if (effectiveOutflowRatio > 1) {
+        list.add(
+          _PlannerRecommendation(
+            title: 'Commitments + Expenses Exceed Income',
+            description:
+                'Planned outflow (₹${plannedOutflow.toStringAsFixed(0)}) is above monthly income. Reduce discretionary spend or pause one commitment.',
+            icon: CupertinoIcons.exclamationmark_octagon_fill,
+            color: SemanticColors.error,
+          ),
+        );
+      } else if (effectiveOutflowRatio > 0.9) {
+        list.add(
+          _PlannerRecommendation(
+            title: 'Low Month-End Buffer',
+            description:
+                'After SIP/RD commitments, only ${(100 - (effectiveOutflowRatio * 100)).toStringAsFixed(0)}% income buffer remains.',
+            icon: CupertinoIcons.chart_bar_alt_fill,
+            color: SemanticColors.warning,
+          ),
+        );
+      }
+
       final now = DateTime.now();
       final daysElapsed = now.day.toDouble().clamp(1, 31);
       final daysInMonth = DateTime(now.year, now.month + 1, 0).day.toDouble();
       final projectedMonthSpend = (totalSpent / daysElapsed) * daysInMonth;
-      final projectionGap = projectedMonthSpend - _monthlyIncome!;
+      final projectionGap =
+          (projectedMonthSpend + totalCommitments) - _monthlyIncome!;
 
       if (projectionGap > 0) {
         list.add(
           _PlannerRecommendation(
             title: 'Month-End Overspend Risk',
             description:
-                'At current pace, spending may exceed income by ₹${projectionGap.toStringAsFixed(0)} this month.',
+                'At current pace + commitments, outflow may exceed income by ₹${projectionGap.toStringAsFixed(0)} this month.',
             icon: CupertinoIcons.waveform_path_ecg,
             color: SemanticColors.error,
           ),
@@ -475,6 +748,33 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
           ),
         );
       }
+    }
+
+    if (essentialSpent > 0 || discretionarySpent > 0) {
+      final total = essentialSpent + discretionarySpent;
+      final essentialRatio =
+          total > 0 ? ((essentialSpent / total) * 100).toStringAsFixed(0) : '0';
+      list.add(
+        _PlannerRecommendation(
+          title: 'Essential vs Other Expenses',
+          description:
+              'Essential-like spend: ₹${essentialSpent.toStringAsFixed(0)} ($essentialRatio%). Other expenses: ₹${discretionarySpent.toStringAsFixed(0)}.',
+          icon: CupertinoIcons.square_stack_3d_up_fill,
+          color: SemanticColors.info,
+        ),
+      );
+    }
+
+    if (monthlySipCommitment > 0 || monthlyRdCommitment > 0) {
+      list.add(
+        _PlannerRecommendation(
+          title: 'Investment Commitment Split',
+          description:
+              'SIP: ₹${monthlySipCommitment.toStringAsFixed(0)} | RD: ₹${monthlyRdCommitment.toStringAsFixed(0)} per month.',
+          icon: CupertinoIcons.chart_pie_fill,
+          color: SemanticColors.info,
+        ),
+      );
     }
 
     final topCategoryEntry = categorySpent.entries.toList()
@@ -513,7 +813,7 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
     if (_mustSaveAmount != null &&
         _mustSaveAmount! > 0 &&
         _monthlyIncome != null) {
-      final left = _monthlyIncome! - totalSpent;
+      final left = _monthlyIncome! - plannedOutflow;
       if (left < _mustSaveAmount!) {
         list.add(
           _PlannerRecommendation(
@@ -575,19 +875,29 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
     return insights.take(6).toList();
   }
 
-  double _computeHealthScore(
-      double totalSpent, double goalTarget, double budgetLimit) {
+  double _computeHealthScore({
+    required double totalSpent,
+    required double plannedOutflow,
+    required double goalTarget,
+    required double budgetLimit,
+    required double totalCommitments,
+  }) {
     final income = _monthlyIncome ?? 0;
     if (income <= 0) return 0;
     final spendRatio = (totalSpent / income).clamp(0.0, 1.0);
+    final plannedOutflowRatio = (plannedOutflow / income).clamp(0.0, 1.2);
+    final commitmentRatio = (totalCommitments / income).clamp(0.0, 1.0);
     final goalRatio = goalTarget <= 0
         ? 1.0
-        : ((income - totalSpent) / goalTarget).clamp(0.0, 1.0);
+        : ((income - plannedOutflow) / goalTarget).clamp(0.0, 1.0);
     final budgetRatio = budgetLimit <= 0
         ? 1.0
         : (1 - (totalSpent / budgetLimit).clamp(0.0, 1.0));
-    final raw =
-        (goalRatio * 0.4) + ((1 - spendRatio) * 0.4) + (budgetRatio * 0.2);
+    final raw = (goalRatio * 0.35) +
+        ((1 - spendRatio) * 0.2) +
+        ((1 - (plannedOutflowRatio / 1.2)) * 0.3) +
+        (budgetRatio * 0.1) +
+        ((1 - commitmentRatio) * 0.05);
     return (raw * 100).clamp(0.0, 100.0);
   }
 
@@ -703,6 +1013,7 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
     required double healthScore,
     required List<_PlannerRecommendation> recommendations,
     required List<_CategoryInsight> categoryInsights,
+    required _PlannerExpenseBreakdown breakdown,
   }) {
     return CustomScrollView(
       slivers: [
@@ -857,6 +1168,58 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
                       ],
                     ),
                   ),
+                  SizedBox(height: Spacing.lg),
+                  GlassCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Monthly Outflow Clarity',
+                          style: TextStyle(
+                            fontSize: TypeScale.callout,
+                            fontWeight: FontWeight.w700,
+                            color: AppStyles.getTextColor(context),
+                          ),
+                        ),
+                        SizedBox(height: Spacing.md),
+                        _buildBreakdownRow(
+                          label: 'Logged Expenses',
+                          value: breakdown.totalSpent,
+                          color: SemanticColors.info,
+                        ),
+                        _buildBreakdownRow(
+                          label: 'Essential-like Spend',
+                          value: breakdown.essentialSpent,
+                          color: SemanticColors.warning,
+                        ),
+                        _buildBreakdownRow(
+                          label: 'Other Expenses',
+                          value: breakdown.discretionarySpent,
+                          color: SemanticColors.success,
+                        ),
+                        _buildBreakdownRow(
+                          label: 'SIP Commitments (Monthly)',
+                          value: breakdown.monthlySipCommitment,
+                          color: SemanticColors.investments,
+                        ),
+                        _buildBreakdownRow(
+                          label: 'RD Commitments (Monthly)',
+                          value: breakdown.monthlyRdCommitment,
+                          color: SemanticColors.categories,
+                        ),
+                        Divider(
+                          color: AppStyles.getSecondaryTextColor(context)
+                              .withValues(alpha: 0.2),
+                        ),
+                        _buildBreakdownRow(
+                          label: 'Planned Outflow',
+                          value: breakdown.plannedOutflow,
+                          color: SemanticColors.error,
+                          bold: true,
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -915,6 +1278,39 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
         ),
         SliverToBoxAdapter(child: SizedBox(height: 80)),
       ],
+    );
+  }
+
+  Widget _buildBreakdownRow({
+    required String label,
+    required double value,
+    required Color color,
+    bool bold = false,
+  }) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: Spacing.sm),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: TypeScale.footnote,
+                color: AppStyles.getSecondaryTextColor(context),
+              ),
+            ),
+          ),
+          counter_widgets.CurrencyCounter(
+            value: value,
+            decimalPlaces: 0,
+            textStyle: TextStyle(
+              fontSize: TypeScale.callout,
+              fontWeight: bold ? FontWeight.bold : FontWeight.w600,
+              color: color,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

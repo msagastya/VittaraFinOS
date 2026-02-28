@@ -35,6 +35,42 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     });
   }
 
+  void _showEditCategoryModal(
+    BuildContext context,
+    Category category,
+    CategoriesController controller,
+  ) {
+    showCreateCategoryModal(
+      context,
+      controller: controller,
+      initialCategory: category,
+    ).then((updatedCategory) {
+      if (updatedCategory != null) {
+        logger.info(
+          'Updated category: ${updatedCategory.name}',
+          context: 'CategoriesScreen',
+        );
+        toast.showSuccess('"${updatedCategory.name}" updated');
+      }
+    });
+  }
+
+  void _deleteCategory(CategoriesController controller, Category category) {
+    Haptics.delete();
+    final deletedName = category.name;
+    final deletedCategory = category;
+    controller.removeCategory(category.id);
+    logger.info('Deleted category: $deletedName', context: 'CategoriesScreen');
+    toast.showSuccess(
+      '"$deletedName" deleted',
+      actionLabel: 'Undo',
+      onAction: () {
+        controller.addCategory(deletedCategory);
+        toast.showInfo('Category restored');
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
@@ -158,7 +194,6 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                                       category,
                                       context,
                                       categoriesController,
-                                      isCustom: true,
                                     ),
                                   );
                                 },
@@ -190,9 +225,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   Widget _buildCategoryCard(
     Category category,
     BuildContext context,
-    CategoriesController controller, {
-    bool isCustom = false,
-  }) {
+    CategoriesController controller,
+  ) {
     return BouncyButton(
       onPressed: () {
         logger.info('Tapped category: ${category.name}',
@@ -262,44 +296,54 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 ),
               ],
             ),
-            if (isCustom)
-              Positioned(
-                top: 4,
-                right: 4,
-                child: GestureDetector(
-                  onTap: () {
-                    Haptics.delete();
-                    final deletedName = category.name;
-                    final deletedCategory = category;
-                    controller.removeCategory(category.id);
-                    logger.info('Deleted category: $deletedName',
-                        context: 'CategoriesScreen');
-                    toast.showSuccess(
-                      '"$deletedName" deleted',
-                      actionLabel: 'Undo',
-                      onAction: () {
-                        controller.addCategory(deletedCategory);
-                        toast.showInfo('Category restored');
-                      },
-                    );
-                  },
-                  child: Container(
-                    width: 24,
-                    height: 24,
-                    decoration: BoxDecoration(
-                      color: SemanticColors.error,
-                      shape: BoxShape.circle,
-                      boxShadow: Shadows.iconGlow(SemanticColors.error),
-                    ),
-                    child: const Icon(
-                      CupertinoIcons.xmark,
-                      size: 14,
-                      color: Colors.white,
-                    ),
+            Positioned(
+              top: 4,
+              right: 4,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildActionBadge(
+                    icon: CupertinoIcons.pencil,
+                    color: AppStyles.accentBlue,
+                    onTap: () {
+                      Haptics.light();
+                      _showEditCategoryModal(context, category, controller);
+                    },
                   ),
-                ),
+                  const SizedBox(width: 6),
+                  _buildActionBadge(
+                    icon: CupertinoIcons.trash,
+                    color: SemanticColors.error,
+                    onTap: () => _deleteCategory(controller, category),
+                  ),
+                ],
               ),
+            ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionBadge({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 24,
+        height: 24,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+          boxShadow: Shadows.iconGlow(color),
+        ),
+        child: Icon(
+          icon,
+          size: 14,
+          color: Colors.white,
         ),
       ),
     );

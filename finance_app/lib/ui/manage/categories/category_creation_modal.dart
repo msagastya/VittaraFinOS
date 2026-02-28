@@ -8,25 +8,37 @@ import 'package:vittara_fin_os/ui/widgets/icon_picker.dart';
 Future<Category?> showCreateCategoryModal(
   BuildContext context, {
   required CategoriesController controller,
+  Category? initialCategory,
 }) {
-  final nameController = TextEditingController();
-  IconData selectedIcon = CupertinoIcons.tag_fill;
-  Color selectedColor = const Color(0xFF007AFF);
+  final isEditMode = initialCategory != null;
+  final nameController =
+      TextEditingController(text: initialCategory?.name ?? '');
+  IconData selectedIcon = initialCategory?.icon ?? CupertinoIcons.tag_fill;
+  Color selectedColor = initialCategory?.color ?? const Color(0xFF007AFF);
 
-  void createAndClose(BuildContext modalContext) {
+  Future<void> createAndClose(BuildContext modalContext) async {
     final name = nameController.text.trim();
     if (name.isEmpty) return;
 
-    final newCategory = Category(
-      id: 'custom_${DateTime.now().millisecondsSinceEpoch}',
+    final categoryToPersist = Category(
+      id: initialCategory?.id ??
+          'custom_${DateTime.now().millisecondsSinceEpoch}',
       name: name,
       color: selectedColor,
       icon: selectedIcon,
-      isCustom: true,
+      isCustom: initialCategory?.isCustom ?? true,
+      description: initialCategory?.description,
     );
 
-    controller.addCategory(newCategory);
-    Navigator.pop(modalContext, newCategory);
+    if (isEditMode) {
+      await controller.updateCategory(categoryToPersist);
+    } else {
+      await controller.addCategory(categoryToPersist);
+    }
+
+    if (modalContext.mounted) {
+      Navigator.pop(modalContext, categoryToPersist);
+    }
   }
 
   return showCupertinoModalPopup<Category>(
@@ -58,7 +70,7 @@ Future<Category?> showCreateCategoryModal(
                   ),
                   const SizedBox(height: 20),
                   Text(
-                    'Create Custom Category',
+                    isEditMode ? 'Edit Category' : 'Create Custom Category',
                     style: AppStyles.titleStyle(stateContext)
                         .copyWith(fontSize: 20),
                   ),
@@ -87,10 +99,9 @@ Future<Category?> showCreateCategoryModal(
                         onPressed: () {
                           Navigator.of(context).push(
                             CupertinoPageRoute(
-                              builder: (newContext) => _IconPickerScreen(
+                              builder: (_) => _IconPickerScreen(
                                 onIconSelected: (icon) {
                                   setModalState(() => selectedIcon = icon);
-                                  Navigator.of(newContext).pop();
                                 },
                               ),
                             ),
@@ -171,9 +182,11 @@ Future<Category?> showCreateCategoryModal(
                         const SizedBox(height: 12),
                         CupertinoTextField(
                           controller: nameController,
-                          autofocus: true,
+                          autofocus: !isEditMode,
                           textInputAction: TextInputAction.done,
-                          onSubmitted: (_) => createAndClose(modalContext),
+                          onSubmitted: (_) {
+                            createAndClose(modalContext);
+                          },
                           placeholder: 'Enter category name',
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
@@ -210,9 +223,11 @@ Future<Category?> showCreateCategoryModal(
                         Expanded(
                           child: CupertinoButton(
                             color: AppStyles.accentBlue,
-                            onPressed: () => createAndClose(modalContext),
-                            child: const Text(
-                              'Create',
+                            onPressed: () {
+                              createAndClose(modalContext);
+                            },
+                            child: Text(
+                              isEditMode ? 'Save' : 'Create',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w600,

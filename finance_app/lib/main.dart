@@ -40,6 +40,7 @@ import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/dashboard/dashboard_settings_modal.dart';
 import 'package:vittara_fin_os/ui/net_worth_page.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
+import 'package:vittara_fin_os/ui/widgets/floating_particle_background.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 import 'package:vittara_fin_os/services/mf_database_service.dart';
@@ -47,6 +48,7 @@ import 'package:vittara_fin_os/ui/manage/goals/goals_screen.dart';
 import 'package:vittara_fin_os/ui/manage/budgets/budgets_screen.dart';
 import 'package:vittara_fin_os/ui/manage/savings/savings_planners_screen.dart';
 import 'package:vittara_fin_os/ui/manage/ai_planner/ai_monthly_planner_screen.dart';
+import 'package:vittara_fin_os/ui/app_menu/app_menu_screen.dart';
 
 final AppLogger logger = AppLogger();
 
@@ -154,7 +156,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final settings = Provider.of<SettingsController>(context);
-    final textTheme = GoogleFonts.interTextTheme();
+    final textTheme = GoogleFonts.plusJakartaSansTextTheme();
+    final navTitle = GoogleFonts.spaceGrotesk(
+      fontWeight: FontWeight.w700,
+      fontSize: 18,
+    );
 
     return MaterialApp(
       title: 'VittaraFinOS',
@@ -162,21 +168,32 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       // LIGHT THEME
       theme: ThemeData(
         brightness: Brightness.light,
-        primarySwatch: Colors.blue,
-        scaffoldBackgroundColor: const Color(0xFFF2F2F7),
-        fontFamily: GoogleFonts.inter().fontFamily,
-        textTheme: textTheme,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppStyles.accentBlue,
+          secondary: AppStyles.accentOrange,
+          tertiary: AppStyles.accentGreen,
+          brightness: Brightness.light,
+        ),
+        scaffoldBackgroundColor: AppStyles.lightBackground,
+        fontFamily: GoogleFonts.plusJakartaSans().fontFamily,
+        textTheme: textTheme.apply(
+          bodyColor: AppStyles.lightText,
+          displayColor: AppStyles.lightText,
+        ),
         cupertinoOverrideTheme: CupertinoThemeData(
-          primaryColor: const Color(0xFF007AFF),
+          primaryColor: AppStyles.accentBlue,
+          scaffoldBackgroundColor: AppStyles.lightBackground,
+          barBackgroundColor: Colors.white.withValues(alpha: 0.95),
           textTheme: CupertinoTextThemeData(
             textStyle: TextStyle(
-                fontFamily: GoogleFonts.inter().fontFamily,
-                color: const Color(0xFF1C1C1E)),
+              fontFamily: GoogleFonts.plusJakartaSans().fontFamily,
+              color: AppStyles.lightText,
+            ),
             navTitleTextStyle: TextStyle(
-              fontFamily: GoogleFonts.inter().fontFamily,
-              fontWeight: FontWeight.w600,
-              fontSize: 17,
-              color: const Color(0xFF1C1C1E),
+              fontFamily: navTitle.fontFamily,
+              fontWeight: navTitle.fontWeight,
+              fontSize: navTitle.fontSize,
+              color: AppStyles.lightText,
             ),
           ),
         ),
@@ -184,23 +201,34 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       // DARK THEME (AMOLED)
       darkTheme: ThemeData(
         brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF000000), // AMOLED BLACK
-        primarySwatch: Colors.blue,
-        fontFamily: GoogleFonts.inter().fontFamily,
-        textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF5BB6FF),
+          secondary: AppStyles.accentOrange,
+          tertiary: AppStyles.accentGreen,
+          brightness: Brightness.dark,
+        ),
+        scaffoldBackgroundColor: AppStyles.darkBackground,
+        fontFamily: GoogleFonts.plusJakartaSans().fontFamily,
+        textTheme: GoogleFonts.plusJakartaSansTextTheme(
+          ThemeData.dark().textTheme,
+        ).apply(
+          bodyColor: AppStyles.darkText,
+          displayColor: AppStyles.darkText,
+        ),
         cupertinoOverrideTheme: CupertinoThemeData(
-          primaryColor: const Color(0xFF0A84FF), // iOS Dark Mode Blue
-          scaffoldBackgroundColor: const Color(0xFF000000),
-          barBackgroundColor: const Color(0xFF1C1C1E),
+          primaryColor: const Color(0xFF5BB6FF),
+          scaffoldBackgroundColor: AppStyles.darkBackground,
+          barBackgroundColor: const Color(0xFF101A2A),
           textTheme: CupertinoTextThemeData(
             textStyle: TextStyle(
-                fontFamily: GoogleFonts.inter().fontFamily,
-                color: Colors.white),
+              fontFamily: GoogleFonts.plusJakartaSans().fontFamily,
+              color: AppStyles.darkText,
+            ),
             navTitleTextStyle: TextStyle(
-              fontFamily: GoogleFonts.inter().fontFamily,
-              fontWeight: FontWeight.w600,
-              fontSize: 17,
-              color: Colors.white,
+              fontFamily: navTitle.fontFamily,
+              fontWeight: navTitle.fontWeight,
+              fontSize: navTitle.fontSize,
+              color: AppStyles.darkText,
             ),
           ),
         ),
@@ -211,11 +239,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             children: [
               DefaultTextStyle(
                 style: TextStyle(
-                  fontFamily: GoogleFonts.inter().fontFamily,
+                  fontFamily: GoogleFonts.plusJakartaSans().fontFamily,
                   decoration: TextDecoration.none,
                   color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.white
-                      : const Color(0xFF1C1C1E),
+                      ? AppStyles.darkText
+                      : AppStyles.lightText,
                 ),
                 child: child!,
               ),
@@ -385,7 +413,28 @@ class DashboardScreen extends StatelessWidget {
         if (!dashboardController.isInitialized) {
           return Scaffold(
             backgroundColor: AppStyles.getBackground(context),
-            body: const Center(child: CupertinoActivityIndicator()),
+            body: SafeArea(
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(
+                      width: 250,
+                      child: FintechLoader(size: 220),
+                    ),
+                    SizedBox(height: Spacing.md),
+                    Text(
+                      'Preparing your financial command center...',
+                      style: TextStyle(
+                        color: AppStyles.getSecondaryTextColor(context),
+                        fontSize: TypeScale.callout,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           );
         }
 
@@ -402,6 +451,46 @@ class DashboardScreen extends StatelessWidget {
 
         return CupertinoPageScaffold(
           navigationBar: CupertinoNavigationBar(
+            leading: BouncyButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) =>
+                        const DashboardAppMenuScreen(),
+                    transitionsBuilder:
+                        (context, animation, secondaryAnimation, child) {
+                      final slideTween = Tween<Offset>(
+                        begin: const Offset(-1.0, 0.0),
+                        end: Offset.zero,
+                      ).chain(
+                        CurveTween(curve: MotionCurves.standard),
+                      );
+                      final fadeTween = Tween<double>(
+                        begin: 0.0,
+                        end: 1.0,
+                      ).chain(
+                        CurveTween(curve: MotionCurves.standard),
+                      );
+                      return SlideTransition(
+                        position: animation.drive(slideTween),
+                        child: FadeTransition(
+                          opacity: animation.drive(fadeTween),
+                          child: child,
+                        ),
+                      );
+                    },
+                    transitionDuration: AppDurations.pageTransition,
+                    reverseTransitionDuration:
+                        AppDurations.pageTransitionReverse,
+                  ),
+                );
+              },
+              child: Icon(
+                CupertinoIcons.line_horizontal_3,
+                size: IconSizes.navIcon,
+                color: AppStyles.getTextColor(context),
+              ),
+            ),
             middle: const Text('VittaraFinOS'),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
@@ -410,15 +499,13 @@ class DashboardScreen extends StatelessWidget {
                 BouncyButton(
                   onPressed: () {
                     Navigator.of(context).push(
-                      CupertinoPageRoute(
-                        builder: (context) => const DashboardSettingsModal(),
-                      ),
+                      FadeScalePageRoute(page: const DashboardSettingsModal()),
                     );
                   },
                   child: Icon(
                     CupertinoIcons.slider_horizontal_3,
                     size: IconSizes.navIcon,
-                    color: isDark ? Colors.white : CupertinoColors.black,
+                    color: AppStyles.getTextColor(context),
                   ),
                 ),
                 SizedBox(width: Spacing.xl),
@@ -431,7 +518,7 @@ class DashboardScreen extends StatelessWidget {
                   child: Icon(
                     CupertinoIcons.square_grid_2x2,
                     size: IconSizes.navIcon,
-                    color: isDark ? Colors.white : CupertinoColors.black,
+                    color: AppStyles.getTextColor(context),
                   ),
                 ),
                 SizedBox(width: Spacing.xl),
@@ -444,107 +531,114 @@ class DashboardScreen extends StatelessWidget {
                   child: Icon(
                     CupertinoIcons.settings,
                     size: IconSizes.navIcon,
-                    color: isDark ? Colors.white : CupertinoColors.black,
+                    color: AppStyles.getTextColor(context),
                   ),
                 ),
               ],
             ),
-            backgroundColor: isDark
-                ? const Color(0xFF1C1C1E)
-                : CupertinoColors.systemGroupedBackground,
+            backgroundColor:
+                AppStyles.getCardColor(context).withValues(alpha: 0.90),
             border: null,
           ),
           child: SafeArea(
-            child: Container(
-              color: isDark
-                  ? Colors.black
-                  : CupertinoColors.systemGroupedBackground,
-              child: Stack(
-                children: [
-                  visibleWidgets.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                CupertinoIcons.square_grid_2x2,
-                                size: 80,
-                                color: isDark
-                                    ? CupertinoColors.systemGrey
-                                    : CupertinoColors.systemGrey,
-                              ),
-                              SizedBox(height: Spacing.lg),
-                              Text(
-                                'No widgets enabled',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
-                                  color: isDark
-                                      ? Colors.white
-                                      : CupertinoColors.label,
+            child: SubtleParticleOverlay(
+              particleCount: isDark ? 42 : 30,
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: AppStyles.backgroundGradient(context),
+                ),
+                child: Stack(
+                  children: [
+                    visibleWidgets.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  width: 92,
+                                  height: 92,
+                                  decoration: AppStyles.iconBoxDecoration(
+                                    context,
+                                    AppStyles.accentBlue,
+                                  ),
+                                  child: Icon(
+                                    CupertinoIcons.square_grid_2x2,
+                                    size: 42,
+                                    color: AppStyles.getPrimaryColor(context),
+                                  ),
                                 ),
-                              ),
-                              SizedBox(height: Spacing.sm),
-                              Text(
-                                'All dashboard widgets are hidden',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color:
-                                      AppStyles.getSecondaryTextColor(context),
+                                SizedBox(height: Spacing.lg),
+                                Text(
+                                  'No widgets enabled',
+                                  style: AppStyles.titleStyle(context).copyWith(
+                                    fontSize: TypeScale.title2,
+                                  ),
                                 ),
-                              ),
-                              SizedBox(height: Spacing.xl),
-                              CupertinoButton.filled(
-                                onPressed: () async {
-                                  if (kDebugMode) {
-                                    print('Resetting dashboard to default');
-                                  }
-                                  await dashboardController.resetToDefault();
-                                  if (context.mounted) {
-                                    toast.showSuccess(
-                                        'Dashboard reset to default');
-                                  }
-                                },
-                                child: const Text('Reset to Default'),
-                              ),
-                            ],
-                          ),
-                        )
-                      : _buildDashboardGrid(
-                          context, dashboardController, visibleWidgets),
-                  Positioned(
-                    bottom: Spacing.lg,
-                    right: Spacing.lg,
-                    child: BouncyButton(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          CupertinoPageRoute(
-                              builder: (context) => const TransactionWizard()),
-                        );
-                      },
-                      child: Container(
-                        width: 56,
-                        height: 56,
-                        decoration: BoxDecoration(
-                          color: AppStyles.getPrimaryColor(context),
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppStyles.getPrimaryColor(context)
-                                  .withValues(alpha: 0.3),
-                              blurRadius: 12,
-                              offset: const Offset(0, 6),
+                                SizedBox(height: Spacing.sm),
+                                Text(
+                                  'All dashboard widgets are hidden',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: AppStyles.getSecondaryTextColor(
+                                        context),
+                                  ),
+                                ),
+                                SizedBox(height: Spacing.xl),
+                                CupertinoButton.filled(
+                                  onPressed: () async {
+                                    if (kDebugMode) {
+                                      print('Resetting dashboard to default');
+                                    }
+                                    await dashboardController.resetToDefault();
+                                    if (context.mounted) {
+                                      toast.showSuccess(
+                                          'Dashboard reset to default');
+                                    }
+                                  },
+                                  child: const Text('Reset to Default'),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        child: const Icon(
-                          CupertinoIcons.add,
-                          color: Colors.white,
+                          )
+                        : _buildDashboardGrid(
+                            context, dashboardController, visibleWidgets),
+                    Positioned(
+                      bottom: Spacing.lg,
+                      right: Spacing.lg,
+                      child: BouncyButton(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            FadeScalePageRoute(page: const TransactionWizard()),
+                          );
+                        },
+                        child: Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                AppStyles.accentBlue,
+                                AppStyles.accentTeal,
+                              ],
+                            ),
+                            shape: BoxShape.circle,
+                            boxShadow: AppStyles.elevatedShadows(
+                              context,
+                              tint: AppStyles.accentBlue,
+                              strength: 0.85,
+                            ),
+                          ),
+                          child: const Icon(
+                            CupertinoIcons.add,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -602,33 +696,49 @@ class DashboardScreen extends StatelessWidget {
     BuildContext context,
     DashboardWidgetConfig widgetConfig,
   ) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final accent = _widgetAccentColor(widgetConfig.type);
 
     // Check if widget has content
     final hasContent = _widgetHasContent(context, widgetConfig);
 
-    return GestureDetector(
-      onTap: () {
-        _handleWidgetTap(context, widgetConfig);
-      },
+    return BouncyButton(
+      onPressed: () => _handleWidgetTap(context, widgetConfig),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-        decoration: BoxDecoration(
-          color: AppStyles.getCardColor(context),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+        duration: AppDurations.medium,
+        curve: MotionCurves.standard,
+        decoration: AppStyles.cardDecoration(context).copyWith(
+          border: Border.all(
+            color: accent.withValues(
+              alpha:
+                  Theme.of(context).brightness == Brightness.dark ? 0.50 : 0.25,
             ),
-          ],
+          ),
+          boxShadow: AppStyles.elevatedShadows(
+            context,
+            tint: accent,
+            strength: 0.72,
+          ),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Container(
+              height: 5,
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(24),
+                ),
+                gradient: LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [
+                    accent.withValues(alpha: 0.95),
+                    accent.withValues(alpha: 0.45),
+                  ],
+                ),
+              ),
+            ),
             // Header with drag handle
             Padding(
               padding: EdgeInsets.all(Spacing.md),
@@ -642,18 +752,15 @@ class DashboardScreen extends StatelessWidget {
                         Icon(
                           CupertinoIcons.line_horizontal_3,
                           size: 18,
-                          color: AppStyles.getPrimaryColor(context)
-                              .withValues(alpha: 0.4),
+                          color: accent.withValues(alpha: 0.50),
                         ),
                         SizedBox(width: Spacing.md),
                         // Title
                         Expanded(
                           child: Text(
                             widgetConfig.title,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: AppStyles.getTextColor(context),
+                            style: AppStyles.titleStyle(context).copyWith(
+                              fontSize: TypeScale.title3,
                             ),
                           ),
                         ),
@@ -664,7 +771,7 @@ class DashboardScreen extends StatelessWidget {
                   Icon(
                     CupertinoIcons.chevron_right,
                     size: 20,
-                    color: AppStyles.getPrimaryColor(context),
+                    color: accent,
                   ),
                 ],
               ),
@@ -695,7 +802,7 @@ class DashboardScreen extends StatelessWidget {
                       Icon(
                         CupertinoIcons.checkmark_circle_fill,
                         size: 32,
-                        color: Colors.green.withValues(alpha: 0.7),
+                        color: SemanticColors.success.withValues(alpha: 0.8),
                       ),
                       SizedBox(height: Spacing.md),
                       Text(
@@ -714,6 +821,27 @@ class DashboardScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Color _widgetAccentColor(DashboardWidgetType type) {
+    switch (type) {
+      case DashboardWidgetType.netWorth:
+        return AppStyles.accentBlue;
+      case DashboardWidgetType.goalsOverview:
+        return AppStyles.accentTeal;
+      case DashboardWidgetType.budgetsOverview:
+        return AppStyles.accentCoral;
+      case DashboardWidgetType.savingsPlanners:
+        return AppStyles.accentGreen;
+      case DashboardWidgetType.aiPlanner:
+        return AppStyles.accentOrange;
+      case DashboardWidgetType.transactionHistory:
+        return SemanticColors.info;
+      case DashboardWidgetType.notificationsAndActions:
+        return SemanticColors.warning;
+      case DashboardWidgetType.actions:
+        return SemanticColors.warning;
+    }
   }
 
   bool _widgetHasContent(
@@ -774,111 +902,140 @@ class DashboardScreen extends StatelessWidget {
             : 'Good Evening';
 
     final dateFormatter = _formatHeaderDate(now);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            SemanticColors.primary.withValues(alpha: 0.1),
-            SemanticColors.primary.withValues(alpha: 0.05),
-          ],
+    return Padding(
+      padding:
+          EdgeInsets.fromLTRB(Spacing.lg, Spacing.lg, Spacing.lg, Spacing.sm),
+      child: Container(
+        decoration: AppStyles.sectionDecoration(
+          context,
+          tint: AppStyles.accentBlue,
+          radius: 26,
         ),
-        border: Border(
-          bottom: BorderSide(
-            color: Colors.grey.withValues(alpha: 0.1),
-            width: 1,
-          ),
-        ),
-      ),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: Spacing.lg,
-            vertical: Spacing.xl,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(26),
+          child: Stack(
             children: [
-              // Greeting
-              Text(
-                greeting,
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: AppStyles.getTextColor(context),
+              Positioned(
+                top: -26,
+                right: -12,
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppStyles.accentTeal.withValues(alpha: 0.14),
+                  ),
                 ),
               ),
-              SizedBox(height: Spacing.sm),
-
-              // Date & Status
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    dateFormatter,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppStyles.getSecondaryTextColor(context),
-                      fontWeight: FontWeight.w500,
-                    ),
+              Positioned(
+                bottom: -42,
+                left: -18,
+                child: Container(
+                  width: 140,
+                  height: 140,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppStyles.accentBlue.withValues(alpha: 0.12),
                   ),
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: Spacing.md,
-                      vertical: Spacing.xs,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.green.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: Colors.green.withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          CupertinoIcons.checkmark_circle_fill,
-                          size: 12,
-                          color: Colors.green,
-                        ),
-                        SizedBox(width: 6),
-                        Text(
-                          'All Systems Go',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.green,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                ),
               ),
-
-              // Quick Action Pills
-              SizedBox(height: Spacing.lg),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    _buildQuickActionPill(context, 'Goals',
-                        CupertinoIcons.checkmark_circle, Colors.blue),
-                    SizedBox(width: Spacing.md),
-                    _buildQuickActionPill(context, 'Budgets',
-                        CupertinoIcons.chart_pie, Colors.purple),
-                    SizedBox(width: Spacing.md),
-                    _buildQuickActionPill(
-                        context, 'Savings', CupertinoIcons.heart, Colors.green),
-                    SizedBox(width: Spacing.md),
-                    _buildQuickActionPill(context, 'AI Plan',
-                        CupertinoIcons.lightbulb, Colors.orange),
-                  ],
+              SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Spacing.lg,
+                    vertical: Spacing.xl,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        greeting,
+                        style: AppStyles.titleStyle(context).copyWith(
+                          fontSize: TypeScale.largeTitle,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      SizedBox(height: Spacing.sm),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              dateFormatter,
+                              style: TextStyle(
+                                fontSize: TypeScale.callout,
+                                color: AppStyles.getSecondaryTextColor(context),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: Spacing.md,
+                              vertical: Spacing.xs,
+                            ),
+                            decoration: AppStyles.tabDecoration(
+                              context,
+                              selected: true,
+                              color: SemanticColors.success,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  CupertinoIcons.checkmark_circle_fill,
+                                  size: 12,
+                                  color: SemanticColors.success,
+                                ),
+                                SizedBox(width: 6),
+                                Text(
+                                  'All Systems Go',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: SemanticColors.success,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: Spacing.lg),
+                      Wrap(
+                        spacing: Spacing.md,
+                        runSpacing: Spacing.md,
+                        children: [
+                          _buildQuickActionPill(
+                            context,
+                            'Goals',
+                            CupertinoIcons.checkmark_circle,
+                            AppStyles.accentBlue,
+                          ),
+                          _buildQuickActionPill(
+                            context,
+                            'Budgets',
+                            CupertinoIcons.chart_pie,
+                            AppStyles.accentCoral,
+                          ),
+                          _buildQuickActionPill(
+                            context,
+                            'Savings',
+                            CupertinoIcons.heart,
+                            AppStyles.accentGreen,
+                          ),
+                          _buildQuickActionPill(
+                            context,
+                            'AI Plan',
+                            CupertinoIcons.lightbulb,
+                            AppStyles.accentOrange,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -894,39 +1051,37 @@ class DashboardScreen extends StatelessWidget {
     IconData icon,
     Color color,
   ) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return GestureDetector(
-      onTap: () {
-        _handleQuickActionTap(context, label);
-      },
+    return BouncyButton(
+      onPressed: () => _handleQuickActionTap(context, label),
       child: Container(
-        padding:
-            EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
+        constraints: const BoxConstraints(minWidth: 116),
+        padding: EdgeInsets.symmetric(
+          horizontal: Spacing.md,
+          vertical: Spacing.sm,
+        ),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              color.withValues(alpha: 0.15),
-              color.withValues(alpha: 0.08),
+              color.withValues(alpha: 0.25),
+              color.withValues(alpha: 0.10),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: color.withValues(alpha: 0.2),
-            width: 1.5,
+            color: color.withValues(alpha: 0.45),
+            width: 1.2,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: color.withValues(alpha: 0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          boxShadow: AppStyles.elevatedShadows(
+            context,
+            tint: color,
+            strength: 0.52,
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, size: 14, color: color),
             SizedBox(width: Spacing.xs),
@@ -934,7 +1089,7 @@ class DashboardScreen extends StatelessWidget {
               label,
               style: TextStyle(
                 fontSize: 12,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
                 color: color,
               ),
             ),
@@ -949,33 +1104,25 @@ class DashboardScreen extends StatelessWidget {
       case 'Goals':
         // Navigate to Goals screen
         Navigator.of(context).push(
-          CupertinoPageRoute(
-            builder: (context) => const GoalsScreen(),
-          ),
+          FadeScalePageRoute(page: const GoalsScreen()),
         );
         break;
       case 'Budgets':
         // Navigate to Budgets screen
         Navigator.of(context).push(
-          CupertinoPageRoute(
-            builder: (context) => const BudgetsScreen(),
-          ),
+          FadeScalePageRoute(page: const BudgetsScreen()),
         );
         break;
       case 'Savings':
         // Navigate to Savings screen
         Navigator.of(context).push(
-          CupertinoPageRoute(
-            builder: (context) => const SavingsPlannersScreen(),
-          ),
+          FadeScalePageRoute(page: const SavingsPlannersScreen()),
         );
         break;
       case 'AI Plan':
         // Navigate to AI Monthly Planner screen
         Navigator.of(context).push(
-          CupertinoPageRoute(
-            builder: (context) => const AIMonthlyPlannerScreen(),
-          ),
+          FadeScalePageRoute(page: const AIMonthlyPlannerScreen()),
         );
         break;
       default:
@@ -1825,40 +1972,37 @@ class DashboardScreen extends StatelessWidget {
     switch (widgetConfig.type) {
       case DashboardWidgetType.transactionHistory:
         Navigator.of(context).push(
-          CupertinoPageRoute(
-              builder: (context) => const TransactionHistoryScreen()),
+          FadeScalePageRoute(page: const TransactionHistoryScreen()),
         );
         break;
       case DashboardWidgetType.netWorth:
         Navigator.of(context).push(
-          CupertinoPageRoute(builder: (context) => const NetWorthPage()),
+          FadeScalePageRoute(page: const NetWorthPage()),
         );
         break;
       case DashboardWidgetType.goalsOverview:
         Navigator.of(context).push(
-          CupertinoPageRoute(builder: (context) => const GoalsScreen()),
+          FadeScalePageRoute(page: const GoalsScreen()),
         );
         break;
       case DashboardWidgetType.budgetsOverview:
         Navigator.of(context).push(
-          CupertinoPageRoute(builder: (context) => const BudgetsScreen()),
+          FadeScalePageRoute(page: const BudgetsScreen()),
         );
         break;
       case DashboardWidgetType.savingsPlanners:
         Navigator.of(context).push(
-          CupertinoPageRoute(
-              builder: (context) => const SavingsPlannersScreen()),
+          FadeScalePageRoute(page: const SavingsPlannersScreen()),
         );
         break;
       case DashboardWidgetType.aiPlanner:
         Navigator.of(context).push(
-          CupertinoPageRoute(
-              builder: (context) => const AIMonthlyPlannerScreen()),
+          FadeScalePageRoute(page: const AIMonthlyPlannerScreen()),
         );
         break;
       case DashboardWidgetType.notificationsAndActions:
         Navigator.of(context).push(
-          CupertinoPageRoute(builder: (context) => const NotificationsPage()),
+          FadeScalePageRoute(page: const NotificationsPage()),
         );
         break;
       default:
@@ -2008,7 +2152,7 @@ class DashboardScreen extends StatelessWidget {
     final route = destination;
     if (route == null) return;
     Navigator.of(context).push(
-      CupertinoPageRoute(builder: (_) => route),
+      FadeScalePageRoute(page: route),
     );
   }
 

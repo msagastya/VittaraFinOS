@@ -12,8 +12,10 @@ import 'package:vittara_fin_os/ui/manage/lending_borrowing_screen.dart';
 import 'package:vittara_fin_os/ui/manage/contacts_screen.dart';
 import 'package:vittara_fin_os/ui/manage/tags_screen.dart';
 import 'package:vittara_fin_os/ui/manage/transactions_archive_screen.dart';
+import 'package:vittara_fin_os/ui/manage/reports_analysis_screen.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
+import 'package:vittara_fin_os/ui/widgets/floating_particle_background.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
@@ -72,6 +74,12 @@ class _ManageScreenState extends State<ManageScreen> {
       'color': CupertinoColors.systemPurple
     },
     {
+      'id': 'reports',
+      'title': 'Reports & Analysis',
+      'icon': CupertinoIcons.chart_bar_square_fill,
+      'color': CupertinoColors.systemCyan
+    },
+    {
       'id': 'contacts',
       'title': 'People',
       'icon': CupertinoIcons.person_2_fill,
@@ -105,8 +113,7 @@ class _ManageScreenState extends State<ManageScreen> {
         middle: Text('Manage',
             style: TextStyle(color: AppStyles.getTextColor(context))),
         previousPageTitle: 'Back',
-        backgroundColor:
-            AppStyles.getBackground(context).withValues(alpha: 0.9),
+        backgroundColor: AppStyles.getCardColor(context).withValues(alpha: 0.9),
         border: null,
       ),
       child: Consumer<SettingsController>(
@@ -126,51 +133,113 @@ class _ManageScreenState extends State<ManageScreen> {
           }).toList();
 
           return SafeArea(
-            child: ReorderableListView.builder(
-              padding: EdgeInsets.symmetric(
-                  horizontal: Spacing.lg, vertical: Spacing.xl),
-              itemCount: filteredItems.length,
-              onReorder: (oldIndex, newIndex) {
-                Haptics.reorder();
-                setState(() {
-                  if (oldIndex < newIndex) {
-                    newIndex -= 1;
-                  }
-                  final item = _items.removeAt(oldIndex);
-                  _items.insert(newIndex, item);
-                });
-              },
-              proxyDecorator: (child, index, animation) {
-                return AnimatedBuilder(
-                  animation: animation,
-                  builder: (BuildContext context, Widget? child) {
-                    return Transform.scale(
-                      scale: 1.02,
-                      child: Container(
-                        decoration: AppStyles.cardDecoration(context).copyWith(
-                          boxShadow: [
-                            BoxShadow(
-                              color: SemanticColors.getPrimary(context)
-                                  .withValues(alpha: 0.2),
-                              blurRadius: 20,
-                              offset: const Offset(0, 8),
+            child: SubtleParticleOverlay(
+              particleCount: 34,
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: AppStyles.backgroundGradient(context),
+                ),
+                child: ReorderableListView.builder(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Spacing.lg,
+                    vertical: Spacing.xl,
+                  ),
+                  header: Padding(
+                    padding: EdgeInsets.only(bottom: Spacing.lg),
+                    child: _buildManageHeader(context),
+                  ),
+                  itemCount: filteredItems.length,
+                  onReorder: (oldIndex, newIndex) {
+                    Haptics.reorder();
+                    setState(() {
+                      if (oldIndex < newIndex) {
+                        newIndex -= 1;
+                      }
+                      final item = _items.removeAt(oldIndex);
+                      _items.insert(newIndex, item);
+                    });
+                  },
+                  proxyDecorator: (child, index, animation) {
+                    return AnimatedBuilder(
+                      animation: animation,
+                      builder: (BuildContext context, Widget? child) {
+                        return Transform.scale(
+                          scale: 1.02,
+                          child: Container(
+                            decoration:
+                                AppStyles.cardDecoration(context).copyWith(
+                              boxShadow: [
+                                ...AppStyles.elevatedShadows(
+                                  context,
+                                  tint: SemanticColors.getPrimary(context),
+                                  strength: 0.7,
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        child: child,
-                      ),
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: child,
                     );
                   },
-                  child: child,
-                );
-              },
-              itemBuilder: (context, index) {
-                final item = filteredItems[index];
-                return _build3DCard(item, index, settings);
-              },
+                  itemBuilder: (context, index) {
+                    final item = filteredItems[index];
+                    return _build3DCard(item, index, settings);
+                  },
+                ),
+              ),
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildManageHeader(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(Spacing.lg),
+      decoration: AppStyles.sectionDecoration(
+        context,
+        tint: AppStyles.accentTeal,
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 54,
+            height: 54,
+            decoration: AppStyles.iconBoxDecoration(
+              context,
+              AppStyles.accentTeal,
+            ),
+            child: const Icon(
+              CupertinoIcons.square_grid_2x2_fill,
+              color: AppStyles.accentTeal,
+            ),
+          ),
+          SizedBox(width: Spacing.lg),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Manage Workspace',
+                  style: AppStyles.titleStyle(context).copyWith(
+                    fontSize: TypeScale.title2,
+                  ),
+                ),
+                SizedBox(height: Spacing.xs),
+                Text(
+                  'Reorder modules and open any entity with one tap',
+                  style: TextStyle(
+                    color: AppStyles.getSecondaryTextColor(context),
+                    fontSize: TypeScale.footnote,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -185,7 +254,11 @@ class _ManageScreenState extends State<ManageScreen> {
         child: BouncyButton(
           onPressed: () => _onCardPressed(item, settings),
           child: Container(
-            decoration: AppStyles.cardDecoration(context),
+            decoration: AppStyles.sectionDecoration(
+              context,
+              tint: item['color'],
+              radius: 22,
+            ),
             padding: Spacing.cardPadding,
             child: Row(
               children: [
@@ -201,10 +274,20 @@ class _ManageScreenState extends State<ManageScreen> {
                     style: AppStyles.titleStyle(context),
                   ),
                 ),
-                Icon(
-                  CupertinoIcons.line_horizontal_3,
-                  color: AppStyles.getSecondaryTextColor(context),
-                  size: IconSizes.sm,
+                Column(
+                  children: [
+                    Icon(
+                      CupertinoIcons.arrow_right_circle_fill,
+                      color: item['color'],
+                      size: IconSizes.md,
+                    ),
+                    SizedBox(height: Spacing.xs),
+                    Icon(
+                      CupertinoIcons.line_horizontal_3,
+                      color: AppStyles.getSecondaryTextColor(context),
+                      size: IconSizes.xs,
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -243,6 +326,9 @@ class _ManageScreenState extends State<ManageScreen> {
         break;
       case 'cats':
         page = const CategoriesScreen();
+        break;
+      case 'reports':
+        page = const ReportsAnalysisScreen();
         break;
       case 'contacts':
         page = const ContactsScreen();

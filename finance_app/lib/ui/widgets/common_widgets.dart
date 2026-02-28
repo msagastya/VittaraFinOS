@@ -315,10 +315,15 @@ class IconBox extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: Opacities.iconBackground),
+      decoration: AppStyles.iconBoxDecoration(context, color).copyWith(
         borderRadius: Radii.iconBoxRadius,
-        boxShadow: showGlow ? Shadows.iconGlow(color) : null,
+        boxShadow: showGlow
+            ? AppStyles.elevatedShadows(
+                context,
+                tint: color,
+                strength: 0.48,
+              )
+            : null,
       ),
       child: Center(
         child: Icon(
@@ -366,9 +371,10 @@ class ActionButtonRow extends StatelessWidget {
                 onPressed: onSecondaryPressed!,
                 child: Container(
                   padding: EdgeInsets.symmetric(vertical: Spacing.md),
-                  decoration: BoxDecoration(
-                    color: CupertinoColors.systemGrey5,
-                    borderRadius: Radii.buttonRadius,
+                  decoration: AppStyles.tabDecoration(
+                    context,
+                    selected: false,
+                    color: AppStyles.accentBlue,
                   ),
                   child: Center(
                     child: Text(
@@ -391,10 +397,27 @@ class ActionButtonRow extends StatelessWidget {
               child: Container(
                 padding: EdgeInsets.symmetric(vertical: Spacing.md),
                 decoration: BoxDecoration(
-                  color: isPrimaryDestructive
-                      ? SemanticColors.getError(context)
-                      : SemanticColors.getPrimary(context),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      isPrimaryDestructive
+                          ? SemanticColors.getError(context)
+                          : SemanticColors.getPrimary(context),
+                      isPrimaryDestructive
+                          ? SemanticColors.getError(context)
+                              .withValues(alpha: 0.80)
+                          : AppStyles.accentTeal,
+                    ],
+                  ),
                   borderRadius: Radii.buttonRadius,
+                  boxShadow: AppStyles.elevatedShadows(
+                    context,
+                    tint: isPrimaryDestructive
+                        ? SemanticColors.getError(context)
+                        : SemanticColors.getPrimary(context),
+                    strength: 0.55,
+                  ),
                 ),
                 child: Center(
                   child: isLoading
@@ -449,8 +472,16 @@ class SmallActionButton extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.symmetric(vertical: Spacing.md),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.1),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              color.withValues(alpha: 0.24),
+              color.withValues(alpha: 0.10),
+            ],
+          ),
           borderRadius: Radii.buttonRadius,
+          border: Border.all(color: color.withValues(alpha: 0.4)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -493,9 +524,11 @@ class AppSearchBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: EdgeInsets.all(Spacing.lg),
-      decoration: BoxDecoration(
-        color: AppStyles.getCardColor(context),
-        borderRadius: Radii.buttonRadius,
+      decoration: AppStyles.sectionDecoration(
+        context,
+        tint: AppStyles.accentBlue.withValues(alpha: 0.72),
+        radius: Radii.md,
+        elevated: false,
       ),
       child: CupertinoSearchTextField(
         controller: controller,
