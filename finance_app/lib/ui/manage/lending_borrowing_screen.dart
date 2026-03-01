@@ -21,7 +21,7 @@ class LendingBorrowingScreen extends StatefulWidget {
 
 class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
   final AppLogger logger = AppLogger();
-  int _selectedTab = 0; // 0 = I Lent, 1 = I Borrowed
+  int _selectedTab = 0; // 0 = I Lent, 1 = I Borrowed, 2 = Settled
 
   @override
   Widget build(BuildContext context) {
@@ -36,10 +36,14 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
       ),
       child: Consumer<LendingBorrowingController>(
         builder: (context, controller, child) {
-          final lentRecords = controller.getLentRecords();
-          final borrowedRecords = controller.getBorrowedRecords();
-          final displayRecords =
-              _selectedTab == 0 ? lentRecords : borrowedRecords;
+          final lentRecords = controller.getLentActiveRecords();
+          final borrowedRecords = controller.getBorrowedActiveRecords();
+          final settledRecords = controller.getSettledRecords();
+          final displayRecords = _selectedTab == 0
+              ? lentRecords
+              : _selectedTab == 1
+                  ? borrowedRecords
+                  : settledRecords;
 
           return Stack(
             children: [
@@ -53,120 +57,46 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                       child: Row(
                         children: [
                           Expanded(
-                            child: GestureDetector(
+                            child: _buildTabTile(
+                              context,
+                              title: 'I Lent',
+                              subtitle:
+                                  '₹${controller.getTotalLent().toStringAsFixed(0)}',
+                              selected: _selectedTab == 0,
+                              color: AppStyles.accentBlue,
                               onTap: () {
                                 HapticFeedback.selectionClick();
                                 setState(() => _selectedTab = 0);
                               },
-                              child: Container(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 12),
-                                decoration: BoxDecoration(
-                                  color: _selectedTab == 0
-                                      ? AppStyles.accentBlue
-                                          .withValues(alpha: 0.15)
-                                      : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: _selectedTab == 0
-                                        ? AppStyles.accentBlue
-                                        : AppStyles.getSecondaryTextColor(
-                                            context),
-                                    width: _selectedTab == 0 ? 1.5 : 1,
-                                  ),
-                                ),
-                                child: Center(
-                                  child: Column(
-                                    children: [
-                                      Text(
-                                        'I Lent',
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w600,
-                                          color: _selectedTab == 0
-                                              ? AppStyles.accentBlue
-                                              : AppStyles.getSecondaryTextColor(
-                                                  context),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      AnimatedCounter(
-                                        value: controller.getTotalLent(),
-                                        prefix: '₹',
-                                        decimals: 0,
-                                        duration:
-                                            const Duration(milliseconds: 600),
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          color: _selectedTab == 0
-                                              ? AppStyles.accentBlue
-                                              : AppStyles.getSecondaryTextColor(
-                                                  context),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
                             ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
-                            child: GestureDetector(
+                            child: _buildTabTile(
+                              context,
+                              title: 'I Borrowed',
+                              subtitle:
+                                  '₹${controller.getTotalBorrowed().toStringAsFixed(0)}',
+                              selected: _selectedTab == 1,
+                              color: CupertinoColors.systemRed,
                               onTap: () {
                                 HapticFeedback.selectionClick();
                                 setState(() => _selectedTab = 1);
                               },
-                              child: Container(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 12),
-                                decoration: BoxDecoration(
-                                  color: _selectedTab == 1
-                                      ? CupertinoColors.systemRed
-                                          .withValues(alpha: 0.15)
-                                      : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: _selectedTab == 1
-                                        ? CupertinoColors.systemRed
-                                        : AppStyles.getSecondaryTextColor(
-                                            context),
-                                    width: _selectedTab == 1 ? 1.5 : 1,
-                                  ),
-                                ),
-                                child: Center(
-                                  child: Column(
-                                    children: [
-                                      Text(
-                                        'I Borrowed',
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w600,
-                                          color: _selectedTab == 1
-                                              ? CupertinoColors.systemRed
-                                              : AppStyles.getSecondaryTextColor(
-                                                  context),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      AnimatedCounter(
-                                        value: controller.getTotalBorrowed(),
-                                        prefix: '₹',
-                                        decimals: 0,
-                                        duration:
-                                            const Duration(milliseconds: 600),
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          color: _selectedTab == 1
-                                              ? CupertinoColors.systemRed
-                                              : AppStyles.getSecondaryTextColor(
-                                                  context),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildTabTile(
+                              context,
+                              title: 'Settled',
+                              subtitle: '${settledRecords.length}',
+                              selected: _selectedTab == 2,
+                              color: SemanticColors.success,
+                              onTap: () {
+                                HapticFeedback.selectionClick();
+                                setState(() => _selectedTab = 2);
+                              },
                             ),
                           ),
                         ],
@@ -189,7 +119,9 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                                   Text(
                                     _selectedTab == 0
                                         ? 'No lending records yet'
-                                        : 'No borrowing records yet',
+                                        : _selectedTab == 1
+                                            ? 'No borrowing records yet'
+                                            : 'No settled records yet',
                                     style: TextStyle(
                                       color: AppStyles.getSecondaryTextColor(
                                           context),
@@ -229,6 +161,57 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
             ],
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildTabTile(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required bool selected,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: selected ? color.withValues(alpha: 0.15) : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: selected ? color : AppStyles.getSecondaryTextColor(context),
+            width: selected ? 1.5 : 1,
+          ),
+        ),
+        child: Center(
+          child: Column(
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: selected
+                      ? color
+                      : AppStyles.getSecondaryTextColor(context),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: selected
+                      ? color
+                      : AppStyles.getSecondaryTextColor(context),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -291,6 +274,20 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
           ),
         ),
         actions: [
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+              _showHistoryModal(context, record);
+            },
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(CupertinoIcons.clock, color: SemanticColors.info),
+                SizedBox(width: Spacing.sm),
+                const Text('View History'),
+              ],
+            ),
+          ),
           if (!record.isSettled) ...[
             CupertinoActionSheetAction(
               onPressed: () {
@@ -334,6 +331,22 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                       color: SemanticColors.success),
                   SizedBox(width: Spacing.sm),
                   const Text('Mark as Settled'),
+                ],
+              ),
+            ),
+          ] else ...[
+            CupertinoActionSheetAction(
+              onPressed: () {
+                Navigator.pop(context);
+                _reopenRecord(record, controller);
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(CupertinoIcons.arrow_counterclockwise,
+                      color: SemanticColors.warning),
+                  SizedBox(width: Spacing.sm),
+                  const Text('Reopen Record'),
                 ],
               ),
             ),
@@ -548,17 +561,11 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                     onPrimaryPressed: () {
                       final amount = double.tryParse(amountController.text);
                       if (amount != null && amount > 0) {
-                        double newAmount;
-                        if (isAdding) {
-                          newAmount = record.amount + amount;
-                        } else {
-                          newAmount = record.amount - amount;
-                          if (newAmount < 0) newAmount = 0;
-                        }
-
-                        final updatedRecord =
-                            record.copyWith(amount: newAmount);
-                        controller.updateRecord(record.id, updatedRecord);
+                        controller.adjustRecordAmount(
+                          record.id,
+                          amount,
+                          increase: isAdding,
+                        );
 
                         Navigator.pop(modalContext);
                         Haptics.success();
@@ -590,7 +597,12 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
           existingRecord: record,
           onSave: (updatedRecord) {
             Provider.of<LendingBorrowingController>(context, listen: false)
-                .updateRecord(record.id, updatedRecord);
+                .updateRecord(
+              record.id,
+              updatedRecord,
+              eventType: LendingHistoryEventType.edited,
+              note: 'Details updated',
+            );
             toast.showSuccess('Record updated');
             logger.info('Updated record: ${record.personName}',
                 context: 'LendingBorrowingScreen');
@@ -608,15 +620,18 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
       'Marked as settled',
       actionLabel: 'Undo',
       onAction: () {
-        final unsettledRecord = record.copyWith(
-          isSettled: false,
-          settledDate: null,
-        );
-        controller.updateRecord(record.id, unsettledRecord);
+        controller.reopenRecord(record.id);
       },
     );
     logger.info('Settled record: ${record.personName}',
         context: 'LendingBorrowingScreen');
+  }
+
+  void _reopenRecord(
+      LendingBorrowing record, LendingBorrowingController controller) {
+    controller.reopenRecord(record.id);
+    Haptics.success();
+    toast.showInfo('Record reopened');
   }
 
   void _deleteRecord(
@@ -661,6 +676,185 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
     );
   }
 
+  void _showHistoryModal(BuildContext context, LendingBorrowing record) {
+    final history = [...record.history]
+      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+
+    showCupertinoModalPopup(
+      context: context,
+      builder: (modalContext) => Container(
+        decoration: BoxDecoration(
+          color: AppStyles.getCardColor(context),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const ModalHandle(),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${record.personName} • History',
+                        style: AppStyles.titleStyle(context),
+                      ),
+                    ),
+                    CupertinoButton(
+                      padding: EdgeInsets.zero,
+                      onPressed: () => Navigator.pop(modalContext),
+                      child: const Icon(CupertinoIcons.xmark),
+                    ),
+                  ],
+                ),
+              ),
+              if (history.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 24),
+                  child: Text(
+                    'No history yet',
+                    style: TextStyle(
+                      color: AppStyles.getSecondaryTextColor(context),
+                    ),
+                  ),
+                )
+              else
+                Flexible(
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                    itemCount: history.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 10),
+                    itemBuilder: (context, index) {
+                      final event = history[index];
+                      final color = _historyEventColor(event.type);
+                      final delta = event.amountDelta;
+                      final deltaText = delta == null
+                          ? ''
+                          : delta >= 0
+                              ? '+₹${delta.toStringAsFixed(0)}'
+                              : '-₹${delta.abs().toStringAsFixed(0)}';
+                      return Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12),
+                          border:
+                              Border.all(color: color.withValues(alpha: 0.22)),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    _historyEventLabel(event.type),
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      color: color,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  _formatDateTime(event.timestamp),
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: AppStyles.getSecondaryTextColor(
+                                        context),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (event.note != null &&
+                                event.note!.isNotEmpty) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                event.note!,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color:
+                                      AppStyles.getSecondaryTextColor(context),
+                                ),
+                              ),
+                            ],
+                            const SizedBox(height: 6),
+                            Row(
+                              children: [
+                                Text(
+                                  'Balance: ₹${event.resultingAmount.toStringAsFixed(0)}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppStyles.getTextColor(context),
+                                  ),
+                                ),
+                                if (deltaText.isNotEmpty) ...[
+                                  const Spacer(),
+                                  Text(
+                                    deltaText,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: delta! >= 0
+                                          ? SemanticColors.success
+                                          : SemanticColors.warning,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _historyEventLabel(LendingHistoryEventType type) {
+    switch (type) {
+      case LendingHistoryEventType.created:
+        return 'Created';
+      case LendingHistoryEventType.amountIncreased:
+        return 'Amount Added';
+      case LendingHistoryEventType.amountReduced:
+        return 'Amount Reduced';
+      case LendingHistoryEventType.edited:
+        return 'Edited';
+      case LendingHistoryEventType.settled:
+        return 'Settled';
+      case LendingHistoryEventType.reopened:
+        return 'Reopened';
+    }
+  }
+
+  Color _historyEventColor(LendingHistoryEventType type) {
+    switch (type) {
+      case LendingHistoryEventType.created:
+        return SemanticColors.info;
+      case LendingHistoryEventType.amountIncreased:
+        return SemanticColors.success;
+      case LendingHistoryEventType.amountReduced:
+        return SemanticColors.warning;
+      case LendingHistoryEventType.edited:
+        return AppStyles.accentBlue;
+      case LendingHistoryEventType.settled:
+        return SemanticColors.success;
+      case LendingHistoryEventType.reopened:
+        return CupertinoColors.systemOrange;
+    }
+  }
+
   Widget _buildRecordCard(
     LendingBorrowing record,
     BuildContext context,
@@ -670,6 +864,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
     final color = isLent ? AppStyles.accentBlue : CupertinoColors.systemRed;
     final icon =
         isLent ? CupertinoIcons.arrow_up_right : CupertinoIcons.arrow_down_left;
+    final settledOn = DateTime.tryParse(record.settledDate ?? '');
 
     return BouncyButton(
       onPressed: () {
@@ -729,7 +924,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                             ),
                             SizedBox(height: Spacing.xs),
                             Text(
-                              _formatDate(record.date),
+                              '${_formatDate(record.date)} • ${isLent ? "Lent" : "Borrowed"}',
                               style: TextStyle(
                                 fontSize: TypeScale.footnote,
                                 fontWeight: FontWeight.w500,
@@ -763,6 +958,26 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                       ),
                     ],
                   ),
+                  if (record.history.isNotEmpty) ...[
+                    SizedBox(height: Spacing.sm),
+                    Row(
+                      children: [
+                        Icon(
+                          CupertinoIcons.clock,
+                          size: IconSizes.xs,
+                          color: AppStyles.getSecondaryTextColor(context),
+                        ),
+                        SizedBox(width: Spacing.xs),
+                        Text(
+                          '${record.history.length} updates',
+                          style: TextStyle(
+                            fontSize: TypeScale.caption,
+                            color: AppStyles.getSecondaryTextColor(context),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                   if (record.description != null) ...[
                     SizedBox(height: Spacing.md),
                     Text(
@@ -793,34 +1008,49 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                       ],
                     ),
                   ],
+                  if (record.isSettled && settledOn != null) ...[
+                    SizedBox(height: Spacing.sm),
+                    Row(
+                      children: [
+                        Icon(
+                          CupertinoIcons.checkmark_circle_fill,
+                          size: IconSizes.xs,
+                          color: SemanticColors.success,
+                        ),
+                        SizedBox(width: Spacing.xs),
+                        Text(
+                          'Settled: ${_formatDate(settledOn)}',
+                          style: TextStyle(
+                            fontSize: TypeScale.caption,
+                            color: SemanticColors.success,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),
             if (record.isSettled)
-              Positioned.fill(
+              Positioned(
+                right: Spacing.sm,
+                top: Spacing.sm,
                 child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: Radii.cardRadius,
-                    color: SemanticColors.success.withValues(alpha: 0.1),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Spacing.md,
+                    vertical: Spacing.xs,
                   ),
-                  child: Center(
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: Spacing.md,
-                        vertical: Spacing.xs,
-                      ),
-                      decoration: BoxDecoration(
-                        color: SemanticColors.success,
-                        borderRadius: Radii.chipRadius,
-                      ),
-                      child: Text(
-                        'Settled ✓',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: TypeScale.caption,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                  decoration: BoxDecoration(
+                    color: SemanticColors.success,
+                    borderRadius: Radii.chipRadius,
+                  ),
+                  child: Text(
+                    'Settled ✓',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: TypeScale.caption,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -847,6 +1077,12 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
       'Dec'
     ];
     return '${date.day.toString().padLeft(2, '0')} ${months[date.month - 1]} ${date.year}';
+  }
+
+  String _formatDateTime(DateTime date) {
+    final hh = date.hour.toString().padLeft(2, '0');
+    final mm = date.minute.toString().padLeft(2, '0');
+    return '${_formatDate(date)} $hh:$mm';
   }
 }
 
