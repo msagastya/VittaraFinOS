@@ -15,6 +15,10 @@ class TransactionsArchiveController with ChangeNotifier {
     _loadArchivedTransactions();
   }
 
+  Future<void> reloadFromStorage() async {
+    await _loadArchivedTransactions();
+  }
+
   Future<void> _loadArchivedTransactions() async {
     _prefs = await SharedPreferences.getInstance();
     final stored = _prefs.getStringList(_storageKey) ?? [];

@@ -132,6 +132,7 @@ class TransactionDetailsContent extends StatelessWidget {
 
     maybeAdd('Description', transaction.description);
     maybeAdd('Category', metadata['categoryName'] as String?);
+    maybeAdd('Investment', metadata['investmentName'] as String?);
     final merchant = metadata['merchant'] as String?;
     if (merchant != null && merchant.isNotEmpty) {
       maybeAdd('Merchant', merchant);

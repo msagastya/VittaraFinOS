@@ -43,7 +43,7 @@ List<SipNotificationInfo> collectSipNotifications(List<Investment> investments,
     if (nextDue == null) continue;
 
     final daysUntil = nextDue.difference(now).inDays;
-    if (daysUntil < 0 || daysUntil > daysAhead) continue;
+    if (daysUntil > daysAhead) continue;
 
     notifications.add(SipNotificationInfo(
       investment: inv,

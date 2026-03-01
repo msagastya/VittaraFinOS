@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
+import 'package:vittara_fin_os/utils/id_generator.dart';
 
 class TransactionsController with ChangeNotifier {
   late SharedPreferences _prefs;
@@ -18,19 +19,46 @@ class TransactionsController with ChangeNotifier {
     _prefs = await SharedPreferences.getInstance();
     final transactionsJson = _prefs.getStringList(_storageKey) ?? [];
 
-    _transactions = transactionsJson
-        .map((json) =>
-            Transaction.fromMap(jsonDecode(json) as Map<String, dynamic>))
-        .toList();
+    final parsedTransactions = <Transaction>[];
+    final usedIds = <String>{};
+    var dataChanged = false;
+
+    for (final row in transactionsJson) {
+      try {
+        final decoded = jsonDecode(row) as Map<String, dynamic>;
+        var transaction = Transaction.fromMap(decoded);
+        final normalizedId = transaction.id.trim();
+        if (normalizedId.isEmpty || usedIds.contains(normalizedId)) {
+          transaction =
+              transaction.copyWith(id: IdGenerator.next(prefix: 'txn'));
+          dataChanged = true;
+        }
+        usedIds.add(transaction.id);
+        parsedTransactions.add(transaction);
+      } catch (_) {
+        dataChanged = true;
+      }
+    }
+
+    _transactions = parsedTransactions;
 
     // Sort by date descending (newest first)
     _transactions.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+
+    if (dataChanged) {
+      await _saveTransactions();
+    }
 
     notifyListeners();
   }
 
   Future<void> addTransaction(Transaction transaction) async {
-    _transactions.insert(0, transaction); // Add to beginning (newest first)
+    var normalized = transaction;
+    final id = transaction.id.trim();
+    if (id.isEmpty || _transactions.any((item) => item.id == id)) {
+      normalized = transaction.copyWith(id: IdGenerator.next(prefix: 'txn'));
+    }
+    _transactions.insert(0, normalized); // Add to beginning (newest first)
     await _saveTransactions();
     notifyListeners();
   }

@@ -8,6 +8,7 @@ class InvestmentsController with ChangeNotifier {
   late SharedPreferences _prefs;
   late List<Investment> _investments;
   static const String _storageKey = 'investments';
+  static const double _amountDeltaEpsilon = 0.01;
 
   List<Investment> get investments => _investments;
 
@@ -24,11 +25,24 @@ class InvestmentsController with ChangeNotifier {
             Investment.fromMap(jsonDecode(json) as Map<String, dynamic>))
         .toList();
 
+    var migrated = false;
+    for (var i = 0; i < _investments.length; i++) {
+      final normalized = _ensureCreateActivityLog(_investments[i]);
+      if (!identical(normalized, _investments[i])) {
+        _investments[i] = normalized;
+        migrated = true;
+      }
+    }
+    if (migrated) {
+      await _saveInvestments();
+    }
+
     notifyListeners();
   }
 
   Future<void> addInvestment(Investment investment) async {
-    _investments.add(investment);
+    final normalized = _ensureCreateActivityLog(investment);
+    _investments.add(normalized);
     await _saveInvestments();
     notifyListeners();
   }
@@ -43,14 +57,56 @@ class InvestmentsController with ChangeNotifier {
     await removeInvestment(investmentId);
   }
 
-  Future<void> updateInvestment(Investment investment) async {
+  Future<void> updateInvestment(
+    Investment investment, {
+    bool trackDelta = true,
+  }) async {
     final index = _investments.indexWhere((inv) => inv.id == investment.id);
 
     if (index >= 0) {
-      _investments[index] = investment;
+      final current = _investments[index];
+      final normalized = trackDelta
+          ? _appendDeltaActivityLog(current, investment)
+          : _ensureCreateActivityLog(investment);
+      _investments[index] = normalized;
       await _saveInvestments();
       notifyListeners();
     }
+  }
+
+  Future<void> recordInvestmentActivity({
+    required String investmentId,
+    required String type,
+    required double amount,
+    String? description,
+    DateTime? dateTime,
+    String? accountId,
+    String? accountName,
+  }) async {
+    if (amount <= 0) return;
+
+    final index = _investments.indexWhere((inv) => inv.id == investmentId);
+    if (index < 0) return;
+
+    final current = _investments[index];
+    final metadata = Map<String, dynamic>.from(current.metadata ?? {});
+    final activityLog = _readActivityLog(metadata);
+    activityLog.add(
+      _buildActivityEntry(
+        type: type,
+        amount: amount,
+        description: description,
+        dateTime: dateTime ?? DateTime.now(),
+        accountId: accountId,
+        accountName: accountName,
+      ),
+    );
+    metadata['activityLog'] = activityLog;
+    metadata['lastActivityAt'] = (dateTime ?? DateTime.now()).toIso8601String();
+
+    _investments[index] = current.copyWith(metadata: metadata);
+    await _saveInvestments();
+    notifyListeners();
   }
 
   Future<void> _saveInvestments() async {
@@ -132,5 +188,168 @@ class InvestmentsController with ChangeNotifier {
     if (value is num) return value.toDouble();
     if (value is String) return double.tryParse(value);
     return null;
+  }
+
+  Investment _ensureCreateActivityLog(Investment investment) {
+    final metadata = Map<String, dynamic>.from(investment.metadata ?? {});
+    final activityLog = _readActivityLog(metadata);
+    final hasCreateEvent = activityLog.any(
+      (entry) => _normalizedEventType(entry['type']) == 'create',
+    );
+    if (hasCreateEvent) {
+      return investment;
+    }
+
+    final amount = _asDouble(metadata['investmentAmount']) ?? investment.amount;
+    if (amount <= 0) {
+      return investment;
+    }
+
+    final createdAt = _resolveActivityDate(metadata) ?? DateTime.now();
+    activityLog.insert(
+      0,
+      _buildActivityEntry(
+        type: 'create',
+        amount: amount,
+        description: '${investment.getTypeLabel()} added: ${investment.name}',
+        dateTime: createdAt,
+        accountId: _resolveLinkedAccountId(metadata),
+        accountName: _resolveLinkedAccountName(metadata),
+      ),
+    );
+    metadata['activityLog'] = activityLog;
+    metadata['createdAt'] =
+        metadata['createdAt'] ?? createdAt.toIso8601String();
+
+    return investment.copyWith(metadata: metadata);
+  }
+
+  Investment _appendDeltaActivityLog(Investment current, Investment updated) {
+    final metadata = Map<String, dynamic>.from(
+      updated.metadata ?? current.metadata ?? const <String, dynamic>{},
+    );
+
+    final existingLog = _readActivityLog(Map<String, dynamic>.from(
+      current.metadata ?? const <String, dynamic>{},
+    ));
+    var nextLog = _readActivityLog(metadata);
+    if (nextLog.isEmpty && existingLog.isNotEmpty) {
+      nextLog = [...existingLog];
+    }
+
+    final delta = updated.amount - current.amount;
+    if (delta.abs() >= _amountDeltaEpsilon) {
+      final isIncrease = delta > 0;
+      final eventType = isIncrease ? 'increase' : 'decrease';
+      nextLog.add(
+        _buildActivityEntry(
+          type: eventType,
+          amount: delta.abs(),
+          description: isIncrease
+              ? 'Invested more in ${updated.name}'
+              : 'Reduced ${updated.name} investment',
+          dateTime: DateTime.now(),
+          accountId: _resolveLinkedAccountId(metadata),
+          accountName: _resolveLinkedAccountName(metadata),
+        ),
+      );
+      metadata['lastActivityAt'] = DateTime.now().toIso8601String();
+    }
+
+    if (nextLog.isNotEmpty) {
+      metadata['activityLog'] = nextLog;
+    }
+
+    return _ensureCreateActivityLog(updated.copyWith(metadata: metadata));
+  }
+
+  List<Map<String, dynamic>> _readActivityLog(Map<String, dynamic> metadata) {
+    final raw = metadata['activityLog'];
+    if (raw is! List) return <Map<String, dynamic>>[];
+    final entries = <Map<String, dynamic>>[];
+    for (final entry in raw) {
+      if (entry is Map) {
+        entries.add(entry.map((key, value) => MapEntry('$key', value)));
+      }
+    }
+    return entries;
+  }
+
+  Map<String, dynamic> _buildActivityEntry({
+    required String type,
+    required double amount,
+    String? description,
+    required DateTime dateTime,
+    String? accountId,
+    String? accountName,
+  }) {
+    return {
+      'id': dateTime.microsecondsSinceEpoch.toString(),
+      'type': _normalizedEventType(type),
+      'amount': amount,
+      'description': description,
+      'date': dateTime.toIso8601String(),
+      'accountId': accountId,
+      'accountName': accountName,
+    };
+  }
+
+  DateTime? _resolveActivityDate(Map<String, dynamic> metadata) {
+    const keys = [
+      'investmentDate',
+      'purchaseDate',
+      'startDate',
+      'createdAt',
+      'openedAt',
+      'date',
+    ];
+    for (final key in keys) {
+      final parsed = _parseDate(metadata[key]);
+      if (parsed != null) return parsed;
+    }
+    return null;
+  }
+
+  String _normalizedEventType(String? value) =>
+      (value ?? 'activity').trim().toLowerCase();
+
+  DateTime? _parseDate(dynamic value) {
+    if (value is DateTime) return value;
+    if (value is String && value.trim().isNotEmpty) {
+      return DateTime.tryParse(value);
+    }
+    return null;
+  }
+
+  String? _asString(dynamic value) {
+    if (value == null) return null;
+    final text = value.toString();
+    return text.trim().isEmpty ? null : text;
+  }
+
+  String? _resolveLinkedAccountId(Map<String, dynamic> metadata) {
+    final sipData = metadata['sipData'];
+    if (sipData is Map<String, dynamic>) {
+      final fromSip = _asString(sipData['deductionAccountId']);
+      if (fromSip != null) return fromSip;
+    }
+    return _asString(
+      metadata['accountId'] ??
+          metadata['deductionAccountId'] ??
+          metadata['sipLinkedAccount'],
+    );
+  }
+
+  String? _resolveLinkedAccountName(Map<String, dynamic> metadata) {
+    final sipData = metadata['sipData'];
+    if (sipData is Map<String, dynamic>) {
+      final fromSip = _asString(sipData['deductionAccountName']);
+      if (fromSip != null) return fromSip;
+    }
+    return _asString(
+      metadata['accountName'] ??
+          metadata['deductionAccountName'] ??
+          metadata['sipLinkedAccountName'],
+    );
   }
 }

@@ -1,7 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
+import 'package:vittara_fin_os/logic/transaction_feed_builder.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/ui/dashboard/base_dashboard_widget.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -63,10 +65,12 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
     if (columnSpan == 3 && rowSpan == 1) txCount = 3;
     if (columnSpan == 3 && rowSpan >= 2) txCount = 5;
 
-    return Consumer<TransactionsController>(
-      builder: (context, transactionController, child) {
-        final transactions =
-            transactionController.transactions.take(txCount).toList();
+    return Consumer2<TransactionsController, InvestmentsController>(
+      builder: (context, transactionController, investmentsController, child) {
+        final transactions = TransactionFeedBuilder.buildUnifiedFeed(
+          transactions: transactionController.transactions,
+          investments: investmentsController.investments,
+        ).take(txCount).toList();
 
         if (transactions.isEmpty) {
           return Center(

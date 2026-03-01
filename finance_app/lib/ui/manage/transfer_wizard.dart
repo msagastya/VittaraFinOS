@@ -24,11 +24,12 @@ class TransferWizard extends StatefulWidget {
 class _TransferWizardState extends State<TransferWizard> {
   final PageController _pageController = PageController();
   int _currentStep = 0;
-  static const int _totalSteps = 7;
+  static const int _totalSteps = 8;
 
   // Step data
   Account? _sourceAccount;
   Account? _destinationAccount;
+  DateTime _selectedTransferDate = DateTime.now();
   final _amountController = TextEditingController();
   final _chargesController = TextEditingController();
   final _appWalletAmountController = TextEditingController();
@@ -182,7 +183,7 @@ class _TransferWizardState extends State<TransferWizard> {
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       type: TransactionType.transfer,
       description: _transferDescription(),
-      dateTime: DateTime.now(),
+      dateTime: _selectedTransferDate,
       amount: amount,
       sourceAccountId: _sourceAccount?.id,
       sourceAccountName: _sourceAccount?.name,
@@ -196,6 +197,7 @@ class _TransferWizardState extends State<TransferWizard> {
       cashbackAccountName: selectedCashbackAccount?.name,
       metadata: {
         'transferFlowType': _cashFlowType(),
+        'transferDate': _selectedTransferDate.toIso8601String(),
         'cashbackFlow': cashbackAmount > 0
             ? (canCreditCashbackToApp ? 'paymentApp' : 'bank')
             : 'bank',
@@ -234,7 +236,9 @@ class _TransferWizardState extends State<TransferWizard> {
             _paymentAppHasWallet &&
             (_selectedPaymentApp?.isNotEmpty ?? false);
         return hasSelectedEligibleAccount || canCreditToApp;
-      case 6: // Review
+      case 6: // Transfer date
+        return true;
+      case 7: // Review
         return true;
       default:
         return false;
@@ -347,6 +351,7 @@ class _TransferWizardState extends State<TransferWizard> {
                   _buildPaymentAppStep(),
                   _buildAppWalletStep(),
                   _buildCashbackStep(),
+                  _buildTransferDateStep(),
                   _buildReviewStep(),
                 ],
               ),
@@ -1379,6 +1384,8 @@ class _TransferWizardState extends State<TransferWizard> {
                 _buildReviewRow('From', _sourceAccount?.name ?? 'Unknown'),
                 const SizedBox(height: 12),
                 _buildReviewRow('To', _destinationAccount?.name ?? 'Unknown'),
+                const SizedBox(height: 12),
+                _buildReviewRow('Date', _formatDate(_selectedTransferDate)),
                 if (transferFlowLabel != null) ...[
                   const SizedBox(height: 12),
                   _buildReviewRow('Flow', transferFlowLabel),
@@ -1411,6 +1418,98 @@ class _TransferWizardState extends State<TransferWizard> {
         ],
       ),
     );
+  }
+
+  Widget _buildTransferDateStep() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Transfer Date',
+            style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Select when this transfer happened.',
+            style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+          ),
+          const SizedBox(height: 32),
+          GestureDetector(
+            onTap: _showTransferDatePicker,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppStyles.getCardColor(context),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppStyles.getSecondaryTextColor(context)
+                      .withValues(alpha: 0.15),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    CupertinoIcons.calendar,
+                    color: CupertinoColors.systemBlue,
+                    size: 22,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      _formatDate(_selectedTransferDate),
+                      style:
+                          AppStyles.titleStyle(context).copyWith(fontSize: 18),
+                    ),
+                  ),
+                  Text(
+                    'Change',
+                    style: TextStyle(
+                      color: CupertinoColors.systemBlue,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showTransferDatePicker() {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (ctx) => Container(
+        height: 260,
+        color: AppStyles.getCardColor(ctx),
+        child: Column(
+          children: [
+            Expanded(
+              child: CupertinoDatePicker(
+                mode: CupertinoDatePickerMode.date,
+                initialDateTime: _selectedTransferDate,
+                maximumDate: DateTime.now().add(const Duration(days: 3650)),
+                onDateTimeChanged: (value) {
+                  setState(() => _selectedTransferDate = value);
+                },
+              ),
+            ),
+            CupertinoButton(
+              child: const Text('Done'),
+              onPressed: () => Navigator.pop(ctx),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
   }
 
   Widget _buildReviewRow(

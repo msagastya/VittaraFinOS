@@ -1,3 +1,5 @@
+import 'package:vittara_fin_os/utils/id_generator.dart';
+
 enum TransactionType {
   transfer,
   cashback,
@@ -73,23 +75,88 @@ class Transaction {
   }
 
   factory Transaction.fromMap(Map<String, dynamic> map) {
+    final rawType = map['type'];
+    final typeIndex = rawType is int ? rawType : int.tryParse('$rawType');
+    final resolvedType = (typeIndex != null &&
+            typeIndex >= 0 &&
+            typeIndex < TransactionType.values.length)
+        ? TransactionType.values[typeIndex]
+        : TransactionType.expense;
+
+    final rawAmount = map['amount'];
+    final resolvedAmount = rawAmount is num
+        ? rawAmount.toDouble()
+        : double.tryParse('$rawAmount') ?? 0.0;
+
+    final rawDate = map['dateTime'];
+    final resolvedDate = rawDate is String
+        ? DateTime.tryParse(rawDate)
+        : rawDate is DateTime
+            ? rawDate
+            : null;
+
     return Transaction(
-      id: map['id'],
-      type: TransactionType.values[map['type']],
-      description: map['description'],
-      dateTime: DateTime.parse(map['dateTime']),
-      amount: map['amount'],
+      id: (map['id']?.toString().trim().isNotEmpty ?? false)
+          ? map['id'].toString()
+          : IdGenerator.next(prefix: 'txn'),
+      type: resolvedType,
+      description: (map['description'] as String?)?.trim().isNotEmpty == true
+          ? map['description'] as String
+          : 'Transaction',
+      dateTime: resolvedDate ?? DateTime.now(),
+      amount: resolvedAmount,
       sourceAccountId: map['sourceAccountId'],
       sourceAccountName: map['sourceAccountName'],
       destinationAccountId: map['destinationAccountId'],
       destinationAccountName: map['destinationAccountName'],
-      charges: map['charges'],
+      charges: (map['charges'] as num?)?.toDouble(),
       paymentAppName: map['paymentAppName'],
-      appWalletAmount: map['appWalletAmount'],
-      cashbackAmount: map['cashbackAmount'],
+      appWalletAmount: (map['appWalletAmount'] as num?)?.toDouble(),
+      cashbackAmount: (map['cashbackAmount'] as num?)?.toDouble(),
       cashbackAccountId: map['cashbackAccountId'],
       cashbackAccountName: map['cashbackAccountName'],
-      metadata: map['metadata'],
+      metadata: map['metadata'] is Map
+          ? Map<String, dynamic>.from(map['metadata'] as Map)
+          : null,
+    );
+  }
+
+  Transaction copyWith({
+    String? id,
+    TransactionType? type,
+    String? description,
+    DateTime? dateTime,
+    double? amount,
+    String? sourceAccountId,
+    String? sourceAccountName,
+    String? destinationAccountId,
+    String? destinationAccountName,
+    double? charges,
+    String? paymentAppName,
+    double? appWalletAmount,
+    double? cashbackAmount,
+    String? cashbackAccountId,
+    String? cashbackAccountName,
+    Map<String, dynamic>? metadata,
+  }) {
+    return Transaction(
+      id: id ?? this.id,
+      type: type ?? this.type,
+      description: description ?? this.description,
+      dateTime: dateTime ?? this.dateTime,
+      amount: amount ?? this.amount,
+      sourceAccountId: sourceAccountId ?? this.sourceAccountId,
+      sourceAccountName: sourceAccountName ?? this.sourceAccountName,
+      destinationAccountId: destinationAccountId ?? this.destinationAccountId,
+      destinationAccountName:
+          destinationAccountName ?? this.destinationAccountName,
+      charges: charges ?? this.charges,
+      paymentAppName: paymentAppName ?? this.paymentAppName,
+      appWalletAmount: appWalletAmount ?? this.appWalletAmount,
+      cashbackAmount: cashbackAmount ?? this.cashbackAmount,
+      cashbackAccountId: cashbackAccountId ?? this.cashbackAccountId,
+      cashbackAccountName: cashbackAccountName ?? this.cashbackAccountName,
+      metadata: metadata ?? this.metadata,
     );
   }
 

@@ -19,18 +19,21 @@ class GoalsController extends ChangeNotifier {
     if (_isInitialized) return;
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final String? goalsJson = prefs.getString(_storageKey);
-
-      if (goalsJson != null && goalsJson.isNotEmpty) {
-        final List<dynamic> decodedList = json.decode(goalsJson);
-        _goals = decodedList.map((item) => Goal.fromMap(item)).toList();
-      }
-
+      await _loadGoalsFromStorage();
       _isInitialized = true;
       notifyListeners();
     } catch (e) {
       debugPrint('Error loading goals: $e');
+    }
+  }
+
+  Future<void> reloadFromStorage() async {
+    try {
+      await _loadGoalsFromStorage();
+      _isInitialized = true;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error reloading goals: $e');
     }
   }
 
@@ -43,6 +46,17 @@ class GoalsController extends ChangeNotifier {
       await prefs.setString(_storageKey, goalsJson);
     } catch (e) {
       debugPrint('Error saving goals: $e');
+    }
+  }
+
+  Future<void> _loadGoalsFromStorage() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? goalsJson = prefs.getString(_storageKey);
+    if (goalsJson != null && goalsJson.isNotEmpty) {
+      final List<dynamic> decodedList = json.decode(goalsJson);
+      _goals = decodedList.map((item) => Goal.fromMap(item)).toList();
+    } else {
+      _goals = [];
     }
   }
 

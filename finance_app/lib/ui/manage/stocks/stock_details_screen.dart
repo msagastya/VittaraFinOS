@@ -2975,17 +2975,36 @@ class _DividendModalState extends State<_DividendModal> {
                   width: double.infinity,
                   child: CupertinoButton.filled(
                     onPressed: amount > 0 && _selectedAccount != null
-                        ? () {
+                        ? () async {
                             final accountsController =
                                 Provider.of<AccountsController>(context,
                                     listen: false);
-                            final newBalance =
-                                _selectedAccount!.balance + amount;
-                            accountsController.updateAccount(
-                              _selectedAccount!.copyWith(balance: newBalance),
+                            final investmentsController =
+                                Provider.of<InvestmentsController>(
+                              context,
+                              listen: false,
                             );
+                            final account = _selectedAccount!;
+                            final newBalance = account.balance + amount;
+
+                            await accountsController.updateAccount(
+                              account.copyWith(balance: newBalance),
+                            );
+                            await investmentsController
+                                .recordInvestmentActivity(
+                              investmentId: widget.investment.id,
+                              type: 'dividend',
+                              amount: amount,
+                              description:
+                                  'Dividend from ${widget.investment.name}',
+                              dateTime: _dividendDate,
+                              accountId: account.id,
+                              accountName: account.name,
+                            );
+                            if (!mounted) return;
                             toast.showSuccess(
-                                'Dividend recorded: ₹${amount.toStringAsFixed(2)} credited to ${_selectedAccount!.name}');
+                              'Dividend recorded: ₹${amount.toStringAsFixed(2)} credited to ${account.name}',
+                            );
                             Navigator.pop(context);
                           }
                         : null,

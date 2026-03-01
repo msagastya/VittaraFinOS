@@ -6,7 +6,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
-import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/banks_controller.dart';
 import 'package:vittara_fin_os/logic/brokers_controller.dart';
 import 'package:vittara_fin_os/logic/categories_controller.dart';
@@ -19,7 +18,9 @@ import 'package:vittara_fin_os/logic/lending_borrowing_controller.dart';
 import 'package:vittara_fin_os/logic/payment_apps_controller.dart';
 import 'package:vittara_fin_os/logic/settings_controller.dart';
 import 'package:vittara_fin_os/logic/tags_controller.dart';
+import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
+import 'package:vittara_fin_os/logic/transaction_feed_builder.dart';
 import 'package:vittara_fin_os/logic/goals_controller.dart';
 import 'package:vittara_fin_os/logic/budgets_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_archive_controller.dart';
@@ -29,12 +30,7 @@ import 'package:vittara_fin_os/ui/settings_screen.dart';
 import 'package:vittara_fin_os/ui/transaction_history_screen.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/logic/notification_helpers.dart';
-import 'package:vittara_fin_os/ui/dashboard/notification_widget.dart';
 import 'package:vittara_fin_os/ui/dashboard/transaction_wizard.dart';
-import 'package:vittara_fin_os/ui/manage/bonds/bond_payout_modal.dart';
-import 'package:vittara_fin_os/ui/manage/bonds/bonds_details_screen.dart';
-import 'package:vittara_fin_os/ui/manage/mf/mf_details_screen.dart';
-import 'package:vittara_fin_os/ui/manage/stocks/stock_details_screen.dart';
 import 'package:vittara_fin_os/ui/notifications_page.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/dashboard/dashboard_settings_modal.dart';
@@ -856,37 +852,13 @@ class DashboardScreen extends StatelessWidget {
       case DashboardWidgetType.aiPlanner:
         return true;
       case DashboardWidgetType.transactionHistory:
-        final transactionsController =
-            Provider.of<TransactionsController>(context, listen: false);
-        return transactionsController.transactions.isNotEmpty;
+        // Always render preview; it listens to live transaction updates and
+        // handles its own empty state.
+        return true;
       case DashboardWidgetType.notificationsAndActions:
-        final investmentsController =
-            Provider.of<InvestmentsController>(context, listen: false);
-        final fdsNearMaturity = investmentsController.investments.where((inv) {
-          if (inv.type.name != 'fixedDeposit') return false;
-          final metadata = inv.metadata;
-          if (metadata == null || !metadata.containsKey('maturityDate')) {
-            return false;
-          }
-          final maturityDate =
-              DateTime.parse(metadata['maturityDate'] as String);
-          final daysUntil = maturityDate.difference(DateTime.now()).inDays;
-          return daysUntil <= 10 && daysUntil >= 0;
-        }).toList();
-
-        final fdsMatured = investmentsController.investments.where((inv) {
-          if (inv.type.name != 'fixedDeposit') return false;
-          final metadata = inv.metadata;
-          if (metadata == null || !metadata.containsKey('maturityDate')) {
-            return false;
-          }
-          final maturityDate =
-              DateTime.parse(metadata['maturityDate'] as String);
-          final daysUntil = maturityDate.difference(DateTime.now()).inDays;
-          return daysUntil < 0;
-        }).toList();
-
-        return fdsNearMaturity.isNotEmpty || fdsMatured.isNotEmpty;
+        // Always render preview; it listens to live investment updates and
+        // handles its own empty state.
+        return true;
       default:
         return true;
     }
@@ -1539,10 +1511,13 @@ class DashboardScreen extends StatelessWidget {
           },
         );
       case DashboardWidgetType.transactionHistory:
-        return Consumer<TransactionsController>(
-          builder: (context, transactionController, child) {
-            final transactions =
-                transactionController.transactions.take(3).toList();
+        return Consumer2<TransactionsController, InvestmentsController>(
+          builder:
+              (context, transactionController, investmentsController, child) {
+            final transactions = TransactionFeedBuilder.buildUnifiedFeed(
+              transactions: transactionController.transactions,
+              investments: investmentsController.investments,
+            ).take(3).toList();
 
             if (transactions.isEmpty) {
               return Center(
@@ -1572,8 +1547,10 @@ class DashboardScreen extends StatelessWidget {
               children: transactions.asMap().entries.map((entry) {
                 final isLast = entry.key == transactions.length - 1;
                 final tx = entry.value;
-                final amount = tx.amount ?? 0;
-                final isExpense = amount < 0;
+                final amount = tx.amount;
+                final isDebit = tx.type == TransactionType.expense ||
+                    tx.type == TransactionType.investment ||
+                    tx.type == TransactionType.lending;
 
                 return Column(
                   children: [
@@ -1583,16 +1560,16 @@ class DashboardScreen extends StatelessWidget {
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: (isExpense ? Colors.red : Colors.green)
+                            color: (isDebit ? Colors.red : Colors.green)
                                 .withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Icon(
-                            isExpense
+                            isDebit
                                 ? CupertinoIcons.arrow_up
                                 : CupertinoIcons.arrow_down,
                             size: 18,
-                            color: isExpense ? Colors.red : Colors.green,
+                            color: isDebit ? Colors.red : Colors.green,
                           ),
                         ),
                         SizedBox(width: Spacing.md),
@@ -1602,7 +1579,7 @@ class DashboardScreen extends StatelessWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                tx.description ?? 'Transaction',
+                                tx.description,
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
@@ -1623,11 +1600,11 @@ class DashboardScreen extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          '${isExpense ? '-' : '+'}₹${amount.abs().toStringAsFixed(0)}',
+                          '${isDebit ? '-' : '+'}₹${amount.abs().toStringAsFixed(0)}',
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
-                            color: isExpense ? Colors.red : Colors.green,
+                            color: isDebit ? Colors.red : Colors.green,
                           ),
                         ),
                       ],
@@ -1675,109 +1652,83 @@ class DashboardScreen extends StatelessWidget {
                 collectSipNotifications(investmentsController.investments);
             final bondNotifications = collectBondPayoutNotifications(
                 investmentsController.investments);
+            final hasAnyNotification = fdsMatured.isNotEmpty ||
+                fdsNearMaturity.isNotEmpty ||
+                sipNotifications.isNotEmpty ||
+                bondNotifications.isNotEmpty;
+
+            if (!hasAnyNotification) {
+              return Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      CupertinoIcons.bell_slash,
+                      size: 30,
+                      color: AppStyles.getSecondaryTextColor(context),
+                    ),
+                    SizedBox(height: Spacing.sm),
+                    Text(
+                      'No active notifications',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppStyles.getSecondaryTextColor(context),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            const maxPreviewItems = 3;
+            final alerts = <Widget>[
+              if (fdsMatured.isNotEmpty)
+                _buildCompactDashboardAlert(
+                  context,
+                  icon: CupertinoIcons.exclamationmark_circle_fill,
+                  color: Colors.red,
+                  title:
+                      '${fdsMatured.length} FD${fdsMatured.length > 1 ? 's' : ''} matured',
+                  subtitle: 'Action required',
+                ),
+              if (fdsNearMaturity.isNotEmpty)
+                _buildCompactDashboardAlert(
+                  context,
+                  icon: CupertinoIcons.bell_fill,
+                  color: Colors.orange,
+                  title:
+                      '${fdsNearMaturity.length} FD${fdsNearMaturity.length > 1 ? 's' : ''} maturing soon',
+                  subtitle: 'Within 10 days',
+                ),
+              ...sipNotifications.map(
+                  (entry) => _buildDashboardSipNotification(context, entry)),
+              ...bondNotifications.map(
+                  (entry) => _buildDashboardBondNotification(context, entry)),
+            ];
+            final previewAlerts = alerts.take(maxPreviewItems).toList();
+            final hiddenCount = alerts.length - previewAlerts.length;
 
             return Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (fdsMatured.isNotEmpty)
-                  Container(
-                    padding: EdgeInsets.all(Spacing.md),
-                    decoration: BoxDecoration(
-                      color: Colors.red.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border:
-                          Border.all(color: Colors.red.withValues(alpha: 0.2)),
+                ...previewAlerts,
+                if (hiddenCount > 0)
+                  Padding(
+                    padding: EdgeInsets.only(
+                      top: Spacing.xs,
+                      left: Spacing.xs,
                     ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          CupertinoIcons.exclamationmark_circle_fill,
-                          size: 20,
-                          color: Colors.red,
-                        ),
-                        SizedBox(width: Spacing.md),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                '${fdsMatured.length} FD${fdsMatured.length > 1 ? 's' : ''} Matured',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.red,
-                                ),
-                              ),
-                              Text(
-                                'Action required',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.red.withValues(alpha: 0.7),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                    child: Text(
+                      '+$hiddenCount more alerts. Tap to view all',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: AppStyles.getSecondaryTextColor(context),
+                      ),
                     ),
                   ),
-                if (fdsMatured.isNotEmpty && fdsNearMaturity.isNotEmpty)
-                  SizedBox(height: Spacing.md),
-                if (fdsNearMaturity.isNotEmpty)
-                  Container(
-                    padding: EdgeInsets.all(Spacing.md),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                          color: Colors.orange.withValues(alpha: 0.2)),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          CupertinoIcons.bell_fill,
-                          size: 20,
-                          color: Colors.orange,
-                        ),
-                        SizedBox(width: Spacing.md),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                '${fdsNearMaturity.length} FD${fdsNearMaturity.length > 1 ? 's' : ''} Maturing Soon',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.orange,
-                                ),
-                              ),
-                              Text(
-                                'Within 10 days',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.orange.withValues(alpha: 0.7),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                if ((fdsMatured.isNotEmpty || fdsNearMaturity.isNotEmpty) &&
-                    sipNotifications.isNotEmpty)
-                  SizedBox(height: Spacing.md),
-                if (sipNotifications.isNotEmpty)
-                  ...sipNotifications.map((entry) =>
-                      _buildDashboardSipNotification(context, entry)),
-                if (sipNotifications.isNotEmpty && bondNotifications.isNotEmpty)
-                  SizedBox(height: Spacing.md),
-                if (bondNotifications.isNotEmpty)
-                  ...bondNotifications.map((entry) =>
-                      _buildDashboardBondNotification(context, entry)),
               ],
             );
           },
@@ -2013,59 +1964,74 @@ class DashboardScreen extends StatelessWidget {
   Widget _buildDashboardSipNotification(
       BuildContext context, SipNotificationInfo entry) {
     final amountText =
-        entry.amount > 0 ? '₹${entry.amount.toStringAsFixed(2)}' : '₹—';
-    final timeInfo = entry.daysUntil == 0
-        ? 'Due today'
-        : 'In ${entry.daysUntil} day${entry.daysUntil > 1 ? 's' : ''}';
+        entry.amount > 0 ? '₹${entry.amount.toStringAsFixed(0)}' : '₹—';
+    final dueLabel = entry.daysUntil < 0
+        ? 'Overdue by ${entry.daysUntil.abs()} day${entry.daysUntil.abs() > 1 ? 's' : ''}'
+        : entry.daysUntil == 0
+            ? 'Due today'
+            : 'In ${entry.daysUntil} day${entry.daysUntil > 1 ? 's' : ''}';
+    return _buildCompactDashboardAlert(
+      context,
+      icon: CupertinoIcons.repeat,
+      color: Colors.blue,
+      title: entry.investment.name,
+      subtitle: '${entry.frequencyLabel} • $amountText • $dueLabel',
+    );
+  }
 
+  Widget _buildCompactDashboardAlert(
+    BuildContext context, {
+    required IconData icon,
+    required Color color,
+    required String title,
+    required String subtitle,
+  }) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: NotificationWidget(
-        type: NotificationType.stockSip,
-        title: entry.investment.name,
-        subtitle: entry.frequencyLabel,
-        amount: amountText,
-        timeInfo: timeInfo,
-        badgeColor: Colors.blue,
-        icon: CupertinoIcons.repeat,
-        statusWidget: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: AppStyles.getCardColor(context),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            'Due on ${_formatDashboardDate(entry.dueDate)}',
-            style: TextStyle(
-              color: AppStyles.getSecondaryTextColor(context),
-              fontSize: 12,
+      margin: EdgeInsets.only(bottom: Spacing.sm),
+      padding: EdgeInsets.all(Spacing.sm),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withValues(alpha: 0.22)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.18),
+              borderRadius: BorderRadius.circular(8),
             ),
+            child: Icon(icon, size: 14, color: color),
           ),
-        ),
-        actionButtons: [
+          SizedBox(width: Spacing.sm),
           Expanded(
-            child: CupertinoButton(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              color: Colors.blue,
-              onPressed: () =>
-                  _openInvestmentDetails(context, entry.investment),
-              child: const Text(
-                'Edit SIP',
-                style: TextStyle(color: Colors.white, fontSize: 12),
-              ),
-            ),
-          ),
-          const SizedBox(width: Spacing.sm),
-          Expanded(
-            child: CupertinoButton(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              color: Colors.grey,
-              onPressed: () =>
-                  _skipSip(context, entry.investment, entry.dueDate),
-              child: const Text(
-                'Skip SIP',
-                style: TextStyle(color: Colors.white, fontSize: 12),
-              ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: AppStyles.getTextColor(context),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                SizedBox(height: Spacing.xxs),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: AppStyles.getSecondaryTextColor(context),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
           ),
         ],
@@ -2077,158 +2043,17 @@ class DashboardScreen extends StatelessWidget {
     BuildContext context,
     BondPayoutNotificationInfo entry,
   ) {
-    final timeInfo = entry.daysUntil == 0
+    final dueLabel = entry.daysUntil == 0
         ? 'Due today'
         : 'In ${entry.daysUntil} day${entry.daysUntil > 1 ? 's' : ''}';
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: NotificationWidget(
-        type: NotificationType.bondPayout,
-        title: entry.investment.name,
-        subtitle: 'Payout #${entry.schedule.payoutNumber}',
-        amount: '₹—',
-        timeInfo: timeInfo,
-        badgeColor: Colors.teal,
-        icon: CupertinoIcons.money_dollar,
-        statusWidget: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: AppStyles.getCardColor(context),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            'Due on ${_formatDashboardDate(entry.schedule.payoutDate)}',
-            style: TextStyle(
-              color: AppStyles.getSecondaryTextColor(context),
-              fontSize: 12,
-            ),
-          ),
-        ),
-        actionButtons: [
-          Expanded(
-            child: CupertinoButton(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              color: Colors.blue,
-              onPressed: () => _showBondPayoutModal(context, entry),
-              child: const Text(
-                'Edit Payout',
-                style: TextStyle(color: Colors.white, fontSize: 12),
-              ),
-            ),
-          ),
-          const SizedBox(width: Spacing.sm),
-          Expanded(
-            child: CupertinoButton(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              color: Colors.grey,
-              onPressed: () => _skipBondPayout(context, entry),
-              child: const Text(
-                'Skip Payout',
-                style: TextStyle(color: Colors.white, fontSize: 12),
-              ),
-            ),
-          ),
-        ],
-      ),
+    return _buildCompactDashboardAlert(
+      context,
+      icon: CupertinoIcons.money_dollar,
+      color: Colors.teal,
+      title: entry.investment.name,
+      subtitle: 'Payout #${entry.schedule.payoutNumber} • $dueLabel',
     );
-  }
-
-  void _openInvestmentDetails(BuildContext context, Investment investment) {
-    Widget? destination;
-    switch (investment.type) {
-      case InvestmentType.stocks:
-        destination = StockDetailsScreen(investment: investment);
-        break;
-      case InvestmentType.mutualFund:
-        destination = MFDetailsScreen(investment: investment);
-        break;
-      case InvestmentType.bonds:
-        destination = BondsDetailsScreen(investment: investment);
-        break;
-      default:
-        destination = null;
-    }
-    final route = destination;
-    if (route == null) return;
-    Navigator.of(context).push(
-      FadeScalePageRoute(page: route),
-    );
-  }
-
-  Future<void> _skipSip(
-    BuildContext context,
-    Investment investment,
-    DateTime nextDue,
-  ) async {
-    final controller =
-        Provider.of<InvestmentsController>(context, listen: false);
-    final updatedMetadata =
-        markSipAsExecuted(investment.metadata ?? {}, nextDue);
-    final updatedInvestment = investment.copyWith(metadata: updatedMetadata);
-    await controller.updateInvestment(updatedInvestment);
-    if (context.mounted) {
-      toast.showInfo('Skipped next SIP for ${investment.name}');
-    }
-  }
-
-  Future<void> _skipBondPayout(
-    BuildContext context,
-    BondPayoutNotificationInfo entry,
-  ) async {
-    final controller =
-        Provider.of<InvestmentsController>(context, listen: false);
-    final metadata = Map<String, dynamic>.from(entry.investment.metadata ?? {});
-    final skipped = (metadata['skippedPayouts'] as List?)?.cast<int>() ?? [];
-    if (!skipped.contains(entry.schedule.payoutNumber)) {
-      skipped.add(entry.schedule.payoutNumber);
-      metadata['skippedPayouts'] = skipped;
-      final updatedInvestment = entry.investment.copyWith(metadata: metadata);
-      await controller.updateInvestment(updatedInvestment);
-      if (context.mounted) {
-        toast.showInfo(
-            'Skipped payout #${entry.schedule.payoutNumber} for ${entry.investment.name}');
-      }
-    }
-  }
-
-  void _showBondPayoutModal(
-      BuildContext context, BondPayoutNotificationInfo entry) {
-    showCupertinoModalPopup(
-      context: context,
-      builder: (ctx) => BondPayoutModal(
-        bond: entry.investment,
-        notification: entry,
-      ),
-    );
-  }
-
-  String _formatDashboardDate(DateTime date) {
-    final months = [
-      '',
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final targetDay = DateTime(date.year, date.month, date.day);
-
-    if (targetDay == today) {
-      return 'Today';
-    } else if (targetDay == today.add(const Duration(days: 1))) {
-      return 'Tomorrow';
-    }
-    return '${date.day} ${months[date.month]}';
   }
 }
 

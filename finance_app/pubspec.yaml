@@ -22,6 +22,7 @@ dependencies:
   http: ^1.1.0
   sqflite: ^2.3.0
   path: ^1.8.3
+  crypto: ^3.0.5
   # UI Enhancement Packages
   flutter_staggered_animations: ^1.1.1
   flutter_slidable: ^3.1.1

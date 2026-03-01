@@ -21,27 +21,21 @@ class BudgetsController extends ChangeNotifier {
     if (_isInitialized) return;
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-
-      // Load budgets
-      final String? budgetsJson = prefs.getString(_budgetsKey);
-      if (budgetsJson != null && budgetsJson.isNotEmpty) {
-        final List<dynamic> decodedList = json.decode(budgetsJson);
-        _budgets = decodedList.map((item) => Budget.fromMap(item)).toList();
-      }
-
-      // Load savings planners
-      final String? plannersJson = prefs.getString(_plannersKey);
-      if (plannersJson != null && plannersJson.isNotEmpty) {
-        final List<dynamic> decodedList = json.decode(plannersJson);
-        _planners =
-            decodedList.map((item) => SavingsPlanner.fromMap(item)).toList();
-      }
-
+      await _loadFromStorage();
       _isInitialized = true;
       notifyListeners();
     } catch (e) {
       debugPrint('Error loading budgets/planners: $e');
+    }
+  }
+
+  Future<void> reloadFromStorage() async {
+    try {
+      await _loadFromStorage();
+      _isInitialized = true;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error reloading budgets/planners: $e');
     }
   }
 
@@ -64,6 +58,27 @@ class BudgetsController extends ChangeNotifier {
       await prefs.setString(_plannersKey, json);
     } catch (e) {
       debugPrint('Error saving planners: $e');
+    }
+  }
+
+  Future<void> _loadFromStorage() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final String? budgetsJson = prefs.getString(_budgetsKey);
+    if (budgetsJson != null && budgetsJson.isNotEmpty) {
+      final List<dynamic> decodedList = json.decode(budgetsJson);
+      _budgets = decodedList.map((item) => Budget.fromMap(item)).toList();
+    } else {
+      _budgets = [];
+    }
+
+    final String? plannersJson = prefs.getString(_plannersKey);
+    if (plannersJson != null && plannersJson.isNotEmpty) {
+      final List<dynamic> decodedList = json.decode(plannersJson);
+      _planners =
+          decodedList.map((item) => SavingsPlanner.fromMap(item)).toList();
+    } else {
+      _planners = [];
     }
   }
 

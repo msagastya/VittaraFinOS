@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
+import 'package:vittara_fin_os/logic/investments_controller.dart';
+import 'package:vittara_fin_os/logic/transaction_feed_builder.dart';
 import 'package:vittara_fin_os/logic/transactions_archive_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
@@ -104,9 +106,13 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         backgroundColor: AppStyles.getBackground(context),
         border: null,
       ),
-      child: Consumer<TransactionsController>(
-        builder: (context, transactionsController, child) {
-          final transactions = transactionsController.transactions;
+      child: Consumer2<TransactionsController, InvestmentsController>(
+        builder:
+            (context, transactionsController, investmentsController, child) {
+          final transactions = TransactionFeedBuilder.buildUnifiedFeed(
+            transactions: transactionsController.transactions,
+            investments: investmentsController.investments,
+          );
 
           if (transactions.isEmpty) {
             return EmptyStateView(
@@ -146,8 +152,14 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     final typeIcon = _getTransactionTypeIcon(transaction.type);
 
     return BouncyButton(
-      onPressed: () =>
-          _showTransactionDetails(context, transaction, controller),
+      onPressed: () => _showTransactionDetails(
+        context,
+        transaction,
+        controller,
+        allowArchive: !TransactionFeedBuilder.isDerivedInvestmentEvent(
+          transaction,
+        ),
+      ),
       child: Container(
         margin: EdgeInsets.only(bottom: Spacing.lg),
         decoration: AppStyles.cardDecoration(context),
@@ -234,8 +246,9 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   void _showTransactionDetails(
     BuildContext context,
     Transaction transaction,
-    TransactionsController controller,
-  ) {
+    TransactionsController controller, {
+    required bool allowArchive,
+  }) {
     final archiveController =
         Provider.of<TransactionsArchiveController>(context, listen: false);
 
@@ -270,15 +283,17 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                     ),
                     TransactionDetailsContent(
                       transaction: transaction,
-                      actionButtons: [
-                        _buildDeleteAction(
-                          context,
-                          modalContext,
-                          transaction,
-                          controller,
-                          archiveController,
-                        ),
-                      ],
+                      actionButtons: allowArchive
+                          ? [
+                              _buildDeleteAction(
+                                context,
+                                modalContext,
+                                transaction,
+                                controller,
+                                archiveController,
+                              ),
+                            ]
+                          : const [],
                     ),
                   ],
                 ),

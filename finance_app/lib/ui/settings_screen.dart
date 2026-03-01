@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/settings_controller.dart';
+import 'package:vittara_fin_os/ui/backup_restore_screen.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
@@ -135,7 +136,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   icon: CupertinoIcons.cloud_upload,
                   title: 'Backups',
                   color: CupertinoColors.systemPink,
-                  onTap: () => _showBackupOptions(context),
+                  onTap: () => Navigator.of(context).push(
+                    FadeScalePageRoute(page: const BackupRestoreScreen()),
+                  ),
                 ),
               ]),
 
@@ -313,26 +316,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           onPressed: () => Navigator.pop(context),
           child: const Text('Cancel'),
         ),
-      ),
-    );
-  }
-
-  void _showBackupOptions(BuildContext context) {
-    showCupertinoModalPopup(
-      context: context,
-      builder: (context) => CupertinoActionSheet(
-        title: const Text('Backup & Restore'),
-        actions: [
-          CupertinoActionSheetAction(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Local Backup')),
-          CupertinoActionSheetAction(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Google Drive Backup')),
-        ],
-        cancelButton: CupertinoActionSheetAction(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel')),
       ),
     );
   }

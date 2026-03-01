@@ -684,8 +684,22 @@ class _MFDividendModalState extends State<_MFDividendModal> {
     );
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     final amount = double.tryParse(_amountController.text) ?? 0;
+    if (amount <= 0) return;
+
+    final controller = Provider.of<InvestmentsController>(
+      context,
+      listen: false,
+    );
+    await controller.recordInvestmentActivity(
+      investmentId: widget.investment.id,
+      type: 'dividend',
+      amount: amount,
+      description: 'Dividend from ${widget.investment.name}',
+      dateTime: _dividendDate,
+    );
+    if (!mounted) return;
     toast.showSuccess('Dividend ₹${amount.toStringAsFixed(2)} recorded');
     Navigator.of(context).pop();
   }

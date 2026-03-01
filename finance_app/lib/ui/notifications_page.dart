@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:vittara_fin_os/logic/account_model.dart';
+import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/fixed_deposit_model.dart';
@@ -404,9 +406,11 @@ class NotificationsPage extends StatelessWidget {
       BuildContext context, SipNotificationInfo entry) {
     final amountText =
         entry.amount > 0 ? '₹${entry.amount.toStringAsFixed(2)}' : '₹—';
-    final timeInfo = entry.daysUntil == 0
-        ? 'Due today'
-        : 'In ${entry.daysUntil} day${entry.daysUntil > 1 ? 's' : ''}';
+    final timeInfo = entry.daysUntil < 0
+        ? 'Overdue by ${entry.daysUntil.abs()} day${entry.daysUntil.abs() > 1 ? 's' : ''}'
+        : entry.daysUntil == 0
+            ? 'Due today'
+            : 'In ${entry.daysUntil} day${entry.daysUntil > 1 ? 's' : ''}';
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -449,6 +453,18 @@ class NotificationsPage extends StatelessWidget {
           Expanded(
             child: CupertinoButton(
               padding: const EdgeInsets.symmetric(vertical: 8),
+              color: Colors.green,
+              onPressed: () => _showSipExecutionModal(context, entry),
+              child: const Text(
+                'Execute SIP',
+                style: TextStyle(color: Colors.white, fontSize: 11),
+              ),
+            ),
+          ),
+          const SizedBox(width: Spacing.sm),
+          Expanded(
+            child: CupertinoButton(
+              padding: const EdgeInsets.symmetric(vertical: 8),
               color: Colors.grey,
               onPressed: () =>
                   _skipSip(context, entry.investment, entry.dueDate),
@@ -459,6 +475,16 @@ class NotificationsPage extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showSipExecutionModal(BuildContext context, SipNotificationInfo entry) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (_) => _SipExecutionModal(
+        investment: entry.investment,
+        dueDate: entry.dueDate,
       ),
     );
   }
@@ -680,5 +706,551 @@ class NotificationsPage extends StatelessWidget {
     if (value is DateTime) return value;
     if (value is String) return DateTime.parse(value);
     return DateTime.now();
+  }
+}
+
+class _SipExecutionModal extends StatefulWidget {
+  final Investment investment;
+  final DateTime dueDate;
+
+  const _SipExecutionModal({
+    required this.investment,
+    required this.dueDate,
+  });
+
+  @override
+  State<_SipExecutionModal> createState() => _SipExecutionModalState();
+}
+
+class _SipExecutionModalState extends State<_SipExecutionModal> {
+  late final bool _isStock;
+  late DateTime _executionDate;
+  late TextEditingController _amountController;
+  late TextEditingController _auxController;
+  late TextEditingController _dateController;
+  Account? _selectedAccount;
+
+  @override
+  void initState() {
+    super.initState();
+    _isStock = widget.investment.type == InvestmentType.stocks;
+    _executionDate = widget.dueDate;
+
+    final metadata =
+        Map<String, dynamic>.from(widget.investment.metadata ?? {});
+    final amount = _defaultAmount(metadata);
+    final aux =
+        _isStock ? _defaultUnits(metadata, amount) : _defaultNav(metadata);
+
+    _amountController = TextEditingController(
+      text: amount > 0 ? amount.toStringAsFixed(2) : '',
+    );
+    _auxController = TextEditingController(
+      text: aux > 0 ? aux.toStringAsFixed(_isStock ? 4 : 2) : '',
+    );
+    _dateController = TextEditingController(text: _formatDate(_executionDate));
+
+    final accountsController =
+        Provider.of<AccountsController>(context, listen: false);
+    final accountId = _resolveDefaultAccountId(metadata);
+    if (accountId != null) {
+      final index =
+          accountsController.accounts.indexWhere((acc) => acc.id == accountId);
+      if (index >= 0) {
+        _selectedAccount = accountsController.accounts[index];
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    _auxController.dispose();
+    _dateController.dispose();
+    super.dispose();
+  }
+
+  double _defaultAmount(Map<String, dynamic> metadata) {
+    if (_isStock) {
+      final sipType = (metadata['sipType'] as String?)?.toLowerCase();
+      if (sipType == 'quantity') {
+        final qty = _asDouble(metadata['sipQty']) ?? 0;
+        final price = _asDouble(metadata['pricePerShare']) ?? 0;
+        if (qty > 0 && price > 0) return qty * price;
+      }
+      return _asDouble(metadata['sipAmount']) ?? 0;
+    }
+
+    final sipData = metadata['sipData'];
+    if (sipData is Map<String, dynamic>) {
+      final amount = _asDouble(sipData['sipAmount']);
+      if (amount != null && amount > 0) return amount;
+    }
+    return _asDouble(metadata['sipAmount']) ?? 0;
+  }
+
+  double _defaultUnits(Map<String, dynamic> metadata, double amount) {
+    final sipType = (metadata['sipType'] as String?)?.toLowerCase();
+    if (sipType == 'quantity') {
+      return _asDouble(metadata['sipQty']) ?? 0;
+    }
+    final price = _asDouble(metadata['pricePerShare']) ?? 0;
+    if (price <= 0 || amount <= 0) return 0;
+    return amount / price;
+  }
+
+  double _defaultNav(Map<String, dynamic> metadata) {
+    return _asDouble(metadata['currentNAV']) ??
+        _asDouble(metadata['investmentNAV']) ??
+        0;
+  }
+
+  String? _resolveDefaultAccountId(Map<String, dynamic> metadata) {
+    if (_isStock) {
+      return (metadata['sipLinkedAccount'] as String?) ??
+          (metadata['accountId'] as String?);
+    }
+    final sipData = metadata['sipData'];
+    if (sipData is Map<String, dynamic>) {
+      return sipData['deductionAccountId'] as String?;
+    }
+    return (metadata['deductionAccountId'] as String?) ??
+        (metadata['sipLinkedAccount'] as String?) ??
+        (metadata['accountId'] as String?);
+  }
+
+  String? _resolveDefaultAccountName(Map<String, dynamic> metadata) {
+    if (_isStock) {
+      return (metadata['sipLinkedAccountName'] as String?) ??
+          (metadata['accountName'] as String?);
+    }
+    final sipData = metadata['sipData'];
+    if (sipData is Map<String, dynamic>) {
+      return sipData['deductionAccountName'] as String?;
+    }
+    return (metadata['deductionAccountName'] as String?) ??
+        (metadata['sipLinkedAccountName'] as String?) ??
+        (metadata['accountName'] as String?);
+  }
+
+  void _showDatePicker() {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (_) => Container(
+        height: 216,
+        color: CupertinoColors.systemBackground.resolveFrom(context),
+        child: SafeArea(
+          top: false,
+          child: CupertinoDatePicker(
+            mode: CupertinoDatePickerMode.date,
+            initialDateTime: _executionDate,
+            onDateTimeChanged: (value) {
+              setState(() {
+                _executionDate = value;
+                _dateController.text = _formatDate(value);
+              });
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showAccountPicker() {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (_) => Consumer<AccountsController>(
+        builder: (context, controller, __) {
+          final accounts = controller.accounts;
+          return Container(
+            decoration: BoxDecoration(
+              color: AppStyles.getCardColor(context),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Select Debit Account',
+                      style: TextStyle(
+                        color: AppStyles.getTextColor(context),
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    if (accounts.isEmpty)
+                      Text(
+                        'No accounts available',
+                        style: TextStyle(
+                          color: AppStyles.getSecondaryTextColor(context),
+                        ),
+                      )
+                    else
+                      ...accounts.map((account) {
+                        return CupertinoButton(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 8),
+                          onPressed: () {
+                            setState(() => _selectedAccount = account);
+                            Navigator.of(context).pop();
+                          },
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  account.name,
+                                  style: TextStyle(
+                                    color: AppStyles.getTextColor(context),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                '₹${account.balance.toStringAsFixed(2)}',
+                                style: TextStyle(
+                                  color:
+                                      AppStyles.getSecondaryTextColor(context),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                    const SizedBox(height: 8),
+                    CupertinoButton(
+                      child: const Text('Cancel'),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _submit() async {
+    final amount = double.tryParse(_amountController.text.trim()) ?? 0;
+    if (amount <= 0) {
+      toast_lib.toast.showError('Enter a valid SIP amount');
+      return;
+    }
+
+    final investmentsController =
+        Provider.of<InvestmentsController>(context, listen: false);
+    final accountsController =
+        Provider.of<AccountsController>(context, listen: false);
+
+    final metadata =
+        Map<String, dynamic>.from(widget.investment.metadata ?? {});
+    final defaultAccountId = _resolveDefaultAccountId(metadata);
+    final defaultAccountName = _resolveDefaultAccountName(metadata);
+    final selectedAccount = _selectedAccount;
+    final debitAccountId = selectedAccount?.id ?? defaultAccountId;
+    final debitAccountName = selectedAccount?.name ?? defaultAccountName;
+
+    if (selectedAccount != null) {
+      if (selectedAccount.balance < amount) {
+        toast_lib.toast
+            .showError('Insufficient balance in ${selectedAccount.name}');
+        return;
+      }
+      await accountsController.updateAccount(
+        selectedAccount.copyWith(balance: selectedAccount.balance - amount),
+      );
+    } else if (debitAccountId != null) {
+      final index = accountsController.accounts
+          .indexWhere((acc) => acc.id == debitAccountId);
+      if (index >= 0) {
+        final account = accountsController.accounts[index];
+        if (account.balance < amount) {
+          toast_lib.toast.showError('Insufficient balance in ${account.name}');
+          return;
+        }
+        await accountsController.updateAccount(
+          account.copyWith(balance: account.balance - amount),
+        );
+      }
+    }
+
+    final auxValue = double.tryParse(_auxController.text.trim()) ?? 0;
+    if (_isStock) {
+      var qtyDelta = auxValue;
+      if (qtyDelta <= 0) {
+        final price = _asDouble(metadata['pricePerShare']) ?? 0;
+        if (price > 0) {
+          qtyDelta = amount / price;
+        }
+      }
+      if (qtyDelta <= 0) {
+        toast_lib.toast.showError('Enter valid units for stock SIP');
+        return;
+      }
+      final currentQty = _asDouble(metadata['qty']) ?? 0;
+      metadata['qty'] = currentQty + qtyDelta;
+    } else {
+      var nav = auxValue;
+      if (nav <= 0) {
+        nav = _asDouble(metadata['currentNAV']) ??
+            _asDouble(metadata['investmentNAV']) ??
+            0;
+      }
+      if (nav <= 0) {
+        toast_lib.toast.showError('Enter valid NAV for MF SIP');
+        return;
+      }
+      final currentUnits = _asDouble(metadata['units']) ?? 0;
+      metadata['units'] = currentUnits + (amount / nav);
+      metadata['investmentNAV'] = nav;
+      final currentInvestmentAmount =
+          _asDouble(metadata['investmentAmount']) ?? widget.investment.amount;
+      metadata['investmentAmount'] = currentInvestmentAmount + amount;
+    }
+
+    final updatedMetadata =
+        markSipAsExecuted(metadata, _executionDate, action: 'manual_execute');
+    final updatedInvestment = widget.investment.copyWith(
+      amount: widget.investment.amount + amount,
+      metadata: updatedMetadata,
+    );
+
+    await investmentsController.updateInvestment(
+      updatedInvestment,
+      trackDelta: false,
+    );
+    await investmentsController.recordInvestmentActivity(
+      investmentId: widget.investment.id,
+      type: 'sip',
+      amount: amount,
+      description: 'SIP executed for ${widget.investment.name}',
+      dateTime: _executionDate,
+      accountId: debitAccountId,
+      accountName: debitAccountName,
+    );
+
+    if (!mounted) return;
+    toast_lib.toast.showSuccess(
+      'SIP executed for ${widget.investment.name} (₹${amount.toStringAsFixed(2)})',
+    );
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final auxLabel = _isStock ? 'Units' : 'NAV';
+    final dueText = _formatDate(widget.dueDate);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppStyles.getCardColor(context),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 20,
+            bottom: 20 + MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Center(
+                child: Container(
+                  width: 42,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: CupertinoColors.systemGrey3,
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Execute SIP',
+                style: TextStyle(
+                  color: AppStyles.getTextColor(context),
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Due date: $dueText. You can execute now or later by changing date.',
+                style: TextStyle(
+                  color: AppStyles.getSecondaryTextColor(context),
+                  fontSize: 12,
+                ),
+              ),
+              const SizedBox(height: 20),
+              _buildInputField(
+                context: context,
+                label: 'Amount',
+                controller: _amountController,
+                prefix: '₹',
+              ),
+              const SizedBox(height: 12),
+              _buildInputField(
+                context: context,
+                label: auxLabel,
+                controller: _auxController,
+              ),
+              const SizedBox(height: 12),
+              GestureDetector(
+                onTap: _showDatePicker,
+                child: _buildPickerTile(
+                  context: context,
+                  label: 'Execution Date',
+                  value: _dateController.text,
+                ),
+              ),
+              const SizedBox(height: 12),
+              GestureDetector(
+                onTap: _showAccountPicker,
+                child: _buildPickerTile(
+                  context: context,
+                  label: 'Debit Account',
+                  value: _selectedAccount?.name ?? 'Select account',
+                ),
+              ),
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  Expanded(
+                    child: CupertinoButton(
+                      color: CupertinoColors.systemGrey,
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text('Cancel'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: CupertinoButton.filled(
+                      onPressed: _submit,
+                      child: const Text('Save Execution'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInputField({
+    required BuildContext context,
+    required String label,
+    required TextEditingController controller,
+    String? prefix,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: AppStyles.getTextColor(context),
+            fontWeight: FontWeight.w600,
+            fontSize: 13,
+          ),
+        ),
+        const SizedBox(height: 6),
+        CupertinoTextField(
+          controller: controller,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          decoration: BoxDecoration(
+            color: AppStyles.getBackground(context),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          prefix: prefix == null
+              ? null
+              : Padding(
+                  padding: const EdgeInsets.only(left: 12),
+                  child: Text(
+                    prefix,
+                    style: TextStyle(
+                        color: AppStyles.getSecondaryTextColor(context)),
+                  ),
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPickerTile({
+    required BuildContext context,
+    required String label,
+    required String value,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppStyles.getBackground(context),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: AppStyles.getTextColor(context),
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              color: AppStyles.getSecondaryTextColor(context),
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(width: 6),
+          const Icon(CupertinoIcons.chevron_down, size: 14),
+        ],
+      ),
+    );
+  }
+
+  double? _asDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value);
+    return null;
+  }
+
+  String _formatDate(DateTime date) {
+    const months = [
+      '',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return '${date.day} ${months[date.month]} ${date.year}';
   }
 }
