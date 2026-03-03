@@ -150,7 +150,9 @@ class _TransactionWizardState extends State<TransactionWizard> {
       case 2:
         return 3;
       case 3:
-        if (_paymentType == TransactionPaymentType.cash) {
+        if (_paymentType == TransactionPaymentType.cash &&
+            _selectedAccount != null) {
+          // Cash account was auto-selected; skip account step
           return 7;
         }
         return 4;
@@ -314,17 +316,69 @@ class _TransactionWizardState extends State<TransactionWizard> {
                 Expanded(
                   child: Text(
                     title,
-                    style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
+                    style: AppStyles.titleStyle(context).copyWith(
+                      fontSize: TypeScale.title1,
+                      fontWeight: FontWeight.w800,
+                      height: 1.2,
+                    ),
                   ),
                 ),
                 if (trailing != null) trailing,
               ],
             ),
-            const SizedBox(height: Spacing.md),
+            SizedBox(height: Spacing.lg),
             Expanded(child: child),
             if (footer != null) footer,
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildProgressBar() {
+    final branch = _branch;
+    final Color barColor = branch == TransactionWizardBranch.income
+        ? CupertinoColors.systemGreen
+        : branch == TransactionWizardBranch.expense
+            ? CupertinoColors.systemRed
+            : CupertinoColors.systemBlue;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                branch == null ? 'New Transaction' : branch.name.capitalize(),
+                style: TextStyle(
+                  fontSize: TypeScale.callout,
+                  fontWeight: FontWeight.w700,
+                  color: barColor,
+                ),
+              ),
+              Text(
+                '${(_currentStep + 1).clamp(1, _totalSteps)} of $_totalSteps',
+                style: TextStyle(
+                  fontSize: TypeScale.caption,
+                  color: AppStyles.getSecondaryTextColor(context),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: Spacing.sm),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: (_currentStep + 1) / _totalSteps,
+              minHeight: 4,
+              backgroundColor: barColor.withValues(alpha: 0.12),
+              valueColor: AlwaysStoppedAnimation<Color>(barColor),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -348,28 +402,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
       child: SafeArea(
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Step ${(_currentStep + 1).clamp(1, _totalSteps)}/$_totalSteps',
-                    style: TextStyle(
-                      color: AppStyles.getSecondaryTextColor(context),
-                      fontSize: 12,
-                    ),
-                  ),
-                  Text(
-                    'Branch: ${_branch == null ? 'Choose' : _branch!.name.capitalize()}',
-                    style: TextStyle(
-                      color: AppStyles.getSecondaryTextColor(context),
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            _buildProgressBar(),
             const SizedBox(height: Spacing.md),
             Expanded(
               child: PageView.builder(
@@ -453,34 +486,70 @@ class _TransactionWizardState extends State<TransactionWizard> {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.symmetric(
+              horizontal: Spacing.lg, vertical: Spacing.xl),
           decoration: BoxDecoration(
-            color: AppStyles.getCardColor(context),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: color.withValues(alpha: 0.3)),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                color.withValues(alpha: 0.18),
+                color.withValues(alpha: 0.06),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(20),
+            border:
+                Border.all(color: color.withValues(alpha: 0.35), width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: color.withValues(alpha: 0.12),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                width: 56,
+                height: 56,
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.2),
+                  color: color.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
+                  border: Border.all(color: color.withValues(alpha: 0.25)),
                 ),
-                child: Icon(icon, color: color, size: 24),
+                child: Icon(icon, color: color, size: 28),
               ),
-              const SizedBox(width: Spacing.md),
+              SizedBox(width: Spacing.lg),
               Expanded(
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: AppStyles.getTextColor(context),
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: TypeScale.title3,
+                        fontWeight: FontWeight.w700,
+                        color: AppStyles.getTextColor(context),
+                      ),
+                    ),
+                    SizedBox(height: Spacing.xxs),
+                    Text(
+                      label == 'Expense'
+                          ? 'Track money going out'
+                          : label == 'Income'
+                              ? 'Record money coming in'
+                              : 'Move between accounts',
+                      style: TextStyle(
+                        fontSize: TypeScale.footnote,
+                        color: color.withValues(alpha: 0.8),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const Icon(CupertinoIcons.chevron_right, size: 20),
+              Icon(CupertinoIcons.arrow_right_circle_fill,
+                  color: color.withValues(alpha: 0.7), size: 22),
             ],
           ),
         ),
@@ -490,43 +559,80 @@ class _TransactionWizardState extends State<TransactionWizard> {
 
   Widget _buildAmountPage() {
     return _buildStepShell(
-      title: 'Amount',
+      title: 'How much?',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Enter the amount you want to track',
-            style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+            'Enter the transaction amount',
+            style: TextStyle(
+              color: AppStyles.getSecondaryTextColor(context),
+              fontSize: TypeScale.subhead,
+            ),
           ),
-          const SizedBox(height: Spacing.md),
-          Row(
-            children: [
-              Text('₹',
-                  style: AppStyles.titleStyle(context).copyWith(fontSize: 34)),
-              const SizedBox(width: 8),
-              Expanded(
-                child: CupertinoTextField(
-                  controller: _amountController,
-                  autofocus: _currentStep == 1,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  textInputAction: TextInputAction.done,
-                  onSubmitted: (_) => _tryAdvanceFromAmount(),
-                  placeholder: '0.00',
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: AppStyles.getCardColor(context),
-                    borderRadius: BorderRadius.circular(12),
+          SizedBox(height: Spacing.xxl),
+          Container(
+            padding: EdgeInsets.symmetric(
+                horizontal: Spacing.xl, vertical: Spacing.xl),
+            decoration: BoxDecoration(
+              color: AppStyles.getCardColor(context),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: (_branch == TransactionWizardBranch.income
+                        ? CupertinoColors.systemGreen
+                        : _branch == TransactionWizardBranch.expense
+                            ? CupertinoColors.systemRed
+                            : CupertinoColors.systemBlue)
+                    .withValues(alpha: 0.25),
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  '₹',
+                  style: TextStyle(
+                    fontSize: 36,
+                    fontWeight: FontWeight.w800,
+                    color: _branch == TransactionWizardBranch.income
+                        ? CupertinoColors.systemGreen
+                        : _branch == TransactionWizardBranch.expense
+                            ? CupertinoColors.systemRed
+                            : CupertinoColors.systemBlue,
                   ),
                 ),
-              ),
-            ],
+                SizedBox(width: Spacing.sm),
+                Expanded(
+                  child: CupertinoTextField(
+                    controller: _amountController,
+                    autofocus: _currentStep == 1,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    textInputAction: TextInputAction.done,
+                    onSubmitted: (_) => _tryAdvanceFromAmount(),
+                    placeholder: '0',
+                    placeholderStyle: TextStyle(
+                      fontSize: 42,
+                      fontWeight: FontWeight.w800,
+                      color: AppStyles.getSecondaryTextColor(context)
+                          .withValues(alpha: 0.3),
+                    ),
+                    style: TextStyle(
+                      fontSize: 42,
+                      fontWeight: FontWeight.w800,
+                      color: AppStyles.getTextColor(context),
+                    ),
+                    decoration: null,
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
       footer: _buildFooterButton(
-        label: 'Next',
+        label: 'Continue',
         disabled: !_hasValidAmount,
         onPressed: _nextStep,
       ),
@@ -538,13 +644,59 @@ class _TransactionWizardState extends State<TransactionWizard> {
     required VoidCallback onPressed,
     bool disabled = false,
   }) {
+    final branch = _branch;
+    final Color btnColor = branch == TransactionWizardBranch.income
+        ? CupertinoColors.systemGreen
+        : branch == TransactionWizardBranch.expense
+            ? CupertinoColors.systemRed
+            : CupertinoColors.systemBlue;
+    final Color activeColor =
+        disabled ? AppStyles.getSecondaryTextColor(context) : btnColor;
+
     return Padding(
       padding: const EdgeInsets.only(top: Spacing.md),
-      child: SizedBox(
-        width: double.infinity,
-        child: CupertinoButton.filled(
-          onPressed: disabled ? null : onPressed,
-          child: Text(label),
+      child: GestureDetector(
+        onTap: disabled ? null : onPressed,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 18),
+          decoration: BoxDecoration(
+            gradient: disabled
+                ? null
+                : LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      activeColor,
+                      activeColor.withValues(alpha: 0.75),
+                    ],
+                  ),
+            color: disabled ? AppStyles.getCardColor(context) : null,
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: disabled
+                ? []
+                : [
+                    BoxShadow(
+                      color: activeColor.withValues(alpha: 0.35),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: TypeScale.callout,
+                fontWeight: FontWeight.w700,
+                color: disabled
+                    ? AppStyles.getSecondaryTextColor(context)
+                    : CupertinoColors.white,
+                letterSpacing: 0.3,
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -652,6 +804,22 @@ class _TransactionWizardState extends State<TransactionWizard> {
               setState(() {
                 _paymentType = paymentType;
               });
+              // Auto-select cash account so balance is updated on save
+              if (paymentType == TransactionPaymentType.cash) {
+                final accounts =
+                    Provider.of<AccountsController>(context, listen: false)
+                        .accounts;
+                final cashAccounts =
+                    accounts.where((a) => a.type == AccountType.cash).toList();
+                if (cashAccounts.isNotEmpty) {
+                  setState(() => _selectedAccount = cashAccounts.first);
+                }
+              } else {
+                // Clear cash auto-selection when switching away from cash
+                if (_selectedAccount?.type == AccountType.cash) {
+                  setState(() => _selectedAccount = null);
+                }
+              }
               _nextStep();
             },
           );
@@ -667,35 +835,56 @@ class _TransactionWizardState extends State<TransactionWizard> {
     bool selected = false,
     required VoidCallback onTap,
   }) {
-    final color = selected
-        ? CupertinoColors.systemBlue
-        : AppStyles.getCardColor(context).withValues(alpha: 0.0);
     return Padding(
       padding: const EdgeInsets.only(bottom: Spacing.sm),
       child: GestureDetector(
         onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(16),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(
+              horizontal: Spacing.lg, vertical: Spacing.md),
           decoration: BoxDecoration(
-            color: selected
-                ? CupertinoColors.systemBlue.withValues(alpha: 0.12)
-                : AppStyles.getCardColor(context),
-            borderRadius: BorderRadius.circular(12),
+            gradient: selected
+                ? LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      CupertinoColors.systemBlue.withValues(alpha: 0.18),
+                      CupertinoColors.systemBlue.withValues(alpha: 0.06),
+                    ],
+                  )
+                : null,
+            color: selected ? null : AppStyles.getCardColor(context),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: selected ? CupertinoColors.systemBlue : Colors.transparent,
+              color: selected
+                  ? CupertinoColors.systemBlue.withValues(alpha: 0.6)
+                  : AppStyles.getSecondaryTextColor(context)
+                      .withValues(alpha: 0.12),
+              width: selected ? 1.5 : 1,
             ),
           ),
           child: Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(12),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: CupertinoColors.systemBlue.withValues(alpha: 0.15),
+                  color: selected
+                      ? CupertinoColors.systemBlue.withValues(alpha: 0.2)
+                      : AppStyles.getSecondaryTextColor(context)
+                          .withValues(alpha: 0.08),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(icon, color: CupertinoColors.systemBlue),
+                child: Icon(
+                  icon,
+                  color: selected
+                      ? CupertinoColors.systemBlue
+                      : AppStyles.getSecondaryTextColor(context),
+                  size: 22,
+                ),
               ),
-              const SizedBox(width: Spacing.md),
+              SizedBox(width: Spacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -703,21 +892,24 @@ class _TransactionWizardState extends State<TransactionWizard> {
                     Text(
                       label,
                       style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: AppStyles.getTextColor(context)),
-                    ),
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                          color: AppStyles.getSecondaryTextColor(context),
-                          fontSize: 12),
+                        fontSize: TypeScale.callout,
+                        fontWeight: FontWeight.w600,
+                        color: selected
+                            ? CupertinoColors.systemBlue
+                            : AppStyles.getTextColor(context),
+                      ),
                     ),
                   ],
                 ),
               ),
               if (selected)
-                const Icon(CupertinoIcons.checkmark_alt_circle_fill,
-                    color: CupertinoColors.systemBlue),
+                Icon(CupertinoIcons.checkmark_circle_fill,
+                    color: CupertinoColors.systemBlue, size: 22)
+              else
+                Icon(CupertinoIcons.circle,
+                    color: AppStyles.getSecondaryTextColor(context)
+                        .withValues(alpha: 0.3),
+                    size: 22),
             ],
           ),
         ),

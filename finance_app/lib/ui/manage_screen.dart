@@ -232,49 +232,16 @@ class _ManageScreenState extends State<ManageScreen> {
   }
 
   Widget _buildManageHeader(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(Spacing.lg),
-      decoration: AppStyles.sectionDecoration(
-        context,
-        tint: AppStyles.accentTeal,
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 54,
-            height: 54,
-            decoration: AppStyles.iconBoxDecoration(
-              context,
-              AppStyles.accentTeal,
-            ),
-            child: const Icon(
-              CupertinoIcons.square_grid_2x2_fill,
-              color: AppStyles.accentTeal,
-            ),
-          ),
-          SizedBox(width: Spacing.lg),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Manage Workspace',
-                  style: AppStyles.titleStyle(context).copyWith(
-                    fontSize: TypeScale.title2,
-                  ),
-                ),
-                SizedBox(height: Spacing.xs),
-                Text(
-                  'Reorder modules and open any entity with one tap',
-                  style: TextStyle(
-                    color: AppStyles.getSecondaryTextColor(context),
-                    fontSize: TypeScale.footnote,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+    return Padding(
+      padding: EdgeInsets.only(bottom: Spacing.sm),
+      child: Text(
+        'Hold & drag to reorder',
+        style: TextStyle(
+          fontSize: TypeScale.caption,
+          color: AppStyles.getSecondaryTextColor(context),
+          letterSpacing: 0.3,
+        ),
+        textAlign: TextAlign.center,
       ),
     );
   }

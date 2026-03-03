@@ -719,22 +719,6 @@ class DashboardScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              height: 5,
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(24),
-                ),
-                gradient: LinearGradient(
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                  colors: [
-                    accent.withValues(alpha: 0.95),
-                    accent.withValues(alpha: 0.45),
-                  ],
-                ),
-              ),
-            ),
             // Header with drag handle
             Padding(
               padding: EdgeInsets.all(Spacing.md),
