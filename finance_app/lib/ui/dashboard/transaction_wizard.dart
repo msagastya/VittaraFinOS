@@ -359,24 +359,70 @@ class _TransactionWizardState extends State<TransactionWizard> {
                   color: barColor,
                 ),
               ),
-              Text(
-                '${(_currentStep + 1).clamp(1, _totalSteps)} of $_totalSteps',
-                style: TextStyle(
-                  fontSize: TypeScale.caption,
-                  color: AppStyles.getSecondaryTextColor(context),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                decoration: BoxDecoration(
+                  color: barColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '${(_currentStep + 1).clamp(1, _totalSteps)} / $_totalSteps',
+                  style: TextStyle(
+                    fontSize: TypeScale.caption,
+                    fontWeight: FontWeight.w600,
+                    color: barColor,
+                  ),
                 ),
               ),
             ],
           ),
-          SizedBox(height: Spacing.sm),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: (_currentStep + 1) / _totalSteps,
-              minHeight: 4,
-              backgroundColor: barColor.withValues(alpha: 0.12),
-              valueColor: AlwaysStoppedAnimation<Color>(barColor),
-            ),
+          SizedBox(height: Spacing.md),
+          // Elevated segmented capsule progress
+          Row(
+            children: List.generate(_totalSteps, (i) {
+              final isDone = i < _currentStep;
+              final isCurrent = i == _currentStep;
+              return Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 2),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOutCubic,
+                    height: isCurrent ? 8 : 6,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      color: (isDone || isCurrent)
+                          ? barColor.withValues(alpha: isCurrent ? 1.0 : 0.65)
+                          : barColor.withValues(alpha: 0.10),
+                      boxShadow: isCurrent
+                          ? [
+                              BoxShadow(
+                                color: barColor.withValues(alpha: 0.6),
+                                blurRadius: 8,
+                                spreadRadius: 0,
+                                offset: const Offset(0, 2),
+                              ),
+                              BoxShadow(
+                                color: barColor.withValues(alpha: 0.3),
+                                blurRadius: 16,
+                                spreadRadius: 2,
+                                offset: const Offset(0, 1),
+                              ),
+                            ]
+                          : isDone
+                              ? [
+                                  BoxShadow(
+                                    color: barColor.withValues(alpha: 0.2),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 1),
+                                  ),
+                                ]
+                              : [],
+                    ),
+                  ),
+                ),
+              );
+            }),
           ),
         ],
       ),
