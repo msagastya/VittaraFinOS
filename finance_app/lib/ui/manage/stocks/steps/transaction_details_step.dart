@@ -105,7 +105,7 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
     final controller = Provider.of<StocksWizardController>(context);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -113,7 +113,7 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
             'Transaction Details',
             style: AppStyles.titleStyle(context),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Enter quantity and price for ${controller.selectedStock?.symbol ?? "Stock"}',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
@@ -125,12 +125,12 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
               style: TextStyle(
                   color: AppStyles.getTextColor(context),
                   fontWeight: FontWeight.w600)),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           CupertinoTextField(
             controller: _qtyController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             placeholder: '0',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -138,7 +138,7 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
             style: TextStyle(color: AppStyles.getTextColor(context)),
             onChanged: (_) => _updateController(),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
 
           // Price
           Row(
@@ -151,12 +151,12 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
               if (_isLoadingPrice) const CupertinoActivityIndicator(radius: 8),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           CupertinoTextField(
             controller: _priceController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             placeholder: '0.00',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -176,11 +176,11 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
               style: TextStyle(
                   color: AppStyles.getTextColor(context),
                   fontWeight: FontWeight.w600)),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           GestureDetector(
             onTap: _showDatePicker,
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
@@ -205,9 +205,9 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
               style: TextStyle(
                   color: AppStyles.getTextColor(context),
                   fontWeight: FontWeight.w600)),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getBackground(context).withValues(alpha: 0.7),
               borderRadius: BorderRadius.circular(12),
@@ -226,7 +226,7 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
                       size: 16,
                       color: AppStyles.getSecondaryTextColor(context),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: Spacing.sm),
                     Text(
                       'Auto-calculated (Read-only)',
                       style: TextStyle(
@@ -239,9 +239,9 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
               ],
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: CupertinoColors.systemGreen.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
@@ -280,7 +280,7 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
 
           // Summary
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(Spacing.xl),
             decoration: BoxDecoration(
               color: SemanticColors.investments.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(16),
@@ -307,7 +307,7 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
                   ],
                 ),
                 if (controller.currentValue > 0) ...[
-                  const SizedBox(height: 12),
+                  const SizedBox(height: Spacing.md),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -328,7 +328,7 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: Spacing.md),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [

@@ -45,7 +45,7 @@ class _GoldInvestedAmountStepState extends State<GoldInvestedAmountStep> {
     final controller = Provider.of<DigitalGoldWizardController>(context);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -53,7 +53,7 @@ class _GoldInvestedAmountStepState extends State<GoldInvestedAmountStep> {
             'Invested Amount',
             style: AppStyles.titleStyle(context),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Enter the total amount you spent (including GST)',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
@@ -66,12 +66,12 @@ class _GoldInvestedAmountStepState extends State<GoldInvestedAmountStep> {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           CupertinoTextField(
             controller: _amountController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             placeholder: '0.00',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -88,7 +88,7 @@ class _GoldInvestedAmountStepState extends State<GoldInvestedAmountStep> {
           ),
           const SizedBox(height: 30),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: CupertinoColors.activeBlue.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
@@ -105,7 +105,7 @@ class _GoldInvestedAmountStepState extends State<GoldInvestedAmountStep> {
                     fontSize: TypeScale.footnote,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: Spacing.sm),
                 Text(
                   'Example: You spent ₹49.44\n• Actual gold cost: ₹48 (49.44 ÷ 1.03)\n• GST (3%): ₹1.44\n• Total: ₹49.44\n\nJust enter your total spent amount, we\'ll calculate the rest!',
                   style: TextStyle(
@@ -121,7 +121,7 @@ class _GoldInvestedAmountStepState extends State<GoldInvestedAmountStep> {
           // Summary calculation
           if (controller.investedAmount > 0) ...{
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: const Color(0xFFFFB81C).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
@@ -150,7 +150,7 @@ class _GoldInvestedAmountStepState extends State<GoldInvestedAmountStep> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: Spacing.md),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -195,7 +195,7 @@ class _GoldInvestedAmountStepState extends State<GoldInvestedAmountStep> {
               ),
             ),
           },
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
         ],
       ),
     );

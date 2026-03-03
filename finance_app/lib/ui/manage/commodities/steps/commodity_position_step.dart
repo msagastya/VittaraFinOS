@@ -34,7 +34,7 @@ class _CommodityPositionStepState extends State<CommodityPositionStep> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -43,12 +43,12 @@ class _CommodityPositionStepState extends State<CommodityPositionStep> {
           const SizedBox(height: 30),
           Text('Current Price Per ${widget.ctrl.unit ?? 'Unit'} (₹)',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _currentPriceController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             placeholder: '0.00',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -62,10 +62,10 @@ class _CommodityPositionStepState extends State<CommodityPositionStep> {
               if (price > 0) widget.ctrl.updateCurrentPrice(price);
             },
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           Text('Trade Position',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           Container(
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
@@ -77,7 +77,7 @@ class _CommodityPositionStepState extends State<CommodityPositionStep> {
                 GestureDetector(
                   onTap: () => widget.ctrl.selectPosition(TradePosition.long),
                   child: Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(Spacing.lg),
                     decoration: BoxDecoration(
                       color: widget.ctrl.position == TradePosition.long
                           ? const Color(0xFF8B4513).withValues(alpha: 0.1)
@@ -113,7 +113,7 @@ class _CommodityPositionStepState extends State<CommodityPositionStep> {
                                 )
                               : null,
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: Spacing.md),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -136,7 +136,7 @@ class _CommodityPositionStepState extends State<CommodityPositionStep> {
                 GestureDetector(
                   onTap: () => widget.ctrl.selectPosition(TradePosition.short),
                   child: Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(Spacing.lg),
                     color: widget.ctrl.position == TradePosition.short
                         ? const Color(0xFF8B4513).withValues(alpha: 0.1)
                         : Colors.transparent,
@@ -166,7 +166,7 @@ class _CommodityPositionStepState extends State<CommodityPositionStep> {
                                 )
                               : null,
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: Spacing.md),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -192,9 +192,9 @@ class _CommodityPositionStepState extends State<CommodityPositionStep> {
           if (widget.ctrl.buyPrice != null &&
               widget.ctrl.currentPrice != null &&
               widget.ctrl.quantity != null) ...[
-            const SizedBox(height: 24),
+            const SizedBox(height: Spacing.xxl),
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: (widget.ctrl.gainLoss >= 0 ? CupertinoColors.systemGreen : CupertinoColors.systemRed)
                     .withValues(alpha: 0.1),
@@ -208,12 +208,12 @@ class _CommodityPositionStepState extends State<CommodityPositionStep> {
                 children: [
                   _Summary('Current Value',
                       '₹${widget.ctrl.currentValue.toStringAsFixed(2)}', true),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: Spacing.md),
                   _Summary(
                       'Gain/Loss',
                       '${widget.ctrl.gainLoss >= 0 ? '+' : ''}₹${widget.ctrl.gainLoss.toStringAsFixed(2)}',
                       widget.ctrl.gainLoss >= 0),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: Spacing.md),
                   _Summary(
                       'Return %',
                       '${widget.ctrl.gainLossPercent >= 0 ? '+' : ''}${widget.ctrl.gainLossPercent.toStringAsFixed(2)}%',

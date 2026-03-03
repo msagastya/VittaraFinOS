@@ -101,7 +101,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   children: [
                     // Search Bar
                     Container(
-                      margin: const EdgeInsets.all(16),
+                      margin: const EdgeInsets.all(Spacing.lg),
                       decoration: BoxDecoration(
                         color: AppStyles.getCardColor(context),
                         borderRadius: BorderRadius.circular(12),

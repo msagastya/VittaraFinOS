@@ -85,7 +85,7 @@ class NotificationWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(Spacing.lg),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -121,7 +121,7 @@ class NotificationWidget extends StatelessWidget {
                       color: Colors.white,
                       size: 12,
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: Spacing.xs),
                     Text(
                       _getNotificationLabel(type),
                       style: const TextStyle(
@@ -151,7 +151,7 @@ class NotificationWidget extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           // Title and Amount
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -168,7 +168,7 @@ class NotificationWidget extends StatelessWidget {
                         fontSize: TypeScale.headline,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: Spacing.xs),
                     Text(
                       subtitle,
                       style: TextStyle(
@@ -201,11 +201,11 @@ class NotificationWidget extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           // Status Widget
           statusWidget,
           if (actionButtons != null) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: Spacing.md),
             Row(
               children: actionButtons!,
             ),
@@ -217,7 +217,7 @@ class NotificationWidget extends StatelessWidget {
 
   static Widget _buildAutoLinkEnabled(BuildContext context, FixedDeposit fd) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(Spacing.md),
       decoration: BoxDecoration(
         color: CupertinoColors.systemGreen.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
@@ -229,7 +229,7 @@ class NotificationWidget extends StatelessWidget {
             size: 16,
             color: CupertinoColors.systemGreen,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: Spacing.sm),
           Expanded(
             child: Text(
               'Auto-link enabled. Payout will be credited to ${fd.linkedAccountName}',
@@ -259,7 +259,7 @@ class NotificationWidget extends StatelessWidget {
             size: 14,
             color: AppStyles.getSecondaryTextColor(context),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: Spacing.sm),
           Expanded(
             child: Text(
               'Auto-link is disabled. Enable to auto-credit this payout.',
@@ -289,7 +289,7 @@ class NotificationWidget extends StatelessWidget {
             size: 14,
             color: AppStyles.getSecondaryTextColor(context),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: Spacing.sm),
           Expanded(
             child: Text(
               'Will be debited from $accountName',

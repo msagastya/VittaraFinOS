@@ -49,7 +49,7 @@ class _SIPAmountStepState extends State<SIPAmountStep> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -57,7 +57,7 @@ class _SIPAmountStepState extends State<SIPAmountStep> {
             'SIP Amount',
             style: AppStyles.titleStyle(context),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Enter the monthly SIP amount you want to invest',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
@@ -70,12 +70,12 @@ class _SIPAmountStepState extends State<SIPAmountStep> {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _amountController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             placeholder: '0.00',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -108,7 +108,7 @@ class _SIPAmountStepState extends State<SIPAmountStep> {
           ],
           const SizedBox(height: 40),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: CupertinoColors.systemBlue.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
@@ -123,7 +123,7 @@ class _SIPAmountStepState extends State<SIPAmountStep> {
                   size: 16,
                   color: AppStyles.getSecondaryTextColor(context),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: Spacing.md),
                 Expanded(
                   child: Text(
                     'This amount will be automatically deducted from your selected bank account every month.',

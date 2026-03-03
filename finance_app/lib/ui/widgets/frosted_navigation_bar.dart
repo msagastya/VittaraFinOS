@@ -219,7 +219,7 @@ class FrostedFloatingNavigationBar extends StatelessWidget {
     required this.currentIndex,
     required this.onTap,
     required this.items,
-    this.margin = const EdgeInsets.all(16.0),
+    this.margin = const EdgeInsets.all(Spacing.lg),
     this.borderRadius = 24.0,
   });
 

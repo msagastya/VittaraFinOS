@@ -142,7 +142,7 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(Spacing.lg),
                           decoration: BoxDecoration(
                             color: _investment.color.withValues(alpha: 0.15),
                             shape: BoxShape.circle,
@@ -393,7 +393,7 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
@@ -1538,7 +1538,7 @@ class _SellModalState extends State<_SellModal> {
           controller: _qtyController,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           placeholder: '0',
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(Spacing.lg),
           decoration: BoxDecoration(
             color: AppStyles.getBackground(context),
             borderRadius: BorderRadius.circular(12),
@@ -1556,7 +1556,7 @@ class _SellModalState extends State<_SellModal> {
           controller: _priceController,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           placeholder: '0.00',
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(Spacing.lg),
           decoration: BoxDecoration(
             color: AppStyles.getBackground(context),
             borderRadius: BorderRadius.circular(12),
@@ -1578,7 +1578,7 @@ class _SellModalState extends State<_SellModal> {
         GestureDetector(
           onTap: _showDatePicker,
           child: Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getBackground(context),
               borderRadius: BorderRadius.circular(12),
@@ -1714,7 +1714,7 @@ class _SellModalState extends State<_SellModal> {
           controller: _chargesController,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           placeholder: '0.00',
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(Spacing.lg),
           decoration: BoxDecoration(
             color: AppStyles.getBackground(context),
             borderRadius: BorderRadius.circular(12),
@@ -2363,7 +2363,7 @@ class _SIPModalState extends State<_SIPModal> {
           controller: _isFixedAmount ? _amountController : _qtyController,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           placeholder: '0.00',
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(Spacing.lg),
           decoration: BoxDecoration(
             color: AppStyles.getBackground(context),
             borderRadius: BorderRadius.circular(12),
@@ -2606,7 +2606,7 @@ class _EditModalState extends State<_EditModal> {
                 CupertinoTextField(
                   controller: _nameController,
                   placeholder: 'Stock name',
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
                     color: AppStyles.getBackground(context),
                     borderRadius: BorderRadius.circular(12),
@@ -2624,7 +2624,7 @@ class _EditModalState extends State<_EditModal> {
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
                   placeholder: '0.00',
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
                     color: AppStyles.getBackground(context),
                     borderRadius: BorderRadius.circular(12),
@@ -3062,7 +3062,7 @@ class _AccountSelector extends StatelessWidget {
 
           return SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(Spacing.xxl),
               child: SafeArea(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,

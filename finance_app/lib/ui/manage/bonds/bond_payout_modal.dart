@@ -74,7 +74,7 @@ class _BondPayoutModalState extends State<BondPayoutModal> {
                         Navigator.pop(ctx);
                       },
                       child: Container(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(Spacing.md),
                         margin: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
@@ -138,7 +138,7 @@ class _BondPayoutModalState extends State<BondPayoutModal> {
         child: Column(
           children: [
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 border: Border(
@@ -242,7 +242,7 @@ class _BondPayoutModalState extends State<BondPayoutModal> {
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
               placeholder: '0.00',
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(Spacing.md),
               decoration: BoxDecoration(
                 color: AppStyles.getBackground(context),
                 borderRadius: BorderRadius.circular(12),
@@ -261,7 +261,7 @@ class _BondPayoutModalState extends State<BondPayoutModal> {
             GestureDetector(
               onTap: () => _showDatePicker(context),
               child: Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(Spacing.md),
                 decoration: BoxDecoration(
                   color: AppStyles.getBackground(context),
                   borderRadius: BorderRadius.circular(12),
@@ -287,7 +287,7 @@ class _BondPayoutModalState extends State<BondPayoutModal> {
             GestureDetector(
               onTap: () => _showAccountSelector(context),
               child: Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(Spacing.md),
                 decoration: BoxDecoration(
                   color: AppStyles.getBackground(context),
                   borderRadius: BorderRadius.circular(12),

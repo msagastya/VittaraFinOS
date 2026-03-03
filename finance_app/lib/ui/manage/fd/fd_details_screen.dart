@@ -54,7 +54,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
 
             // Header Card with Key Information
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(Spacing.xl),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 border: Border(
@@ -83,7 +83,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: Spacing.xs),
                             Text(
                               'Linked: ${widget.fd.linkedAccountName}',
                               style: TextStyle(
@@ -115,7 +115,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: Spacing.xl),
                   // Key Metrics
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -145,7 +145,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
             ),
             // Detailed Information
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(Spacing.xl),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -158,7 +158,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                       fontSize: TypeScale.headline,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: Spacing.lg),
                   _buildTimelineItem(
                     context,
                     'Created',
@@ -186,7 +186,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                       _formatDate(_getRenewalDate() ?? DateTime.now()),
                       CupertinoIcons.checkmark_circle,
                     ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: Spacing.xl),
                   // Details Grid
                   Text(
                     'Details',
@@ -196,7 +196,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                       fontSize: TypeScale.headline,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: Spacing.lg),
                   _buildDetailRow(
                     'Interest Rate',
                     '${_getLatestRenewalCycle()?.interestRate ?? widget.fd.interestRate}% p.a.',
@@ -224,7 +224,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                     'Total Interest',
                     '₹${_getTotalInterest().toStringAsFixed(2)}',
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: Spacing.xl),
                   // Status-specific info
                   if (widget.fd.status == FDStatus.prematurelyWithdrawn)
                     Column(
@@ -238,7 +238,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                             fontSize: TypeScale.body,
                           ),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: Spacing.md),
                         _buildDetailRow(
                           'Withdrawal Date',
                           _formatDate(
@@ -283,7 +283,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
             fontSize: TypeScale.footnote,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: Spacing.sm),
         Text(
           value,
           style: TextStyle(
@@ -307,7 +307,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
       child: Row(
         children: [
           Icon(icon, size: 20, color: AppStyles.getPrimaryColor(context)),
-          const SizedBox(width: 16),
+          const SizedBox(width: Spacing.lg),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -319,7 +319,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                     fontSize: TypeScale.footnote,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: Spacing.xs),
                 Text(
                   date,
                   style: TextStyle(
@@ -380,7 +380,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
               CupertinoColors.systemOrange,
               () => _showPrematureWithdrawalModal(context),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: Spacing.md),
           ],
           _buildActionButton(
             context,
@@ -390,7 +390,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
             AppStyles.getPrimaryColor(context),
             () => _showPayoutScheduleModal(context),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           _buildActionButton(
             context,
             'Edit Details',
@@ -399,7 +399,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
             Colors.purple,
             () => _showEditModal(context),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           _buildActionButton(
             context,
             'View History',
@@ -408,7 +408,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
             AppStyles.getSecondaryTextColor(context),
             () => _showHistoryModal(context),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           _buildActionButton(
             context,
             'Delete',
@@ -435,7 +435,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(Spacing.lg),
         decoration: BoxDecoration(
           color: AppStyles.getCardColor(context),
           borderRadius: BorderRadius.circular(12),
@@ -454,7 +454,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
               ),
               child: Icon(icon, color: color, size: 20),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: Spacing.lg),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -499,7 +499,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
             children: [
               // Header
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color: AppStyles.getCardColor(context),
                   border: Border(
@@ -533,7 +533,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
               // Content
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(Spacing.lg),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -544,7 +544,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                           fontSize: TypeScale.footnote,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: Spacing.sm),
                       Text(
                         '₹${widget.fd.maturityValue.toStringAsFixed(2)}',
                         style: TextStyle(
@@ -553,7 +553,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: Spacing.xxl),
                       Text(
                         'Options',
                         style: TextStyle(
@@ -562,7 +562,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: Spacing.md),
                       _buildReinvestOption(
                         context,
                         'Create New FD',
@@ -573,7 +573,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                               'Create new FD with ₹${widget.fd.maturityValue.toStringAsFixed(0)}');
                         },
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: Spacing.md),
                       _buildReinvestOption(
                         context,
                         'Transfer to Account',
@@ -603,7 +603,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(Spacing.lg),
         decoration: BoxDecoration(
           color: AppStyles.getCardColor(context),
           borderRadius: BorderRadius.circular(12),
@@ -627,7 +627,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                 color: AppStyles.getPrimaryColor(context),
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: Spacing.lg),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -640,7 +640,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                       fontSize: TypeScale.body,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: Spacing.xs),
                   Text(
                     description,
                     style: TextStyle(
@@ -699,7 +699,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                 children: [
                   // Header
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(Spacing.lg),
                     decoration: BoxDecoration(
                       color: AppStyles.getCardColor(context),
                       border: Border(
@@ -733,12 +733,12 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                   // Content
                   Expanded(
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(Spacing.lg),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.all(Spacing.md),
                             decoration: BoxDecoration(
                               color: CupertinoColors.systemOrange.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
@@ -750,7 +750,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                                   color: CupertinoColors.systemOrange,
                                   size: 16,
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: Spacing.sm),
                                 Expanded(
                                   child: Text(
                                     'Early withdrawal may incur penalties and reduced interest.',
@@ -763,7 +763,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                               ],
                             ),
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: Spacing.xl),
                           // Withdrawal Date
                           Text(
                             'Withdrawal Date',
@@ -772,7 +772,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: Spacing.sm),
                           GestureDetector(
                             onTap: () async {
                               final picked =
@@ -813,7 +813,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                               }
                             },
                             child: Container(
-                              padding: const EdgeInsets.all(12),
+                              padding: const EdgeInsets.all(Spacing.md),
                               decoration: BoxDecoration(
                                 color: AppStyles.getCardColor(context),
                                 borderRadius: BorderRadius.circular(8),
@@ -843,7 +843,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: Spacing.xl),
                           Text(
                             'Withdrawal Amount',
                             style: TextStyle(
@@ -851,7 +851,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: Spacing.sm),
                           Text(
                             'Expected amount (you can adjust if agreed with bank)',
                             style: TextStyle(
@@ -859,12 +859,12 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                               fontSize: TypeScale.footnote,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: Spacing.sm),
                           CupertinoTextField(
                             controller: withdrawalAmountController,
                             keyboardType: const TextInputType.numberWithOptions(
                                 decimal: true),
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.all(Spacing.md),
                             decoration: BoxDecoration(
                               color: AppStyles.getCardColor(context),
                               borderRadius: BorderRadius.circular(8),
@@ -886,7 +886,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: Spacing.xxl),
                           Text(
                             'Linked Account',
                             style: TextStyle(
@@ -894,7 +894,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                               fontSize: TypeScale.footnote,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: Spacing.sm),
                           Text(
                             widget.fd.linkedAccountName,
                             style: TextStyle(
@@ -903,14 +903,14 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: Spacing.xxl),
                         ],
                       ),
                     ),
                   ),
                   // Action buttons
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(Spacing.lg),
                     decoration: BoxDecoration(
                       color: AppStyles.getCardColor(context),
                       border: Border(
@@ -935,7 +935,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: Spacing.md),
                         Expanded(
                           child: CupertinoButton(
                             onPressed: () async {
@@ -949,7 +949,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                                     title: const Text('Confirm Withdrawal'),
                                     content: Column(
                                       children: [
-                                        const SizedBox(height: 8),
+                                        const SizedBox(height: Spacing.sm),
                                         Text(
                                           'Amount: ₹${amount.toStringAsFixed(2)}',
                                           style: const TextStyle(
@@ -957,7 +957,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
-                                        const SizedBox(height: 8),
+                                        const SizedBox(height: Spacing.sm),
                                         Text(
                                           'Date: ${withdrawalDate.toString().split(' ')[0]}',
                                           style: TextStyle(
@@ -967,7 +967,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                                                     context),
                                           ),
                                         ),
-                                        const SizedBox(height: 12),
+                                        const SizedBox(height: Spacing.md),
                                         const Text(
                                           'Do you want to credit this amount to your linked account?',
                                         ),
@@ -1146,7 +1146,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
           children: [
             // Header
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 border: Border(
@@ -1193,11 +1193,11 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: Spacing.md),
                       ...widget.fd.pastPayouts.map((payout) {
                         return _buildPayoutItem(context, payout, isPast: true);
                       }),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: Spacing.xl),
                     ],
                     // Upcoming payouts
                     if (widget.fd.upcomingPayouts.isNotEmpty) ...[
@@ -1208,7 +1208,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: Spacing.md),
                       ...widget.fd.upcomingPayouts.map((payout) {
                         return _buildPayoutItem(context, payout, isPast: false);
                       }),
@@ -1227,7 +1227,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
       {required bool isPast}) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(Spacing.md),
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(8),
@@ -1246,7 +1246,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: Spacing.xs),
                 Text(
                   payout.payoutType == 'interest'
                       ? 'Interest'
@@ -1300,7 +1300,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
             children: [
               // Header
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color: AppStyles.getCardColor(context),
                   border: Border(
@@ -1347,9 +1347,9 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: Spacing.lg),
                       Container(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(Spacing.lg),
                         decoration: BoxDecoration(
                           color: AppStyles.getCardColor(context),
                           borderRadius: BorderRadius.circular(12),
@@ -1369,7 +1369,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                                       fontSize: TypeScale.body,
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
+                                  const SizedBox(height: Spacing.xs),
                                   Text(
                                     'Auto-credit payouts to linked account',
                                     style: TextStyle(
@@ -1433,7 +1433,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: Spacing.xxl),
                       Text(
                         'Bank Account',
                         style: TextStyle(
@@ -1442,9 +1442,9 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: Spacing.md),
                       Container(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(Spacing.md),
                         decoration: BoxDecoration(
                           color: AppStyles.getCardColor(context),
                           borderRadius: BorderRadius.circular(8),
@@ -1460,7 +1460,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                                 fontSize: TypeScale.body,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: Spacing.xs),
                             Text(
                               widget.fd.bankName ?? 'Bank Account',
                               style: TextStyle(
@@ -1493,7 +1493,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
             children: [
               // Header
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color: AppStyles.getCardColor(context),
                   border: Border(
@@ -1598,7 +1598,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
             child:
                 Icon(icon, color: AppStyles.getPrimaryColor(context), size: 20),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: Spacing.lg),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1611,7 +1611,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                     fontSize: TypeScale.body,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: Spacing.xs),
                 Text(
                   date,
                   style: TextStyle(
@@ -1619,7 +1619,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                     fontSize: TypeScale.subhead,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: Spacing.xxs),
                 Text(
                   description,
                   style: TextStyle(
@@ -1815,8 +1815,8 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
     final daysUntil = widget.fd.maturityDate.difference(DateTime.now()).inDays;
 
     return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.all(Spacing.lg),
+      padding: const EdgeInsets.all(Spacing.lg),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -1851,7 +1851,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                       color: Colors.white,
                       size: 12,
                     ),
-                    SizedBox(width: 4),
+                    SizedBox(width: Spacing.xs),
                     Text(
                       'FD Maturity',
                       style: TextStyle(
@@ -1881,7 +1881,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: Spacing.lg),
           Text(
             'Your FD matures on ${_formatDate(widget.fd.maturityDate)}',
             style: TextStyle(
@@ -1890,7 +1890,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
               fontSize: TypeScale.body,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: Spacing.xs),
           Text(
             'Choose to renew or withdraw your investment',
             style: TextStyle(
@@ -1898,7 +1898,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
               fontSize: TypeScale.footnote,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: Spacing.lg),
           Row(
             children: [
               Expanded(
@@ -1946,7 +1946,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: Spacing.md),
               Expanded(
                 child: CupertinoButton(
                   color: CupertinoColors.systemGreen,

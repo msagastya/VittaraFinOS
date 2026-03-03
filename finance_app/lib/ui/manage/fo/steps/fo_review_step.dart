@@ -14,7 +14,7 @@ class FOReviewStep extends StatelessWidget {
     final isGain = ctrl.gainLoss >= 0;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -45,7 +45,7 @@ class FOReviewStep extends StatelessWidget {
                   '${ctrl.expiryDate.day}/${ctrl.expiryDate.month}/${ctrl.expiryDate.year}'),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           _Card(
             children: [
               _Row('Total Cost', '₹${ctrl.totalCost.toStringAsFixed(2)}'),
@@ -60,7 +60,7 @@ class FOReviewStep extends StatelessWidget {
             ],
           ),
           if (ctrl.selectedType != FOType.futures && ctrl.greeks != null) ...[
-            const SizedBox(height: 20),
+            const SizedBox(height: Spacing.xl),
             _Card(
               children: [
                 _Row('Delta', ctrl.greeks!.delta.toStringAsFixed(4)),
@@ -85,7 +85,7 @@ class _Card extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(Spacing.lg),
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(12),
@@ -97,7 +97,7 @@ class _Card extends StatelessWidget {
           (i) => Column(
             children: [
               children[i],
-              if (i < children.length - 1) const SizedBox(height: 12),
+              if (i < children.length - 1) const SizedBox(height: Spacing.md),
             ],
           ),
         ),

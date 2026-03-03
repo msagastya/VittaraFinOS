@@ -59,7 +59,7 @@ class _TenureStepState extends State<TenureStep> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -67,7 +67,7 @@ class _TenureStepState extends State<TenureStep> {
             'Tenure Duration',
             style: AppStyles.titleStyle(context),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Enter tenure as Years, Months, and/or Days. All fields are optional, but at least one must be filled.',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
@@ -80,7 +80,7 @@ class _TenureStepState extends State<TenureStep> {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           // Three input fields in a row
           Row(
             children: [
@@ -102,7 +102,7 @@ class _TenureStepState extends State<TenureStep> {
                       controller: _yearsController,
                       keyboardType: TextInputType.number,
                       placeholder: '0',
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(Spacing.md),
                       decoration: BoxDecoration(
                         color: AppStyles.getCardColor(context),
                         borderRadius: BorderRadius.circular(12),
@@ -132,7 +132,7 @@ class _TenureStepState extends State<TenureStep> {
                       controller: _monthsController,
                       keyboardType: TextInputType.number,
                       placeholder: '0',
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(Spacing.md),
                       decoration: BoxDecoration(
                         color: AppStyles.getCardColor(context),
                         borderRadius: BorderRadius.circular(12),
@@ -162,7 +162,7 @@ class _TenureStepState extends State<TenureStep> {
                       controller: _daysController,
                       keyboardType: TextInputType.number,
                       placeholder: '0',
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(Spacing.md),
                       decoration: BoxDecoration(
                         color: AppStyles.getCardColor(context),
                         borderRadius: BorderRadius.circular(12),
@@ -196,7 +196,7 @@ class _TenureStepState extends State<TenureStep> {
                   parts.isNotEmpty ? parts.join(', ') : 'No tenure entered';
 
               return Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color:
                       AppStyles.getBackground(context).withValues(alpha: 0.5),
@@ -218,7 +218,7 @@ class _TenureStepState extends State<TenureStep> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: Spacing.md),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -236,7 +236,7 @@ class _TenureStepState extends State<TenureStep> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: Spacing.sm),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -254,7 +254,7 @@ class _TenureStepState extends State<TenureStep> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: Spacing.md),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [

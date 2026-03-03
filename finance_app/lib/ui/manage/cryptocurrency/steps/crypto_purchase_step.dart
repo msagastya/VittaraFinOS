@@ -52,7 +52,7 @@ class _CryptoPurchaseStepState extends State<CryptoPurchaseStep> {
     final controller = Provider.of<CryptoWizardController>(context);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -60,7 +60,7 @@ class _CryptoPurchaseStepState extends State<CryptoPurchaseStep> {
             'Purchase Details',
             style: AppStyles.titleStyle(context),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Enter your purchase information',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
@@ -75,7 +75,7 @@ class _CryptoPurchaseStepState extends State<CryptoPurchaseStep> {
               fontSize: TypeScale.body,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           GestureDetector(
             onTap: () async {
               final pickedDate = await showCupertinoModalPopup<DateTime>(
@@ -87,7 +87,7 @@ class _CryptoPurchaseStepState extends State<CryptoPurchaseStep> {
                     child: Column(
                       children: [
                         Padding(
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(Spacing.md),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -126,7 +126,7 @@ class _CryptoPurchaseStepState extends State<CryptoPurchaseStep> {
               }
             },
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
@@ -149,7 +149,7 @@ class _CryptoPurchaseStepState extends State<CryptoPurchaseStep> {
               ),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           // Quantity
           Text(
             'Quantity (${controller.cryptoSymbol ?? "Coins"})',
@@ -159,12 +159,12 @@ class _CryptoPurchaseStepState extends State<CryptoPurchaseStep> {
               fontSize: TypeScale.body,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _quantityController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             placeholder: '0.00',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -177,7 +177,7 @@ class _CryptoPurchaseStepState extends State<CryptoPurchaseStep> {
               }
             },
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           // Price per Unit
           Text(
             'Price per ${controller.cryptoSymbol ?? "Coin"} (₹)',
@@ -187,12 +187,12 @@ class _CryptoPurchaseStepState extends State<CryptoPurchaseStep> {
               fontSize: TypeScale.body,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _priceController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             placeholder: '0.00',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -212,7 +212,7 @@ class _CryptoPurchaseStepState extends State<CryptoPurchaseStep> {
               }
             },
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           // Transaction Fee (Optional)
           Text(
             'Transaction Fee (₹) - Optional',
@@ -222,12 +222,12 @@ class _CryptoPurchaseStepState extends State<CryptoPurchaseStep> {
               fontSize: TypeScale.body,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _feeController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             placeholder: '0.00',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -245,7 +245,7 @@ class _CryptoPurchaseStepState extends State<CryptoPurchaseStep> {
               controller.updateTransactionFee(fee);
             },
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           // Notes
           Text(
             'Notes - Optional',
@@ -255,11 +255,11 @@ class _CryptoPurchaseStepState extends State<CryptoPurchaseStep> {
               fontSize: TypeScale.body,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _notesController,
             placeholder: 'Add notes about this purchase...',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             maxLines: 3,
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
@@ -277,7 +277,7 @@ class _CryptoPurchaseStepState extends State<CryptoPurchaseStep> {
               controller.pricePerUnit != null &&
               controller.pricePerUnit! > 0) ...{
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: const Color(0xFFF7931A).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
@@ -292,13 +292,13 @@ class _CryptoPurchaseStepState extends State<CryptoPurchaseStep> {
                     value: '₹${controller.totalInvested.toStringAsFixed(2)}',
                     isBold: true,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: Spacing.md),
                   _SummaryRow(
                     label: 'Transaction Fee',
                     value:
                         '₹${(controller.transactionFee ?? 0).toStringAsFixed(2)}',
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: Spacing.md),
                   _SummaryRow(
                     label: 'Total Cost',
                     value: '₹${controller.totalWithFee.toStringAsFixed(2)}',
@@ -309,7 +309,7 @@ class _CryptoPurchaseStepState extends State<CryptoPurchaseStep> {
               ),
             ),
           },
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
         ],
       ),
     );

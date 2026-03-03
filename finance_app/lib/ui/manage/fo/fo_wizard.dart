@@ -12,6 +12,7 @@ import 'package:vittara_fin_os/ui/manage/fo/steps/fo_greeks_step.dart';
 import 'package:vittara_fin_os/ui/manage/fo/steps/fo_risk_analysis_step.dart';
 import 'package:vittara_fin_os/ui/manage/fo/steps/fo_review_step.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class FOWizard extends StatelessWidget {
@@ -195,7 +196,7 @@ class _FOWizardContentState extends State<_FOWizardContent> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(Spacing.xl),
               child: SizedBox(
                 width: double.infinity,
                 child: CupertinoButton.filled(

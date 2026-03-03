@@ -402,7 +402,7 @@ class _IconPickerModalState extends State<IconPickerModal> {
               borderRadius: BorderRadius.circular(2.5),
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
 
           // Title
           Padding(
@@ -412,7 +412,7 @@ class _IconPickerModalState extends State<IconPickerModal> {
               style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title2),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: Spacing.lg),
 
           // Search Bar
           Padding(
@@ -436,7 +436,7 @@ class _IconPickerModalState extends State<IconPickerModal> {
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: Spacing.lg),
 
           // Icons Grid
           Expanded(
@@ -484,7 +484,7 @@ class _IconPickerModalState extends State<IconPickerModal> {
               },
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
         ],
       ),
     );

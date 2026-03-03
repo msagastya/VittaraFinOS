@@ -305,22 +305,22 @@ class _ContactsScreenState extends State<ContactsScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(height: 16),
+            const SizedBox(height: Spacing.lg),
             CupertinoTextField(
               controller: nameController,
               placeholder: 'Name',
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(Spacing.md),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: Spacing.md),
             CupertinoTextField(
               controller: phoneController,
               placeholder: 'Phone Number (Optional)',
               keyboardType: TextInputType.phone,
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(Spacing.md),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(8),
@@ -371,22 +371,22 @@ class _ContactsScreenState extends State<ContactsScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(height: 16),
+            const SizedBox(height: Spacing.lg),
             CupertinoTextField(
               controller: nameController,
               placeholder: 'Name',
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(Spacing.md),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: Spacing.md),
             CupertinoTextField(
               controller: phoneController,
               placeholder: 'Phone Number (Optional)',
               keyboardType: TextInputType.phone,
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(Spacing.md),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(8),
@@ -494,7 +494,7 @@ class _PhoneContactsPickerSheetState extends State<_PhoneContactsPickerSheet> {
                 onChanged: (_) => setState(() {}),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: Spacing.sm),
             Expanded(
               child: filteredContacts.isEmpty
                   ? Center(
@@ -514,7 +514,7 @@ class _PhoneContactsPickerSheetState extends State<_PhoneContactsPickerSheet> {
                           onTap: () => Navigator.pop(context, contact),
                           child: Container(
                             margin: const EdgeInsets.symmetric(vertical: 4),
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.all(Spacing.md),
                             decoration: BoxDecoration(
                               color: AppStyles.getBackground(context),
                               borderRadius: BorderRadius.circular(12),
@@ -539,7 +539,7 @@ class _PhoneContactsPickerSheetState extends State<_PhoneContactsPickerSheet> {
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 12),
+                                const SizedBox(width: Spacing.md),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:

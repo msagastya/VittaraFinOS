@@ -35,7 +35,7 @@ class _ReviewStepState extends State<ReviewStep> {
     final controller = Provider.of<RDWizardController>(context);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -43,7 +43,7 @@ class _ReviewStepState extends State<ReviewStep> {
             'Review RD Details',
             style: AppStyles.titleStyle(context),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Review and confirm your RD details before creation',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
@@ -56,11 +56,11 @@ class _ReviewStepState extends State<ReviewStep> {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           CupertinoTextField(
             controller: _nameController,
             placeholder: 'e.g., Monthly Savings RD',
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(Spacing.md),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(8),
@@ -68,7 +68,7 @@ class _ReviewStepState extends State<ReviewStep> {
             style: TextStyle(color: AppStyles.getTextColor(context)),
             onChanged: (value) => controller.updateRDName(value),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           Text(
             'Notes (Optional)',
             style: TextStyle(
@@ -76,11 +76,11 @@ class _ReviewStepState extends State<ReviewStep> {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           CupertinoTextField(
             controller: _notesController,
             placeholder: 'Add any notes...',
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(Spacing.md),
             minLines: 2,
             maxLines: 4,
             decoration: BoxDecoration(
@@ -93,7 +93,7 @@ class _ReviewStepState extends State<ReviewStep> {
           ),
           const SizedBox(height: 30),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getBackground(context).withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(12),
@@ -114,39 +114,39 @@ class _ReviewStepState extends State<ReviewStep> {
                     fontSize: TypeScale.headline,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: Spacing.lg),
                 _buildSummaryRow(
                   context,
                   'Linked Account',
                   controller.selectedAccount?.name ?? 'N/A',
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 _buildSummaryRow(
                   context,
                   'Per Installment',
                   '₹${controller.monthlyAmount.toStringAsFixed(2)}',
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 _buildSummaryRow(
                   context,
                   'Total Installments',
                   '${controller.totalInstallments}',
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 _buildSummaryRow(
                   context,
                   'Interest Rate',
                   '${controller.interestRate.toStringAsFixed(2)}% p.a.',
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 _buildSummaryRow(
                   context,
                   'Payment Frequency',
                   controller.paymentFrequency.name,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: Spacing.lg),
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(Spacing.md),
                   decoration: BoxDecoration(
                     color: AppStyles.getPrimaryColor(context)
                         .withValues(alpha: 0.1),
@@ -173,7 +173,7 @@ class _ReviewStepState extends State<ReviewStep> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: Spacing.sm),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -196,10 +196,10 @@ class _ReviewStepState extends State<ReviewStep> {
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           // Debit Toggle
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -227,7 +227,7 @@ class _ReviewStepState extends State<ReviewStep> {
                               fontSize: TypeScale.callout,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: Spacing.xs),
                           Text(
                             'Deduct ₹${controller.monthlyAmount.toStringAsFixed(2)} from ${controller.selectedAccount?.name ?? 'account'}',
                             style: TextStyle(
@@ -245,7 +245,7 @@ class _ReviewStepState extends State<ReviewStep> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
@@ -260,7 +260,7 @@ class _ReviewStepState extends State<ReviewStep> {
                         size: 14,
                         color: AppStyles.getSecondaryTextColor(context),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: Spacing.sm),
                       Expanded(
                         child: Text(
                           'Turn on only if you want to debit now. For legacy RDs, leave off.',
@@ -276,10 +276,10 @@ class _ReviewStepState extends State<ReviewStep> {
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           // Auto-Payment Toggle
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -298,7 +298,7 @@ class _ReviewStepState extends State<ReviewStep> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: Spacing.xs),
                       Text(
                         'Automatically debit future installments',
                         style: TextStyle(

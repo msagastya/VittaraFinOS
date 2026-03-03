@@ -40,7 +40,7 @@ class _BondsPurchaseStepState extends State<BondsPurchaseStep> {
     final controller = Provider.of<BondsWizardController>(context);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -48,7 +48,7 @@ class _BondsPurchaseStepState extends State<BondsPurchaseStep> {
             'Purchase Information',
             style: AppStyles.titleStyle(context),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Enter purchase date and price',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
@@ -63,7 +63,7 @@ class _BondsPurchaseStepState extends State<BondsPurchaseStep> {
               fontSize: TypeScale.body,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           GestureDetector(
             onTap: () async {
               final pickedDate = await showCupertinoModalPopup<DateTime>(
@@ -75,7 +75,7 @@ class _BondsPurchaseStepState extends State<BondsPurchaseStep> {
                     child: Column(
                       children: [
                         Padding(
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(Spacing.md),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -114,7 +114,7 @@ class _BondsPurchaseStepState extends State<BondsPurchaseStep> {
               }
             },
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
@@ -137,7 +137,7 @@ class _BondsPurchaseStepState extends State<BondsPurchaseStep> {
               ),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           // Purchase Price per Bond
           Text(
             'Purchase Price per Bond (₹)',
@@ -147,12 +147,12 @@ class _BondsPurchaseStepState extends State<BondsPurchaseStep> {
               fontSize: TypeScale.body,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _priceController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             placeholder: '1000',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -172,7 +172,7 @@ class _BondsPurchaseStepState extends State<BondsPurchaseStep> {
               }
             },
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           // Notes
           Text(
             'Notes (Optional)',
@@ -182,11 +182,11 @@ class _BondsPurchaseStepState extends State<BondsPurchaseStep> {
               fontSize: TypeScale.body,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _notesController,
             placeholder: 'Add any notes about this bond...',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             maxLines: 4,
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
@@ -200,7 +200,7 @@ class _BondsPurchaseStepState extends State<BondsPurchaseStep> {
           const SizedBox(height: 30),
           // Summary
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: const Color(0xFF007AFF).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
@@ -230,7 +230,7 @@ class _BondsPurchaseStepState extends State<BondsPurchaseStep> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -253,7 +253,7 @@ class _BondsPurchaseStepState extends State<BondsPurchaseStep> {
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
         ],
       ),
     );

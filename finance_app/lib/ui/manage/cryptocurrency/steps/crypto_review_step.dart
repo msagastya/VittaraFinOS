@@ -12,7 +12,7 @@ class CryptoReviewStep extends StatelessWidget {
     final controller = Provider.of<CryptoWizardController>(context);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -20,7 +20,7 @@ class CryptoReviewStep extends StatelessWidget {
             'Review & Confirm',
             style: AppStyles.titleStyle(context),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Verify all details before saving',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
@@ -28,7 +28,7 @@ class CryptoReviewStep extends StatelessWidget {
           const SizedBox(height: 30),
           // Cryptocurrency Card
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -47,12 +47,12 @@ class CryptoReviewStep extends StatelessWidget {
                     fontSize: TypeScale.body,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: Spacing.lg),
                 _ReviewRow(
                   label: 'Name',
                   value: controller.cryptoName ?? 'N/A',
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 _ReviewRow(
                   label: 'Symbol',
                   value: controller.cryptoSymbol ?? 'N/A',
@@ -60,10 +60,10 @@ class CryptoReviewStep extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           // Wallet & Storage Card
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -82,19 +82,19 @@ class CryptoReviewStep extends StatelessWidget {
                     fontSize: TypeScale.body,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: Spacing.lg),
                 _ReviewRow(
                   label: 'Storage Type',
                   value: controller.walletType.toString().split('.').last,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 if (controller.selectedExchange != null) ...[
                   _ReviewRow(
                     label: 'Exchange',
                     value:
                         controller.selectedExchange.toString().split('.').last,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: Spacing.md),
                 ],
                 _ReviewRow(
                   label: 'Address/Account',
@@ -103,10 +103,10 @@ class CryptoReviewStep extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           // Purchase Details Card
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -125,25 +125,25 @@ class CryptoReviewStep extends StatelessWidget {
                     fontSize: TypeScale.body,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: Spacing.lg),
                 _ReviewRow(
                   label: 'Date',
                   value:
                       '${controller.purchaseDate.day}/${controller.purchaseDate.month}/${controller.purchaseDate.year}',
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 _ReviewRow(
                   label: 'Quantity',
                   value:
                       '${controller.quantity?.toStringAsFixed(8) ?? '0'} ${controller.cryptoSymbol ?? 'coins'}',
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 _ReviewRow(
                   label: 'Price per Unit',
                   value:
                       '₹${controller.pricePerUnit?.toStringAsFixed(2) ?? '0.00'}',
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 _ReviewRow(
                   label: 'Total Investment',
                   value: '₹${controller.totalInvested.toStringAsFixed(2)}',
@@ -151,13 +151,13 @@ class CryptoReviewStep extends StatelessWidget {
                 ),
                 if (controller.transactionFee != null &&
                     controller.transactionFee! > 0) ...[
-                  const SizedBox(height: 12),
+                  const SizedBox(height: Spacing.md),
                   _ReviewRow(
                     label: 'Transaction Fee',
                     value:
                         '₹${controller.transactionFee?.toStringAsFixed(2) ?? '0.00'}',
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: Spacing.md),
                   _ReviewRow(
                     label: 'Total Cost',
                     value: '₹${controller.totalWithFee.toStringAsFixed(2)}',
@@ -168,9 +168,9 @@ class CryptoReviewStep extends StatelessWidget {
             ),
           ),
           if (controller.notes != null && controller.notes!.isNotEmpty) ...[
-            const SizedBox(height: 20),
+            const SizedBox(height: Spacing.xl),
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
@@ -189,7 +189,7 @@ class CryptoReviewStep extends StatelessWidget {
                       fontSize: TypeScale.body,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: Spacing.md),
                   Text(
                     controller.notes!,
                     style: TextStyle(
@@ -201,7 +201,7 @@ class CryptoReviewStep extends StatelessWidget {
               ),
             ),
           ],
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
         ],
       ),
     );

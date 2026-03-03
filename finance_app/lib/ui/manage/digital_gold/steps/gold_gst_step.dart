@@ -43,7 +43,7 @@ class _GoldGSTStepState extends State<GoldGSTStep> {
     final controller = Provider.of<DigitalGoldWizardController>(context);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -51,7 +51,7 @@ class _GoldGSTStepState extends State<GoldGSTStep> {
             'GST Rate',
             style: AppStyles.titleStyle(context),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Confirm the GST rate (default 3%)',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
@@ -64,12 +64,12 @@ class _GoldGSTStepState extends State<GoldGSTStep> {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           CupertinoTextField(
             controller: _gstController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             placeholder: '3.0',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -87,7 +87,7 @@ class _GoldGSTStepState extends State<GoldGSTStep> {
           ),
           const SizedBox(height: 30),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: CupertinoColors.systemOrange.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
@@ -106,7 +106,7 @@ class _GoldGSTStepState extends State<GoldGSTStep> {
                     fontSize: TypeScale.footnote,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: Spacing.sm),
                 Text(
                   '• Standard GST on gold is 3%\n• The total amount you entered already includes this GST\n• Different providers may have different rates\n• Adjust if your provider uses a different rate',
                   style: TextStyle(
@@ -122,7 +122,7 @@ class _GoldGSTStepState extends State<GoldGSTStep> {
           // Summary breakdown
           if (controller.investedAmount > 0) ...{
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: const Color(0xFFFFB81C).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
@@ -148,7 +148,7 @@ class _GoldGSTStepState extends State<GoldGSTStep> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: Spacing.md),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -187,7 +187,7 @@ class _GoldGSTStepState extends State<GoldGSTStep> {
               ),
             ),
           },
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
         ],
       ),
     );

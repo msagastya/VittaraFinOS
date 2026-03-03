@@ -20,13 +20,13 @@ class BondConfirmationStep extends StatelessWidget {
         .toList();
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Confirmation & NPS Linking',
               style: AppStyles.titleStyle(context)),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           _ConfirmationCard(
             title: 'Bond Details',
             children: [
@@ -43,7 +43,7 @@ class BondConfirmationStep extends StatelessWidget {
                   'Face Value', '₹${ctrl.faceValue.toStringAsFixed(2)}'),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           _ConfirmationCard(
             title: 'Financial Summary',
             children: [
@@ -63,7 +63,7 @@ class BondConfirmationStep extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           _ConfirmationCard(
             title: 'Account Linking',
             children: [
@@ -71,27 +71,27 @@ class BondConfirmationStep extends StatelessWidget {
                 'Purchase Account',
                 ctrl.purchaseAccountName ?? 'Not linked',
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: Spacing.sm),
               _ConfirmationRow(
                 'Auto-Debit',
                 ctrl.autoDebitFromPurchaseAccount ? 'Enabled' : 'Disabled',
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: Spacing.sm),
               _ConfirmationRow(
                 'Payment Account',
                 ctrl.paymentAccountName ?? 'Not linked',
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: Spacing.sm),
               _ConfirmationRow(
                 'Auto-Transfer',
                 ctrl.autoTransferPayments ? 'Enabled' : 'Disabled',
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           // NPS Linking Section
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -103,14 +103,14 @@ class BondConfirmationStep extends StatelessWidget {
                 Text('Link to NPS Scheme (Optional)',
                     style:
                         TextStyle(fontWeight: FontWeight.bold, fontSize: TypeScale.body)),
-                const SizedBox(height: 16),
+                const SizedBox(height: Spacing.lg),
                 Text(
                   'Some bonds are part of NPS (National Pension Scheme) portfolios. Link this bond to an existing NPS record or create a new one if this bond is a pension investment.',
                   style: TextStyle(
                       fontSize: TypeScale.footnote,
                       color: AppStyles.getSecondaryTextColor(context)),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: Spacing.lg),
                 // Link to NPS Toggle
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -125,10 +125,10 @@ class BondConfirmationStep extends StatelessWidget {
                   ],
                 ),
                 if (ctrl.linkToNPS) ...[
-                  const SizedBox(height: 16),
+                  const SizedBox(height: Spacing.lg),
                   // Option 1: Link to existing NPS
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(Spacing.md),
                     decoration: BoxDecoration(
                       color: const Color(0xFF9B59B6).withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(8),
@@ -139,7 +139,7 @@ class BondConfirmationStep extends StatelessWidget {
                         Text('Link to Existing NPS Scheme',
                             style: TextStyle(
                                 fontWeight: FontWeight.w600, fontSize: TypeScale.subhead)),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: Spacing.md),
                         if (existingNpsSchemes.isEmpty)
                           Text(
                             'No NPS schemes found. Create a new one below.',
@@ -153,7 +153,7 @@ class BondConfirmationStep extends StatelessWidget {
                             return GestureDetector(
                               onTap: () => ctrl.updateLinkedNps(nps.id),
                               child: Container(
-                                padding: const EdgeInsets.all(12),
+                                padding: const EdgeInsets.all(Spacing.md),
                                 margin: const EdgeInsets.only(bottom: 8),
                                 decoration: BoxDecoration(
                                   color: ctrl.linkedNpsId == nps.id
@@ -191,10 +191,10 @@ class BondConfirmationStep extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: Spacing.lg),
                   // Option 2: Create new NPS
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(Spacing.md),
                     decoration: BoxDecoration(
                       color: const Color(0xFF9B59B6).withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(8),
@@ -216,10 +216,10 @@ class BondConfirmationStep extends StatelessWidget {
                           ],
                         ),
                         if (ctrl.createNewNps) ...[
-                          const SizedBox(height: 12),
+                          const SizedBox(height: Spacing.md),
                           CupertinoTextField(
                             placeholder: 'Enter NPS scheme name',
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.all(Spacing.md),
                             decoration: BoxDecoration(
                               color: AppStyles.getBackground(context),
                               borderRadius: BorderRadius.circular(8),
@@ -234,7 +234,7 @@ class BondConfirmationStep extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
         ],
       ),
     );
@@ -253,7 +253,7 @@ class _ConfirmationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(Spacing.lg),
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(12),
@@ -264,13 +264,13 @@ class _ConfirmationCard extends StatelessWidget {
         children: [
           Text(title,
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: TypeScale.body)),
-          const SizedBox(height: 16),
+          const SizedBox(height: Spacing.lg),
           ...List.generate(
             children.length,
             (i) => Column(
               children: [
                 children[i],
-                if (i < children.length - 1) const SizedBox(height: 12),
+                if (i < children.length - 1) const SizedBox(height: Spacing.md),
               ],
             ),
           ),

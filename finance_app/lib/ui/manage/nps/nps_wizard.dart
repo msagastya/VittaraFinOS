@@ -11,6 +11,7 @@ import 'package:vittara_fin_os/ui/manage/nps/steps/nps_planning_step.dart';
 import 'package:vittara_fin_os/ui/manage/nps/steps/nps_review_step.dart';
 import 'package:vittara_fin_os/ui/manage/nps/steps/nps_valuation_step.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class NPSWizard extends StatelessWidget {
@@ -180,7 +181,7 @@ class _NPSWizardContentState extends State<_NPSWizardContent> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(Spacing.xl),
               child: SizedBox(
                 width: double.infinity,
                 child: CupertinoButton.filled(

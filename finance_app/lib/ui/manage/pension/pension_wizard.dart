@@ -164,7 +164,7 @@ class _PensionWizardContentState extends State<_PensionWizardContent> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(Spacing.xl),
               child: SizedBox(
                 width: double.infinity,
                 child: CupertinoButton.filled(
@@ -197,7 +197,7 @@ class _SchemeSelectionStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -226,7 +226,7 @@ class _SchemeSelectionStep extends StatelessWidget {
                 onTap: () => ctrl.selectScheme(scheme),
                 child: Container(
                   margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? const Color(0xFF27AE60).withValues(alpha: 0.1)
@@ -264,7 +264,7 @@ class _SchemeSelectionStep extends StatelessWidget {
                               )
                             : null,
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: Spacing.md),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -320,7 +320,7 @@ class _AccountDetailsStepState extends State<_AccountDetailsStep> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -328,11 +328,11 @@ class _AccountDetailsStepState extends State<_AccountDetailsStep> {
           const SizedBox(height: 30),
           Text('Account/Reference Number',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _accountController,
             placeholder: 'Enter account number',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -381,7 +381,7 @@ class _ContributionStepState extends State<_ContributionStep> {
     final ctrl = widget.ctrl;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -390,12 +390,12 @@ class _ContributionStepState extends State<_ContributionStep> {
           const SizedBox(height: 30),
           Text('Total Contributed (₹)',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _principalController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             placeholder: '0.00',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -409,15 +409,15 @@ class _ContributionStepState extends State<_ContributionStep> {
               if (amt > 0) ctrl.updatePrincipal(amt);
             },
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           Text('Current Value (₹)',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _valueController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             placeholder: '0.00',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -431,11 +431,11 @@ class _ContributionStepState extends State<_ContributionStep> {
               if (val > 0) ctrl.updateCurrentValue(val);
             },
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           if (ctrl.principalContributed != null &&
               ctrl.currentValue != null) ...{
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: const Color(0xFF27AE60).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
@@ -446,7 +446,7 @@ class _ContributionStepState extends State<_ContributionStep> {
                 children: [
                   _Summary('Return', '₹${ctrl.gainLoss.toStringAsFixed(2)}',
                       ctrl.gainLoss >= 0),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: Spacing.md),
                   _Summary(
                       'Return %',
                       '${ctrl.gainLossPercent.toStringAsFixed(2)}%',
@@ -470,7 +470,7 @@ class _ReviewStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -503,7 +503,7 @@ class _Card extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(Spacing.lg),
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(12),
@@ -515,7 +515,7 @@ class _Card extends StatelessWidget {
           (i) => Column(
             children: [
               children[i],
-              if (i < children.length - 1) const SizedBox(height: 12),
+              if (i < children.length - 1) const SizedBox(height: Spacing.md),
             ],
           ),
         ),

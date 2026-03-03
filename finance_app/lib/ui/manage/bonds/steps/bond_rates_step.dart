@@ -34,7 +34,7 @@ class _BondRatesStepState extends State<BondRatesStep> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -89,12 +89,12 @@ class _FixedCouponRateInputState extends State<_FixedCouponRateInput> {
       children: [
         Text('Annual Coupon Rate (%)',
             style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-        const SizedBox(height: 12),
+        const SizedBox(height: Spacing.md),
         CupertinoTextField(
           controller: _couponController,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           placeholder: '0.00',
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(Spacing.lg),
           decoration: BoxDecoration(
             color: AppStyles.getCardColor(context),
             borderRadius: BorderRadius.circular(12),
@@ -108,9 +108,9 @@ class _FixedCouponRateInputState extends State<_FixedCouponRateInput> {
             if (rate >= 0) widget.ctrl.updateFixedCouponRate(rate);
           },
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: Spacing.md),
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(Spacing.md),
           decoration: BoxDecoration(
             color: const Color(0xFF00A6CC).withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(8),
@@ -160,12 +160,12 @@ class _ZeroCouponInputState extends State<_ZeroCouponInput> {
       children: [
         Text('Maturity Value (₹)',
             style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-        const SizedBox(height: 12),
+        const SizedBox(height: Spacing.md),
         CupertinoTextField(
           controller: _maturityValueController,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           placeholder: '1000',
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(Spacing.lg),
           decoration: BoxDecoration(
             color: AppStyles.getCardColor(context),
             borderRadius: BorderRadius.circular(12),
@@ -179,9 +179,9 @@ class _ZeroCouponInputState extends State<_ZeroCouponInput> {
             if (value > 0) widget.ctrl.updateZeroMaturityValue(value);
           },
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: Spacing.md),
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(Spacing.md),
           decoration: BoxDecoration(
             color: const Color(0xFF00A6CC).withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(8),
@@ -195,7 +195,7 @@ class _ZeroCouponInputState extends State<_ZeroCouponInput> {
                     fontSize: TypeScale.footnote,
                     color: AppStyles.getSecondaryTextColor(context)),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: Spacing.sm),
               Text(
                 'Implicit yield: (${widget.ctrl.zeroMaturityValue?.toStringAsFixed(0) ?? widget.ctrl.faceValue.toStringAsFixed(0)} / ${widget.ctrl.purchasePrice.toStringAsFixed(2)})^(1/years) - 1',
                 style: TextStyle(
@@ -243,12 +243,12 @@ class _AmortizingRateInputState extends State<_AmortizingRateInput> {
       children: [
         Text('Annual Interest Rate (%)',
             style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-        const SizedBox(height: 12),
+        const SizedBox(height: Spacing.md),
         CupertinoTextField(
           controller: _interestController,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           placeholder: '0.00',
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(Spacing.lg),
           decoration: BoxDecoration(
             color: AppStyles.getCardColor(context),
             borderRadius: BorderRadius.circular(12),
@@ -262,9 +262,9 @@ class _AmortizingRateInputState extends State<_AmortizingRateInput> {
             if (rate >= 0) widget.ctrl.updateInterestRate(rate);
           },
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: Spacing.md),
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(Spacing.md),
           decoration: BoxDecoration(
             color: const Color(0xFF00A6CC).withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(8),
@@ -321,12 +321,12 @@ class _FloatingRateInputState extends State<_FloatingRateInput> {
       children: [
         Text('Reference Rate (%) - Current',
             style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-        const SizedBox(height: 12),
+        const SizedBox(height: Spacing.md),
         CupertinoTextField(
           controller: _referenceController,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           placeholder: '0.00',
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(Spacing.lg),
           decoration: BoxDecoration(
             color: AppStyles.getCardColor(context),
             borderRadius: BorderRadius.circular(12),
@@ -340,15 +340,15 @@ class _FloatingRateInputState extends State<_FloatingRateInput> {
             widget.ctrl.updateReferenceRate(rate);
           },
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: Spacing.xxl),
         Text('Spread (%) - Fixed',
             style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-        const SizedBox(height: 12),
+        const SizedBox(height: Spacing.md),
         CupertinoTextField(
           controller: _spreadController,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           placeholder: '0.00',
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(Spacing.lg),
           decoration: BoxDecoration(
             color: AppStyles.getCardColor(context),
             borderRadius: BorderRadius.circular(12),
@@ -362,9 +362,9 @@ class _FloatingRateInputState extends State<_FloatingRateInput> {
             widget.ctrl.updateSpread(spread);
           },
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: Spacing.md),
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(Spacing.md),
           decoration: BoxDecoration(
             color: const Color(0xFF00A6CC).withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(8),
@@ -379,7 +379,7 @@ class _FloatingRateInputState extends State<_FloatingRateInput> {
                     fontWeight: FontWeight.w600,
                     color: AppStyles.getTextColor(context)),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: Spacing.sm),
               Text(
                 'Current Rate: ${currentRate.toStringAsFixed(2)}%',
                 style: TextStyle(
@@ -387,7 +387,7 @@ class _FloatingRateInputState extends State<_FloatingRateInput> {
                     fontWeight: FontWeight.w600,
                     color: const Color(0xFF00A6CC)),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: Spacing.sm),
               Text(
                 'Coupon adjusts as reference rate changes. You maintain this record manually as rates change.',
                 style: TextStyle(

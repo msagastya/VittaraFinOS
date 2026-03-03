@@ -381,7 +381,7 @@ class _SplashScreenState extends State<SplashScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const FintechLoader(size: 200),
-            const SizedBox(height: 20),
+            const SizedBox(height: Spacing.xl),
             const Text(
               'VittaraFinOS',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
@@ -1192,7 +1192,7 @@ class DashboardScreen extends StatelessWidget {
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      SizedBox(height: 2),
+                      SizedBox(height: Spacing.xxs),
                       Text(
                         '₹${totalNetWorth.toStringAsFixed(0)}',
                         style: TextStyle(
@@ -2005,7 +2005,7 @@ class DashboardScreen extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: EdgeInsets.all(8),
+                padding: EdgeInsets.all(Spacing.sm),
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
@@ -2219,7 +2219,7 @@ class DashboardScreen extends StatelessWidget {
         Row(
           children: [
             Icon(icon, size: 14, color: color),
-            const SizedBox(width: 4),
+            const SizedBox(width: Spacing.xs),
             Text(
               label,
               style: TextStyle(
@@ -2230,7 +2230,7 @@ class DashboardScreen extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: Spacing.xs),
         Text(
           '₹${amount >= 1e7 ? '${(amount / 1e7).toStringAsFixed(1)}Cr' : amount >= 1e5 ? '${(amount / 1e5).toStringAsFixed(1)}L' : amount >= 1e3 ? '${(amount / 1e3).toStringAsFixed(1)}K' : amount.toStringAsFixed(0)}',
           style: TextStyle(

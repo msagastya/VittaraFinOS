@@ -49,7 +49,7 @@ class _BondsDetailsStepState extends State<BondsDetailsStep> {
     final controller = Provider.of<BondsWizardController>(context);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -57,7 +57,7 @@ class _BondsDetailsStepState extends State<BondsDetailsStep> {
             'Bond Specifications',
             style: AppStyles.titleStyle(context),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Enter coupon details and quantity',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
@@ -72,12 +72,12 @@ class _BondsDetailsStepState extends State<BondsDetailsStep> {
               fontSize: TypeScale.body,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _couponRateController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             placeholder: '7.5',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -98,7 +98,7 @@ class _BondsDetailsStepState extends State<BondsDetailsStep> {
               }
             },
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           // Coupon Frequency
           Text(
             'Coupon Payment Frequency',
@@ -108,7 +108,7 @@ class _BondsDetailsStepState extends State<BondsDetailsStep> {
               fontSize: TypeScale.body,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           CupertinoSegmentedControl<CouponFrequency>(
             children: {
               CouponFrequency.annual: Padding(
@@ -145,7 +145,7 @@ class _BondsDetailsStepState extends State<BondsDetailsStep> {
               controller.updateCouponFrequency(value);
             },
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           // Quantity
           Text(
             'Quantity (Number of Bonds)',
@@ -155,12 +155,12 @@ class _BondsDetailsStepState extends State<BondsDetailsStep> {
               fontSize: TypeScale.body,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _quantityController,
             keyboardType: TextInputType.number,
             placeholder: '10',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -173,7 +173,7 @@ class _BondsDetailsStepState extends State<BondsDetailsStep> {
               }
             },
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           // Credit Rating
           Text(
             'Credit Rating (Optional)',
@@ -183,7 +183,7 @@ class _BondsDetailsStepState extends State<BondsDetailsStep> {
               fontSize: TypeScale.body,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -226,7 +226,7 @@ class _BondsDetailsStepState extends State<BondsDetailsStep> {
           // Summary
           if (controller.couponRate != null && controller.couponRate! > 0) ...{
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: const Color(0xFF007AFF).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
@@ -255,7 +255,7 @@ class _BondsDetailsStepState extends State<BondsDetailsStep> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: Spacing.md),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -280,7 +280,7 @@ class _BondsDetailsStepState extends State<BondsDetailsStep> {
               ),
             ),
           },
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
         ],
       ),
     );

@@ -30,7 +30,7 @@ class FORiskAnalysisStep extends StatelessWidget {
             : '₹${((ctrl.strikePrice ?? 0) - (ctrl.entryPrice ?? 0))}');
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -52,7 +52,7 @@ class FORiskAnalysisStep extends StatelessWidget {
                   '${ctrl.expiryDate.difference(DateTime.now()).inDays}'),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           _AnalysisCard(
             title: 'Risk/Reward Profile',
             children: [
@@ -61,7 +61,7 @@ class FORiskAnalysisStep extends StatelessWidget {
               _AnalysisRow('Breakeven Price', breakeven, isBold: true),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           _AnalysisCard(
             title: 'Current Position',
             children: [
@@ -78,7 +78,7 @@ class FORiskAnalysisStep extends StatelessWidget {
             ],
           ),
           if (ctrl.selectedType != FOType.futures) ...[
-            const SizedBox(height: 20),
+            const SizedBox(height: Spacing.xl),
             _AnalysisCard(
               title: 'Greeks Impact',
               children: [
@@ -111,7 +111,7 @@ class _AnalysisCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(Spacing.lg),
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(12),
@@ -122,13 +122,13 @@ class _AnalysisCard extends StatelessWidget {
         children: [
           Text(title,
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: TypeScale.body)),
-          const SizedBox(height: 16),
+          const SizedBox(height: Spacing.lg),
           ...List.generate(
             children.length,
             (i) => Column(
               children: [
                 children[i],
-                if (i < children.length - 1) const SizedBox(height: 12),
+                if (i < children.length - 1) const SizedBox(height: Spacing.md),
               ],
             ),
           ),

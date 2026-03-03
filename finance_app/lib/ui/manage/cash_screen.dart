@@ -60,7 +60,7 @@ class CashScreen extends StatelessWidget {
                               Spacing.lg,
                               Spacing.md,
                             ),
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(Spacing.lg),
                             decoration: BoxDecoration(
                               color: CupertinoColors.systemGreen
                                   .withValues(alpha: 0.12),
@@ -136,7 +136,7 @@ class CashScreen extends StatelessWidget {
                                             color: CupertinoColors.systemBlue,
                                             size: 18,
                                           ),
-                                          SizedBox(width: 8),
+                                          SizedBox(width: Spacing.sm),
                                           Text(
                                             'Withdraw / Deposit',
                                             style: TextStyle(
@@ -343,7 +343,7 @@ class CashScreen extends StatelessWidget {
                             color: AppStyles.getBackground(context),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          padding: const EdgeInsets.all(4),
+                          padding: const EdgeInsets.all(Spacing.xs),
                           child: Row(
                             children: [
                               Expanded(
@@ -522,7 +522,7 @@ class _CashAccountCard extends StatelessWidget {
             width: 1,
           ),
         ),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(Spacing.lg),
         child: Row(
           children: [
             Container(
@@ -538,7 +538,7 @@ class _CashAccountCard extends StatelessWidget {
                 size: 24,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: Spacing.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

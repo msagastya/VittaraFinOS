@@ -52,7 +52,7 @@ class _CryptoSelectionStepState extends State<CryptoSelectionStep> {
     final controller = Provider.of<CryptoWizardController>(context);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -60,7 +60,7 @@ class _CryptoSelectionStepState extends State<CryptoSelectionStep> {
             'Select Cryptocurrency',
             style: AppStyles.titleStyle(context),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Choose or add your cryptocurrency investment',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
@@ -75,7 +75,7 @@ class _CryptoSelectionStepState extends State<CryptoSelectionStep> {
               fontSize: TypeScale.body,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -114,7 +114,7 @@ class _CryptoSelectionStepState extends State<CryptoSelectionStep> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(Spacing.md),
                         decoration: BoxDecoration(
                           color:
                               const Color(0xFFF7931A).withValues(alpha: 0.15),
@@ -129,7 +129,7 @@ class _CryptoSelectionStepState extends State<CryptoSelectionStep> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: Spacing.sm),
                       Text(
                         name,
                         style: const TextStyle(
@@ -163,11 +163,11 @@ class _CryptoSelectionStepState extends State<CryptoSelectionStep> {
               fontSize: TypeScale.body,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _nameController,
             placeholder: 'Cryptocurrency name',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -189,11 +189,11 @@ class _CryptoSelectionStepState extends State<CryptoSelectionStep> {
               }
             },
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _symbolController,
             placeholder: 'Symbol (e.g., BTC, ETH)',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -206,7 +206,7 @@ class _CryptoSelectionStepState extends State<CryptoSelectionStep> {
               controller.updateCryptoSymbol(value.toUpperCase());
             },
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
         ],
       ),
     );

@@ -398,7 +398,7 @@ class _TransferWizardState extends State<TransferWizard> {
     return Consumer2<AccountsController, BrokersController>(
       builder: (context, accountsController, brokersController, _) {
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(Spacing.xxl),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -406,13 +406,13 @@ class _TransferWizardState extends State<TransferWizard> {
                 'Select Source Account',
                 style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: Spacing.sm),
               Text(
                 'Where will the money be deducted from?',
                 style:
                     TextStyle(color: AppStyles.getSecondaryTextColor(context)),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: Spacing.xxxl),
               Column(
                 children: accountsController.accounts.map((account) {
                   final isSelected = _sourceAccount?.id == account.id;
@@ -431,7 +431,7 @@ class _TransferWizardState extends State<TransferWizard> {
                     },
                     child: Container(
                       margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(Spacing.lg),
                       decoration: BoxDecoration(
                         color: AppStyles.getCardColor(context),
                         borderRadius: BorderRadius.circular(12),
@@ -447,7 +447,7 @@ class _TransferWizardState extends State<TransferWizard> {
                       child: Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.all(Spacing.md),
                             decoration: BoxDecoration(
                               color: account.color.withValues(alpha: 0.1),
                               shape: BoxShape.circle,
@@ -458,7 +458,7 @@ class _TransferWizardState extends State<TransferWizard> {
                               size: 24,
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: Spacing.md),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -468,7 +468,7 @@ class _TransferWizardState extends State<TransferWizard> {
                                   style: AppStyles.titleStyle(context)
                                       .copyWith(fontSize: TypeScale.headline),
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: Spacing.xs),
                                 Text(
                                   '₹${account.balance.toStringAsFixed(2)}',
                                   style: TextStyle(
@@ -492,7 +492,7 @@ class _TransferWizardState extends State<TransferWizard> {
                   );
                 }).toList(),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: Spacing.xxl),
               BouncyButton(
                 onPressed: () => _showAddAccountModal(
                     context, accountsController,
@@ -514,7 +514,7 @@ class _TransferWizardState extends State<TransferWizard> {
                       children: [
                         const Icon(CupertinoIcons.add,
                             color: CupertinoColors.systemBlue),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: Spacing.sm),
                         Text(
                           'Add Account',
                           style: TextStyle(
@@ -560,7 +560,7 @@ class _TransferWizardState extends State<TransferWizard> {
     return Consumer<AccountsController>(
       builder: (context, accountsController, _) {
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(Spacing.xxl),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -568,13 +568,13 @@ class _TransferWizardState extends State<TransferWizard> {
                 'Select Receiving Account',
                 style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: Spacing.sm),
               Text(
                 'Where should the money go?',
                 style:
                     TextStyle(color: AppStyles.getSecondaryTextColor(context)),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: Spacing.xxxl),
               Column(
                 children: accountsController.accounts
                     .where((account) => account.id != _sourceAccount?.id)
@@ -587,7 +587,7 @@ class _TransferWizardState extends State<TransferWizard> {
                     },
                     child: Container(
                       margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(Spacing.lg),
                       decoration: BoxDecoration(
                         color: AppStyles.getCardColor(context),
                         borderRadius: BorderRadius.circular(12),
@@ -603,7 +603,7 @@ class _TransferWizardState extends State<TransferWizard> {
                       child: Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.all(Spacing.md),
                             decoration: BoxDecoration(
                               color: account.color.withValues(alpha: 0.1),
                               shape: BoxShape.circle,
@@ -614,7 +614,7 @@ class _TransferWizardState extends State<TransferWizard> {
                               size: 24,
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: Spacing.md),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -624,7 +624,7 @@ class _TransferWizardState extends State<TransferWizard> {
                                   style: AppStyles.titleStyle(context)
                                       .copyWith(fontSize: TypeScale.headline),
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: Spacing.xs),
                                 Text(
                                   account.bankName,
                                   style: TextStyle(
@@ -648,7 +648,7 @@ class _TransferWizardState extends State<TransferWizard> {
                   );
                 }).toList(),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: Spacing.xxl),
               BouncyButton(
                 onPressed: () => _showAddAccountModal(
                     context, accountsController,
@@ -670,7 +670,7 @@ class _TransferWizardState extends State<TransferWizard> {
                       children: [
                         const Icon(CupertinoIcons.add,
                             color: CupertinoColors.systemBlue),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: Spacing.sm),
                         Text(
                           'Add Account',
                           style: TextStyle(
@@ -699,7 +699,7 @@ class _TransferWizardState extends State<TransferWizard> {
             _sourceAccount!.type == AccountType.investment);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(Spacing.xxl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -707,9 +707,9 @@ class _TransferWizardState extends State<TransferWizard> {
             'Transfer Amount',
             style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: Spacing.xxxl),
           Text('Amount to Transfer', style: AppStyles.headerStyle(context)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           Center(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -717,7 +717,7 @@ class _TransferWizardState extends State<TransferWizard> {
                 Text('₹',
                     style:
                         AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.display)),
-                const SizedBox(width: 8),
+                const SizedBox(width: Spacing.sm),
                 IntrinsicWidth(
                   child: CupertinoTextField(
                     controller: _amountController,
@@ -740,18 +740,18 @@ class _TransferWizardState extends State<TransferWizard> {
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           if (sourceHasCharges) ...[
             Text('Extra Charges (Optional)',
                 style: AppStyles.headerStyle(context)),
-            const SizedBox(height: 4),
+            const SizedBox(height: Spacing.xs),
             Text(
               'Charges will be deducted but not credited to any account',
               style: TextStyle(
                   fontSize: TypeScale.footnote,
                   color: AppStyles.getSecondaryTextColor(context)),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: Spacing.md),
             Center(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -759,7 +759,7 @@ class _TransferWizardState extends State<TransferWizard> {
                   Text('₹',
                       style:
                           AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.largeTitle)),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: Spacing.sm),
                   IntrinsicWidth(
                     child: CupertinoTextField(
                       controller: _chargesController,
@@ -791,7 +791,7 @@ class _TransferWizardState extends State<TransferWizard> {
       builder: (context, paymentAppsController, _) {
         final enabledApps = paymentAppsController.enabledApps;
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(Spacing.xxl),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -799,7 +799,7 @@ class _TransferWizardState extends State<TransferWizard> {
                 isSourceDemat ? 'Broker (Demat)' : 'Payment App',
                 style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: Spacing.sm),
               Text(
                 isSourceDemat
                     ? 'Cannot withdraw from Demat using other apps. Using: ${_sourceAccount!.bankName}'
@@ -807,11 +807,11 @@ class _TransferWizardState extends State<TransferWizard> {
                 style:
                     TextStyle(color: AppStyles.getSecondaryTextColor(context)),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: Spacing.xxxl),
               if (isSourceDemat)
                 // Show locked broker for Demat
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
                     color: CupertinoColors.systemGreen.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
@@ -827,7 +827,7 @@ class _TransferWizardState extends State<TransferWizard> {
                         color: CupertinoColors.systemGreen,
                         size: 24,
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: Spacing.md),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -837,7 +837,7 @@ class _TransferWizardState extends State<TransferWizard> {
                               style: AppStyles.titleStyle(context)
                                   .copyWith(fontSize: TypeScale.headline),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: Spacing.xs),
                             Text(
                               'Auto-selected (Fixed)',
                               style: TextStyle(
@@ -895,7 +895,7 @@ class _TransferWizardState extends State<TransferWizard> {
                             },
                             child: Container(
                               margin: const EdgeInsets.only(bottom: 12),
-                              padding: const EdgeInsets.all(16),
+                              padding: const EdgeInsets.all(Spacing.lg),
                               decoration: BoxDecoration(
                                 color: AppStyles.getCardColor(context),
                                 borderRadius: BorderRadius.circular(12),
@@ -918,7 +918,7 @@ class _TransferWizardState extends State<TransferWizard> {
                                     color: CupertinoColors.systemBlue,
                                     size: 24,
                                   ),
-                                  const SizedBox(width: 12),
+                                  const SizedBox(width: Spacing.md),
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment:
@@ -929,7 +929,7 @@ class _TransferWizardState extends State<TransferWizard> {
                                           style: AppStyles.titleStyle(context)
                                               .copyWith(fontSize: TypeScale.headline),
                                         ),
-                                        const SizedBox(height: 4),
+                                        const SizedBox(height: Spacing.xs),
                                         Text(
                                           (app['hasWallet'] ?? false)
                                               ? 'Wallet ₹${((app['walletBalance'] as num?)?.toDouble() ?? 0).toStringAsFixed(2)}'
@@ -956,7 +956,7 @@ class _TransferWizardState extends State<TransferWizard> {
                           );
                         }).toList(),
                       ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: Spacing.md),
                     BouncyButton(
                       onPressed: () async {
                         final result = await Navigator.of(context)
@@ -1000,7 +1000,7 @@ class _TransferWizardState extends State<TransferWizard> {
                             children: [
                               const Icon(CupertinoIcons.add,
                                   color: CupertinoColors.systemBlue),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: Spacing.sm),
                               Text(
                                 'Select New App',
                                 style: TextStyle(
@@ -1026,7 +1026,7 @@ class _TransferWizardState extends State<TransferWizard> {
   Widget _buildAppWalletStep() {
     final hasWallet = _paymentAppHasWallet && _selectedPaymentApp != null;
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(Spacing.xxl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1034,7 +1034,7 @@ class _TransferWizardState extends State<TransferWizard> {
             'Amount from App Wallet',
             style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             hasWallet
                 ? 'How much should come from ${_selectedPaymentApp ?? 'this app'} wallet?'
@@ -1042,7 +1042,7 @@ class _TransferWizardState extends State<TransferWizard> {
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
           ),
           if (!hasWallet) ...[
-            const SizedBox(height: 24),
+            const SizedBox(height: Spacing.xxl),
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(14),
@@ -1057,7 +1057,7 @@ class _TransferWizardState extends State<TransferWizard> {
               ),
             ),
           ] else ...[
-            const SizedBox(height: 24),
+            const SizedBox(height: Spacing.xxl),
             Text(
               'Available wallet: ₹${_selectedPaymentAppWalletBalance.toStringAsFixed(2)}',
               style: TextStyle(
@@ -1065,7 +1065,7 @@ class _TransferWizardState extends State<TransferWizard> {
                 color: AppStyles.getSecondaryTextColor(context),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: Spacing.md),
             Center(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -1073,7 +1073,7 @@ class _TransferWizardState extends State<TransferWizard> {
                   Text('₹',
                       style:
                           AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.largeTitle)),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: Spacing.sm),
                   IntrinsicWidth(
                     child: CupertinoTextField(
                       controller: _appWalletAmountController,
@@ -1094,7 +1094,7 @@ class _TransferWizardState extends State<TransferWizard> {
                 ],
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: Spacing.sm),
             CupertinoButton(
               onPressed: () async {
                 await Navigator.of(context).push(
@@ -1131,7 +1131,7 @@ class _TransferWizardState extends State<TransferWizard> {
         _paymentAppHasWallet && (_selectedPaymentApp?.isNotEmpty ?? false);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(Spacing.xxl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1139,14 +1139,14 @@ class _TransferWizardState extends State<TransferWizard> {
             'Cashback (Optional)',
             style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Enter cashback and choose where it should be credited.',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: Spacing.xxxl),
           Text('Cashback Amount', style: AppStyles.headerStyle(context)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           Center(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -1154,7 +1154,7 @@ class _TransferWizardState extends State<TransferWizard> {
                 Text('₹',
                     style:
                         AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.display)),
-                const SizedBox(width: 8),
+                const SizedBox(width: Spacing.sm),
                 IntrinsicWidth(
                   child: CupertinoTextField(
                     controller: _cashbackAmountController,
@@ -1176,9 +1176,9 @@ class _TransferWizardState extends State<TransferWizard> {
             ),
           ),
           if ((double.tryParse(_cashbackAmountController.text) ?? 0) > 0) ...[
-            const SizedBox(height: 32),
+            const SizedBox(height: Spacing.xxxl),
             Text('Credit Cashback To', style: AppStyles.headerStyle(context)),
-            const SizedBox(height: 8),
+            const SizedBox(height: Spacing.sm),
             Text(
               'Choose sending account, receiving account, or app wallet (if enabled).',
               style: TextStyle(
@@ -1186,7 +1186,7 @@ class _TransferWizardState extends State<TransferWizard> {
                 color: AppStyles.getSecondaryTextColor(context),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: Spacing.md),
             if (eligibleAccounts.isEmpty && !canCreditToPaymentApp)
               Container(
                 width: double.infinity,
@@ -1215,7 +1215,7 @@ class _TransferWizardState extends State<TransferWizard> {
                     }),
                     child: Container(
                       margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(Spacing.md),
                       decoration: BoxDecoration(
                         color: AppStyles.getCardColor(context),
                         borderRadius: BorderRadius.circular(12),
@@ -1231,7 +1231,7 @@ class _TransferWizardState extends State<TransferWizard> {
                       child: Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(8),
+                            padding: const EdgeInsets.all(Spacing.sm),
                             decoration: BoxDecoration(
                               color: account.color.withValues(alpha: 0.1),
                               shape: BoxShape.circle,
@@ -1242,7 +1242,7 @@ class _TransferWizardState extends State<TransferWizard> {
                               size: 20,
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: Spacing.md),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1252,7 +1252,7 @@ class _TransferWizardState extends State<TransferWizard> {
                                   style: AppStyles.titleStyle(context)
                                       .copyWith(fontSize: TypeScale.body),
                                 ),
-                                const SizedBox(height: 2),
+                                const SizedBox(height: Spacing.xxs),
                                 Text(
                                   isSource
                                       ? 'Sending Account'
@@ -1285,7 +1285,7 @@ class _TransferWizardState extends State<TransferWizard> {
                     }),
                     child: Container(
                       margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(Spacing.md),
                       decoration: BoxDecoration(
                         color: AppStyles.getCardColor(context),
                         borderRadius: BorderRadius.circular(12),
@@ -1301,7 +1301,7 @@ class _TransferWizardState extends State<TransferWizard> {
                       child: Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(8),
+                            padding: const EdgeInsets.all(Spacing.sm),
                             decoration: BoxDecoration(
                               color: CupertinoColors.systemBlue
                                   .withValues(alpha: 0.1),
@@ -1313,7 +1313,7 @@ class _TransferWizardState extends State<TransferWizard> {
                               size: 20,
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: Spacing.md),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1323,7 +1323,7 @@ class _TransferWizardState extends State<TransferWizard> {
                                   style: AppStyles.titleStyle(context)
                                       .copyWith(fontSize: TypeScale.body),
                                 ),
-                                const SizedBox(height: 2),
+                                const SizedBox(height: Spacing.xxs),
                                 Text(
                                   'Payment App Wallet',
                                   style: TextStyle(
@@ -1371,7 +1371,7 @@ class _TransferWizardState extends State<TransferWizard> {
                 : null;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(Spacing.xxl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1379,9 +1379,9 @@ class _TransferWizardState extends State<TransferWizard> {
             'Review Transfer',
             style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: Spacing.xxxl),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -1390,21 +1390,21 @@ class _TransferWizardState extends State<TransferWizard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildReviewRow('From', _sourceAccount?.name ?? 'Unknown'),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 _buildReviewRow('To', _destinationAccount?.name ?? 'Unknown'),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 _buildReviewRow('Date', _formatDate(_selectedTransferDate)),
                 if (transferFlowLabel != null) ...[
-                  const SizedBox(height: 12),
+                  const SizedBox(height: Spacing.md),
                   _buildReviewRow('Flow', transferFlowLabel),
                 ],
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 Container(
                   height: 1,
                   color: AppStyles.getSecondaryTextColor(context)
                       .withValues(alpha: 0.1),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 _buildReviewRow('Transfer Amount',
                     '₹${amount.toStringAsFixed(2)}'.toUpperCase(),
                     isAmount: true),
@@ -1430,7 +1430,7 @@ class _TransferWizardState extends State<TransferWizard> {
 
   Widget _buildTransferDateStep() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(Spacing.xxl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1438,17 +1438,17 @@ class _TransferWizardState extends State<TransferWizard> {
             'Transfer Date',
             style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Select when this transfer happened.',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: Spacing.xxxl),
           GestureDetector(
             onTap: _showTransferDatePicker,
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
@@ -1464,7 +1464,7 @@ class _TransferWizardState extends State<TransferWizard> {
                     color: CupertinoColors.systemBlue,
                     size: 22,
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: Spacing.md),
                   Expanded(
                     child: Text(
                       _formatDate(_selectedTransferDate),
@@ -1557,7 +1557,7 @@ class _TransferWizardState extends State<TransferWizard> {
 
   Widget _buildFooter() {
     return Padding(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(Spacing.xxl),
       child: BouncyButton(
         onPressed: _canProceed() ? _nextStep : () {},
         child: Opacity(
@@ -1724,7 +1724,7 @@ class _PaymentAppSetupWizardState extends State<_PaymentAppSetupWizard> {
                 bottom: MediaQuery.of(context).viewInsets.bottom,
               ),
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(Spacing.xl),
                 child: _buildBody(controller, disabledApps),
               ),
             ),
@@ -1753,12 +1753,12 @@ class _PaymentAppSetupWizardState extends State<_PaymentAppSetupWizard> {
               'Disabled Payment Apps',
               style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title1),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: Spacing.sm),
             Text(
               'Tap any app to use it in this transfer',
               style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: Spacing.lg),
             ...disabledApps.map((app) {
               return GestureDetector(
                 onTap: () {
@@ -1782,7 +1782,7 @@ class _PaymentAppSetupWizardState extends State<_PaymentAppSetupWizard> {
                   child: Row(
                     children: [
                       Icon(CupertinoIcons.app, color: app['color']),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: Spacing.md),
                       Expanded(
                         child: Text(
                           app['name'] as String,
@@ -1808,7 +1808,7 @@ class _PaymentAppSetupWizardState extends State<_PaymentAppSetupWizard> {
               'Add Payment App',
               style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title1),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: Spacing.lg),
             CupertinoTextField(
               controller: _nameController,
               autofocus: true,
@@ -1831,7 +1831,7 @@ class _PaymentAppSetupWizardState extends State<_PaymentAppSetupWizard> {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: Spacing.lg),
             BouncyButton(
               onPressed: () {
                 final value = _nameController.text.trim();
@@ -1926,7 +1926,7 @@ class _PaymentAppSetupWizardState extends State<_PaymentAppSetupWizard> {
               ],
             ),
             if (_hasWallet) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: Spacing.lg),
               CupertinoTextField(
                 controller: _walletController,
                 autofocus: true,
@@ -1946,7 +1946,7 @@ class _PaymentAppSetupWizardState extends State<_PaymentAppSetupWizard> {
                 ),
               ),
             ],
-            const SizedBox(height: 20),
+            const SizedBox(height: Spacing.xl),
             BouncyButton(
               onPressed: () => _completeSetup(controller),
               child: Container(

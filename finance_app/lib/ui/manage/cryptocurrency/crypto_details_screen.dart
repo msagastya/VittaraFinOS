@@ -89,13 +89,13 @@ class _CryptoDetailsScreenState extends State<CryptoDetailsScreen> {
       ),
       child: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(Spacing.xl),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Holdings Card
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color: AppStyles.getCardColor(context),
                   borderRadius: BorderRadius.circular(12),
@@ -114,18 +114,18 @@ class _CryptoDetailsScreenState extends State<CryptoDetailsScreen> {
                         fontSize: TypeScale.body,
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: Spacing.lg),
                     _DetailRow(
                       label: 'Total Quantity',
                       value:
                           '${crypto.totalQuantity.toStringAsFixed(8)} ${crypto.symbol}',
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: Spacing.sm),
                     _DetailRow(
                       label: 'Current Price',
                       value: '₹${crypto.currentPrice.toStringAsFixed(2)}',
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: Spacing.sm),
                     _DetailRow(
                       label: 'Current Value',
                       value: '₹${crypto.currentValue.toStringAsFixed(2)}',
@@ -135,10 +135,10 @@ class _CryptoDetailsScreenState extends State<CryptoDetailsScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: Spacing.xl),
               // Investment Summary
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color: AppStyles.getCardColor(context),
                   borderRadius: BorderRadius.circular(12),
@@ -157,17 +157,17 @@ class _CryptoDetailsScreenState extends State<CryptoDetailsScreen> {
                         fontSize: TypeScale.body,
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: Spacing.lg),
                     _DetailRow(
                       label: 'Total Invested',
                       value: '₹${crypto.totalInvested.toStringAsFixed(2)}',
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: Spacing.sm),
                     _DetailRow(
                       label: 'Average Buy Price',
                       value: '₹${crypto.averageBuyPrice.toStringAsFixed(2)}',
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: Spacing.sm),
                     _DetailRow(
                       label: 'Gain/Loss',
                       value:
@@ -175,7 +175,7 @@ class _CryptoDetailsScreenState extends State<CryptoDetailsScreen> {
                       isGainLoss: true,
                       isPositive: isProfit,
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: Spacing.sm),
                     _DetailRow(
                       label: 'Return %',
                       value:
@@ -187,10 +187,10 @@ class _CryptoDetailsScreenState extends State<CryptoDetailsScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: Spacing.xl),
               // Wallet Information
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color: AppStyles.getCardColor(context),
                   borderRadius: BorderRadius.circular(12),
@@ -209,18 +209,18 @@ class _CryptoDetailsScreenState extends State<CryptoDetailsScreen> {
                         fontSize: TypeScale.body,
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: Spacing.lg),
                     _DetailRow(
                       label: 'Storage Type',
                       value: crypto.getWalletTypeLabel(),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: Spacing.sm),
                     if (crypto.exchange != null) ...[
                       _DetailRow(
                         label: 'Exchange',
                         value: crypto.getExchangeLabel(),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: Spacing.sm),
                     ],
                     _DetailRow(
                       label: 'Address/Account',
@@ -231,9 +231,9 @@ class _CryptoDetailsScreenState extends State<CryptoDetailsScreen> {
                 ),
               ),
               if (crypto.notes != null && crypto.notes!.isNotEmpty) ...[
-                const SizedBox(height: 20),
+                const SizedBox(height: Spacing.xl),
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
                     color: AppStyles.getCardColor(context),
                     borderRadius: BorderRadius.circular(12),
@@ -252,7 +252,7 @@ class _CryptoDetailsScreenState extends State<CryptoDetailsScreen> {
                           fontSize: TypeScale.body,
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: Spacing.md),
                       Text(
                         crypto.notes!,
                         style: TextStyle(
@@ -275,7 +275,7 @@ class _CryptoDetailsScreenState extends State<CryptoDetailsScreen> {
                   child: const Text('Edit Holdings'),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: Spacing.md),
               SizedBox(
                 width: double.infinity,
                 child: CupertinoButton(
@@ -318,7 +318,7 @@ class _CryptoDetailsScreenState extends State<CryptoDetailsScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: Spacing.xl),
             ],
           ),
         ),

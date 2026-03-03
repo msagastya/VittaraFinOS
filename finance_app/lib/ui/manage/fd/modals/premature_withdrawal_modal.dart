@@ -118,7 +118,7 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
           title: const Text('Confirm Withdrawal'),
           content: Column(
             children: [
-              const SizedBox(height: 8),
+              const SizedBox(height: Spacing.sm),
               Text(
                 'Amount: ₹${_netAmount.toStringAsFixed(2)}',
                 style: const TextStyle(
@@ -126,7 +126,7 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: Spacing.sm),
               Text(
                 'Date: ${_withdrawalDate.toString().split(' ')[0]}',
                 style: TextStyle(
@@ -134,7 +134,7 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
                   color: AppStyles.getSecondaryTextColor(context),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: Spacing.md),
               const Text(
                 'Do you want to credit this amount to your linked account?',
               ),
@@ -174,7 +174,7 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
         children: [
           // Header
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               border: Border(
@@ -215,7 +215,7 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
                 children: [
                   // Warning
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(Spacing.md),
                     decoration: BoxDecoration(
                       color: CupertinoColors.systemOrange.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
@@ -231,7 +231,7 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
                           color: CupertinoColors.systemOrange,
                           size: 16,
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: Spacing.sm),
                         Expanded(
                           child: Text(
                             'Early withdrawal may incur penalties and reduced interest.',
@@ -244,7 +244,7 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: Spacing.xl),
                   // Details
                   Text(
                     'Calculation Details',
@@ -253,7 +253,7 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: Spacing.md),
                   _buildCalculationRow('Principal Amount',
                       '₹${widget.fd.principal.toStringAsFixed(2)}'),
                   _buildCalculationRow(
@@ -265,9 +265,9 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
                     '-₹${_penaltyAmount.toStringAsFixed(2)}',
                     color: CupertinoColors.systemRed,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: Spacing.md),
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(Spacing.md),
                     decoration: BoxDecoration(
                       color: AppStyles.getPrimaryColor(context)
                           .withValues(alpha: 0.1),
@@ -294,7 +294,7 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: Spacing.xl),
                   // Withdrawal Date
                   Text(
                     'Withdrawal Date',
@@ -303,7 +303,7 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: Spacing.sm),
                   Text(
                     'Select the date you withdrew the amount',
                     style: TextStyle(
@@ -311,11 +311,11 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
                       fontSize: TypeScale.footnote,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: Spacing.sm),
                   GestureDetector(
                     onTap: _selectWithdrawalDate,
                     child: Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(Spacing.md),
                       decoration: BoxDecoration(
                         color: AppStyles.getCardColor(context),
                         borderRadius: BorderRadius.circular(8),
@@ -344,7 +344,7 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: Spacing.xl),
                   // Editable Net Amount
                   Text(
                     'Final Withdrawal Amount',
@@ -353,7 +353,7 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: Spacing.sm),
                   Text(
                     'You can adjust the amount if agreed with the bank',
                     style: TextStyle(
@@ -361,12 +361,12 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
                       fontSize: TypeScale.footnote,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: Spacing.sm),
                   CupertinoTextField(
                     controller: _netAmountController,
                     keyboardType:
                         const TextInputType.numberWithOptions(decimal: true),
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(Spacing.md),
                     decoration: BoxDecoration(
                       color: AppStyles.getCardColor(context),
                       borderRadius: BorderRadius.circular(8),
@@ -383,10 +383,10 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
                     style: TextStyle(color: AppStyles.getTextColor(context)),
                     onChanged: _updateNetAmount,
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: Spacing.xl),
                   // Linked account info
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(Spacing.md),
                     decoration: BoxDecoration(
                       color: AppStyles.getCardColor(context),
                       borderRadius: BorderRadius.circular(8),
@@ -401,7 +401,7 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
                               size: 14,
                               color: AppStyles.getSecondaryTextColor(context),
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: Spacing.sm),
                             Text(
                               'Withdrawal Account',
                               style: TextStyle(
@@ -411,7 +411,7 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: Spacing.sm),
                         Text(
                           widget.fd.linkedAccountName,
                           style: TextStyle(
@@ -419,7 +419,7 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: Spacing.xs),
                         Text(
                           'Amount will be credited to this account',
                           style: TextStyle(
@@ -430,14 +430,14 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: Spacing.xl),
                 ],
               ),
             ),
           ),
           // Action buttons
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               border: Border(
@@ -462,7 +462,7 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: Spacing.md),
                 Expanded(
                   child: CupertinoButton(
                     onPressed: _showConfirmationDialog,

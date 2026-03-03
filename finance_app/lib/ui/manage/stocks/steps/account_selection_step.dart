@@ -44,7 +44,7 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
         return Column(
           children: [
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(Spacing.lg),
               child: Text(
                 'Select Demat Account',
                 style: AppStyles.titleStyle(context),
@@ -58,7 +58,7 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
                         children: [
                           const Icon(CupertinoIcons.chart_pie,
                               size: 48, color: CupertinoColors.systemGrey),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: Spacing.lg),
                           Text(
                             'No Investment Accounts Found',
                             style: TextStyle(
@@ -87,7 +87,7 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
                           child: Container(
                             margin: const EdgeInsets.symmetric(
                                 horizontal: 16, vertical: 8),
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(Spacing.lg),
                             decoration: BoxDecoration(
                               color: isSelected
                                   ? SemanticColors.investments
@@ -118,7 +118,7 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
                                   child: Icon(CupertinoIcons.briefcase_fill,
                                       color: account.color),
                                 ),
-                                const SizedBox(width: 16),
+                                const SizedBox(width: Spacing.lg),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
@@ -169,7 +169,7 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
                     ),
             ),
             Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(Spacing.xl),
               child: CupertinoButton(
                 color:
                     isDarkMode(context) ? Colors.grey[800] : Colors.grey[200],
@@ -203,7 +203,7 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
                   children: [
                     Icon(CupertinoIcons.add,
                         color: AppStyles.getTextColor(context)),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: Spacing.sm),
                     Text('Add Demat Account',
                         style:
                             TextStyle(color: AppStyles.getTextColor(context))),

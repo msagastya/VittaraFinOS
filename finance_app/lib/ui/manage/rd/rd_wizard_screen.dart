@@ -190,7 +190,7 @@ class _RDWizardScreenState extends State<RDWizardScreen> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: Spacing.xs),
                           Text(
                             'Step ${controller.currentStep + 1} of 7',
                             style: TextStyle(
@@ -215,7 +215,7 @@ class _RDWizardScreenState extends State<RDWizardScreen> {
             ),
             // Navigation buttons
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 border: Border(
@@ -247,7 +247,7 @@ class _RDWizardScreenState extends State<RDWizardScreen> {
                             ),
                           ),
                         ),
-                      if (controller.currentStep > 0) const SizedBox(width: 12),
+                      if (controller.currentStep > 0) const SizedBox(width: Spacing.md),
                       // Next or Submit button
                       Expanded(
                         child: CupertinoButton(

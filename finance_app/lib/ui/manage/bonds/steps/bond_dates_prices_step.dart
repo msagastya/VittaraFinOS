@@ -40,7 +40,7 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -48,7 +48,7 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
           const SizedBox(height: 30),
           Text('Purchase Date',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           GestureDetector(
             onTap: () {
               showCupertinoModalPopup(
@@ -59,7 +59,7 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
                   child: Column(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(Spacing.lg),
                         decoration: BoxDecoration(
                           color: AppStyles.getCardColor(context),
                           border: Border(
@@ -95,7 +95,7 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
               );
             },
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
@@ -113,10 +113,10 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
               ),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           Text('Maturity Date',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           GestureDetector(
             onTap: () {
               showCupertinoModalPopup(
@@ -127,7 +127,7 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
                   child: Column(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(Spacing.lg),
                         decoration: BoxDecoration(
                           color: AppStyles.getCardColor(context),
                           border: Border(
@@ -163,7 +163,7 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
               );
             },
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
@@ -181,15 +181,15 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
               ),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           Text('Purchase Price (₹)',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _purchasePriceController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             placeholder: '0.00',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -203,15 +203,15 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
               if (price > 0) widget.ctrl.updatePurchasePrice(price);
             },
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           Text('Face Value (₹)',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _faceValueController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             placeholder: '1000',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -225,10 +225,10 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
               if (value > 0) widget.ctrl.updateFaceValue(value);
             },
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           Text('Payment Frequency',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           Row(
             children: [
               Expanded(
@@ -238,7 +238,7 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
                   onTap: () => widget.ctrl.updatePaymentsPerYear(1),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: Spacing.md),
               Expanded(
                 child: _FrequencyButton(
                   label: 'Semi-Annual',
@@ -246,7 +246,7 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
                   onTap: () => widget.ctrl.updatePaymentsPerYear(2),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: Spacing.md),
               Expanded(
                 child: _FrequencyButton(
                   label: 'Monthly',
@@ -278,7 +278,7 @@ class _FrequencyButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(Spacing.md),
         decoration: BoxDecoration(
           color: isSelected
               ? const Color(0xFF00A6CC).withValues(alpha: 0.1)

@@ -10,6 +10,7 @@ import 'package:vittara_fin_os/ui/manage/digital_gold/steps/gold_rate_step.dart'
 import 'package:vittara_fin_os/ui/manage/digital_gold/steps/gold_gst_step.dart';
 import 'package:vittara_fin_os/ui/manage/digital_gold/steps/gold_investment_date_step.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class DigitalGoldWizard extends StatelessWidget {
@@ -140,7 +141,7 @@ class _DigitalGoldWizardContent extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(Spacing.xl),
               child: SizedBox(
                 width: double.infinity,
                 child: CupertinoButton.filled(

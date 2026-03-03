@@ -61,7 +61,7 @@ class _DeductionStepState extends State<DeductionStep> {
         account.balance < controller.totalDeduction;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -69,9 +69,9 @@ class _DeductionStepState extends State<DeductionStep> {
             'Payment',
             style: AppStyles.titleStyle(context),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: AppStyles.cardDecoration(context),
             child: Column(
               children: [
@@ -88,7 +88,7 @@ class _DeductionStepState extends State<DeductionStep> {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: Spacing.xs),
                           Text(
                             'Balance: ₹${account.balance.toStringAsFixed(2)}',
                             style: TextStyle(
@@ -146,10 +146,10 @@ class _DeductionStepState extends State<DeductionStep> {
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           if (controller.deductFromAccount) ...[
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: hasInsufficientBalance
                     ? CupertinoColors.systemRed.withValues(alpha: 0.1)
@@ -169,7 +169,7 @@ class _DeductionStepState extends State<DeductionStep> {
                       Text('₹${controller.totalAmount.toStringAsFixed(2)}'),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: Spacing.sm),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -199,7 +199,7 @@ class _DeductionStepState extends State<DeductionStep> {
                   children: [
                     const Icon(CupertinoIcons.exclamationmark_triangle_fill,
                         color: CupertinoColors.systemRed),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: Spacing.sm),
                     Expanded(
                       child: Text(
                         'Insufficient balance in ${account.name}. Please add funds first.',

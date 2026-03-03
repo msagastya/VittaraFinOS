@@ -151,7 +151,7 @@ class _BondsWizardContent extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(Spacing.xl),
               child: SizedBox(
                 width: double.infinity,
                 child: CupertinoButton.filled(
@@ -188,21 +188,21 @@ class _BondNameStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Bond Name', style: AppStyles.titleStyle(context)),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           Text('Enter a name to identify this bond',
               style: TextStyle(
                 fontSize: TypeScale.footnote,
                 color: AppStyles.getSecondaryTextColor(context),
               )),
-          const SizedBox(height: 16),
+          const SizedBox(height: Spacing.lg),
           CupertinoTextField(
             placeholder: 'e.g., RBI Bond 2028, Government Securities',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -224,22 +224,22 @@ class _BondAmountStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Investment Amount', style: AppStyles.titleStyle(context)),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           Text('How much are you investing in this bond?',
               style: TextStyle(
                 fontSize: TypeScale.footnote,
                 color: AppStyles.getSecondaryTextColor(context),
               )),
-          const SizedBox(height: 16),
+          const SizedBox(height: Spacing.lg),
           CupertinoTextField(
             placeholder: '0.00',
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -290,18 +290,18 @@ class _AccountSelectionStepState extends State<_AccountSelectionStep> {
         final accounts = accountsController.accounts;
 
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(Spacing.xl),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('Linked Account', style: AppStyles.titleStyle(context)),
-              const SizedBox(height: 20),
+              const SizedBox(height: Spacing.xl),
               Text('Select an account to link with this bond (optional)',
                   style: TextStyle(
                     fontSize: TypeScale.footnote,
                     color: AppStyles.getSecondaryTextColor(context),
                   )),
-              const SizedBox(height: 16),
+              const SizedBox(height: Spacing.lg),
               if (accounts.isEmpty)
                 Center(
                   child: Column(
@@ -309,7 +309,7 @@ class _AccountSelectionStepState extends State<_AccountSelectionStep> {
                     children: [
                       const Icon(CupertinoIcons.briefcase,
                           size: 48, color: CupertinoColors.systemGrey),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: Spacing.lg),
                       Text(
                         'No Accounts Found',
                         style: TextStyle(
@@ -332,7 +332,7 @@ class _AccountSelectionStepState extends State<_AccountSelectionStep> {
                     },
                     child: Container(
                       margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(Spacing.lg),
                       decoration: BoxDecoration(
                         color: isSelected
                             ? const Color(0xFF00A6CC).withValues(alpha: 0.1)
@@ -361,7 +361,7 @@ class _AccountSelectionStepState extends State<_AccountSelectionStep> {
                             child: Icon(CupertinoIcons.briefcase_fill,
                                 color: account.color),
                           ),
-                          const SizedBox(width: 16),
+                          const SizedBox(width: Spacing.lg),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -406,7 +406,7 @@ class _AccountSelectionStepState extends State<_AccountSelectionStep> {
                     ),
                   );
                 }),
-              const SizedBox(height: 20),
+              const SizedBox(height: Spacing.xl),
               CupertinoButton(
                 color:
                     isDarkMode(context) ? Colors.grey[800] : Colors.grey[200],
@@ -437,7 +437,7 @@ class _AccountSelectionStepState extends State<_AccountSelectionStep> {
                   children: [
                     Icon(CupertinoIcons.add,
                         color: AppStyles.getTextColor(context)),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: Spacing.sm),
                     Text('Add Account',
                         style:
                             TextStyle(color: AppStyles.getTextColor(context))),
@@ -491,19 +491,19 @@ class _PayoutFrequencyStep extends StatelessWidget {
     ];
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Payout Frequency', style: AppStyles.titleStyle(context)),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           ...frequencies.map((f) {
             final isSelected = ctrl.payoutFrequency == f.$1;
             return GestureDetector(
               onTap: () => ctrl.updatePayoutFrequency(f.$1),
               child: Container(
                 margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color: isSelected
                       ? const Color(0xFF00A6CC).withValues(alpha: 0.1)
@@ -541,7 +541,7 @@ class _PayoutFrequencyStep extends StatelessWidget {
                             )
                           : null,
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: Spacing.md),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -578,23 +578,23 @@ class _PayoutDatesStep extends StatelessWidget {
     final isAtMaturity = ctrl.payoutFrequency == PayoutFrequency.atMaturity;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Bond Dates', style: AppStyles.titleStyle(context)),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           if (!isAtMaturity) ...[
             Text('First Payout Month & Day',
                 style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-            const SizedBox(height: 12),
+            const SizedBox(height: Spacing.md),
             Row(
               children: [
                 Expanded(
                   child: CupertinoTextField(
                     placeholder: 'Month (1-12)',
                     keyboardType: TextInputType.number,
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(Spacing.md),
                     decoration: BoxDecoration(
                       color: AppStyles.getCardColor(context),
                       borderRadius: BorderRadius.circular(8),
@@ -607,12 +607,12 @@ class _PayoutDatesStep extends StatelessWidget {
                     },
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: Spacing.md),
                 Expanded(
                   child: CupertinoTextField(
                     placeholder: 'Day (1-31)',
                     keyboardType: TextInputType.number,
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(Spacing.md),
                     decoration: BoxDecoration(
                       color: AppStyles.getCardColor(context),
                       borderRadius: BorderRadius.circular(8),
@@ -627,11 +627,11 @@ class _PayoutDatesStep extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: Spacing.xxl),
           ],
           Text('Bond Maturity Date',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           GestureDetector(
             onTap: () {
               showCupertinoModalPopup(
@@ -642,7 +642,7 @@ class _PayoutDatesStep extends StatelessWidget {
                   child: Column(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(Spacing.lg),
                         decoration: BoxDecoration(
                           color: AppStyles.getCardColor(context),
                           border: Border(
@@ -676,7 +676,7 @@ class _PayoutDatesStep extends StatelessWidget {
               );
             },
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
@@ -708,14 +708,14 @@ class _ReviewStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Review Bond Details', style: AppStyles.titleStyle(context)),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -725,20 +725,20 @@ class _ReviewStep extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _ReviewRow('Bond Name', ctrl.bondName),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 _ReviewRow('Investment Amount',
                     '₹${ctrl.bondAmount.toStringAsFixed(2)}'),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 _ReviewRow('Payout Frequency', ctrl.payoutFrequencyLabel),
                 if (ctrl.linkedAccountId != null) ...[
-                  const SizedBox(height: 12),
+                  const SizedBox(height: Spacing.md),
                   _ReviewRow(
                       'Linked Account', ctrl.linkedAccountName ?? 'Unknown'),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: Spacing.md),
                   _ReviewRow(
                       'Auto-Debit', ctrl.autoDebit ? 'Enabled' : 'Disabled'),
                 ],
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 _ReviewRow(
                   'Maturity Date',
                   '${ctrl.maturityDate.day}/${ctrl.maturityDate.month}/${ctrl.maturityDate.year}',
@@ -746,9 +746,9 @@ class _ReviewStep extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(Spacing.md),
             decoration: BoxDecoration(
               color: const Color(0xFF00A6CC).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),

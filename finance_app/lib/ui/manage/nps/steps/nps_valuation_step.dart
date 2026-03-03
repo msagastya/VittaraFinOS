@@ -34,24 +34,24 @@ class _NPSValuationStepState extends State<NPSValuationStep> {
     final ctrl = Provider.of<NPSWizardController>(context);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Current Valuation', style: AppStyles.titleStyle(context)),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text('Enter current account value',
               style:
                   TextStyle(color: AppStyles.getSecondaryTextColor(context))),
           const SizedBox(height: 30),
           Text('Current Account Value (₹)',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _valueController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             placeholder: '0.00',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -69,7 +69,7 @@ class _NPSValuationStepState extends State<NPSValuationStep> {
           const SizedBox(height: 30),
           if (ctrl.currentValue != null && ctrl.totalContributed != null) ...{
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: const Color(0xFF9B59B6).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
@@ -82,19 +82,19 @@ class _NPSValuationStepState extends State<NPSValuationStep> {
                     'Total Contribution',
                     '₹${ctrl.totalContributed!.toStringAsFixed(2)}',
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: Spacing.md),
                   _StatRow(
                     'Current Value',
                     '₹${ctrl.currentValue!.toStringAsFixed(2)}',
                     isBold: true,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: Spacing.md),
                   _StatRow(
                     'Estimated Returns',
                     '₹${ctrl.estimatedReturns.toStringAsFixed(2)}',
                     isPositive: ctrl.estimatedReturns >= 0,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: Spacing.md),
                   _StatRow(
                     'Return %',
                     '${ctrl.gainLossPercent.toStringAsFixed(2)}%',
@@ -105,7 +105,7 @@ class _NPSValuationStepState extends State<NPSValuationStep> {
               ),
             ),
           },
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
         ],
       ),
     );

@@ -55,7 +55,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
               borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(24)),
             ),
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(Spacing.xxl),
             child: SafeArea(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -68,12 +68,12 @@ class _AccountsScreenState extends State<AccountsScreen> {
                       borderRadius: BorderRadius.circular(2.5),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: Spacing.xxl),
                   Text(
                     'Add New Account',
                     style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title1),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: Spacing.sm),
                   Text(
                     'Select the type of account you want to add',
                     style: TextStyle(
@@ -81,7 +81,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                       fontSize: TypeScale.body,
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: Spacing.xxxl),
                   Row(
                     children: [
                       Expanded(
@@ -97,7 +97,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                         ),
                       ),
                       if (showInvestment) ...[
-                        const SizedBox(width: 16),
+                        const SizedBox(width: Spacing.lg),
                         Expanded(
                           child: _buildOptionCard(
                             context,
@@ -113,7 +113,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                       ],
                     ],
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: Spacing.xxxl),
                 ],
               ),
             ),
@@ -140,19 +140,19 @@ class _AccountsScreenState extends State<AccountsScreen> {
             width: 1,
           ),
         ),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(Spacing.lg),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, size: 32, color: color),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: Spacing.lg),
             Text(
               title,
               textAlign: TextAlign.center,
@@ -325,7 +325,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                     _getAccountTypeLabel(type),
                     style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.subhead),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: Spacing.xs),
                   Text(
                     '₹${total.toStringAsFixed(2)}',
                     style: TextStyle(
@@ -673,7 +673,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                         borderRadius: BorderRadius.circular(2.5),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: Spacing.xl),
 
                     // Account Details
                     Padding(
@@ -686,7 +686,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                             style: AppStyles.titleStyle(dragContext)
                                 .copyWith(fontSize: TypeScale.title2),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: Spacing.sm),
                           Text(
                             '${account.bankName} • ${account.type.name.toUpperCase()}',
                             style: TextStyle(
@@ -695,7 +695,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                               fontSize: TypeScale.body,
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: Spacing.lg),
 
                           // Balance display
                           Text(
@@ -706,7 +706,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                               fontSize: TypeScale.footnote,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: Spacing.xs),
                           Text(
                             '₹${account.balance.toStringAsFixed(2)}',
                             style: AppStyles.titleStyle(dragContext).copyWith(
@@ -719,7 +719,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                           // Credit Card Number (if exists)
                           if (account.creditCardNumber != null &&
                               account.creditCardNumber!.isNotEmpty) ...[
-                            const SizedBox(height: 16),
+                            const SizedBox(height: Spacing.lg),
                             Text(
                               'Card Number',
                               style: TextStyle(
@@ -728,7 +728,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                 fontSize: TypeScale.footnote,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: Spacing.xs),
                             Text(
                               account.creditCardNumber!,
                               style: TextStyle(
@@ -743,7 +743,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                           // Credit Card/Pay Later - Show Credit Limit and Amount Used
                           if (account.type == AccountType.credit ||
                               account.type == AccountType.payLater) ...[
-                            const SizedBox(height: 24),
+                            const SizedBox(height: Spacing.xxl),
                             Row(
                               children: [
                                 Expanded(
@@ -760,7 +760,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                           fontSize: TypeScale.footnote,
                                         ),
                                       ),
-                                      const SizedBox(height: 4),
+                                      const SizedBox(height: Spacing.xs),
                                       Text(
                                         '₹${(account.creditLimit ?? 0.0).toStringAsFixed(2)}',
                                         style: TextStyle(
@@ -787,7 +787,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                           fontSize: TypeScale.footnote,
                                         ),
                                       ),
-                                      const SizedBox(height: 4),
+                                      const SizedBox(height: Spacing.xs),
                                       Text(
                                         '₹${((account.creditLimit ?? 0.0) - account.balance).toStringAsFixed(2)}',
                                         style: TextStyle(
@@ -803,7 +803,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                             ),
                           ],
 
-                          const SizedBox(height: 32),
+                          const SizedBox(height: Spacing.xxxl),
                         ],
                       ),
                     ),
@@ -854,7 +854,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: Spacing.md),
                           Row(
                             children: [
                               Expanded(
@@ -894,7 +894,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 12),
+                              const SizedBox(width: Spacing.md),
                               Expanded(
                                 child: BouncyButton(
                                   onPressed: () {
@@ -937,7 +937,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: Spacing.xl),
                   ],
                 ),
               ),
@@ -1003,7 +1003,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                 .withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          padding: const EdgeInsets.all(4),
+                          padding: const EdgeInsets.all(Spacing.xs),
                           child: Row(
                             children: [
                               Expanded(
@@ -1107,7 +1107,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                               Text('₹',
                                   style: AppStyles.titleStyle(context)
                                       .copyWith(fontSize: TypeScale.display)),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: Spacing.sm),
                               IntrinsicWidth(
                                 child: CupertinoTextField(
                                   controller: amountController,

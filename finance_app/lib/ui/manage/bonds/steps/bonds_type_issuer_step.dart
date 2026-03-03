@@ -82,7 +82,7 @@ class _BondsTypeIssuerStepState extends State<BondsTypeIssuerStep> {
     final controller = Provider.of<BondsWizardController>(context);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -90,7 +90,7 @@ class _BondsTypeIssuerStepState extends State<BondsTypeIssuerStep> {
             'Bond Details',
             style: AppStyles.titleStyle(context),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Select bond type and issuer details',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
@@ -105,7 +105,7 @@ class _BondsTypeIssuerStepState extends State<BondsTypeIssuerStep> {
               fontSize: TypeScale.body,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           Wrap(
             spacing: 12,
             runSpacing: 12,
@@ -161,11 +161,11 @@ class _BondsTypeIssuerStepState extends State<BondsTypeIssuerStep> {
                 fontSize: TypeScale.body,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: Spacing.md),
             CupertinoTextField(
               controller: _issuerController,
               placeholder: 'Select or type issuer',
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
@@ -175,14 +175,14 @@ class _BondsTypeIssuerStepState extends State<BondsTypeIssuerStep> {
                 controller.updateIssuer(value);
               },
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: Spacing.md),
             SizedBox(
               height: 40,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount:
                     getIssuersForType(controller.selectedBondType!).length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                separatorBuilder: (_, __) => const SizedBox(width: Spacing.sm),
                 itemBuilder: (context, index) {
                   final issuer =
                       getIssuersForType(controller.selectedBondType!)[index];
@@ -233,11 +233,11 @@ class _BondsTypeIssuerStepState extends State<BondsTypeIssuerStep> {
                 fontSize: TypeScale.body,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: Spacing.md),
             CupertinoTextField(
               controller: _nameController,
               placeholder: 'e.g., Government Bond 7% 2030',
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
@@ -257,13 +257,13 @@ class _BondsTypeIssuerStepState extends State<BondsTypeIssuerStep> {
                 fontSize: TypeScale.body,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: Spacing.md),
             CupertinoTextField(
               controller: _faceValueController,
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
               placeholder: '1000',
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
@@ -284,7 +284,7 @@ class _BondsTypeIssuerStepState extends State<BondsTypeIssuerStep> {
               },
             ),
           ],
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
         ],
       ),
     );

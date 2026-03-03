@@ -36,7 +36,7 @@ class _CryptoWalletStepState extends State<CryptoWalletStep> {
     final controller = Provider.of<CryptoWizardController>(context);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -44,7 +44,7 @@ class _CryptoWalletStepState extends State<CryptoWalletStep> {
             'Wallet & Storage',
             style: AppStyles.titleStyle(context),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Select where you hold your cryptocurrency',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
@@ -59,7 +59,7 @@ class _CryptoWalletStepState extends State<CryptoWalletStep> {
               fontSize: TypeScale.body,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           ...CryptoWalletType.values.map((type) {
             final isSelected = controller.walletType == type;
             final labels = {
@@ -82,7 +82,7 @@ class _CryptoWalletStepState extends State<CryptoWalletStep> {
                     controller.updateWalletType(type);
                   },
                   child: Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(Spacing.lg),
                     decoration: BoxDecoration(
                       color: isSelected
                           ? const Color(0xFFF7931A).withValues(alpha: 0.1)
@@ -97,7 +97,7 @@ class _CryptoWalletStepState extends State<CryptoWalletStep> {
                     child: Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(Spacing.md),
                           decoration: BoxDecoration(
                             color:
                                 const Color(0xFFF7931A).withValues(alpha: 0.15),
@@ -112,7 +112,7 @@ class _CryptoWalletStepState extends State<CryptoWalletStep> {
                             color: const Color(0xFFF7931A),
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: Spacing.lg),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -124,7 +124,7 @@ class _CryptoWalletStepState extends State<CryptoWalletStep> {
                                   fontSize: TypeScale.body,
                                 ),
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: Spacing.xs),
                               Text(
                                 descriptions[type] ?? '',
                                 style: TextStyle(
@@ -145,11 +145,11 @@ class _CryptoWalletStepState extends State<CryptoWalletStep> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
               ],
             );
           }),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           // Exchange Selection (only for exchange wallet type)
           if (controller.walletType == CryptoWalletType.exchange) ...[
             Text(
@@ -160,7 +160,7 @@ class _CryptoWalletStepState extends State<CryptoWalletStep> {
                 fontSize: TypeScale.body,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: Spacing.md),
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -212,7 +212,7 @@ class _CryptoWalletStepState extends State<CryptoWalletStep> {
                 );
               }).toList(),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: Spacing.xl),
           ],
           // Wallet Address
           Text(
@@ -225,13 +225,13 @@ class _CryptoWalletStepState extends State<CryptoWalletStep> {
               fontSize: TypeScale.body,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _addressController,
             placeholder: controller.walletType == CryptoWalletType.exchange
                 ? 'e.g., user@email.com or account ID'
                 : 'e.g., 1A1z7agoat2xFYx...',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             maxLines: 3,
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
@@ -242,7 +242,7 @@ class _CryptoWalletStepState extends State<CryptoWalletStep> {
               controller.updateWalletAddress(value);
             },
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
         ],
       ),
     );

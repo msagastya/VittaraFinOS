@@ -123,7 +123,7 @@ class NotificationsPage extends StatelessWidget {
                                     color: AppStyles.getSecondaryTextColor(
                                         context),
                                   ),
-                                  const SizedBox(width: 8),
+                                  const SizedBox(width: Spacing.sm),
                                   Expanded(
                                     child: Text(
                                       'Choose to renew or withdraw',
@@ -180,7 +180,7 @@ class NotificationsPage extends StatelessWidget {
                                     size: 14,
                                     color: Colors.purple,
                                   ),
-                                  const SizedBox(width: 8),
+                                  const SizedBox(width: Spacing.sm),
                                   Expanded(
                                     child: Text(
                                       'Confirm renewal or withdraw funds',
@@ -245,7 +245,7 @@ class NotificationsPage extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: Spacing.sm),
                               Expanded(
                                 child: CupertinoButton(
                                   padding: const EdgeInsets.symmetric(
@@ -870,7 +870,7 @@ class _SipExecutionModalState extends State<_SipExecutionModal> {
             ),
             child: SafeArea(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(Spacing.lg),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -882,7 +882,7 @@ class _SipExecutionModalState extends State<_SipExecutionModal> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: Spacing.md),
                     if (accounts.isEmpty)
                       Text(
                         'No accounts available',
@@ -921,7 +921,7 @@ class _SipExecutionModalState extends State<_SipExecutionModal> {
                           ),
                         );
                       }),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: Spacing.sm),
                     CupertinoButton(
                       child: const Text('Cancel'),
                       onPressed: () => Navigator.of(context).pop(),
@@ -1074,7 +1074,7 @@ class _SipExecutionModalState extends State<_SipExecutionModal> {
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: Spacing.lg),
               Text(
                 'Execute SIP',
                 style: TextStyle(
@@ -1083,7 +1083,7 @@ class _SipExecutionModalState extends State<_SipExecutionModal> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: Spacing.xs),
               Text(
                 'Due date: $dueText. You can execute now or later by changing date.',
                 style: TextStyle(
@@ -1091,20 +1091,20 @@ class _SipExecutionModalState extends State<_SipExecutionModal> {
                   fontSize: TypeScale.footnote,
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: Spacing.xl),
               _buildInputField(
                 context: context,
                 label: 'Amount',
                 controller: _amountController,
                 prefix: '₹',
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: Spacing.md),
               _buildInputField(
                 context: context,
                 label: auxLabel,
                 controller: _auxController,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: Spacing.md),
               GestureDetector(
                 onTap: _showDatePicker,
                 child: _buildPickerTile(
@@ -1113,7 +1113,7 @@ class _SipExecutionModalState extends State<_SipExecutionModal> {
                   value: _dateController.text,
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: Spacing.md),
               GestureDetector(
                 onTap: _showAccountPicker,
                 child: _buildPickerTile(

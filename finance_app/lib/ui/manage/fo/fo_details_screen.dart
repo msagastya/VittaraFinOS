@@ -46,7 +46,7 @@ class _FODetailsScreenState extends State<FODetailsScreen> {
       ),
       child: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(Spacing.xl),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -62,7 +62,7 @@ class _FODetailsScreenState extends State<FODetailsScreen> {
                   _DetailRow('Days to Expiry', '${fo.daysToExpiry} days'),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: Spacing.xl),
               _DetailCard(
                 title: 'Pricing & Quantity',
                 children: [
@@ -76,7 +76,7 @@ class _FODetailsScreenState extends State<FODetailsScreen> {
                         '₹${fo.strikePrice!.toStringAsFixed(2)}'),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: Spacing.xl),
               _DetailCard(
                 title: 'Financial Summary',
                 children: [
@@ -101,7 +101,7 @@ class _FODetailsScreenState extends State<FODetailsScreen> {
                 ],
               ),
               if (fo.greeks != null) ...[
-                const SizedBox(height: 20),
+                const SizedBox(height: Spacing.xl),
                 _DetailCard(
                   title: 'Greeks',
                   children: [
@@ -114,7 +114,7 @@ class _FODetailsScreenState extends State<FODetailsScreen> {
                 ),
               ],
               if (fo.notes != null && fo.notes!.isNotEmpty) ...[
-                const SizedBox(height: 20),
+                const SizedBox(height: Spacing.xl),
                 _DetailCard(
                   title: 'Notes',
                   children: [
@@ -132,7 +132,7 @@ class _FODetailsScreenState extends State<FODetailsScreen> {
                   child: const Text('Edit Investment'),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: Spacing.md),
               SizedBox(
                 width: double.infinity,
                 child: CupertinoButton(
@@ -169,7 +169,7 @@ class _FODetailsScreenState extends State<FODetailsScreen> {
                       style: TextStyle(color: CupertinoColors.systemRed)),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: Spacing.xl),
             ],
           ),
         ),
@@ -187,7 +187,7 @@ class _DetailCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(Spacing.lg),
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(12),
@@ -198,13 +198,13 @@ class _DetailCard extends StatelessWidget {
         children: [
           Text(title,
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: TypeScale.body)),
-          const SizedBox(height: 16),
+          const SizedBox(height: Spacing.lg),
           ...List.generate(
             children.length,
             (i) => Column(
               children: [
                 children[i],
-                if (i < children.length - 1) const SizedBox(height: 12),
+                if (i < children.length - 1) const SizedBox(height: Spacing.md),
               ],
             ),
           ),

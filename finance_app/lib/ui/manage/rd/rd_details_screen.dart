@@ -34,7 +34,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
           children: [
             // Header Card
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(Spacing.xl),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 border: Border(
@@ -63,7 +63,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: Spacing.xs),
                             Text(
                               'Linked: ${widget.rd.linkedAccountName}',
                               style: TextStyle(
@@ -95,7 +95,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: Spacing.xl),
                   // Key Metrics
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -125,7 +125,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
             ),
             // Detailed Information
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(Spacing.xl),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -138,7 +138,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                       fontSize: TypeScale.headline,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: Spacing.lg),
                   _buildTimelineItem(
                     context,
                     'Started',
@@ -153,7 +153,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                         ? CupertinoIcons.checkmark_circle
                         : CupertinoIcons.clock,
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: Spacing.xl),
                   // Details Grid
                   Text(
                     'Details',
@@ -163,7 +163,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                       fontSize: TypeScale.headline,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: Spacing.lg),
                   _buildDetailRow('Monthly Amount',
                       '₹${widget.rd.monthlyAmount.toStringAsFixed(2)}'),
                   _buildDetailRow(
@@ -186,7 +186,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                     '₹${widget.rd.maturityValue.toStringAsFixed(2)}',
                     isHighlight: true,
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: Spacing.xl),
                 ],
               ),
             ),
@@ -214,7 +214,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
             fontSize: TypeScale.footnote,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: Spacing.sm),
         Text(
           value,
           style: TextStyle(
@@ -238,7 +238,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
       child: Row(
         children: [
           Icon(icon, size: 20, color: AppStyles.getPrimaryColor(context)),
-          const SizedBox(width: 16),
+          const SizedBox(width: Spacing.lg),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -250,7 +250,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                     fontSize: TypeScale.footnote,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: Spacing.xs),
                 Text(
                   date,
                   style: TextStyle(
@@ -310,7 +310,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
             AppStyles.getPrimaryColor(context),
             () => _showInstallmentScheduleModal(context),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           _buildActionButton(
             context,
             'Edit Settings',
@@ -319,7 +319,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
             Colors.purple,
             () => _showEditModal(context),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           _buildActionButton(
             context,
             'View History',
@@ -328,7 +328,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
             AppStyles.getSecondaryTextColor(context),
             () => _showHistoryModal(context),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           _buildActionButton(
             context,
             'Delete',
@@ -355,7 +355,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(Spacing.lg),
         decoration: BoxDecoration(
           color: AppStyles.getCardColor(context),
           borderRadius: BorderRadius.circular(12),
@@ -374,7 +374,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
               ),
               child: Icon(icon, color: color, size: 20),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: Spacing.lg),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -417,7 +417,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
           children: [
             // Header
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 border: Border(
@@ -451,7 +451,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
             // Schedule list
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(Spacing.lg),
                 child: Column(
                   children: [
                     if (widget.rd.completedInstallments > 0) ...[
@@ -462,7 +462,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: Spacing.md),
                       ...List.generate(widget.rd.completedInstallments,
                           (index) {
                         return _buildInstallmentItem(
@@ -473,7 +473,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                           CupertinoColors.systemGreen,
                         );
                       }),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: Spacing.xl),
                     ],
                     if (widget.rd.pendingInstallments > 0) ...[
                       Text(
@@ -483,7 +483,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: Spacing.md),
                       ...List.generate(widget.rd.pendingInstallments, (index) {
                         return _buildInstallmentItem(
                           context,
@@ -513,7 +513,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
   ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(Spacing.md),
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(8),
@@ -532,7 +532,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: Spacing.xs),
                 Text(
                   status,
                   style: TextStyle(
@@ -568,7 +568,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
             children: [
               // Header
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color: AppStyles.getCardColor(context),
                   border: Border(
@@ -602,7 +602,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
               // Content
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(Spacing.lg),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -614,9 +614,9 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: Spacing.lg),
                       Container(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(Spacing.lg),
                         decoration: BoxDecoration(
                           color: AppStyles.getCardColor(context),
                           borderRadius: BorderRadius.circular(12),
@@ -636,7 +636,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                                       fontSize: TypeScale.body,
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
+                                  const SizedBox(height: Spacing.xs),
                                   Text(
                                     'Auto-debit future installments',
                                     style: TextStyle(
@@ -681,7 +681,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
             children: [
               // Header
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color: AppStyles.getCardColor(context),
                   border: Border(
@@ -715,7 +715,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
               // Content
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(Spacing.lg),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -777,7 +777,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
             child:
                 Icon(icon, color: AppStyles.getPrimaryColor(context), size: 20),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: Spacing.lg),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -790,7 +790,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                     fontSize: TypeScale.body,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: Spacing.xs),
                 Text(
                   date,
                   style: TextStyle(
@@ -798,7 +798,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                     fontSize: TypeScale.subhead,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: Spacing.xxs),
                 Text(
                   description,
                   style: TextStyle(

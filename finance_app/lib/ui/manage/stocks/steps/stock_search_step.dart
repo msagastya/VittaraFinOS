@@ -73,7 +73,7 @@ class _StockSearchStepState extends State<StockSearchStep> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(Spacing.lg),
           child: CupertinoSearchTextField(
             controller: _searchController,
             onChanged: _onSearchChanged,
@@ -109,7 +109,7 @@ class _StockSearchStepState extends State<StockSearchStep> {
                   child: Container(
                     margin:
                         const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(Spacing.md),
                     decoration: BoxDecoration(
                       color: isSelected
                           ? SemanticColors.investments.withValues(alpha: 0.1)
@@ -139,7 +139,7 @@ class _StockSearchStepState extends State<StockSearchStep> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: Spacing.md),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,

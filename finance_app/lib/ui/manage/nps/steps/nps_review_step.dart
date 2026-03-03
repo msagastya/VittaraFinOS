@@ -12,12 +12,12 @@ class NPSReviewStep extends StatelessWidget {
     final ctrl = Provider.of<NPSWizardController>(context);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Review & Confirm', style: AppStyles.titleStyle(context)),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text('Verify all details before saving',
               style:
                   TextStyle(color: AppStyles.getSecondaryTextColor(context))),
@@ -35,7 +35,7 @@ class NPSReviewStep extends StatelessWidget {
               _ReviewRow('Manager', ctrl.selectedManager?.displayName ?? 'N/A'),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           _ReviewCard(
             title: 'Contributions & Returns',
             children: [
@@ -53,7 +53,7 @@ class NPSReviewStep extends StatelessWidget {
                   '₹${(((ctrl.totalContributed ?? 0) > 150000 ? 150000 : ctrl.totalContributed) ?? 0).toStringAsFixed(2)}'),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           _ReviewCard(
             title: 'Retirement Planning',
             children: [
@@ -65,7 +65,7 @@ class NPSReviewStep extends StatelessWidget {
                   ctrl.withdrawalType.toString().split('.').last),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
         ],
       ),
     );
@@ -81,7 +81,7 @@ class _ReviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(Spacing.lg),
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(12),
@@ -95,13 +95,13 @@ class _ReviewCard extends StatelessWidget {
                   color: AppStyles.getTextColor(context),
                   fontWeight: FontWeight.bold,
                   fontSize: TypeScale.body)),
-          const SizedBox(height: 16),
+          const SizedBox(height: Spacing.lg),
           ...List.generate(
             children.length,
             (i) => Column(
               children: [
                 children[i],
-                if (i < children.length - 1) const SizedBox(height: 12),
+                if (i < children.length - 1) const SizedBox(height: Spacing.md),
               ],
             ),
           ),

@@ -39,7 +39,7 @@ class GoldInvestmentDateStep extends StatelessWidget {
     final controller = Provider.of<DigitalGoldWizardController>(context);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -47,7 +47,7 @@ class GoldInvestmentDateStep extends StatelessWidget {
             'Investment Date',
             style: AppStyles.titleStyle(context),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Select the date when you invested in this gold',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
@@ -60,11 +60,11 @@ class GoldInvestmentDateStep extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           GestureDetector(
             onTap: () => _showDatePicker(context, controller),
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
@@ -87,7 +87,7 @@ class GoldInvestmentDateStep extends StatelessWidget {
           const SizedBox(height: 30),
           // Summary
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: const Color(0xFFFFB81C).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
@@ -105,7 +105,7 @@ class GoldInvestmentDateStep extends StatelessWidget {
                     color: AppStyles.getTextColor(context),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -125,7 +125,7 @@ class GoldInvestmentDateStep extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: Spacing.sm),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -145,7 +145,7 @@ class GoldInvestmentDateStep extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: Spacing.sm),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -189,7 +189,7 @@ class GoldInvestmentDateStep extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
         ],
       ),
     );

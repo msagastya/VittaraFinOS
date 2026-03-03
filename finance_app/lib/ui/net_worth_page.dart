@@ -784,7 +784,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              SizedBox(height: 4),
+                              SizedBox(height: Spacing.xs),
                               Text(
                                 '₹${(account.creditLimit ?? 0.0).toStringAsFixed(0)}',
                                 style: TextStyle(
@@ -809,7 +809,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              SizedBox(height: 4),
+                              SizedBox(height: Spacing.xs),
                               Text(
                                 '₹${used.toStringAsFixed(0)}',
                                 style: TextStyle(
@@ -834,7 +834,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              SizedBox(height: 4),
+                              SizedBox(height: Spacing.xs),
                               Text(
                                 '₹${available.toStringAsFixed(0)}',
                                 style: TextStyle(
@@ -861,7 +861,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                         ),
                       ),
                     ),
-                    SizedBox(height: 4),
+                    SizedBox(height: Spacing.xs),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [

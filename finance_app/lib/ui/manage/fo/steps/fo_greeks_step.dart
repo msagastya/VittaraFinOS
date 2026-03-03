@@ -46,17 +46,17 @@ class _FOGreeksStepState extends State<FOGreeksStep> {
     if (widget.ctrl.selectedType == FOType.futures) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(Spacing.xl),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(CupertinoIcons.info_circle_fill,
                   size: 48, color: AppStyles.getSecondaryTextColor(context)),
-              const SizedBox(height: 16),
+              const SizedBox(height: Spacing.lg),
               Text('Greeks are not applicable for Futures',
                   style: AppStyles.titleStyle(context),
                   textAlign: TextAlign.center),
-              const SizedBox(height: 8),
+              const SizedBox(height: Spacing.sm),
               Text('Greeks are calculated for Options only.',
                   style: TextStyle(
                       color: AppStyles.getSecondaryTextColor(context)),
@@ -68,7 +68,7 @@ class _FOGreeksStepState extends State<FOGreeksStep> {
     }
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -76,12 +76,12 @@ class _FOGreeksStepState extends State<FOGreeksStep> {
           const SizedBox(height: 30),
           Text('Strike Price (₹)',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _strikePriceController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             placeholder: '0.00',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -95,15 +95,15 @@ class _FOGreeksStepState extends State<FOGreeksStep> {
               if (price > 0) widget.ctrl.updateStrikePrice(price);
             },
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           Text('Volatility (% p.a.)',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _volatilityController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             placeholder: '20',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -117,15 +117,15 @@ class _FOGreeksStepState extends State<FOGreeksStep> {
               if (vol > 0) widget.ctrl.updateVolatility(vol);
             },
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           Text('Risk-Free Rate (% p.a.)',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _riskFreeRateController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             placeholder: '6',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -143,9 +143,9 @@ class _FOGreeksStepState extends State<FOGreeksStep> {
             const SizedBox(height: 30),
             Text('Calculated Greeks',
                 style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-            const SizedBox(height: 12),
+            const SizedBox(height: Spacing.md),
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
@@ -213,7 +213,7 @@ class _GreekRow extends StatelessWidget {
                       color: Color(0xFF1ABC9C))),
             ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: Spacing.xs),
           Text(description,
               style: TextStyle(
                   fontSize: TypeScale.caption,

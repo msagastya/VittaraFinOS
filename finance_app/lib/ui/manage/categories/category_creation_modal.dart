@@ -69,13 +69,13 @@ Future<Category?> showCreateCategoryModal(
                       borderRadius: BorderRadius.circular(2.5),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: Spacing.xl),
                   Text(
                     isEditMode ? 'Edit Category' : 'Create Custom Category',
                     style: AppStyles.titleStyle(stateContext)
                         .copyWith(fontSize: TypeScale.title2),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: Spacing.xxl),
                   Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -95,7 +95,7 @@ Future<Category?> showCreateCategoryModal(
                           ),
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: Spacing.lg),
                       CupertinoButton(
                         onPressed: () {
                           Navigator.of(context).push(
@@ -119,7 +119,7 @@ Future<Category?> showCreateCategoryModal(
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: Spacing.xxl),
                   Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -128,7 +128,7 @@ Future<Category?> showCreateCategoryModal(
                         'Color',
                         style: AppStyles.headerStyle(stateContext),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: Spacing.lg),
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
@@ -172,7 +172,7 @@ Future<Category?> showCreateCategoryModal(
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: Spacing.xxl),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Column(
@@ -180,7 +180,7 @@ Future<Category?> showCreateCategoryModal(
                       children: [
                         Text('Category Name',
                             style: AppStyles.headerStyle(stateContext)),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: Spacing.md),
                         CupertinoTextField(
                           controller: nameController,
                           autofocus: !isEditMode,
@@ -189,7 +189,7 @@ Future<Category?> showCreateCategoryModal(
                             createAndClose(modalContext);
                           },
                           placeholder: 'Enter category name',
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(Spacing.md),
                           decoration: BoxDecoration(
                             color: AppStyles.getBackground(stateContext),
                             borderRadius: BorderRadius.circular(12),
@@ -202,7 +202,7 @@ Future<Category?> showCreateCategoryModal(
                       ],
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: Spacing.xxl),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Row(
@@ -220,7 +220,7 @@ Future<Category?> showCreateCategoryModal(
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: Spacing.md),
                         Expanded(
                           child: CupertinoButton(
                             color: AppStyles.accentBlue,
@@ -239,7 +239,7 @@ Future<Category?> showCreateCategoryModal(
                       ],
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: Spacing.xxl),
                 ],
               ),
             ),

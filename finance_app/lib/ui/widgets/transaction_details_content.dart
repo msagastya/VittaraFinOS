@@ -22,10 +22,10 @@ class TransactionDetailsContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 16),
+          const SizedBox(height: Spacing.lg),
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 24),
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: _getTransactionColor().withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(16),
@@ -38,12 +38,12 @@ class TransactionDetailsContent extends StatelessWidget {
                   color: _getTransactionColor(),
                   size: 32,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 Text(
                   transaction.getTypeLabel(),
                   style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title2),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: Spacing.xs),
                 Text(
                   _formatDate(transaction.dateTime),
                   style: TextStyle(
@@ -67,7 +67,7 @@ class TransactionDetailsContent extends StatelessWidget {
                     fontSize: TypeScale.footnote,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: Spacing.xs),
                 Text(
                   '₹${transaction.amount.toStringAsFixed(2)}',
                   style: AppStyles.titleStyle(context).copyWith(
@@ -79,10 +79,10 @@ class TransactionDetailsContent extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           ...detailEntries.map((entry) => _buildDetailRow(context, entry)),
           if (actionButtons.isNotEmpty) ...[
-            const SizedBox(height: 32),
+            const SizedBox(height: Spacing.xxxl),
             ...actionButtons.map(
               (child) => Padding(
                 padding:
@@ -199,7 +199,7 @@ class TransactionDetailsContent extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: Spacing.md),
           Expanded(
             child: Text(
               entry.value,

@@ -37,7 +37,7 @@ class _FOContractDetailsStepState extends State<FOContractDetailsStep> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -45,12 +45,12 @@ class _FOContractDetailsStepState extends State<FOContractDetailsStep> {
           const SizedBox(height: 30),
           Text('Entry Price (₹)',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _entryPriceController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             placeholder: '0.00',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -64,15 +64,15 @@ class _FOContractDetailsStepState extends State<FOContractDetailsStep> {
               if (price > 0) widget.ctrl.updateEntryPrice(price);
             },
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           Text('Quantity / Lot Size',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _quantityController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             placeholder: '0.00',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -84,9 +84,9 @@ class _FOContractDetailsStepState extends State<FOContractDetailsStep> {
           ),
           if (widget.ctrl.entryPrice != null &&
               widget.ctrl.quantity != null) ...[
-            const SizedBox(height: 24),
+            const SizedBox(height: Spacing.xxl),
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: const Color(0xFF1ABC9C).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),

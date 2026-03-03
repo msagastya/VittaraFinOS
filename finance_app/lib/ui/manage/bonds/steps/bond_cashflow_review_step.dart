@@ -14,7 +14,7 @@ class BondCashFlowReviewStep extends StatelessWidget {
     final isProfit = ctrl.gainLoss >= 0;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -27,7 +27,7 @@ class BondCashFlowReviewStep extends StatelessWidget {
               color: AppStyles.getSecondaryTextColor(context),
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           // Cash Flow Table
           Container(
             decoration: BoxDecoration(
@@ -39,7 +39,7 @@ class BondCashFlowReviewStep extends StatelessWidget {
               children: [
                 // Header
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(Spacing.md),
                   decoration: BoxDecoration(
                     color: const Color(0xFF00A6CC).withValues(alpha: 0.1),
                     borderRadius: const BorderRadius.only(
@@ -98,7 +98,7 @@ class BondCashFlowReviewStep extends StatelessWidget {
                         color: CupertinoColors.systemGrey.withValues(alpha: 0.1),
                       ),
                       Padding(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(Spacing.md),
                         child: Row(
                           children: [
                             Expanded(
@@ -143,10 +143,10 @@ class BondCashFlowReviewStep extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           // Summary
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: isProfit
                   ? CupertinoColors.systemGreen.withValues(alpha: 0.1)
@@ -165,15 +165,15 @@ class BondCashFlowReviewStep extends StatelessWidget {
                   value: '₹${ctrl.totalInvested.toStringAsFixed(2)}',
                   color: CupertinoColors.systemRed,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 _SummaryRow(
                   label: 'Total Received',
                   value: '₹${ctrl.totalReceived.toStringAsFixed(2)}',
                   color: CupertinoColors.systemGreen,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 Divider(color: AppStyles.getDividerColor(context)),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 _SummaryRow(
                   label: 'Gain/Loss',
                   value:
@@ -181,7 +181,7 @@ class BondCashFlowReviewStep extends StatelessWidget {
                   color: isProfit ? CupertinoColors.systemGreen : CupertinoColors.systemRed,
                   isBold: true,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 _SummaryRow(
                   label: 'Return %',
                   value:
@@ -189,7 +189,7 @@ class BondCashFlowReviewStep extends StatelessWidget {
                   color: isProfit ? CupertinoColors.systemGreen : CupertinoColors.systemRed,
                   isBold: true,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 _SummaryRow(
                   label: 'Yield to Maturity (IRR)',
                   value:
@@ -200,7 +200,7 @@ class BondCashFlowReviewStep extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
         ],
       ),
     );

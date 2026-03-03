@@ -43,7 +43,7 @@ class _BondsAccountStepState extends State<BondsAccountStep> {
         return Column(
           children: [
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(Spacing.lg),
               child: Text(
                 'Select Linked Account',
                 style: AppStyles.titleStyle(context),
@@ -57,7 +57,7 @@ class _BondsAccountStepState extends State<BondsAccountStep> {
                         children: [
                           const Icon(CupertinoIcons.chart_pie,
                               size: 48, color: CupertinoColors.systemGrey),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: Spacing.lg),
                           Text(
                             'No Savings Accounts Found',
                             style: TextStyle(
@@ -86,7 +86,7 @@ class _BondsAccountStepState extends State<BondsAccountStep> {
                               horizontal: 16,
                               vertical: 8,
                             ),
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(Spacing.lg),
                             decoration: BoxDecoration(
                               color: isSelected
                                   ? const Color(0xFF007AFF)
@@ -120,7 +120,7 @@ class _BondsAccountStepState extends State<BondsAccountStep> {
                                     color: account.color,
                                   ),
                                 ),
-                                const SizedBox(width: 16),
+                                const SizedBox(width: Spacing.lg),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
@@ -174,7 +174,7 @@ class _BondsAccountStepState extends State<BondsAccountStep> {
                     ),
             ),
             Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(Spacing.xl),
               child: CupertinoButton(
                 color:
                     isDarkMode(context) ? Colors.grey[800] : Colors.grey[200],
@@ -203,7 +203,7 @@ class _BondsAccountStepState extends State<BondsAccountStep> {
                   children: [
                     Icon(CupertinoIcons.add,
                         color: AppStyles.getTextColor(context)),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: Spacing.sm),
                     Text(
                       'Add Savings Account',
                       style: TextStyle(

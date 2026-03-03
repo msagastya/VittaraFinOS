@@ -29,7 +29,7 @@ class BondTypeNameStep extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 border: Border(
@@ -56,7 +56,7 @@ class BondTypeNameStep extends StatelessWidget {
             ),
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(Spacing.lg),
                 children: [
                   ...accountsController.accounts.map((account) {
                     final isSelected = currentAccountId == account.id;
@@ -130,12 +130,12 @@ class BondTypeNameStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Bond Type', style: AppStyles.titleStyle(context)),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           Column(
             children: BondType.values.map((type) {
               final isSelected = ctrl.selectedType == type;
@@ -167,7 +167,7 @@ class BondTypeNameStep extends StatelessWidget {
                 onTap: () => ctrl.selectType(type),
                 child: Container(
                   margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? const Color(0xFF00A6CC).withValues(alpha: 0.1)
@@ -205,7 +205,7 @@ class BondTypeNameStep extends StatelessWidget {
                               )
                             : null,
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: Spacing.md),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -227,24 +227,24 @@ class BondTypeNameStep extends StatelessWidget {
               );
             }).toList(),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           Text('Bond Name',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           CupertinoTextField(
             placeholder: 'e.g., RBI Bond 2028, Government Securities',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
             ),
             onChanged: (v) => ctrl.updateBondName(v),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           // Purchase Account Section
           Text('Purchase Account (Optional)',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Account to debit when purchasing this bond',
             style: TextStyle(
@@ -252,7 +252,7 @@ class BondTypeNameStep extends StatelessWidget {
               color: AppStyles.getSecondaryTextColor(context),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
@@ -321,11 +321,11 @@ class BondTypeNameStep extends StatelessWidget {
                 ],
               ),
             ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           // Payment Account Section
           Text('Payment Account (Optional)',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Account to receive coupon/maturity payments',
             style: TextStyle(
@@ -333,7 +333,7 @@ class BondTypeNameStep extends StatelessWidget {
               color: AppStyles.getSecondaryTextColor(context),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
@@ -402,7 +402,7 @@ class BondTypeNameStep extends StatelessWidget {
                 ],
               ),
             ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
         ],
       ),
     );

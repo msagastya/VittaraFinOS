@@ -197,7 +197,7 @@ class _FDWizardScreenState extends State<FDWizardScreen> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: Spacing.xs),
                           Text(
                             'Step ${controller.currentStep + 1} of 8',
                             style: TextStyle(
@@ -222,7 +222,7 @@ class _FDWizardScreenState extends State<FDWizardScreen> {
             ),
             // Navigation buttons
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 border: Border(
@@ -254,7 +254,7 @@ class _FDWizardScreenState extends State<FDWizardScreen> {
                             ),
                           ),
                         ),
-                      if (controller.currentStep > 0) const SizedBox(width: 12),
+                      if (controller.currentStep > 0) const SizedBox(width: Spacing.md),
                       // Next or Submit button
                       Expanded(
                         child: CupertinoButton(

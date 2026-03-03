@@ -39,7 +39,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 20),
+              const SizedBox(height: Spacing.xl),
 
               _buildHeader('Security'),
               _buildModernSection(context, [
@@ -193,11 +193,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(Spacing.sm),
             decoration: AppStyles.iconBoxDecoration(context, color),
             child: Icon(icon, size: 20, color: color),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: Spacing.lg),
           Expanded(
             child: Text(title, style: AppStyles.titleStyle(context)),
           ),
@@ -228,13 +228,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(Spacing.sm),
               decoration: AppStyles.iconBoxDecoration(
                   context, color ?? CupertinoColors.systemBlue),
               child: Icon(icon,
                   size: 20, color: color ?? CupertinoColors.systemBlue),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: Spacing.lg),
             Expanded(
               child: Text(title, style: AppStyles.titleStyle(context)),
             ),
@@ -246,7 +246,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: AppStyles.getSecondaryTextColor(context),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: Spacing.sm),
             ],
             Icon(
               CupertinoIcons.chevron_right,

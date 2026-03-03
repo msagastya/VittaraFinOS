@@ -46,14 +46,14 @@ class _TagsScreenState extends State<TagsScreen> {
                         style: AppStyles.titleStyle(context).copyWith(
                             fontSize: TypeScale.largeTitle, fontWeight: FontWeight.w800),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: Spacing.sm),
                       Text(
                         'Organize transactions with custom labels',
                         style: TextStyle(
                             color: AppStyles.getSecondaryTextColor(context),
                             fontSize: TypeScale.body),
                       ),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: Spacing.xxxl),
                       if (tags.isEmpty)
                         Container(
                           width: double.infinity,
@@ -82,7 +82,7 @@ class _TagsScreenState extends State<TagsScreen> {
                                       size: 32, color: AppStyles.accentBlue),
                                 ),
                               ),
-                              const SizedBox(height: 16),
+                              const SizedBox(height: Spacing.lg),
                               Text(
                                 'No tags created yet',
                                 style: TextStyle(
@@ -91,7 +91,7 @@ class _TagsScreenState extends State<TagsScreen> {
                                   color: AppStyles.getTextColor(context),
                                 ),
                               ),
-                              const SizedBox(height: 8),
+                              const SizedBox(height: Spacing.sm),
                               Text(
                                 'Tap the + button to create your first tag',
                                 style: TextStyle(
@@ -107,7 +107,7 @@ class _TagsScreenState extends State<TagsScreen> {
                         Column(
                           children: [
                             Container(
-                              padding: const EdgeInsets.all(16),
+                              padding: const EdgeInsets.all(Spacing.lg),
                               decoration: BoxDecoration(
                                 color: AppStyles.accentBlue
                                     .withValues(alpha: 0.08),
@@ -120,7 +120,7 @@ class _TagsScreenState extends State<TagsScreen> {
                                 children: [
                                   Icon(CupertinoIcons.info_circle,
                                       size: 20, color: AppStyles.accentBlue),
-                                  const SizedBox(width: 12),
+                                  const SizedBox(width: Spacing.md),
                                   Expanded(
                                     child: Text(
                                       '${tags.length} tag${tags.length > 1 ? 's' : ''} created',
@@ -134,7 +134,7 @@ class _TagsScreenState extends State<TagsScreen> {
                                 ],
                               ),
                             ),
-                            const SizedBox(height: 24),
+                            const SizedBox(height: Spacing.xxl),
                             Wrap(
                               spacing: Spacing.md,
                               runSpacing: Spacing.md,
@@ -242,7 +242,7 @@ class _TagsScreenState extends State<TagsScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: Spacing.md),
               Text(
                 'Create New Tag',
                 style: TextStyle(
@@ -251,7 +251,7 @@ class _TagsScreenState extends State<TagsScreen> {
                   color: AppStyles.getTextColor(context),
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: Spacing.xs),
               Text(
                 'Give it a name and choose a color',
                 style: TextStyle(
@@ -269,7 +269,7 @@ class _TagsScreenState extends State<TagsScreen> {
                 CupertinoTextField(
                   controller: nameController,
                   placeholder: 'Tag name (max 20 characters)',
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(Spacing.md),
                   maxLength: 20,
                   decoration: BoxDecoration(
                     color: AppStyles.getCardColor(context),
@@ -284,7 +284,7 @@ class _TagsScreenState extends State<TagsScreen> {
                   ),
                   onChanged: (_) => setState(() {}),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: Spacing.xl),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -296,7 +296,7 @@ class _TagsScreenState extends State<TagsScreen> {
                         color: AppStyles.getTextColor(context),
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: Spacing.md),
                     Wrap(
                       spacing: 12,
                       runSpacing: 12,
@@ -399,7 +399,7 @@ class _TagsScreenState extends State<TagsScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: Spacing.md),
             Text(
               tag.name,
               style: TextStyle(
@@ -408,7 +408,7 @@ class _TagsScreenState extends State<TagsScreen> {
                 color: AppStyles.getTextColor(context),
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: Spacing.xs),
             Text(
               'Created ${_formatDate(tag.createdDate)}',
               style: TextStyle(
@@ -471,7 +471,7 @@ class _TagsScreenState extends State<TagsScreen> {
             controller: nameController,
             placeholder: 'Tag name',
             maxLength: 20,
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(Spacing.md),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(8),
@@ -517,7 +517,7 @@ class _TagsScreenState extends State<TagsScreen> {
                 color: AppStyles.getTextColor(context),
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: Spacing.xs),
             Text(
               'Choose a new color for this tag',
               style: TextStyle(

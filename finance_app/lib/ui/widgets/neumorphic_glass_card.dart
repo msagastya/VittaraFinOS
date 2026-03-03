@@ -355,7 +355,7 @@ class NeumorphicGlassToggle extends StatelessWidget {
               curve: MotionCurves.spring,
               alignment: value ? Alignment.centerRight : Alignment.centerLeft,
               child: Container(
-                margin: const EdgeInsets.all(4),
+                margin: const EdgeInsets.all(Spacing.xs),
                 width: 24,
                 height: 24,
                 decoration: BoxDecoration(

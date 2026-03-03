@@ -43,12 +43,12 @@ class _NPSAccountStepState extends State<NPSAccountStep> {
     final ctrl = Provider.of<NPSWizardController>(context);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('NPS Account Details', style: AppStyles.titleStyle(context)),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text('Enter your NPS account information',
               style:
                   TextStyle(color: AppStyles.getSecondaryTextColor(context))),
@@ -56,67 +56,67 @@ class _NPSAccountStepState extends State<NPSAccountStep> {
           // PRN
           Text('Permanent Retirement Number (PRN)',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _prnController,
             placeholder: 'e.g., PRANXXXXXXXX',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
             ),
             onChanged: (v) => ctrl.updatePRN(v),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           // NRN
           Text('National Registration Number (NRN)',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _nrnController,
             placeholder: 'e.g., NRNXXXXXXXX',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
             ),
             onChanged: (v) => ctrl.updateNRN(v),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           // Name
           Text('Subscriber Name',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _nameController,
             placeholder: 'Full name',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
             ),
             onChanged: (v) => ctrl.updateName(v),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           // PAN
           Text('PAN Number',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _panController,
             placeholder: 'XXXXXXXXXX',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
             ),
             onChanged: (v) => ctrl.updatePAN(v.toUpperCase()),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           // Account Type
           Text('Account Type',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -155,11 +155,11 @@ class _NPSAccountStepState extends State<NPSAccountStep> {
               );
             }).toList(),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           // Tier
           Text('NPS Tier',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           Row(
             children: NPSTier.values.map((tier) {
               final isSelected = ctrl.selectedTier == tier;
@@ -193,7 +193,7 @@ class _NPSAccountStepState extends State<NPSAccountStep> {
               );
             }).toList(),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
         ],
       ),
     );

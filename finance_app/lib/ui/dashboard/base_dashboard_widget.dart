@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:vittara_fin_os/logic/dashboard_widget_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 
 /// Base class for all dashboard widgets
@@ -71,7 +72,7 @@ abstract class BaseDashboardWidget extends StatelessWidget {
             children: [
               // Main content
               Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(Spacing.md),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

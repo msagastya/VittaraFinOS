@@ -46,7 +46,7 @@ class _NPSDetailsScreenState extends State<NPSDetailsScreen> {
       ),
       child: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(Spacing.xl),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -61,7 +61,7 @@ class _NPSDetailsScreenState extends State<NPSDetailsScreen> {
                   _DetailRow('Scheme', nps.getSchemeTypeLabel()),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: Spacing.xl),
               _DetailCard(
                 title: 'Financial Summary',
                 children: [
@@ -85,7 +85,7 @@ class _NPSDetailsScreenState extends State<NPSDetailsScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: Spacing.xl),
               _DetailCard(
                 title: 'Tax Benefits',
                 children: [
@@ -98,7 +98,7 @@ class _NPSDetailsScreenState extends State<NPSDetailsScreen> {
                       note: '@30% tax rate'),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: Spacing.xl),
               _DetailCard(
                 title: 'Withdrawal Strategy',
                 children: [
@@ -125,7 +125,7 @@ class _NPSDetailsScreenState extends State<NPSDetailsScreen> {
                   child: const Text('Edit Account'),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: Spacing.md),
               SizedBox(
                 width: double.infinity,
                 child: CupertinoButton(
@@ -162,7 +162,7 @@ class _NPSDetailsScreenState extends State<NPSDetailsScreen> {
                       style: TextStyle(color: CupertinoColors.systemRed)),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: Spacing.xl),
             ],
           ),
         ),
@@ -180,7 +180,7 @@ class _DetailCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(Spacing.lg),
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(12),
@@ -191,13 +191,13 @@ class _DetailCard extends StatelessWidget {
         children: [
           Text(title,
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: TypeScale.body)),
-          const SizedBox(height: 16),
+          const SizedBox(height: Spacing.lg),
           ...List.generate(
             children.length,
             (i) => Column(
               children: [
                 children[i],
-                if (i < children.length - 1) const SizedBox(height: 12),
+                if (i < children.length - 1) const SizedBox(height: Spacing.md),
               ],
             ),
           ),

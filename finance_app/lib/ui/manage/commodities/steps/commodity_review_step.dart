@@ -13,7 +13,7 @@ class CommodityReviewStep extends StatelessWidget {
     final isGain = ctrl.gainLoss >= 0;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -32,7 +32,7 @@ class CommodityReviewStep extends StatelessWidget {
               _Row('Position', ctrl.position.name.toUpperCase()),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           _Card(
             children: [
               _Row('Total Cost', '₹${ctrl.totalCost.toStringAsFixed(2)}'),
@@ -58,7 +58,7 @@ class _Card extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(Spacing.lg),
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(12),
@@ -70,7 +70,7 @@ class _Card extends StatelessWidget {
           (i) => Column(
             children: [
               children[i],
-              if (i < children.length - 1) const SizedBox(height: 12),
+              if (i < children.length - 1) const SizedBox(height: Spacing.md),
             ],
           ),
         ),

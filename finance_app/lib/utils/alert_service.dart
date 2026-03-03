@@ -156,7 +156,7 @@ class AlertService {
           children: [
             Text(message),
             if (details != null) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: Spacing.md),
               Text(
                 details,
                 style: const TextStyle(

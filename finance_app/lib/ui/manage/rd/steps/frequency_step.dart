@@ -36,7 +36,7 @@ class FrequencyStep extends StatelessWidget {
     ];
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -44,7 +44,7 @@ class FrequencyStep extends StatelessWidget {
             'Payment Frequency',
             style: AppStyles.titleStyle(context),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'How often should you deposit installments?',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
@@ -59,7 +59,7 @@ class FrequencyStep extends StatelessWidget {
                     option['value'] as RDPaymentFrequency),
                 child: Container(
                   margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
                     color: AppStyles.getCardColor(context),
                     borderRadius: BorderRadius.circular(12),
@@ -97,7 +97,7 @@ class FrequencyStep extends StatelessWidget {
                               )
                             : null,
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: Spacing.md),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -110,7 +110,7 @@ class FrequencyStep extends StatelessWidget {
                                 fontSize: TypeScale.headline,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: Spacing.xs),
                             Text(
                               option['description'] as String,
                               style: TextStyle(

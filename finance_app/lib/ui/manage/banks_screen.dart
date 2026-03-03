@@ -81,13 +81,13 @@ class _BanksScreenState extends State<BanksScreen> {
                                     borderRadius: BorderRadius.circular(2.5)),
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: Spacing.lg),
                             Text(
                               isEditMode ? 'Edit Bank' : 'Add Bank',
                               style: AppStyles.titleStyle(context)
                                   .copyWith(fontSize: TypeScale.title2),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: Spacing.lg),
                             Container(
                               height: 1,
                               color: isDark
@@ -96,7 +96,7 @@ class _BanksScreenState extends State<BanksScreen> {
                               margin:
                                   const EdgeInsets.symmetric(horizontal: 16),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: Spacing.lg),
                             Expanded(
                               child: SingleChildScrollView(
                                 padding:
@@ -105,7 +105,7 @@ class _BanksScreenState extends State<BanksScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     _buildLabel(context, 'Bank Name'),
-                                    const SizedBox(height: 8),
+                                    const SizedBox(height: Spacing.sm),
                                     CupertinoTextField(
                                       controller: nameController,
                                       enabled: !isEditMode,
@@ -122,10 +122,10 @@ class _BanksScreenState extends State<BanksScreen> {
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 12, vertical: 12),
                                     ),
-                                    const SizedBox(height: 24),
+                                    const SizedBox(height: Spacing.xxl),
                                     _buildLabel(context,
                                         'Sender IDs (${tempSenderIds.length})'),
-                                    const SizedBox(height: 8),
+                                    const SizedBox(height: Spacing.sm),
                                     Row(
                                       children: [
                                         Expanded(
@@ -146,7 +146,7 @@ class _BanksScreenState extends State<BanksScreen> {
                                                 horizontal: 12, vertical: 12),
                                           ),
                                         ),
-                                        const SizedBox(width: 8),
+                                        const SizedBox(width: Spacing.sm),
                                         CupertinoButton(
                                           padding: const EdgeInsets.symmetric(
                                               horizontal: 16, vertical: 8),
@@ -169,7 +169,7 @@ class _BanksScreenState extends State<BanksScreen> {
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(height: 16),
+                                    const SizedBox(height: Spacing.lg),
                                     Wrap(
                                       spacing: 8,
                                       runSpacing: 8,
@@ -224,7 +224,7 @@ class _BanksScreenState extends State<BanksScreen> {
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsets.all(16.0),
+                              padding: const EdgeInsets.all(Spacing.lg),
                               child: Row(
                                 children: [
                                   Expanded(
@@ -240,7 +240,7 @@ class _BanksScreenState extends State<BanksScreen> {
                                       onPressed: () => Navigator.pop(context),
                                     ),
                                   ),
-                                  const SizedBox(width: 12),
+                                  const SizedBox(width: Spacing.md),
                                   Expanded(
                                     child: CupertinoButton(
                                       color: CupertinoColors.systemBlue,
@@ -329,7 +329,7 @@ class _BanksScreenState extends State<BanksScreen> {
                 child: Column(
                   children: [
                     Container(
-                      margin: const EdgeInsets.all(16),
+                      margin: const EdgeInsets.all(Spacing.lg),
                       decoration: BoxDecoration(
                         color: AppStyles.getCardColor(context),
                         borderRadius: BorderRadius.circular(12),
@@ -398,7 +398,7 @@ class _BanksScreenState extends State<BanksScreen> {
       margin: const EdgeInsets.only(bottom: 16),
       decoration: AppStyles.cardDecoration(context),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(Spacing.lg),
         child: Row(
           children: [
             Container(
@@ -409,7 +409,7 @@ class _BanksScreenState extends State<BanksScreen> {
                   child: Icon(CupertinoIcons.building_2_fill,
                       color: bank['color'], size: 24)),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: Spacing.lg),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -440,7 +440,7 @@ class _BanksScreenState extends State<BanksScreen> {
                         _toggleBank(bank['id'], value, banksController),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: Spacing.sm),
                 Theme(
                   data: Theme.of(context).copyWith(
                     popupMenuTheme: PopupMenuThemeData(

@@ -13,19 +13,19 @@ class NPSPlanningStep extends StatelessWidget {
     final ctrl = Provider.of<NPSWizardController>(context);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Retirement Planning', style: AppStyles.titleStyle(context)),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text('Plan your NPS withdrawal strategy',
               style:
                   TextStyle(color: AppStyles.getSecondaryTextColor(context))),
           const SizedBox(height: 30),
           Text('Planned Retirement Date',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           GestureDetector(
             onTap: () async {
               final date = await showCupertinoModalPopup<DateTime>(
@@ -66,7 +66,7 @@ class NPSPlanningStep extends StatelessWidget {
               if (date != null) ctrl.updateRetirementDate(date);
             },
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
@@ -87,10 +87,10 @@ class NPSPlanningStep extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           Text('Withdrawal Strategy',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           Column(
             children: NPSWithdrawalType.values.map((wtype) {
               final isSelected = ctrl.withdrawalType == wtype;
@@ -108,7 +108,7 @@ class NPSPlanningStep extends StatelessWidget {
                 onTap: () => ctrl.updateWithdrawalType(wtype),
                 child: Container(
                   margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? const Color(0xFF9B59B6).withValues(alpha: 0.1)
@@ -146,7 +146,7 @@ class NPSPlanningStep extends StatelessWidget {
                               )
                             : null,
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: Spacing.md),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -168,7 +168,7 @@ class NPSPlanningStep extends StatelessWidget {
               );
             }).toList(),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
         ],
       ),
     );

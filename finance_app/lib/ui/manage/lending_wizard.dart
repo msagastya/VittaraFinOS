@@ -233,7 +233,7 @@ class _LendingWizardState extends State<LendingWizard> {
         // Show three options if no selection mode yet
         if (_selectionMode == 'none') {
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(Spacing.xxl),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -242,7 +242,7 @@ class _LendingWizardState extends State<LendingWizard> {
                   style: AppStyles.titleStyle(context)
                       .copyWith(fontSize: TypeScale.largeTitle, fontWeight: FontWeight.w800),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: Spacing.sm),
                 Text(
                   'Choose where to find this person',
                   style: TextStyle(
@@ -259,7 +259,7 @@ class _LendingWizardState extends State<LendingWizard> {
                   onTap: () => setState(() => _selectionMode = 'my-people'),
                   badgeCount: appContacts.length,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: Spacing.lg),
                 _buildSelectionCard(
                   context,
                   title: 'Phone Contacts',
@@ -268,7 +268,7 @@ class _LendingWizardState extends State<LendingWizard> {
                   color: CupertinoColors.systemGreen,
                   onTap: () => _loadPhoneContactsAndSelect(),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: Spacing.lg),
                 _buildSelectionCard(
                   context,
                   title: 'Manual Entry',
@@ -306,7 +306,7 @@ class _LendingWizardState extends State<LendingWizard> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(Spacing.xl),
         decoration: BoxDecoration(
           color: AppStyles.getCardColor(context),
           borderRadius: BorderRadius.circular(16),
@@ -325,7 +325,7 @@ class _LendingWizardState extends State<LendingWizard> {
                 child: Icon(icon, size: 28, color: color),
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: Spacing.lg),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -338,7 +338,7 @@ class _LendingWizardState extends State<LendingWizard> {
                       color: AppStyles.getTextColor(context),
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: Spacing.xs),
                   Text(
                     subtitle,
                     style: TextStyle(
@@ -375,7 +375,7 @@ class _LendingWizardState extends State<LendingWizard> {
   Widget _buildMyPeopleSelection(
       BuildContext context, List<app_contact.Contact> contacts) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(Spacing.xxl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -385,7 +385,7 @@ class _LendingWizardState extends State<LendingWizard> {
                 onTap: () => setState(() => _selectionMode = 'none'),
                 child: Icon(CupertinoIcons.back, color: AppStyles.accentBlue),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: Spacing.md),
               Expanded(
                 child: Text(
                   'My People',
@@ -394,12 +394,12 @@ class _LendingWizardState extends State<LendingWizard> {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Choose from your saved contacts',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           if (contacts.isEmpty)
             Center(
               child: Padding(
@@ -409,7 +409,7 @@ class _LendingWizardState extends State<LendingWizard> {
                     Icon(CupertinoIcons.person_add,
                         size: 48,
                         color: AppStyles.getSecondaryTextColor(context)),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: Spacing.md),
                     Text('No contacts yet',
                         style: TextStyle(
                             color: AppStyles.getSecondaryTextColor(context))),
@@ -467,7 +467,7 @@ class _LendingWizardState extends State<LendingWizard> {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: Spacing.md),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -533,7 +533,7 @@ class _LendingWizardState extends State<LendingWizard> {
                 },
                 child: Icon(CupertinoIcons.back, color: AppStyles.accentBlue),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: Spacing.md),
               Expanded(
                 child: Text(
                   'Phone Contacts',
@@ -542,12 +542,12 @@ class _LendingWizardState extends State<LendingWizard> {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Select from your device contacts',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           // Search field
           CupertinoTextField(
             controller: _searchController,
@@ -580,7 +580,7 @@ class _LendingWizardState extends State<LendingWizard> {
                 fontSize: TypeScale.body),
             onChanged: (_) => setState(() {}),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           if (_loadingPhoneContacts)
             Center(
               child: Padding(
@@ -597,7 +597,7 @@ class _LendingWizardState extends State<LendingWizard> {
                     Icon(CupertinoIcons.phone,
                         size: 48,
                         color: AppStyles.getSecondaryTextColor(context)),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: Spacing.md),
                     Text('No contacts found',
                         style: TextStyle(
                             color: AppStyles.getSecondaryTextColor(context))),
@@ -614,7 +614,7 @@ class _LendingWizardState extends State<LendingWizard> {
                     Icon(CupertinoIcons.search,
                         size: 48,
                         color: AppStyles.getSecondaryTextColor(context)),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: Spacing.md),
                     Text('No contacts match your search',
                         style: TextStyle(
                             color: AppStyles.getSecondaryTextColor(context))),
@@ -700,7 +700,7 @@ class _LendingWizardState extends State<LendingWizard> {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 16),
+                          const SizedBox(width: Spacing.lg),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -719,7 +719,7 @@ class _LendingWizardState extends State<LendingWizard> {
                                 ),
                                 if (contact.phoneNumber?.isNotEmpty ??
                                     false) ...[
-                                  const SizedBox(height: 4),
+                                  const SizedBox(height: Spacing.xs),
                                   Text(
                                     contact.phoneNumber!,
                                     maxLines: 1,
@@ -735,7 +735,7 @@ class _LendingWizardState extends State<LendingWizard> {
                               ],
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: Spacing.md),
                           if (isSelected)
                             Container(
                               width: 28,
@@ -780,7 +780,7 @@ class _LendingWizardState extends State<LendingWizard> {
                 onTap: () => setState(() => _selectionMode = 'none'),
                 child: Icon(CupertinoIcons.back, color: AppStyles.accentBlue),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: Spacing.md),
               Expanded(
                 child: Text(
                   'Manual Entry',
@@ -789,18 +789,18 @@ class _LendingWizardState extends State<LendingWizard> {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Enter person details manually',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: Spacing.xxxl),
           Text('Person Name', style: AppStyles.headerStyle(context)),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           CupertinoTextField(
             controller: _nameController,
             placeholder: 'Enter person name',
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(Spacing.md),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(8),
@@ -812,15 +812,15 @@ class _LendingWizardState extends State<LendingWizard> {
                 fontWeight: FontWeight.w600),
             onChanged: (_) => setState(() {}),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           Text('Mobile Number (Optional)',
               style: AppStyles.headerStyle(context)),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           CupertinoTextField(
             controller: _phoneController,
             placeholder: 'Enter mobile number',
             keyboardType: TextInputType.phone,
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(Spacing.md),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(8),
@@ -874,13 +874,13 @@ class _LendingWizardState extends State<LendingWizard> {
             style: AppStyles.titleStyle(context)
                 .copyWith(fontSize: TypeScale.largeTitle, fontWeight: FontWeight.w800),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Enter the amount in rupees',
             style: TextStyle(
                 color: AppStyles.getSecondaryTextColor(context), fontSize: TypeScale.body),
           ),
-          const SizedBox(height: 64),
+          const SizedBox(height: Spacing.massive),
           Center(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -891,7 +891,7 @@ class _LendingWizardState extends State<LendingWizard> {
                   style: AppStyles.titleStyle(context)
                       .copyWith(fontSize: TypeScale.hero, fontWeight: FontWeight.w700),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: Spacing.md),
                 IntrinsicWidth(
                   child: CupertinoTextField(
                     controller: _amountController,
@@ -941,7 +941,7 @@ class _LendingWizardState extends State<LendingWizard> {
             style: AppStyles.titleStyle(context)
                 .copyWith(fontSize: TypeScale.largeTitle, fontWeight: FontWeight.w800),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Add notes and important dates',
             style: TextStyle(
@@ -962,7 +962,7 @@ class _LendingWizardState extends State<LendingWizard> {
                   letterSpacing: 0.3,
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: Spacing.md),
               CupertinoTextField(
                 controller: _descriptionController,
                 placeholder: 'e.g. Dinner, Shopping, Flight tickets...',
@@ -997,13 +997,13 @@ class _LendingWizardState extends State<LendingWizard> {
                   letterSpacing: 0.3,
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: Spacing.lg),
               CupertinoButton(
                 padding: EdgeInsets.zero,
                 onPressed: () => _selectDate(context, isDueDate: false),
                 child: Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
                     color: AppStyles.accentBlue.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
@@ -1042,13 +1042,13 @@ class _LendingWizardState extends State<LendingWizard> {
                   letterSpacing: 0.3,
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: Spacing.lg),
               CupertinoButton(
                 padding: EdgeInsets.zero,
                 onPressed: () => _selectDate(context, isDueDate: true),
                 child: Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
                     color: (_selectedDueDate == null)
                         ? CupertinoColors.systemGrey.withValues(alpha: 0.1)
@@ -1107,7 +1107,7 @@ class _LendingWizardState extends State<LendingWizard> {
             ? (_selectedPersonName ?? 'Unknown')
             : _nameController.text;
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(Spacing.xxl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1115,12 +1115,12 @@ class _LendingWizardState extends State<LendingWizard> {
             'Review',
             style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Confirm your details',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: Spacing.xxxl),
           _buildReviewItem(context, 'Person', personName),
           _buildReviewItem(context, 'Amount', '₹${_amountController.text}'),
           _buildReviewItem(context, 'Date', _formatDate(_selectedDate)),
@@ -1130,10 +1130,10 @@ class _LendingWizardState extends State<LendingWizard> {
           if (_descriptionController.text.isNotEmpty)
             _buildReviewItem(
                 context, 'Description', _descriptionController.text),
-          const SizedBox(height: 32),
+          const SizedBox(height: Spacing.xxxl),
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
@@ -1148,7 +1148,7 @@ class _LendingWizardState extends State<LendingWizard> {
                       fontWeight: FontWeight.w600,
                       color: AppStyles.getTextColor(context)),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: Spacing.xs),
                 Text(
                   'Tap Save to add this transaction',
                   style: TextStyle(
@@ -1191,7 +1191,7 @@ class _LendingWizardState extends State<LendingWizard> {
 
   Widget _buildFooter(Color color) {
     return Padding(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(Spacing.xxl),
       child: Row(
         children: [
           Expanded(
@@ -1206,7 +1206,7 @@ class _LendingWizardState extends State<LendingWizard> {
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: Spacing.md),
           Expanded(
             child: CupertinoButton(
               color: _canProceed()

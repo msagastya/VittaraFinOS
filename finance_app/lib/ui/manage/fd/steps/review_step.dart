@@ -35,7 +35,7 @@ class _ReviewStepState extends State<ReviewStep> {
     final controller = Provider.of<FDWizardController>(context);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -43,7 +43,7 @@ class _ReviewStepState extends State<ReviewStep> {
             'Review FD Details',
             style: AppStyles.titleStyle(context),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Review and confirm your FD details before creation',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
@@ -57,11 +57,11 @@ class _ReviewStepState extends State<ReviewStep> {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           CupertinoTextField(
             controller: _nameController,
             placeholder: 'e.g., Emergency Fund FD',
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(Spacing.md),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(8),
@@ -69,7 +69,7 @@ class _ReviewStepState extends State<ReviewStep> {
             style: TextStyle(color: AppStyles.getTextColor(context)),
             onChanged: (value) => controller.updateFDName(value),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           // Notes
           Text(
             'Notes (Optional)',
@@ -78,11 +78,11 @@ class _ReviewStepState extends State<ReviewStep> {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           CupertinoTextField(
             controller: _notesController,
             placeholder: 'Add any notes...',
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(Spacing.md),
             minLines: 2,
             maxLines: 4,
             decoration: BoxDecoration(
@@ -96,7 +96,7 @@ class _ReviewStepState extends State<ReviewStep> {
           const SizedBox(height: 30),
           // Summary Card
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getBackground(context).withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(12),
@@ -117,51 +117,51 @@ class _ReviewStepState extends State<ReviewStep> {
                     fontSize: TypeScale.headline,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: Spacing.lg),
                 _buildSummaryRow(
                   context,
                   'Linked Account',
                   controller.selectedAccount?.name ?? 'N/A',
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 _buildSummaryRow(
                   context,
                   'Principal Amount',
                   '₹${controller.principal.toStringAsFixed(2)}',
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 _buildSummaryRow(
                   context,
                   'Interest Rate',
                   '${controller.interestRate.toStringAsFixed(2)}% p.a.',
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 _buildSummaryRow(
                   context,
                   'Tenure',
                   '${controller.tenureMonths} months',
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 _buildSummaryRow(
                   context,
                   'Compounding',
                   controller.compoundingFrequency.name,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 _buildSummaryRow(
                   context,
                   'FD Type',
                   controller.isCumulative ? 'Cumulative' : 'Non-Cumulative',
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 _buildSummaryRow(
                   context,
                   'Payout Frequency',
                   controller.payoutFrequency.name,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: Spacing.lg),
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(Spacing.md),
                   decoration: BoxDecoration(
                     color: AppStyles.getPrimaryColor(context)
                         .withValues(alpha: 0.1),
@@ -188,7 +188,7 @@ class _ReviewStepState extends State<ReviewStep> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: Spacing.sm),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -211,10 +211,10 @@ class _ReviewStepState extends State<ReviewStep> {
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           // Auto-Link Toggle
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(Spacing.md),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(8),
@@ -232,7 +232,7 @@ class _ReviewStepState extends State<ReviewStep> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: Spacing.xs),
                       Text(
                         'Automatically credit payouts to linked account',
                         style: TextStyle(

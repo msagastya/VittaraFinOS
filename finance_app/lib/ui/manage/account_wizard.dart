@@ -300,7 +300,7 @@ class _AccountWizardState extends State<AccountWizard> {
     return Consumer<BrokersController>(
       builder: (context, brokersController, child) {
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(Spacing.xxl),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -308,13 +308,13 @@ class _AccountWizardState extends State<AccountWizard> {
                 'Select your Broker',
                 style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: Spacing.sm),
               Text(
                 'Which broker do you use?',
                 style:
                     TextStyle(color: AppStyles.getSecondaryTextColor(context)),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: Spacing.xxxl),
               GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -349,7 +349,7 @@ class _AccountWizardState extends State<AccountWizard> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.all(Spacing.md),
                             decoration: BoxDecoration(
                               color: (broker['color'] as Color)
                                   .withValues(alpha: 0.1),
@@ -360,7 +360,7 @@ class _AccountWizardState extends State<AccountWizard> {
                               color: broker['color'],
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: Spacing.md),
                           Text(broker['name'],
                               style: AppStyles.titleStyle(context)
                                   .copyWith(fontSize: TypeScale.body)),
@@ -370,16 +370,16 @@ class _AccountWizardState extends State<AccountWizard> {
                   );
                 },
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: Spacing.xxl),
               Text(
                 'What should we call this account?',
                 style: AppStyles.headerStyle(context),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: Spacing.sm),
               CupertinoTextField(
                 controller: _nameController,
                 placeholder: 'e.g. My Demat Account',
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color: AppStyles.getCardColor(context),
                   borderRadius: BorderRadius.circular(12),
@@ -387,7 +387,7 @@ class _AccountWizardState extends State<AccountWizard> {
                 style: TextStyle(color: AppStyles.getTextColor(context)),
                 onChanged: (_) => setState(() {}),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: Spacing.xxl),
               if (brokersController.brokers.length < 15)
                 BouncyButton(
                   onPressed: () =>
@@ -409,7 +409,7 @@ class _AccountWizardState extends State<AccountWizard> {
                         children: [
                           Icon(CupertinoIcons.add,
                               color: CupertinoColors.systemBlue),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: Spacing.sm),
                           Text(
                             'Add Broker',
                             style: TextStyle(
@@ -461,7 +461,7 @@ class _AccountWizardState extends State<AccountWizard> {
                             borderRadius: BorderRadius.circular(2.5),
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: Spacing.lg),
                         Text(
                           'Add New Broker',
                           style: AppStyles.titleStyle(context)
@@ -475,7 +475,7 @@ class _AccountWizardState extends State<AccountWizard> {
                           .withValues(alpha: 0.1)),
                   Expanded(
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(24),
+                      padding: const EdgeInsets.all(Spacing.xxl),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -487,11 +487,11 @@ class _AccountWizardState extends State<AccountWizard> {
                               color: AppStyles.getSecondaryTextColor(context),
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: Spacing.sm),
                           CupertinoTextField(
                             controller: brokerNameController,
                             placeholder: 'Enter broker name',
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(Spacing.lg),
                             decoration: BoxDecoration(
                               color: AppStyles.getCardColor(context),
                               border: Border.all(
@@ -503,7 +503,7 @@ class _AccountWizardState extends State<AccountWizard> {
                             style: TextStyle(
                                 color: AppStyles.getTextColor(context)),
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: Spacing.xxl),
                           Text(
                             'Select Color',
                             style: TextStyle(
@@ -512,7 +512,7 @@ class _AccountWizardState extends State<AccountWizard> {
                               color: AppStyles.getSecondaryTextColor(context),
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: Spacing.md),
                           SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
                             child: Row(
@@ -553,7 +553,7 @@ class _AccountWizardState extends State<AccountWizard> {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.all(Spacing.xxl),
                     child: Row(
                       children: [
                         Expanded(
@@ -580,7 +580,7 @@ class _AccountWizardState extends State<AccountWizard> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: Spacing.md),
                         Expanded(
                           child: BouncyButton(
                             onPressed: () {
@@ -639,7 +639,7 @@ class _AccountWizardState extends State<AccountWizard> {
 
   Widget _buildInvestmentDetailsStep() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(Spacing.xxl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -647,12 +647,12 @@ class _AccountWizardState extends State<AccountWizard> {
             'Demat Balance',
             style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'How much cash is available in your Demat account?',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
           ),
-          const SizedBox(height: 48),
+          const SizedBox(height: Spacing.huge),
           Center(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -660,7 +660,7 @@ class _AccountWizardState extends State<AccountWizard> {
                 Text('₹',
                     style:
                         AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.display)),
-                const SizedBox(width: 8),
+                const SizedBox(width: Spacing.sm),
                 IntrinsicWidth(
                   child: CupertinoTextField(
                     controller: _balanceController,
@@ -695,7 +695,7 @@ class _AccountWizardState extends State<AccountWizard> {
     final displayBalance = '₹${balance.toStringAsFixed(2)}';
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(Spacing.xxl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -703,9 +703,9 @@ class _AccountWizardState extends State<AccountWizard> {
             'Review & Finish',
             style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: Spacing.xxxl),
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(Spacing.xl),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(16),
@@ -714,9 +714,9 @@ class _AccountWizardState extends State<AccountWizard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildReviewRow('Broker', _selectedBroker ?? 'Unknown'),
-                const SizedBox(height: 16),
+                const SizedBox(height: Spacing.lg),
                 _buildReviewRow('Account Name', _nameController.text),
-                const SizedBox(height: 16),
+                const SizedBox(height: Spacing.lg),
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
@@ -733,7 +733,7 @@ class _AccountWizardState extends State<AccountWizard> {
                     fontSize: TypeScale.body,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: Spacing.sm),
                 Text(
                   displayBalance,
                   style: AppStyles.titleStyle(context).copyWith(
@@ -755,7 +755,7 @@ class _AccountWizardState extends State<AccountWizard> {
       // Investment brokers - use hardcoded list for now
       final items = _brokers;
       return SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(Spacing.xxl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -763,12 +763,12 @@ class _AccountWizardState extends State<AccountWizard> {
               'Select your Broker',
               style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: Spacing.sm),
             Text(
               'Where do you keep your money?',
               style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: Spacing.xxxl),
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -801,7 +801,7 @@ class _AccountWizardState extends State<AccountWizard> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(Spacing.md),
                           decoration: BoxDecoration(
                             color:
                                 (item['color'] as Color).withValues(alpha: 0.1),
@@ -812,7 +812,7 @@ class _AccountWizardState extends State<AccountWizard> {
                             color: item['color'],
                           ),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: Spacing.md),
                         Text(item['name'],
                             style: AppStyles.titleStyle(context)
                                 .copyWith(fontSize: TypeScale.body)),
@@ -833,7 +833,7 @@ class _AccountWizardState extends State<AccountWizard> {
         final enabledBanks = banksController.enabledBanks;
 
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(Spacing.xxl),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -841,13 +841,13 @@ class _AccountWizardState extends State<AccountWizard> {
                 'Select your Bank',
                 style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: Spacing.sm),
               Text(
                 'Where do you keep your money? You can also track cash in hand.',
                 style:
                     TextStyle(color: AppStyles.getSecondaryTextColor(context)),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: Spacing.xxxl),
               BouncyButton(
                 onPressed: () {
                   setState(() {
@@ -858,7 +858,7 @@ class _AccountWizardState extends State<AccountWizard> {
                 },
                 child: Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
                     color: CupertinoColors.systemGreen.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
@@ -884,7 +884,7 @@ class _AccountWizardState extends State<AccountWizard> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: Spacing.md),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -893,7 +893,7 @@ class _AccountWizardState extends State<AccountWizard> {
                               'Cash in Hand',
                               style: AppStyles.titleStyle(context),
                             ),
-                            const SizedBox(height: 2),
+                            const SizedBox(height: Spacing.xxs),
                             Text(
                               'Track your physical cash balance',
                               style: TextStyle(
@@ -913,7 +913,7 @@ class _AccountWizardState extends State<AccountWizard> {
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: Spacing.lg),
               if (enabledBanks.isEmpty)
                 Center(
                   child: Column(
@@ -924,7 +924,7 @@ class _AccountWizardState extends State<AccountWizard> {
                         color: AppStyles.getSecondaryTextColor(context)
                             .withValues(alpha: 0.3),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: Spacing.lg),
                       Text(
                         'No banks added yet',
                         style: TextStyle(
@@ -932,7 +932,7 @@ class _AccountWizardState extends State<AccountWizard> {
                           fontSize: TypeScale.headline,
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: Spacing.xxl),
                       BouncyButton(
                         onPressed: () =>
                             _showAddBankModal(context, banksController),
@@ -995,7 +995,7 @@ class _AccountWizardState extends State<AccountWizard> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.all(12),
+                                  padding: const EdgeInsets.all(Spacing.md),
                                   decoration: BoxDecoration(
                                     color: (item['color'] as Color)
                                         .withValues(alpha: 0.1),
@@ -1006,7 +1006,7 @@ class _AccountWizardState extends State<AccountWizard> {
                                     color: item['color'],
                                   ),
                                 ),
-                                const SizedBox(height: 12),
+                                const SizedBox(height: Spacing.md),
                                 Text(item['name'],
                                     style: AppStyles.titleStyle(context)
                                         .copyWith(fontSize: TypeScale.body)),
@@ -1016,7 +1016,7 @@ class _AccountWizardState extends State<AccountWizard> {
                         );
                       },
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: Spacing.xxl),
                     BouncyButton(
                       onPressed: () =>
                           _showAddBankModal(context, banksController),
@@ -1038,7 +1038,7 @@ class _AccountWizardState extends State<AccountWizard> {
                             children: [
                               Icon(CupertinoIcons.add,
                                   color: CupertinoColors.systemBlue),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: Spacing.sm),
                               Text(
                                 'Add Bank',
                                 style: TextStyle(
@@ -1090,7 +1090,7 @@ class _AccountWizardState extends State<AccountWizard> {
                         borderRadius: BorderRadius.circular(2.5),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: Spacing.lg),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -1142,14 +1142,14 @@ class _AccountWizardState extends State<AccountWizard> {
                               color: AppStyles.getSecondaryTextColor(context)
                                   .withValues(alpha: 0.3),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: Spacing.lg),
                             Text(
                               'All banks are already added',
                               style: TextStyle(
                                   color:
                                       AppStyles.getSecondaryTextColor(context)),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: Spacing.lg),
                             Text(
                               'Tap + to add a custom bank',
                               style: TextStyle(
@@ -1208,7 +1208,7 @@ class _AccountWizardState extends State<AccountWizard> {
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(width: 16),
+                                  const SizedBox(width: Spacing.lg),
                                   Expanded(
                                     child: Text(
                                       bank['name'],
@@ -1268,7 +1268,7 @@ class _AccountWizardState extends State<AccountWizard> {
                             borderRadius: BorderRadius.circular(2.5),
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: Spacing.lg),
                         Text(
                           'Add New Bank',
                           style: AppStyles.titleStyle(context)
@@ -1283,7 +1283,7 @@ class _AccountWizardState extends State<AccountWizard> {
                   // Content
                   Expanded(
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(24),
+                      padding: const EdgeInsets.all(Spacing.xxl),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -1295,11 +1295,11 @@ class _AccountWizardState extends State<AccountWizard> {
                               color: AppStyles.getSecondaryTextColor(context),
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: Spacing.sm),
                           CupertinoTextField(
                             controller: bankNameController,
                             placeholder: 'Enter bank name',
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(Spacing.lg),
                             decoration: BoxDecoration(
                               color: AppStyles.getCardColor(context),
                               border: Border.all(
@@ -1311,7 +1311,7 @@ class _AccountWizardState extends State<AccountWizard> {
                             style: TextStyle(
                                 color: AppStyles.getTextColor(context)),
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: Spacing.xxl),
                           Text(
                             'Select Color',
                             style: TextStyle(
@@ -1320,7 +1320,7 @@ class _AccountWizardState extends State<AccountWizard> {
                               color: AppStyles.getSecondaryTextColor(context),
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: Spacing.md),
                           SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
                             child: Row(
@@ -1362,7 +1362,7 @@ class _AccountWizardState extends State<AccountWizard> {
                   ),
                   // Footer buttons
                   Container(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.all(Spacing.xxl),
                     child: Row(
                       children: [
                         Expanded(
@@ -1389,7 +1389,7 @@ class _AccountWizardState extends State<AccountWizard> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: Spacing.md),
                         Expanded(
                           child: BouncyButton(
                             onPressed: () {
@@ -1487,7 +1487,7 @@ class _AccountWizardState extends State<AccountWizard> {
     ];
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(Spacing.xxl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1495,12 +1495,12 @@ class _AccountWizardState extends State<AccountWizard> {
             'Account Type',
             style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'What type of account?',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: Spacing.xxxl),
           Column(
             children: accountTypes.map((item) {
               final isSelected = _selectedAccountType == item['type'];
@@ -1521,7 +1521,7 @@ class _AccountWizardState extends State<AccountWizard> {
                 },
                 child: Container(
                   margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
                     color: AppStyles.getCardColor(context),
                     borderRadius: BorderRadius.circular(12),
@@ -1552,7 +1552,7 @@ class _AccountWizardState extends State<AccountWizard> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: Spacing.lg),
                       Expanded(
                         child: Text(
                           item['label'] as String,
@@ -1572,16 +1572,16 @@ class _AccountWizardState extends State<AccountWizard> {
               );
             }).toList(),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: Spacing.lg),
           Text(
             'Account Nickname',
             style: AppStyles.headerStyle(context),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           CupertinoTextField(
             controller: _nameController,
             placeholder: 'e.g. My Savings Account',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -1595,7 +1595,7 @@ class _AccountWizardState extends State<AccountWizard> {
 
   Widget _buildAccountDetailsStep() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(Spacing.xxl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1603,53 +1603,53 @@ class _AccountWizardState extends State<AccountWizard> {
             'Account Details',
             style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: Spacing.xxxl),
           if (_selectedAccountType == AccountType.savings ||
               _selectedAccountType == AccountType.current) ...[
             Text('Account Number', style: AppStyles.headerStyle(context)),
-            const SizedBox(height: 4),
+            const SizedBox(height: Spacing.xs),
             Text(
               '(Optional - full or last 4 digits)',
               style: TextStyle(
                   fontSize: TypeScale.footnote,
                   color: AppStyles.getSecondaryTextColor(context)),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: Spacing.sm),
             CupertinoTextField(
               controller: _accountNumberController,
               placeholder: 'Enter account number',
               keyboardType: TextInputType.number,
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
               ),
               style: TextStyle(color: AppStyles.getTextColor(context)),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: Spacing.xl),
             Text('Debit Card Number', style: AppStyles.headerStyle(context)),
-            const SizedBox(height: 4),
+            const SizedBox(height: Spacing.xs),
             Text(
               '(Optional - full or last 4 digits)',
               style: TextStyle(
                   fontSize: TypeScale.footnote,
                   color: AppStyles.getSecondaryTextColor(context)),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: Spacing.sm),
             CupertinoTextField(
               controller: _debitCardNumberController,
               placeholder: 'Enter debit card number',
               keyboardType: TextInputType.number,
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
               ),
               style: TextStyle(color: AppStyles.getTextColor(context)),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: Spacing.xl),
             Text('Opening Balance', style: AppStyles.headerStyle(context)),
-            const SizedBox(height: 8),
+            const SizedBox(height: Spacing.sm),
             Center(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -1657,7 +1657,7 @@ class _AccountWizardState extends State<AccountWizard> {
                   Text('₹',
                       style:
                           AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.display)),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: Spacing.sm),
                   IntrinsicWidth(
                     child: CupertinoTextField(
                       controller: _balanceController,
@@ -1684,7 +1684,7 @@ class _AccountWizardState extends State<AccountWizard> {
           ] else if (_selectedAccountType == AccountType.credit ||
               _selectedAccountType == AccountType.payLater) ...[
             Text('Credit Limit', style: AppStyles.headerStyle(context)),
-            const SizedBox(height: 8),
+            const SizedBox(height: Spacing.sm),
             Center(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -1692,7 +1692,7 @@ class _AccountWizardState extends State<AccountWizard> {
                   Text('₹',
                       style:
                           AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.display)),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: Spacing.sm),
                   IntrinsicWidth(
                     child: CupertinoTextField(
                       controller: _creditLimitController,
@@ -1710,9 +1710,9 @@ class _AccountWizardState extends State<AccountWizard> {
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: Spacing.xl),
             Text('Amount Used', style: AppStyles.headerStyle(context)),
-            const SizedBox(height: 8),
+            const SizedBox(height: Spacing.sm),
             Center(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -1720,7 +1720,7 @@ class _AccountWizardState extends State<AccountWizard> {
                   Text('₹',
                       style:
                           AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.display)),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: Spacing.sm),
                   IntrinsicWidth(
                     child: CupertinoTextField(
                       controller: _amountUsedController,
@@ -1744,21 +1744,21 @@ class _AccountWizardState extends State<AccountWizard> {
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: Spacing.xl),
             Text('Credit Card Number', style: AppStyles.headerStyle(context)),
-            const SizedBox(height: 4),
+            const SizedBox(height: Spacing.xs),
             Text(
               '(Optional - full or last 4 digits)',
               style: TextStyle(
                   fontSize: TypeScale.footnote,
                   color: AppStyles.getSecondaryTextColor(context)),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: Spacing.sm),
             CupertinoTextField(
               controller: _creditCardNumberController,
               placeholder: 'Enter credit card number',
               keyboardType: TextInputType.number,
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
@@ -1774,7 +1774,7 @@ class _AccountWizardState extends State<AccountWizard> {
                   : 'Opening Balance',
               style: AppStyles.headerStyle(context),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: Spacing.sm),
             Center(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -1782,7 +1782,7 @@ class _AccountWizardState extends State<AccountWizard> {
                   Text('₹',
                       style:
                           AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.display)),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: Spacing.sm),
                   IntrinsicWidth(
                     child: CupertinoTextField(
                       controller: _balanceController,
@@ -1826,7 +1826,7 @@ class _AccountWizardState extends State<AccountWizard> {
     }
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(Spacing.xxl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1834,9 +1834,9 @@ class _AccountWizardState extends State<AccountWizard> {
             'Review & Finish',
             style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: Spacing.xxxl),
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(Spacing.xl),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(16),
@@ -1850,14 +1850,14 @@ class _AccountWizardState extends State<AccountWizard> {
                       ? _cashBankName
                       : _selectedBank ?? 'Unknown',
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: Spacing.lg),
                 _buildReviewRow(
                     'Account Type',
                     _getAccountTypeLabel(
                         _selectedAccountType ?? AccountType.savings)),
-                const SizedBox(height: 16),
+                const SizedBox(height: Spacing.lg),
                 _buildReviewRow('Account Name', _nameController.text),
-                const SizedBox(height: 16),
+                const SizedBox(height: Spacing.lg),
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
@@ -1874,7 +1874,7 @@ class _AccountWizardState extends State<AccountWizard> {
                     fontSize: TypeScale.body,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: Spacing.sm),
                 Text(
                   displayBalance,
                   style: AppStyles.titleStyle(context).copyWith(
@@ -1953,7 +1953,7 @@ class _AccountWizardState extends State<AccountWizard> {
     }
 
     return Padding(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(Spacing.xxl),
       child: BouncyButton(
         onPressed: canGoNext ? _nextStep : () {},
         child: Opacity(

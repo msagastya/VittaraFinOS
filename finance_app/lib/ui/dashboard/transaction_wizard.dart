@@ -782,7 +782,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(14),
@@ -1097,7 +1097,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Icon(CupertinoIcons.add),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: Spacing.sm),
                     Text('Add Account',
                         style:
                             TextStyle(color: AppStyles.getTextColor(context))),
@@ -1508,7 +1508,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Icon(CupertinoIcons.add),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: Spacing.sm),
                     Text('Create category',
                         style:
                             TextStyle(color: AppStyles.getTextColor(context))),
@@ -1593,7 +1593,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                       horizontal: 12, vertical: 12),
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: Spacing.sm),
 
               // Recent merchants autocomplete chips
               if (filteredRecent.isNotEmpty) ...[
@@ -1640,7 +1640,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                                 size: 11,
                                 color: CupertinoColors.systemOrange,
                               ),
-                              const SizedBox(width: 4),
+                              const SizedBox(width: Spacing.xs),
                               Text(
                                 name,
                                 style: const TextStyle(
@@ -1656,7 +1656,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                     }).toList(),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
               ],
 
               // People list
@@ -1729,7 +1729,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(CupertinoIcons.add),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: Spacing.sm),
                     Text('Add Person',
                         style:
                             TextStyle(color: AppStyles.getTextColor(context))),
@@ -1790,7 +1790,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                     _nextStep();
                   },
                   placeholder: 'Name',
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
                     color: AppStyles.getBackground(ctx),
                     borderRadius: BorderRadius.circular(12),
@@ -1933,7 +1933,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                 maxLines: 4,
               ),
               if (suggestions.isNotEmpty) ...[
-                const SizedBox(height: 16),
+                const SizedBox(height: Spacing.lg),
                 Text(
                   query.isEmpty ? 'Recent' : 'Suggestions',
                   style: TextStyle(
@@ -1943,7 +1943,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                     letterSpacing: 0.5,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: Spacing.sm),
                 Wrap(
                   spacing: 8,
                   runSpacing: 6,
@@ -1970,7 +1970,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                               size: 11,
                               color: AppStyles.getSecondaryTextColor(context),
                             ),
-                            const SizedBox(width: 4),
+                            const SizedBox(width: Spacing.xs),
                             Text(
                               desc.length > 30
                                   ? '${desc.substring(0, 28)}…'
@@ -2245,7 +2245,7 @@ class _PhoneContactsPickerSheetState extends State<_PhoneContactsPickerSheet> {
                 onChanged: (_) => setState(() {}),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: Spacing.sm),
             Expanded(
               child: filteredContacts.isEmpty
                   ? Center(
@@ -2264,7 +2264,7 @@ class _PhoneContactsPickerSheetState extends State<_PhoneContactsPickerSheet> {
                           onTap: () => Navigator.pop(context, contact),
                           child: Container(
                             margin: const EdgeInsets.symmetric(vertical: 4),
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.all(Spacing.md),
                             decoration: BoxDecoration(
                               color: AppStyles.getBackground(context),
                               borderRadius: BorderRadius.circular(12),
@@ -2289,7 +2289,7 @@ class _PhoneContactsPickerSheetState extends State<_PhoneContactsPickerSheet> {
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 12),
+                                const SizedBox(width: Spacing.md),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:

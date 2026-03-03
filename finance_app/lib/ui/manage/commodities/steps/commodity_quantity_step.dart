@@ -48,7 +48,7 @@ class _CommodityQuantityStepState extends State<CommodityQuantityStep> {
     ];
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -56,12 +56,12 @@ class _CommodityQuantityStepState extends State<CommodityQuantityStep> {
           const SizedBox(height: 30),
           Text('Quantity',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _quantityController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             placeholder: '0.00',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -71,10 +71,10 @@ class _CommodityQuantityStepState extends State<CommodityQuantityStep> {
               if (qty > 0) widget.ctrl.updateQuantity(qty);
             },
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           Text('Unit of Measurement',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
@@ -92,7 +92,7 @@ class _CommodityQuantityStepState extends State<CommodityQuantityStep> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(Spacing.lg),
                           decoration: BoxDecoration(
                             color: AppStyles.getCardColor(context),
                             border: Border(
@@ -121,7 +121,7 @@ class _CommodityQuantityStepState extends State<CommodityQuantityStep> {
                         ),
                         Expanded(
                           child: ListView.builder(
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(Spacing.lg),
                             itemCount: defaultUnits.length,
                             itemBuilder: (context, index) {
                               final unit = defaultUnits[index];

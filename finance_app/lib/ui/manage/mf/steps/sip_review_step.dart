@@ -13,7 +13,7 @@ class SIPReviewStep extends StatelessWidget {
     final controller = Provider.of<SIPWizardController>(context);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -34,14 +34,14 @@ class SIPReviewStep extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: Spacing.lg),
           Center(
             child: Text(
               'SIP Configuration',
               style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title2),
             ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: Spacing.xxxl),
           _buildRow(context, 'SIP Amount',
               '₹${controller.sipAmount.toStringAsFixed(2)}/month'),
           _buildRow(context, 'Frequency', _getFrequencyLabel(controller)),
@@ -57,9 +57,9 @@ class SIPReviewStep extends StatelessWidget {
               'Step Up',
               '${controller.stepUpPercent.toStringAsFixed(1)}% every ${controller.stepUpDuration} ${controller.stepUpTenure == StepUpTenure.yearly ? 'year(s)' : 'month(s)'}',
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: Spacing.sm),
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(Spacing.md),
               decoration: BoxDecoration(
                 color: CupertinoColors.systemGreen.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
@@ -75,7 +75,7 @@ class SIPReviewStep extends StatelessWidget {
                       fontSize: TypeScale.footnote,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: Spacing.sm),
                   _buildProjectionRow('Year 1', controller.sipAmount),
                   _buildProjectionRow(
                       'Year 2',

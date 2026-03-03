@@ -138,7 +138,7 @@ class _MFSearchStepState extends State<MFSearchStep> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(Spacing.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -146,7 +146,7 @@ class _MFSearchStepState extends State<MFSearchStep> {
                 'Search Mutual Fund',
                 style: AppStyles.titleStyle(context),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: Spacing.md),
               CupertinoSearchTextField(
                 controller: _searchController,
                 onChanged: _onSearchChanged,
@@ -188,7 +188,7 @@ class _MFSearchStepState extends State<MFSearchStep> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: Spacing.sm),
                   ..._schemeTypes.map((type) {
                     final isSelected = _selectedSchemeType == type;
                     return Padding(
@@ -235,7 +235,7 @@ class _MFSearchStepState extends State<MFSearchStep> {
   Widget _buildIdleState(BuildContext context) {
     final secondary = AppStyles.getSecondaryTextColor(context);
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(Spacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -293,7 +293,7 @@ class _MFSearchStepState extends State<MFSearchStep> {
                           size: 12,
                           color: SemanticColors.investments,
                         ),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: Spacing.xs),
                         Text(
                           query,
                           style: TextStyle(
@@ -308,13 +308,13 @@ class _MFSearchStepState extends State<MFSearchStep> {
                 );
               }).toList(),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: Spacing.xxxl),
           ],
           Center(
             child: Column(
               children: [
                 Icon(CupertinoIcons.search, size: 48, color: secondary),
-                const SizedBox(height: 16),
+                const SizedBox(height: Spacing.lg),
                 Text(
                   'Search for a mutual fund',
                   style: TextStyle(color: secondary, fontSize: TypeScale.body),
@@ -367,7 +367,7 @@ class _MFSearchStepState extends State<MFSearchStep> {
             },
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(Spacing.md),
               decoration: BoxDecoration(
                 color: isSelected
                     ? SemanticColors.investments.withValues(alpha: 0.1)
@@ -402,7 +402,7 @@ class _MFSearchStepState extends State<MFSearchStep> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: Spacing.md),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,

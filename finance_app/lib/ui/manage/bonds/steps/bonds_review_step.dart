@@ -12,7 +12,7 @@ class BondsReviewStep extends StatelessWidget {
     final controller = Provider.of<BondsWizardController>(context);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -20,7 +20,7 @@ class BondsReviewStep extends StatelessWidget {
             'Review & Confirm',
             style: AppStyles.titleStyle(context),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Verify all details before saving',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
@@ -28,7 +28,7 @@ class BondsReviewStep extends StatelessWidget {
           const SizedBox(height: 30),
           // Bond Information Card
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -47,31 +47,31 @@ class BondsReviewStep extends StatelessWidget {
                     fontSize: TypeScale.body,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: Spacing.lg),
                 _ReviewRow(
                   label: 'Bond Name',
                   value: controller.bondName ?? 'N/A',
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 _ReviewRow(
                   label: 'Type',
                   value:
                       controller.selectedBondType?.toString().split('.').last ??
                           'N/A',
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 _ReviewRow(
                   label: 'Issuer',
                   value: controller.selectedIssuer ?? 'N/A',
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 _ReviewRow(
                   label: 'Face Value',
                   value:
                       '₹${controller.faceValue?.toStringAsFixed(2) ?? '0.00'}',
                 ),
                 if (controller.creditRating != null) ...[
-                  const SizedBox(height: 12),
+                  const SizedBox(height: Spacing.md),
                   _ReviewRow(
                     label: 'Credit Rating',
                     value: controller.creditRating ?? 'N/A',
@@ -80,10 +80,10 @@ class BondsReviewStep extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           // Purchase Details Card
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -102,24 +102,24 @@ class BondsReviewStep extends StatelessWidget {
                     fontSize: TypeScale.body,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: Spacing.lg),
                 _ReviewRow(
                   label: 'Quantity',
                   value: '${controller.purchaseQuantity} bonds',
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 _ReviewRow(
                   label: 'Purchase Price per Bond',
                   value:
                       '₹${controller.purchasePrice?.toStringAsFixed(2) ?? '0.00'}',
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 _ReviewRow(
                   label: 'Total Cost',
                   value: '₹${controller.totalCost.toStringAsFixed(2)}',
                   isHighlight: true,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 _ReviewRow(
                   label: 'Purchase Date',
                   value:
@@ -128,10 +128,10 @@ class BondsReviewStep extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           // Coupon Details Card
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -150,25 +150,25 @@ class BondsReviewStep extends StatelessWidget {
                     fontSize: TypeScale.body,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: Spacing.lg),
                 _ReviewRow(
                   label: 'Annual Coupon Rate',
                   value:
                       '${controller.couponRate?.toStringAsFixed(2) ?? '0.00'}%',
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 _ReviewRow(
                   label: 'Coupon Frequency',
                   value: controller.couponFrequency.toString().split('.').last,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 _ReviewRow(
                   label: 'Annual Coupon Payment',
                   value:
                       '₹${controller.annualCouponPayment.toStringAsFixed(2)}',
                   isHighlight: true,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 _ReviewRow(
                   label: 'Per Coupon Payment',
                   value: '₹${controller.couponPerPayment.toStringAsFixed(2)}',
@@ -176,11 +176,11 @@ class BondsReviewStep extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           // Account Link Card
           if (controller.selectedAccountName != null)
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: const Color(0xFF007AFF).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
@@ -194,7 +194,7 @@ class BondsReviewStep extends StatelessWidget {
                     CupertinoIcons.checkmark_circle_fill,
                     color: const Color(0xFF007AFF),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: Spacing.md),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -219,7 +219,7 @@ class BondsReviewStep extends StatelessWidget {
                 ],
               ),
             ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
         ],
       ),
     );

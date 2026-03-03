@@ -10,6 +10,7 @@ import 'package:vittara_fin_os/ui/manage/cryptocurrency/steps/crypto_review_step
 import 'package:vittara_fin_os/ui/manage/cryptocurrency/steps/crypto_selection_step.dart';
 import 'package:vittara_fin_os/ui/manage/cryptocurrency/steps/crypto_wallet_step.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class CryptoWizard extends StatelessWidget {
@@ -157,7 +158,7 @@ class _CryptoWizardContent extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(Spacing.xl),
               child: SizedBox(
                 width: double.infinity,
                 child: CupertinoButton.filled(

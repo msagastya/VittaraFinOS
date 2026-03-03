@@ -15,7 +15,7 @@ class MFTypeSelectionStep extends StatelessWidget {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(Spacing.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -23,7 +23,7 @@ class MFTypeSelectionStep extends StatelessWidget {
                 'Investment Type',
                 style: AppStyles.titleStyle(context),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: Spacing.sm),
               Text(
                 'Is this your first time adding this mutual fund?',
                 style: TextStyle(
@@ -49,7 +49,7 @@ class MFTypeSelectionStep extends StatelessWidget {
                   child: Container(
                     margin: const EdgeInsets.symmetric(
                         horizontal: 20, vertical: 12),
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(Spacing.xl),
                     decoration: BoxDecoration(
                       color: controller.selectedMFType == MFType.existing
                           ? SemanticColors.investments.withValues(alpha: 0.1)
@@ -89,7 +89,7 @@ class MFTypeSelectionStep extends StatelessWidget {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: Spacing.lg),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -102,7 +102,7 @@ class MFTypeSelectionStep extends StatelessWidget {
                                   color: AppStyles.getTextColor(context),
                                 ),
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: Spacing.xs),
                               Text(
                                 'Adding more units to existing investment',
                                 style: TextStyle(
@@ -125,7 +125,7 @@ class MFTypeSelectionStep extends StatelessWidget {
                   ),
                 ),
 
-                const SizedBox(height: 8),
+                const SizedBox(height: Spacing.sm),
 
                 // New MF Option
                 GestureDetector(
@@ -138,7 +138,7 @@ class MFTypeSelectionStep extends StatelessWidget {
                   child: Container(
                     margin: const EdgeInsets.symmetric(
                         horizontal: 20, vertical: 12),
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(Spacing.xl),
                     decoration: BoxDecoration(
                       color: controller.selectedMFType == MFType.newMF
                           ? SemanticColors.investments.withValues(alpha: 0.1)
@@ -177,7 +177,7 @@ class MFTypeSelectionStep extends StatelessWidget {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: Spacing.lg),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -190,7 +190,7 @@ class MFTypeSelectionStep extends StatelessWidget {
                                   color: AppStyles.getTextColor(context),
                                 ),
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: Spacing.xs),
                               Text(
                                 'Starting a new mutual fund investment',
                                 style: TextStyle(

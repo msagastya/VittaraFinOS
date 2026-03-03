@@ -44,13 +44,13 @@ class MFDetailsScreen extends StatelessWidget {
       ),
       child: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(Spacing.xl),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Investment Summary Card
               Container(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(Spacing.xl),
                 decoration: BoxDecoration(
                   color: AppStyles.getCardColor(context),
                   borderRadius: BorderRadius.circular(16),
@@ -72,7 +72,7 @@ class MFDetailsScreen extends StatelessWidget {
                         fontSize: 18,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: Spacing.xs),
                     Text(
                       metadata['fundHouse'] as String? ?? '',
                       style: TextStyle(
@@ -80,7 +80,7 @@ class MFDetailsScreen extends StatelessWidget {
                         fontSize: TypeScale.footnote,
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: Spacing.xl),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -94,7 +94,7 @@ class MFDetailsScreen extends StatelessWidget {
                                 fontSize: TypeScale.footnote,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: Spacing.xs),
                             Text(
                               '₹${investedAmount.toStringAsFixed(2)}',
                               style: const TextStyle(
@@ -114,7 +114,7 @@ class MFDetailsScreen extends StatelessWidget {
                                 fontSize: TypeScale.footnote,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: Spacing.xs),
                             Text(
                               '₹${currentValue.toStringAsFixed(2)}',
                               style: TextStyle(
@@ -132,11 +132,11 @@ class MFDetailsScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: Spacing.xl),
 
               // Gain/Loss Card
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color: gainPercent >= 0
                       ? CupertinoColors.systemGreen.withValues(alpha: 0.1)
@@ -161,7 +161,7 @@ class MFDetailsScreen extends StatelessWidget {
                             fontSize: TypeScale.footnote,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: Spacing.xs),
                         Text(
                           '${gainLoss >= 0 ? '+' : ''}₹${gainLoss.toStringAsFixed(2)}',
                           style: TextStyle(
@@ -184,7 +184,7 @@ class MFDetailsScreen extends StatelessWidget {
                             fontSize: TypeScale.footnote,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: Spacing.xs),
                         Text(
                           '${gainPercent >= 0 ? '+' : ''}${gainPercent.toStringAsFixed(2)}%',
                           style: TextStyle(
@@ -200,7 +200,7 @@ class MFDetailsScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: Spacing.xl),
 
               // Details Section
               Text(
@@ -211,7 +211,7 @@ class MFDetailsScreen extends StatelessWidget {
                   color: AppStyles.getTextColor(context),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: Spacing.md),
               _buildDetailRow(
                   'Units',
                   (metadata['units'] as num?)?.toDouble().toStringAsFixed(4) ??
@@ -233,7 +233,7 @@ class MFDetailsScreen extends StatelessWidget {
               ],
 
               if (metadata['sipActive'] == true) ...[
-                const SizedBox(height: 20),
+                const SizedBox(height: Spacing.xl),
                 Text(
                   'SIP Details',
                   style: TextStyle(
@@ -242,9 +242,9 @@ class MFDetailsScreen extends StatelessWidget {
                     color: AppStyles.getTextColor(context),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
                     color: SemanticColors.investments.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
@@ -262,7 +262,7 @@ class MFDetailsScreen extends StatelessWidget {
                 ),
               ],
 
-              const SizedBox(height: 20),
+              const SizedBox(height: Spacing.xl),
 
               Text(
                 'Actions',
@@ -272,7 +272,7 @@ class MFDetailsScreen extends StatelessWidget {
                   color: AppStyles.getTextColor(context),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: Spacing.md),
               GridView.count(
                 crossAxisCount: 2,
                 shrinkWrap: true,
@@ -326,7 +326,7 @@ class MFDetailsScreen extends StatelessWidget {
                 ],
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: Spacing.xl),
             ],
           ),
         ),
@@ -612,12 +612,12 @@ class MFDetailsScreen extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: AppStyles.cardDecoration(context),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(Spacing.lg),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(Spacing.md),
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
@@ -757,7 +757,7 @@ class _MFDividendModalState extends State<_MFDividendModal> {
         CupertinoTextField(
           controller: _amountController,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(Spacing.lg),
           decoration: BoxDecoration(
             color: AppStyles.getBackground(context),
             borderRadius: BorderRadius.circular(12),
@@ -927,12 +927,12 @@ class _EditMFModalState extends State<_EditMFModal> {
             style: TextStyle(
                 color: AppStyles.getTextColor(context),
                 fontWeight: FontWeight.w600)),
-        const SizedBox(height: 8),
+        const SizedBox(height: Spacing.sm),
         CupertinoTextField(
           controller: controller,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           placeholder: '0.00',
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(Spacing.lg),
           decoration: BoxDecoration(
             color: AppStyles.getBackground(context),
             borderRadius: BorderRadius.circular(12),

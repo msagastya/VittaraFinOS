@@ -80,7 +80,7 @@ class _MFTransactionDetailsStepState extends State<MFTransactionDetailsStep> {
     final controller = Provider.of<MFWizardController>(context);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -88,7 +88,7 @@ class _MFTransactionDetailsStepState extends State<MFTransactionDetailsStep> {
             'Investment Details',
             style: AppStyles.titleStyle(context),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Enter amount and NAV for ${controller.selectedMF?.schemeName ?? "Mutual Fund"}',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
@@ -102,12 +102,12 @@ class _MFTransactionDetailsStepState extends State<MFTransactionDetailsStep> {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           CupertinoTextField(
             controller: _amountController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             placeholder: '0.00',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -122,7 +122,7 @@ class _MFTransactionDetailsStepState extends State<MFTransactionDetailsStep> {
             style: TextStyle(color: AppStyles.getTextColor(context)),
             onChanged: (_) => _updateController(),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           // Average NAV
           Text(
             'Average NAV',
@@ -131,12 +131,12 @@ class _MFTransactionDetailsStepState extends State<MFTransactionDetailsStep> {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           CupertinoTextField(
             controller: _navController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             placeholder: '0.00',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -151,7 +151,7 @@ class _MFTransactionDetailsStepState extends State<MFTransactionDetailsStep> {
             style: TextStyle(color: AppStyles.getTextColor(context)),
             onChanged: (_) => _updateController(),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           // Date of Purchase
           Text(
             'Date of Investment',
@@ -160,11 +160,11 @@ class _MFTransactionDetailsStepState extends State<MFTransactionDetailsStep> {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           GestureDetector(
             onTap: _showDatePicker,
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
@@ -193,9 +193,9 @@ class _MFTransactionDetailsStepState extends State<MFTransactionDetailsStep> {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getBackground(context).withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(12),
@@ -226,7 +226,7 @@ class _MFTransactionDetailsStepState extends State<MFTransactionDetailsStep> {
           const SizedBox(height: 30),
           // Summary
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(Spacing.xl),
             decoration: BoxDecoration(
               color: SemanticColors.investments.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(16),

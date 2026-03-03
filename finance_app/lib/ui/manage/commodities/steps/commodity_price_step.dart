@@ -42,7 +42,7 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
     ];
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -51,12 +51,12 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
           const SizedBox(height: 30),
           Text('Price Per ${widget.ctrl.unit ?? 'Unit'} (₹)',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _priceController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             placeholder: '0.00',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -70,10 +70,10 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
               if (price > 0) widget.ctrl.updateBuyPrice(price);
             },
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           Text('Purchase Date',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           GestureDetector(
             onTap: () {
               showCupertinoModalPopup(
@@ -84,7 +84,7 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
                   child: Column(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(Spacing.lg),
                         decoration: BoxDecoration(
                           color: AppStyles.getCardColor(context),
                           border: Border(
@@ -120,7 +120,7 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
               );
             },
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
@@ -138,10 +138,10 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
               ),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           Text('Exchange',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
@@ -159,7 +159,7 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(Spacing.lg),
                           decoration: BoxDecoration(
                             color: AppStyles.getCardColor(context),
                             border: Border(
@@ -187,7 +187,7 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
                         ),
                         Expanded(
                           child: ListView.builder(
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(Spacing.lg),
                             itemCount: exchanges.length,
                             itemBuilder: (context, index) {
                               final exchange = exchanges[index];
@@ -251,9 +251,9 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
             ),
           ),
           if (widget.ctrl.buyPrice != null && widget.ctrl.quantity != null) ...[
-            const SizedBox(height: 24),
+            const SizedBox(height: Spacing.xxl),
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: const Color(0xFF8B4513).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
@@ -270,7 +270,7 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
                           style: TextStyle(
                               fontSize: TypeScale.footnote,
                               color: AppStyles.getSecondaryTextColor(context))),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: Spacing.xs),
                       Text('₹${widget.ctrl.totalCost.toStringAsFixed(2)}',
                           style: const TextStyle(
                               fontSize: TypeScale.headline,

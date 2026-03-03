@@ -12,7 +12,7 @@ class CommodityTypeStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -35,7 +35,7 @@ class CommodityTypeStep extends StatelessWidget {
                 onTap: () => ctrl.selectType(type),
                 child: Container(
                   margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? const Color(0xFF8B4513).withValues(alpha: 0.1)
@@ -73,7 +73,7 @@ class CommodityTypeStep extends StatelessWidget {
                               )
                             : null,
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: Spacing.md),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -95,13 +95,13 @@ class CommodityTypeStep extends StatelessWidget {
               );
             }).toList(),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           Text('Custom Commodity Name',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           CupertinoTextField(
             placeholder: 'e.g., Gold ETF, Oil Futures',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),

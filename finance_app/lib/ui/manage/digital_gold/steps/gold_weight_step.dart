@@ -42,7 +42,7 @@ class _GoldWeightStepState extends State<GoldWeightStep> {
     final controller = Provider.of<DigitalGoldWizardController>(context);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -50,7 +50,7 @@ class _GoldWeightStepState extends State<GoldWeightStep> {
             'Gold Weight',
             style: AppStyles.titleStyle(context),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Enter the amount of gold you want to invest',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
@@ -63,12 +63,12 @@ class _GoldWeightStepState extends State<GoldWeightStep> {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           CupertinoTextField(
             controller: _weightController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             placeholder: '0.00',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -86,7 +86,7 @@ class _GoldWeightStepState extends State<GoldWeightStep> {
           ),
           const SizedBox(height: 30),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: CupertinoColors.activeBlue.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),

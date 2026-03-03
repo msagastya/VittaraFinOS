@@ -38,12 +38,12 @@ class _NPSContributionStepState extends State<NPSContributionStep> {
     final ctrl = Provider.of<NPSWizardController>(context);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Contribution Summary', style: AppStyles.titleStyle(context)),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text('Enter total contribution till date',
               style:
                   TextStyle(color: AppStyles.getSecondaryTextColor(context))),
@@ -51,12 +51,12 @@ class _NPSContributionStepState extends State<NPSContributionStep> {
           // Total Contributed
           Text('Total Contributed (₹)',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _contributedController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             placeholder: '0.00',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -71,11 +71,11 @@ class _NPSContributionStepState extends State<NPSContributionStep> {
               if (amt > 0) ctrl.updateTotalContributed(amt);
             },
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           // Scheme Type
           Text('Investment Scheme',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -114,11 +114,11 @@ class _NPSContributionStepState extends State<NPSContributionStep> {
               );
             }).toList(),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           // NPS Manager
           Text('NPS Manager',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           CupertinoButton(
             onPressed: () {
               showCupertinoModalPopup(
@@ -157,7 +157,7 @@ class _NPSContributionStepState extends State<NPSContributionStep> {
               );
             },
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
@@ -175,10 +175,10 @@ class _NPSContributionStepState extends State<NPSContributionStep> {
               ),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: Spacing.xxl),
           if (ctrl.totalContributed != null && ctrl.totalContributed! > 0) ...{
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: const Color(0xFF9B59B6).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
@@ -192,12 +192,12 @@ class _NPSContributionStepState extends State<NPSContributionStep> {
                     '₹${ctrl.totalContributed!.toStringAsFixed(2)}',
                     isBold: true,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: Spacing.md),
                   _SummaryRow(
                     'Tax Benefit (80C)',
                     '₹${(ctrl.totalContributed! > 150000 ? 150000 : ctrl.totalContributed!).toStringAsFixed(2)}',
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: Spacing.md),
                   _SummaryRow(
                     'Extra 80CCD',
                     '₹${((ctrl.totalContributed! - 150000).clamp(0, 50000)).toStringAsFixed(2)}',
@@ -206,7 +206,7 @@ class _NPSContributionStepState extends State<NPSContributionStep> {
               ),
             ),
           },
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
         ],
       ),
     );

@@ -20,7 +20,7 @@ class MFReviewStep extends StatelessWidget {
         : controller.fetchedNAV ?? 0;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -46,7 +46,7 @@ class MFReviewStep extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: Spacing.lg),
           Center(
             child: Text(
               mf.schemeName,
@@ -64,7 +64,7 @@ class MFReviewStep extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: Spacing.xxxl),
           _buildRow(context, 'Scheme Type', mf.schemeType ?? 'N/A'),
           _buildRow(context, 'Scheme Code', mf.schemeCode),
           _buildRow(context, 'Account', account.name),
@@ -86,9 +86,9 @@ class MFReviewStep extends StatelessWidget {
             '₹${controller.totalAmount.toStringAsFixed(2)}',
             isBold: true,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: Spacing.lg),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: SemanticColors.investments.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
@@ -106,7 +106,7 @@ class MFReviewStep extends StatelessWidget {
                     fontSize: TypeScale.body,
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 _buildSummaryRow(
                   'Units',
                   controller.calculatedUnits.toStringAsFixed(4),

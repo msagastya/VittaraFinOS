@@ -128,13 +128,13 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
       ),
       child: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(Spacing.xl),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Investment Summary Card
               Container(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(Spacing.xl),
                 decoration: BoxDecoration(
                   color: AppStyles.getCardColor(context),
                   borderRadius: BorderRadius.circular(16),
@@ -156,7 +156,7 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                         fontSize: 18,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: Spacing.xs),
                     Text(
                       'Digital Gold Investment',
                       style: TextStyle(
@@ -164,7 +164,7 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                         fontSize: TypeScale.footnote,
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: Spacing.xl),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -178,7 +178,7 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                                 fontSize: TypeScale.footnote,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: Spacing.xs),
                             Text(
                               '₹${investedAmount.toStringAsFixed(2)}',
                               style: const TextStyle(
@@ -198,7 +198,7 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                                 fontSize: TypeScale.footnote,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: Spacing.xs),
                             Text(
                               '₹${currentValue.toStringAsFixed(2)}',
                               style: TextStyle(
@@ -216,11 +216,11 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: Spacing.xl),
 
               // Gain/Loss Card
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color: gainPercent >= 0
                       ? CupertinoColors.systemGreen.withValues(alpha: 0.1)
@@ -245,7 +245,7 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                             fontSize: TypeScale.footnote,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: Spacing.xs),
                         Text(
                           '${gainLoss >= 0 ? '+' : ''}₹${gainLoss.toStringAsFixed(2)}',
                           style: TextStyle(
@@ -268,7 +268,7 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                             fontSize: TypeScale.footnote,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: Spacing.xs),
                         Text(
                           '${gainPercent >= 0 ? '+' : ''}${gainPercent.toStringAsFixed(2)}%',
                           style: TextStyle(
@@ -284,7 +284,7 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: Spacing.xl),
 
               // Details Section
               Text(
@@ -295,7 +295,7 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                   color: AppStyles.getTextColor(context),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: Spacing.md),
               _buildDetailRow(
                   'Provider', metadata['company'] as String? ?? '-'),
               _buildDetailRow(
@@ -320,7 +320,7 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                         height: 16,
                         child: CupertinoActivityIndicator(),
                       ),
-                      SizedBox(width: 8),
+                      SizedBox(width: Spacing.sm),
                       Text('Fetching current price...'),
                     ],
                   ),
@@ -369,7 +369,7 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                 ],
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: Spacing.xl),
             ],
           ),
         ),
@@ -438,14 +438,14 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, size: 32, color: color),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: Spacing.md),
             Text(
               label,
               textAlign: TextAlign.center,
@@ -571,7 +571,7 @@ class _EditModalState extends State<_EditModal> {
         child: SafeArea(
           child: Container(
             color: AppStyles.getBackground(context),
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(Spacing.xl),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -584,7 +584,7 @@ class _EditModalState extends State<_EditModal> {
                     color: AppStyles.getTextColor(context),
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: Spacing.xxl),
                 Text(
                   'Total Invested Amount (₹)',
                   style: TextStyle(
@@ -593,13 +593,13 @@ class _EditModalState extends State<_EditModal> {
                     color: AppStyles.getTextColor(context),
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: Spacing.sm),
                 CupertinoTextField(
                   controller: _investedAmountController,
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
                   placeholder: '0.00',
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(Spacing.md),
                   decoration: BoxDecoration(
                     color: AppStyles.getCardColor(context),
                     borderRadius: BorderRadius.circular(8),
@@ -609,7 +609,7 @@ class _EditModalState extends State<_EditModal> {
                     child: Text('₹'),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: Spacing.lg),
                 Text(
                   'Investment Rate (₹/gram)',
                   style: TextStyle(
@@ -618,13 +618,13 @@ class _EditModalState extends State<_EditModal> {
                     color: AppStyles.getTextColor(context),
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: Spacing.sm),
                 CupertinoTextField(
                   controller: _investmentRateController,
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
                   placeholder: '0.00',
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(Spacing.md),
                   decoration: BoxDecoration(
                     color: AppStyles.getCardColor(context),
                     borderRadius: BorderRadius.circular(8),
@@ -638,7 +638,7 @@ class _EditModalState extends State<_EditModal> {
                     child: Text('/g'),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: Spacing.lg),
                 Text(
                   'GST Rate (%)',
                   style: TextStyle(
@@ -647,13 +647,13 @@ class _EditModalState extends State<_EditModal> {
                     color: AppStyles.getTextColor(context),
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: Spacing.sm),
                 CupertinoTextField(
                   controller: _gstRateController,
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
                   placeholder: '3.0',
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(Spacing.md),
                   decoration: BoxDecoration(
                     color: AppStyles.getCardColor(context),
                     borderRadius: BorderRadius.circular(8),
@@ -663,7 +663,7 @@ class _EditModalState extends State<_EditModal> {
                     child: Text('%'),
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: Spacing.xxl),
                 Row(
                   children: [
                     Expanded(
@@ -676,7 +676,7 @@ class _EditModalState extends State<_EditModal> {
                                 color: CupertinoColors.destructiveRed)),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: Spacing.md),
                     Expanded(
                       child: CupertinoButton.filled(
                         onPressed: _isLoading ? null : _saveChanges,

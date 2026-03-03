@@ -313,7 +313,7 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
       ),
       child: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(Spacing.lg),
           children: [
             _buildOverviewCard(
               context,
@@ -321,7 +321,7 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
               accountsCount: accountsCount,
               investmentsCount: investmentsCount,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: Spacing.md),
             _buildActionCard(
               context,
               title: 'Create Local Backup File',
@@ -364,11 +364,11 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
               onTap: _busy ? null : _showLocalBackupPicker,
             ),
             if (_busy) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: Spacing.lg),
               const Center(child: CupertinoActivityIndicator(radius: 12)),
             ],
             if (_lastStatus != null) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: Spacing.lg),
               Text(
                 _lastStatus!,
                 style: TextStyle(
@@ -378,7 +378,7 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
               ),
             ],
             if (_lastSummary != null) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: Spacing.sm),
               _buildSummaryCard(context, _lastSummary!),
             ],
           ],
@@ -394,7 +394,7 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
     required int investmentsCount,
   }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(Spacing.lg),
       decoration: AppStyles.cardDecoration(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -403,12 +403,12 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
             'Current Data Snapshot',
             style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title3),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Transactions: $transactionsCount • Accounts: $accountsCount • Investments: $investmentsCount',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Backups are versioned and include typed storage snapshot for compatibility with future app upgrades.',
             style: TextStyle(
@@ -447,7 +447,7 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
                   alignment: Alignment.center,
                   child: Icon(icon, color: color, size: 22),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: Spacing.md),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -457,7 +457,7 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
                         style: AppStyles.titleStyle(context)
                             .copyWith(fontSize: TypeScale.callout),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: Spacing.xxs),
                       Text(
                         subtitle,
                         style: TextStyle(
@@ -480,7 +480,7 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
   Widget _buildSummaryCard(BuildContext context, Map<String, dynamic> summary) {
     String value(String key) => '${summary[key] ?? '-'}';
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(Spacing.md),
       decoration: AppStyles.cardDecoration(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -489,7 +489,7 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
             'Last Operation Summary',
             style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.body),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text('Source: ${value('source')}'),
           Text('Keys: ${value('keys')}'),
           Text('Transactions: ${value('transactionCount')}'),

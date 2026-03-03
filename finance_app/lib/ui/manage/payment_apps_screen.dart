@@ -62,7 +62,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
               constraints: BoxConstraints(
                 maxHeight: MediaQuery.of(ctx).size.height * 0.65,
               ),
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(Spacing.xxl),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(ctx),
                 borderRadius:
@@ -76,13 +76,13 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Wallet Balance', style: AppStyles.titleStyle(ctx)),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: Spacing.md),
                     Text(
                       app['name'],
                       style: TextStyle(
                           color: AppStyles.getSecondaryTextColor(ctx)),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: Spacing.md),
                     CupertinoTextField(
                       controller: controller,
                       autofocus: true,
@@ -98,7 +98,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: Spacing.lg),
                     Row(
                       children: [
                         Expanded(
@@ -176,7 +176,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                 Column(
                   children: [
                     Container(
-                      margin: const EdgeInsets.all(16),
+                      margin: const EdgeInsets.all(Spacing.lg),
                       decoration: BoxDecoration(
                         color: AppStyles.getCardColor(context),
                         borderRadius: BorderRadius.circular(12),
@@ -233,7 +233,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                         children: [
                           const Icon(CupertinoIcons.add,
                               color: Colors.white, size: 20),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: Spacing.sm),
                           Text('Add App',
                               style: const TextStyle(
                                   color: Colors.white,
@@ -272,7 +272,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
               constraints: BoxConstraints(
                 maxHeight: MediaQuery.of(ctx).size.height * 0.65,
               ),
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(Spacing.xxl),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(ctx),
                 borderRadius:
@@ -286,13 +286,13 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Enable Wallet', style: AppStyles.titleStyle(ctx)),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: Spacing.sm),
                     Text(
                       app['name'],
                       style: TextStyle(
                           color: AppStyles.getSecondaryTextColor(ctx)),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: Spacing.md),
                     CupertinoTextField(
                       controller: balanceController,
                       autofocus: true,
@@ -371,7 +371,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       decoration: AppStyles.cardDecoration(context),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(Spacing.lg),
         child: Row(
           children: [
             Container(
@@ -386,7 +386,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                 ),
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: Spacing.lg),
             Expanded(
               child: Text(
                 app['name'],
@@ -431,7 +431,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                     },
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: Spacing.sm),
                 Theme(
                   data: Theme.of(context).copyWith(
                     popupMenuTheme: PopupMenuThemeData(
@@ -536,7 +536,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                               borderRadius: BorderRadius.circular(2.5),
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: Spacing.lg),
                           Text('Add Payment App',
                               style: AppStyles.titleStyle(context)
                                   .copyWith(fontSize: TypeScale.title2)),
@@ -550,7 +550,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                       child: SingleChildScrollView(
                         keyboardDismissBehavior:
                             ScrollViewKeyboardDismissBehavior.onDrag,
-                        padding: const EdgeInsets.all(24),
+                        padding: const EdgeInsets.all(Spacing.xxl),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -560,13 +560,13 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                                     fontWeight: FontWeight.w500,
                                     color: AppStyles.getSecondaryTextColor(
                                         context))),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: Spacing.sm),
                             CupertinoTextField(
                               controller: appNameController,
                               autofocus: true,
                               textInputAction: TextInputAction.next,
                               placeholder: 'e.g. Google Pay, PhonePe',
-                              padding: const EdgeInsets.all(16),
+                              padding: const EdgeInsets.all(Spacing.lg),
                               decoration: BoxDecoration(
                                 color: AppStyles.getCardColor(context),
                                 border: Border.all(
@@ -577,21 +577,21 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                               style: TextStyle(
                                   color: AppStyles.getTextColor(context)),
                             ),
-                            const SizedBox(height: 24),
+                            const SizedBox(height: Spacing.xxl),
                             Text('Wallet feature',
                                 style: TextStyle(
                                     fontSize: TypeScale.body,
                                     fontWeight: FontWeight.w500,
                                     color: AppStyles.getSecondaryTextColor(
                                         context))),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: Spacing.md),
                             Container(
                               decoration: BoxDecoration(
                                 color: AppStyles.getSecondaryTextColor(context)
                                     .withValues(alpha: 0.08),
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              padding: const EdgeInsets.all(4),
+                              padding: const EdgeInsets.all(Spacing.xs),
                               child: Row(
                                 children: [
                                   Expanded(
@@ -619,7 +619,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(width: 12),
+                                  const SizedBox(width: Spacing.md),
                                   Expanded(
                                     child: BouncyButton(
                                       onPressed: () => setModalState(
@@ -649,14 +649,14 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                               ),
                             ),
                             if (hasWallet) ...[
-                              const SizedBox(height: 20),
+                              const SizedBox(height: Spacing.xl),
                               Text('Opening wallet balance',
                                   style: TextStyle(
                                       fontSize: TypeScale.body,
                                       fontWeight: FontWeight.w500,
                                       color: AppStyles.getSecondaryTextColor(
                                           context))),
-                              const SizedBox(height: 8),
+                              const SizedBox(height: Spacing.sm),
                               CupertinoTextField(
                                 controller: walletBalanceController,
                                 placeholder: '0.00',
@@ -667,7 +667,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                                   padding: EdgeInsets.only(left: 12),
                                   child: Text('₹'),
                                 ),
-                                padding: const EdgeInsets.all(16),
+                                padding: const EdgeInsets.all(Spacing.lg),
                                 decoration: BoxDecoration(
                                   color: AppStyles.getCardColor(context),
                                   border: Border.all(
@@ -679,7 +679,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                                     color: AppStyles.getTextColor(context)),
                               ),
                             ],
-                            const SizedBox(height: 32),
+                            const SizedBox(height: Spacing.xxxl),
                             BouncyButton(
                               onPressed: () {
                                 final name = appNameController.text.trim();

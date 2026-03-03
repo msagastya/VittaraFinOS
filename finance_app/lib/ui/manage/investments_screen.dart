@@ -536,7 +536,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                     label,
                     style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.subhead),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: Spacing.xs),
                   Text(
                     CurrencyFormatter.compact(total),
                     style: TextStyle(
@@ -591,7 +591,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: Spacing.sm),
           GestureDetector(
             onTap: () => setState(() => _sortAscending = !_sortAscending),
             child: Container(
@@ -1977,7 +1977,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(Spacing.sm),
                     decoration: BoxDecoration(
                       color: color.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(8),
@@ -1988,7 +1988,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                       color: color,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: Spacing.sm),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2022,7 +2022,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                   color: AppStyles.getSecondaryTextColor(context),
                 ),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: Spacing.xxs),
               AnimatedCounter(
                 value: invested,
                 prefix: '₹',
@@ -2044,7 +2044,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                   color: AppStyles.getSecondaryTextColor(context),
                 ),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: Spacing.xxs),
               AnimatedCounter(
                 value: currentValue,
                 prefix: '₹',
@@ -2083,7 +2083,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                             color: AppStyles.getSecondaryTextColor(context),
                           ),
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: Spacing.xxs),
                         AnimatedCounter(
                           value: gainLoss.abs(),
                           prefix: isPositive ? '+₹' : '-₹',
@@ -2109,7 +2109,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                             color: AppStyles.getSecondaryTextColor(context),
                           ),
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: Spacing.xxs),
                         Text(
                           '${gainLossPercent.toStringAsFixed(1)}%',
                           style: TextStyle(

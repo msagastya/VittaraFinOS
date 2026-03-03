@@ -48,7 +48,7 @@ class _CommoditiesDetailsScreenState extends State<CommoditiesDetailsScreen> {
       ),
       child: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(Spacing.xl),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -61,7 +61,7 @@ class _CommoditiesDetailsScreenState extends State<CommoditiesDetailsScreen> {
                   _DetailRow('Position', commodity.position.name.toUpperCase()),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: Spacing.xl),
               _DetailCard(
                 title: 'Quantity & Unit',
                 children: [
@@ -69,7 +69,7 @@ class _CommoditiesDetailsScreenState extends State<CommoditiesDetailsScreen> {
                   _DetailRow('Unit', commodity.unit),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: Spacing.xl),
               _DetailCard(
                 title: 'Price Information',
                 children: [
@@ -81,7 +81,7 @@ class _CommoditiesDetailsScreenState extends State<CommoditiesDetailsScreen> {
                       '${commodity.purchaseDate.day}/${commodity.purchaseDate.month}/${commodity.purchaseDate.year}'),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: Spacing.xl),
               _DetailCard(
                 title: 'Financial Summary',
                 children: [
@@ -106,7 +106,7 @@ class _CommoditiesDetailsScreenState extends State<CommoditiesDetailsScreen> {
                 ],
               ),
               if (commodity.notes != null && commodity.notes!.isNotEmpty) ...[
-                const SizedBox(height: 20),
+                const SizedBox(height: Spacing.xl),
                 _DetailCard(
                   title: 'Notes',
                   children: [
@@ -124,7 +124,7 @@ class _CommoditiesDetailsScreenState extends State<CommoditiesDetailsScreen> {
                   child: const Text('Edit Investment'),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: Spacing.md),
               SizedBox(
                 width: double.infinity,
                 child: CupertinoButton(
@@ -162,7 +162,7 @@ class _CommoditiesDetailsScreenState extends State<CommoditiesDetailsScreen> {
                       style: TextStyle(color: CupertinoColors.systemRed)),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: Spacing.xl),
             ],
           ),
         ),
@@ -180,7 +180,7 @@ class _DetailCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(Spacing.lg),
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(12),
@@ -191,13 +191,13 @@ class _DetailCard extends StatelessWidget {
         children: [
           Text(title,
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: TypeScale.body)),
-          const SizedBox(height: 16),
+          const SizedBox(height: Spacing.lg),
           ...List.generate(
             children.length,
             (i) => Column(
               children: [
                 children[i],
-                if (i < children.length - 1) const SizedBox(height: 12),
+                if (i < children.length - 1) const SizedBox(height: Spacing.md),
               ],
             ),
           ),

@@ -24,7 +24,7 @@ class GoldCompanyStep extends StatelessWidget {
     final controller = Provider.of<DigitalGoldWizardController>(context);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -32,7 +32,7 @@ class GoldCompanyStep extends StatelessWidget {
             'Select Gold Provider',
             style: AppStyles.titleStyle(context),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Choose a digital gold provider to invest with',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
@@ -58,7 +58,7 @@ class GoldCompanyStep extends StatelessWidget {
                 },
                 child: Container(
                   margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? SemanticColors.investments.withValues(alpha: 0.1)
@@ -87,7 +87,7 @@ class GoldCompanyStep extends StatelessWidget {
                           size: 24,
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: Spacing.lg),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -99,7 +99,7 @@ class GoldCompanyStep extends StatelessWidget {
                                 fontSize: TypeScale.headline,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: Spacing.xs),
                             Text(
                               'Digital Gold Provider',
                               style: TextStyle(
@@ -122,7 +122,7 @@ class GoldCompanyStep extends StatelessWidget {
               );
             },
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
         ],
       ),
     );

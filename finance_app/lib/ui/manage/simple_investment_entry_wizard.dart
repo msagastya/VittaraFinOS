@@ -198,7 +198,7 @@ class _SimpleInvestmentEntryWizardState
       ),
       child: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(Spacing.xl),
           children: [
             Text(
               widget.subtitle,
@@ -207,7 +207,7 @@ class _SimpleInvestmentEntryWizardState
                 fontSize: TypeScale.subhead,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: Spacing.lg),
             _buildField(
               label: 'Name',
               controller: _nameController,
@@ -236,16 +236,16 @@ class _SimpleInvestmentEntryWizardState
                 placeholder: widget.referenceHint ?? '',
               ),
             _buildDateCard(),
-            const SizedBox(height: 8),
+            const SizedBox(height: Spacing.sm),
             _buildAccountCard(),
-            const SizedBox(height: 8),
+            const SizedBox(height: Spacing.sm),
             _buildField(
               label: 'Notes (Optional)',
               controller: _notesController,
               placeholder: 'Add details for future tracking',
               maxLines: 3,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: Spacing.lg),
             CupertinoButton.filled(
               onPressed: _isSaving ? null : _save,
               child: _isSaving

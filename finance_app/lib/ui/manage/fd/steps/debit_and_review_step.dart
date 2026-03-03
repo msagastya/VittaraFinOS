@@ -35,7 +35,7 @@ class _DebitAndReviewStepState extends State<DebitAndReviewStep> {
     final controller = Provider.of<FDWizardController>(context);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -43,7 +43,7 @@ class _DebitAndReviewStepState extends State<DebitAndReviewStep> {
             'Review & Confirm',
             style: AppStyles.titleStyle(context),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Review FD details before creation',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
@@ -56,11 +56,11 @@ class _DebitAndReviewStepState extends State<DebitAndReviewStep> {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           CupertinoTextField(
             controller: _nameController,
             placeholder: 'e.g., My FD',
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(Spacing.md),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(8),
@@ -68,7 +68,7 @@ class _DebitAndReviewStepState extends State<DebitAndReviewStep> {
             style: TextStyle(color: AppStyles.getTextColor(context)),
             onChanged: (value) => controller.updateFDName(value),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           Text(
             'Notes (Optional)',
             style: TextStyle(
@@ -76,11 +76,11 @@ class _DebitAndReviewStepState extends State<DebitAndReviewStep> {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           CupertinoTextField(
             controller: _notesController,
             placeholder: 'Bank name, account details, etc.',
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(Spacing.md),
             minLines: 2,
             maxLines: 3,
             decoration: BoxDecoration(
@@ -94,7 +94,7 @@ class _DebitAndReviewStepState extends State<DebitAndReviewStep> {
           const SizedBox(height: 30),
           // Summary Card
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getBackground(context).withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(12),
@@ -115,7 +115,7 @@ class _DebitAndReviewStepState extends State<DebitAndReviewStep> {
                     fontSize: TypeScale.headline,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: Spacing.lg),
                 _buildSummaryRow(
                     'Account', controller.selectedAccount?.name ?? 'N/A'),
                 _buildSummaryRow('Invested Date',
@@ -129,9 +129,9 @@ class _DebitAndReviewStepState extends State<DebitAndReviewStep> {
                     'Compounding', controller.compoundingFrequency.name),
                 if (!controller.isCumulative)
                   _buildSummaryRow('Payouts', controller.payoutFrequency.name),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(Spacing.md),
                   decoration: BoxDecoration(
                     color: AppStyles.getPrimaryColor(context)
                         .withValues(alpha: 0.1),
@@ -161,10 +161,10 @@ class _DebitAndReviewStepState extends State<DebitAndReviewStep> {
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           // Debit Toggle
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -192,7 +192,7 @@ class _DebitAndReviewStepState extends State<DebitAndReviewStep> {
                               fontSize: TypeScale.callout,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: Spacing.xs),
                           Text(
                             'Deduct ₹${controller.principal.toStringAsFixed(2)} from ${controller.selectedAccount?.name ?? 'account'}',
                             style: TextStyle(
@@ -210,7 +210,7 @@ class _DebitAndReviewStepState extends State<DebitAndReviewStep> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: Spacing.md),
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
@@ -225,7 +225,7 @@ class _DebitAndReviewStepState extends State<DebitAndReviewStep> {
                         size: 14,
                         color: AppStyles.getSecondaryTextColor(context),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: Spacing.sm),
                       Expanded(
                         child: Text(
                           'Turn on only if you want to debit now. For old FDs, leave off.',
@@ -241,10 +241,10 @@ class _DebitAndReviewStepState extends State<DebitAndReviewStep> {
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           // Auto-Link Toggle
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -263,7 +263,7 @@ class _DebitAndReviewStepState extends State<DebitAndReviewStep> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: Spacing.xs),
                       Text(
                         'Auto-credit payouts to account',
                         style: TextStyle(

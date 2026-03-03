@@ -128,7 +128,7 @@ class _MFNewInvestmentDetailsStepState
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -136,7 +136,7 @@ class _MFNewInvestmentDetailsStepState
             'Investment Details',
             style: AppStyles.titleStyle(context),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Enter amount and date for ${mfController.selectedMF?.schemeName ?? "Mutual Fund"}',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
@@ -151,12 +151,12 @@ class _MFNewInvestmentDetailsStepState
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           CupertinoTextField(
             controller: _amountController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             placeholder: '0.00',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -171,7 +171,7 @@ class _MFNewInvestmentDetailsStepState
             style: TextStyle(color: AppStyles.getTextColor(context)),
             onChanged: (_) => _updateAmount(),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
 
           // Date of Investment
           Text(
@@ -181,11 +181,11 @@ class _MFNewInvestmentDetailsStepState
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           GestureDetector(
             onTap: _showDatePicker,
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
@@ -205,7 +205,7 @@ class _MFNewInvestmentDetailsStepState
               ),
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
 
           // Fetch NAV Button
           SizedBox(
@@ -224,7 +224,7 @@ class _MFNewInvestmentDetailsStepState
                     )
                   else
                     const Icon(CupertinoIcons.cloud_download, size: 16),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: Spacing.sm),
                   Text(
                     _isFetchingNAV
                         ? 'Fetching NAV...'
@@ -238,9 +238,9 @@ class _MFNewInvestmentDetailsStepState
           ),
 
           if (_navError.isNotEmpty) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: Spacing.md),
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(Spacing.md),
               decoration: BoxDecoration(
                 color: CupertinoColors.systemRed.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
@@ -285,7 +285,7 @@ class _MFNewInvestmentDetailsStepState
           ),
 
           if (mfController.deductFromAccount) ...[
-            const SizedBox(height: 20),
+            const SizedBox(height: Spacing.xl),
             Text(
               'Select Bank Account',
               style: TextStyle(
@@ -293,7 +293,7 @@ class _MFNewInvestmentDetailsStepState
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: Spacing.md),
             Consumer<AccountsController>(
               builder: (context, accountsController, child) {
                 final bankAccounts = accountsController.accounts
@@ -306,7 +306,7 @@ class _MFNewInvestmentDetailsStepState
                   children: [
                     if (bankAccounts.isEmpty)
                       Container(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(Spacing.lg),
                         decoration: BoxDecoration(
                           color: CupertinoColors.systemOrange.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
@@ -341,7 +341,7 @@ class _MFNewInvestmentDetailsStepState
                             },
                             child: Container(
                               margin: const EdgeInsets.only(bottom: 8),
-                              padding: const EdgeInsets.all(12),
+                              padding: const EdgeInsets.all(Spacing.md),
                               decoration: BoxDecoration(
                                 color: isSelected
                                     ? SemanticColors.investments
@@ -357,7 +357,7 @@ class _MFNewInvestmentDetailsStepState
                               child: Row(
                                 children: [
                                   Container(
-                                    padding: const EdgeInsets.all(8),
+                                    padding: const EdgeInsets.all(Spacing.sm),
                                     decoration: BoxDecoration(
                                       color:
                                           account.color.withValues(alpha: 0.2),
@@ -369,7 +369,7 @@ class _MFNewInvestmentDetailsStepState
                                       size: 20,
                                     ),
                                   ),
-                                  const SizedBox(width: 12),
+                                  const SizedBox(width: Spacing.md),
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment:
@@ -405,7 +405,7 @@ class _MFNewInvestmentDetailsStepState
                           );
                         },
                       ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: Spacing.md),
                     CupertinoButton(
                       color: isDark ? Colors.grey[800] : Colors.grey[200],
                       onPressed: () {
@@ -437,7 +437,7 @@ class _MFNewInvestmentDetailsStepState
                             CupertinoIcons.add,
                             color: AppStyles.getTextColor(context),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: Spacing.sm),
                           Text(
                             'Add Bank Account',
                             style: TextStyle(
@@ -458,7 +458,7 @@ class _MFNewInvestmentDetailsStepState
           // NAV and Units Display
           if (mfController.fetchedNAV != null) ...[
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: SemanticColors.investments.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
@@ -485,7 +485,7 @@ class _MFNewInvestmentDetailsStepState
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: Spacing.md),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [

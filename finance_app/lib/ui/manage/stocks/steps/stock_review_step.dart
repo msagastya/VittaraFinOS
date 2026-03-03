@@ -17,7 +17,7 @@ class StockReviewStep extends StatelessWidget {
     if (stock == null || account == null) return const SizedBox();
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -41,7 +41,7 @@ class StockReviewStep extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: Spacing.lg),
           Center(
             child: Text(
               stock.symbol,
@@ -55,7 +55,7 @@ class StockReviewStep extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: Spacing.xxxl),
           _buildRow(context, 'Exchange', stock.exchange),
           _buildRow(context, 'Demat Account', account.name),
           _buildRow(context, 'Quantity', controller.qty.toString()),
@@ -69,13 +69,13 @@ class StockReviewStep extends StatelessWidget {
               '₹${controller.totalAmount.toStringAsFixed(2)}',
               isBold: true),
           if (controller.deductFromAccount) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: Spacing.sm),
             _buildRow(context, 'Deducted from Balance', 'Yes',
                 color: CupertinoColors.systemOrange),
             if (controller.extraCharges > 0)
               _buildRow(context, 'Extra Charges',
                   '₹${controller.extraCharges.toStringAsFixed(2)}'),
-            const SizedBox(height: 8),
+            const SizedBox(height: Spacing.sm),
             _buildRow(
               context,
               'Total Deducted',

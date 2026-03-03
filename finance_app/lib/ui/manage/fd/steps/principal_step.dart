@@ -38,7 +38,7 @@ class _PrincipalStepState extends State<PrincipalStep> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -46,7 +46,7 @@ class _PrincipalStepState extends State<PrincipalStep> {
             'Principal Amount',
             style: AppStyles.titleStyle(context),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Enter the amount to invest in this FD',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
@@ -59,12 +59,12 @@ class _PrincipalStepState extends State<PrincipalStep> {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _principalController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             placeholder: '0.00',
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
@@ -83,7 +83,7 @@ class _PrincipalStepState extends State<PrincipalStep> {
               if (controller.principal <= 0) return const SizedBox.shrink();
 
               return Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color:
                       AppStyles.getBackground(context).withValues(alpha: 0.5),
@@ -105,7 +105,7 @@ class _PrincipalStepState extends State<PrincipalStep> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: Spacing.sm),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [

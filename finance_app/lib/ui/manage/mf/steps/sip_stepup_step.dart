@@ -52,7 +52,7 @@ class _SIPStepUpStepState extends State<SIPStepUpStep> {
     final sipController = Provider.of<SIPWizardController>(context);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -60,7 +60,7 @@ class _SIPStepUpStepState extends State<SIPStepUpStep> {
             'Step Up Configuration',
             style: AppStyles.titleStyle(context),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Automatically increase your SIP amount over time',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
@@ -98,13 +98,13 @@ class _SIPStepUpStepState extends State<SIPStepUpStep> {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: Spacing.md),
             CupertinoTextField(
               controller: _percentController,
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
               placeholder: '0.00',
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
@@ -119,7 +119,7 @@ class _SIPStepUpStepState extends State<SIPStepUpStep> {
               style: TextStyle(color: AppStyles.getTextColor(context)),
               onChanged: (_) => _updateStepUp(),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: Spacing.xl),
 
             // Step Up Tenure
             Text(
@@ -129,7 +129,7 @@ class _SIPStepUpStepState extends State<SIPStepUpStep> {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: Spacing.md),
             CupertinoSegmentedControl<StepUpTenure>(
               children: const {
                 StepUpTenure.monthly: Padding(
@@ -150,7 +150,7 @@ class _SIPStepUpStepState extends State<SIPStepUpStep> {
                 );
               },
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: Spacing.xl),
 
             // Duration Input
             Text(
@@ -162,12 +162,12 @@ class _SIPStepUpStepState extends State<SIPStepUpStep> {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: Spacing.md),
             CupertinoTextField(
               controller: _durationController,
               keyboardType: TextInputType.number,
               placeholder: '1',
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
@@ -179,7 +179,7 @@ class _SIPStepUpStepState extends State<SIPStepUpStep> {
 
             // Info Box
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: CupertinoColors.systemBlue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
@@ -197,14 +197,14 @@ class _SIPStepUpStepState extends State<SIPStepUpStep> {
                         size: 16,
                         color: AppStyles.getSecondaryTextColor(context),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: Spacing.sm),
                       const Text(
                         'Example',
                         style: TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: Spacing.sm),
                   Text(
                     'If you set 10% step up every 1 year:\nYear 1: ₹${sipController.sipAmount.toStringAsFixed(0)}/month\nYear 2: ₹${(sipController.sipAmount * 1.1).toStringAsFixed(0)}/month\nYear 3: ₹${(sipController.sipAmount * 1.21).toStringAsFixed(0)}/month',
                     style: TextStyle(
@@ -217,7 +217,7 @@ class _SIPStepUpStepState extends State<SIPStepUpStep> {
             ),
           ] else ...[
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: CupertinoColors.systemGrey.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),

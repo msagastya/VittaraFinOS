@@ -72,7 +72,7 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
         return Column(
           children: [
             Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(Spacing.xl),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -80,7 +80,7 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
                     'Select Linked Account',
                     style: AppStyles.titleStyle(context),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: Spacing.sm),
                   Text(
                     'This account will be used for all FD transactions (immutable)',
                     style: TextStyle(
@@ -97,7 +97,7 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
                         children: [
                           const Icon(CupertinoIcons.money_dollar_circle,
                               size: 48, color: CupertinoColors.systemGrey),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: Spacing.lg),
                           Text(
                             'No Accounts Found',
                             style: TextStyle(
@@ -119,7 +119,7 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
                           child: Container(
                             margin: const EdgeInsets.symmetric(
                                 horizontal: 16, vertical: 8),
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(Spacing.lg),
                             decoration: BoxDecoration(
                               color: isSelected
                                   ? AppStyles.getPrimaryColor(context)
@@ -168,7 +168,7 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
                                         )
                                       : null,
                                 ),
-                                const SizedBox(width: 12),
+                                const SizedBox(width: Spacing.md),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
@@ -221,7 +221,7 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
                     ),
             ),
             Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(Spacing.xl),
               child: CupertinoButton(
                 color:
                     isDarkMode(context) ? Colors.grey[800] : Colors.grey[200],
@@ -231,7 +231,7 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
                   children: [
                     Icon(CupertinoIcons.add,
                         color: AppStyles.getTextColor(context)),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: Spacing.sm),
                     Text('Add Bank Account',
                         style:
                             TextStyle(color: AppStyles.getTextColor(context))),

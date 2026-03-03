@@ -87,7 +87,7 @@ class SkeletonCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(Spacing.lg),
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(16),
@@ -101,7 +101,7 @@ class SkeletonCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SkeletonLoader(height: 14, width: double.infinity),
-                const SizedBox(height: 8),
+                const SizedBox(height: Spacing.sm),
                 SkeletonLoader(height: 11, width: 120, borderRadius: 6),
               ],
             ),
@@ -111,7 +111,7 @@ class SkeletonCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               SkeletonLoader(height: 14, width: 72),
-              const SizedBox(height: 8),
+              const SizedBox(height: Spacing.sm),
               SkeletonLoader(height: 11, width: 48, borderRadius: 6),
             ],
           ),
@@ -145,7 +145,7 @@ class SkeletonSummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(24),
@@ -154,13 +154,13 @@ class SkeletonSummaryCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SkeletonLoader(height: 12, width: 100),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           SkeletonLoader(height: 32, width: 200),
-          const SizedBox(height: 16),
+          const SizedBox(height: Spacing.lg),
           Row(
             children: [
               Expanded(child: SkeletonLoader(height: 10)),
-              const SizedBox(width: 12),
+              const SizedBox(width: Spacing.md),
               Expanded(child: SkeletonLoader(height: 10)),
             ],
           ),

@@ -43,7 +43,7 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
     final controller = Provider.of<DigitalGoldWizardController>(context);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -51,7 +51,7 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
             'Review Investment',
             style: AppStyles.titleStyle(context),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Review your gold investment details',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
@@ -59,7 +59,7 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
           const SizedBox(height: 30),
           // Current Gold Price Card
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(Spacing.xl),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(16),
@@ -81,7 +81,7 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
                     fontSize: TypeScale.footnote,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: Spacing.sm),
                 if (controller.isFetchingPrice)
                   Row(
                     children: const [
@@ -90,7 +90,7 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
                         height: 16,
                         child: CupertinoActivityIndicator(),
                       ),
-                      SizedBox(width: 8),
+                      SizedBox(width: Spacing.sm),
                       Text('Fetching current price...'),
                     ],
                   )
@@ -105,7 +105,7 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
                           fontSize: TypeScale.footnote,
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: Spacing.md),
                       CupertinoButton(
                         color: CupertinoColors.systemBlue,
                         onPressed: _fetchCurrentGoldPrice,
@@ -128,7 +128,7 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
                               color: Color(0xFFFFB81C),
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: Spacing.xs),
                           Text(
                             'As of now',
                             style: TextStyle(
@@ -141,7 +141,7 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
                       GestureDetector(
                         onTap: _fetchCurrentGoldPrice,
                         child: Container(
-                          padding: const EdgeInsets.all(8),
+                          padding: const EdgeInsets.all(Spacing.sm),
                           decoration: BoxDecoration(
                             color: CupertinoColors.systemGrey.withValues(alpha: 0.1),
                             shape: BoxShape.circle,
@@ -158,10 +158,10 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           // Investment Summary
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(Spacing.xl),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(16),
@@ -184,7 +184,7 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
                     color: AppStyles.getTextColor(context),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: Spacing.lg),
                 _buildDetailRow(
                     'Provider', controller.selectedCompany?.name ?? '-'),
                 _buildDetailRow('Actual Gold Cost',
@@ -211,12 +211,12 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           // Current Value (if price fetched)
           if (controller.currentGoldPrice != null &&
               controller.currentGoldPrice! > 0)
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: controller.gainLossPercent >= 0
                     ? CupertinoColors.systemGreen.withValues(alpha: 0.1)
@@ -243,7 +243,7 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
                               fontSize: TypeScale.footnote,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: Spacing.xs),
                           Text(
                             '₹${controller.currentValue.toStringAsFixed(2)}',
                             style: TextStyle(
@@ -270,7 +270,7 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
                                   : CupertinoColors.systemRed,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: Spacing.xs),
                           Text(
                             '${controller.gainLoss >= 0 ? '+' : ''}₹${controller.gainLoss.toStringAsFixed(2)}',
                             style: TextStyle(

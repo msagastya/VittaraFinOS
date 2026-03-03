@@ -200,7 +200,7 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
                 ),
               ],
             ),
-            SizedBox(height: 4),
+            SizedBox(height: Spacing.xs),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -270,7 +270,7 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(height: 2),
+                SizedBox(height: Spacing.xxs),
                 Row(
                   children: [
                     Container(

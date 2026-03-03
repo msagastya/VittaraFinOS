@@ -79,13 +79,13 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
       ),
       child: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(Spacing.xl),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Bond Summary Card
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color: AppStyles.getCardColor(context),
                   borderRadius: BorderRadius.circular(12),
@@ -101,17 +101,17 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                         fontSize: TypeScale.headline,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: Spacing.md),
                     _DetailRow(
                       label: 'Bond Type',
                       value: bondType,
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: Spacing.sm),
                     _DetailRow(
                       label: 'Face Value',
                       value: '₹${faceValue.toStringAsFixed(2)}',
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: Spacing.sm),
                     _DetailRow(
                       label: 'Payment Frequency',
                       value: paymentsPerYear == 12
@@ -123,10 +123,10 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: Spacing.xl),
               // Dates Card
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color: AppStyles.getCardColor(context),
                   borderRadius: BorderRadius.circular(12),
@@ -143,13 +143,13 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                         fontSize: TypeScale.body,
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: Spacing.lg),
                     _DetailRow(
                       label: 'Purchase Date',
                       value:
                           '${purchaseDate.day}/${purchaseDate.month}/${purchaseDate.year}',
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: Spacing.sm),
                     _DetailRow(
                       label: 'Maturity Date',
                       value:
@@ -158,10 +158,10 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: Spacing.xl),
               // Financial Summary
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color: isProfit
                       ? CupertinoColors.systemGreen.withValues(alpha: 0.1)
@@ -184,21 +184,21 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                         fontSize: TypeScale.body,
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: Spacing.lg),
                     _DetailRow(
                       label: 'Total Invested',
                       value: '₹${totalInvested.toStringAsFixed(2)}',
                       color: CupertinoColors.systemRed,
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: Spacing.md),
                     _DetailRow(
                       label: 'Total to Receive',
                       value: '₹${totalReceived.toStringAsFixed(2)}',
                       color: CupertinoColors.systemGreen,
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: Spacing.md),
                     Divider(color: AppStyles.getDividerColor(context)),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: Spacing.md),
                     _DetailRow(
                       label: 'Gain/Loss',
                       value:
@@ -206,7 +206,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                       color: isProfit ? CupertinoColors.systemGreen : CupertinoColors.systemRed,
                       isBold: true,
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: Spacing.sm),
                     _DetailRow(
                       label: 'Return %',
                       value:
@@ -214,7 +214,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                       color: isProfit ? CupertinoColors.systemGreen : CupertinoColors.systemRed,
                       isBold: true,
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: Spacing.sm),
                     _DetailRow(
                       label: 'Yield to Maturity (IRR)',
                       value:
@@ -225,7 +225,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: Spacing.xl),
               // Cash Flow Schedule
               if (cashFlows.isNotEmpty)
                 Container(
@@ -239,7 +239,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                     children: [
                       // Header
                       Container(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(Spacing.md),
                         decoration: BoxDecoration(
                           color: const Color(0xFF00A6CC).withValues(alpha: 0.1),
                           borderRadius: const BorderRadius.only(
@@ -298,7 +298,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                               color: CupertinoColors.systemGrey.withValues(alpha: 0.1),
                             ),
                             Padding(
-                              padding: const EdgeInsets.all(12),
+                              padding: const EdgeInsets.all(Spacing.md),
                               child: Row(
                                 children: [
                                   Expanded(
@@ -356,7 +356,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                   child: const Text('Edit Bond Details'),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: Spacing.md),
               SizedBox(
                 width: double.infinity,
                 child: CupertinoButton(
@@ -399,7 +399,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: Spacing.xl),
             ],
           ),
         ),

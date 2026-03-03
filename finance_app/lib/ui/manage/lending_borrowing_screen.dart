@@ -70,7 +70,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                               },
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: Spacing.md),
                           Expanded(
                             child: _buildTabTile(
                               context,
@@ -85,7 +85,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                               },
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: Spacing.md),
                           Expanded(
                             child: _buildTabTile(
                               context,
@@ -115,7 +115,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                                     color: AppStyles.getSecondaryTextColor(
                                         context),
                                   ),
-                                  const SizedBox(height: 16),
+                                  const SizedBox(height: Spacing.lg),
                                   Text(
                                     _selectedTab == 0
                                         ? 'No lending records yet'
@@ -198,7 +198,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                       : AppStyles.getSecondaryTextColor(context),
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: Spacing.xs),
               Text(
                 subtitle,
                 style: TextStyle(
@@ -738,7 +738,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                               ? '+₹${delta.toStringAsFixed(0)}'
                               : '-₹${delta.abs().toStringAsFixed(0)}';
                       return Container(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(Spacing.md),
                         decoration: BoxDecoration(
                           color: color.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(12),
@@ -772,7 +772,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                             ),
                             if (event.note != null &&
                                 event.note!.isNotEmpty) ...[
-                              const SizedBox(height: 4),
+                              const SizedBox(height: Spacing.xs),
                               Text(
                                 event.note!,
                                 style: TextStyle(
@@ -1121,7 +1121,7 @@ class _TransactionTypeWizard extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: Spacing.md),
               Text(
                 'Choose whether you lent or borrowed money',
                 style: TextStyle(
@@ -1130,7 +1130,7 @@ class _TransactionTypeWizard extends StatelessWidget {
                   height: 1.5,
                 ),
               ),
-              const SizedBox(height: 48),
+              const SizedBox(height: Spacing.huge),
               _buildTransactionCard(
                 context,
                 title: 'I Lent Money',
@@ -1139,7 +1139,7 @@ class _TransactionTypeWizard extends StatelessWidget {
                 color: AppStyles.accentBlue,
                 onTap: () => onTypeSelected(LendingType.lent),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: Spacing.lg),
               _buildTransactionCard(
                 context,
                 title: 'I Borrowed Money',
@@ -1151,7 +1151,7 @@ class _TransactionTypeWizard extends StatelessWidget {
               const SizedBox(height: 40),
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color: AppStyles.accentBlue.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
@@ -1177,7 +1177,7 @@ class _TransactionTypeWizard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: Spacing.md),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1190,7 +1190,7 @@ class _TransactionTypeWizard extends StatelessWidget {
                               color: AppStyles.getTextColor(context),
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: Spacing.xs),
                           Text(
                             'Add due dates and mark as settled when repaid',
                             style: TextStyle(
@@ -1223,7 +1223,7 @@ class _TransactionTypeWizard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(Spacing.xl),
         decoration: BoxDecoration(
           color: AppStyles.getCardColor(context),
           borderRadius: BorderRadius.circular(16),
@@ -1263,7 +1263,7 @@ class _TransactionTypeWizard extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: Spacing.lg),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1276,7 +1276,7 @@ class _TransactionTypeWizard extends StatelessWidget {
                       color: AppStyles.getTextColor(context),
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: Spacing.xs),
                   Text(
                     subtitle,
                     style: TextStyle(
@@ -1288,7 +1288,7 @@ class _TransactionTypeWizard extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: Spacing.sm),
             Icon(
               CupertinoIcons.chevron_right,
               size: 20,

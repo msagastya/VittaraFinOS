@@ -12,6 +12,7 @@ import 'package:vittara_fin_os/ui/manage/fd/steps/compounding_step.dart';
 import 'package:vittara_fin_os/ui/manage/fd/steps/fd_type_payout_step.dart';
 import 'package:vittara_fin_os/ui/manage/fd/steps/debit_and_review_step.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class FDRenewalWizardScreen extends StatefulWidget {
@@ -162,7 +163,7 @@ class _FDRenewalWizardScreenState extends State<FDRenewalWizardScreen> {
               Consumer<FDRenewalWizardController>(
                 builder: (context, controller, child) {
                   return Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(Spacing.lg),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -170,7 +171,7 @@ class _FDRenewalWizardScreenState extends State<FDRenewalWizardScreen> {
                           _getStepTitle(controller.currentStep),
                           style: AppStyles.titleStyle(context),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: Spacing.md),
                         ClipRRect(
                           borderRadius: BorderRadius.circular(4),
                           child: LinearProgressIndicator(
@@ -195,7 +196,7 @@ class _FDRenewalWizardScreenState extends State<FDRenewalWizardScreen> {
               Consumer<FDRenewalWizardController>(
                 builder: (context, controller, child) {
                   return Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(Spacing.lg),
                     child: Row(
                       children: [
                         if (controller.currentStep > 0)
@@ -211,7 +212,7 @@ class _FDRenewalWizardScreenState extends State<FDRenewalWizardScreen> {
                             ),
                           ),
                         if (controller.currentStep > 0)
-                          const SizedBox(width: 12),
+                          const SizedBox(width: Spacing.md),
                         Expanded(
                           child: CupertinoButton(
                             color: controller.canProceedToNextStep

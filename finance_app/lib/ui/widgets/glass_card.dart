@@ -199,7 +199,7 @@ class GlassCardGradient extends StatelessWidget {
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(2.0), // Border width
+        padding: const EdgeInsets.all(Spacing.xxs), // Border width
         child: ClipRRect(
           borderRadius: BorderRadius.circular(Radii.xxl - 2),
           child: BackdropFilter(

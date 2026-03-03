@@ -14,7 +14,7 @@ class FDTypePayoutStep extends StatelessWidget {
     final controller = Provider.of<FDWizardController>(context);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -23,12 +23,12 @@ class FDTypePayoutStep extends StatelessWidget {
             'FD Type',
             style: AppStyles.titleStyle(context),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Choose how your FD should work',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: Spacing.xl),
           _buildTypeCard(
             context: context,
             title: 'Cumulative',
@@ -37,7 +37,7 @@ class FDTypePayoutStep extends StatelessWidget {
             isSelected: controller.isCumulative,
             onTap: () => controller.updateFDType(true),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: Spacing.md),
           _buildTypeCard(
             context: context,
             title: 'Non-Cumulative',
@@ -52,12 +52,12 @@ class FDTypePayoutStep extends StatelessWidget {
               'Payout Frequency',
               style: AppStyles.titleStyle(context),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: Spacing.sm),
             Text(
               'How often should you receive interest payouts?',
               style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: Spacing.xl),
             _buildPayoutOption(
               context: context,
               label: 'Monthly',
@@ -110,7 +110,7 @@ class FDTypePayoutStep extends StatelessWidget {
           ] else
             Container(
               margin: const EdgeInsets.only(top: 40),
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(Spacing.md),
               decoration: BoxDecoration(
                 color:
                     AppStyles.getPrimaryColor(context).withValues(alpha: 0.1),
@@ -123,7 +123,7 @@ class FDTypePayoutStep extends StatelessWidget {
                     size: 16,
                     color: AppStyles.getPrimaryColor(context),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: Spacing.sm),
                   Expanded(
                     child: Text(
                       'Cumulative FDs compound and pay at maturity',
@@ -151,7 +151,7 @@ class FDTypePayoutStep extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(Spacing.lg),
         decoration: BoxDecoration(
           color: AppStyles.getCardColor(context),
           borderRadius: BorderRadius.circular(12),
@@ -189,7 +189,7 @@ class FDTypePayoutStep extends StatelessWidget {
                     )
                   : null,
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: Spacing.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -202,7 +202,7 @@ class FDTypePayoutStep extends StatelessWidget {
                       fontSize: TypeScale.headline,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: Spacing.xs),
                   Text(
                     description,
                     style: TextStyle(
@@ -229,7 +229,7 @@ class FDTypePayoutStep extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(Spacing.md),
         decoration: BoxDecoration(
           color: AppStyles.getCardColor(context),
           borderRadius: BorderRadius.circular(8),

@@ -121,7 +121,7 @@ class ActionsWidget extends BaseDashboardWidget {
               ),
               child: Icon(icon, size: 18, color: color),
             ),
-            SizedBox(height: 8),
+            SizedBox(height: Spacing.sm),
             Text(
               title,
               style: TextStyle(
@@ -211,7 +211,7 @@ class ActionsWidget extends BaseDashboardWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(height: 2),
+                SizedBox(height: Spacing.xxs),
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(

@@ -291,7 +291,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
             children: [
               // Icon
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(Spacing.md),
                 decoration: BoxDecoration(
                   color: typeColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),

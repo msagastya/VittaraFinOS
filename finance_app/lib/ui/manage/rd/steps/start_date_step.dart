@@ -37,7 +37,7 @@ class StartDateStep extends StatelessWidget {
     final controller = Provider.of<RDWizardController>(context);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(Spacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -45,7 +45,7 @@ class StartDateStep extends StatelessWidget {
             'When do you start?',
             style: AppStyles.titleStyle(context),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Select the date when you want to start this RD',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
@@ -54,7 +54,7 @@ class StartDateStep extends StatelessWidget {
           GestureDetector(
             onTap: () => _showDatePicker(context, controller),
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
@@ -77,7 +77,7 @@ class StartDateStep extends StatelessWidget {
                           fontSize: TypeScale.footnote,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: Spacing.sm),
                       Text(
                         '${controller.startDate.day} ${_monthName(controller.startDate.month)} ${controller.startDate.year}',
                         style: TextStyle(
@@ -99,7 +99,7 @@ class StartDateStep extends StatelessWidget {
           ),
           const SizedBox(height: 30),
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(Spacing.md),
             decoration: BoxDecoration(
               color: AppStyles.getPrimaryColor(context).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
@@ -111,7 +111,7 @@ class StartDateStep extends StatelessWidget {
                   size: 16,
                   color: AppStyles.getPrimaryColor(context),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: Spacing.sm),
                 Expanded(
                   child: Text(
                     'Use today\'s date if you\'re starting now. For legacy RDs, select the actual start date.',

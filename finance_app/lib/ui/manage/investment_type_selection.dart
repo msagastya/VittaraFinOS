@@ -99,7 +99,7 @@ class _InvestmentTypeSelectionModalState
                   borderRadius: BorderRadius.circular(2.5),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: Spacing.xl),
 
               // Title with Settings Button
               Padding(
@@ -126,7 +126,7 @@ class _InvestmentTypeSelectionModalState
                   ],
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: Spacing.sm),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Text(
@@ -137,7 +137,7 @@ class _InvestmentTypeSelectionModalState
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: Spacing.xxl),
 
               // Investment Types Grid
               Padding(
@@ -195,7 +195,7 @@ class _InvestmentTypeSelectionModalState
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: Spacing.md),
                             Padding(
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 8),
@@ -218,7 +218,7 @@ class _InvestmentTypeSelectionModalState
                   },
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: Spacing.xl),
 
               // More/Less Button
               if (!_showAll && prefsController.hiddenTypes.isNotEmpty)
@@ -237,7 +237,7 @@ class _InvestmentTypeSelectionModalState
                           size: 18,
                           color: AppStyles.accentBlue,
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: Spacing.sm),
                         Text(
                           'Show More (${prefsController.hiddenTypes.length})',
                           style: TextStyle(
@@ -265,7 +265,7 @@ class _InvestmentTypeSelectionModalState
                           size: 18,
                           color: AppStyles.accentBlue,
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: Spacing.sm),
                         Text(
                           'Show Less',
                           style: TextStyle(
@@ -277,7 +277,7 @@ class _InvestmentTypeSelectionModalState
                     ),
                   ),
                 ),
-              const SizedBox(height: 24),
+              const SizedBox(height: Spacing.xxl),
             ],
           ),
         ),
@@ -349,7 +349,7 @@ class _InvestmentTypePreferencesModalState
                   borderRadius: BorderRadius.circular(2.5),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: Spacing.xl),
 
               // Title
               Padding(
@@ -362,7 +362,7 @@ class _InvestmentTypePreferencesModalState
                       style:
                           AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title2),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: Spacing.sm),
                     Text(
                       'Select investment types to show on the first screen',
                       style: TextStyle(
@@ -373,7 +373,7 @@ class _InvestmentTypePreferencesModalState
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: Spacing.xl),
 
               // Selected Count
               Padding(
@@ -401,7 +401,7 @@ class _InvestmentTypePreferencesModalState
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: Spacing.lg),
 
               // All Investment Types List
               Padding(
@@ -435,7 +435,7 @@ class _InvestmentTypePreferencesModalState
                           });
                         },
                         child: Container(
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(Spacing.md),
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? color.withValues(alpha: 0.1)
@@ -466,7 +466,7 @@ class _InvestmentTypePreferencesModalState
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 12),
+                              const SizedBox(width: Spacing.md),
                               Expanded(
                                 child: Text(
                                   details['label'],
@@ -503,7 +503,7 @@ class _InvestmentTypePreferencesModalState
                   }).toList(),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: Spacing.xl),
 
               // Save Button
               Padding(
@@ -523,7 +523,7 @@ class _InvestmentTypePreferencesModalState
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: Spacing.md),
                     Expanded(
                       child: CupertinoButton(
                         color: AppStyles.accentBlue,
@@ -544,7 +544,7 @@ class _InvestmentTypePreferencesModalState
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: Spacing.xxl),
             ],
           ),
         ),
