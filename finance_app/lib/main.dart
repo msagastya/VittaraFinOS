@@ -821,6 +821,8 @@ class DashboardScreen extends StatelessWidget {
         return SemanticColors.warning;
       case DashboardWidgetType.actions:
         return SemanticColors.warning;
+      case DashboardWidgetType.monthlySummary:
+        return AppStyles.accentGreen;
     }
   }
 
@@ -1358,31 +1360,105 @@ class DashboardScreen extends StatelessWidget {
         return Consumer<BudgetsController>(
           builder: (context, budgetsController, child) {
             final activeCount = budgetsController.activeBudgets.length;
-            final warningCount = budgetsController.getBudgetsInWarning().length;
-            final exceededCount =
-                budgetsController.getBudgetsExceedingLimit().length;
+            final exceeded = budgetsController.getBudgetsExceedingLimit();
+            final warning = budgetsController.getBudgetsInWarning();
+            final alertBudgets = [...exceeded, ...warning].take(3).toList();
 
             return Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  '$activeCount Active Budget${activeCount == 1 ? '' : 's'}',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppStyles.getTextColor(context),
-                  ),
-                ),
-                SizedBox(height: Spacing.md),
                 Row(
                   children: [
-                    _buildBadge(
-                        context, 'Warning', warningCount, Colors.orange),
-                    SizedBox(width: Spacing.sm),
-                    _buildBadge(context, 'Exceeded', exceededCount, Colors.red),
+                    Expanded(
+                      child: Text(
+                        '$activeCount Active Budget${activeCount == 1 ? '' : 's'}',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppStyles.getTextColor(context),
+                        ),
+                      ),
+                    ),
+                    if (exceeded.isNotEmpty)
+                      _buildBadge(
+                          context, 'Over', exceeded.length, Colors.red),
+                    if (warning.isNotEmpty) ...[
+                      SizedBox(width: Spacing.xs),
+                      _buildBadge(context, 'Near', warning.length,
+                          Colors.orange),
+                    ],
                   ],
                 ),
+                if (alertBudgets.isNotEmpty) ...[
+                  SizedBox(height: Spacing.md),
+                  ...alertBudgets.map((b) {
+                    final isExceeded = b.status.name == 'exceeded';
+                    final color =
+                        isExceeded ? Colors.red : Colors.orange;
+                    final pct = b.usagePercentage.toStringAsFixed(0);
+                    return Container(
+                      margin: EdgeInsets.only(bottom: Spacing.xs),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: Spacing.sm, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                            color: color.withValues(alpha: 0.2)),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            isExceeded
+                                ? CupertinoIcons.exclamationmark_circle_fill
+                                : CupertinoIcons.exclamationmark_triangle_fill,
+                            size: 12,
+                            color: color,
+                          ),
+                          SizedBox(width: Spacing.xs),
+                          Expanded(
+                            child: Text(
+                              b.name,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: AppStyles.getTextColor(context),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Text(
+                            '$pct%',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: color,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                ] else if (activeCount > 0) ...[
+                  SizedBox(height: Spacing.md),
+                  Row(
+                    children: [
+                      Icon(CupertinoIcons.checkmark_seal_fill,
+                          size: 13, color: AppStyles.accentGreen),
+                      SizedBox(width: Spacing.xs),
+                      Text(
+                        'All budgets on track',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppStyles.accentGreen,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             );
           },
@@ -1601,6 +1677,108 @@ class DashboardScreen extends StatelessWidget {
                   ],
                 );
               }).toList(),
+            );
+          },
+        );
+      case DashboardWidgetType.monthlySummary:
+        return Consumer<TransactionsController>(
+          builder: (context, txController, child) {
+            final now = DateTime.now();
+            final monthStart = DateTime(now.year, now.month, 1);
+            const monthNames = [
+              'January', 'February', 'March', 'April', 'May', 'June',
+              'July', 'August', 'September', 'October', 'November', 'December'
+            ];
+            final monthLabel = '${monthNames[now.month - 1]} ${now.year}';
+
+            double income = 0;
+            double expenses = 0;
+            for (final tx in txController.transactions) {
+              if (tx.dateTime.isBefore(monthStart)) continue;
+              if (tx.type == TransactionType.income ||
+                  tx.type == TransactionType.cashback) {
+                income += tx.amount;
+              } else if (tx.type == TransactionType.expense) {
+                expenses += tx.amount;
+              }
+            }
+            final net = income - expenses;
+            final total = income + expenses;
+            final incomeRatio = total > 0 ? (income / total).clamp(0.0, 1.0) : 0.5;
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  monthLabel,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppStyles.getSecondaryTextColor(context),
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                SizedBox(height: Spacing.md),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildMonthlyStat(
+                        context,
+                        label: 'Income',
+                        amount: income,
+                        color: CupertinoColors.systemGreen,
+                        icon: CupertinoIcons.arrow_down_circle_fill,
+                      ),
+                    ),
+                    SizedBox(width: Spacing.md),
+                    Expanded(
+                      child: _buildMonthlyStat(
+                        context,
+                        label: 'Expenses',
+                        amount: expenses,
+                        color: CupertinoColors.systemRed,
+                        icon: CupertinoIcons.arrow_up_circle_fill,
+                      ),
+                    ),
+                    SizedBox(width: Spacing.md),
+                    Expanded(
+                      child: _buildMonthlyStat(
+                        context,
+                        label: 'Saved',
+                        amount: net.abs(),
+                        color: net >= 0
+                            ? AppStyles.accentTeal
+                            : CupertinoColors.systemOrange,
+                        icon: net >= 0
+                            ? CupertinoIcons.checkmark_seal_fill
+                            : CupertinoIcons.exclamationmark_circle_fill,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: Spacing.md),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: Row(
+                    children: [
+                      Flexible(
+                        flex: (incomeRatio * 100).round(),
+                        child: Container(
+                          height: 6,
+                          color: CupertinoColors.systemGreen,
+                        ),
+                      ),
+                      Flexible(
+                        flex: ((1 - incomeRatio) * 100).round(),
+                        child: Container(
+                          height: 6,
+                          color: CupertinoColors.systemRed,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             );
           },
         );
@@ -1940,6 +2118,11 @@ class DashboardScreen extends StatelessWidget {
           FadeScalePageRoute(page: const NotificationsPage()),
         );
         break;
+      case DashboardWidgetType.monthlySummary:
+        Navigator.of(context).push(
+          FadeScalePageRoute(page: const TransactionHistoryScreen()),
+        );
+        break;
       default:
         break;
     }
@@ -2020,6 +2203,43 @@ class DashboardScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildMonthlyStat(
+    BuildContext context, {
+    required String label,
+    required double amount,
+    required Color color,
+    required IconData icon,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 14, color: color),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                color: AppStyles.getSecondaryTextColor(context),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          '₹${amount >= 1e7 ? '${(amount / 1e7).toStringAsFixed(1)}Cr' : amount >= 1e5 ? '${(amount / 1e5).toStringAsFixed(1)}L' : amount >= 1e3 ? '${(amount / 1e3).toStringAsFixed(1)}K' : amount.toStringAsFixed(0)}',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: color,
+          ),
+        ),
+      ],
     );
   }
 

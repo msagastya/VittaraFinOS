@@ -167,6 +167,10 @@ class _TransactionWizardState extends State<TransactionWizard> {
       case 8:
         return 9;
       case 9:
+        // Auto-skip Tags step if no tags exist in the system
+        final tagsController =
+            Provider.of<TagsController>(context, listen: false);
+        if (tagsController.tags.isEmpty) return 11;
         return 10;
       case 10:
         return 11;
@@ -745,6 +749,30 @@ class _TransactionWizardState extends State<TransactionWizard> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildOptionalFooter({
+    required VoidCallback onNext,
+    required VoidCallback onSkip,
+    String nextLabel = 'Next',
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _buildFooterButton(label: nextLabel, onPressed: onNext),
+        CupertinoButton(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          onPressed: onSkip,
+          child: Text(
+            'Skip',
+            style: TextStyle(
+              fontSize: TypeScale.footnote,
+              color: AppStyles.getSecondaryTextColor(context),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -1507,26 +1535,147 @@ class _TransactionWizardState extends State<TransactionWizard> {
   }
 
   Widget _buildMerchantPage() {
-    return Consumer<ContactsController>(
-      builder: (context, contactsController, child) {
+    return Consumer2<ContactsController, TransactionsController>(
+      builder: (context, contactsController, txController, child) {
         final contacts = contactsController.contacts;
+        final query = _merchantController.text.toLowerCase();
+
+        // Collect recent merchant names from past transactions
+        final recentMerchants = <String>{};
+        for (final tx in txController.transactions) {
+          final m = tx.metadata?['merchant'] as String?;
+          if (m != null && m.trim().isNotEmpty) {
+            recentMerchants.add(m.trim());
+          }
+          if (recentMerchants.length >= 20) break;
+        }
+
+        // Filter contacts by search query
+        final filteredContacts = query.isEmpty
+            ? contacts
+            : contacts
+                .where((c) => c.name.toLowerCase().contains(query))
+                .toList();
+
+        // Filter recent merchants by query
+        final filteredRecent = query.isEmpty
+            ? recentMerchants.take(8).toList()
+            : recentMerchants
+                .where((m) => m.toLowerCase().contains(query))
+                .take(6)
+                .toList();
+
         return _buildStepShell(
           title: 'Merchant / Person',
           child: Column(
             children: [
+              // Search / manual entry field
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                child: CupertinoTextField(
+                  controller: _merchantController,
+                  placeholder: 'Type merchant name or search people',
+                  prefix: Padding(
+                    padding: const EdgeInsets.only(left: 12),
+                    child: Icon(
+                      CupertinoIcons.search,
+                      size: 18,
+                      color: AppStyles.getSecondaryTextColor(context),
+                    ),
+                  ),
+                  onChanged: (_) => setState(() {}),
+                  style: TextStyle(color: AppStyles.getTextColor(context)),
+                  decoration: BoxDecoration(
+                    color: AppStyles.getCardColor(context),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 12),
+                ),
+              ),
+              const SizedBox(height: 8),
+
+              // Recent merchants autocomplete chips
+              if (filteredRecent.isNotEmpty) ...[
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    query.isEmpty ? 'Recent' : 'Suggestions',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: AppStyles.getSecondaryTextColor(context),
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: filteredRecent.map((name) {
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() => _merchantController.text = name);
+                          _nextStep();
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.only(right: 8),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: CupertinoColors.systemOrange
+                                .withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: CupertinoColors.systemOrange
+                                  .withValues(alpha: 0.3),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                CupertinoIcons.clock,
+                                size: 11,
+                                color: CupertinoColors.systemOrange,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                name,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: CupertinoColors.systemOrange,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+
+              // People list
               Expanded(
-                child: contacts.isEmpty
+                child: filteredContacts.isEmpty
                     ? Center(
                         child: Text(
-                            'No people yet. Add manually or import from contacts',
-                            style: TextStyle(
-                                color:
-                                    AppStyles.getSecondaryTextColor(context))),
+                          query.isEmpty
+                              ? 'No people yet. Add manually or import from contacts'
+                              : 'No matches for "$query"',
+                          style: TextStyle(
+                              color: AppStyles.getSecondaryTextColor(context)),
+                          textAlign: TextAlign.center,
+                        ),
                       )
                     : ListView.builder(
-                        itemCount: contacts.length,
+                        itemCount: filteredContacts.length,
                         itemBuilder: (context, index) {
-                          final contact = contacts[index];
+                          final contact = filteredContacts[index];
                           final isSelected =
                               _merchantController.text == contact.name;
                           return GestureDetector(
@@ -1555,15 +1704,18 @@ class _TransactionWizardState extends State<TransactionWizard> {
                                   const Icon(CupertinoIcons.person_fill),
                                   const SizedBox(width: Spacing.md),
                                   Expanded(
-                                      child: Text(contact.name,
-                                          style: TextStyle(
-                                              color: AppStyles.getTextColor(
-                                                  context)))),
+                                    child: Text(
+                                      contact.name,
+                                      style: TextStyle(
+                                          color:
+                                              AppStyles.getTextColor(context)),
+                                    ),
+                                  ),
                                   if (isSelected)
                                     const Icon(
-                                        CupertinoIcons
-                                            .checkmark_alt_circle_fill,
-                                        color: CupertinoColors.systemGreen),
+                                      CupertinoIcons.checkmark_alt_circle_fill,
+                                      color: CupertinoColors.systemGreen,
+                                    ),
                                 ],
                               ),
                             ),
@@ -1586,7 +1738,13 @@ class _TransactionWizardState extends State<TransactionWizard> {
               ),
             ],
           ),
-          footer: _buildFooterButton(label: 'Next', onPressed: _nextStep),
+          footer: _buildOptionalFooter(
+            onNext: _nextStep,
+            onSkip: () {
+              _merchantController.clear();
+              _nextStep();
+            },
+          ),
         );
       },
     );
@@ -1731,29 +1889,115 @@ class _TransactionWizardState extends State<TransactionWizard> {
   }
 
   Widget _buildDescriptionPage() {
-    return _buildStepShell(
-      title: 'Description',
-      child: Column(
-        children: [
-          TextField(
-            controller: _descriptionController,
-            autofocus: _currentStep == 9,
-            textInputAction: TextInputAction.done,
-            onSubmitted: (_) => _nextStep(),
-            decoration: InputDecoration(
-              hintText: 'Notes for later',
-              filled: true,
-              fillColor: AppStyles.getCardColor(context),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
+    return Consumer<TransactionsController>(
+      builder: (context, txController, child) {
+        final query = _descriptionController.text.toLowerCase();
+
+        // Collect recent unique descriptions
+        final recentDescs = <String>{};
+        for (final tx in txController.transactions) {
+          final d = tx.metadata?['description'] as String?;
+          if (d != null && d.trim().isNotEmpty) {
+            recentDescs.add(d.trim());
+          }
+          if (recentDescs.length >= 20) break;
+        }
+
+        final suggestions = query.isEmpty
+            ? recentDescs.take(8).toList()
+            : recentDescs
+                .where((d) => d.toLowerCase().contains(query))
+                .take(6)
+                .toList();
+
+        return _buildStepShell(
+          title: 'Description',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextField(
+                controller: _descriptionController,
+                autofocus: _currentStep == 9,
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) => _nextStep(),
+                onChanged: (_) => setState(() {}),
+                decoration: InputDecoration(
+                  hintText: 'Notes for later',
+                  filled: true,
+                  fillColor: AppStyles.getCardColor(context),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+                maxLines: 4,
               ),
-            ),
-            maxLines: 4,
+              if (suggestions.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Text(
+                  query.isEmpty ? 'Recent' : 'Suggestions',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppStyles.getSecondaryTextColor(context),
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
+                  children: suggestions.map((desc) {
+                    return GestureDetector(
+                      onTap: () =>
+                          setState(() => _descriptionController.text = desc),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: AppStyles.getCardColor(context),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: AppStyles.getSecondaryTextColor(context)
+                                .withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              CupertinoIcons.doc_text,
+                              size: 11,
+                              color: AppStyles.getSecondaryTextColor(context),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              desc.length > 30
+                                  ? '${desc.substring(0, 28)}…'
+                                  : desc,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppStyles.getTextColor(context),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ],
           ),
-        ],
-      ),
-      footer: _buildFooterButton(label: 'Next', onPressed: _nextStep),
+          footer: _buildOptionalFooter(
+            onNext: _nextStep,
+            onSkip: () {
+              _descriptionController.clear();
+              _nextStep();
+            },
+          ),
+        );
+      },
     );
   }
 
@@ -1852,7 +2096,13 @@ class _TransactionWizardState extends State<TransactionWizard> {
               ),
             ],
           ),
-          footer: _buildFooterButton(label: 'Next', onPressed: _nextStep),
+          footer: _buildOptionalFooter(
+            onNext: _nextStep,
+            onSkip: () {
+              setState(() => _selectedTags.clear());
+              _nextStep();
+            },
+          ),
         );
       },
     );

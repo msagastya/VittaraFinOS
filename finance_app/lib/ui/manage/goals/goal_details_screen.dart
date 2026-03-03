@@ -14,6 +14,7 @@ import 'package:vittara_fin_os/ui/widgets/glass_card.dart';
 import 'package:vittara_fin_os/ui/widgets/neumorphic_glass_card.dart';
 import 'package:vittara_fin_os/ui/widgets/liquid_progress_indicators.dart';
 import 'package:vittara_fin_os/utils/alert_service.dart';
+import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class GoalDetailsScreen extends StatelessWidget {
@@ -27,8 +28,23 @@ class GoalDetailsScreen extends StatelessWidget {
       builder: (context, controller, child) {
         final goalIdx = controller.goals.indexWhere((g) => g.id == goalId);
         if (goalIdx < 0) {
-          return const CupertinoPageScaffold(
-            child: Center(child: Text('Goal not found')),
+          return CupertinoPageScaffold(
+            backgroundColor: AppStyles.getBackground(context),
+            navigationBar: CupertinoNavigationBar(
+              middle: Text('Goal Details',
+                  style: TextStyle(color: AppStyles.getTextColor(context))),
+              previousPageTitle: 'Goals',
+              backgroundColor: AppStyles.getBackground(context),
+              border: null,
+            ),
+            child: SafeArea(
+              child: EmptyStateView(
+                icon: CupertinoIcons.flag_slash,
+                title: 'Goal Not Found',
+                subtitle: 'This goal may have been deleted.',
+                actionLabel: null,
+              ),
+            ),
           );
         }
         final goal = controller.goals[goalIdx];

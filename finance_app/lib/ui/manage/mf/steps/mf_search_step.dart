@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/models/mutual_fund_model.dart';
 import 'package:vittara_fin_os/services/mf_database_service.dart';
 import 'package:vittara_fin_os/ui/manage/mf/mf_wizard_controller.dart';
@@ -16,6 +17,9 @@ class MFSearchStep extends StatefulWidget {
 }
 
 class _MFSearchStepState extends State<MFSearchStep> {
+  static const _recentSearchesKey = 'mf_recent_searches';
+  static const _maxRecentSearches = 5;
+
   final TextEditingController _searchController = TextEditingController();
   Timer? _debounce;
   List<MutualFund> _results = [];
@@ -23,11 +27,13 @@ class _MFSearchStepState extends State<MFSearchStep> {
   String _error = '';
   String? _selectedSchemeType;
   List<String> _schemeTypes = [];
+  List<String> _recentSearches = [];
 
   @override
   void initState() {
     super.initState();
     _loadSchemeTypes();
+    _loadRecentSearches();
   }
 
   @override
@@ -35,6 +41,29 @@ class _MFSearchStepState extends State<MFSearchStep> {
     _debounce?.cancel();
     _searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadRecentSearches() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getStringList(_recentSearchesKey) ?? [];
+    if (mounted) setState(() => _recentSearches = saved);
+  }
+
+  Future<void> _saveRecentSearch(String query) async {
+    if (query.trim().isEmpty) return;
+    final prefs = await SharedPreferences.getInstance();
+    final searches = List<String>.from(_recentSearches);
+    searches.remove(query);
+    searches.insert(0, query);
+    final trimmed = searches.take(_maxRecentSearches).toList();
+    await prefs.setStringList(_recentSearchesKey, trimmed);
+    if (mounted) setState(() => _recentSearches = trimmed);
+  }
+
+  Future<void> _clearRecentSearches() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_recentSearchesKey);
+    if (mounted) setState(() => _recentSearches = []);
   }
 
   Future<void> _loadSchemeTypes() async {
@@ -66,6 +95,10 @@ class _MFSearchStepState extends State<MFSearchStep> {
       _isLoading = true;
       _error = '';
     });
+
+    if (query.trim().isNotEmpty) {
+      _saveRecentSearch(query.trim());
+    }
 
     try {
       final mfService = MFDatabaseService();
@@ -199,6 +232,101 @@ class _MFSearchStepState extends State<MFSearchStep> {
     );
   }
 
+  Widget _buildIdleState(BuildContext context) {
+    final secondary = AppStyles.getSecondaryTextColor(context);
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (_recentSearches.isNotEmpty) ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Recent Searches',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: secondary,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  onPressed: _clearRecentSearches,
+                  child: Text(
+                    'Clear',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: CupertinoColors.systemRed,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _recentSearches.map((query) {
+                return GestureDetector(
+                  onTap: () {
+                    _searchController.text = query;
+                    _performSearch(query);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: SemanticColors.investments.withValues(alpha: 0.1),
+                      border: Border.all(
+                        color: SemanticColors.investments.withValues(alpha: 0.3),
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          CupertinoIcons.clock,
+                          size: 12,
+                          color: SemanticColors.investments,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          query,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: SemanticColors.investments,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 32),
+          ],
+          Center(
+            child: Column(
+              children: [
+                Icon(CupertinoIcons.search, size: 48, color: secondary),
+                const SizedBox(height: 16),
+                Text(
+                  'Search for a mutual fund',
+                  style: TextStyle(color: secondary, fontSize: 14),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildContent(BuildContext context, MFWizardController controller) {
     if (_isLoading) {
       return const Center(child: CupertinoActivityIndicator());
@@ -213,26 +341,7 @@ class _MFSearchStepState extends State<MFSearchStep> {
     } else if (_results.isEmpty &&
         _searchController.text.isEmpty &&
         _selectedSchemeType == null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              CupertinoIcons.search,
-              size: 48,
-              color: AppStyles.getSecondaryTextColor(context),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Search for a mutual fund',
-              style: TextStyle(
-                color: AppStyles.getSecondaryTextColor(context),
-                fontSize: 14,
-              ),
-            ),
-          ],
-        ),
-      );
+      return _buildIdleState(context);
     } else if (_results.isEmpty) {
       return Center(
         child: Text(

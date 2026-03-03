@@ -118,6 +118,16 @@ class DashboardController extends ChangeNotifier {
           columnSpan: 3,
           rowSpan: 1,
         ),
+        DashboardWidgetConfig(
+          id: 'monthly_summary',
+          type: DashboardWidgetType.monthlySummary,
+          title: 'Monthly Summary',
+          isVisible: false,
+          gridRow: 10,
+          gridColumn: 1,
+          columnSpan: 3,
+          rowSpan: 1,
+        ),
       ],
     );
   }
@@ -130,7 +140,8 @@ class DashboardController extends ChangeNotifier {
         w.id == 'goals_overview' ||
         w.id == 'budgets_overview' ||
         w.id == 'savings_planners' ||
-        w.id == 'ai_planner');
+        w.id == 'ai_planner' ||
+        w.id == 'monthly_summary');
 
     for (final optional in defaults) {
       if (!existingIds.contains(optional.id)) {

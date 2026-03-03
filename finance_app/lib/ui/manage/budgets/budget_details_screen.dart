@@ -8,6 +8,7 @@ import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animated_counter.dart';
 import 'package:vittara_fin_os/ui/widgets/glass_card.dart';
 import 'package:vittara_fin_os/ui/widgets/neumorphic_glass_card.dart';
+import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/liquid_progress_indicators.dart';
 
 class BudgetDetailsScreen extends StatelessWidget {
@@ -22,8 +23,23 @@ class BudgetDetailsScreen extends StatelessWidget {
         final budgetIdx =
             controller.budgets.indexWhere((b) => b.id == budgetId);
         if (budgetIdx < 0) {
-          return const CupertinoPageScaffold(
-            child: Center(child: Text('Budget not found')),
+          return CupertinoPageScaffold(
+            backgroundColor: AppStyles.getBackground(context),
+            navigationBar: CupertinoNavigationBar(
+              middle: Text('Budget Details',
+                  style: TextStyle(color: AppStyles.getTextColor(context))),
+              previousPageTitle: 'Budgets',
+              backgroundColor: AppStyles.getBackground(context),
+              border: null,
+            ),
+            child: SafeArea(
+              child: EmptyStateView(
+                icon: CupertinoIcons.graph_circle,
+                title: 'Budget Not Found',
+                subtitle: 'This budget may have been deleted.',
+                actionLabel: null,
+              ),
+            ),
           );
         }
         final budget = controller.budgets[budgetIdx];

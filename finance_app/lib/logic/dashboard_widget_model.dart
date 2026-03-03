@@ -7,6 +7,7 @@ enum DashboardWidgetType {
   savingsPlanners,
   aiPlanner,
   notificationsAndActions,
+  monthlySummary,
 }
 
 class DashboardWidgetConfig {
