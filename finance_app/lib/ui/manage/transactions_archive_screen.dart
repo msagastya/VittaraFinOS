@@ -46,13 +46,40 @@ class TransactionsArchiveScreen extends StatelessWidget {
             );
           }
 
+          // Build date-grouped list
+          final groups = _groupByDate(archived);
+          final listItems = <_ArchiveListItem>[];
+          for (final entry in groups.entries) {
+            listItems.add(_ArchiveListItem.header(entry.key));
+            for (final t in entry.value) {
+              listItems.add(_ArchiveListItem.transaction(t));
+            }
+          }
+
           return SafeArea(
             child: ListView.builder(
               padding: EdgeInsets.fromLTRB(
                   Spacing.lg, Spacing.lg, Spacing.lg, Spacing.xxxl),
-              itemCount: archived.length,
+              itemCount: listItems.length,
               itemBuilder: (context, index) {
-                final transaction = archived[index];
+                final item = listItems[index];
+                if (item.isHeader) {
+                  return Padding(
+                    key: ValueKey('header_${item.header}'),
+                    padding: EdgeInsets.only(
+                        top: index == 0 ? 0 : Spacing.lg, bottom: Spacing.sm),
+                    child: Text(
+                      item.header!,
+                      style: TextStyle(
+                        fontSize: TypeScale.footnote,
+                        fontWeight: FontWeight.w600,
+                        color: AppStyles.getSecondaryTextColor(context),
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  );
+                }
+                final transaction = item.transaction!;
                 return StaggeredItem(
                   key: ValueKey(transaction.id),
                   index: index,
@@ -71,6 +98,59 @@ class TransactionsArchiveScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Groups archived transactions by date label (Today / Yesterday / "15 Jan 2024")
+Map<String, List<Transaction>> _groupByDate(List<Transaction> txns) {
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final yesterday = today.subtract(const Duration(days: 1));
+
+  const months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec'
+  ];
+
+  // Use LinkedHashMap to preserve insertion order
+  final result = <String, List<Transaction>>{};
+  // Sort newest first
+  final sorted = List<Transaction>.from(txns)
+    ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
+
+  for (final t in sorted) {
+    final d = DateTime(t.dateTime.year, t.dateTime.month, t.dateTime.day);
+    final String label;
+    if (d == today) {
+      label = 'Today';
+    } else if (d == yesterday) {
+      label = 'Yesterday';
+    } else {
+      label =
+          '${t.dateTime.day} ${months[t.dateTime.month - 1]} ${t.dateTime.year}';
+    }
+    result.putIfAbsent(label, () => []).add(t);
+  }
+  return result;
+}
+
+class _ArchiveListItem {
+  final String? header;
+  final Transaction? transaction;
+
+  const _ArchiveListItem.header(this.header) : transaction = null;
+  const _ArchiveListItem.transaction(this.transaction) : header = null;
+
+  bool get isHeader => header != null;
 }
 
 class _ArchivedTransactionCard extends StatelessWidget {

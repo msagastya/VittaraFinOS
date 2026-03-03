@@ -519,7 +519,7 @@ class ThemeVariants {
 
   // Glass theme colors
   static const Color glassLight = Color(0xFFF5F5F7);
-  static const Color glassDark = Color(0xFF1C1C1E);
+  static const Color glassDark = Color(0xFF111111);
   static const double glassOpacity = 0.15;
   static const double glassBlur = 20.0;
 
@@ -652,10 +652,10 @@ class SurfaceColors {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     if (!isDark) return Colors.white;
 
-    // In dark mode, higher elevation = lighter surface
+    // In dark mode, higher elevation = lighter surface (base is pure AMOLED black)
     final opacity = (elevation * 0.05).clamp(0.0, 0.15);
     return Color.lerp(
-      const Color(0xFF121212),
+      const Color(0xFF000000),
       Colors.white,
       opacity,
     )!;
@@ -665,10 +665,10 @@ class SurfaceColors {
   static const Color backgroundDark = Color(0xFF000000);
 
   static const Color surfaceLight = Color(0xFFFFFFFF);
-  static const Color surfaceDark = Color(0xFF1C1C1E);
+  static const Color surfaceDark = Color(0xFF111111);
 
   static const Color cardLight = Color(0xFFFFFFFF);
-  static const Color cardDark = Color(0xFF2C2C2E);
+  static const Color cardDark = Color(0xFF141414);
 
   static const Color overlayLight = Color(0x33000000);
   static const Color overlayDark = Color(0x66000000);

@@ -6,6 +6,171 @@ import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 
 // ============================================================
+// SKELETON LOADER
+// ============================================================
+
+/// A single shimmering placeholder bar.
+/// Uses a pure-Flutter gradient animation — no external package needed.
+class SkeletonLoader extends StatefulWidget {
+  final double width;
+  final double height;
+  final double borderRadius;
+
+  const SkeletonLoader({
+    super.key,
+    this.width = double.infinity,
+    this.height = 16,
+    this.borderRadius = 8,
+  });
+
+  @override
+  State<SkeletonLoader> createState() => _SkeletonLoaderState();
+}
+
+class _SkeletonLoaderState extends State<SkeletonLoader>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    )..repeat();
+    _animation = Tween<double>(begin: -1.5, end: 1.5).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = AppStyles.isDarkMode(context);
+    final base = isDark ? const Color(0xFF1C1C1E) : const Color(0xFFE5E5EA);
+    final highlight =
+        isDark ? const Color(0xFF3A3A3C) : const Color(0xFFF2F2F7);
+
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return Container(
+          width: widget.width,
+          height: widget.height,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(widget.borderRadius),
+            gradient: LinearGradient(
+              begin: Alignment(_animation.value - 1, 0),
+              end: Alignment(_animation.value + 1, 0),
+              colors: [base, highlight, base],
+              stops: const [0.0, 0.5, 1.0],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Pre-built skeleton that mimics a standard list card
+/// (icon box + two text lines).
+class SkeletonCard extends StatelessWidget {
+  const SkeletonCard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppStyles.getCardColor(context),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          SkeletonLoader(width: 48, height: 48, borderRadius: 14),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SkeletonLoader(height: 14, width: double.infinity),
+                const SizedBox(height: 8),
+                SkeletonLoader(height: 11, width: 120, borderRadius: 6),
+              ],
+            ),
+          ),
+          const SizedBox(width: 14),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              SkeletonLoader(height: 14, width: 72),
+              const SizedBox(height: 8),
+              SkeletonLoader(height: 11, width: 48, borderRadius: 6),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A full-screen skeleton list (5 cards) for list screens.
+class SkeletonListView extends StatelessWidget {
+  final int itemCount;
+  const SkeletonListView({super.key, this.itemCount = 5});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      itemCount: itemCount,
+      itemBuilder: (_, __) => const SkeletonCard(),
+    );
+  }
+}
+
+/// A large summary card skeleton (used on Net Worth / dashboard cards).
+class SkeletonSummaryCard extends StatelessWidget {
+  const SkeletonSummaryCard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppStyles.getCardColor(context),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SkeletonLoader(height: 12, width: 100),
+          const SizedBox(height: 12),
+          SkeletonLoader(height: 32, width: 200),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(child: SkeletonLoader(height: 10)),
+              const SizedBox(width: 12),
+              Expanded(child: SkeletonLoader(height: 10)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================================
 // COMMON REUSABLE WIDGETS - VittaraFinOS
 // ============================================================
 // This file contains reusable UI components that maintain

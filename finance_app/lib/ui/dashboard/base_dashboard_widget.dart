@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/logic/dashboard_widget_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 
 /// Base class for all dashboard widgets
 /// Adapts content based on columnSpan (1-3) and rowSpan (1+)
@@ -8,9 +9,13 @@ abstract class BaseDashboardWidget extends StatelessWidget {
   final DashboardWidgetConfig config;
   final VoidCallback? onTap;
 
+  /// When true the widget body is replaced with a shimmering skeleton.
+  final bool isLoading;
+
   const BaseDashboardWidget({
     required this.config,
     this.onTap,
+    this.isLoading = false,
     super.key,
   });
 
@@ -75,17 +80,29 @@ abstract class BaseDashboardWidget extends StatelessWidget {
                       compact: config.columnSpan == 1,
                     ),
                     SizedBox(height: config.columnSpan == 1 ? 8 : 12),
-                    // Content
+                    // Content — show skeleton while loading
                     Expanded(
-                      child: SingleChildScrollView(
-                        child: buildContent(
-                          context,
-                          columnSpan: config.columnSpan,
-                          rowSpan: config.rowSpan,
-                          width: double.infinity,
-                          height: double.infinity,
-                        ),
-                      ),
+                      child: isLoading
+                          ? Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                SkeletonLoader(height: 28, width: 140),
+                                const SizedBox(height: 10),
+                                SkeletonLoader(height: 12, width: 100),
+                                const SizedBox(height: 10),
+                                SkeletonLoader(
+                                    height: 12, width: double.infinity),
+                              ],
+                            )
+                          : SingleChildScrollView(
+                              child: buildContent(
+                                context,
+                                columnSpan: config.columnSpan,
+                                rowSpan: config.rowSpan,
+                                width: double.infinity,
+                                height: double.infinity,
+                              ),
+                            ),
                     ),
                   ],
                 ),

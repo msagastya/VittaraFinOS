@@ -92,6 +92,14 @@ class _TransferWizardState extends State<TransferWizard> {
     final paymentAppsController =
         Provider.of<PaymentAppsController>(context, listen: false);
 
+    // Prevent transfer to same account
+    if (_sourceAccount != null &&
+        _destinationAccount != null &&
+        _sourceAccount!.id == _destinationAccount!.id) {
+      toast.showError('Source and destination accounts must be different');
+      return;
+    }
+
     // Calculate total deduction from source
     final amount = double.tryParse(_amountController.text) ?? 0.0;
     final charges = double.tryParse(_chargesController.text) ?? 0.0;

@@ -214,7 +214,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         cupertinoOverrideTheme: CupertinoThemeData(
           primaryColor: const Color(0xFF5BB6FF),
           scaffoldBackgroundColor: AppStyles.darkBackground,
-          barBackgroundColor: const Color(0xFF101A2A),
+          barBackgroundColor: const Color(0xFF000000),
           textTheme: CupertinoTextThemeData(
             textStyle: TextStyle(
               fontFamily: GoogleFonts.plusJakartaSans().fontFamily,

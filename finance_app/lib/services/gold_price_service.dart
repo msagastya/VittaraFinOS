@@ -1,26 +1,86 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class GoldPriceService {
   static final Logger _logger = Logger();
 
-  /// Fetch current gold price per gram in INR from most reliable sources
-  /// Tries multiple sources in order of reliability, returns null if all fail
+  static const String _cacheKey = 'gold_price_cached';
+  static const String _cacheTimestampKey = 'gold_price_cached_at';
+  static const Duration _cacheTTL = Duration(hours: 1);
+
+  /// Fetch current gold price per gram in INR.
+  /// Returns cached value if fresh (< 1 hour old), otherwise fetches live.
   static Future<double?> fetchCurrentGoldPrice() async {
+    // Return cached price if still fresh
+    final cached = await _getCachedPrice();
+    if (cached != null) {
+      _logger.i('Using cached gold price: ₹$cached/g');
+      return cached;
+    }
+
     // Try primary source: goldprice.org (free, no API key, most reliable)
     var price = await _fetchFromGoldPriceOrg();
-    if (price != null) return price;
+    if (price != null) {
+      await _cachePrice(price);
+      return price;
+    }
 
     // Try secondary source: International USD price + INR conversion
     price = await _fetchUsdGoldWithConversion();
-    if (price != null) return price;
+    if (price != null) {
+      await _cachePrice(price);
+      return price;
+    }
 
-    // All sources failed
+    // All sources failed — return stale cache if available rather than null
+    final stale = await _getStalePrice();
+    if (stale != null) {
+      _logger.w('Using stale cached gold price: ₹$stale/g');
+      return stale;
+    }
+
     _logger
         .w('❌ All gold price sources failed - unable to fetch current price');
     return null;
   }
+
+  static Future<double?> _getCachedPrice() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final timestamp = prefs.getInt(_cacheTimestampKey);
+      if (timestamp == null) return null;
+      final age = DateTime.now().millisecondsSinceEpoch - timestamp;
+      if (age > _cacheTTL.inMilliseconds) return null;
+      return prefs.getDouble(_cacheKey);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Future<double?> _getStalePrice() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getDouble(_cacheKey);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Future<void> _cachePrice(double price) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setDouble(_cacheKey, price);
+      await prefs.setInt(
+          _cacheTimestampKey, DateTime.now().millisecondsSinceEpoch);
+    } catch (_) {}
+  }
+
+  /// Get cached gold price synchronously — for quick display without API call.
+  /// Returns null if no cached price available.
+  static double? getCachedPrice() =>
+      null; // legacy stub; use fetchCurrentGoldPrice
 
   /// Source 1: goldprice.org - Most reliable, free, no API key
   /// Endpoint: https://data-asg.goldprice.org/dbXRates/INR
@@ -182,13 +242,6 @@ class GoldPriceService {
       _logger.w('Open.er-api.com failed: $e');
     }
 
-    return null;
-  }
-
-  /// Get cached gold price - for quick display without API call
-  /// Returns null if no cached price available
-  static double? getCachedGoldPrice() {
-    // TODO: Implement caching with SharedPreferences if needed
     return null;
   }
 }

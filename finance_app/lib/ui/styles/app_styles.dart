@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 class AppStyles {
   // --- Colors ---
   static const Color lightBackground = Color(0xFFF3F9FF);
-  static const Color darkBackground = Color(0xFF070F1D);
+  static const Color darkBackground = Color(0xFF000000);
 
   static const Color lightCard = Color(0xFFFFFFFF);
-  static const Color darkCard = Color(0xFF101F36);
+  static const Color darkCard = Color(0xFF0D0D0D);
 
   static const Color lightText = Color(0xFF102746);
   static const Color darkText = Color(0xFFF2F7FF);
@@ -32,7 +32,7 @@ class AppStyles {
 
   static Color getSecondaryTextColor(BuildContext context) {
     return isDarkMode(context)
-        ? const Color(0xFFAAC0DF)
+        ? const Color(0xFF8E8E93)
         : const Color(0xFF49617F);
   }
 
@@ -42,7 +42,7 @@ class AppStyles {
 
   static Color getDividerColor(BuildContext context) {
     return isDarkMode(context)
-        ? const Color(0xFF2A3E61)
+        ? const Color(0xFF1C1C1C)
         : const Color(0xFFC5D9F9);
   }
 
@@ -56,9 +56,9 @@ class AppStyles {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          Color(0xFF081225),
-          Color(0xFF0A1933),
-          Color(0xFF152A4B),
+          Color(0xFF000000),
+          Color(0xFF050505),
+          Color(0xFF080808),
         ],
       );
     }
@@ -123,7 +123,7 @@ class AppStyles {
         colors: [
           getCardColor(context),
           isDark
-              ? const Color(0xFF162740).withValues(alpha: 0.88)
+              ? const Color(0xFF111111).withValues(alpha: 0.95)
               : Colors.white.withValues(alpha: 0.92),
         ],
       ),
@@ -151,8 +151,8 @@ class AppStyles {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Color(0xFF172945),
-                Color(0xFF10203A),
+                Color(0xFF111111),
+                Color(0xFF0A0A0A),
               ],
             )
           : const LinearGradient(
@@ -165,7 +165,7 @@ class AppStyles {
             ),
       border: Border.all(
         color: isDark
-            ? const Color(0xFF35517A).withValues(alpha: 0.78)
+            ? const Color(0xFF2A2A2A).withValues(alpha: 0.90)
             : const Color(0xFFBCD6FF).withValues(alpha: 0.96),
         width: 1.05,
       ),
@@ -205,7 +205,7 @@ class AppStyles {
       fontSize: 12,
       fontWeight: FontWeight.w700,
       color: isDarkMode(context)
-          ? const Color(0xFFA4BCE0)
+          ? const Color(0xFF8E8E93)
           : const Color(0xFF365A88),
       letterSpacing: 0.4,
     );

@@ -254,8 +254,9 @@ class _TransactionWizardState extends State<TransactionWizard> {
         await paymentAppsController.adjustWalletBalanceByName(
             _selectedPaymentApp!, cashbackAmount);
       } else if (_selectedAccount != null) {
-        final refreshed = accountsController.accounts
-            .firstWhere((acc) => acc.id == _selectedAccount!.id);
+        final refreshed = accountsController.accounts.firstWhere(
+            (acc) => acc.id == _selectedAccount!.id,
+            orElse: () => throw Exception('Account not found'));
         await accountsController.updateAccount(
           refreshed.copyWith(balance: refreshed.balance + cashbackAmount),
         );
@@ -1332,37 +1333,18 @@ class _TransactionWizardState extends State<TransactionWizard> {
                         },
                       ),
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CupertinoButton(
-                    onPressed: () => _showAddPersonModal(contactsController),
-                    child: Row(
-                      children: [
-                        const Icon(CupertinoIcons.add),
-                        const SizedBox(width: 8),
-                        Text('Add person',
-                            style: TextStyle(
-                                color: AppStyles.getTextColor(context))),
-                      ],
-                    ),
-                  ),
-                  CupertinoButton(
-                    onPressed: () => _showPhoneContactsPicker(
-                      controller: contactsController,
-                      advanceAfterPick: true,
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(CupertinoIcons.phone_fill),
-                        const SizedBox(width: 8),
-                        Text('From contacts',
-                            style: TextStyle(
-                                color: AppStyles.getTextColor(context))),
-                      ],
-                    ),
-                  ),
-                ],
+              CupertinoButton(
+                onPressed: () => _showAddPersonModal(contactsController),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(CupertinoIcons.add),
+                    const SizedBox(width: 8),
+                    Text('Add Person',
+                        style:
+                            TextStyle(color: AppStyles.getTextColor(context))),
+                  ],
+                ),
               ),
             ],
           ),

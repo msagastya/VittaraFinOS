@@ -97,4 +97,52 @@ class BanksController with ChangeNotifier {
     _banks.add(newBank);
     notifyListeners();
   }
+
+  void ensureBankEnabledByName(String bankName, {Color? color}) {
+    final trimmedName = bankName.trim();
+    if (trimmedName.isEmpty) return;
+
+    final normalizedTarget = _normalizeName(trimmedName);
+    final existingIndex = _banks.indexWhere(
+      (bank) =>
+          _normalizeName(bank['name']?.toString() ?? '') == normalizedTarget,
+    );
+
+    if (existingIndex >= 0) {
+      if (_banks[existingIndex]['isEnabled'] != true) {
+        _banks[existingIndex]['isEnabled'] = true;
+        notifyListeners();
+      }
+      return;
+    }
+
+    var id = _slugify(trimmedName);
+    var suffix = 2;
+    while (_banks.any((bank) => bank['id'] == id)) {
+      id = '${_slugify(trimmedName)}_$suffix';
+      suffix += 1;
+    }
+
+    _banks.add({
+      'id': id,
+      'name': trimmedName,
+      'color': color ?? const Color(0xFF007AFF),
+      'isEnabled': true,
+      'senderIds': <String>[],
+    });
+    notifyListeners();
+  }
+
+  String _normalizeName(String value) {
+    return value.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+  }
+
+  String _slugify(String value) {
+    final normalized = value.trim().toLowerCase();
+    final slug = normalized
+        .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
+        .replaceAll(RegExp(r'_+'), '_')
+        .replaceAll(RegExp(r'^_|_$'), '');
+    return slug.isEmpty ? 'bank' : slug;
+  }
 }

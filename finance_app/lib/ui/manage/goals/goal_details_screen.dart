@@ -14,6 +14,7 @@ import 'package:vittara_fin_os/ui/widgets/glass_card.dart';
 import 'package:vittara_fin_os/ui/widgets/neumorphic_glass_card.dart';
 import 'package:vittara_fin_os/ui/widgets/liquid_progress_indicators.dart';
 import 'package:vittara_fin_os/utils/alert_service.dart';
+import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class GoalDetailsScreen extends StatelessWidget {
   final String goalId;
@@ -24,10 +25,13 @@ class GoalDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<GoalsController>(
       builder: (context, controller, child) {
-        final goal = controller.goals.firstWhere(
-          (g) => g.id == goalId,
-          orElse: () => controller.goals.first,
-        );
+        final goalIdx = controller.goals.indexWhere((g) => g.id == goalId);
+        if (goalIdx < 0) {
+          return const CupertinoPageScaffold(
+            child: Center(child: Text('Goal not found')),
+          );
+        }
+        final goal = controller.goals[goalIdx];
 
         return CupertinoPageScaffold(
           backgroundColor: AppStyles.getBackground(context),
@@ -560,9 +564,19 @@ class GoalDetailsScreen extends StatelessWidget {
                 isDestructive: true,
               );
               if (confirmed) {
+                final deletedGoal = goal;
                 await controller.deleteGoal(goal.id);
-                Navigator.of(context).pop();
-                AlertService.showSuccess(context, 'Goal deleted');
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                }
+                toast.showSuccess(
+                  '"${deletedGoal.name}" deleted',
+                  actionLabel: 'Undo',
+                  onAction: () {
+                    controller.addGoal(deletedGoal);
+                    toast.showInfo('Goal restored');
+                  },
+                );
               }
             },
             isDestructiveAction: true,

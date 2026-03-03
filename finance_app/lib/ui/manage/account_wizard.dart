@@ -72,11 +72,7 @@ class _AccountWizardState extends State<AccountWizard> {
       }
     }
 
-    // Add listeners to update UI when text changes
-    _creditLimitController.addListener(() => setState(() {}));
-    _amountUsedController.addListener(() => setState(() {}));
-    _balanceController.addListener(() => setState(() {}));
-    _nameController.addListener(() => setState(() {}));
+    // Trigger a single rebuild per user keystroke using onChanged on each field.
   }
 
   // Investment brokers (for future use)
@@ -180,6 +176,8 @@ class _AccountWizardState extends State<AccountWizard> {
       );
       Navigator.pop(context, account);
     } else {
+      final banksController = context.read<BanksController>();
+
       // Bank account: calculate balance based on account type
       if (_selectedAccountType == AccountType.credit ||
           _selectedAccountType == AccountType.payLater) {
@@ -190,6 +188,16 @@ class _AccountWizardState extends State<AccountWizard> {
       } else {
         // For other types: use opening balance directly
         finalBalance = double.tryParse(_balanceController.text) ?? 0.0;
+      }
+
+      if (_selectedAccountType != AccountType.cash) {
+        final selectedBankName = (_selectedBank ?? '').trim();
+        if (selectedBankName.isNotEmpty) {
+          banksController.ensureBankEnabledByName(
+            selectedBankName,
+            color: _selectedColor,
+          );
+        }
       }
 
       final account = Account(
@@ -376,6 +384,7 @@ class _AccountWizardState extends State<AccountWizard> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 style: TextStyle(color: AppStyles.getTextColor(context)),
+                onChanged: (_) => setState(() {}),
               ),
               const SizedBox(height: 24),
               if (brokersController.brokers.length < 15)
@@ -663,6 +672,7 @@ class _AccountWizardState extends State<AccountWizard> {
                     ),
                     style: AppStyles.titleStyle(context)
                         .copyWith(fontSize: 32, fontWeight: FontWeight.bold),
+                    onChanged: (_) => setState(() {}),
                     onSubmitted: (value) {
                       // Auto-proceed when user taps Done on keyboard
                       if (_balanceController.text.isNotEmpty) {

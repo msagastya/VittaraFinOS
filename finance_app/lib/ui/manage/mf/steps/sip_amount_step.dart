@@ -12,6 +12,7 @@ class SIPAmountStep extends StatefulWidget {
 
 class _SIPAmountStepState extends State<SIPAmountStep> {
   late TextEditingController _amountController;
+  String? _errorText;
 
   @override
   void initState() {
@@ -24,8 +25,18 @@ class _SIPAmountStepState extends State<SIPAmountStep> {
 
   void _updateAmount() {
     final controller = Provider.of<SIPWizardController>(context, listen: false);
-    final amount = double.tryParse(_amountController.text) ?? 0;
-    controller.updateSIPAmount(amount);
+    final text = _amountController.text.trim();
+    final amount = double.tryParse(text) ?? 0;
+
+    String? error;
+    if (text.isNotEmpty && amount <= 0) {
+      error = 'Amount must be greater than ₹0';
+    } else if (amount > 0 && amount < 100) {
+      error = 'Minimum SIP amount is ₹100';
+    }
+
+    setState(() => _errorText = error);
+    controller.updateSIPAmount(error == null ? amount : 0);
   }
 
   @override
@@ -67,6 +78,12 @@ class _SIPAmountStepState extends State<SIPAmountStep> {
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: _errorText != null
+                    ? CupertinoColors.destructiveRed
+                    : AppStyles.getSecondaryTextColor(context)
+                        .withValues(alpha: 0.25),
+              ),
             ),
             prefix: Padding(
               padding: const EdgeInsets.only(left: 16),
@@ -78,6 +95,16 @@ class _SIPAmountStepState extends State<SIPAmountStep> {
             style: TextStyle(color: AppStyles.getTextColor(context)),
             onChanged: (_) => _updateAmount(),
           ),
+          if (_errorText != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              _errorText!,
+              style: const TextStyle(
+                color: CupertinoColors.destructiveRed,
+                fontSize: 12,
+              ),
+            ),
+          ],
           const SizedBox(height: 40),
           Container(
             padding: const EdgeInsets.all(16),

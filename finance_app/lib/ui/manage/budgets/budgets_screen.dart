@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/budgets_controller.dart';
 import 'package:vittara_fin_os/logic/budget_model.dart';
@@ -13,6 +14,7 @@ import 'package:vittara_fin_os/ui/widgets/animated_counter.dart'
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/glass_card.dart';
 import 'package:vittara_fin_os/ui/widgets/liquid_progress_indicators.dart';
+import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
 
 class BudgetsScreen extends StatefulWidget {
   const BudgetsScreen({super.key});
@@ -188,7 +190,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                                       child: Padding(
                                         padding:
                                             EdgeInsets.only(bottom: Spacing.lg),
-                                        child: _buildBudgetCard(budget),
+                                        child: _buildSlidableBudgetCard(budget),
                                       ),
                                     );
                                   },
@@ -263,6 +265,55 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSlidableBudgetCard(Budget budget) {
+    return Slidable(
+      key: ValueKey(budget.id),
+      endActionPane: ActionPane(
+        motion: const DrawerMotion(),
+        extentRatio: 0.22,
+        children: [
+          SlidableAction(
+            onPressed: (_) => _deleteBudgetWithConfirmation(budget),
+            backgroundColor: SemanticColors.error,
+            foregroundColor: CupertinoColors.white,
+            icon: CupertinoIcons.trash_fill,
+            borderRadius: BorderRadius.circular(Radii.lg),
+          ),
+        ],
+      ),
+      child: _buildBudgetCard(budget),
+    );
+  }
+
+  void _deleteBudgetWithConfirmation(Budget budget) {
+    Haptics.warning();
+    showCupertinoDialog<void>(
+      context: context,
+      builder: (dialogCtx) => CupertinoAlertDialog(
+        title: const Text('Delete Budget'),
+        content: Text('Delete "${budget.name}"? This cannot be undone.'),
+        actions: [
+          CupertinoDialogAction(
+            child: const Text('Cancel'),
+            onPressed: () => Navigator.pop(dialogCtx),
+          ),
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            child: const Text('Delete'),
+            onPressed: () async {
+              final ctrl =
+                  Provider.of<BudgetsController>(context, listen: false);
+              await ctrl.deleteBudget(budget.id);
+              Navigator.pop(dialogCtx);
+              toast_lib.toast.showSuccess('"${budget.name}" deleted');
+              Haptics.delete();
+            },
           ),
         ],
       ),

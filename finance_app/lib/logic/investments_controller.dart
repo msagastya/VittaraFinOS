@@ -10,7 +10,12 @@ class InvestmentsController with ChangeNotifier {
   static const String _storageKey = 'investments';
   static const double _amountDeltaEpsilon = 0.01;
 
+  bool _isLoaded = false;
+  DateTime? _lastRefreshedAt;
+
   List<Investment> get investments => _investments;
+  bool get isLoaded => _isLoaded;
+  DateTime? get lastRefreshedAt => _lastRefreshedAt;
 
   InvestmentsController() {
     _investments = [];
@@ -37,6 +42,7 @@ class InvestmentsController with ChangeNotifier {
       await _saveInvestments();
     }
 
+    _isLoaded = true;
     notifyListeners();
   }
 
@@ -173,10 +179,11 @@ class InvestmentsController with ChangeNotifier {
       }
     }
 
+    _lastRefreshedAt = DateTime.now();
     if (updated) {
       await _saveInvestments();
-      notifyListeners();
     }
+    notifyListeners();
 
     return updated;
   }

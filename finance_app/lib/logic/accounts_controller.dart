@@ -8,7 +8,10 @@ class AccountsController with ChangeNotifier {
   late List<Account> _accounts;
   static const String _storageKey = 'accounts';
 
+  bool _isLoaded = false;
+
   List<Account> get accounts => _accounts;
+  bool get isLoaded => _isLoaded;
 
   AccountsController() {
     _accounts = [];
@@ -23,6 +26,7 @@ class AccountsController with ChangeNotifier {
             (json) => Account.fromMap(jsonDecode(json) as Map<String, dynamic>))
         .toList();
 
+    _isLoaded = true;
     notifyListeners();
   }
 

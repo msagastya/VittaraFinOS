@@ -28,6 +28,7 @@ enum ReportDatePreset {
   last30Days,
   last90Days,
   thisYear,
+  financialYear,
   custom,
 }
 
@@ -44,6 +45,8 @@ extension ReportDatePresetLabel on ReportDatePreset {
         return 'Last 90D';
       case ReportDatePreset.thisYear:
         return 'This Year';
+      case ReportDatePreset.financialYear:
+        return 'FY Apr–Mar';
       case ReportDatePreset.custom:
         return 'Custom';
     }
@@ -140,6 +143,31 @@ extension ReportStrategyPresetLabel on ReportStrategyPreset {
   }
 }
 
+enum _ReportWorkspaceTab {
+  overview,
+  filters,
+  strategy,
+  charts,
+  export,
+}
+
+extension _ReportWorkspaceTabLabel on _ReportWorkspaceTab {
+  String get label {
+    switch (this) {
+      case _ReportWorkspaceTab.overview:
+        return 'Overview';
+      case _ReportWorkspaceTab.filters:
+        return 'Filters';
+      case _ReportWorkspaceTab.strategy:
+        return 'Strategy';
+      case _ReportWorkspaceTab.charts:
+        return 'Charts';
+      case _ReportWorkspaceTab.export:
+        return 'Export';
+    }
+  }
+}
+
 class _StrategyProfile {
   final double savingsTargetRate;
   final double essentialsCapRate;
@@ -202,6 +230,8 @@ class ReportsAnalysisScreen extends StatefulWidget {
 }
 
 class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
+  _ReportWorkspaceTab _workspaceTab = _ReportWorkspaceTab.overview;
+
   ReportDatePreset _datePreset = ReportDatePreset.last30Days;
   DateTime _startDate = DateTime.now().subtract(const Duration(days: 30));
   DateTime _endDate = DateTime.now();
@@ -250,7 +280,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
           'Reports & Analysis',
           style: TextStyle(color: AppStyles.getTextColor(context)),
         ),
-        previousPageTitle: 'Manage',
+        previousPageTitle: 'Menu',
         backgroundColor: AppStyles.getCardColor(context).withValues(alpha: 0.9),
         border: null,
       ),
@@ -323,21 +353,26 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
                   ),
                   children: [
                     _buildSummaryHeader(summary, filteredTransactions.length),
-                    SizedBox(height: Spacing.lg),
-                    _buildFiltersCard(
+                    SizedBox(height: Spacing.sm),
+                    _buildActiveFiltersBar(
+                        transactionsController.transactions.length,
+                        filteredTransactions.length),
+                    SizedBox(height: Spacing.sm),
+                    _buildWorkspaceNavigator(
+                      filteredCount: filteredTransactions.length,
+                      totalCount: transactionsController.transactions.length,
+                    ),
+                    ..._buildWorkspaceContent(
+                      summary: summary,
+                      groupedMetrics: groupedMetrics,
+                      trendPoints: trendPoints,
+                      strategyEvaluation: strategyEvaluation,
+                      snapshot: snapshot,
                       categories: categoriesController.categories,
                       accounts: accountsController.accounts,
                       availableTags: availableTags,
                       availableApps: availableApps,
                     ),
-                    SizedBox(height: Spacing.lg),
-                    _buildStrategyCard(strategyEvaluation),
-                    SizedBox(height: Spacing.lg),
-                    _buildChartsCard(groupedMetrics, trendPoints),
-                    SizedBox(height: Spacing.lg),
-                    _buildBreakdownTable(groupedMetrics),
-                    SizedBox(height: Spacing.lg),
-                    _buildExportCard(snapshot),
                   ],
                 ),
               ),
@@ -345,6 +380,93 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
           );
         },
       ),
+    );
+  }
+
+  /// Returns true when any filter is non-default
+  bool get _hasActiveFilters {
+    return _datePreset != ReportDatePreset.last30Days ||
+        _selectedCategoryIds.isNotEmpty ||
+        _selectedAccountIds.isNotEmpty ||
+        _selectedAccountTypes.isNotEmpty ||
+        _selectedTags.isNotEmpty ||
+        _selectedPaymentApps.isNotEmpty ||
+        !_includeTransfers ||
+        !_includeInvestments ||
+        !_includeCashbackFlows;
+  }
+
+  int get _activeFilterCount {
+    int count = 0;
+    if (_datePreset != ReportDatePreset.last30Days) count++;
+    if (_selectedCategoryIds.isNotEmpty) count++;
+    if (_selectedAccountIds.isNotEmpty) count++;
+    if (_selectedAccountTypes.isNotEmpty) count++;
+    if (_selectedTags.isNotEmpty) count++;
+    if (_selectedPaymentApps.isNotEmpty) count++;
+    if (!_includeTransfers || !_includeInvestments || !_includeCashbackFlows) {
+      count++;
+    }
+    return count;
+  }
+
+  /// Compact bar showing how many filters are active + a "Clear All" button.
+  /// Invisible when no filters are applied.
+  Widget _buildActiveFiltersBar(int totalCount, int filteredCount) {
+    if (!_hasActiveFilters) return const SizedBox.shrink();
+
+    final hidden = totalCount - filteredCount;
+    return Row(
+      children: [
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+            decoration: BoxDecoration(
+              color: SemanticColors.warning.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                  color: SemanticColors.warning.withValues(alpha: 0.35)),
+            ),
+            child: Row(
+              children: [
+                Icon(CupertinoIcons.line_horizontal_3_decrease,
+                    size: 13, color: SemanticColors.warning),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    '$_activeFilterCount filter${_activeFilterCount == 1 ? '' : 's'} active'
+                    '${hidden > 0 ? ' · $hidden txns hidden' : ''}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: SemanticColors.warning,
+                    ),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: _resetFilters,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: SemanticColors.warning.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      'Clear All',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: SemanticColors.warning,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -471,6 +593,221 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
               fontWeight: FontWeight.w700,
               fontSize: TypeScale.callout,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWorkspaceNavigator({
+    required int filteredCount,
+    required int totalCount,
+  }) {
+    return Container(
+      padding: EdgeInsets.all(Spacing.lg),
+      decoration: AppStyles.sectionDecoration(
+        context,
+        tint: SemanticColors.primary.withValues(alpha: 0.78),
+        radius: Radii.xl,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionTitle(
+            icon: CupertinoIcons.square_grid_2x2_fill,
+            title: 'Analysis Workspace',
+            subtitle: 'Use guided sections instead of one long dense report',
+          ),
+          SizedBox(height: Spacing.md),
+          Wrap(
+            spacing: Spacing.sm,
+            runSpacing: Spacing.sm,
+            children: _ReportWorkspaceTab.values.map((tab) {
+              return _buildChip(
+                label: tab.label,
+                selected: _workspaceTab == tab,
+                color: SemanticColors.primary,
+                onTap: () => setState(() => _workspaceTab = tab),
+              );
+            }).toList(),
+          ),
+          SizedBox(height: Spacing.sm),
+          Text(
+            'Showing $filteredCount of $totalCount transactions for ${_datePreset.label}.',
+            style: TextStyle(
+              color: AppStyles.getSecondaryTextColor(context),
+              fontSize: TypeScale.caption,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _buildWorkspaceContent({
+    required _ReportSummary summary,
+    required List<_GroupedMetric> groupedMetrics,
+    required List<_TrendPoint> trendPoints,
+    required _StrategyEvaluation strategyEvaluation,
+    required _ReportSnapshot snapshot,
+    required List<Category> categories,
+    required List<Account> accounts,
+    required List<String> availableTags,
+    required List<String> availableApps,
+  }) {
+    switch (_workspaceTab) {
+      case _ReportWorkspaceTab.overview:
+        return [
+          SizedBox(height: Spacing.lg),
+          _buildOverviewCard(summary, groupedMetrics, strategyEvaluation),
+          SizedBox(height: Spacing.lg),
+          _buildBreakdownTable(
+            groupedMetrics,
+            maxGroups: 8,
+            title: 'Top Breakdown',
+            subtitle:
+                'Top ${math.min(8, groupedMetrics.length)} groups by ${_sortMetric.label.toLowerCase()}',
+          ),
+        ];
+      case _ReportWorkspaceTab.filters:
+        return [
+          SizedBox(height: Spacing.lg),
+          _buildFiltersCard(
+            categories: categories,
+            accounts: accounts,
+            availableTags: availableTags,
+            availableApps: availableApps,
+          ),
+        ];
+      case _ReportWorkspaceTab.strategy:
+        return [
+          SizedBox(height: Spacing.lg),
+          _buildStrategyCard(strategyEvaluation),
+        ];
+      case _ReportWorkspaceTab.charts:
+        return [
+          SizedBox(height: Spacing.lg),
+          _buildChartsCard(groupedMetrics, trendPoints),
+          SizedBox(height: Spacing.lg),
+          _buildBreakdownTable(groupedMetrics),
+        ];
+      case _ReportWorkspaceTab.export:
+        return [
+          SizedBox(height: Spacing.lg),
+          _buildExportCard(snapshot),
+        ];
+    }
+  }
+
+  Widget _buildOverviewCard(
+    _ReportSummary summary,
+    List<_GroupedMetric> groupedMetrics,
+    _StrategyEvaluation strategyEvaluation,
+  ) {
+    final topGroups = groupedMetrics.take(3).toList();
+    final recommendations = strategyEvaluation.recommendations.take(3).toList();
+    return Container(
+      padding: EdgeInsets.all(Spacing.lg),
+      decoration: AppStyles.sectionDecoration(
+        context,
+        tint: SemanticColors.info.withValues(alpha: 0.78),
+        radius: Radii.xl,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionTitle(
+            icon: CupertinoIcons.sparkles,
+            title: 'What Matters Now',
+            subtitle: 'Quick insights without deep filter controls',
+          ),
+          SizedBox(height: Spacing.md),
+          Text(
+            'Savings gap: ₹${strategyEvaluation.savingsGap.toStringAsFixed(0)} • Net: ₹${summary.net.toStringAsFixed(0)}',
+            style: TextStyle(
+              color: strategyEvaluation.savingsGap <= 0
+                  ? SemanticColors.success
+                  : SemanticColors.warning,
+              fontSize: TypeScale.footnote,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          if (topGroups.isNotEmpty) ...[
+            SizedBox(height: Spacing.md),
+            Text(
+              'Top Drivers',
+              style: TextStyle(
+                color: AppStyles.getTextColor(context),
+                fontSize: TypeScale.footnote,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            SizedBox(height: Spacing.xs),
+            ...topGroups.map(
+              (group) => Padding(
+                padding: EdgeInsets.only(bottom: Spacing.xs),
+                child: Text(
+                  '• ${group.label}: Net ₹${group.net.toStringAsFixed(0)} (${group.transactionCount} txns)',
+                  style: TextStyle(
+                    color: AppStyles.getSecondaryTextColor(context),
+                    fontSize: TypeScale.caption,
+                  ),
+                ),
+              ),
+            ),
+          ],
+          if (recommendations.isNotEmpty) ...[
+            SizedBox(height: Spacing.sm),
+            Text(
+              'Recommended Actions',
+              style: TextStyle(
+                color: AppStyles.getTextColor(context),
+                fontSize: TypeScale.footnote,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            SizedBox(height: Spacing.xs),
+            ...recommendations.map(
+              (line) => Padding(
+                padding: EdgeInsets.only(bottom: Spacing.xs),
+                child: Text(
+                  '• $line',
+                  style: TextStyle(
+                    color: AppStyles.getSecondaryTextColor(context),
+                    fontSize: TypeScale.caption,
+                  ),
+                ),
+              ),
+            ),
+          ],
+          SizedBox(height: Spacing.sm),
+          Wrap(
+            spacing: Spacing.sm,
+            runSpacing: Spacing.sm,
+            children: [
+              _buildFilterActionButton(
+                label: 'Tune Filters',
+                count: 0,
+                onTap: () => setState(
+                  () => _workspaceTab = _ReportWorkspaceTab.filters,
+                ),
+                color: SemanticColors.primary,
+              ),
+              _buildFilterActionButton(
+                label: 'Open Charts',
+                count: 0,
+                onTap: () =>
+                    setState(() => _workspaceTab = _ReportWorkspaceTab.charts),
+                color: SemanticColors.info,
+              ),
+              _buildFilterActionButton(
+                label: 'Go to Export',
+                count: 0,
+                onTap: () =>
+                    setState(() => _workspaceTab = _ReportWorkspaceTab.export),
+                color: SemanticColors.success,
+              ),
+            ],
           ),
         ],
       ),
@@ -1119,8 +1456,13 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
     );
   }
 
-  Widget _buildBreakdownTable(List<_GroupedMetric> groupedMetrics) {
-    final groups = groupedMetrics.take(20).toList();
+  Widget _buildBreakdownTable(
+    List<_GroupedMetric> groupedMetrics, {
+    int maxGroups = 20,
+    String? title,
+    String? subtitle,
+  }) {
+    final groups = groupedMetrics.take(maxGroups).toList();
     return Container(
       padding: EdgeInsets.all(Spacing.lg),
       decoration: AppStyles.sectionDecoration(
@@ -1133,8 +1475,8 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
         children: [
           _buildSectionTitle(
             icon: CupertinoIcons.table_fill,
-            title: 'Multi-level Breakdown',
-            subtitle:
+            title: title ?? 'Multi-level Breakdown',
+            subtitle: subtitle ??
                 'Primary: ${_primaryGroupBy.label} • Secondary: ${_secondaryGroupBy.label}',
           ),
           SizedBox(height: Spacing.md),
@@ -1147,6 +1489,16 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
               ),
             ),
           ...groups.map((group) => _buildGroupCard(group)),
+          if (groupedMetrics.length > groups.length) ...[
+            SizedBox(height: Spacing.sm),
+            Text(
+              'Showing top ${groups.length} of ${groupedMetrics.length} groups. Refine filters for focused results.',
+              style: TextStyle(
+                color: AppStyles.getSecondaryTextColor(context),
+                fontSize: TypeScale.caption,
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -1850,6 +2202,11 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
         break;
       case ReportDatePreset.thisYear:
         start = DateTime(now.year, 1, 1);
+        break;
+      case ReportDatePreset.financialYear:
+        // Indian FY: April 1 – March 31
+        final fyStartYear = now.month >= 4 ? now.year : now.year - 1;
+        start = DateTime(fyStartYear, 4, 1);
         break;
       case ReportDatePreset.custom:
         start = _startDate;

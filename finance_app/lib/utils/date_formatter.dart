@@ -1,3 +1,39 @@
+/// Compact Indian currency formatter.
+/// ₹1,000 → ₹1K  |  ₹1,00,000 → ₹1L  |  ₹1,00,00,000 → ₹1Cr
+class CurrencyFormatter {
+  CurrencyFormatter._();
+
+  /// Format amount as compact Indian notation (K / L / Cr).
+  /// [decimals] controls decimal places in compact form.
+  static String compact(double amount, {int decimals = 1}) {
+    final sign = amount < 0 ? '-' : '';
+    final abs = amount.abs();
+    if (abs >= 1e7) {
+      final v = abs / 1e7;
+      return '$sign₹${_trim(v, decimals)}Cr';
+    } else if (abs >= 1e5) {
+      final v = abs / 1e5;
+      return '$sign₹${_trim(v, decimals)}L';
+    } else if (abs >= 1e3) {
+      final v = abs / 1e3;
+      return '$sign₹${_trim(v, decimals)}K';
+    }
+    return '$sign₹${abs.toStringAsFixed(0)}';
+  }
+
+  static String _trim(double v, int decimals) {
+    final s = v.toStringAsFixed(decimals);
+    // Remove trailing zeros after decimal point
+    if (s.contains('.')) {
+      return s.replaceAll(RegExp(r'\.?0+$'), '');
+    }
+    return s;
+  }
+
+  /// Full format with ₹ prefix (no compact, just 2 decimal places)
+  static String full(double amount) => '₹${amount.toStringAsFixed(2)}';
+}
+
 /// Centralized date formatting utility
 /// Eliminates code duplication across 14+ files
 class DateFormatter {
@@ -73,6 +109,11 @@ class DateFormatter {
     } else {
       return format(date);
     }
+  }
+
+  /// Format "FY YYYY-YY" label for a given year start (e.g., 2024 → "FY 2024-25")
+  static String formatFinancialYear(int fyStartYear) {
+    return 'FY $fyStartYear-${(fyStartYear + 1) % 100}';
   }
 
   /// Get month name from month number (1-12)

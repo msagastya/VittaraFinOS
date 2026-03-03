@@ -12,31 +12,26 @@ import 'package:vittara_fin_os/ui/manage/stocks/stocks_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/stocks/stock_details_screen.dart';
 import 'package:vittara_fin_os/ui/manage/mf/mf_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/mf/mf_details_screen.dart';
-import 'package:vittara_fin_os/ui/manage/fd/fd_wizard_screen.dart';
 import 'package:vittara_fin_os/ui/manage/fd/fd_details_screen.dart';
-import 'package:vittara_fin_os/ui/manage/rd/rd_wizard_screen.dart';
 import 'package:vittara_fin_os/ui/manage/rd/rd_details_screen.dart';
-import 'package:vittara_fin_os/ui/manage/bonds/bonds_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/bonds/bonds_details_screen.dart';
-import 'package:vittara_fin_os/ui/manage/cryptocurrency/crypto_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/cryptocurrency/crypto_details_screen.dart';
 import 'package:vittara_fin_os/ui/manage/digital_gold/digital_gold_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/digital_gold/digital_gold_details_screen.dart';
-import 'package:vittara_fin_os/ui/manage/nps/nps_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/nps/nps_details_screen.dart';
-import 'package:vittara_fin_os/ui/manage/pension/pension_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/pension/pension_details_screen.dart';
-import 'package:vittara_fin_os/ui/manage/commodities/commodities_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/commodities/commodities_details_screen.dart';
-import 'package:vittara_fin_os/ui/manage/fo/fo_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/fo/fo_details_screen.dart';
+import 'package:vittara_fin_os/ui/manage/simple_investment_entry_wizard.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:vittara_fin_os/services/investment_value_service.dart';
+import 'package:vittara_fin_os/utils/date_formatter.dart';
 
 enum SortBy {
   currentAmount,
@@ -56,6 +51,14 @@ class InvestmentsScreen extends StatefulWidget {
 }
 
 class _InvestmentsScreenState extends State<InvestmentsScreen> {
+  static const List<InvestmentType> _supportedInvestmentTypes = [
+    InvestmentType.stocks,
+    InvestmentType.mutualFund,
+    InvestmentType.digitalGold,
+    InvestmentType.nationalSavingsScheme,
+    InvestmentType.bonds,
+  ];
+
   final AppLogger logger = AppLogger();
   bool _isSummaryExpanded = true;
   InvestmentType? _selectedFilter; // null = All investments
@@ -65,6 +68,16 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
   // Sort options
   SortBy _sortBy = SortBy.currentAmount;
   bool _sortAscending = false; // true = ascending, false = descending
+
+  // Memoized sort cache — avoids O(n log n) sort on every build
+  List<Investment> _cachedSortedList = [];
+  List<Investment>? _lastSortedSource;
+  SortBy _lastSortBy = SortBy.currentAmount;
+  bool _lastSortAscending = false;
+
+  // Search
+  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
 
   final InvestmentValueService _valueService = InvestmentValueService();
   bool _isRefreshingCurrentValues = false;
@@ -76,6 +89,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
   @override
   void dispose() {
     _categoryPageController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -99,6 +113,13 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
   }
 
   List<Investment> _sortInvestments(List<Investment> investments) {
+    // Return cached result when nothing has changed
+    if (identical(investments, _lastSortedSource) &&
+        _lastSortBy == _sortBy &&
+        _lastSortAscending == _sortAscending) {
+      return _cachedSortedList;
+    }
+
     final sorted = List<Investment>.from(investments);
 
     sorted.sort((a, b) {
@@ -143,7 +164,13 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       return _sortAscending ? comparison : -comparison;
     });
 
-    return sorted;
+    // Update cache
+    _cachedSortedList = sorted;
+    _lastSortedSource = investments;
+    _lastSortBy = _sortBy;
+    _lastSortAscending = _sortAscending;
+
+    return _cachedSortedList;
   }
 
   // Fetch current gold price with caching
@@ -304,6 +331,12 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     return 0;
   }
 
+  List<InvestmentType> _availableSupportedTypes(List<Investment> investments) {
+    return _supportedInvestmentTypes
+        .where((type) => investments.any((inv) => inv.type == type))
+        .toList();
+  }
+
   void _showInvestmentTypeSelection(BuildContext context) {
     showCupertinoModalPopup(
       context: context,
@@ -320,22 +353,6 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             Navigator.of(context).push(
               CupertinoPageRoute(builder: (context) => const MFWizard()),
             );
-          } else if (investmentType == InvestmentType.fixedDeposit) {
-            Navigator.of(context).push(
-              CupertinoPageRoute(builder: (context) => const FDWizardScreen()),
-            );
-          } else if (investmentType == InvestmentType.recurringDeposit) {
-            Navigator.of(context).push(
-              CupertinoPageRoute(builder: (context) => const RDWizardScreen()),
-            );
-          } else if (investmentType == InvestmentType.bonds) {
-            Navigator.of(context).push(
-              CupertinoPageRoute(builder: (context) => const BondsWizard()),
-            );
-          } else if (investmentType == InvestmentType.cryptocurrency) {
-            Navigator.of(context).push(
-              CupertinoPageRoute(builder: (context) => const CryptoWizard()),
-            );
           } else if (investmentType == InvestmentType.digitalGold) {
             Navigator.of(context).push(
               CupertinoPageRoute(
@@ -343,23 +360,38 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             );
           } else if (investmentType == InvestmentType.nationalSavingsScheme) {
             Navigator.of(context).push(
-              CupertinoPageRoute(builder: (context) => const NPSWizard()),
+              CupertinoPageRoute(
+                builder: (context) => const SimpleInvestmentEntryWizard(
+                  type: InvestmentType.nationalSavingsScheme,
+                  title: 'Add NPS',
+                  subtitle:
+                      'NPS tracker for account-wise contribution and history.',
+                  color: Color(0xFFEC6100),
+                  defaultName: 'NPS Account',
+                  referenceLabel: 'PRAN / Account ID (Optional)',
+                  referenceHint: 'Enter PRAN or account reference',
+                ),
+              ),
             );
-          } else if (investmentType == InvestmentType.pensionSchemes) {
-            Navigator.of(context).push(
-              CupertinoPageRoute(builder: (context) => const PensionWizard()),
-            );
-          } else if (investmentType == InvestmentType.commodities) {
+          } else if (investmentType == InvestmentType.bonds) {
             Navigator.of(context).push(
               CupertinoPageRoute(
-                  builder: (context) => const CommoditiesWizard()),
-            );
-          } else if (investmentType == InvestmentType.futuresOptions) {
-            Navigator.of(context).push(
-              CupertinoPageRoute(builder: (context) => const FOWizard()),
+                builder: (context) => const SimpleInvestmentEntryWizard(
+                  type: InvestmentType.bonds,
+                  title: 'Add Bond',
+                  subtitle:
+                      'Simple bond tracking with account linkage and transaction visibility.',
+                  color: Color(0xFF00A6CC),
+                  defaultName: 'Bond Holding',
+                  referenceLabel: 'Issuer / ISIN (Optional)',
+                  referenceHint: 'Enter issuer or ISIN',
+                ),
+              ),
             );
           } else {
-            toast.showInfo('Coming soon!');
+            toast.showInfo(
+              'This investment type is intentionally disabled for focused professional tracking.',
+            );
           }
         },
       ),
@@ -373,9 +405,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
   }
 
   List<InvestmentType?> _buildCategoryFilters(List<Investment> investments) {
-    final availableTypes = InvestmentType.values
-        .where((type) => investments.any((inv) => inv.type == type))
-        .toList();
+    final availableTypes = _availableSupportedTypes(investments);
     availableTypes.sort((a, b) => _getCurrentValueByType(investments, b)
         .compareTo(_getCurrentValueByType(investments, a)));
     return [null, ...availableTypes];
@@ -399,6 +429,31 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       List<Investment> investments, InvestmentType? type) {
     if (type == null) return investments;
     return investments.where((inv) => inv.type == type).toList();
+  }
+
+  List<Investment> _filterBySearch(List<Investment> investments) {
+    if (_searchQuery.isEmpty) return investments;
+    final q = _searchQuery.toLowerCase();
+    return investments
+        .where((inv) =>
+            inv.name.toLowerCase().contains(q) ||
+            _getInvestmentTypeLabel(inv.type).toLowerCase().contains(q))
+        .toList();
+  }
+
+  Widget _buildSearchBar(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
+      child: CupertinoSearchTextField(
+        controller: _searchController,
+        placeholder: 'Search investments',
+        backgroundColor: AppStyles.getCardColor(context),
+        style: TextStyle(color: AppStyles.getTextColor(context)),
+        placeholderStyle: TextStyle(
+            color: AppStyles.getSecondaryTextColor(context), fontSize: 14),
+        onChanged: (v) => setState(() => _searchQuery = v),
+      ),
+    );
   }
 
   void _syncSelectedCategory(List<InvestmentType?> categories) {
@@ -483,7 +538,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '₹${total.toStringAsFixed(2)}',
+                    CurrencyFormatter.compact(total),
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
@@ -497,6 +552,67 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  /// A compact chip showing the currently active sort — tappable to change it.
+  Widget _buildActiveSortChip(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () => _showSortModal(context),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: SemanticColors.investments.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: SemanticColors.investments.withValues(alpha: 0.35),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(CupertinoIcons.arrow_up_arrow_down,
+                      size: 11, color: SemanticColors.investments),
+                  const SizedBox(width: 5),
+                  Text(
+                    _getSortLabel(_sortBy),
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: SemanticColors.investments,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: () => setState(() => _sortAscending = !_sortAscending),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+              decoration: BoxDecoration(
+                color: AppStyles.getCardColor(context),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: AppStyles.getDividerColor(context),
+                ),
+              ),
+              child: Icon(
+                _sortAscending
+                    ? CupertinoIcons.arrow_up
+                    : CupertinoIcons.arrow_down,
+                size: 11,
+                color: AppStyles.getSecondaryTextColor(context),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -563,6 +679,11 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
           final categories = _buildCategoryFilters(investments);
           _syncSelectedCategory(categories);
 
+          // Show skeleton on initial data load
+          if (!investmentsController.isLoaded) {
+            return const SkeletonListView(itemCount: 6);
+          }
+
           return Stack(
             children: [
               if (investments.isEmpty)
@@ -579,9 +700,16 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                     children: [
                       // Compact Summary Section
                       _buildCompactSummary(context, investments),
-                      SizedBox(height: Spacing.md),
+                      // Asset Allocation Donut Chart
+                      _buildAllocationChart(context, investments),
                       _buildCategoryTabs(context, investments, categories),
-                      SizedBox(height: Spacing.md),
+                      SizedBox(height: Spacing.xs),
+                      // Search bar
+                      _buildSearchBar(context),
+                      SizedBox(height: Spacing.xs),
+                      // Active sort indicator chip
+                      _buildActiveSortChip(context),
+                      SizedBox(height: Spacing.sm),
                       // Investments List with Staggered Animation
                       Expanded(
                         child: PageView.builder(
@@ -596,7 +724,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                           itemBuilder: (context, pageIndex) {
                             final categoryType = categories[pageIndex];
                             final pageInvestments = _sortInvestments(
-                                _filterByCategory(investments, categoryType));
+                                _filterBySearch(_filterByCategory(
+                                    investments, categoryType)));
 
                             if (pageInvestments.isEmpty) {
                               return Center(
@@ -657,7 +786,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                     index: index,
                                     child: Container(
                                       margin: EdgeInsets.only(top: Spacing.lg),
-                                      child: _buildInvestmentCard(
+                                      child: _buildSlidableInvestmentCard(
                                           pageInvestments[index]),
                                     ),
                                   );
@@ -665,22 +794,26 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                               );
                             }
 
-                            return ListView.builder(
-                              padding: EdgeInsets.fromLTRB(
-                                  Spacing.lg, 0, Spacing.lg, 100),
-                              itemCount: pageInvestments.length,
-                              itemBuilder: (context, index) {
-                                return StaggeredItem(
-                                  key: ValueKey(
-                                      '${categoryType?.name ?? 'all'}_${pageInvestments[index].id}'),
-                                  index: index,
-                                  child: Container(
-                                    margin: EdgeInsets.only(top: Spacing.lg),
-                                    child: _buildInvestmentCard(
-                                        pageInvestments[index]),
-                                  ),
-                                );
-                              },
+                            return RefreshIndicator(
+                              onRefresh: () => _refreshCurrentValues(context),
+                              color: SemanticColors.investments,
+                              child: ListView.builder(
+                                padding: EdgeInsets.fromLTRB(
+                                    Spacing.lg, 0, Spacing.lg, 100),
+                                itemCount: pageInvestments.length,
+                                itemBuilder: (context, index) {
+                                  return StaggeredItem(
+                                    key: ValueKey(
+                                        '${categoryType?.name ?? 'all'}_${pageInvestments[index].id}'),
+                                    index: index,
+                                    child: Container(
+                                      margin: EdgeInsets.only(top: Spacing.lg),
+                                      child: _buildSlidableInvestmentCard(
+                                          pageInvestments[index]),
+                                    ),
+                                  );
+                                },
+                              ),
                             );
                           },
                         ),
@@ -704,11 +837,125 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     );
   }
 
+  /// Build a mini allocation donut chart with legend
+  Widget _buildAllocationChart(
+      BuildContext context, List<Investment> investments) {
+    // Aggregate current value by type
+    final Map<InvestmentType, double> byType = {};
+    for (final inv in investments) {
+      final val = _calculateCurrentValue(inv);
+      byType[inv.type] = (byType[inv.type] ?? 0) + val;
+    }
+    final total = byType.values.fold(0.0, (sum, v) => sum + v);
+    if (total <= 0) return const SizedBox.shrink();
+
+    final entries = byType.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    return Padding(
+      padding:
+          EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.sm),
+      child: Container(
+        decoration: AppStyles.cardDecoration(context),
+        padding: Spacing.cardPadding,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(CupertinoIcons.chart_pie_fill,
+                    size: 14, color: SemanticColors.investments),
+                const SizedBox(width: 6),
+                Text(
+                  'Allocation',
+                  style: TextStyle(
+                    fontSize: TypeScale.footnote,
+                    fontWeight: FontWeight.w600,
+                    color: AppStyles.getTextColor(context),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: Spacing.md),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 80,
+                  height: 80,
+                  child: CustomPaint(
+                    painter: _DonutChartPainter(
+                      slices: entries
+                          .map((e) => _DonutSlice(
+                                value: e.value / total,
+                                color: _getInvestmentTypeColor(e.key),
+                              ))
+                          .toList(),
+                      holeColor: AppStyles.getCardColor(context),
+                    ),
+                  ),
+                ),
+                SizedBox(width: Spacing.lg),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: entries.take(5).map((e) {
+                      final pct = (e.value / total * 100);
+                      return Padding(
+                        padding: EdgeInsets.only(bottom: Spacing.xs),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: _getInvestmentTypeColor(e.key),
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                _getInvestmentTypeLabel(e.key),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color:
+                                      AppStyles.getSecondaryTextColor(context),
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            Text(
+                              '${pct.toStringAsFixed(1)}%',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: _getInvestmentTypeColor(e.key),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildCompactSummary(
       BuildContext context, List<Investment> investments) {
-    String filterLabel = 'Filter: All';
-    if (_selectedFilter != null) {
-      filterLabel = 'Filter: ${_getInvestmentTypeLabel(_selectedFilter!)}';
+    final ctrl = Provider.of<InvestmentsController>(context, listen: false);
+    final lastRefresh = ctrl.lastRefreshedAt;
+    String refreshLabel = 'Pull down to refresh';
+    if (lastRefresh != null) {
+      final diffMins = DateTime.now().difference(lastRefresh).inMinutes;
+      refreshLabel =
+          diffMins == 0 ? 'Refreshed just now' : 'Refreshed ${diffMins}m ago';
     }
 
     return Container(
@@ -722,7 +969,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '${investments.length} Investments',
+                '${investments.length} Investment${investments.length == 1 ? '' : 's'}',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -731,9 +978,9 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               ),
               SizedBox(height: Spacing.xs),
               Text(
-                filterLabel,
+                refreshLabel,
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: 11,
                   color: AppStyles.getSecondaryTextColor(context),
                 ),
               ),
@@ -826,7 +1073,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                     ),
                     SizedBox(height: Spacing.md),
                     // Type options
-                    ...InvestmentType.values.map((type) {
+                    ..._availableSupportedTypes(investments).map((type) {
                       final count =
                           investments.where((inv) => inv.type == type).length;
                       if (count == 0) return SizedBox.shrink();
@@ -1155,7 +1402,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                       ),
                     ),
                     // Type chips
-                    ...InvestmentType.values.map((type) {
+                    ..._availableSupportedTypes(investments).map((type) {
                       final count =
                           investments.where((inv) => inv.type == type).length;
                       if (count == 0) return SizedBox.shrink();
@@ -2064,6 +2311,64 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     );
   }
 
+  void _deleteInvestmentWithConfirmation(Investment investment) {
+    Haptics.warning();
+    showCupertinoDialog<void>(
+      context: context,
+      builder: (dialogCtx) => CupertinoAlertDialog(
+        title: const Text('Delete Investment'),
+        content:
+            Text('Delete "${investment.name}"? This action cannot be undone.'),
+        actions: [
+          CupertinoDialogAction(
+            child: const Text('Cancel'),
+            onPressed: () => Navigator.pop(dialogCtx),
+          ),
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            child: const Text('Delete'),
+            onPressed: () {
+              Haptics.delete();
+              final ctrl =
+                  Provider.of<InvestmentsController>(context, listen: false);
+              ctrl.removeInvestment(investment.id);
+              Navigator.pop(dialogCtx);
+              toast.showSuccess(
+                '"${investment.name}" deleted',
+                actionLabel: 'Undo',
+                onAction: () {
+                  ctrl.addInvestment(investment);
+                  toast.showInfo('Investment restored');
+                },
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSlidableInvestmentCard(Investment investment) {
+    return Slidable(
+      key: ValueKey('slidable_${investment.id}'),
+      endActionPane: ActionPane(
+        motion: const DrawerMotion(),
+        extentRatio: 0.22,
+        children: [
+          SlidableAction(
+            onPressed: (_) => _deleteInvestmentWithConfirmation(investment),
+            backgroundColor: CupertinoColors.systemRed,
+            foregroundColor: Colors.white,
+            icon: CupertinoIcons.delete,
+            label: 'Delete',
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ],
+      ),
+      child: _buildInvestmentCard(investment),
+    );
+  }
+
   Widget _buildInvestmentCard(Investment investment) {
     // For digital gold, use async fetching with FutureBuilder
     if (investment.type == InvestmentType.digitalGold) {
@@ -2310,4 +2615,50 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       ),
     );
   }
+}
+
+// ── Donut chart helpers ──────────────────────────────────────────────────────
+
+class _DonutSlice {
+  final double value; // 0.0–1.0 fraction
+  final Color color;
+  const _DonutSlice({required this.value, required this.color});
+}
+
+class _DonutChartPainter extends CustomPainter {
+  final List<_DonutSlice> slices;
+  final Color holeColor;
+  _DonutChartPainter({required this.slices, this.holeColor = Colors.black});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = min(size.width, size.height) / 2;
+    const holeRatio = 0.55;
+    final paint = Paint()
+      ..style = PaintingStyle.fill
+      ..isAntiAlias = true;
+
+    double startAngle = -pi / 2;
+    for (final slice in slices) {
+      final sweepAngle = slice.value * 2 * pi;
+      paint.color = slice.color;
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        startAngle,
+        sweepAngle,
+        true,
+        paint,
+      );
+      startAngle += sweepAngle;
+    }
+
+    // Draw hole
+    paint.color = slices.isEmpty ? Colors.transparent : holeColor;
+    canvas.drawCircle(center, radius * holeRatio, paint);
+  }
+
+  @override
+  bool shouldRepaint(_DonutChartPainter oldDelegate) =>
+      oldDelegate.slices != slices || oldDelegate.holeColor != holeColor;
 }

@@ -33,45 +33,17 @@ class _InvestmentTypeSelectionModalState
       'label': 'Mutual Fund',
       'icon': CupertinoIcons.chart_pie_fill
     },
-    InvestmentType.fixedDeposit: {
-      'label': 'Fixed Deposit (FD)',
-      'icon': CupertinoIcons.lock_circle_fill
-    },
-    InvestmentType.recurringDeposit: {
-      'label': 'Recurring Deposit (RD)',
-      'icon': CupertinoIcons.arrow_2_circlepath_circle_fill
+    InvestmentType.digitalGold: {
+      'label': 'Digital Gold',
+      'icon': CupertinoIcons.star_circle_fill
     },
     InvestmentType.bonds: {
       'label': 'Bonds',
       'icon': CupertinoIcons.doc_circle_fill
     },
     InvestmentType.nationalSavingsScheme: {
-      'label': 'National Savings Scheme',
+      'label': 'NPS',
       'icon': CupertinoIcons.flag_circle_fill
-    },
-    InvestmentType.digitalGold: {
-      'label': 'Digital Gold',
-      'icon': CupertinoIcons.star_circle_fill
-    },
-    InvestmentType.pensionSchemes: {
-      'label': 'Pension Schemes',
-      'icon': CupertinoIcons.calendar_circle_fill
-    },
-    InvestmentType.cryptocurrency: {
-      'label': 'Cryptocurrency',
-      'icon': CupertinoIcons.cube_box_fill
-    },
-    InvestmentType.futuresOptions: {
-      'label': 'Futures & Options',
-      'icon': CupertinoIcons.arrow_up_arrow_down_circle_fill
-    },
-    InvestmentType.forexCurrency: {
-      'label': 'Forex/Currency',
-      'icon': CupertinoIcons.money_dollar_circle_fill
-    },
-    InvestmentType.commodities: {
-      'label': 'Commodities',
-      'icon': CupertinoIcons.square_fill
     },
   };
 
@@ -83,9 +55,19 @@ class _InvestmentTypeSelectionModalState
         final hiddenTypes = prefsController.hiddenTypes;
 
         final displayedTypes =
-            _showAll ? [...preferredTypes, ...hiddenTypes] : preferredTypes;
+            (_showAll ? [...preferredTypes, ...hiddenTypes] : preferredTypes)
+                .where(_investmentTypeDetails.containsKey)
+                .toList();
 
-        return _buildContent(context, displayedTypes, prefsController);
+        final resolvedDisplayedTypes = displayedTypes.isEmpty
+            ? _investmentTypeDetails.keys.toList()
+            : displayedTypes;
+
+        return _buildContent(
+          context,
+          resolvedDisplayedTypes,
+          prefsController,
+        );
       },
     );
   }
@@ -238,7 +220,7 @@ class _InvestmentTypeSelectionModalState
               const SizedBox(height: 20),
 
               // More/Less Button
-              if (!_showAll)
+              if (!_showAll && prefsController.hiddenTypes.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: CupertinoButton(
@@ -266,7 +248,7 @@ class _InvestmentTypeSelectionModalState
                     ),
                   ),
                 )
-              else
+              else if (_showAll && prefsController.hiddenTypes.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: CupertinoButton(
@@ -334,6 +316,8 @@ class InvestmentTypePreferencesModal extends StatefulWidget {
 class _InvestmentTypePreferencesModalState
     extends State<InvestmentTypePreferencesModal> {
   late List<InvestmentType> _tempSelectedTypes;
+  final int _maxSelectable =
+      InvestmentTypePreferencesController.allTypes.length;
 
   @override
   void initState() {
@@ -379,7 +363,7 @@ class _InvestmentTypePreferencesModalState
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Select up to 6 investment types to show on the first screen',
+                      'Select investment types to show on the first screen',
                       style: TextStyle(
                         color: AppStyles.getSecondaryTextColor(context),
                         fontSize: 12,
@@ -397,7 +381,7 @@ class _InvestmentTypePreferencesModalState
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Selected: ${_tempSelectedTypes.length}/6',
+                      'Selected: ${_tempSelectedTypes.length}/$_maxSelectable',
                       style: TextStyle(
                         color: AppStyles.getSecondaryTextColor(context),
                         fontSize: 12,
@@ -443,7 +427,7 @@ class _InvestmentTypePreferencesModalState
                             if (isSelected) {
                               _tempSelectedTypes.remove(type);
                             } else {
-                              if (_tempSelectedTypes.length < 6) {
+                              if (_tempSelectedTypes.length < _maxSelectable) {
                                 _tempSelectedTypes.add(type);
                               }
                             }

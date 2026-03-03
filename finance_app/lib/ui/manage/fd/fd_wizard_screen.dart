@@ -88,22 +88,17 @@ class _FDWizardScreenState extends State<FDWizardScreen> {
       final accountsController =
           Provider.of<AccountsController>(context, listen: false);
 
-      // Debit principal from linked account if enabled
+      // Debit principal from linked account if enabled.
+      // If debit fails, abort — do not create FD with inconsistent state.
       if (_controller.debitFromAccount) {
-        try {
-          final account = accountsController.accounts.firstWhere(
-            (a) => a.id == fd.linkedAccountId,
-            orElse: () => throw Exception('Account not found'),
-          );
-          final updatedAccount = account.copyWith(
-            balance: account.balance - fd.principal,
-          );
-          await accountsController.updateAccount(updatedAccount);
-        } catch (e) {
-          if (mounted) {
-            toast.showError('Failed to debit from account: $e');
-          }
-        }
+        final account = accountsController.accounts.firstWhere(
+          (a) => a.id == fd.linkedAccountId,
+          orElse: () => throw Exception('Linked account not found'),
+        );
+        final updatedAccount = account.copyWith(
+          balance: account.balance - fd.principal,
+        );
+        await accountsController.updateAccount(updatedAccount);
       }
 
       // Save FD as Investment

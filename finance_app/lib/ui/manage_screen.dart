@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/logic/settings_controller.dart';
 import 'package:vittara_fin_os/ui/manage/banks_screen.dart';
 import 'package:vittara_fin_os/ui/manage/accounts_screen.dart';
@@ -12,12 +13,12 @@ import 'package:vittara_fin_os/ui/manage/lending_borrowing_screen.dart';
 import 'package:vittara_fin_os/ui/manage/contacts_screen.dart';
 import 'package:vittara_fin_os/ui/manage/tags_screen.dart';
 import 'package:vittara_fin_os/ui/manage/transactions_archive_screen.dart';
-import 'package:vittara_fin_os/ui/manage/reports_analysis_screen.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/floating_particle_background.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
 import 'package:vittara_fin_os/utils/logger.dart';
 
 class ManageScreen extends StatefulWidget {
@@ -29,6 +30,7 @@ class ManageScreen extends StatefulWidget {
 
 class _ManageScreenState extends State<ManageScreen> {
   final AppLogger logger = AppLogger();
+  static const _orderPrefKey = 'manage_screen_order';
 
   final List<Map<String, dynamic>> _items = [
     {
@@ -65,19 +67,14 @@ class _ManageScreenState extends State<ManageScreen> {
       'id': 'debt',
       'title': 'Liabilities',
       'icon': CupertinoIcons.money_dollar_circle_fill,
-      'color': CupertinoColors.systemRed
+      'color': CupertinoColors.systemRed,
+      'comingSoon': true,
     },
     {
       'id': 'cats',
       'title': 'Categories',
       'icon': CupertinoIcons.square_grid_2x2_fill,
       'color': CupertinoColors.systemPurple
-    },
-    {
-      'id': 'reports',
-      'title': 'Reports & Analysis',
-      'icon': CupertinoIcons.chart_bar_square_fill,
-      'color': CupertinoColors.systemCyan
     },
     {
       'id': 'contacts',
@@ -104,6 +101,41 @@ class _ManageScreenState extends State<ManageScreen> {
       'color': CupertinoColors.systemPurple
     },
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadOrder();
+  }
+
+  Future<void> _loadOrder() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getStringList(_orderPrefKey);
+    if (saved == null || saved.isEmpty) return;
+    // Reorder _items to match saved order, keeping any new ids at end
+    final ordered = <Map<String, dynamic>>[];
+    for (final id in saved) {
+      final idx = _items.indexWhere((item) => item['id'] == id);
+      if (idx >= 0) ordered.add(_items[idx]);
+    }
+    // Append any items not in saved list
+    for (final item in _items) {
+      if (!saved.contains(item['id'])) ordered.add(item);
+    }
+    if (mounted) {
+      setState(() {
+        _items
+          ..clear()
+          ..addAll(ordered);
+      });
+    }
+  }
+
+  Future<void> _saveOrder() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(
+        _orderPrefKey, _items.map((i) => i['id'] as String).toList());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -133,60 +165,63 @@ class _ManageScreenState extends State<ManageScreen> {
           }).toList();
 
           return SafeArea(
-            child: SubtleParticleOverlay(
-              particleCount: 34,
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: AppStyles.backgroundGradient(context),
-                ),
-                child: ReorderableListView.builder(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: Spacing.lg,
-                    vertical: Spacing.xl,
+            child: RepaintBoundary(
+              child: SubtleParticleOverlay(
+                particleCount: 12,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: AppStyles.backgroundGradient(context),
                   ),
-                  header: Padding(
-                    padding: EdgeInsets.only(bottom: Spacing.lg),
-                    child: _buildManageHeader(context),
-                  ),
-                  itemCount: filteredItems.length,
-                  onReorder: (oldIndex, newIndex) {
-                    Haptics.reorder();
-                    setState(() {
-                      if (oldIndex < newIndex) {
-                        newIndex -= 1;
-                      }
-                      final item = _items.removeAt(oldIndex);
-                      _items.insert(newIndex, item);
-                    });
-                  },
-                  proxyDecorator: (child, index, animation) {
-                    return AnimatedBuilder(
-                      animation: animation,
-                      builder: (BuildContext context, Widget? child) {
-                        return Transform.scale(
-                          scale: 1.02,
-                          child: Container(
-                            decoration:
-                                AppStyles.cardDecoration(context).copyWith(
-                              boxShadow: [
-                                ...AppStyles.elevatedShadows(
-                                  context,
-                                  tint: SemanticColors.getPrimary(context),
-                                  strength: 0.7,
-                                ),
-                              ],
+                  child: ReorderableListView.builder(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: Spacing.lg,
+                      vertical: Spacing.xl,
+                    ),
+                    header: Padding(
+                      padding: EdgeInsets.only(bottom: Spacing.lg),
+                      child: _buildManageHeader(context),
+                    ),
+                    itemCount: filteredItems.length,
+                    onReorder: (oldIndex, newIndex) {
+                      Haptics.reorder();
+                      setState(() {
+                        if (oldIndex < newIndex) {
+                          newIndex -= 1;
+                        }
+                        final item = _items.removeAt(oldIndex);
+                        _items.insert(newIndex, item);
+                      });
+                      _saveOrder();
+                    },
+                    proxyDecorator: (child, index, animation) {
+                      return AnimatedBuilder(
+                        animation: animation,
+                        builder: (BuildContext context, Widget? child) {
+                          return Transform.scale(
+                            scale: 1.02,
+                            child: Container(
+                              decoration:
+                                  AppStyles.cardDecoration(context).copyWith(
+                                boxShadow: [
+                                  ...AppStyles.elevatedShadows(
+                                    context,
+                                    tint: SemanticColors.getPrimary(context),
+                                    strength: 0.7,
+                                  ),
+                                ],
+                              ),
+                              child: child,
                             ),
-                            child: child,
-                          ),
-                        );
-                      },
-                      child: child,
-                    );
-                  },
-                  itemBuilder: (context, index) {
-                    final item = filteredItems[index];
-                    return _build3DCard(item, index, settings);
-                  },
+                          );
+                        },
+                        child: child,
+                      );
+                    },
+                    itemBuilder: (context, index) {
+                      final item = filteredItems[index];
+                      return _build3DCard(item, index, settings);
+                    },
+                  ),
                 ),
               ),
             ),
@@ -269,16 +304,45 @@ class _ManageScreenState extends State<ManageScreen> {
                 ),
                 SizedBox(width: Spacing.lg),
                 Expanded(
-                  child: Text(
-                    item['title'],
-                    style: AppStyles.titleStyle(context),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item['title'],
+                        style: AppStyles.titleStyle(context),
+                      ),
+                      if (item['comingSoon'] == true) ...[
+                        SizedBox(height: Spacing.xxs),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: Spacing.sm, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: CupertinoColors.systemOrange
+                                .withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text(
+                            'Coming Soon',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: CupertinoColors.systemOrange,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
                 Column(
                   children: [
                     Icon(
-                      CupertinoIcons.arrow_right_circle_fill,
-                      color: item['color'],
+                      item['comingSoon'] == true
+                          ? CupertinoIcons.lock_fill
+                          : CupertinoIcons.arrow_right_circle_fill,
+                      color: item['comingSoon'] == true
+                          ? AppStyles.getSecondaryTextColor(context)
+                          : item['color'],
                       size: IconSizes.md,
                     ),
                     SizedBox(height: Spacing.xs),
@@ -299,6 +363,10 @@ class _ManageScreenState extends State<ManageScreen> {
 
   Future<void> _onCardPressed(
       Map<String, dynamic> item, SettingsController settings) async {
+    if (item['comingSoon'] == true) {
+      toast_lib.toast.showInfo('${item['title']} – Coming Soon');
+      return;
+    }
     if (item['id'] == 'archived' && settings.isArchivedTransactionsEnabled) {
       final allowed = await settings.authenticateArchivedAccess();
       if (!allowed) return;
@@ -326,9 +394,6 @@ class _ManageScreenState extends State<ManageScreen> {
         break;
       case 'cats':
         page = const CategoriesScreen();
-        break;
-      case 'reports':
-        page = const ReportsAnalysisScreen();
         break;
       case 'contacts':
         page = const ContactsScreen();

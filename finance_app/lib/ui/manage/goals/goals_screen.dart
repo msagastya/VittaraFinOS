@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/goals_controller.dart';
 import 'package:vittara_fin_os/logic/goal_model.dart';
@@ -13,6 +14,7 @@ import 'package:vittara_fin_os/ui/widgets/animated_counter.dart'
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/glass_card.dart';
 import 'package:vittara_fin_os/ui/widgets/liquid_progress_indicators.dart';
+import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
 import 'package:vittara_fin_os/utils/logger.dart';
 
 class GoalsScreen extends StatefulWidget {
@@ -228,7 +230,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                                       child: Padding(
                                         padding:
                                             EdgeInsets.only(bottom: Spacing.lg),
-                                        child: _buildGoalCard(goal),
+                                        child: _buildSlidableGoalCard(goal),
                                       ),
                                     );
                                   },
@@ -417,6 +419,54 @@ class _GoalsScreenState extends State<GoalsScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildSlidableGoalCard(Goal goal) {
+    return Slidable(
+      key: ValueKey(goal.id),
+      endActionPane: ActionPane(
+        motion: const DrawerMotion(),
+        extentRatio: 0.22,
+        children: [
+          SlidableAction(
+            onPressed: (_) => _deleteGoalWithConfirmation(goal),
+            backgroundColor: SemanticColors.error,
+            foregroundColor: CupertinoColors.white,
+            icon: CupertinoIcons.trash_fill,
+            borderRadius: BorderRadius.circular(Radii.lg),
+          ),
+        ],
+      ),
+      child: _buildGoalCard(goal),
+    );
+  }
+
+  void _deleteGoalWithConfirmation(Goal goal) {
+    Haptics.warning();
+    showCupertinoDialog<void>(
+      context: context,
+      builder: (dialogCtx) => CupertinoAlertDialog(
+        title: const Text('Delete Goal'),
+        content: Text('Delete "${goal.name}"? This cannot be undone.'),
+        actions: [
+          CupertinoDialogAction(
+            child: const Text('Cancel'),
+            onPressed: () => Navigator.pop(dialogCtx),
+          ),
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            child: const Text('Delete'),
+            onPressed: () async {
+              final ctrl = Provider.of<GoalsController>(context, listen: false);
+              await ctrl.deleteGoal(goal.id);
+              Navigator.pop(dialogCtx);
+              toast_lib.toast.showSuccess('"${goal.name}" deleted');
+              Haptics.delete();
+            },
+          ),
+        ],
       ),
     );
   }

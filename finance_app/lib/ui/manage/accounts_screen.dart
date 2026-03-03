@@ -29,10 +29,13 @@ class _AccountsScreenState extends State<AccountsScreen> {
   final AppLogger logger = AppLogger();
   final PageController _categoryPageController = PageController();
   int _selectedCategoryIndex = 0;
+  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void dispose() {
     _categoryPageController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -342,9 +345,20 @@ class _AccountsScreenState extends State<AccountsScreen> {
     );
   }
 
+  List<Account> _filterAccountsBySearch(List<Account> accounts) {
+    if (_searchQuery.isEmpty) return accounts;
+    final q = _searchQuery.toLowerCase();
+    return accounts
+        .where((acc) =>
+            acc.name.toLowerCase().contains(q) ||
+            acc.bankName.toLowerCase().contains(q))
+        .toList();
+  }
+
   Widget _buildCategoryPage(AccountType type, List<Account> allAccounts) {
-    final sectionAccounts = _getAccountsByType(allAccounts, type)
-      ..sort((a, b) => b.balance.compareTo(a.balance));
+    final sectionAccounts =
+        _filterAccountsBySearch(_getAccountsByType(allAccounts, type))
+          ..sort((a, b) => b.balance.compareTo(a.balance));
     final total = _getTotalByType(allAccounts, type);
     return Column(
       children: [
@@ -407,6 +421,9 @@ class _AccountsScreenState extends State<AccountsScreen> {
       ),
       child: Consumer<AccountsController>(
         builder: (context, accountsController, child) {
+          if (!accountsController.isLoaded) {
+            return const SafeArea(child: SkeletonListView(itemCount: 5));
+          }
           final accounts = accountsController.accounts;
           final types = _orderedAccountTypes(accounts);
           _syncSelectedCategoryIndex(types);
@@ -425,6 +442,21 @@ class _AccountsScreenState extends State<AccountsScreen> {
                   child: Column(
                     children: [
                       SizedBox(height: Spacing.lg),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
+                        child: CupertinoSearchTextField(
+                          controller: _searchController,
+                          placeholder: 'Search accounts',
+                          backgroundColor: AppStyles.getCardColor(context),
+                          style:
+                              TextStyle(color: AppStyles.getTextColor(context)),
+                          placeholderStyle: TextStyle(
+                              color: AppStyles.getSecondaryTextColor(context),
+                              fontSize: 14),
+                          onChanged: (v) => setState(() => _searchQuery = v),
+                        ),
+                      ),
+                      SizedBox(height: Spacing.sm),
                       _buildCategoryTabs(types, accounts),
                       SizedBox(height: Spacing.md),
                       Expanded(

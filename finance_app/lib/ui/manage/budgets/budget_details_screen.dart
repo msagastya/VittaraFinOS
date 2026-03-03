@@ -19,8 +19,14 @@ class BudgetDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<BudgetsController>(
       builder: (context, controller, child) {
-        final budget = controller.budgets.firstWhere((b) => b.id == budgetId,
-            orElse: () => controller.budgets.first);
+        final budgetIdx =
+            controller.budgets.indexWhere((b) => b.id == budgetId);
+        if (budgetIdx < 0) {
+          return const CupertinoPageScaffold(
+            child: Center(child: Text('Budget not found')),
+          );
+        }
+        final budget = controller.budgets[budgetIdx];
         final statusColor = budget.status == BudgetStatus.exceeded
             ? SemanticColors.error
             : budget.status == BudgetStatus.warning

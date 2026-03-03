@@ -8,6 +8,8 @@ import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
+import 'package:vittara_fin_os/utils/date_formatter.dart';
 
 class NetWorthPage extends StatefulWidget {
   const NetWorthPage({super.key});
@@ -31,6 +33,65 @@ class _NetWorthPageState extends State<NetWorthPage> {
       child: SafeArea(
         child: Consumer2<AccountsController, InvestmentsController>(
           builder: (context, accountsController, investmentsController, child) {
+            // Show skeleton while data is loading from storage
+            if (!accountsController.isLoaded ||
+                !investmentsController.isLoaded) {
+              return SingleChildScrollView(
+                padding: EdgeInsets.all(Spacing.lg),
+                child: Column(
+                  children: [
+                    const SkeletonSummaryCard(),
+                    SizedBox(height: Spacing.xl),
+                    const SkeletonListView(itemCount: 4),
+                  ],
+                ),
+              );
+            }
+
+            // Empty state — no data yet
+            if (accountsController.accounts.isEmpty &&
+                investmentsController.investments.isEmpty) {
+              return Center(
+                child: Padding(
+                  padding: EdgeInsets.all(Spacing.xxl),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        CupertinoIcons.chart_pie_fill,
+                        size: 72,
+                        color: SemanticColors.primary.withValues(alpha: 0.3),
+                      ),
+                      SizedBox(height: Spacing.xl),
+                      Text(
+                        'Your Net Worth Awaits',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: AppStyles.getTextColor(context),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: Spacing.md),
+                      Text(
+                        'Add your first account or investment to see your net worth here.',
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: AppStyles.getSecondaryTextColor(context),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: Spacing.xxl),
+                      CupertinoButton.filled(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text('Go to Manage'),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+
             try {
               return SingleChildScrollView(
                 padding: EdgeInsets.all(Spacing.lg),
@@ -162,7 +223,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
           ),
           SizedBox(height: Spacing.md),
           Text(
-            '₹${totalNetWorth.toStringAsFixed(2)}',
+            CurrencyFormatter.compact(totalNetWorth, decimals: 2),
             style: TextStyle(
               fontSize: 42,
               fontWeight: FontWeight.w900,
@@ -195,7 +256,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                       ),
                     ),
                     Text(
-                      '₹${totalSavings.toStringAsFixed(2)}',
+                      CurrencyFormatter.compact(totalSavings),
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -220,7 +281,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                         ),
                       ),
                       Text(
-                        '₹${totalInvestments.toStringAsFixed(2)}',
+                        CurrencyFormatter.compact(totalInvestments),
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -245,7 +306,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                         ),
                       ),
                       Text(
-                        '₹${totalCreditLimit.toStringAsFixed(2)}',
+                        CurrencyFormatter.compact(totalCreditLimit),
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -273,7 +334,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                         ),
                       ),
                       Text(
-                        '₹${totalCreditUsed.toStringAsFixed(2)}',
+                        CurrencyFormatter.compact(totalCreditUsed),
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,

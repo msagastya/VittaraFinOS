@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart' show RefreshIndicator;
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_feed_builder.dart';
@@ -23,6 +24,24 @@ class TransactionHistoryScreen extends StatefulWidget {
 
 class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   final AppLogger logger = AppLogger();
+  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  List<Transaction> _filterBySearch(List<Transaction> txns) {
+    if (_searchQuery.isEmpty) return txns;
+    final q = _searchQuery.toLowerCase();
+    return txns.where((t) {
+      return t.getTypeLabel().toLowerCase().contains(q) ||
+          t.getSummary().toLowerCase().contains(q) ||
+          t.amount.toString().contains(q);
+    }).toList();
+  }
 
   Color _getTransactionTypeColor(TransactionType type) {
     switch (type) {
@@ -109,12 +128,13 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
       child: Consumer2<TransactionsController, InvestmentsController>(
         builder:
             (context, transactionsController, investmentsController, child) {
-          final transactions = TransactionFeedBuilder.buildUnifiedFeed(
+          final allTransactions = TransactionFeedBuilder.buildUnifiedFeed(
             transactions: transactionsController.transactions,
             investments: investmentsController.investments,
           );
+          final transactions = _filterBySearch(allTransactions);
 
-          if (transactions.isEmpty) {
+          if (allTransactions.isEmpty) {
             return EmptyStateView(
               icon: CupertinoIcons.doc_text,
               title: 'No Transactions Yet',
@@ -124,19 +144,121 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           }
 
           return SafeArea(
-            child: ListView.builder(
-              padding: EdgeInsets.fromLTRB(
-                  Spacing.lg, Spacing.lg, Spacing.lg, Spacing.xxxl),
-              itemCount: transactions.length,
-              itemBuilder: (context, index) {
-                return StaggeredItem(
-                  key: ValueKey(transactions[index].id),
-                  index: index,
-                  child: _buildTransactionCard(
-                      context, transactions[index], transactionsController),
-                );
-              },
+            child: Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                      Spacing.lg, Spacing.lg, Spacing.lg, Spacing.sm),
+                  child: CupertinoSearchTextField(
+                    controller: _searchController,
+                    placeholder: 'Search transactions',
+                    onChanged: (v) => setState(() => _searchQuery = v),
+                    onSubmitted: (v) => setState(() => _searchQuery = v),
+                  ),
+                ),
+                if (transactions.isEmpty)
+                  Expanded(
+                    child: Center(
+                      child: Text('No transactions match "$_searchQuery"',
+                          style: TextStyle(
+                              color: AppStyles.getSecondaryTextColor(context))),
+                    ),
+                  )
+                else
+                  Expanded(
+                    child: _buildGroupedList(
+                        context, transactions, transactionsController),
+                  ),
+              ],
             ),
+          );
+        },
+      ),
+    );
+  }
+
+  Map<String, List<Transaction>> _groupByDate(List<Transaction> txns) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+    final result = <String, List<Transaction>>{};
+    for (final t in txns) {
+      final d = DateTime(t.dateTime.year, t.dateTime.month, t.dateTime.day);
+      final String label;
+      if (d == today) {
+        label = 'Today';
+      } else if (d == yesterday) {
+        label = 'Yesterday';
+      } else {
+        label =
+            '${t.dateTime.day} ${months[t.dateTime.month - 1]} ${t.dateTime.year}';
+      }
+      result.putIfAbsent(label, () => []).add(t);
+    }
+    return result;
+  }
+
+  Widget _buildGroupedList(
+    BuildContext context,
+    List<Transaction> transactions,
+    TransactionsController controller,
+  ) {
+    final groups = _groupByDate(transactions);
+    final listItems = <_TxnListItem>[];
+    for (final entry in groups.entries) {
+      listItems.add(_TxnListItem.header(entry.key));
+      for (final t in entry.value) {
+        listItems.add(_TxnListItem.transaction(t));
+      }
+    }
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        // Trigger a UI refresh
+        if (mounted) setState(() {});
+      },
+      child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.fromLTRB(
+            Spacing.lg, Spacing.sm, Spacing.lg, Spacing.xxxl),
+        itemCount: listItems.length,
+        itemBuilder: (context, index) {
+          final item = listItems[index];
+          if (item.isHeader) {
+            return Padding(
+              key: ValueKey('h_${item.header}'),
+              padding: EdgeInsets.only(
+                  top: index == 0 ? 0 : Spacing.lg, bottom: Spacing.sm),
+              child: Text(
+                item.header!,
+                style: TextStyle(
+                  fontSize: TypeScale.footnote,
+                  fontWeight: FontWeight.w600,
+                  color: AppStyles.getSecondaryTextColor(context),
+                  letterSpacing: 0.5,
+                ),
+              ),
+            );
+          }
+          final txn = item.transaction!;
+          return StaggeredItem(
+            key: ValueKey(txn.id),
+            index: index,
+            child: _buildTransactionCard(context, txn, controller),
           );
         },
       ),
@@ -429,4 +551,14 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     logger.info('Archived transaction: ${transaction.id}',
         context: 'TransactionHistory');
   }
+}
+
+class _TxnListItem {
+  final String? header;
+  final Transaction? transaction;
+
+  const _TxnListItem.header(this.header) : transaction = null;
+  const _TxnListItem.transaction(this.transaction) : header = null;
+
+  bool get isHeader => header != null;
 }

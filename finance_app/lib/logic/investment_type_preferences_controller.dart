@@ -8,20 +8,13 @@ class InvestmentTypePreferencesController with ChangeNotifier {
 
   static const String _storageKey = 'investment_type_preferences';
 
-  // All investment types in order
+  // Curated, professional-first investment types for new entries.
   static const List<InvestmentType> allTypes = [
     InvestmentType.stocks,
     InvestmentType.mutualFund,
-    InvestmentType.fixedDeposit,
-    InvestmentType.recurringDeposit,
-    InvestmentType.bonds,
-    InvestmentType.nationalSavingsScheme,
     InvestmentType.digitalGold,
-    InvestmentType.pensionSchemes,
-    InvestmentType.cryptocurrency,
-    InvestmentType.futuresOptions,
-    InvestmentType.forexCurrency,
-    InvestmentType.commodities,
+    InvestmentType.nationalSavingsScheme,
+    InvestmentType.bonds,
   ];
 
   List<InvestmentType> get preferredTypes => _preferredTypes;
@@ -31,13 +24,7 @@ class InvestmentTypePreferencesController with ChangeNotifier {
   }
 
   InvestmentTypePreferencesController() {
-    _preferredTypes = [
-      InvestmentType.stocks,
-      InvestmentType.mutualFund,
-      InvestmentType.fixedDeposit,
-      InvestmentType.recurringDeposit,
-      InvestmentType.bonds,
-    ];
+    _preferredTypes = [...allTypes];
   }
 
   Future<void> loadPreferences() async {
@@ -45,22 +32,45 @@ class InvestmentTypePreferencesController with ChangeNotifier {
     final savedPreferences = _prefs.getStringList(_storageKey);
 
     if (savedPreferences != null && savedPreferences.isNotEmpty) {
-      _preferredTypes = savedPreferences
-          .map((typeIndex) => InvestmentType.values[int.parse(typeIndex)])
-          .toList();
+      final restored = <InvestmentType>[];
+      for (final typeIndex in savedPreferences) {
+        final parsed = int.tryParse(typeIndex);
+        if (parsed == null ||
+            parsed < 0 ||
+            parsed >= InvestmentType.values.length) {
+          continue;
+        }
+        final type = InvestmentType.values[parsed];
+        if (allTypes.contains(type) && !restored.contains(type)) {
+          restored.add(type);
+        }
+      }
+      _preferredTypes = restored.isEmpty ? [...allTypes] : restored;
+    } else {
+      _preferredTypes = [...allTypes];
     }
 
     notifyListeners();
   }
 
   Future<void> savePreferences(List<InvestmentType> types) async {
-    // Maximum 6 types allowed
-    if (types.length > 6) {
+    final sanitized = <InvestmentType>[];
+    for (final type in types) {
+      if (allTypes.contains(type) && !sanitized.contains(type)) {
+        sanitized.add(type);
+      }
+    }
+    if (sanitized.isEmpty) {
       return;
     }
 
-    _preferredTypes = types;
-    final typeIndices = types.map((type) => type.index.toString()).toList();
+    // Maximum 6 types allowed
+    if (sanitized.length > 6) {
+      return;
+    }
+
+    _preferredTypes = sanitized;
+    final typeIndices = sanitized.map((type) => type.index.toString()).toList();
     await _prefs.setStringList(_storageKey, typeIndices);
     notifyListeners();
   }
