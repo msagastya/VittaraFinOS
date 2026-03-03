@@ -106,7 +106,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                   style: TextStyle(
                     color: AppStyles.getTextColor(context),
                     fontWeight: FontWeight.w600,
-                    fontSize: 14,
+                    fontSize: TypeScale.body,
                   ),
                 ),
                 SizedBox(height: Spacing.sm),
@@ -136,7 +136,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                   style: TextStyle(
                     color: AppStyles.getTextColor(context),
                     fontWeight: FontWeight.w600,
-                    fontSize: 14,
+                    fontSize: TypeScale.body,
                   ),
                 ),
                 SizedBox(height: Spacing.sm),
@@ -167,7 +167,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                           _formatDate(_controller.investmentDate),
                           style: TextStyle(
                             color: AppStyles.getTextColor(context),
-                            fontSize: 16,
+                            fontSize: TypeScale.headline,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -187,7 +187,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                   style: TextStyle(
                     color: AppStyles.getTextColor(context),
                     fontWeight: FontWeight.w600,
-                    fontSize: 14,
+                    fontSize: TypeScale.body,
                   ),
                 ),
                 SizedBox(height: Spacing.sm),
@@ -217,7 +217,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                   style: TextStyle(
                     color: AppStyles.getTextColor(context),
                     fontWeight: FontWeight.w600,
-                    fontSize: 14,
+                    fontSize: TypeScale.body,
                   ),
                 ),
                 SizedBox(height: Spacing.sm),
@@ -290,7 +290,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                   style: TextStyle(
                     color: AppStyles.getTextColor(context),
                     fontWeight: FontWeight.w600,
-                    fontSize: 14,
+                    fontSize: TypeScale.body,
                   ),
                 ),
                 SizedBox(height: Spacing.sm),
@@ -342,7 +342,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                             'Estimated Maturity Value',
                             style: TextStyle(
                               color: AppStyles.getSecondaryTextColor(context),
-                              fontSize: 12,
+                              fontSize: TypeScale.footnote,
                             ),
                           ),
                           SizedBox(height: Spacing.sm),
@@ -359,7 +359,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                             'Interest: ₹${controller.totalInterestAtMaturity.toStringAsFixed(2)}',
                             style: TextStyle(
                               color: AppStyles.getSecondaryTextColor(context),
-                              fontSize: 12,
+                              fontSize: TypeScale.footnote,
                             ),
                           ),
                         ],
@@ -389,7 +389,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                         'Estimated Maturity Date',
                         style: TextStyle(
                           color: AppStyles.getSecondaryTextColor(context),
-                          fontSize: 12,
+                          fontSize: TypeScale.footnote,
                         ),
                       ),
                       SizedBox(height: Spacing.sm),
@@ -406,7 +406,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                         'Based on ${_controller.tenureMonths} months from ${_formatDate(_controller.investmentDate)}',
                         style: TextStyle(
                           color: AppStyles.getSecondaryTextColor(context),
-                          fontSize: 11,
+                          fontSize: TypeScale.caption,
                         ),
                       ),
                     ],
@@ -420,7 +420,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                   style: TextStyle(
                     color: AppStyles.getTextColor(context),
                     fontWeight: FontWeight.w600,
-                    fontSize: 14,
+                    fontSize: TypeScale.body,
                   ),
                 ),
                 SizedBox(height: Spacing.sm),
@@ -751,7 +751,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                     'Select Unit',
                     style: TextStyle(
                       color: AppStyles.getTextColor(context),
-                      fontSize: 16,
+                      fontSize: TypeScale.headline,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -839,7 +839,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
             style: TextStyle(
               color: AppStyles.getTextColor(context),
               fontWeight: FontWeight.w600,
-              fontSize: 13,
+              fontSize: TypeScale.subhead,
             ),
           ),
         ),

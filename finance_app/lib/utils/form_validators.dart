@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 /// Comprehensive form validation utilities
 class FormValidators {
@@ -540,7 +541,7 @@ class _ValidatedTextFieldState extends State<ValidatedTextField> {
             child: Text(
               widget.label!,
               style: const TextStyle(
-                fontSize: 14,
+                fontSize: TypeScale.body,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -572,7 +573,7 @@ class _ValidatedTextFieldState extends State<ValidatedTextField> {
             child: Text(
               _errorText!,
               style: const TextStyle(
-                fontSize: 12,
+                fontSize: TypeScale.footnote,
                 color: CupertinoColors.systemRed,
               ),
             ),

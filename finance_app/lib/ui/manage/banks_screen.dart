@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/banks_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 
@@ -84,7 +85,7 @@ class _BanksScreenState extends State<BanksScreen> {
                             Text(
                               isEditMode ? 'Edit Bank' : 'Add Bank',
                               style: AppStyles.titleStyle(context)
-                                  .copyWith(fontSize: 20),
+                                  .copyWith(fontSize: TypeScale.title2),
                             ),
                             const SizedBox(height: 16),
                             Container(
@@ -282,7 +283,7 @@ class _BanksScreenState extends State<BanksScreen> {
     return Text(
       text,
       style: TextStyle(
-        fontSize: 14,
+        fontSize: TypeScale.body,
         fontWeight: FontWeight.w500,
         color: AppStyles.isDarkMode(context)
             ? Colors.grey[400]
@@ -420,7 +421,7 @@ class _BanksScreenState extends State<BanksScreen> {
                       child: Text(
                         '${(bank['senderIds'] as List).length} Sender IDs',
                         style: TextStyle(
-                            fontSize: 12,
+                            fontSize: TypeScale.footnote,
                             color: AppStyles.getSecondaryTextColor(context)),
                       ),
                     ),

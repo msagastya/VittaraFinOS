@@ -5,6 +5,7 @@ import 'package:vittara_fin_os/logic/account_model.dart';
 import 'package:vittara_fin_os/logic/banks_controller.dart';
 import 'package:vittara_fin_os/logic/brokers_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 
 class AccountWizard extends StatefulWidget {
@@ -362,7 +363,7 @@ class _AccountWizardState extends State<AccountWizard> {
                           const SizedBox(height: 12),
                           Text(broker['name'],
                               style: AppStyles.titleStyle(context)
-                                  .copyWith(fontSize: 14)),
+                                  .copyWith(fontSize: TypeScale.body)),
                         ],
                       ),
                     ),
@@ -413,7 +414,7 @@ class _AccountWizardState extends State<AccountWizard> {
                             'Add Broker',
                             style: TextStyle(
                               color: CupertinoColors.systemBlue,
-                              fontSize: 16,
+                              fontSize: TypeScale.headline,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -464,7 +465,7 @@ class _AccountWizardState extends State<AccountWizard> {
                         Text(
                           'Add New Broker',
                           style: AppStyles.titleStyle(context)
-                              .copyWith(fontSize: 20),
+                              .copyWith(fontSize: TypeScale.title2),
                         ),
                       ],
                     ),
@@ -481,7 +482,7 @@ class _AccountWizardState extends State<AccountWizard> {
                           Text(
                             'Broker Name',
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: TypeScale.body,
                               fontWeight: FontWeight.w500,
                               color: AppStyles.getSecondaryTextColor(context),
                             ),
@@ -506,7 +507,7 @@ class _AccountWizardState extends State<AccountWizard> {
                           Text(
                             'Select Color',
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: TypeScale.body,
                               fontWeight: FontWeight.w500,
                               color: AppStyles.getSecondaryTextColor(context),
                             ),
@@ -658,7 +659,7 @@ class _AccountWizardState extends State<AccountWizard> {
               children: [
                 Text('₹',
                     style:
-                        AppStyles.titleStyle(context).copyWith(fontSize: 32)),
+                        AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.display)),
                 const SizedBox(width: 8),
                 IntrinsicWidth(
                   child: CupertinoTextField(
@@ -671,7 +672,7 @@ class _AccountWizardState extends State<AccountWizard> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     style: AppStyles.titleStyle(context)
-                        .copyWith(fontSize: 32, fontWeight: FontWeight.bold),
+                        .copyWith(fontSize: TypeScale.display, fontWeight: FontWeight.bold),
                     onChanged: (_) => setState(() {}),
                     onSubmitted: (value) {
                       // Auto-proceed when user taps Done on keyboard
@@ -729,14 +730,14 @@ class _AccountWizardState extends State<AccountWizard> {
                   'Demat Balance',
                   style: TextStyle(
                     color: AppStyles.getSecondaryTextColor(context),
-                    fontSize: 14,
+                    fontSize: TypeScale.body,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   displayBalance,
                   style: AppStyles.titleStyle(context).copyWith(
-                    fontSize: 28,
+                    fontSize: TypeScale.largeTitle,
                     color: AppStyles.accentBlue,
                     fontWeight: FontWeight.bold,
                   ),
@@ -814,7 +815,7 @@ class _AccountWizardState extends State<AccountWizard> {
                         const SizedBox(height: 12),
                         Text(item['name'],
                             style: AppStyles.titleStyle(context)
-                                .copyWith(fontSize: 14)),
+                                .copyWith(fontSize: TypeScale.body)),
                       ],
                     ),
                   ),
@@ -897,7 +898,7 @@ class _AccountWizardState extends State<AccountWizard> {
                               'Track your physical cash balance',
                               style: TextStyle(
                                 color: AppStyles.getSecondaryTextColor(context),
-                                fontSize: 12,
+                                fontSize: TypeScale.footnote,
                               ),
                             ),
                           ],
@@ -928,7 +929,7 @@ class _AccountWizardState extends State<AccountWizard> {
                         'No banks added yet',
                         style: TextStyle(
                           color: AppStyles.getSecondaryTextColor(context),
-                          fontSize: 16,
+                          fontSize: TypeScale.headline,
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -947,7 +948,7 @@ class _AccountWizardState extends State<AccountWizard> {
                               'Add Bank',
                               style: const TextStyle(
                                   color: Colors.white,
-                                  fontSize: 16,
+                                  fontSize: TypeScale.headline,
                                   fontWeight: FontWeight.bold),
                             ),
                           ),
@@ -1008,7 +1009,7 @@ class _AccountWizardState extends State<AccountWizard> {
                                 const SizedBox(height: 12),
                                 Text(item['name'],
                                     style: AppStyles.titleStyle(context)
-                                        .copyWith(fontSize: 14)),
+                                        .copyWith(fontSize: TypeScale.body)),
                               ],
                             ),
                           ),
@@ -1042,7 +1043,7 @@ class _AccountWizardState extends State<AccountWizard> {
                                 'Add Bank',
                                 style: TextStyle(
                                   color: CupertinoColors.systemBlue,
-                                  fontSize: 16,
+                                  fontSize: TypeScale.headline,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -1096,7 +1097,7 @@ class _AccountWizardState extends State<AccountWizard> {
                         Text(
                           'Select Bank',
                           style: AppStyles.titleStyle(context)
-                              .copyWith(fontSize: 20),
+                              .copyWith(fontSize: TypeScale.title2),
                         ),
                         CupertinoButton(
                           padding: EdgeInsets.zero,
@@ -1154,7 +1155,7 @@ class _AccountWizardState extends State<AccountWizard> {
                               style: TextStyle(
                                 color: AppStyles.getSecondaryTextColor(context)
                                     .withValues(alpha: 0.7),
-                                fontSize: 12,
+                                fontSize: TypeScale.footnote,
                               ),
                             ),
                           ],
@@ -1271,7 +1272,7 @@ class _AccountWizardState extends State<AccountWizard> {
                         Text(
                           'Add New Bank',
                           style: AppStyles.titleStyle(context)
-                              .copyWith(fontSize: 20),
+                              .copyWith(fontSize: TypeScale.title2),
                         ),
                       ],
                     ),
@@ -1289,7 +1290,7 @@ class _AccountWizardState extends State<AccountWizard> {
                           Text(
                             'Bank Name',
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: TypeScale.body,
                               fontWeight: FontWeight.w500,
                               color: AppStyles.getSecondaryTextColor(context),
                             ),
@@ -1314,7 +1315,7 @@ class _AccountWizardState extends State<AccountWizard> {
                           Text(
                             'Select Color',
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: TypeScale.body,
                               fontWeight: FontWeight.w500,
                               color: AppStyles.getSecondaryTextColor(context),
                             ),
@@ -1556,7 +1557,7 @@ class _AccountWizardState extends State<AccountWizard> {
                         child: Text(
                           item['label'] as String,
                           style: AppStyles.titleStyle(context)
-                              .copyWith(fontSize: 16),
+                              .copyWith(fontSize: TypeScale.headline),
                         ),
                       ),
                       if (isSelected)
@@ -1610,7 +1611,7 @@ class _AccountWizardState extends State<AccountWizard> {
             Text(
               '(Optional - full or last 4 digits)',
               style: TextStyle(
-                  fontSize: 12,
+                  fontSize: TypeScale.footnote,
                   color: AppStyles.getSecondaryTextColor(context)),
             ),
             const SizedBox(height: 8),
@@ -1631,7 +1632,7 @@ class _AccountWizardState extends State<AccountWizard> {
             Text(
               '(Optional - full or last 4 digits)',
               style: TextStyle(
-                  fontSize: 12,
+                  fontSize: TypeScale.footnote,
                   color: AppStyles.getSecondaryTextColor(context)),
             ),
             const SizedBox(height: 8),
@@ -1655,7 +1656,7 @@ class _AccountWizardState extends State<AccountWizard> {
                 children: [
                   Text('₹',
                       style:
-                          AppStyles.titleStyle(context).copyWith(fontSize: 32)),
+                          AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.display)),
                   const SizedBox(width: 8),
                   IntrinsicWidth(
                     child: CupertinoTextField(
@@ -1668,7 +1669,7 @@ class _AccountWizardState extends State<AccountWizard> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       style: AppStyles.titleStyle(context)
-                          .copyWith(fontSize: 32, fontWeight: FontWeight.bold),
+                          .copyWith(fontSize: TypeScale.display, fontWeight: FontWeight.bold),
                       onSubmitted: (value) {
                         // Auto-proceed when user taps Done on keyboard
                         if (_balanceController.text.isNotEmpty) {
@@ -1690,7 +1691,7 @@ class _AccountWizardState extends State<AccountWizard> {
                 children: [
                   Text('₹',
                       style:
-                          AppStyles.titleStyle(context).copyWith(fontSize: 32)),
+                          AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.display)),
                   const SizedBox(width: 8),
                   IntrinsicWidth(
                     child: CupertinoTextField(
@@ -1703,7 +1704,7 @@ class _AccountWizardState extends State<AccountWizard> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       style: AppStyles.titleStyle(context)
-                          .copyWith(fontSize: 32, fontWeight: FontWeight.bold),
+                          .copyWith(fontSize: TypeScale.display, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
@@ -1718,7 +1719,7 @@ class _AccountWizardState extends State<AccountWizard> {
                 children: [
                   Text('₹',
                       style:
-                          AppStyles.titleStyle(context).copyWith(fontSize: 32)),
+                          AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.display)),
                   const SizedBox(width: 8),
                   IntrinsicWidth(
                     child: CupertinoTextField(
@@ -1731,7 +1732,7 @@ class _AccountWizardState extends State<AccountWizard> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       style: AppStyles.titleStyle(context)
-                          .copyWith(fontSize: 32, fontWeight: FontWeight.bold),
+                          .copyWith(fontSize: TypeScale.display, fontWeight: FontWeight.bold),
                       onSubmitted: (value) {
                         // Auto-proceed when user taps Done on keyboard if credit limit is filled
                         if (_creditLimitController.text.isNotEmpty) {
@@ -1749,7 +1750,7 @@ class _AccountWizardState extends State<AccountWizard> {
             Text(
               '(Optional - full or last 4 digits)',
               style: TextStyle(
-                  fontSize: 12,
+                  fontSize: TypeScale.footnote,
                   color: AppStyles.getSecondaryTextColor(context)),
             ),
             const SizedBox(height: 8),
@@ -1780,7 +1781,7 @@ class _AccountWizardState extends State<AccountWizard> {
                 children: [
                   Text('₹',
                       style:
-                          AppStyles.titleStyle(context).copyWith(fontSize: 32)),
+                          AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.display)),
                   const SizedBox(width: 8),
                   IntrinsicWidth(
                     child: CupertinoTextField(
@@ -1793,7 +1794,7 @@ class _AccountWizardState extends State<AccountWizard> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       style: AppStyles.titleStyle(context)
-                          .copyWith(fontSize: 32, fontWeight: FontWeight.bold),
+                          .copyWith(fontSize: TypeScale.display, fontWeight: FontWeight.bold),
                       onSubmitted: (value) {
                         // Auto-proceed when user taps Done on keyboard
                         if (_balanceController.text.isNotEmpty) {
@@ -1870,14 +1871,14 @@ class _AccountWizardState extends State<AccountWizard> {
                   'Available Balance',
                   style: TextStyle(
                     color: AppStyles.getSecondaryTextColor(context),
-                    fontSize: 14,
+                    fontSize: TypeScale.body,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   displayBalance,
                   style: AppStyles.titleStyle(context).copyWith(
-                    fontSize: 28,
+                    fontSize: TypeScale.largeTitle,
                     color: AppStyles.accentBlue,
                     fontWeight: FontWeight.bold,
                   ),
@@ -1898,7 +1899,7 @@ class _AccountWizardState extends State<AccountWizard> {
           label,
           style: TextStyle(
             color: AppStyles.getSecondaryTextColor(context),
-            fontSize: 14,
+            fontSize: TypeScale.body,
           ),
         ),
         Text(

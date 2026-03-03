@@ -216,7 +216,7 @@ class _MFTransactionDetailsStepState extends State<MFTransactionDetailsStep> {
                   controller.calculatedUnits.toStringAsFixed(4),
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: TypeScale.headline,
                     color: AppStyles.getTextColor(context),
                   ),
                 ),
@@ -247,7 +247,7 @@ class _MFTransactionDetailsStepState extends State<MFTransactionDetailsStep> {
                       '₹${controller.totalAmount.toStringAsFixed(2)}',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: TypeScale.headline,
                         color: SemanticColors.investments,
                       ),
                     ),

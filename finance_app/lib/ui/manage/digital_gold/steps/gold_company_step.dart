@@ -96,7 +96,7 @@ class GoldCompanyStep extends StatelessWidget {
                               company.name,
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                                fontSize: TypeScale.headline,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -104,7 +104,7 @@ class GoldCompanyStep extends StatelessWidget {
                               'Digital Gold Provider',
                               style: TextStyle(
                                 color: AppStyles.getSecondaryTextColor(context),
-                                fontSize: 12,
+                                fontSize: TypeScale.footnote,
                               ),
                             ),
                           ],

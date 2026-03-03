@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/ui/manage/fd/fd_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class InvestmentDateStep extends StatelessWidget {
   const InvestmentDateStep({super.key});
@@ -73,7 +74,7 @@ class InvestmentDateStep extends StatelessWidget {
                         'Investment Date',
                         style: TextStyle(
                           color: AppStyles.getSecondaryTextColor(context),
-                          fontSize: 12,
+                          fontSize: TypeScale.footnote,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -116,7 +117,7 @@ class InvestmentDateStep extends StatelessWidget {
                     'Use today\'s date if you just created this FD',
                     style: TextStyle(
                       color: AppStyles.getPrimaryColor(context),
-                      fontSize: 12,
+                      fontSize: TypeScale.footnote,
                     ),
                   ),
                 ),

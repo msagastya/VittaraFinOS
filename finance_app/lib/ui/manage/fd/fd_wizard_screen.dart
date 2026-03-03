@@ -14,6 +14,7 @@ import 'package:vittara_fin_os/ui/manage/fd/steps/compounding_step.dart';
 import 'package:vittara_fin_os/ui/manage/fd/steps/fd_type_payout_step.dart';
 import 'package:vittara_fin_os/ui/manage/fd/steps/debit_and_review_step.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class FDWizardScreen extends StatefulWidget {
@@ -192,7 +193,7 @@ class _FDWizardScreenState extends State<FDWizardScreen> {
                             _getStepTitle(controller.currentStep),
                             style: TextStyle(
                               color: AppStyles.getTextColor(context),
-                              fontSize: 16,
+                              fontSize: TypeScale.headline,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -201,7 +202,7 @@ class _FDWizardScreenState extends State<FDWizardScreen> {
                             'Step ${controller.currentStep + 1} of 8',
                             style: TextStyle(
                               color: AppStyles.getSecondaryTextColor(context),
-                              fontSize: 12,
+                              fontSize: TypeScale.footnote,
                             ),
                           ),
                         ],

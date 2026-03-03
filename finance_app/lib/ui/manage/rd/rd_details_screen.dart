@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/recurring_deposit_model.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class RDDetailsScreen extends StatefulWidget {
@@ -58,7 +59,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                               widget.rd.name,
                               style: TextStyle(
                                 color: AppStyles.getTextColor(context),
-                                fontSize: 20,
+                                fontSize: TypeScale.title2,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -67,7 +68,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                               'Linked: ${widget.rd.linkedAccountName}',
                               style: TextStyle(
                                 color: AppStyles.getSecondaryTextColor(context),
-                                fontSize: 13,
+                                fontSize: TypeScale.subhead,
                               ),
                             ),
                           ],
@@ -87,7 +88,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                           widget.rd.getStatusLabel(),
                           style: TextStyle(
                             color: _getStatusColor(widget.rd.status),
-                            fontSize: 12,
+                            fontSize: TypeScale.footnote,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -134,7 +135,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                     style: TextStyle(
                       color: AppStyles.getTextColor(context),
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                      fontSize: TypeScale.headline,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -159,7 +160,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                     style: TextStyle(
                       color: AppStyles.getTextColor(context),
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                      fontSize: TypeScale.headline,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -210,7 +211,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
           label,
           style: TextStyle(
             color: AppStyles.getSecondaryTextColor(context),
-            fontSize: 12,
+            fontSize: TypeScale.footnote,
           ),
         ),
         const SizedBox(height: 8),
@@ -246,7 +247,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                   title,
                   style: TextStyle(
                     color: AppStyles.getSecondaryTextColor(context),
-                    fontSize: 12,
+                    fontSize: TypeScale.footnote,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -279,7 +280,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
             label,
             style: TextStyle(
               color: AppStyles.getSecondaryTextColor(context),
-              fontSize: 13,
+              fontSize: TypeScale.subhead,
             ),
           ),
           Text(
@@ -383,14 +384,14 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                     style: TextStyle(
                       color: AppStyles.getTextColor(context),
                       fontWeight: FontWeight.bold,
-                      fontSize: 15,
+                      fontSize: TypeScale.callout,
                     ),
                   ),
                   Text(
                     description,
                     style: TextStyle(
                       color: AppStyles.getSecondaryTextColor(context),
-                      fontSize: 12,
+                      fontSize: TypeScale.footnote,
                     ),
                   ),
                 ],
@@ -433,7 +434,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                     'Installment Schedule',
                     style: TextStyle(
                       color: AppStyles.getTextColor(context),
-                      fontSize: 16,
+                      fontSize: TypeScale.headline,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -536,7 +537,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                   status,
                   style: TextStyle(
                     color: color,
-                    fontSize: 12,
+                    fontSize: TypeScale.footnote,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -548,7 +549,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
             style: TextStyle(
               color: color,
               fontWeight: FontWeight.bold,
-              fontSize: 14,
+              fontSize: TypeScale.body,
             ),
           ),
         ],
@@ -584,7 +585,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                       'Edit RD Settings',
                       style: TextStyle(
                         color: AppStyles.getTextColor(context),
-                        fontSize: 16,
+                        fontSize: TypeScale.headline,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -609,7 +610,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                         'Auto-Payment Settings',
                         style: TextStyle(
                           color: AppStyles.getTextColor(context),
-                          fontSize: 14,
+                          fontSize: TypeScale.body,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -632,7 +633,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                                     style: TextStyle(
                                       color: AppStyles.getTextColor(context),
                                       fontWeight: FontWeight.w600,
-                                      fontSize: 14,
+                                      fontSize: TypeScale.body,
                                     ),
                                   ),
                                   const SizedBox(height: 4),
@@ -641,7 +642,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                                     style: TextStyle(
                                       color: AppStyles.getSecondaryTextColor(
                                           context),
-                                      fontSize: 12,
+                                      fontSize: TypeScale.footnote,
                                     ),
                                   ),
                                 ],
@@ -697,7 +698,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                       'RD Timeline',
                       style: TextStyle(
                         color: AppStyles.getTextColor(context),
-                        fontSize: 16,
+                        fontSize: TypeScale.headline,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -786,7 +787,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                   style: TextStyle(
                     color: AppStyles.getTextColor(context),
                     fontWeight: FontWeight.bold,
-                    fontSize: 14,
+                    fontSize: TypeScale.body,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -794,7 +795,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                   date,
                   style: TextStyle(
                     color: AppStyles.getSecondaryTextColor(context),
-                    fontSize: 13,
+                    fontSize: TypeScale.subhead,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -802,7 +803,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                   description,
                   style: TextStyle(
                     color: AppStyles.getSecondaryTextColor(context),
-                    fontSize: 11,
+                    fontSize: TypeScale.caption,
                   ),
                 ),
               ],

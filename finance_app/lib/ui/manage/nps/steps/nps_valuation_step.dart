@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/ui/manage/nps/nps_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class NPSValuationStep extends StatefulWidget {
   const NPSValuationStep({super.key});
@@ -44,7 +45,7 @@ class _NPSValuationStepState extends State<NPSValuationStep> {
                   TextStyle(color: AppStyles.getSecondaryTextColor(context))),
           const SizedBox(height: 30),
           Text('Current Account Value (₹)',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           CupertinoTextField(
             controller: _valueController,
@@ -137,7 +138,7 @@ class _StatRow extends StatelessWidget {
       children: [
         Text(label,
             style: TextStyle(
-                fontSize: 13, color: AppStyles.getSecondaryTextColor(context))),
+                fontSize: TypeScale.subhead, color: AppStyles.getSecondaryTextColor(context))),
         Text(value,
             style: TextStyle(
                 fontWeight: isBold ? FontWeight.bold : FontWeight.w500,

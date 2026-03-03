@@ -7,6 +7,7 @@ import 'package:vittara_fin_os/logic/contacts_controller.dart';
 import 'package:vittara_fin_os/logic/lending_borrowing_model.dart';
 import 'package:vittara_fin_os/logic/contact_model.dart' as app_contact;
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class LendingWizard extends StatefulWidget {
   final LendingType type;
@@ -239,14 +240,14 @@ class _LendingWizardState extends State<LendingWizard> {
                 Text(
                   'Who did you ${widget.type == LendingType.lent ? "lend" : "borrow"} from?',
                   style: AppStyles.titleStyle(context)
-                      .copyWith(fontSize: 28, fontWeight: FontWeight.w800),
+                      .copyWith(fontSize: TypeScale.largeTitle, fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Choose where to find this person',
                   style: TextStyle(
                       color: AppStyles.getSecondaryTextColor(context),
-                      fontSize: 14),
+                      fontSize: TypeScale.body),
                 ),
                 const SizedBox(height: 40),
                 _buildSelectionCard(
@@ -332,7 +333,7 @@ class _LendingWizardState extends State<LendingWizard> {
                   Text(
                     title,
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: TypeScale.headline,
                       fontWeight: FontWeight.w700,
                       color: AppStyles.getTextColor(context),
                     ),
@@ -341,7 +342,7 @@ class _LendingWizardState extends State<LendingWizard> {
                   Text(
                     subtitle,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: TypeScale.footnote,
                       color: AppStyles.getSecondaryTextColor(context),
                     ),
                   ),
@@ -359,7 +360,7 @@ class _LendingWizardState extends State<LendingWizard> {
                 child: Text(
                   '$badgeCount',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: TypeScale.footnote,
                     fontWeight: FontWeight.w600,
                     color: color,
                   ),
@@ -481,7 +482,7 @@ class _LendingWizardState extends State<LendingWizard> {
                                   Text(
                                     contact.phoneNumber!,
                                     style: TextStyle(
-                                        fontSize: 12,
+                                        fontSize: TypeScale.footnote,
                                         color: AppStyles.getSecondaryTextColor(
                                             context)),
                                   ),
@@ -576,7 +577,7 @@ class _LendingWizardState extends State<LendingWizard> {
             style: TextStyle(
                 color: AppStyles.getTextColor(context),
                 fontWeight: FontWeight.w600,
-                fontSize: 14),
+                fontSize: TypeScale.body),
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: 24),
@@ -694,7 +695,7 @@ class _LendingWizardState extends State<LendingWizard> {
                                 style: const TextStyle(
                                   color: CupertinoColors.systemGreen,
                                   fontWeight: FontWeight.w700,
-                                  fontSize: 20,
+                                  fontSize: TypeScale.title2,
                                 ),
                               ),
                             ),
@@ -712,7 +713,7 @@ class _LendingWizardState extends State<LendingWizard> {
                                   style: TextStyle(
                                     fontWeight: FontWeight.w700,
                                     color: AppStyles.getTextColor(context),
-                                    fontSize: 15,
+                                    fontSize: TypeScale.callout,
                                     letterSpacing: 0.3,
                                   ),
                                 ),
@@ -724,7 +725,7 @@ class _LendingWizardState extends State<LendingWizard> {
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
-                                      fontSize: 12,
+                                      fontSize: TypeScale.footnote,
                                       fontWeight: FontWeight.w500,
                                       color: AppStyles.getSecondaryTextColor(
                                           context),
@@ -871,13 +872,13 @@ class _LendingWizardState extends State<LendingWizard> {
           Text(
             'How much did you ${widget.type == LendingType.lent ? "lend" : "borrow"}?',
             style: AppStyles.titleStyle(context)
-                .copyWith(fontSize: 28, fontWeight: FontWeight.w800),
+                .copyWith(fontSize: TypeScale.largeTitle, fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 8),
           Text(
             'Enter the amount in rupees',
             style: TextStyle(
-                color: AppStyles.getSecondaryTextColor(context), fontSize: 14),
+                color: AppStyles.getSecondaryTextColor(context), fontSize: TypeScale.body),
           ),
           const SizedBox(height: 64),
           Center(
@@ -888,7 +889,7 @@ class _LendingWizardState extends State<LendingWizard> {
                 Text(
                   '₹',
                   style: AppStyles.titleStyle(context)
-                      .copyWith(fontSize: 40, fontWeight: FontWeight.w700),
+                      .copyWith(fontSize: TypeScale.hero, fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(width: 12),
                 IntrinsicWidth(
@@ -906,7 +907,7 @@ class _LendingWizardState extends State<LendingWizard> {
                       ),
                     ),
                     style: AppStyles.titleStyle(context).copyWith(
-                      fontSize: 40,
+                      fontSize: TypeScale.hero,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.5,
                     ),
@@ -938,13 +939,13 @@ class _LendingWizardState extends State<LendingWizard> {
           Text(
             'Anything else?',
             style: AppStyles.titleStyle(context)
-                .copyWith(fontSize: 28, fontWeight: FontWeight.w800),
+                .copyWith(fontSize: TypeScale.largeTitle, fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 8),
           Text(
             'Add notes and important dates',
             style: TextStyle(
-                color: AppStyles.getSecondaryTextColor(context), fontSize: 14),
+                color: AppStyles.getSecondaryTextColor(context), fontSize: TypeScale.body),
           ),
           const SizedBox(height: 40),
 
@@ -955,7 +956,7 @@ class _LendingWizardState extends State<LendingWizard> {
               Text(
                 'What was it for?',
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: TypeScale.headline,
                   fontWeight: FontWeight.w700,
                   color: AppStyles.getTextColor(context),
                   letterSpacing: 0.3,
@@ -977,7 +978,7 @@ class _LendingWizardState extends State<LendingWizard> {
                   ),
                 ),
                 style: TextStyle(
-                    color: AppStyles.getTextColor(context), fontSize: 14),
+                    color: AppStyles.getTextColor(context), fontSize: TypeScale.body),
               ),
             ],
           ),
@@ -990,7 +991,7 @@ class _LendingWizardState extends State<LendingWizard> {
               Text(
                 'When did it happen?',
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: TypeScale.headline,
                   fontWeight: FontWeight.w700,
                   color: AppStyles.getTextColor(context),
                   letterSpacing: 0.3,
@@ -1035,7 +1036,7 @@ class _LendingWizardState extends State<LendingWizard> {
               Text(
                 'When should it be repaid?',
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: TypeScale.headline,
                   fontWeight: FontWeight.w700,
                   color: AppStyles.getTextColor(context),
                   letterSpacing: 0.3,
@@ -1083,7 +1084,7 @@ class _LendingWizardState extends State<LendingWizard> {
                               'Optional - leave empty if no deadline',
                               style: TextStyle(
                                 color: AppStyles.getSecondaryTextColor(context),
-                                fontSize: 11,
+                                fontSize: TypeScale.caption,
                               ),
                             ),
                           ),
@@ -1151,7 +1152,7 @@ class _LendingWizardState extends State<LendingWizard> {
                 Text(
                   'Tap Save to add this transaction',
                   style: TextStyle(
-                      fontSize: 12,
+                      fontSize: TypeScale.footnote,
                       color: AppStyles.getSecondaryTextColor(context)),
                 ),
               ],
@@ -1171,14 +1172,14 @@ class _LendingWizardState extends State<LendingWizard> {
           Text(
             label,
             style: TextStyle(
-              fontSize: 14,
+              fontSize: TypeScale.body,
               color: AppStyles.getSecondaryTextColor(context),
             ),
           ),
           Text(
             value,
             style: TextStyle(
-              fontSize: 14,
+              fontSize: TypeScale.body,
               fontWeight: FontWeight.w600,
               color: AppStyles.getTextColor(context),
             ),

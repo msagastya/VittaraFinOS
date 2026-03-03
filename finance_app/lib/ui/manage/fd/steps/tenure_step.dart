@@ -92,7 +92,7 @@ class _TenureStepState extends State<TenureStep> {
                     Text(
                       'Years',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: TypeScale.footnote,
                         color: AppStyles.getSecondaryTextColor(context),
                         fontWeight: FontWeight.w500,
                       ),
@@ -122,7 +122,7 @@ class _TenureStepState extends State<TenureStep> {
                     Text(
                       'Months',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: TypeScale.footnote,
                         color: AppStyles.getSecondaryTextColor(context),
                         fontWeight: FontWeight.w500,
                       ),
@@ -152,7 +152,7 @@ class _TenureStepState extends State<TenureStep> {
                     Text(
                       'Days',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: TypeScale.footnote,
                         color: AppStyles.getSecondaryTextColor(context),
                         fontWeight: FontWeight.w500,
                       ),
@@ -214,7 +214,7 @@ class _TenureStepState extends State<TenureStep> {
                       'Maturity Details',
                       style: TextStyle(
                         color: AppStyles.getSecondaryTextColor(context),
-                        fontSize: 12,
+                        fontSize: TypeScale.footnote,
                         fontWeight: FontWeight.w600,
                       ),
                     ),

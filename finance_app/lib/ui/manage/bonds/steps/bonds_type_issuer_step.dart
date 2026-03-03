@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/bonds_model.dart';
 import 'package:vittara_fin_os/ui/manage/bonds/bonds_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class BondsTypeIssuerStep extends StatefulWidget {
   const BondsTypeIssuerStep({super.key});
@@ -101,7 +102,7 @@ class _BondsTypeIssuerStepState extends State<BondsTypeIssuerStep> {
             style: TextStyle(
               color: AppStyles.getTextColor(context),
               fontWeight: FontWeight.w600,
-              fontSize: 14,
+              fontSize: TypeScale.body,
             ),
           ),
           const SizedBox(height: 12),
@@ -157,7 +158,7 @@ class _BondsTypeIssuerStepState extends State<BondsTypeIssuerStep> {
               style: TextStyle(
                 color: AppStyles.getTextColor(context),
                 fontWeight: FontWeight.w600,
-                fontSize: 14,
+                fontSize: TypeScale.body,
               ),
             ),
             const SizedBox(height: 12),
@@ -212,7 +213,7 @@ class _BondsTypeIssuerStepState extends State<BondsTypeIssuerStep> {
                           color: isSelected
                               ? Colors.white
                               : AppStyles.getTextColor(context),
-                          fontSize: 12,
+                          fontSize: TypeScale.footnote,
                           fontWeight: FontWeight.w500,
                         ),
                         overflow: TextOverflow.ellipsis,
@@ -229,7 +230,7 @@ class _BondsTypeIssuerStepState extends State<BondsTypeIssuerStep> {
               style: TextStyle(
                 color: AppStyles.getTextColor(context),
                 fontWeight: FontWeight.w600,
-                fontSize: 14,
+                fontSize: TypeScale.body,
               ),
             ),
             const SizedBox(height: 12),
@@ -253,7 +254,7 @@ class _BondsTypeIssuerStepState extends State<BondsTypeIssuerStep> {
               style: TextStyle(
                 color: AppStyles.getTextColor(context),
                 fontWeight: FontWeight.w600,
-                fontSize: 14,
+                fontSize: TypeScale.body,
               ),
             ),
             const SizedBox(height: 12),

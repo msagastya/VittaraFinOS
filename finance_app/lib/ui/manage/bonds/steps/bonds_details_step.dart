@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/bonds_model.dart';
 import 'package:vittara_fin_os/ui/manage/bonds/bonds_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class BondsDetailsStep extends StatefulWidget {
   const BondsDetailsStep({super.key});
@@ -68,7 +69,7 @@ class _BondsDetailsStepState extends State<BondsDetailsStep> {
             style: TextStyle(
               color: AppStyles.getTextColor(context),
               fontWeight: FontWeight.w600,
-              fontSize: 14,
+              fontSize: TypeScale.body,
             ),
           ),
           const SizedBox(height: 12),
@@ -104,7 +105,7 @@ class _BondsDetailsStepState extends State<BondsDetailsStep> {
             style: TextStyle(
               color: AppStyles.getTextColor(context),
               fontWeight: FontWeight.w600,
-              fontSize: 14,
+              fontSize: TypeScale.body,
             ),
           ),
           const SizedBox(height: 12),
@@ -114,28 +115,28 @@ class _BondsDetailsStepState extends State<BondsDetailsStep> {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
                   'Annual',
-                  style: TextStyle(fontSize: 13),
+                  style: TextStyle(fontSize: TypeScale.subhead),
                 ),
               ),
               CouponFrequency.semiAnnual: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
                   'Semi-Annual',
-                  style: TextStyle(fontSize: 13),
+                  style: TextStyle(fontSize: TypeScale.subhead),
                 ),
               ),
               CouponFrequency.quarterly: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
                   'Quarterly',
-                  style: TextStyle(fontSize: 13),
+                  style: TextStyle(fontSize: TypeScale.subhead),
                 ),
               ),
               CouponFrequency.monthly: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
                   'Monthly',
-                  style: TextStyle(fontSize: 13),
+                  style: TextStyle(fontSize: TypeScale.subhead),
                 ),
               ),
             },
@@ -151,7 +152,7 @@ class _BondsDetailsStepState extends State<BondsDetailsStep> {
             style: TextStyle(
               color: AppStyles.getTextColor(context),
               fontWeight: FontWeight.w600,
-              fontSize: 14,
+              fontSize: TypeScale.body,
             ),
           ),
           const SizedBox(height: 12),
@@ -179,7 +180,7 @@ class _BondsDetailsStepState extends State<BondsDetailsStep> {
             style: TextStyle(
               color: AppStyles.getTextColor(context),
               fontWeight: FontWeight.w600,
-              fontSize: 14,
+              fontSize: TypeScale.body,
             ),
           ),
           const SizedBox(height: 12),
@@ -214,7 +215,7 @@ class _BondsDetailsStepState extends State<BondsDetailsStep> {
                           ? Colors.white
                           : AppStyles.getTextColor(context),
                       fontWeight: FontWeight.w600,
-                      fontSize: 12,
+                      fontSize: TypeScale.footnote,
                     ),
                   ),
                 ),
@@ -242,14 +243,14 @@ class _BondsDetailsStepState extends State<BondsDetailsStep> {
                         'Annual Coupon Payment',
                         style: TextStyle(
                           color: AppStyles.getSecondaryTextColor(context),
-                          fontSize: 12,
+                          fontSize: TypeScale.footnote,
                         ),
                       ),
                       Text(
                         '₹${controller.annualCouponPayment.toStringAsFixed(2)}',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                          fontSize: TypeScale.body,
                         ),
                       ),
                     ],
@@ -262,14 +263,14 @@ class _BondsDetailsStepState extends State<BondsDetailsStep> {
                         'Per Coupon Payment',
                         style: TextStyle(
                           color: AppStyles.getSecondaryTextColor(context),
-                          fontSize: 12,
+                          fontSize: TypeScale.footnote,
                         ),
                       ),
                       Text(
                         '₹${controller.couponPerPayment.toStringAsFixed(2)}',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                          fontSize: TypeScale.body,
                           color: Color(0xFF007AFF),
                         ),
                       ),

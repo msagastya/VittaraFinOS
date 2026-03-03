@@ -475,7 +475,7 @@ class _PhoneContactsPickerSheetState extends State<_PhoneContactsPickerSheet> {
                 children: [
                   Text(
                     'Phone contacts',
-                    style: AppStyles.titleStyle(context).copyWith(fontSize: 20),
+                    style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title2),
                   ),
                   const Spacer(),
                   CupertinoButton(
@@ -561,7 +561,7 @@ class _PhoneContactsPickerSheetState extends State<_PhoneContactsPickerSheet> {
                                             color:
                                                 AppStyles.getSecondaryTextColor(
                                                     context),
-                                            fontSize: 12,
+                                            fontSize: TypeScale.footnote,
                                           ),
                                         ),
                                     ],

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/logic/categories_controller.dart';
 import 'package:vittara_fin_os/logic/category_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/icon_picker.dart';
 
 Future<Category?> showCreateCategoryModal(
@@ -72,7 +73,7 @@ Future<Category?> showCreateCategoryModal(
                   Text(
                     isEditMode ? 'Edit Category' : 'Create Custom Category',
                     style: AppStyles.titleStyle(stateContext)
-                        .copyWith(fontSize: 20),
+                        .copyWith(fontSize: TypeScale.title2),
                   ),
                   const SizedBox(height: 24),
                   Column(
@@ -111,7 +112,7 @@ Future<Category?> showCreateCategoryModal(
                           'Choose Icon',
                           style: TextStyle(
                             color: AppStyles.accentBlue,
-                            fontSize: 14,
+                            fontSize: TypeScale.body,
                             fontWeight: FontWeight.w600,
                           ),
                         ),

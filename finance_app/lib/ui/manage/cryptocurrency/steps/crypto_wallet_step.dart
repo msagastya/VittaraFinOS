@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/models/cryptocurrency_model.dart';
 import 'package:vittara_fin_os/ui/manage/cryptocurrency/crypto_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class CryptoWalletStep extends StatefulWidget {
   const CryptoWalletStep({super.key});
@@ -55,7 +56,7 @@ class _CryptoWalletStepState extends State<CryptoWalletStep> {
             style: TextStyle(
               color: AppStyles.getTextColor(context),
               fontWeight: FontWeight.w600,
-              fontSize: 14,
+              fontSize: TypeScale.body,
             ),
           ),
           const SizedBox(height: 12),
@@ -120,7 +121,7 @@ class _CryptoWalletStepState extends State<CryptoWalletStep> {
                                 labels[type] ?? '',
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 14,
+                                  fontSize: TypeScale.body,
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -129,7 +130,7 @@ class _CryptoWalletStepState extends State<CryptoWalletStep> {
                                 style: TextStyle(
                                   color:
                                       AppStyles.getSecondaryTextColor(context),
-                                  fontSize: 12,
+                                  fontSize: TypeScale.footnote,
                                 ),
                               ),
                             ],
@@ -156,7 +157,7 @@ class _CryptoWalletStepState extends State<CryptoWalletStep> {
               style: TextStyle(
                 color: AppStyles.getTextColor(context),
                 fontWeight: FontWeight.w600,
-                fontSize: 14,
+                fontSize: TypeScale.body,
               ),
             ),
             const SizedBox(height: 12),
@@ -204,7 +205,7 @@ class _CryptoWalletStepState extends State<CryptoWalletStep> {
                             : AppStyles.getTextColor(context),
                         fontWeight:
                             isSelected ? FontWeight.bold : FontWeight.w500,
-                        fontSize: 12,
+                        fontSize: TypeScale.footnote,
                       ),
                     ),
                   ),
@@ -221,7 +222,7 @@ class _CryptoWalletStepState extends State<CryptoWalletStep> {
             style: TextStyle(
               color: AppStyles.getTextColor(context),
               fontWeight: FontWeight.w600,
-              fontSize: 14,
+              fontSize: TypeScale.body,
             ),
           ),
           const SizedBox(height: 12),

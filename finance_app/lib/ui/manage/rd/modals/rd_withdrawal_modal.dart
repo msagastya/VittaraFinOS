@@ -115,7 +115,7 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
                 style: TextStyle(
                   color: AppStyles.getTextColor(context),
                   fontWeight: FontWeight.w600,
-                  fontSize: 14,
+                  fontSize: TypeScale.body,
                 ),
               ),
               SizedBox(height: Spacing.sm),
@@ -138,7 +138,7 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
                         _formatDate(_withdrawalDate),
                         style: TextStyle(
                           color: AppStyles.getTextColor(context),
-                          fontSize: 16,
+                          fontSize: TypeScale.headline,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -172,7 +172,7 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
                       'Withdrawal Value',
                       style: TextStyle(
                         color: AppStyles.getSecondaryTextColor(context),
-                        fontSize: 12,
+                        fontSize: TypeScale.footnote,
                       ),
                     ),
                     SizedBox(height: Spacing.sm),
@@ -187,7 +187,7 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
                               child: Text(
                                 '₹',
                                 style: TextStyle(
-                                  fontSize: 28,
+                                  fontSize: TypeScale.largeTitle,
                                   fontWeight: FontWeight.bold,
                                   color: AppStyles.getPrimaryColor(context),
                                 ),
@@ -197,7 +197,7 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
                                 decimal: true),
                             style: TextStyle(
                               color: AppStyles.getPrimaryColor(context),
-                              fontSize: 28,
+                              fontSize: TypeScale.largeTitle,
                               fontWeight: FontWeight.bold,
                             ),
                             decoration: BoxDecoration(
@@ -234,7 +234,7 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
                             'Maturity value includes principal + interest',
                             style: TextStyle(
                               color: CupertinoColors.systemGreen,
-                              fontSize: 12,
+                              fontSize: TypeScale.footnote,
                             ),
                           ),
                         ),
@@ -395,7 +395,7 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
             label,
             style: TextStyle(
               color: AppStyles.getSecondaryTextColor(context),
-              fontSize: 12,
+              fontSize: TypeScale.footnote,
             ),
           ),
           Text(
@@ -403,7 +403,7 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
             style: TextStyle(
               color: AppStyles.getTextColor(context),
               fontWeight: FontWeight.w600,
-              fontSize: 12,
+              fontSize: TypeScale.footnote,
             ),
           ),
         ],

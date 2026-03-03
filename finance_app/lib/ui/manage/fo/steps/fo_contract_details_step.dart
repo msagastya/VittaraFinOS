@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:vittara_fin_os/ui/manage/fo/fo_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class FOContractDetailsStep extends StatefulWidget {
   final FOWizardController ctrl;
@@ -43,7 +44,7 @@ class _FOContractDetailsStepState extends State<FOContractDetailsStep> {
           Text('Contract Details', style: AppStyles.titleStyle(context)),
           const SizedBox(height: 30),
           Text('Entry Price (₹)',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           CupertinoTextField(
             controller: _entryPriceController,
@@ -65,7 +66,7 @@ class _FOContractDetailsStepState extends State<FOContractDetailsStep> {
           ),
           const SizedBox(height: 24),
           Text('Quantity / Lot Size',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           CupertinoTextField(
             controller: _quantityController,
@@ -100,11 +101,11 @@ class _FOContractDetailsStepState extends State<FOContractDetailsStep> {
                     children: [
                       Text('Total Cost',
                           style: TextStyle(
-                              fontSize: 12,
+                              fontSize: TypeScale.footnote,
                               color: AppStyles.getSecondaryTextColor(context))),
                       Text('₹${widget.ctrl.totalCost.toStringAsFixed(2)}',
                           style: const TextStyle(
-                              fontSize: 14,
+                              fontSize: TypeScale.body,
                               fontWeight: FontWeight.bold,
                               color: Color(0xFF1ABC9C))),
                     ],

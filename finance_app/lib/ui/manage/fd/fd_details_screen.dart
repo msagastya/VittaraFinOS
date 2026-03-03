@@ -7,6 +7,7 @@ import 'package:vittara_fin_os/logic/fd_renewal_cycle.dart';
 import 'package:vittara_fin_os/logic/fd_calculations.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/ui/manage/fd/fd_renewal_wizard_screen.dart';
 import 'package:vittara_fin_os/ui/manage/fd/modals/fd_withdrawal_modal.dart';
@@ -78,7 +79,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                               widget.fd.name,
                               style: TextStyle(
                                 color: AppStyles.getTextColor(context),
-                                fontSize: 20,
+                                fontSize: TypeScale.title2,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -87,7 +88,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                               'Linked: ${widget.fd.linkedAccountName}',
                               style: TextStyle(
                                 color: AppStyles.getSecondaryTextColor(context),
-                                fontSize: 13,
+                                fontSize: TypeScale.subhead,
                               ),
                             ),
                           ],
@@ -107,7 +108,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                           widget.fd.getStatusLabel(),
                           style: TextStyle(
                             color: _getStatusColor(widget.fd.status),
-                            fontSize: 12,
+                            fontSize: TypeScale.footnote,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -154,7 +155,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                     style: TextStyle(
                       color: AppStyles.getTextColor(context),
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                      fontSize: TypeScale.headline,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -192,7 +193,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                     style: TextStyle(
                       color: AppStyles.getTextColor(context),
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                      fontSize: TypeScale.headline,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -234,7 +235,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                           style: TextStyle(
                             color: AppStyles.getTextColor(context),
                             fontWeight: FontWeight.bold,
-                            fontSize: 14,
+                            fontSize: TypeScale.body,
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -279,7 +280,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
           label,
           style: TextStyle(
             color: AppStyles.getSecondaryTextColor(context),
-            fontSize: 12,
+            fontSize: TypeScale.footnote,
           ),
         ),
         const SizedBox(height: 8),
@@ -315,7 +316,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                   title,
                   style: TextStyle(
                     color: AppStyles.getSecondaryTextColor(context),
-                    fontSize: 12,
+                    fontSize: TypeScale.footnote,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -348,7 +349,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
             label,
             style: TextStyle(
               color: AppStyles.getSecondaryTextColor(context),
-              fontSize: 13,
+              fontSize: TypeScale.subhead,
             ),
           ),
           Text(
@@ -463,14 +464,14 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                     style: TextStyle(
                       color: AppStyles.getTextColor(context),
                       fontWeight: FontWeight.bold,
-                      fontSize: 15,
+                      fontSize: TypeScale.callout,
                     ),
                   ),
                   Text(
                     description,
                     style: TextStyle(
                       color: AppStyles.getSecondaryTextColor(context),
-                      fontSize: 12,
+                      fontSize: TypeScale.footnote,
                     ),
                   ),
                 ],
@@ -515,7 +516,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                       'Reinvest FD',
                       style: TextStyle(
                         color: AppStyles.getTextColor(context),
-                        fontSize: 16,
+                        fontSize: TypeScale.headline,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -540,7 +541,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                         'Maturity Value',
                         style: TextStyle(
                           color: AppStyles.getSecondaryTextColor(context),
-                          fontSize: 12,
+                          fontSize: TypeScale.footnote,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -548,7 +549,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                         '₹${widget.fd.maturityValue.toStringAsFixed(2)}',
                         style: TextStyle(
                           color: CupertinoColors.systemGreen,
-                          fontSize: 20,
+                          fontSize: TypeScale.title2,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -557,7 +558,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                         'Options',
                         style: TextStyle(
                           color: AppStyles.getTextColor(context),
-                          fontSize: 14,
+                          fontSize: TypeScale.body,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -636,7 +637,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                     style: TextStyle(
                       color: AppStyles.getTextColor(context),
                       fontWeight: FontWeight.w600,
-                      fontSize: 14,
+                      fontSize: TypeScale.body,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -644,7 +645,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                     description,
                     style: TextStyle(
                       color: AppStyles.getSecondaryTextColor(context),
-                      fontSize: 12,
+                      fontSize: TypeScale.footnote,
                     ),
                   ),
                 ],
@@ -715,7 +716,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                           'Premature Withdrawal',
                           style: TextStyle(
                             color: AppStyles.getTextColor(context),
-                            fontSize: 16,
+                            fontSize: TypeScale.headline,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -755,7 +756,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                                     'Early withdrawal may incur penalties and reduced interest.',
                                     style: TextStyle(
                                       color: CupertinoColors.systemOrange,
-                                      fontSize: 12,
+                                      fontSize: TypeScale.footnote,
                                     ),
                                   ),
                                 ),
@@ -829,7 +830,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                                     withdrawalDate.toString().split(' ')[0],
                                     style: TextStyle(
                                       color: AppStyles.getTextColor(context),
-                                      fontSize: 14,
+                                      fontSize: TypeScale.body,
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
@@ -855,7 +856,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                             'Expected amount (you can adjust if agreed with bank)',
                             style: TextStyle(
                               color: AppStyles.getSecondaryTextColor(context),
-                              fontSize: 12,
+                              fontSize: TypeScale.footnote,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -875,13 +876,13 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                                 style: TextStyle(
                                   color: AppStyles.getTextColor(context),
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 16,
+                                  fontSize: TypeScale.headline,
                                 ),
                               ),
                             ),
                             style: TextStyle(
                               color: AppStyles.getTextColor(context),
-                              fontSize: 16,
+                              fontSize: TypeScale.headline,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -890,7 +891,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                             'Linked Account',
                             style: TextStyle(
                               color: AppStyles.getSecondaryTextColor(context),
-                              fontSize: 12,
+                              fontSize: TypeScale.footnote,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -898,7 +899,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                             widget.fd.linkedAccountName,
                             style: TextStyle(
                               color: AppStyles.getTextColor(context),
-                              fontSize: 14,
+                              fontSize: TypeScale.body,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -952,7 +953,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                                         Text(
                                           'Amount: ₹${amount.toStringAsFixed(2)}',
                                           style: const TextStyle(
-                                            fontSize: 16,
+                                            fontSize: TypeScale.headline,
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
@@ -960,7 +961,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                                         Text(
                                           'Date: ${withdrawalDate.toString().split(' ')[0]}',
                                           style: TextStyle(
-                                            fontSize: 14,
+                                            fontSize: TypeScale.body,
                                             color:
                                                 AppStyles.getSecondaryTextColor(
                                                     context),
@@ -1162,7 +1163,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                     'Payout Schedule',
                     style: TextStyle(
                       color: AppStyles.getTextColor(context),
-                      fontSize: 16,
+                      fontSize: TypeScale.headline,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -1254,7 +1255,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                           : 'Interest + Principal',
                   style: TextStyle(
                     color: AppStyles.getSecondaryTextColor(context),
-                    fontSize: 12,
+                    fontSize: TypeScale.footnote,
                   ),
                 ),
               ],
@@ -1316,7 +1317,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                       'Edit FD Settings',
                       style: TextStyle(
                         color: AppStyles.getTextColor(context),
-                        fontSize: 16,
+                        fontSize: TypeScale.headline,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -1342,7 +1343,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                         'Auto-Link Settings',
                         style: TextStyle(
                           color: AppStyles.getTextColor(context),
-                          fontSize: 14,
+                          fontSize: TypeScale.body,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -1365,7 +1366,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                                     style: TextStyle(
                                       color: AppStyles.getTextColor(context),
                                       fontWeight: FontWeight.w600,
-                                      fontSize: 14,
+                                      fontSize: TypeScale.body,
                                     ),
                                   ),
                                   const SizedBox(height: 4),
@@ -1374,7 +1375,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                                     style: TextStyle(
                                       color: AppStyles.getSecondaryTextColor(
                                           context),
-                                      fontSize: 12,
+                                      fontSize: TypeScale.footnote,
                                     ),
                                   ),
                                 ],
@@ -1437,7 +1438,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                         'Bank Account',
                         style: TextStyle(
                           color: AppStyles.getTextColor(context),
-                          fontSize: 14,
+                          fontSize: TypeScale.body,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -1456,7 +1457,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                               style: TextStyle(
                                 color: AppStyles.getTextColor(context),
                                 fontWeight: FontWeight.w600,
-                                fontSize: 14,
+                                fontSize: TypeScale.body,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -1464,7 +1465,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                               widget.fd.bankName ?? 'Bank Account',
                               style: TextStyle(
                                 color: AppStyles.getSecondaryTextColor(context),
-                                fontSize: 12,
+                                fontSize: TypeScale.footnote,
                               ),
                             ),
                           ],
@@ -1509,7 +1510,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                       'FD Timeline',
                       style: TextStyle(
                         color: AppStyles.getTextColor(context),
-                        fontSize: 16,
+                        fontSize: TypeScale.headline,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -1607,7 +1608,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                   style: TextStyle(
                     color: AppStyles.getTextColor(context),
                     fontWeight: FontWeight.bold,
-                    fontSize: 14,
+                    fontSize: TypeScale.body,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -1615,7 +1616,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                   date,
                   style: TextStyle(
                     color: AppStyles.getSecondaryTextColor(context),
-                    fontSize: 13,
+                    fontSize: TypeScale.subhead,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -1623,7 +1624,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                   description,
                   style: TextStyle(
                     color: AppStyles.getSecondaryTextColor(context),
-                    fontSize: 11,
+                    fontSize: TypeScale.caption,
                   ),
                 ),
               ],
@@ -1855,7 +1856,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                       'FD Maturity',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 11,
+                        fontSize: TypeScale.caption,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -1873,7 +1874,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                   'In $daysUntil day${daysUntil > 1 ? 's' : ''}',
                   style: const TextStyle(
                     color: CupertinoColors.systemOrange,
-                    fontSize: 11,
+                    fontSize: TypeScale.caption,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -1886,7 +1887,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
             style: TextStyle(
               color: AppStyles.getTextColor(context),
               fontWeight: FontWeight.w600,
-              fontSize: 14,
+              fontSize: TypeScale.body,
             ),
           ),
           const SizedBox(height: 4),
@@ -1894,7 +1895,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
             'Choose to renew or withdraw your investment',
             style: TextStyle(
               color: AppStyles.getSecondaryTextColor(context),
-              fontSize: 12,
+              fontSize: TypeScale.footnote,
             ),
           ),
           const SizedBox(height: 16),
@@ -1940,7 +1941,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w600,
-                      fontSize: 14,
+                      fontSize: TypeScale.body,
                     ),
                   ),
                 ),
@@ -1992,7 +1993,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w600,
-                      fontSize: 14,
+                      fontSize: TypeScale.body,
                     ),
                   ),
                 ),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/ui/manage/digital_gold/digital_gold_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/services/gold_price_service.dart';
 
 class GoldReviewStep extends StatefulWidget {
@@ -77,7 +78,7 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
                   'Current Gold Price',
                   style: TextStyle(
                     color: AppStyles.getSecondaryTextColor(context),
-                    fontSize: 12,
+                    fontSize: TypeScale.footnote,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -101,7 +102,7 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
                         controller.priceError,
                         style: const TextStyle(
                           color: CupertinoColors.systemRed,
-                          fontSize: 12,
+                          fontSize: TypeScale.footnote,
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -132,7 +133,7 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
                             'As of now',
                             style: TextStyle(
                               color: AppStyles.getSecondaryTextColor(context),
-                              fontSize: 12,
+                              fontSize: TypeScale.footnote,
                             ),
                           ),
                         ],
@@ -179,7 +180,7 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
                   'Investment Summary',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: TypeScale.headline,
                     color: AppStyles.getTextColor(context),
                   ),
                 ),
@@ -239,7 +240,7 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
                             'Current Value',
                             style: TextStyle(
                               color: AppStyles.getSecondaryTextColor(context),
-                              fontSize: 12,
+                              fontSize: TypeScale.footnote,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -247,7 +248,7 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
                             '₹${controller.currentValue.toStringAsFixed(2)}',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                              fontSize: TypeScale.headline,
                               color: controller.currentValue >=
                                       controller.investedAmount
                                   ? CupertinoColors.systemGreen
@@ -263,7 +264,7 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
                             '${controller.gainLossPercent >= 0 ? '+' : ''}${controller.gainLossPercent.toStringAsFixed(2)}%',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                              fontSize: TypeScale.headline,
                               color: controller.gainLossPercent >= 0
                                   ? CupertinoColors.systemGreen
                                   : CupertinoColors.systemRed,
@@ -274,7 +275,7 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
                             '${controller.gainLoss >= 0 ? '+' : ''}₹${controller.gainLoss.toStringAsFixed(2)}',
                             style: TextStyle(
                               color: AppStyles.getSecondaryTextColor(context),
-                              fontSize: 12,
+                              fontSize: TypeScale.footnote,
                             ),
                           ),
                         ],
@@ -304,7 +305,7 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
           Text(
             label,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: TypeScale.subhead,
               fontWeight: isBold ? FontWeight.w600 : FontWeight.normal,
             ),
           ),
@@ -312,7 +313,7 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
             value,
             style: TextStyle(
               fontWeight: FontWeight.w600,
-              fontSize: 13,
+              fontSize: TypeScale.subhead,
               color: isHighlight ? const Color(0xFFFFB81C) : null,
             ),
           ),

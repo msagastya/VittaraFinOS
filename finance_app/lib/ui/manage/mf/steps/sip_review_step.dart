@@ -38,7 +38,7 @@ class SIPReviewStep extends StatelessWidget {
           Center(
             child: Text(
               'SIP Configuration',
-              style: AppStyles.titleStyle(context).copyWith(fontSize: 20),
+              style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title2),
             ),
           ),
           const SizedBox(height: 32),
@@ -72,7 +72,7 @@ class SIPReviewStep extends StatelessWidget {
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
                       color: AppStyles.getTextColor(context),
-                      fontSize: 12,
+                      fontSize: TypeScale.footnote,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -129,12 +129,12 @@ class SIPReviewStep extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(fontSize: 11),
+            style: const TextStyle(fontSize: TypeScale.caption),
           ),
           Text(
             '₹${value.toStringAsFixed(2)}/month',
             style: const TextStyle(
-              fontSize: 11,
+              fontSize: TypeScale.caption,
               fontWeight: FontWeight.w600,
             ),
           ),

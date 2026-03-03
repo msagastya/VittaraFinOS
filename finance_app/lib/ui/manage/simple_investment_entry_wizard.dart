@@ -6,6 +6,7 @@ import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class SimpleInvestmentEntryWizard extends StatefulWidget {
@@ -203,7 +204,7 @@ class _SimpleInvestmentEntryWizardState
               widget.subtitle,
               style: TextStyle(
                 color: AppStyles.getSecondaryTextColor(context),
-                fontSize: 13,
+                fontSize: TypeScale.subhead,
               ),
             ),
             const SizedBox(height: 16),
@@ -273,7 +274,7 @@ class _SimpleInvestmentEntryWizardState
             label,
             style: TextStyle(
               color: AppStyles.getSecondaryTextColor(context),
-              fontSize: 12,
+              fontSize: TypeScale.footnote,
               fontWeight: FontWeight.w600,
             ),
           ),

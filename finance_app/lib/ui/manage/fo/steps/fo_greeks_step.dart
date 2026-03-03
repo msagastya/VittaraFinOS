@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/logic/fo_model.dart';
 import 'package:vittara_fin_os/ui/manage/fo/fo_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class FOGreeksStep extends StatefulWidget {
   final FOWizardController ctrl;
@@ -74,7 +75,7 @@ class _FOGreeksStepState extends State<FOGreeksStep> {
           Text('Greeks & Volatility', style: AppStyles.titleStyle(context)),
           const SizedBox(height: 30),
           Text('Strike Price (₹)',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           CupertinoTextField(
             controller: _strikePriceController,
@@ -96,7 +97,7 @@ class _FOGreeksStepState extends State<FOGreeksStep> {
           ),
           const SizedBox(height: 24),
           Text('Volatility (% p.a.)',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           CupertinoTextField(
             controller: _volatilityController,
@@ -118,7 +119,7 @@ class _FOGreeksStepState extends State<FOGreeksStep> {
           ),
           const SizedBox(height: 24),
           Text('Risk-Free Rate (% p.a.)',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           CupertinoTextField(
             controller: _riskFreeRateController,
@@ -141,7 +142,7 @@ class _FOGreeksStepState extends State<FOGreeksStep> {
           if (widget.ctrl.greeks != null) ...[
             const SizedBox(height: 30),
             Text('Calculated Greeks',
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(16),
@@ -204,18 +205,18 @@ class _GreekRow extends StatelessWidget {
             children: [
               Text(label,
                   style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 13)),
+                      fontWeight: FontWeight.bold, fontSize: TypeScale.subhead)),
               Text(value,
                   style: const TextStyle(
                       fontWeight: FontWeight.w600,
-                      fontSize: 13,
+                      fontSize: TypeScale.subhead,
                       color: Color(0xFF1ABC9C))),
             ],
           ),
           const SizedBox(height: 4),
           Text(description,
               style: TextStyle(
-                  fontSize: 11,
+                  fontSize: TypeScale.caption,
                   color: AppStyles.getSecondaryTextColor(context))),
         ],
       ),

@@ -6,6 +6,7 @@ import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/pension_model.dart';
 import 'package:vittara_fin_os/ui/manage/pension/pension_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class PensionWizard extends StatelessWidget {
@@ -273,7 +274,7 @@ class _SchemeSelectionStep extends StatelessWidget {
                                     fontWeight: FontWeight.bold)),
                             Text(desc,
                                 style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: TypeScale.footnote,
                                     color: AppStyles.getSecondaryTextColor(
                                         context))),
                           ],
@@ -326,7 +327,7 @@ class _AccountDetailsStepState extends State<_AccountDetailsStep> {
           Text('Account Details', style: AppStyles.titleStyle(context)),
           const SizedBox(height: 30),
           Text('Account/Reference Number',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           CupertinoTextField(
             controller: _accountController,
@@ -388,7 +389,7 @@ class _ContributionStepState extends State<_ContributionStep> {
               style: AppStyles.titleStyle(context)),
           const SizedBox(height: 30),
           Text('Total Contributed (₹)',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           CupertinoTextField(
             controller: _principalController,
@@ -410,7 +411,7 @@ class _ContributionStepState extends State<_ContributionStep> {
           ),
           const SizedBox(height: 24),
           Text('Current Value (₹)',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           CupertinoTextField(
             controller: _valueController,
@@ -538,7 +539,7 @@ class _Row extends StatelessWidget {
       children: [
         Text(label,
             style: TextStyle(
-                color: AppStyles.getSecondaryTextColor(context), fontSize: 13)),
+                color: AppStyles.getSecondaryTextColor(context), fontSize: TypeScale.subhead)),
         Text(value,
             style: TextStyle(
                 fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
@@ -565,7 +566,7 @@ class _Summary extends StatelessWidget {
       children: [
         Text(label,
             style: TextStyle(
-                color: AppStyles.getSecondaryTextColor(context), fontSize: 13)),
+                color: AppStyles.getSecondaryTextColor(context), fontSize: TypeScale.subhead)),
         Text(value,
             style: TextStyle(
                 fontWeight: isBold ? FontWeight.bold : FontWeight.w500,

@@ -231,7 +231,7 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
                       'Auto-calculated (Read-only)',
                       style: TextStyle(
                         color: AppStyles.getSecondaryTextColor(context),
-                        fontSize: 12,
+                        fontSize: TypeScale.footnote,
                       ),
                     ),
                   ],
@@ -260,7 +260,7 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
                       'Current Value @ ₹${_currentMarketPrice.toStringAsFixed(2)}/share',
                       style: TextStyle(
                         color: AppStyles.getSecondaryTextColor(context),
-                        fontSize: 12,
+                        fontSize: TypeScale.footnote,
                       ),
                     ),
                   ],
@@ -269,7 +269,7 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
                   '₹${(controller.qty * _currentMarketPrice).toStringAsFixed(2)}',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: TypeScale.headline,
                     color: CupertinoColors.systemGreen,
                   ),
                 ),
@@ -300,7 +300,7 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
                       '₹${controller.totalAmount.toStringAsFixed(2)}',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: TypeScale.headline,
                         color: SemanticColors.investments,
                       ),
                     ),
@@ -319,7 +319,7 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
                         '₹${controller.currentValue.toStringAsFixed(2)}',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                          fontSize: TypeScale.headline,
                           color:
                               controller.currentValue >= controller.totalAmount
                                   ? CupertinoColors.systemGreen
@@ -335,13 +335,13 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
                       const Text(
                         'Gain/Loss (Initial)',
                         style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 13),
+                            fontWeight: FontWeight.bold, fontSize: TypeScale.subhead),
                       ),
                       Text(
                         '${controller.currentValue >= controller.totalAmount ? '+' : ''}₹${(controller.currentValue - controller.totalAmount).toStringAsFixed(2)}',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                          fontSize: TypeScale.body,
                           color:
                               controller.currentValue >= controller.totalAmount
                                   ? CupertinoColors.systemGreen

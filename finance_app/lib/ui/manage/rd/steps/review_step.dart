@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/ui/manage/rd/rd_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class ReviewStep extends StatefulWidget {
   const ReviewStep({super.key});
@@ -110,7 +111,7 @@ class _ReviewStepState extends State<ReviewStep> {
                   style: TextStyle(
                     color: AppStyles.getTextColor(context),
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: TypeScale.headline,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -166,7 +167,7 @@ class _ReviewStepState extends State<ReviewStep> {
                         style: TextStyle(
                           color: AppStyles.getPrimaryColor(context),
                           fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                          fontSize: TypeScale.headline,
                         ),
                       ),
                     ],
@@ -180,7 +181,7 @@ class _ReviewStepState extends State<ReviewStep> {
                       'Total Interest',
                       style: TextStyle(
                         color: AppStyles.getSecondaryTextColor(context),
-                        fontSize: 13,
+                        fontSize: TypeScale.subhead,
                       ),
                     ),
                     Text(
@@ -223,7 +224,7 @@ class _ReviewStepState extends State<ReviewStep> {
                             style: TextStyle(
                               color: AppStyles.getTextColor(context),
                               fontWeight: FontWeight.w600,
-                              fontSize: 15,
+                              fontSize: TypeScale.callout,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -231,7 +232,7 @@ class _ReviewStepState extends State<ReviewStep> {
                             'Deduct ₹${controller.monthlyAmount.toStringAsFixed(2)} from ${controller.selectedAccount?.name ?? 'account'}',
                             style: TextStyle(
                               color: AppStyles.getSecondaryTextColor(context),
-                              fontSize: 12,
+                              fontSize: TypeScale.footnote,
                             ),
                           ),
                         ],
@@ -265,7 +266,7 @@ class _ReviewStepState extends State<ReviewStep> {
                           'Turn on only if you want to debit now. For legacy RDs, leave off.',
                           style: TextStyle(
                             color: AppStyles.getSecondaryTextColor(context),
-                            fontSize: 11,
+                            fontSize: TypeScale.caption,
                           ),
                         ),
                       ),
@@ -302,7 +303,7 @@ class _ReviewStepState extends State<ReviewStep> {
                         'Automatically debit future installments',
                         style: TextStyle(
                           color: AppStyles.getSecondaryTextColor(context),
-                          fontSize: 12,
+                          fontSize: TypeScale.footnote,
                         ),
                       ),
                     ],

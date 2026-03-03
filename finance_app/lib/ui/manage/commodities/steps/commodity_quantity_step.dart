@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/ui/manage/commodities/commodities_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class CommodityQuantityStep extends StatefulWidget {
   final CommoditiesWizardController ctrl;
@@ -54,7 +55,7 @@ class _CommodityQuantityStepState extends State<CommodityQuantityStep> {
           Text('Quantity & Unit', style: AppStyles.titleStyle(context)),
           const SizedBox(height: 30),
           Text('Quantity',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           CupertinoTextField(
             controller: _quantityController,
@@ -72,7 +73,7 @@ class _CommodityQuantityStepState extends State<CommodityQuantityStep> {
           ),
           const SizedBox(height: 24),
           Text('Unit of Measurement',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -106,7 +107,7 @@ class _CommodityQuantityStepState extends State<CommodityQuantityStep> {
                               Text(
                                 'Select Unit',
                                 style: TextStyle(
-                                  fontSize: 16,
+                                  fontSize: TypeScale.headline,
                                   fontWeight: FontWeight.bold,
                                   color: AppStyles.getTextColor(context),
                                 ),
@@ -151,7 +152,7 @@ class _CommodityQuantityStepState extends State<CommodityQuantityStep> {
                                   child: Text(
                                     unit,
                                     style: TextStyle(
-                                      fontSize: 14,
+                                      fontSize: TypeScale.body,
                                       color: widget.ctrl.unit == unit
                                           ? const Color(0xFF8B4513)
                                           : AppStyles.getTextColor(context),

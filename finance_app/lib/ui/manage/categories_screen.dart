@@ -132,7 +132,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                                 child: Text(
                                   'Built-in Categories (${defaultCats.length})',
                                   style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: TypeScale.footnote,
                                     fontWeight: FontWeight.w600,
                                     color: AppStyles.getSecondaryTextColor(
                                         context),
@@ -168,7 +168,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                                 child: Text(
                                   'Your Custom Categories (${customCats.length})',
                                   style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: TypeScale.footnote,
                                     fontWeight: FontWeight.w600,
                                     color: AppStyles.getSecondaryTextColor(
                                         context),
@@ -288,7 +288,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: TypeScale.caption,
                       fontWeight: FontWeight.w600,
                       color: AppStyles.getTextColor(context),
                     ),

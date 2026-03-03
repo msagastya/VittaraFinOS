@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/ui/manage/bonds/bonds_wizard_controller_v2.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class BondConfirmationStep extends StatelessWidget {
   final BondsWizardControllerV2 ctrl;
@@ -101,12 +102,12 @@ class BondConfirmationStep extends StatelessWidget {
               children: [
                 Text('Link to NPS Scheme (Optional)',
                     style:
-                        TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: TypeScale.body)),
                 const SizedBox(height: 16),
                 Text(
                   'Some bonds are part of NPS (National Pension Scheme) portfolios. Link this bond to an existing NPS record or create a new one if this bond is a pension investment.',
                   style: TextStyle(
-                      fontSize: 12,
+                      fontSize: TypeScale.footnote,
                       color: AppStyles.getSecondaryTextColor(context)),
                 ),
                 const SizedBox(height: 16),
@@ -116,7 +117,7 @@ class BondConfirmationStep extends StatelessWidget {
                   children: [
                     Text('Link to NPS?',
                         style: TextStyle(
-                            fontWeight: FontWeight.w600, fontSize: 14)),
+                            fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
                     CupertinoSwitch(
                       value: ctrl.linkToNPS,
                       onChanged: (value) => ctrl.updateLinkToNPS(value),
@@ -137,13 +138,13 @@ class BondConfirmationStep extends StatelessWidget {
                       children: [
                         Text('Link to Existing NPS Scheme',
                             style: TextStyle(
-                                fontWeight: FontWeight.w600, fontSize: 13)),
+                                fontWeight: FontWeight.w600, fontSize: TypeScale.subhead)),
                         const SizedBox(height: 12),
                         if (existingNpsSchemes.isEmpty)
                           Text(
                             'No NPS schemes found. Create a new one below.',
                             style: TextStyle(
-                                fontSize: 12,
+                                fontSize: TypeScale.footnote,
                                 color:
                                     AppStyles.getSecondaryTextColor(context)),
                           )
@@ -174,7 +175,7 @@ class BondConfirmationStep extends StatelessWidget {
                                       child: Text(
                                         nps.name,
                                         style: TextStyle(
-                                          fontSize: 12,
+                                          fontSize: TypeScale.footnote,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -206,7 +207,7 @@ class BondConfirmationStep extends StatelessWidget {
                           children: [
                             Text('Create New NPS Entry',
                                 style: TextStyle(
-                                    fontWeight: FontWeight.w600, fontSize: 13)),
+                                    fontWeight: FontWeight.w600, fontSize: TypeScale.subhead)),
                             CupertinoSwitch(
                               value: ctrl.createNewNps,
                               onChanged: (value) =>
@@ -262,7 +263,7 @@ class _ConfirmationCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title,
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: TypeScale.body)),
           const SizedBox(height: 16),
           ...List.generate(
             children.length,
@@ -298,7 +299,7 @@ class _ConfirmationRow extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            fontSize: 13,
+            fontSize: TypeScale.subhead,
             color: AppStyles.getSecondaryTextColor(context),
           ),
         ),

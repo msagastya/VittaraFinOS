@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/nps_model.dart';
 import 'package:vittara_fin_os/ui/manage/nps/nps_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class NPSContributionStep extends StatefulWidget {
   const NPSContributionStep({super.key});
@@ -49,7 +50,7 @@ class _NPSContributionStepState extends State<NPSContributionStep> {
           const SizedBox(height: 30),
           // Total Contributed
           Text('Total Contributed (₹)',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           CupertinoTextField(
             controller: _contributedController,
@@ -73,7 +74,7 @@ class _NPSContributionStepState extends State<NPSContributionStep> {
           const SizedBox(height: 24),
           // Scheme Type
           Text('Investment Scheme',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
@@ -108,7 +109,7 @@ class _NPSContributionStepState extends State<NPSContributionStep> {
                           color: isSelected ? Colors.white : null,
                           fontWeight:
                               isSelected ? FontWeight.bold : FontWeight.w500,
-                          fontSize: 12)),
+                          fontSize: TypeScale.footnote)),
                 ),
               );
             }).toList(),
@@ -116,7 +117,7 @@ class _NPSContributionStepState extends State<NPSContributionStep> {
           const SizedBox(height: 24),
           // NPS Manager
           Text('NPS Manager',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           CupertinoButton(
             onPressed: () {
@@ -226,7 +227,7 @@ class _SummaryRow extends StatelessWidget {
       children: [
         Text(label,
             style: TextStyle(
-                fontSize: 13, color: AppStyles.getSecondaryTextColor(context))),
+                fontSize: TypeScale.subhead, color: AppStyles.getSecondaryTextColor(context))),
         Text(value,
             style: TextStyle(
                 fontWeight: isBold ? FontWeight.bold : FontWeight.w500,

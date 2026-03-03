@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/fixed_deposit_model.dart';
 import 'package:vittara_fin_os/ui/manage/fd/fd_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class CompoundingStep extends StatelessWidget {
   const CompoundingStep({super.key});
@@ -107,7 +108,7 @@ class CompoundingStep extends StatelessWidget {
                               style: TextStyle(
                                 color: AppStyles.getTextColor(context),
                                 fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                                fontSize: TypeScale.headline,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -115,7 +116,7 @@ class CompoundingStep extends StatelessWidget {
                               option['description'] as String,
                               style: TextStyle(
                                 color: AppStyles.getSecondaryTextColor(context),
-                                fontSize: 13,
+                                fontSize: TypeScale.subhead,
                               ),
                             ),
                           ],

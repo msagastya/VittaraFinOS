@@ -182,7 +182,7 @@ class _MFSearchStepState extends State<MFSearchStep> {
                           color: _selectedSchemeType == null
                               ? Colors.white
                               : AppStyles.getTextColor(context),
-                          fontSize: 12,
+                          fontSize: TypeScale.footnote,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -212,7 +212,7 @@ class _MFSearchStepState extends State<MFSearchStep> {
                               color: isSelected
                                   ? Colors.white
                                   : AppStyles.getTextColor(context),
-                              fontSize: 12,
+                              fontSize: TypeScale.footnote,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -246,7 +246,7 @@ class _MFSearchStepState extends State<MFSearchStep> {
                 Text(
                   'Recent Searches',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: TypeScale.footnote,
                     fontWeight: FontWeight.w600,
                     color: secondary,
                     letterSpacing: 0.5,
@@ -258,7 +258,7 @@ class _MFSearchStepState extends State<MFSearchStep> {
                   child: Text(
                     'Clear',
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: TypeScale.footnote,
                       color: CupertinoColors.systemRed,
                     ),
                   ),
@@ -297,7 +297,7 @@ class _MFSearchStepState extends State<MFSearchStep> {
                         Text(
                           query,
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: TypeScale.footnote,
                             color: SemanticColors.investments,
                             fontWeight: FontWeight.w500,
                           ),
@@ -317,7 +317,7 @@ class _MFSearchStepState extends State<MFSearchStep> {
                 const SizedBox(height: 16),
                 Text(
                   'Search for a mutual fund',
-                  style: TextStyle(color: secondary, fontSize: 14),
+                  style: TextStyle(color: secondary, fontSize: TypeScale.body),
                 ),
               ],
             ),
@@ -412,7 +412,7 @@ class _MFSearchStepState extends State<MFSearchStep> {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: AppStyles.titleStyle(context)
-                                  .copyWith(fontSize: 14),
+                                  .copyWith(fontSize: TypeScale.body),
                             ),
                             Text(
                               '${mf.fundHouse ?? "Unknown"} • ${mf.schemeType ?? "N/A"}',
@@ -420,7 +420,7 @@ class _MFSearchStepState extends State<MFSearchStep> {
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 color: AppStyles.getSecondaryTextColor(context),
-                                fontSize: 11,
+                                fontSize: TypeScale.caption,
                               ),
                             ),
                           ],
@@ -440,7 +440,7 @@ class _MFSearchStepState extends State<MFSearchStep> {
                         'NAV: ₹${mf.nav!.toStringAsFixed(2)}',
                         style: TextStyle(
                           color: AppStyles.getSecondaryTextColor(context),
-                          fontSize: 11,
+                          fontSize: TypeScale.caption,
                         ),
                       ),
                     ),

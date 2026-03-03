@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/ui/manage/nps/nps_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class NPSReviewStep extends StatelessWidget {
   const NPSReviewStep({super.key});
@@ -93,7 +94,7 @@ class _ReviewCard extends StatelessWidget {
               style: TextStyle(
                   color: AppStyles.getTextColor(context),
                   fontWeight: FontWeight.bold,
-                  fontSize: 14)),
+                  fontSize: TypeScale.body)),
           const SizedBox(height: 16),
           ...List.generate(
             children.length,
@@ -126,7 +127,7 @@ class _ReviewRow extends StatelessWidget {
       children: [
         Text(label,
             style: TextStyle(
-                color: AppStyles.getSecondaryTextColor(context), fontSize: 13)),
+                color: AppStyles.getSecondaryTextColor(context), fontSize: TypeScale.subhead)),
         Text(value,
             style: TextStyle(
                 fontWeight: isBold ? FontWeight.bold : FontWeight.w500,

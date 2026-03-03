@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class AppStyles {
   // --- Colors ---
@@ -202,7 +203,7 @@ class AppStyles {
   // --- Text Styles ---
   static TextStyle headerStyle(BuildContext context) {
     return TextStyle(
-      fontSize: 12,
+      fontSize: TypeScale.footnote,
       fontWeight: FontWeight.w700,
       color: isDarkMode(context)
           ? const Color(0xFF8E8E93)

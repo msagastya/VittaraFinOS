@@ -126,7 +126,7 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                 style: TextStyle(
                   color: AppStyles.getTextColor(context),
                   fontWeight: FontWeight.w600,
-                  fontSize: 14,
+                  fontSize: TypeScale.body,
                 ),
               ),
               SizedBox(height: Spacing.sm),
@@ -149,7 +149,7 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                         _formatDate(_withdrawalDate),
                         style: TextStyle(
                           color: AppStyles.getTextColor(context),
-                          fontSize: 16,
+                          fontSize: TypeScale.headline,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -183,7 +183,7 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                       'Withdrawal Value',
                       style: TextStyle(
                         color: AppStyles.getSecondaryTextColor(context),
-                        fontSize: 12,
+                        fontSize: TypeScale.footnote,
                       ),
                     ),
                     SizedBox(height: Spacing.sm),
@@ -198,7 +198,7 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                               child: Text(
                                 '₹',
                                 style: TextStyle(
-                                  fontSize: 28,
+                                  fontSize: TypeScale.largeTitle,
                                   fontWeight: FontWeight.bold,
                                   color: AppStyles.getPrimaryColor(context),
                                 ),
@@ -208,7 +208,7 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                                 decimal: true),
                             style: TextStyle(
                               color: AppStyles.getPrimaryColor(context),
-                              fontSize: 28,
+                              fontSize: TypeScale.largeTitle,
                               fontWeight: FontWeight.bold,
                             ),
                             decoration: BoxDecoration(
@@ -246,7 +246,7 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                               'Early withdrawal: Pro-rata interest calculated',
                               style: TextStyle(
                                 color: AppStyles.getSecondaryTextColor(context),
-                                fontSize: 12,
+                                fontSize: TypeScale.footnote,
                               ),
                             ),
                           ),
@@ -266,7 +266,7 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                               'At maturity: Full interest earned',
                               style: TextStyle(
                                 color: CupertinoColors.systemGreen,
-                                fontSize: 12,
+                                fontSize: TypeScale.footnote,
                               ),
                             ),
                           ),
@@ -476,7 +476,7 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
             label,
             style: TextStyle(
               color: AppStyles.getSecondaryTextColor(context),
-              fontSize: 12,
+              fontSize: TypeScale.footnote,
             ),
           ),
           Text(
@@ -484,7 +484,7 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
             style: TextStyle(
               color: AppStyles.getTextColor(context),
               fontWeight: FontWeight.w600,
-              fontSize: 12,
+              fontSize: TypeScale.footnote,
             ),
           ),
         ],

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/settings_controller.dart';
 import 'package:vittara_fin_os/ui/backup_restore_screen.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 
@@ -241,7 +242,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Text(
                 value,
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: TypeScale.headline,
                   color: AppStyles.getSecondaryTextColor(context),
                 ),
               ),

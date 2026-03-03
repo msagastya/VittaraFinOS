@@ -209,7 +209,7 @@ class _SIPStepUpStepState extends State<SIPStepUpStep> {
                     'If you set 10% step up every 1 year:\nYear 1: ₹${sipController.sipAmount.toStringAsFixed(0)}/month\nYear 2: ₹${(sipController.sipAmount * 1.1).toStringAsFixed(0)}/month\nYear 3: ₹${(sipController.sipAmount * 1.21).toStringAsFixed(0)}/month',
                     style: TextStyle(
                       color: AppStyles.getSecondaryTextColor(context),
-                      fontSize: 12,
+                      fontSize: TypeScale.footnote,
                     ),
                   ),
                 ],
@@ -226,7 +226,7 @@ class _SIPStepUpStepState extends State<SIPStepUpStep> {
                 'Step Up is disabled. Your SIP amount will remain constant.',
                 style: TextStyle(
                   color: AppStyles.getSecondaryTextColor(context),
-                  fontSize: 12,
+                  fontSize: TypeScale.footnote,
                 ),
               ),
             ),

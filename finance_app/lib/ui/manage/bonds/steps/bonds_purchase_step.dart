@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/ui/manage/bonds/bonds_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class BondsPurchaseStep extends StatefulWidget {
   const BondsPurchaseStep({super.key});
@@ -59,7 +60,7 @@ class _BondsPurchaseStepState extends State<BondsPurchaseStep> {
             style: TextStyle(
               color: AppStyles.getTextColor(context),
               fontWeight: FontWeight.w600,
-              fontSize: 14,
+              fontSize: TypeScale.body,
             ),
           ),
           const SizedBox(height: 12),
@@ -143,7 +144,7 @@ class _BondsPurchaseStepState extends State<BondsPurchaseStep> {
             style: TextStyle(
               color: AppStyles.getTextColor(context),
               fontWeight: FontWeight.w600,
-              fontSize: 14,
+              fontSize: TypeScale.body,
             ),
           ),
           const SizedBox(height: 12),
@@ -178,7 +179,7 @@ class _BondsPurchaseStepState extends State<BondsPurchaseStep> {
             style: TextStyle(
               color: AppStyles.getTextColor(context),
               fontWeight: FontWeight.w600,
-              fontSize: 14,
+              fontSize: TypeScale.body,
             ),
           ),
           const SizedBox(height: 12),
@@ -216,14 +217,14 @@ class _BondsPurchaseStepState extends State<BondsPurchaseStep> {
                       'Total Cost',
                       style: TextStyle(
                         color: AppStyles.getSecondaryTextColor(context),
-                        fontSize: 12,
+                        fontSize: TypeScale.footnote,
                       ),
                     ),
                     Text(
                       '₹${controller.totalCost.toStringAsFixed(2)}',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: TypeScale.headline,
                         color: Color(0xFF007AFF),
                       ),
                     ),
@@ -237,14 +238,14 @@ class _BondsPurchaseStepState extends State<BondsPurchaseStep> {
                       'Maturity Value (Face Value)',
                       style: TextStyle(
                         color: AppStyles.getSecondaryTextColor(context),
-                        fontSize: 12,
+                        fontSize: TypeScale.footnote,
                       ),
                     ),
                     Text(
                       '₹${controller.maturityValue.toStringAsFixed(2)}',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: TypeScale.headline,
                       ),
                     ),
                   ],

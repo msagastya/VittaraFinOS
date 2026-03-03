@@ -1074,7 +1074,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                                               color: AppStyles
                                                   .getSecondaryTextColor(
                                                       context),
-                                              fontSize: 12),
+                                              fontSize: TypeScale.footnote),
                                         ),
                                       ],
                                     ),
@@ -1310,7 +1310,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                                               color: AppStyles
                                                   .getSecondaryTextColor(
                                                       context),
-                                              fontSize: 12),
+                                              fontSize: TypeScale.footnote),
                                         ),
                                       ],
                                     ),
@@ -1385,7 +1385,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
               'Available wallet: ₹${_selectedPaymentAppWalletBalance.toStringAsFixed(2)}',
               style: TextStyle(
                 color: AppStyles.getSecondaryTextColor(context),
-                fontSize: 12,
+                fontSize: TypeScale.footnote,
               ),
             ),
             const SizedBox(height: Spacing.md),
@@ -1602,7 +1602,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                   child: Text(
                     query.isEmpty ? 'Recent' : 'Suggestions',
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: TypeScale.caption,
                       fontWeight: FontWeight.w600,
                       color: AppStyles.getSecondaryTextColor(context),
                       letterSpacing: 0.5,
@@ -1644,7 +1644,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                               Text(
                                 name,
                                 style: const TextStyle(
-                                  fontSize: 12,
+                                  fontSize: TypeScale.footnote,
                                   fontWeight: FontWeight.w500,
                                   color: CupertinoColors.systemOrange,
                                 ),
@@ -1937,7 +1937,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                 Text(
                   query.isEmpty ? 'Recent' : 'Suggestions',
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: TypeScale.caption,
                     fontWeight: FontWeight.w600,
                     color: AppStyles.getSecondaryTextColor(context),
                     letterSpacing: 0.5,
@@ -1976,7 +1976,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                                   ? '${desc.substring(0, 28)}…'
                                   : desc,
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: TypeScale.footnote,
                                 color: AppStyles.getTextColor(context),
                               ),
                             ),
@@ -2226,7 +2226,7 @@ class _PhoneContactsPickerSheetState extends State<_PhoneContactsPickerSheet> {
                 children: [
                   Text(
                     'Phone contacts',
-                    style: AppStyles.titleStyle(context).copyWith(fontSize: 20),
+                    style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title2),
                   ),
                   const Spacer(),
                   CupertinoButton(
@@ -2311,7 +2311,7 @@ class _PhoneContactsPickerSheetState extends State<_PhoneContactsPickerSheet> {
                                             color:
                                                 AppStyles.getSecondaryTextColor(
                                                     context),
-                                            fontSize: 12,
+                                            fontSize: TypeScale.footnote,
                                           ),
                                         ),
                                     ],

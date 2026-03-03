@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:vittara_fin_os/logic/bond_cashflow_model.dart';
 import 'package:vittara_fin_os/ui/manage/bonds/bonds_wizard_controller_v2.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class BondRatesStep extends StatefulWidget {
   final BondsWizardControllerV2 ctrl;
@@ -87,7 +88,7 @@ class _FixedCouponRateInputState extends State<_FixedCouponRateInput> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Annual Coupon Rate (%)',
-            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
         const SizedBox(height: 12),
         CupertinoTextField(
           controller: _couponController,
@@ -117,7 +118,7 @@ class _FixedCouponRateInputState extends State<_FixedCouponRateInput> {
           child: Text(
             'This rate is used for all coupon payments.',
             style: TextStyle(
-                fontSize: 12, color: AppStyles.getSecondaryTextColor(context)),
+                fontSize: TypeScale.footnote, color: AppStyles.getSecondaryTextColor(context)),
           ),
         ),
       ],
@@ -158,7 +159,7 @@ class _ZeroCouponInputState extends State<_ZeroCouponInput> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Maturity Value (₹)',
-            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
         const SizedBox(height: 12),
         CupertinoTextField(
           controller: _maturityValueController,
@@ -191,14 +192,14 @@ class _ZeroCouponInputState extends State<_ZeroCouponInput> {
               Text(
                 'No coupon payments. You receive only the maturity value at the end.',
                 style: TextStyle(
-                    fontSize: 12,
+                    fontSize: TypeScale.footnote,
                     color: AppStyles.getSecondaryTextColor(context)),
               ),
               const SizedBox(height: 8),
               Text(
                 'Implicit yield: (${widget.ctrl.zeroMaturityValue?.toStringAsFixed(0) ?? widget.ctrl.faceValue.toStringAsFixed(0)} / ${widget.ctrl.purchasePrice.toStringAsFixed(2)})^(1/years) - 1',
                 style: TextStyle(
-                    fontSize: 11,
+                    fontSize: TypeScale.caption,
                     color: AppStyles.getSecondaryTextColor(context)),
               ),
             ],
@@ -241,7 +242,7 @@ class _AmortizingRateInputState extends State<_AmortizingRateInput> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Annual Interest Rate (%)',
-            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
         const SizedBox(height: 12),
         CupertinoTextField(
           controller: _interestController,
@@ -271,7 +272,7 @@ class _AmortizingRateInputState extends State<_AmortizingRateInput> {
           child: Text(
             'Principal is repaid gradually. Interest decreases over time as balance decreases.',
             style: TextStyle(
-                fontSize: 12, color: AppStyles.getSecondaryTextColor(context)),
+                fontSize: TypeScale.footnote, color: AppStyles.getSecondaryTextColor(context)),
           ),
         ),
       ],
@@ -319,7 +320,7 @@ class _FloatingRateInputState extends State<_FloatingRateInput> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Reference Rate (%) - Current',
-            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
         const SizedBox(height: 12),
         CupertinoTextField(
           controller: _referenceController,
@@ -341,7 +342,7 @@ class _FloatingRateInputState extends State<_FloatingRateInput> {
         ),
         const SizedBox(height: 24),
         Text('Spread (%) - Fixed',
-            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
         const SizedBox(height: 12),
         CupertinoTextField(
           controller: _spreadController,
@@ -374,7 +375,7 @@ class _FloatingRateInputState extends State<_FloatingRateInput> {
               Text(
                 'Current Coupon Rate = Reference Rate + Spread',
                 style: TextStyle(
-                    fontSize: 12,
+                    fontSize: TypeScale.footnote,
                     fontWeight: FontWeight.w600,
                     color: AppStyles.getTextColor(context)),
               ),
@@ -382,7 +383,7 @@ class _FloatingRateInputState extends State<_FloatingRateInput> {
               Text(
                 'Current Rate: ${currentRate.toStringAsFixed(2)}%',
                 style: TextStyle(
-                    fontSize: 13,
+                    fontSize: TypeScale.subhead,
                     fontWeight: FontWeight.w600,
                     color: const Color(0xFF00A6CC)),
               ),
@@ -390,7 +391,7 @@ class _FloatingRateInputState extends State<_FloatingRateInput> {
               Text(
                 'Coupon adjusts as reference rate changes. You maintain this record manually as rates change.',
                 style: TextStyle(
-                    fontSize: 12,
+                    fontSize: TypeScale.footnote,
                     color: AppStyles.getSecondaryTextColor(context)),
               ),
             ],

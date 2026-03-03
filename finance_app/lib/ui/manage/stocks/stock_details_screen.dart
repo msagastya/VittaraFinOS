@@ -168,7 +168,7 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                                 style: TextStyle(
                                   color:
                                       AppStyles.getSecondaryTextColor(context),
-                                  fontSize: 14,
+                                  fontSize: TypeScale.body,
                                 ),
                               ),
                               if (_exchange.isNotEmpty)
@@ -177,7 +177,7 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                                   style: TextStyle(
                                     color: AppStyles.getSecondaryTextColor(
                                         context),
-                                    fontSize: 12,
+                                    fontSize: TypeScale.footnote,
                                   ),
                                 ),
                             ],
@@ -196,14 +196,14 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                               'Invested',
                               style: TextStyle(
                                 color: AppStyles.getSecondaryTextColor(context),
-                                fontSize: 12,
+                                fontSize: TypeScale.footnote,
                               ),
                             ),
                             SizedBox(height: Spacing.xs),
                             Text(
                               '₹${_investedAmount.toStringAsFixed(2)}',
                               style: AppStyles.titleStyle(context)
-                                  .copyWith(fontSize: 20),
+                                  .copyWith(fontSize: TypeScale.title2),
                             ),
                           ],
                         ),
@@ -214,14 +214,14 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                               'Current Value',
                               style: TextStyle(
                                 color: AppStyles.getSecondaryTextColor(context),
-                                fontSize: 12,
+                                fontSize: TypeScale.footnote,
                               ),
                             ),
                             SizedBox(height: Spacing.xs),
                             Text(
                               '₹${_currentValue.toStringAsFixed(2)}',
                               style: AppStyles.titleStyle(context).copyWith(
-                                fontSize: 20,
+                                fontSize: TypeScale.title2,
                                 color: _investment.color,
                               ),
                             ),
@@ -362,7 +362,7 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
             label,
             style: TextStyle(
               color: AppStyles.getSecondaryTextColor(context),
-              fontSize: 14,
+              fontSize: TypeScale.body,
             ),
           ),
           Text(
@@ -370,7 +370,7 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
             style: TextStyle(
               color: AppStyles.getTextColor(context),
               fontWeight: FontWeight.w600,
-              fontSize: 14,
+              fontSize: TypeScale.body,
             ),
           ),
         ],
@@ -406,7 +406,7 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontWeight: FontWeight.w600,
-                fontSize: 13,
+                fontSize: TypeScale.subhead,
                 color: AppStyles.getTextColor(context),
               ),
             ),
@@ -632,7 +632,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                           : _step == 2
                               ? 'Extra Charges (Optional)'
                               : 'Review & Confirm',
-                  style: AppStyles.titleStyle(context).copyWith(fontSize: 22),
+                  style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title1),
                 ),
                 SizedBox(height: Spacing.sm),
                 Text(
@@ -645,7 +645,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                               : 'Confirm your purchase',
                   style: TextStyle(
                     color: AppStyles.getSecondaryTextColor(context),
-                    fontSize: 14,
+                    fontSize: TypeScale.body,
                   ),
                 ),
                 SizedBox(height: Spacing.xxxl),
@@ -781,7 +781,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                         style: TextStyle(
                           color: AppStyles.getSecondaryTextColor(context),
                           fontWeight: FontWeight.w500,
-                          fontSize: 14,
+                          fontSize: TypeScale.body,
                         ),
                       ),
                     ],
@@ -790,7 +790,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                     '₹${(_qty * _price).toStringAsFixed(2)}',
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
-                      fontSize: 16,
+                      fontSize: TypeScale.headline,
                       color: AppStyles.getTextColor(context),
                     ),
                   ),
@@ -825,7 +825,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                         'Total Cost',
                         style: TextStyle(
                           fontWeight: FontWeight.w600,
-                          fontSize: 15,
+                          fontSize: TypeScale.callout,
                           color: AppStyles.getTextColor(context),
                         ),
                       ),
@@ -868,7 +868,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
               style: TextStyle(
                 color: AppStyles.getTextColor(context),
                 fontWeight: FontWeight.w600,
-                fontSize: 14,
+                fontSize: TypeScale.body,
               ),
             ),
           ],
@@ -920,7 +920,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
               style: TextStyle(
                 color: AppStyles.getTextColor(context),
                 fontWeight: FontWeight.w600,
-                fontSize: 14,
+                fontSize: TypeScale.body,
               ),
             ),
           ],
@@ -982,7 +982,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                   'Auto-debit the purchase amount',
                   style: TextStyle(
                       color: AppStyles.getSecondaryTextColor(context),
-                      fontSize: 12),
+                      fontSize: TypeScale.footnote),
                 ),
               ],
             ),
@@ -1008,12 +1008,12 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                     'Selected Account',
                     style: TextStyle(
                         color: AppStyles.getSecondaryTextColor(context),
-                        fontSize: 12),
+                        fontSize: TypeScale.footnote),
                   ),
                   SizedBox(height: Spacing.sm),
                   Text(
                     _selectedAccount!.name,
-                    style: AppStyles.titleStyle(context).copyWith(fontSize: 16),
+                    style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.headline),
                   ),
                   SizedBox(height: Spacing.xs),
                   Text(
@@ -1063,7 +1063,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                     style: TextStyle(
                       color: AppStyles.getTextColor(context),
                       fontWeight: FontWeight.w600,
-                      fontSize: 14,
+                      fontSize: TypeScale.body,
                     ),
                   ),
                 ],
@@ -1073,7 +1073,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                 'Brokerage fees, commissions, or taxes',
                 style: TextStyle(
                   color: AppStyles.getSecondaryTextColor(context),
-                  fontSize: 12,
+                  fontSize: TypeScale.footnote,
                 ),
               ),
               SizedBox(height: Spacing.lg),
@@ -1149,12 +1149,12 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                 children: [
                   const Text('Total Amount',
                       style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: TypeScale.headline)),
                   Text(
                     '₹${_totalCost.toStringAsFixed(2)}',
                     style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: TypeScale.headline,
                         color: SemanticColors.investments),
                   ),
                 ],
@@ -1206,12 +1206,12 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                 children: [
                   const Text('Total Amount',
                       style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: TypeScale.headline)),
                   Text(
                     '₹${_totalCost.toStringAsFixed(2)}',
                     style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: TypeScale.headline,
                         color: SemanticColors.investments),
                   ),
                 ],
@@ -1466,7 +1466,7 @@ class _SellModalState extends State<_SellModal> {
                           : _step == 2
                               ? 'Extra Charges (Optional)'
                               : 'Review & Confirm',
-                  style: AppStyles.titleStyle(context).copyWith(fontSize: 22),
+                  style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title1),
                 ),
                 SizedBox(height: Spacing.sm),
                 Text(
@@ -1479,7 +1479,7 @@ class _SellModalState extends State<_SellModal> {
                               : 'Confirm your sale',
                   style: TextStyle(
                     color: AppStyles.getSecondaryTextColor(context),
-                    fontSize: 14,
+                    fontSize: TypeScale.body,
                   ),
                 ),
                 SizedBox(height: Spacing.xxxl),
@@ -1612,7 +1612,7 @@ class _SellModalState extends State<_SellModal> {
                 '₹${_grossProceeds.toStringAsFixed(2)}',
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 16,
+                  fontSize: TypeScale.headline,
                   color: CupertinoColors.systemGreen,
                 ),
               ),
@@ -1642,7 +1642,7 @@ class _SellModalState extends State<_SellModal> {
                   'Auto-credit the sale proceeds',
                   style: TextStyle(
                       color: AppStyles.getSecondaryTextColor(context),
-                      fontSize: 12),
+                      fontSize: TypeScale.footnote),
                 ),
               ],
             ),
@@ -1668,12 +1668,12 @@ class _SellModalState extends State<_SellModal> {
                     'Selected Account',
                     style: TextStyle(
                         color: AppStyles.getSecondaryTextColor(context),
-                        fontSize: 12),
+                        fontSize: TypeScale.footnote),
                   ),
                   SizedBox(height: Spacing.sm),
                   Text(
                     _selectedAccount!.name,
-                    style: AppStyles.titleStyle(context).copyWith(fontSize: 16),
+                    style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.headline),
                   ),
                   SizedBox(height: Spacing.xs),
                   Text(
@@ -1707,7 +1707,7 @@ class _SellModalState extends State<_SellModal> {
         Text(
           'Brokerage fees, taxes, or other charges',
           style: TextStyle(
-              color: AppStyles.getSecondaryTextColor(context), fontSize: 12),
+              color: AppStyles.getSecondaryTextColor(context), fontSize: TypeScale.footnote),
         ),
         SizedBox(height: Spacing.md),
         CupertinoTextField(
@@ -1759,12 +1759,12 @@ class _SellModalState extends State<_SellModal> {
                 children: [
                   const Text('Net Proceeds',
                       style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: TypeScale.headline)),
                   Text(
                     '₹${_netProceeds.toStringAsFixed(2)}',
                     style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: TypeScale.headline,
                         color: CupertinoColors.systemGreen),
                   ),
                 ],
@@ -1816,12 +1816,12 @@ class _SellModalState extends State<_SellModal> {
                 children: [
                   const Text('Net Proceeds',
                       style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: TypeScale.headline)),
                   Text(
                     '₹${_netProceeds.toStringAsFixed(2)}',
                     style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: TypeScale.headline,
                         color: CupertinoColors.systemGreen),
                   ),
                 ],
@@ -2112,7 +2112,7 @@ class _SIPModalState extends State<_SIPModal> {
                                   : _step == 4
                                       ? 'Link Account'
                                       : 'Review & Confirm',
-                  style: AppStyles.titleStyle(context).copyWith(fontSize: 22),
+                  style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title1),
                 ),
                 SizedBox(height: Spacing.sm),
                 Text(
@@ -2129,7 +2129,7 @@ class _SIPModalState extends State<_SIPModal> {
                                       : 'Confirm your SIP setup',
                   style: TextStyle(
                     color: AppStyles.getSecondaryTextColor(context),
-                    fontSize: 14,
+                    fontSize: TypeScale.body,
                   ),
                 ),
                 SizedBox(height: Spacing.xxxl),
@@ -2186,7 +2186,7 @@ class _SIPModalState extends State<_SIPModal> {
           style: TextStyle(
             color: AppStyles.getTextColor(context),
             fontWeight: FontWeight.w600,
-            fontSize: 14,
+            fontSize: TypeScale.body,
           ),
         ),
         SizedBox(height: Spacing.md),
@@ -2245,7 +2245,7 @@ class _SIPModalState extends State<_SIPModal> {
                       'SIP will start on the selected date. First transaction will be processed immediately.',
                       style: TextStyle(
                         color: AppStyles.getSecondaryTextColor(context),
-                        fontSize: 12,
+                        fontSize: TypeScale.footnote,
                       ),
                     ),
                   ),
@@ -2335,7 +2335,7 @@ class _SIPModalState extends State<_SIPModal> {
                   Text(
                     subtitle,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: TypeScale.footnote,
                       color: AppStyles.getSecondaryTextColor(context),
                     ),
                   ),
@@ -2444,7 +2444,7 @@ class _SIPModalState extends State<_SIPModal> {
                   'Auto-debit each SIP installment',
                   style: TextStyle(
                       color: AppStyles.getSecondaryTextColor(context),
-                      fontSize: 12),
+                      fontSize: TypeScale.footnote),
                 ),
               ],
             ),
@@ -2470,12 +2470,12 @@ class _SIPModalState extends State<_SIPModal> {
                     'Selected Account',
                     style: TextStyle(
                         color: AppStyles.getSecondaryTextColor(context),
-                        fontSize: 12),
+                        fontSize: TypeScale.footnote),
                   ),
                   SizedBox(height: Spacing.sm),
                   Text(
                     _selectedAccount!.name,
-                    style: AppStyles.titleStyle(context).copyWith(fontSize: 16),
+                    style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.headline),
                   ),
                   SizedBox(height: Spacing.xs),
                   Text(
@@ -2595,7 +2595,7 @@ class _EditModalState extends State<_EditModal> {
                 SizedBox(height: Spacing.lg),
                 Text(
                   'Edit Investment',
-                  style: AppStyles.titleStyle(context).copyWith(fontSize: 22),
+                  style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title1),
                 ),
                 SizedBox(height: Spacing.xxxl),
                 Text('Investment Name',
@@ -2750,14 +2750,14 @@ class _DividendModalState extends State<_DividendModal> {
                 SizedBox(height: Spacing.lg),
                 Text(
                   'Record Dividend',
-                  style: AppStyles.titleStyle(context).copyWith(fontSize: 22),
+                  style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title1),
                 ),
                 SizedBox(height: Spacing.sm),
                 Text(
                   'Total dividend amount received',
                   style: TextStyle(
                     color: AppStyles.getSecondaryTextColor(context),
-                    fontSize: 14,
+                    fontSize: TypeScale.body,
                   ),
                 ),
                 SizedBox(height: Spacing.xxxl),
@@ -2786,7 +2786,7 @@ class _DividendModalState extends State<_DividendModal> {
                             style: TextStyle(
                               color: AppStyles.getTextColor(context),
                               fontWeight: FontWeight.w600,
-                              fontSize: 14,
+                              fontSize: TypeScale.body,
                             ),
                           ),
                         ],
@@ -2831,7 +2831,7 @@ class _DividendModalState extends State<_DividendModal> {
                             style: TextStyle(
                               color: AppStyles.getTextColor(context),
                               fontWeight: FontWeight.w600,
-                              fontSize: 14,
+                              fontSize: TypeScale.body,
                             ),
                           ),
                         ],
@@ -2898,7 +2898,7 @@ class _DividendModalState extends State<_DividendModal> {
                                 style: TextStyle(
                                   color: AppStyles.getTextColor(context),
                                   fontWeight: FontWeight.w600,
-                                  fontSize: 14,
+                                  fontSize: TypeScale.body,
                                 ),
                               ),
                             ],
@@ -2907,7 +2907,7 @@ class _DividendModalState extends State<_DividendModal> {
                             'Required',
                             style: TextStyle(
                               color: CupertinoColors.systemRed,
-                              fontSize: 12,
+                              fontSize: TypeScale.footnote,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -2930,7 +2930,7 @@ class _DividendModalState extends State<_DividendModal> {
                                 style: TextStyle(
                                   color: AppStyles.getTextColor(context),
                                   fontWeight: FontWeight.w600,
-                                  fontSize: 14,
+                                  fontSize: TypeScale.body,
                                 ),
                               ),
                               SizedBox(height: Spacing.xs),
@@ -2939,7 +2939,7 @@ class _DividendModalState extends State<_DividendModal> {
                                 style: TextStyle(
                                   color:
                                       AppStyles.getSecondaryTextColor(context),
-                                  fontSize: 12,
+                                  fontSize: TypeScale.footnote,
                                 ),
                               ),
                               if (amount > 0) ...[
@@ -2948,7 +2948,7 @@ class _DividendModalState extends State<_DividendModal> {
                                   'After credit: ₹${(_selectedAccount!.balance + amount).toStringAsFixed(2)}',
                                   style: TextStyle(
                                     color: CupertinoColors.systemGreen,
-                                    fontSize: 12,
+                                    fontSize: TypeScale.footnote,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -3072,7 +3072,7 @@ class _AccountSelector extends StatelessWidget {
                     Text(
                       'Select Account',
                       style:
-                          AppStyles.titleStyle(context).copyWith(fontSize: 22),
+                          AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title1),
                     ),
                     SizedBox(height: Spacing.xxxl),
                     if (accounts.isEmpty)
@@ -3107,7 +3107,7 @@ class _AccountSelector extends StatelessWidget {
                                   style: TextStyle(
                                     color: AppStyles.getSecondaryTextColor(
                                         context),
-                                    fontSize: 12,
+                                    fontSize: TypeScale.footnote,
                                   ),
                                 ),
                                 SizedBox(height: Spacing.sm),

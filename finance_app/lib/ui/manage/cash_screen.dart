@@ -92,7 +92,7 @@ class CashScreen extends StatelessWidget {
                                   style: TextStyle(
                                     color: CupertinoColors.systemGreen,
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 16,
+                                    fontSize: TypeScale.headline,
                                   ),
                                 ),
                               ],
@@ -222,7 +222,7 @@ class CashScreen extends StatelessWidget {
                     Text(
                       'Create Cash Account',
                       style: AppStyles.titleStyle(sheetContext).copyWith(
-                        fontSize: 22,
+                        fontSize: TypeScale.title1,
                       ),
                     ),
                     const SizedBox(height: Spacing.md),
@@ -327,7 +327,7 @@ class CashScreen extends StatelessWidget {
                         Text(
                           'Adjust Cash',
                           style: AppStyles.titleStyle(context).copyWith(
-                            fontSize: 22,
+                            fontSize: TypeScale.title1,
                           ),
                         ),
                         const SizedBox(height: Spacing.sm),
@@ -545,14 +545,14 @@ class _CashAccountCard extends StatelessWidget {
                 children: [
                   Text(
                     account.name,
-                    style: AppStyles.titleStyle(context).copyWith(fontSize: 16),
+                    style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.headline),
                   ),
                   const SizedBox(height: 3),
                   Text(
                     'Tap to adjust cash',
                     style: TextStyle(
                       color: AppStyles.getSecondaryTextColor(context),
-                      fontSize: 12,
+                      fontSize: TypeScale.footnote,
                     ),
                   ),
                 ],

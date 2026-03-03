@@ -38,7 +38,7 @@ class MFReviewStep extends StatelessWidget {
                       ? mf.schemeName.substring(0, 1).toUpperCase()
                       : 'M',
                   style: TextStyle(
-                    fontSize: 32,
+                    fontSize: TypeScale.display,
                     fontWeight: FontWeight.bold,
                     color: SemanticColors.investments,
                   ),
@@ -59,7 +59,7 @@ class MFReviewStep extends StatelessWidget {
               mf.fundHouse ?? 'Unknown Fund House',
               style: TextStyle(
                 color: AppStyles.getSecondaryTextColor(context),
-                fontSize: 12,
+                fontSize: TypeScale.footnote,
               ),
               textAlign: TextAlign.center,
             ),
@@ -103,7 +103,7 @@ class MFReviewStep extends StatelessWidget {
                   'Investment Summary',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 14,
+                    fontSize: TypeScale.body,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -165,12 +165,12 @@ class MFReviewStep extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(fontSize: 12),
+            style: const TextStyle(fontSize: TypeScale.footnote),
           ),
           Text(
             value,
             style: const TextStyle(
-              fontSize: 12,
+              fontSize: TypeScale.footnote,
               fontWeight: FontWeight.w600,
             ),
           ),

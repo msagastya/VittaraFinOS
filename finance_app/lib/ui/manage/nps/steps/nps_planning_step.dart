@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/nps_model.dart';
 import 'package:vittara_fin_os/ui/manage/nps/nps_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class NPSPlanningStep extends StatelessWidget {
   const NPSPlanningStep({super.key});
@@ -23,7 +24,7 @@ class NPSPlanningStep extends StatelessWidget {
                   TextStyle(color: AppStyles.getSecondaryTextColor(context))),
           const SizedBox(height: 30),
           Text('Planned Retirement Date',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           GestureDetector(
             onTap: () async {
@@ -88,7 +89,7 @@ class NPSPlanningStep extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Text('Withdrawal Strategy',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           Column(
             children: NPSWithdrawalType.values.map((wtype) {
@@ -155,7 +156,7 @@ class NPSPlanningStep extends StatelessWidget {
                                     fontWeight: FontWeight.bold)),
                             Text(desc[wtype] ?? '',
                                 style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: TypeScale.footnote,
                                     color: AppStyles.getSecondaryTextColor(
                                         context))),
                           ],

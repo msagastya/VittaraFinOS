@@ -125,7 +125,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                                     style: TextStyle(
                                       color: AppStyles.getSecondaryTextColor(
                                           context),
-                                      fontSize: 14,
+                                      fontSize: TypeScale.body,
                                     ),
                                   ),
                                 ],
@@ -191,7 +191,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
               Text(
                 title,
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: TypeScale.subhead,
                   fontWeight: FontWeight.w600,
                   color: selected
                       ? color
@@ -202,7 +202,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
               Text(
                 subtitle,
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: TypeScale.caption,
                   fontWeight: FontWeight.w600,
                   color: selected
                       ? color
@@ -756,14 +756,14 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                                     style: TextStyle(
                                       fontWeight: FontWeight.w700,
                                       color: color,
-                                      fontSize: 13,
+                                      fontSize: TypeScale.subhead,
                                     ),
                                   ),
                                 ),
                                 Text(
                                   _formatDateTime(event.timestamp),
                                   style: TextStyle(
-                                    fontSize: 11,
+                                    fontSize: TypeScale.caption,
                                     color: AppStyles.getSecondaryTextColor(
                                         context),
                                   ),
@@ -776,7 +776,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                               Text(
                                 event.note!,
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: TypeScale.footnote,
                                   color:
                                       AppStyles.getSecondaryTextColor(context),
                                 ),
@@ -788,7 +788,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                                 Text(
                                   'Balance: ₹${event.resultingAmount.toStringAsFixed(0)}',
                                   style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: TypeScale.footnote,
                                     fontWeight: FontWeight.w600,
                                     color: AppStyles.getTextColor(context),
                                   ),
@@ -798,7 +798,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                                   Text(
                                     deltaText,
                                     style: TextStyle(
-                                      fontSize: 12,
+                                      fontSize: TypeScale.footnote,
                                       fontWeight: FontWeight.w700,
                                       color: delta! >= 0
                                           ? SemanticColors.success
@@ -1100,7 +1100,7 @@ class _TransactionTypeWizard extends StatelessWidget {
           'New Transaction',
           style: TextStyle(
             color: AppStyles.getTextColor(context),
-            fontSize: 16,
+            fontSize: TypeScale.headline,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -1117,7 +1117,7 @@ class _TransactionTypeWizard extends StatelessWidget {
               Text(
                 'What would you like to record?',
                 style: AppStyles.titleStyle(context).copyWith(
-                  fontSize: 28,
+                  fontSize: TypeScale.largeTitle,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -1125,7 +1125,7 @@ class _TransactionTypeWizard extends StatelessWidget {
               Text(
                 'Choose whether you lent or borrowed money',
                 style: TextStyle(
-                  fontSize: 15,
+                  fontSize: TypeScale.callout,
                   color: AppStyles.getSecondaryTextColor(context),
                   height: 1.5,
                 ),
@@ -1185,7 +1185,7 @@ class _TransactionTypeWizard extends StatelessWidget {
                           Text(
                             'Keep Track',
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: TypeScale.footnote,
                               fontWeight: FontWeight.w600,
                               color: AppStyles.getTextColor(context),
                             ),
@@ -1194,7 +1194,7 @@ class _TransactionTypeWizard extends StatelessWidget {
                           Text(
                             'Add due dates and mark as settled when repaid',
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: TypeScale.caption,
                               color: AppStyles.getSecondaryTextColor(context),
                               height: 1.4,
                             ),
@@ -1271,7 +1271,7 @@ class _TransactionTypeWizard extends StatelessWidget {
                   Text(
                     title,
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: TypeScale.headline,
                       fontWeight: FontWeight.w700,
                       color: AppStyles.getTextColor(context),
                     ),
@@ -1280,7 +1280,7 @@ class _TransactionTypeWizard extends StatelessWidget {
                   Text(
                     subtitle,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: TypeScale.footnote,
                       color: AppStyles.getSecondaryTextColor(context),
                       height: 1.4,
                     ),

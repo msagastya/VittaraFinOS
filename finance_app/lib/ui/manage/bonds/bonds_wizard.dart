@@ -9,6 +9,7 @@ import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/ui/manage/account_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/bonds/bonds_wizard_controller_v2.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
@@ -195,7 +196,7 @@ class _BondNameStep extends StatelessWidget {
           const SizedBox(height: 20),
           Text('Enter a name to identify this bond',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: TypeScale.footnote,
                 color: AppStyles.getSecondaryTextColor(context),
               )),
           const SizedBox(height: 16),
@@ -231,7 +232,7 @@ class _BondAmountStep extends StatelessWidget {
           const SizedBox(height: 20),
           Text('How much are you investing in this bond?',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: TypeScale.footnote,
                 color: AppStyles.getSecondaryTextColor(context),
               )),
           const SizedBox(height: 16),
@@ -297,7 +298,7 @@ class _AccountSelectionStepState extends State<_AccountSelectionStep> {
               const SizedBox(height: 20),
               Text('Select an account to link with this bond (optional)',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: TypeScale.footnote,
                     color: AppStyles.getSecondaryTextColor(context),
                   )),
               const SizedBox(height: 16),
@@ -369,14 +370,14 @@ class _AccountSelectionStepState extends State<_AccountSelectionStep> {
                                   account.name,
                                   style: const TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 16),
+                                      fontSize: TypeScale.headline),
                                 ),
                                 Text(
                                   account.bankName,
                                   style: TextStyle(
                                     color: AppStyles.getSecondaryTextColor(
                                         context),
-                                    fontSize: 13,
+                                    fontSize: TypeScale.subhead,
                                   ),
                                 ),
                               ],
@@ -452,7 +453,7 @@ class _AccountSelectionStepState extends State<_AccountSelectionStep> {
                       Text(
                         'Auto-debit from account',
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: TypeScale.subhead,
                           color: AppStyles.getSecondaryTextColor(context),
                         ),
                       ),
@@ -550,7 +551,7 @@ class _PayoutFrequencyStep extends StatelessWidget {
                                   const TextStyle(fontWeight: FontWeight.bold)),
                           Text(f.$3,
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: TypeScale.footnote,
                                 color: AppStyles.getSecondaryTextColor(context),
                               )),
                         ],
@@ -585,7 +586,7 @@ class _PayoutDatesStep extends StatelessWidget {
           const SizedBox(height: 20),
           if (!isAtMaturity) ...[
             Text('First Payout Month & Day',
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
             const SizedBox(height: 12),
             Row(
               children: [
@@ -629,7 +630,7 @@ class _PayoutDatesStep extends StatelessWidget {
             const SizedBox(height: 24),
           ],
           Text('Bond Maturity Date',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           GestureDetector(
             onTap: () {
@@ -654,7 +655,7 @@ class _PayoutDatesStep extends StatelessWidget {
                           children: [
                             const Text('Select Date',
                                 style: TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold)),
+                                    fontSize: TypeScale.headline, fontWeight: FontWeight.bold)),
                             GestureDetector(
                               onTap: () => Navigator.pop(ctx),
                               child: const Icon(CupertinoIcons.xmark),
@@ -757,7 +758,7 @@ class _ReviewStep extends StatelessWidget {
             child: Text(
               'You will receive payout reminders 2 days before each scheduled payout date via Notifications and Actions.',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: TypeScale.footnote,
                 color: AppStyles.getSecondaryTextColor(context),
               ),
             ),
@@ -782,14 +783,14 @@ class _ReviewRow extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            fontSize: 13,
+            fontSize: TypeScale.subhead,
             color: AppStyles.getSecondaryTextColor(context),
           ),
         ),
         Text(
           value,
           style: TextStyle(
-            fontSize: 13,
+            fontSize: TypeScale.subhead,
             fontWeight: FontWeight.w600,
             color: AppStyles.getTextColor(context),
           ),

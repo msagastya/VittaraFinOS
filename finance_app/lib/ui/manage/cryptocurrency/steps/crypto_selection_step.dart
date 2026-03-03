@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/models/cryptocurrency_model.dart';
 import 'package:vittara_fin_os/ui/manage/cryptocurrency/crypto_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class CryptoSelectionStep extends StatefulWidget {
   const CryptoSelectionStep({super.key});
@@ -71,7 +72,7 @@ class _CryptoSelectionStepState extends State<CryptoSelectionStep> {
             style: TextStyle(
               color: AppStyles.getTextColor(context),
               fontWeight: FontWeight.w600,
-              fontSize: 14,
+              fontSize: TypeScale.body,
             ),
           ),
           const SizedBox(height: 12),
@@ -123,7 +124,7 @@ class _CryptoSelectionStepState extends State<CryptoSelectionStep> {
                           symbol,
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                            fontSize: TypeScale.headline,
                             color: Color(0xFFF7931A),
                           ),
                         ),
@@ -133,7 +134,7 @@ class _CryptoSelectionStepState extends State<CryptoSelectionStep> {
                         name,
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 13,
+                          fontSize: TypeScale.subhead,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -159,7 +160,7 @@ class _CryptoSelectionStepState extends State<CryptoSelectionStep> {
             style: TextStyle(
               color: AppStyles.getTextColor(context),
               fontWeight: FontWeight.w600,
-              fontSize: 14,
+              fontSize: TypeScale.body,
             ),
           ),
           const SizedBox(height: 12),

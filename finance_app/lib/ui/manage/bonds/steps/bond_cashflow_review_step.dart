@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/ui/manage/bonds/bonds_wizard_controller_v2.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class BondCashFlowReviewStep extends StatelessWidget {
   final BondsWizardControllerV2 ctrl;
@@ -22,7 +23,7 @@ class BondCashFlowReviewStep extends StatelessWidget {
           Text(
             'This is your bond\'s payment schedule. Every cash flow is listed below.',
             style: TextStyle(
-              fontSize: 12,
+              fontSize: TypeScale.footnote,
               color: AppStyles.getSecondaryTextColor(context),
             ),
           ),
@@ -54,7 +55,7 @@ class BondCashFlowReviewStep extends StatelessWidget {
                           'Date',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 12,
+                            fontSize: TypeScale.footnote,
                             color: const Color(0xFF00A6CC),
                           ),
                         ),
@@ -66,7 +67,7 @@ class BondCashFlowReviewStep extends StatelessWidget {
                           textAlign: TextAlign.right,
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 12,
+                            fontSize: TypeScale.footnote,
                             color: const Color(0xFF00A6CC),
                           ),
                         ),
@@ -78,7 +79,7 @@ class BondCashFlowReviewStep extends StatelessWidget {
                           textAlign: TextAlign.right,
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 12,
+                            fontSize: TypeScale.footnote,
                             color: const Color(0xFF00A6CC),
                           ),
                         ),
@@ -104,7 +105,7 @@ class BondCashFlowReviewStep extends StatelessWidget {
                               flex: 2,
                               child: Text(
                                 '${cf.date.day}/${cf.date.month}/${cf.date.year}',
-                                style: const TextStyle(fontSize: 12),
+                                style: const TextStyle(fontSize: TypeScale.footnote),
                               ),
                             ),
                             Expanded(
@@ -113,7 +114,7 @@ class BondCashFlowReviewStep extends StatelessWidget {
                                 '${isNegative ? '-' : '+'}₹${cf.amount.abs().toStringAsFixed(2)}',
                                 textAlign: TextAlign.right,
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: TypeScale.footnote,
                                   fontWeight: FontWeight.w600,
                                   color: isNegative ? CupertinoColors.systemRed : CupertinoColors.systemGreen,
                                 ),
@@ -125,7 +126,7 @@ class BondCashFlowReviewStep extends StatelessWidget {
                                 cf.description,
                                 textAlign: TextAlign.right,
                                 style: TextStyle(
-                                  fontSize: 11,
+                                  fontSize: TypeScale.caption,
                                   color:
                                       AppStyles.getSecondaryTextColor(context),
                                 ),

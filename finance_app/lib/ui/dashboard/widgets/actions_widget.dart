@@ -125,7 +125,7 @@ class ActionsWidget extends BaseDashboardWidget {
             Text(
               title,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: TypeScale.footnote,
                 fontWeight: FontWeight.w600,
                 color: AppStyles.getTextColor(context),
               ),
@@ -204,7 +204,7 @@ class ActionsWidget extends BaseDashboardWidget {
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: TypeScale.subhead,
                     fontWeight: FontWeight.w700,
                     color: AppStyles.getTextColor(context),
                   ),

@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/ui/manage/cryptocurrency/crypto_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class CryptoPurchaseStep extends StatefulWidget {
   const CryptoPurchaseStep({super.key});
@@ -71,7 +72,7 @@ class _CryptoPurchaseStepState extends State<CryptoPurchaseStep> {
             style: TextStyle(
               color: AppStyles.getTextColor(context),
               fontWeight: FontWeight.w600,
-              fontSize: 14,
+              fontSize: TypeScale.body,
             ),
           ),
           const SizedBox(height: 12),
@@ -155,7 +156,7 @@ class _CryptoPurchaseStepState extends State<CryptoPurchaseStep> {
             style: TextStyle(
               color: AppStyles.getTextColor(context),
               fontWeight: FontWeight.w600,
-              fontSize: 14,
+              fontSize: TypeScale.body,
             ),
           ),
           const SizedBox(height: 12),
@@ -183,7 +184,7 @@ class _CryptoPurchaseStepState extends State<CryptoPurchaseStep> {
             style: TextStyle(
               color: AppStyles.getTextColor(context),
               fontWeight: FontWeight.w600,
-              fontSize: 14,
+              fontSize: TypeScale.body,
             ),
           ),
           const SizedBox(height: 12),
@@ -218,7 +219,7 @@ class _CryptoPurchaseStepState extends State<CryptoPurchaseStep> {
             style: TextStyle(
               color: AppStyles.getTextColor(context),
               fontWeight: FontWeight.w600,
-              fontSize: 14,
+              fontSize: TypeScale.body,
             ),
           ),
           const SizedBox(height: 12),
@@ -251,7 +252,7 @@ class _CryptoPurchaseStepState extends State<CryptoPurchaseStep> {
             style: TextStyle(
               color: AppStyles.getTextColor(context),
               fontWeight: FontWeight.w600,
-              fontSize: 14,
+              fontSize: TypeScale.body,
             ),
           ),
           const SizedBox(height: 12),
@@ -337,7 +338,7 @@ class _SummaryRow extends StatelessWidget {
           label,
           style: TextStyle(
             color: AppStyles.getSecondaryTextColor(context),
-            fontSize: 13,
+            fontSize: TypeScale.subhead,
           ),
         ),
         Text(

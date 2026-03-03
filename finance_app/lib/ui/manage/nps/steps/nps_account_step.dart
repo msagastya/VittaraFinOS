@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/nps_model.dart';
 import 'package:vittara_fin_os/ui/manage/nps/nps_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class NPSAccountStep extends StatefulWidget {
   const NPSAccountStep({super.key});
@@ -54,7 +55,7 @@ class _NPSAccountStepState extends State<NPSAccountStep> {
           const SizedBox(height: 30),
           // PRN
           Text('Permanent Retirement Number (PRN)',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           CupertinoTextField(
             controller: _prnController,
@@ -69,7 +70,7 @@ class _NPSAccountStepState extends State<NPSAccountStep> {
           const SizedBox(height: 24),
           // NRN
           Text('National Registration Number (NRN)',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           CupertinoTextField(
             controller: _nrnController,
@@ -84,7 +85,7 @@ class _NPSAccountStepState extends State<NPSAccountStep> {
           const SizedBox(height: 24),
           // Name
           Text('Subscriber Name',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           CupertinoTextField(
             controller: _nameController,
@@ -99,7 +100,7 @@ class _NPSAccountStepState extends State<NPSAccountStep> {
           const SizedBox(height: 24),
           // PAN
           Text('PAN Number',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           CupertinoTextField(
             controller: _panController,
@@ -114,7 +115,7 @@ class _NPSAccountStepState extends State<NPSAccountStep> {
           const SizedBox(height: 24),
           // Account Type
           Text('Account Type',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
@@ -149,7 +150,7 @@ class _NPSAccountStepState extends State<NPSAccountStep> {
                           color: isSelected ? Colors.white : null,
                           fontWeight:
                               isSelected ? FontWeight.bold : FontWeight.w500,
-                          fontSize: 12)),
+                          fontSize: TypeScale.footnote)),
                 ),
               );
             }).toList(),
@@ -157,7 +158,7 @@ class _NPSAccountStepState extends State<NPSAccountStep> {
           const SizedBox(height: 24),
           // Tier
           Text('NPS Tier',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           Row(
             children: NPSTier.values.map((tier) {
@@ -186,7 +187,7 @@ class _NPSAccountStepState extends State<NPSAccountStep> {
                         style: TextStyle(
                             color: isSelected ? Colors.white : null,
                             fontWeight: isSelected ? FontWeight.bold : null,
-                            fontSize: 12)),
+                            fontSize: TypeScale.footnote)),
                   ),
                 ),
               );

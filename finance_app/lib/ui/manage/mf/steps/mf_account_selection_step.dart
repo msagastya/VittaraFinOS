@@ -135,7 +135,7 @@ class _MFAccountSelectionStepState extends State<MFAccountSelectionStep> {
                                         account.name,
                                         style: const TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 16,
+                                          fontSize: TypeScale.headline,
                                         ),
                                       ),
                                       Text(
@@ -144,7 +144,7 @@ class _MFAccountSelectionStepState extends State<MFAccountSelectionStep> {
                                           color:
                                               AppStyles.getSecondaryTextColor(
                                                   context),
-                                          fontSize: 13,
+                                          fontSize: TypeScale.subhead,
                                         ),
                                       ),
                                     ],

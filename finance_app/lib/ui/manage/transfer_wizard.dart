@@ -466,7 +466,7 @@ class _TransferWizardState extends State<TransferWizard> {
                                 Text(
                                   account.name,
                                   style: AppStyles.titleStyle(context)
-                                      .copyWith(fontSize: 16),
+                                      .copyWith(fontSize: TypeScale.headline),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
@@ -519,7 +519,7 @@ class _TransferWizardState extends State<TransferWizard> {
                           'Add Account',
                           style: TextStyle(
                             color: CupertinoColors.systemBlue,
-                            fontSize: 16,
+                            fontSize: TypeScale.headline,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -622,7 +622,7 @@ class _TransferWizardState extends State<TransferWizard> {
                                 Text(
                                   account.name,
                                   style: AppStyles.titleStyle(context)
-                                      .copyWith(fontSize: 16),
+                                      .copyWith(fontSize: TypeScale.headline),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
@@ -675,7 +675,7 @@ class _TransferWizardState extends State<TransferWizard> {
                           'Add Account',
                           style: TextStyle(
                             color: CupertinoColors.systemBlue,
-                            fontSize: 16,
+                            fontSize: TypeScale.headline,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -716,7 +716,7 @@ class _TransferWizardState extends State<TransferWizard> {
               children: [
                 Text('₹',
                     style:
-                        AppStyles.titleStyle(context).copyWith(fontSize: 32)),
+                        AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.display)),
                 const SizedBox(width: 8),
                 IntrinsicWidth(
                   child: CupertinoTextField(
@@ -734,7 +734,7 @@ class _TransferWizardState extends State<TransferWizard> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     style: AppStyles.titleStyle(context)
-                        .copyWith(fontSize: 32, fontWeight: FontWeight.bold),
+                        .copyWith(fontSize: TypeScale.display, fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
@@ -748,7 +748,7 @@ class _TransferWizardState extends State<TransferWizard> {
             Text(
               'Charges will be deducted but not credited to any account',
               style: TextStyle(
-                  fontSize: 12,
+                  fontSize: TypeScale.footnote,
                   color: AppStyles.getSecondaryTextColor(context)),
             ),
             const SizedBox(height: 12),
@@ -758,7 +758,7 @@ class _TransferWizardState extends State<TransferWizard> {
                 children: [
                   Text('₹',
                       style:
-                          AppStyles.titleStyle(context).copyWith(fontSize: 28)),
+                          AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.largeTitle)),
                   const SizedBox(width: 8),
                   IntrinsicWidth(
                     child: CupertinoTextField(
@@ -772,7 +772,7 @@ class _TransferWizardState extends State<TransferWizard> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       style: AppStyles.titleStyle(context)
-                          .copyWith(fontSize: 28, fontWeight: FontWeight.bold),
+                          .copyWith(fontSize: TypeScale.largeTitle, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
@@ -835,7 +835,7 @@ class _TransferWizardState extends State<TransferWizard> {
                             Text(
                               _sourceAccount!.bankName,
                               style: AppStyles.titleStyle(context)
-                                  .copyWith(fontSize: 16),
+                                  .copyWith(fontSize: TypeScale.headline),
                             ),
                             const SizedBox(height: 4),
                             Text(
@@ -927,7 +927,7 @@ class _TransferWizardState extends State<TransferWizard> {
                                         Text(
                                           app['name'],
                                           style: AppStyles.titleStyle(context)
-                                              .copyWith(fontSize: 16),
+                                              .copyWith(fontSize: TypeScale.headline),
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
@@ -1005,7 +1005,7 @@ class _TransferWizardState extends State<TransferWizard> {
                                 'Select New App',
                                 style: TextStyle(
                                   color: CupertinoColors.systemBlue,
-                                  fontSize: 16,
+                                  fontSize: TypeScale.headline,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -1061,7 +1061,7 @@ class _TransferWizardState extends State<TransferWizard> {
             Text(
               'Available wallet: ₹${_selectedPaymentAppWalletBalance.toStringAsFixed(2)}',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: TypeScale.footnote,
                 color: AppStyles.getSecondaryTextColor(context),
               ),
             ),
@@ -1072,7 +1072,7 @@ class _TransferWizardState extends State<TransferWizard> {
                 children: [
                   Text('₹',
                       style:
-                          AppStyles.titleStyle(context).copyWith(fontSize: 28)),
+                          AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.largeTitle)),
                   const SizedBox(width: 8),
                   IntrinsicWidth(
                     child: CupertinoTextField(
@@ -1088,7 +1088,7 @@ class _TransferWizardState extends State<TransferWizard> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       style: AppStyles.titleStyle(context)
-                          .copyWith(fontSize: 28, fontWeight: FontWeight.bold),
+                          .copyWith(fontSize: TypeScale.largeTitle, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
@@ -1153,7 +1153,7 @@ class _TransferWizardState extends State<TransferWizard> {
               children: [
                 Text('₹',
                     style:
-                        AppStyles.titleStyle(context).copyWith(fontSize: 32)),
+                        AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.display)),
                 const SizedBox(width: 8),
                 IntrinsicWidth(
                   child: CupertinoTextField(
@@ -1169,7 +1169,7 @@ class _TransferWizardState extends State<TransferWizard> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     style: AppStyles.titleStyle(context)
-                        .copyWith(fontSize: 32, fontWeight: FontWeight.bold),
+                        .copyWith(fontSize: TypeScale.display, fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
@@ -1182,7 +1182,7 @@ class _TransferWizardState extends State<TransferWizard> {
             Text(
               'Choose sending account, receiving account, or app wallet (if enabled).',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: TypeScale.footnote,
                 color: AppStyles.getSecondaryTextColor(context),
               ),
             ),
@@ -1250,7 +1250,7 @@ class _TransferWizardState extends State<TransferWizard> {
                                 Text(
                                   account.name,
                                   style: AppStyles.titleStyle(context)
-                                      .copyWith(fontSize: 14),
+                                      .copyWith(fontSize: TypeScale.body),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
@@ -1258,7 +1258,7 @@ class _TransferWizardState extends State<TransferWizard> {
                                       ? 'Sending Account'
                                       : 'Receiving Account',
                                   style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: TypeScale.footnote,
                                     color: AppStyles.getSecondaryTextColor(
                                         context),
                                   ),
@@ -1321,13 +1321,13 @@ class _TransferWizardState extends State<TransferWizard> {
                                 Text(
                                   '${_selectedPaymentApp!} Wallet',
                                   style: AppStyles.titleStyle(context)
-                                      .copyWith(fontSize: 14),
+                                      .copyWith(fontSize: TypeScale.body),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
                                   'Payment App Wallet',
                                   style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: TypeScale.footnote,
                                     color: AppStyles.getSecondaryTextColor(
                                         context),
                                   ),
@@ -1534,7 +1534,7 @@ class _TransferWizardState extends State<TransferWizard> {
           label,
           style: TextStyle(
             color: AppStyles.getSecondaryTextColor(context),
-            fontSize: 14,
+            fontSize: TypeScale.body,
           ),
         ),
         Text(
@@ -1751,7 +1751,7 @@ class _PaymentAppSetupWizardState extends State<_PaymentAppSetupWizard> {
           children: [
             Text(
               'Disabled Payment Apps',
-              style: AppStyles.titleStyle(context).copyWith(fontSize: 22),
+              style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title1),
             ),
             const SizedBox(height: 8),
             Text(
@@ -1806,7 +1806,7 @@ class _PaymentAppSetupWizardState extends State<_PaymentAppSetupWizard> {
           children: [
             Text(
               'Add Payment App',
-              style: AppStyles.titleStyle(context).copyWith(fontSize: 22),
+              style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title1),
             ),
             const SizedBox(height: 16),
             CupertinoTextField(
@@ -1869,7 +1869,7 @@ class _PaymentAppSetupWizardState extends State<_PaymentAppSetupWizard> {
           children: [
             Text(
               'Add wallet for $appName?',
-              style: AppStyles.titleStyle(context).copyWith(fontSize: 22),
+              style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title1),
             ),
             const SizedBox(height: 14),
             Row(

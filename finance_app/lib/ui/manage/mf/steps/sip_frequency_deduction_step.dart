@@ -124,7 +124,7 @@ class _SIPFrequencyDeductionStepState extends State<SIPFrequencyDeductionStep> {
                                   ? Colors.white
                                   : AppStyles.getTextColor(context),
                               fontWeight: FontWeight.w600,
-                              fontSize: 12,
+                              fontSize: TypeScale.footnote,
                             ),
                           ),
                         ),
@@ -199,7 +199,7 @@ class _SIPFrequencyDeductionStepState extends State<SIPFrequencyDeductionStep> {
                         'No bank accounts found. Please add one.',
                         style: TextStyle(
                           color: AppStyles.getSecondaryTextColor(context),
-                          fontSize: 12,
+                          fontSize: TypeScale.footnote,
                         ),
                       ),
                     )
@@ -256,7 +256,7 @@ class _SIPFrequencyDeductionStepState extends State<SIPFrequencyDeductionStep> {
                                         account.name,
                                         style: const TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 14,
+                                          fontSize: TypeScale.body,
                                         ),
                                       ),
                                       Text(
@@ -265,7 +265,7 @@ class _SIPFrequencyDeductionStepState extends State<SIPFrequencyDeductionStep> {
                                           color:
                                               AppStyles.getSecondaryTextColor(
                                                   context),
-                                          fontSize: 12,
+                                          fontSize: TypeScale.footnote,
                                         ),
                                       ),
                                     ],

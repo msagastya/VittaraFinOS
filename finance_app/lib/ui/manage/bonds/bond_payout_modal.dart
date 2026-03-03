@@ -97,12 +97,12 @@ class _BondPayoutModalState extends State<BondPayoutModal> {
                                     account.name,
                                     style: const TextStyle(
                                         fontWeight: FontWeight.w600,
-                                        fontSize: 14),
+                                        fontSize: TypeScale.body),
                                   ),
                                   Text(
                                     account.bankName,
                                     style: TextStyle(
-                                      fontSize: 12,
+                                      fontSize: TypeScale.footnote,
                                       color: AppStyles.getSecondaryTextColor(
                                           context),
                                     ),
@@ -231,7 +231,7 @@ class _BondPayoutModalState extends State<BondPayoutModal> {
             const ModalHandle(),
             const SizedBox(height: Spacing.lg),
             Text('Record Bond Payout',
-                style: AppStyles.titleStyle(context).copyWith(fontSize: 22)),
+                style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title1)),
             const SizedBox(height: Spacing.xxxl),
             Text('Payout Amount',
                 style:

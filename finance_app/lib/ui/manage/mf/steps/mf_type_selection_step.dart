@@ -98,7 +98,7 @@ class MFTypeSelectionStep extends StatelessWidget {
                                 'Existing MF',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 16,
+                                  fontSize: TypeScale.headline,
                                   color: AppStyles.getTextColor(context),
                                 ),
                               ),
@@ -108,7 +108,7 @@ class MFTypeSelectionStep extends StatelessWidget {
                                 style: TextStyle(
                                   color:
                                       AppStyles.getSecondaryTextColor(context),
-                                  fontSize: 12,
+                                  fontSize: TypeScale.footnote,
                                 ),
                               ),
                             ],
@@ -186,7 +186,7 @@ class MFTypeSelectionStep extends StatelessWidget {
                                 'New MF',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 16,
+                                  fontSize: TypeScale.headline,
                                   color: AppStyles.getTextColor(context),
                                 ),
                               ),
@@ -196,7 +196,7 @@ class MFTypeSelectionStep extends StatelessWidget {
                                 style: TextStyle(
                                   color:
                                       AppStyles.getSecondaryTextColor(context),
-                                  fontSize: 12,
+                                  fontSize: TypeScale.footnote,
                                 ),
                               ),
                             ],

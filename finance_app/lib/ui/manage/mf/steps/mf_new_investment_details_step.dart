@@ -250,7 +250,7 @@ class _MFNewInvestmentDetailsStepState
                 _navError,
                 style: const TextStyle(
                   color: CupertinoColors.systemRed,
-                  fontSize: 12,
+                  fontSize: TypeScale.footnote,
                 ),
               ),
             ),
@@ -315,7 +315,7 @@ class _MFNewInvestmentDetailsStepState
                           'No bank accounts found',
                           style: TextStyle(
                             color: AppStyles.getSecondaryTextColor(context),
-                            fontSize: 12,
+                            fontSize: TypeScale.footnote,
                           ),
                         ),
                       )
@@ -379,7 +379,7 @@ class _MFNewInvestmentDetailsStepState
                                           account.name,
                                           style: const TextStyle(
                                             fontWeight: FontWeight.bold,
-                                            fontSize: 14,
+                                            fontSize: TypeScale.body,
                                           ),
                                         ),
                                         Text(
@@ -388,7 +388,7 @@ class _MFNewInvestmentDetailsStepState
                                             color:
                                                 AppStyles.getSecondaryTextColor(
                                                     context),
-                                            fontSize: 12,
+                                            fontSize: TypeScale.footnote,
                                           ),
                                         ),
                                       ],
@@ -479,7 +479,7 @@ class _MFNewInvestmentDetailsStepState
                         '₹${mfController.fetchedNAV!.toStringAsFixed(2)}',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                          fontSize: TypeScale.headline,
                           color: SemanticColors.investments,
                         ),
                       ),
@@ -497,7 +497,7 @@ class _MFNewInvestmentDetailsStepState
                         mfController.calculatedUnits.toStringAsFixed(4),
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                          fontSize: TypeScale.headline,
                           color: SemanticColors.investments,
                         ),
                       ),

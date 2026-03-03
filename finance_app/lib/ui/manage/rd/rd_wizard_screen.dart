@@ -13,6 +13,7 @@ import 'package:vittara_fin_os/ui/manage/rd/steps/installments_step.dart';
 import 'package:vittara_fin_os/ui/manage/rd/steps/frequency_step.dart';
 import 'package:vittara_fin_os/ui/manage/rd/steps/review_step.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class RDWizardScreen extends StatefulWidget {
@@ -190,7 +191,7 @@ class _RDWizardScreenState extends State<RDWizardScreen> {
                             _getStepTitle(controller.currentStep),
                             style: TextStyle(
                               color: AppStyles.getTextColor(context),
-                              fontSize: 16,
+                              fontSize: TypeScale.headline,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -199,7 +200,7 @@ class _RDWizardScreenState extends State<RDWizardScreen> {
                             'Step ${controller.currentStep + 1} of 7',
                             style: TextStyle(
                               color: AppStyles.getSecondaryTextColor(context),
-                              fontSize: 12,
+                              fontSize: TypeScale.footnote,
                             ),
                           ),
                         ],

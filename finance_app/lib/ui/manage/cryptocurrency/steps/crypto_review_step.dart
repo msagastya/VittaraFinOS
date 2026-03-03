@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/ui/manage/cryptocurrency/crypto_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class CryptoReviewStep extends StatelessWidget {
   const CryptoReviewStep({super.key});
@@ -43,7 +44,7 @@ class CryptoReviewStep extends StatelessWidget {
                   style: TextStyle(
                     color: AppStyles.getTextColor(context),
                     fontWeight: FontWeight.bold,
-                    fontSize: 14,
+                    fontSize: TypeScale.body,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -78,7 +79,7 @@ class CryptoReviewStep extends StatelessWidget {
                   style: TextStyle(
                     color: AppStyles.getTextColor(context),
                     fontWeight: FontWeight.bold,
-                    fontSize: 14,
+                    fontSize: TypeScale.body,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -121,7 +122,7 @@ class CryptoReviewStep extends StatelessWidget {
                   style: TextStyle(
                     color: AppStyles.getTextColor(context),
                     fontWeight: FontWeight.bold,
-                    fontSize: 14,
+                    fontSize: TypeScale.body,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -185,7 +186,7 @@ class CryptoReviewStep extends StatelessWidget {
                     style: TextStyle(
                       color: AppStyles.getTextColor(context),
                       fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                      fontSize: TypeScale.body,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -193,7 +194,7 @@ class CryptoReviewStep extends StatelessWidget {
                     controller.notes!,
                     style: TextStyle(
                       color: AppStyles.getSecondaryTextColor(context),
-                      fontSize: 13,
+                      fontSize: TypeScale.subhead,
                     ),
                   ),
                 ],
@@ -227,7 +228,7 @@ class _ReviewRow extends StatelessWidget {
           label,
           style: TextStyle(
             color: AppStyles.getSecondaryTextColor(context),
-            fontSize: 13,
+            fontSize: TypeScale.subhead,
           ),
         ),
         Text(

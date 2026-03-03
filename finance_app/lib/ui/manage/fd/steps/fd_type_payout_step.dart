@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/fixed_deposit_model.dart';
 import 'package:vittara_fin_os/ui/manage/fd/fd_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class FDTypePayoutStep extends StatelessWidget {
   const FDTypePayoutStep({super.key});
@@ -128,7 +129,7 @@ class FDTypePayoutStep extends StatelessWidget {
                       'Cumulative FDs compound and pay at maturity',
                       style: TextStyle(
                         color: AppStyles.getPrimaryColor(context),
-                        fontSize: 12,
+                        fontSize: TypeScale.footnote,
                       ),
                     ),
                   ),
@@ -198,7 +199,7 @@ class FDTypePayoutStep extends StatelessWidget {
                     style: TextStyle(
                       color: AppStyles.getTextColor(context),
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                      fontSize: TypeScale.headline,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -206,7 +207,7 @@ class FDTypePayoutStep extends StatelessWidget {
                     description,
                     style: TextStyle(
                       color: AppStyles.getSecondaryTextColor(context),
-                      fontSize: 13,
+                      fontSize: TypeScale.subhead,
                     ),
                   ),
                 ],
@@ -276,14 +277,14 @@ class FDTypePayoutStep extends StatelessWidget {
                     style: TextStyle(
                       color: AppStyles.getTextColor(context),
                       fontWeight: FontWeight.w600,
-                      fontSize: 14,
+                      fontSize: TypeScale.body,
                     ),
                   ),
                   Text(
                     description,
                     style: TextStyle(
                       color: AppStyles.getSecondaryTextColor(context),
-                      fontSize: 12,
+                      fontSize: TypeScale.footnote,
                     ),
                   ),
                 ],

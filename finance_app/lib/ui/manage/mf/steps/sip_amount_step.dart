@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/ui/manage/mf/sip_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class SIPAmountStep extends StatefulWidget {
   const SIPAmountStep({super.key});
@@ -101,7 +102,7 @@ class _SIPAmountStepState extends State<SIPAmountStep> {
               _errorText!,
               style: const TextStyle(
                 color: CupertinoColors.destructiveRed,
-                fontSize: 12,
+                fontSize: TypeScale.footnote,
               ),
             ),
           ],
@@ -128,7 +129,7 @@ class _SIPAmountStepState extends State<SIPAmountStep> {
                     'This amount will be automatically deducted from your selected bank account every month.',
                     style: TextStyle(
                       color: AppStyles.getSecondaryTextColor(context),
-                      fontSize: 12,
+                      fontSize: TypeScale.footnote,
                     ),
                   ),
                 ),

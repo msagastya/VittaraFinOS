@@ -66,7 +66,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                       Text(
                         'Your Net Worth Awaits',
                         style: TextStyle(
-                          fontSize: 22,
+                          fontSize: TypeScale.title1,
                           fontWeight: FontWeight.bold,
                           color: AppStyles.getTextColor(context),
                         ),
@@ -76,7 +76,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                       Text(
                         'Add your first account or investment to see your net worth here.',
                         style: TextStyle(
-                          fontSize: 15,
+                          fontSize: TypeScale.callout,
                           color: AppStyles.getSecondaryTextColor(context),
                         ),
                         textAlign: TextAlign.center,
@@ -129,7 +129,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                     Text(
                       'Error Loading Net Worth',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: TypeScale.headline,
                         fontWeight: FontWeight.w600,
                         color: AppStyles.getTextColor(context),
                       ),
@@ -138,7 +138,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                     Text(
                       e.toString(),
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: TypeScale.footnote,
                         color: AppStyles.getSecondaryTextColor(context),
                       ),
                       textAlign: TextAlign.center,
@@ -216,7 +216,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
           Text(
             'Net Worth',
             style: TextStyle(
-              fontSize: 14,
+              fontSize: TypeScale.body,
               color: AppStyles.getSecondaryTextColor(context),
               fontWeight: FontWeight.w500,
             ),
@@ -250,7 +250,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                     Text(
                       'Savings',
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: TypeScale.subhead,
                         color: AppStyles.getSecondaryTextColor(context),
                         fontWeight: FontWeight.w500,
                       ),
@@ -258,7 +258,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                     Text(
                       CurrencyFormatter.compact(totalSavings),
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: TypeScale.subhead,
                         fontWeight: FontWeight.w600,
                         color: CupertinoColors.systemGreen,
                       ),
@@ -275,7 +275,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                       Text(
                         'Investments',
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: TypeScale.subhead,
                           color: AppStyles.getSecondaryTextColor(context),
                           fontWeight: FontWeight.w500,
                         ),
@@ -283,7 +283,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                       Text(
                         CurrencyFormatter.compact(totalInvestments),
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: TypeScale.subhead,
                           fontWeight: FontWeight.w600,
                           color: CupertinoColors.activeBlue,
                         ),
@@ -300,7 +300,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                       Text(
                         'Credit Limit',
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: TypeScale.subhead,
                           color: AppStyles.getSecondaryTextColor(context),
                           fontWeight: FontWeight.w500,
                         ),
@@ -308,7 +308,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                       Text(
                         CurrencyFormatter.compact(totalCreditLimit),
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: TypeScale.subhead,
                           fontWeight: FontWeight.w600,
                           color: AppStyles.getSecondaryTextColor(context),
                         ),
@@ -328,7 +328,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                       Text(
                         'Credit Used',
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: TypeScale.subhead,
                           color: AppStyles.getSecondaryTextColor(context),
                           fontWeight: FontWeight.w500,
                         ),
@@ -336,7 +336,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                       Text(
                         CurrencyFormatter.compact(totalCreditUsed),
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: TypeScale.subhead,
                           fontWeight: FontWeight.w600,
                           color: CupertinoColors.systemRed,
                         ),
@@ -376,7 +376,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
           child: Text(
             'No bank accounts added',
             style: TextStyle(
-              fontSize: 13,
+              fontSize: TypeScale.subhead,
               color: AppStyles.getSecondaryTextColor(context),
             ),
           ),
@@ -419,7 +419,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                       Text(
                         'Bank Accounts',
                         style: TextStyle(
-                          fontSize: 15,
+                          fontSize: TypeScale.callout,
                           fontWeight: FontWeight.bold,
                           color: AppStyles.getTextColor(context),
                         ),
@@ -427,7 +427,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                       Text(
                         '${bankAccounts.length} account${bankAccounts.length != 1 ? 's' : ''}',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: TypeScale.footnote,
                           color: AppStyles.getSecondaryTextColor(context),
                         ),
                       ),
@@ -437,7 +437,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                 Text(
                   '₹${total.toStringAsFixed(0)}',
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: TypeScale.callout,
                     fontWeight: FontWeight.bold,
                     color: AppStyles.getTextColor(context),
                   ),
@@ -466,7 +466,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                               Text(
                                 account.name,
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: TypeScale.subhead,
                                   fontWeight: FontWeight.w600,
                                   color: AppStyles.getTextColor(context),
                                 ),
@@ -474,7 +474,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                               Text(
                                 account.bankName,
                                 style: TextStyle(
-                                  fontSize: 11,
+                                  fontSize: TypeScale.caption,
                                   color:
                                       AppStyles.getSecondaryTextColor(context),
                                 ),
@@ -485,7 +485,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                         Text(
                           '₹${account.balance.toStringAsFixed(0)}',
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: TypeScale.subhead,
                             fontWeight: FontWeight.bold,
                             color: AppStyles.getTextColor(context),
                           ),
@@ -555,7 +555,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                       Text(
                         'Demat / Investment Accounts',
                         style: TextStyle(
-                          fontSize: 15,
+                          fontSize: TypeScale.callout,
                           fontWeight: FontWeight.bold,
                           color: AppStyles.getTextColor(context),
                         ),
@@ -563,7 +563,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                       Text(
                         '${dematAccounts.length} account${dematAccounts.length != 1 ? 's' : ''}',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: TypeScale.footnote,
                           color: AppStyles.getSecondaryTextColor(context),
                         ),
                       ),
@@ -573,7 +573,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                 Text(
                   '₹${total.toStringAsFixed(0)}',
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: TypeScale.callout,
                     fontWeight: FontWeight.bold,
                     color: AppStyles.getTextColor(context),
                   ),
@@ -602,7 +602,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                               Text(
                                 account.name,
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: TypeScale.subhead,
                                   fontWeight: FontWeight.w600,
                                   color: AppStyles.getTextColor(context),
                                 ),
@@ -610,7 +610,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                               Text(
                                 account.bankName,
                                 style: TextStyle(
-                                  fontSize: 11,
+                                  fontSize: TypeScale.caption,
                                   color:
                                       AppStyles.getSecondaryTextColor(context),
                                 ),
@@ -621,7 +621,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                         Text(
                           '₹${account.balance.toStringAsFixed(0)}',
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: TypeScale.subhead,
                             fontWeight: FontWeight.bold,
                             color: AppStyles.getTextColor(context),
                           ),
@@ -695,7 +695,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                       Text(
                         'Credit & BNPL Liabilities',
                         style: TextStyle(
-                          fontSize: 15,
+                          fontSize: TypeScale.callout,
                           fontWeight: FontWeight.bold,
                           color: AppStyles.getTextColor(context),
                         ),
@@ -703,7 +703,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                       Text(
                         '${creditAccounts.length} account${creditAccounts.length != 1 ? 's' : ''}',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: TypeScale.footnote,
                           color: AppStyles.getSecondaryTextColor(context),
                         ),
                       ),
@@ -713,7 +713,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                 Text(
                   '₹${totalUsed.toStringAsFixed(0)}',
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: TypeScale.callout,
                     fontWeight: FontWeight.bold,
                     color: CupertinoColors.systemRed,
                   ),
@@ -748,7 +748,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                               Text(
                                 account.name,
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: TypeScale.subhead,
                                   fontWeight: FontWeight.w600,
                                   color: AppStyles.getTextColor(context),
                                 ),
@@ -756,7 +756,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                               Text(
                                 account.bankName,
                                 style: TextStyle(
-                                  fontSize: 11,
+                                  fontSize: TypeScale.caption,
                                   color:
                                       AppStyles.getSecondaryTextColor(context),
                                 ),
@@ -778,7 +778,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                               Text(
                                 'Limit',
                                 style: TextStyle(
-                                  fontSize: 11,
+                                  fontSize: TypeScale.caption,
                                   color:
                                       AppStyles.getSecondaryTextColor(context),
                                   fontWeight: FontWeight.w500,
@@ -788,7 +788,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                               Text(
                                 '₹${(account.creditLimit ?? 0.0).toStringAsFixed(0)}',
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: TypeScale.subhead,
                                   fontWeight: FontWeight.bold,
                                   color: AppStyles.getTextColor(context),
                                 ),
@@ -804,7 +804,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                               Text(
                                 'Used',
                                 style: TextStyle(
-                                  fontSize: 11,
+                                  fontSize: TypeScale.caption,
                                   color: CupertinoColors.systemRed,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -813,7 +813,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                               Text(
                                 '₹${used.toStringAsFixed(0)}',
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: TypeScale.subhead,
                                   fontWeight: FontWeight.bold,
                                   color: CupertinoColors.systemRed,
                                 ),
@@ -829,7 +829,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                               Text(
                                 'Available',
                                 style: TextStyle(
-                                  fontSize: 11,
+                                  fontSize: TypeScale.caption,
                                   color: CupertinoColors.systemGreen,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -838,7 +838,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                               Text(
                                 '₹${available.toStringAsFixed(0)}',
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: TypeScale.subhead,
                                   fontWeight: FontWeight.bold,
                                   color: CupertinoColors.systemGreen,
                                 ),
@@ -914,7 +914,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
           child: Text(
             'No investments yet',
             style: TextStyle(
-              fontSize: 13,
+              fontSize: TypeScale.subhead,
               color: AppStyles.getSecondaryTextColor(context),
             ),
           ),
@@ -984,7 +984,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                       Text(
                         'Investments',
                         style: TextStyle(
-                          fontSize: 15,
+                          fontSize: TypeScale.callout,
                           fontWeight: FontWeight.bold,
                           color: AppStyles.getTextColor(context),
                         ),
@@ -992,7 +992,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                       Text(
                         '${investmentsByType.length} type${investmentsByType.length != 1 ? 's' : ''} • ${investmentsController.investments.length} total',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: TypeScale.footnote,
                           color: AppStyles.getSecondaryTextColor(context),
                         ),
                       ),
@@ -1005,7 +1005,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                     Text(
                       '₹${totalCurrent.toStringAsFixed(0)}',
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: TypeScale.callout,
                         fontWeight: FontWeight.bold,
                         color: AppStyles.getTextColor(context),
                       ),
@@ -1013,7 +1013,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                     Text(
                       'Invested ₹${totalInvested.toStringAsFixed(0)}',
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: TypeScale.caption,
                         color: AppStyles.getSecondaryTextColor(context),
                       ),
                     ),
@@ -1055,7 +1055,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                                 Text(
                                   _getInvestmentTypeLabel(type),
                                   style: TextStyle(
-                                    fontSize: 13,
+                                    fontSize: TypeScale.subhead,
                                     fontWeight: FontWeight.w600,
                                     color: AppStyles.getTextColor(context),
                                   ),
@@ -1063,7 +1063,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                                 Text(
                                   '${investments.length} item${investments.length != 1 ? 's' : ''}',
                                   style: TextStyle(
-                                    fontSize: 11,
+                                    fontSize: TypeScale.caption,
                                     color: AppStyles.getSecondaryTextColor(
                                         context),
                                   ),
@@ -1077,7 +1077,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                               Text(
                                 'Current ₹${typeCurrent.toStringAsFixed(0)}',
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: TypeScale.subhead,
                                   fontWeight: FontWeight.bold,
                                   color: AppStyles.getTextColor(context),
                                 ),
@@ -1085,7 +1085,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                               Text(
                                 'Invested ₹${typeInvested.toStringAsFixed(0)}',
                                 style: TextStyle(
-                                  fontSize: 11,
+                                  fontSize: TypeScale.caption,
                                   color:
                                       AppStyles.getSecondaryTextColor(context),
                                 ),
@@ -1093,7 +1093,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                               Text(
                                 '${percentage.toStringAsFixed(1)}%',
                                 style: TextStyle(
-                                  fontSize: 11,
+                                  fontSize: TypeScale.caption,
                                   color: CupertinoColors.systemGreen,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -1126,7 +1126,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                           Text(
                             _expandInvestments ? 'Show Less' : 'Show All',
                             style: TextStyle(
-                              fontSize: 13,
+                              fontSize: TypeScale.subhead,
                               fontWeight: FontWeight.w600,
                               color: CupertinoColors.systemGreen,
                             ),

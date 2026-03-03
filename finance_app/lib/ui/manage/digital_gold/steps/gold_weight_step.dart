@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/ui/manage/digital_gold/digital_gold_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class GoldWeightStep extends StatefulWidget {
   const GoldWeightStep({super.key});
@@ -94,7 +95,7 @@ class _GoldWeightStepState extends State<GoldWeightStep> {
               'Tip: 1 gram of gold is the smallest unit you can buy. Most platforms offer flexible weights from 0.1 grams onwards.',
               style: TextStyle(
                 color: AppStyles.getSecondaryTextColor(context),
-                fontSize: 12,
+                fontSize: TypeScale.footnote,
               ),
             ),
           ),

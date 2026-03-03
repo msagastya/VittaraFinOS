@@ -71,14 +71,14 @@ class _AccountsScreenState extends State<AccountsScreen> {
                   const SizedBox(height: 24),
                   Text(
                     'Add New Account',
-                    style: AppStyles.titleStyle(context).copyWith(fontSize: 22),
+                    style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title1),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Select the type of account you want to add',
                     style: TextStyle(
                       color: AppStyles.getSecondaryTextColor(context),
-                      fontSize: 14,
+                      fontSize: TypeScale.body,
                     ),
                   ),
                   const SizedBox(height: 32),
@@ -156,7 +156,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
             Text(
               title,
               textAlign: TextAlign.center,
-              style: AppStyles.titleStyle(context).copyWith(fontSize: 16),
+              style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.headline),
             ),
           ],
         ),
@@ -323,13 +323,13 @@ class _AccountsScreenState extends State<AccountsScreen> {
                 children: [
                   Text(
                     _getAccountTypeLabel(type),
-                    style: AppStyles.titleStyle(context).copyWith(fontSize: 13),
+                    style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.subhead),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '₹${total.toStringAsFixed(2)}',
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: TypeScale.footnote,
                       fontWeight: FontWeight.w700,
                       color: isSelected
                           ? _getAccountTypeColor(type)
@@ -377,13 +377,13 @@ class _AccountsScreenState extends State<AccountsScreen> {
               Expanded(
                 child: Text(
                   '${_getAccountTypeLabel(type)} Total',
-                  style: AppStyles.titleStyle(context).copyWith(fontSize: 14),
+                  style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.body),
                 ),
               ),
               Text(
                 '₹${total.toStringAsFixed(2)}',
                 style: AppStyles.titleStyle(context).copyWith(
-                  fontSize: 15,
+                  fontSize: TypeScale.callout,
                   color: _getAccountTypeColor(type),
                 ),
               ),
@@ -452,7 +452,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                               TextStyle(color: AppStyles.getTextColor(context)),
                           placeholderStyle: TextStyle(
                               color: AppStyles.getSecondaryTextColor(context),
-                              fontSize: 14),
+                              fontSize: TypeScale.body),
                           onChanged: (v) => setState(() => _searchQuery = v),
                         ),
                       ),
@@ -516,7 +516,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w600,
-                            fontSize: 14,
+                            fontSize: TypeScale.body,
                           ),
                         ),
                       ],
@@ -684,7 +684,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                           Text(
                             account.name,
                             style: AppStyles.titleStyle(dragContext)
-                                .copyWith(fontSize: 20),
+                                .copyWith(fontSize: TypeScale.title2),
                           ),
                           const SizedBox(height: 8),
                           Text(
@@ -692,7 +692,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                             style: TextStyle(
                               color:
                                   AppStyles.getSecondaryTextColor(dragContext),
-                              fontSize: 14,
+                              fontSize: TypeScale.body,
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -703,14 +703,14 @@ class _AccountsScreenState extends State<AccountsScreen> {
                             style: TextStyle(
                               color:
                                   AppStyles.getSecondaryTextColor(dragContext),
-                              fontSize: 12,
+                              fontSize: TypeScale.footnote,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             '₹${account.balance.toStringAsFixed(2)}',
                             style: AppStyles.titleStyle(dragContext).copyWith(
-                              fontSize: 28,
+                              fontSize: TypeScale.largeTitle,
                               color: AppStyles.accentBlue,
                               fontWeight: FontWeight.bold,
                             ),
@@ -725,7 +725,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                               style: TextStyle(
                                 color: AppStyles.getSecondaryTextColor(
                                     dragContext),
-                                fontSize: 12,
+                                fontSize: TypeScale.footnote,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -733,7 +733,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                               account.creditCardNumber!,
                               style: TextStyle(
                                 color: AppStyles.getTextColor(dragContext),
-                                fontSize: 16,
+                                fontSize: TypeScale.headline,
                                 fontWeight: FontWeight.w600,
                                 letterSpacing: 2,
                               ),
@@ -757,7 +757,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                           color:
                                               AppStyles.getSecondaryTextColor(
                                                   dragContext),
-                                          fontSize: 12,
+                                          fontSize: TypeScale.footnote,
                                         ),
                                       ),
                                       const SizedBox(height: 4),
@@ -766,7 +766,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                         style: TextStyle(
                                           color: AppStyles.getTextColor(
                                               dragContext),
-                                          fontSize: 16,
+                                          fontSize: TypeScale.headline,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -784,7 +784,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                           color:
                                               AppStyles.getSecondaryTextColor(
                                                   dragContext),
-                                          fontSize: 12,
+                                          fontSize: TypeScale.footnote,
                                         ),
                                       ),
                                       const SizedBox(height: 4),
@@ -792,7 +792,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                         '₹${((account.creditLimit ?? 0.0) - account.balance).toStringAsFixed(2)}',
                                         style: TextStyle(
                                           color: CupertinoColors.systemRed,
-                                          fontSize: 16,
+                                          fontSize: TypeScale.headline,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -843,7 +843,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                           'Adjust Balance',
                                           style: TextStyle(
                                             color: CupertinoColors.systemGreen,
-                                            fontSize: 14,
+                                            fontSize: TypeScale.body,
                                             fontWeight: FontWeight.w600,
                                           ),
                                         ),
@@ -885,7 +885,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                           'Edit',
                                           style: TextStyle(
                                             color: CupertinoColors.systemBlue,
-                                            fontSize: 14,
+                                            fontSize: TypeScale.body,
                                             fontWeight: FontWeight.w600,
                                           ),
                                         ),
@@ -923,7 +923,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                           'Delete',
                                           style: TextStyle(
                                             color: CupertinoColors.systemRed,
-                                            fontSize: 14,
+                                            fontSize: TypeScale.body,
                                             fontWeight: FontWeight.w600,
                                           ),
                                         ),
@@ -980,7 +980,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                         Text(
                           'Adjust Balance',
                           style: AppStyles.titleStyle(context)
-                              .copyWith(fontSize: 22),
+                              .copyWith(fontSize: TypeScale.title1),
                         ),
                         SizedBox(height: Spacing.sm),
                         Text(
@@ -990,7 +990,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                               : 'Adjust your account balance',
                           style: TextStyle(
                             color: AppStyles.getSecondaryTextColor(context),
-                            fontSize: 14,
+                            fontSize: TypeScale.body,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -1106,7 +1106,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                             children: [
                               Text('₹',
                                   style: AppStyles.titleStyle(context)
-                                      .copyWith(fontSize: 32)),
+                                      .copyWith(fontSize: TypeScale.display)),
                               const SizedBox(width: 8),
                               IntrinsicWidth(
                                 child: CupertinoTextField(
@@ -1121,7 +1121,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   style: AppStyles.titleStyle(context).copyWith(
-                                      fontSize: 32,
+                                      fontSize: TypeScale.display,
                                       fontWeight: FontWeight.bold),
                                 ),
                               ),

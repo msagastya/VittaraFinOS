@@ -130,7 +130,7 @@ class NotificationsPage extends StatelessWidget {
                                       style: TextStyle(
                                         color: AppStyles.getSecondaryTextColor(
                                             context),
-                                        fontSize: 12,
+                                        fontSize: TypeScale.footnote,
                                       ),
                                     ),
                                   ),
@@ -186,7 +186,7 @@ class NotificationsPage extends StatelessWidget {
                                       'Confirm renewal or withdraw funds',
                                       style: TextStyle(
                                         color: Colors.purple,
-                                        fontSize: 12,
+                                        fontSize: TypeScale.footnote,
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
@@ -239,7 +239,7 @@ class NotificationsPage extends StatelessWidget {
                                     'Renew',
                                     style: TextStyle(
                                       color: Colors.white,
-                                      fontSize: 12,
+                                      fontSize: TypeScale.footnote,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
@@ -291,7 +291,7 @@ class NotificationsPage extends StatelessWidget {
                                     'Withdraw',
                                     style: TextStyle(
                                       color: Colors.white,
-                                      fontSize: 12,
+                                      fontSize: TypeScale.footnote,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
@@ -381,7 +381,7 @@ class NotificationsPage extends StatelessWidget {
                                 Text(
                                   'You\'re all caught up!',
                                   style: TextStyle(
-                                    fontSize: 14,
+                                    fontSize: TypeScale.body,
                                     color: AppStyles.getSecondaryTextColor(
                                         context),
                                   ),
@@ -432,7 +432,7 @@ class NotificationsPage extends StatelessWidget {
             'Due on ${_formatDashboardDate(entry.dueDate)}',
             style: TextStyle(
               color: AppStyles.getSecondaryTextColor(context),
-              fontSize: 12,
+              fontSize: TypeScale.footnote,
             ),
           ),
         ),
@@ -445,7 +445,7 @@ class NotificationsPage extends StatelessWidget {
                   _openInvestmentDetails(context, entry.investment),
               child: const Text(
                 'Edit SIP',
-                style: TextStyle(color: Colors.white, fontSize: 12),
+                style: TextStyle(color: Colors.white, fontSize: TypeScale.footnote),
               ),
             ),
           ),
@@ -457,7 +457,7 @@ class NotificationsPage extends StatelessWidget {
               onPressed: () => _showSipExecutionModal(context, entry),
               child: const Text(
                 'Execute SIP',
-                style: TextStyle(color: Colors.white, fontSize: 11),
+                style: TextStyle(color: Colors.white, fontSize: TypeScale.caption),
               ),
             ),
           ),
@@ -470,7 +470,7 @@ class NotificationsPage extends StatelessWidget {
                   _skipSip(context, entry.investment, entry.dueDate),
               child: const Text(
                 'Skip SIP',
-                style: TextStyle(color: Colors.white, fontSize: 12),
+                style: TextStyle(color: Colors.white, fontSize: TypeScale.footnote),
               ),
             ),
           ),
@@ -517,7 +517,7 @@ class NotificationsPage extends StatelessWidget {
             'Due on ${_formatDashboardDate(entry.schedule.payoutDate)}',
             style: TextStyle(
               color: AppStyles.getSecondaryTextColor(context),
-              fontSize: 12,
+              fontSize: TypeScale.footnote,
             ),
           ),
         ),
@@ -529,7 +529,7 @@ class NotificationsPage extends StatelessWidget {
               onPressed: () => _showBondPayoutModal(context, entry),
               child: const Text(
                 'Edit Payout',
-                style: TextStyle(color: Colors.white, fontSize: 12),
+                style: TextStyle(color: Colors.white, fontSize: TypeScale.footnote),
               ),
             ),
           ),
@@ -541,7 +541,7 @@ class NotificationsPage extends StatelessWidget {
               onPressed: () => _skipBondPayout(context, entry),
               child: const Text(
                 'Skip Payout',
-                style: TextStyle(color: Colors.white, fontSize: 12),
+                style: TextStyle(color: Colors.white, fontSize: TypeScale.footnote),
               ),
             ),
           ),
@@ -1079,7 +1079,7 @@ class _SipExecutionModalState extends State<_SipExecutionModal> {
                 'Execute SIP',
                 style: TextStyle(
                   color: AppStyles.getTextColor(context),
-                  fontSize: 22,
+                  fontSize: TypeScale.title1,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -1088,7 +1088,7 @@ class _SipExecutionModalState extends State<_SipExecutionModal> {
                 'Due date: $dueText. You can execute now or later by changing date.',
                 style: TextStyle(
                   color: AppStyles.getSecondaryTextColor(context),
-                  fontSize: 12,
+                  fontSize: TypeScale.footnote,
                 ),
               ),
               const SizedBox(height: 20),
@@ -1162,7 +1162,7 @@ class _SipExecutionModalState extends State<_SipExecutionModal> {
           style: TextStyle(
             color: AppStyles.getTextColor(context),
             fontWeight: FontWeight.w600,
-            fontSize: 13,
+            fontSize: TypeScale.subhead,
           ),
         ),
         const SizedBox(height: 6),
@@ -1208,7 +1208,7 @@ class _SipExecutionModalState extends State<_SipExecutionModal> {
               style: TextStyle(
                 color: AppStyles.getTextColor(context),
                 fontWeight: FontWeight.w600,
-                fontSize: 13,
+                fontSize: TypeScale.subhead,
               ),
             ),
           ),
@@ -1216,7 +1216,7 @@ class _SipExecutionModalState extends State<_SipExecutionModal> {
             value,
             style: TextStyle(
               color: AppStyles.getSecondaryTextColor(context),
-              fontSize: 12,
+              fontSize: TypeScale.footnote,
             ),
           ),
           const SizedBox(width: 6),

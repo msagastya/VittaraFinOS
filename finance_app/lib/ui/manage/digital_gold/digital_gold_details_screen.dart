@@ -5,6 +5,7 @@ import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/services/gold_price_service.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 
@@ -160,7 +161,7 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                       'Digital Gold Investment',
                       style: TextStyle(
                         color: AppStyles.getSecondaryTextColor(context),
-                        fontSize: 12,
+                        fontSize: TypeScale.footnote,
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -174,7 +175,7 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                               'Invested',
                               style: TextStyle(
                                 color: AppStyles.getSecondaryTextColor(context),
-                                fontSize: 12,
+                                fontSize: TypeScale.footnote,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -182,7 +183,7 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                               '₹${investedAmount.toStringAsFixed(2)}',
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                                fontSize: TypeScale.headline,
                               ),
                             ),
                           ],
@@ -194,7 +195,7 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                               'Current Value',
                               style: TextStyle(
                                 color: AppStyles.getSecondaryTextColor(context),
-                                fontSize: 12,
+                                fontSize: TypeScale.footnote,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -202,7 +203,7 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                               '₹${currentValue.toStringAsFixed(2)}',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                                fontSize: TypeScale.headline,
                                 color: currentValue >= investedAmount
                                     ? CupertinoColors.systemGreen
                                     : CupertinoColors.systemRed,
@@ -241,7 +242,7 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                           'Gain/Loss',
                           style: TextStyle(
                             color: AppStyles.getSecondaryTextColor(context),
-                            fontSize: 12,
+                            fontSize: TypeScale.footnote,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -249,7 +250,7 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                           '${gainLoss >= 0 ? '+' : ''}₹${gainLoss.toStringAsFixed(2)}',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                            fontSize: TypeScale.headline,
                             color: gainLoss >= 0
                                 ? CupertinoColors.systemGreen
                                 : CupertinoColors.systemRed,
@@ -264,7 +265,7 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                           'Return %',
                           style: TextStyle(
                             color: AppStyles.getSecondaryTextColor(context),
-                            fontSize: 12,
+                            fontSize: TypeScale.footnote,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -272,7 +273,7 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                           '${gainPercent >= 0 ? '+' : ''}${gainPercent.toStringAsFixed(2)}%',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                            fontSize: TypeScale.headline,
                             color: gainPercent >= 0
                                 ? CupertinoColors.systemGreen
                                 : CupertinoColors.systemRed,
@@ -290,7 +291,7 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                 'Investment Details',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 16,
+                  fontSize: TypeScale.headline,
                   color: AppStyles.getTextColor(context),
                 ),
               ),
@@ -331,7 +332,7 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                     'Current Rate: Unable to fetch (check internet connection)',
                     style: TextStyle(
                         color: AppStyles.getSecondaryTextColor(context),
-                        fontSize: 12),
+                        fontSize: TypeScale.footnote),
                   ),
                 )
               else
@@ -384,13 +385,13 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
         children: [
           Text(
             label,
-            style: const TextStyle(fontSize: 13),
+            style: const TextStyle(fontSize: TypeScale.subhead),
           ),
           Text(
             value,
             style: const TextStyle(
               fontWeight: FontWeight.w600,
-              fontSize: 13,
+              fontSize: TypeScale.subhead,
             ),
           ),
         ],
@@ -450,7 +451,7 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontWeight: FontWeight.w600,
-                fontSize: 13,
+                fontSize: TypeScale.subhead,
                 color: AppStyles.getTextColor(context),
               ),
             ),
@@ -587,7 +588,7 @@ class _EditModalState extends State<_EditModal> {
                 Text(
                   'Total Invested Amount (₹)',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: TypeScale.subhead,
                     fontWeight: FontWeight.w600,
                     color: AppStyles.getTextColor(context),
                   ),
@@ -612,7 +613,7 @@ class _EditModalState extends State<_EditModal> {
                 Text(
                   'Investment Rate (₹/gram)',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: TypeScale.subhead,
                     fontWeight: FontWeight.w600,
                     color: AppStyles.getTextColor(context),
                   ),
@@ -641,7 +642,7 @@ class _EditModalState extends State<_EditModal> {
                 Text(
                   'GST Rate (%)',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: TypeScale.subhead,
                     fontWeight: FontWeight.w600,
                     color: AppStyles.getTextColor(context),
                   ),

@@ -5,6 +5,7 @@ import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/bond_cashflow_model.dart';
 import 'package:vittara_fin_os/ui/manage/bonds/bonds_wizard_controller_v2.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class BondTypeNameStep extends StatelessWidget {
   final BondsWizardControllerV2 ctrl;
@@ -41,7 +42,7 @@ class BondTypeNameStep extends StatelessWidget {
                   Text(
                     title,
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: TypeScale.headline,
                       fontWeight: FontWeight.bold,
                       color: AppStyles.getTextColor(context),
                     ),
@@ -91,7 +92,7 @@ class BondTypeNameStep extends StatelessWidget {
                                   Text(
                                     account.name,
                                     style: TextStyle(
-                                      fontSize: 14,
+                                      fontSize: TypeScale.body,
                                       fontWeight: FontWeight.w600,
                                       color: isSelected
                                           ? const Color(0xFF00A6CC)
@@ -101,7 +102,7 @@ class BondTypeNameStep extends StatelessWidget {
                                   Text(
                                     account.bankName,
                                     style: TextStyle(
-                                      fontSize: 12,
+                                      fontSize: TypeScale.footnote,
                                       color: AppStyles.getSecondaryTextColor(
                                           context),
                                     ),
@@ -214,7 +215,7 @@ class BondTypeNameStep extends StatelessWidget {
                                     fontWeight: FontWeight.bold)),
                             Text(desc,
                                 style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: TypeScale.footnote,
                                     color: AppStyles.getSecondaryTextColor(
                                         context))),
                           ],
@@ -228,7 +229,7 @@ class BondTypeNameStep extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Text('Bond Name',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           CupertinoTextField(
             placeholder: 'e.g., RBI Bond 2028, Government Securities',
@@ -242,12 +243,12 @@ class BondTypeNameStep extends StatelessWidget {
           const SizedBox(height: 24),
           // Purchase Account Section
           Text('Purchase Account (Optional)',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 8),
           Text(
             'Account to debit when purchasing this bond',
             style: TextStyle(
-              fontSize: 12,
+              fontSize: TypeScale.footnote,
               color: AppStyles.getSecondaryTextColor(context),
             ),
           ),
@@ -309,7 +310,7 @@ class BondTypeNameStep extends StatelessWidget {
                   Text(
                     'Auto-debit from this account',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: TypeScale.subhead,
                       color: AppStyles.getSecondaryTextColor(context),
                     ),
                   ),
@@ -323,12 +324,12 @@ class BondTypeNameStep extends StatelessWidget {
           const SizedBox(height: 24),
           // Payment Account Section
           Text('Payment Account (Optional)',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 8),
           Text(
             'Account to receive coupon/maturity payments',
             style: TextStyle(
-              fontSize: 12,
+              fontSize: TypeScale.footnote,
               color: AppStyles.getSecondaryTextColor(context),
             ),
           ),
@@ -390,7 +391,7 @@ class BondTypeNameStep extends StatelessWidget {
                   Text(
                     'Auto-transfer payments to this account',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: TypeScale.subhead,
                       color: AppStyles.getSecondaryTextColor(context),
                     ),
                   ),

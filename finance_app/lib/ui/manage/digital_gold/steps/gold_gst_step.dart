@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/ui/manage/digital_gold/digital_gold_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class GoldGSTStep extends StatefulWidget {
   const GoldGSTStep({super.key});
@@ -102,7 +103,7 @@ class _GoldGSTStepState extends State<GoldGSTStep> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: AppStyles.getTextColor(context),
-                    fontSize: 12,
+                    fontSize: TypeScale.footnote,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -110,7 +111,7 @@ class _GoldGSTStepState extends State<GoldGSTStep> {
                   '• Standard GST on gold is 3%\n• The total amount you entered already includes this GST\n• Different providers may have different rates\n• Adjust if your provider uses a different rate',
                   style: TextStyle(
                     color: AppStyles.getSecondaryTextColor(context),
-                    fontSize: 12,
+                    fontSize: TypeScale.footnote,
                     height: 1.5,
                   ),
                 ),
@@ -176,7 +177,7 @@ class _GoldGSTStepState extends State<GoldGSTStep> {
                         '₹${controller.investedAmount.toStringAsFixed(2)}',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                          fontSize: TypeScale.headline,
                           color: Color(0xFFFFB81C),
                         ),
                       ),

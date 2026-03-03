@@ -388,7 +388,7 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
             const Text(
               'Track Wealth, Master Life',
-              style: TextStyle(fontSize: 16),
+              style: TextStyle(fontSize: TypeScale.headline),
             ),
           ],
         ),
@@ -574,7 +574,7 @@ class DashboardScreen extends StatelessWidget {
                                 Text(
                                   'All dashboard widgets are hidden',
                                   style: TextStyle(
-                                    fontSize: 14,
+                                    fontSize: TypeScale.body,
                                     color: AppStyles.getSecondaryTextColor(
                                         context),
                                   ),
@@ -788,7 +788,7 @@ class DashboardScreen extends StatelessWidget {
                       Text(
                         'All caught up!',
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: TypeScale.subhead,
                           color: AppStyles.getSecondaryTextColor(context),
                           fontWeight: FontWeight.w600,
                         ),
@@ -951,7 +951,7 @@ class DashboardScreen extends StatelessWidget {
                                 Text(
                                   'All Systems Go',
                                   style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: TypeScale.footnote,
                                     color: SemanticColors.success,
                                     fontWeight: FontWeight.w700,
                                   ),
@@ -1046,7 +1046,7 @@ class DashboardScreen extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: TypeScale.footnote,
                 fontWeight: FontWeight.w700,
                 color: color,
               ),
@@ -1187,7 +1187,7 @@ class DashboardScreen extends StatelessWidget {
                       Text(
                         'Net Worth',
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: TypeScale.subhead,
                           color: AppStyles.getSecondaryTextColor(context),
                           fontWeight: FontWeight.w500,
                         ),
@@ -1196,7 +1196,7 @@ class DashboardScreen extends StatelessWidget {
                       Text(
                         '₹${totalNetWorth.toStringAsFixed(0)}',
                         style: TextStyle(
-                          fontSize: 28,
+                          fontSize: TypeScale.largeTitle,
                           fontWeight: FontWeight.w800,
                           color: displayColor,
                         ),
@@ -1218,7 +1218,7 @@ class DashboardScreen extends StatelessWidget {
                                 Text(
                                   'Savings',
                                   style: TextStyle(
-                                    fontSize: 11,
+                                    fontSize: TypeScale.caption,
                                     color: AppStyles.getSecondaryTextColor(
                                         context),
                                   ),
@@ -1226,7 +1226,7 @@ class DashboardScreen extends StatelessWidget {
                                 Text(
                                   '₹${totalSavings.toStringAsFixed(0)}',
                                   style: TextStyle(
-                                    fontSize: 11,
+                                    fontSize: TypeScale.caption,
                                     fontWeight: FontWeight.w600,
                                     color: CupertinoColors.systemGreen,
                                   ),
@@ -1242,7 +1242,7 @@ class DashboardScreen extends StatelessWidget {
                                   Text(
                                     'Investments',
                                     style: TextStyle(
-                                      fontSize: 11,
+                                      fontSize: TypeScale.caption,
                                       color: AppStyles.getSecondaryTextColor(
                                           context),
                                     ),
@@ -1250,7 +1250,7 @@ class DashboardScreen extends StatelessWidget {
                                   Text(
                                     '₹${totalInvestments.toStringAsFixed(0)}',
                                     style: TextStyle(
-                                      fontSize: 11,
+                                      fontSize: TypeScale.caption,
                                       fontWeight: FontWeight.w600,
                                       color: CupertinoColors.activeBlue,
                                     ),
@@ -1267,7 +1267,7 @@ class DashboardScreen extends StatelessWidget {
                                   Text(
                                     'Credit Used',
                                     style: TextStyle(
-                                      fontSize: 11,
+                                      fontSize: TypeScale.caption,
                                       color: AppStyles.getSecondaryTextColor(
                                           context),
                                     ),
@@ -1275,7 +1275,7 @@ class DashboardScreen extends StatelessWidget {
                                   Text(
                                     '₹${totalCreditUsed.toStringAsFixed(0)}',
                                     style: TextStyle(
-                                      fontSize: 11,
+                                      fontSize: TypeScale.caption,
                                       fontWeight: FontWeight.w600,
                                       color: CupertinoColors.systemRed,
                                     ),
@@ -1312,7 +1312,7 @@ class DashboardScreen extends StatelessWidget {
                       child: Text(
                         '$activeGoals Active Goal${activeGoals == 1 ? '' : 's'}',
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: TypeScale.subhead,
                           fontWeight: FontWeight.w600,
                           color: AppStyles.getTextColor(context),
                         ),
@@ -1321,7 +1321,7 @@ class DashboardScreen extends StatelessWidget {
                     Text(
                       '${(progress * 100).toStringAsFixed(0)}% Complete',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: TypeScale.footnote,
                         color: AppStyles.getSecondaryTextColor(context),
                       ),
                     ),
@@ -1341,12 +1341,12 @@ class DashboardScreen extends StatelessWidget {
                   children: [
                     Text(
                       'Saved ₹${totalSaved.toStringAsFixed(0)}',
-                      style: const TextStyle(fontSize: 12, color: CupertinoColors.systemGreen),
+                      style: const TextStyle(fontSize: TypeScale.footnote, color: CupertinoColors.systemGreen),
                     ),
                     Text(
                       'Goal ₹${totalTarget.toStringAsFixed(0)}',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: TypeScale.footnote,
                         color: AppStyles.getSecondaryTextColor(context),
                       ),
                     ),
@@ -1374,7 +1374,7 @@ class DashboardScreen extends StatelessWidget {
                       child: Text(
                         '$activeCount Active Budget${activeCount == 1 ? '' : 's'}',
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: TypeScale.subhead,
                           fontWeight: FontWeight.w600,
                           color: AppStyles.getTextColor(context),
                         ),
@@ -1421,7 +1421,7 @@ class DashboardScreen extends StatelessWidget {
                             child: Text(
                               b.name,
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: TypeScale.caption,
                                 fontWeight: FontWeight.w600,
                                 color: AppStyles.getTextColor(context),
                               ),
@@ -1432,7 +1432,7 @@ class DashboardScreen extends StatelessWidget {
                           Text(
                             '$pct%',
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: TypeScale.caption,
                               fontWeight: FontWeight.w700,
                               color: color,
                             ),
@@ -1451,7 +1451,7 @@ class DashboardScreen extends StatelessWidget {
                       Text(
                         'All budgets on track',
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: TypeScale.caption,
                           color: AppStyles.accentGreen,
                           fontWeight: FontWeight.w500,
                         ),
@@ -1479,7 +1479,7 @@ class DashboardScreen extends StatelessWidget {
                 Text(
                   '$plannerCount Savings Planner${plannerCount == 1 ? '' : 's'}',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: TypeScale.subhead,
                     fontWeight: FontWeight.w600,
                     color: AppStyles.getTextColor(context),
                   ),
@@ -1498,12 +1498,12 @@ class DashboardScreen extends StatelessWidget {
                   children: [
                     Text(
                       'Saved ₹${totalSaved.toStringAsFixed(0)}',
-                      style: const TextStyle(fontSize: 12, color: CupertinoColors.systemGreen),
+                      style: const TextStyle(fontSize: TypeScale.footnote, color: CupertinoColors.systemGreen),
                     ),
                     Text(
                       'Target ₹${totalTarget.toStringAsFixed(0)}',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: TypeScale.footnote,
                         color: AppStyles.getSecondaryTextColor(context),
                       ),
                     ),
@@ -1529,7 +1529,7 @@ class DashboardScreen extends StatelessWidget {
                 Text(
                   'AI Planner Score',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: TypeScale.subhead,
                     fontWeight: FontWeight.w600,
                     color: AppStyles.getTextColor(context),
                   ),
@@ -1543,7 +1543,7 @@ class DashboardScreen extends StatelessWidget {
                     Text(
                       '${progress.toStringAsFixed(0)}% Financial Health',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: TypeScale.footnote,
                         color: AppStyles.getSecondaryTextColor(context),
                       ),
                     ),
@@ -1553,7 +1553,7 @@ class DashboardScreen extends StatelessWidget {
                 Text(
                   'Recommended monthly savings: ₹${recommendedSavings.toStringAsFixed(0)}',
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: TypeScale.caption,
                     color: AppStyles.getSecondaryTextColor(context),
                   ),
                 ),
@@ -1562,7 +1562,7 @@ class DashboardScreen extends StatelessWidget {
                       ? '$budgetWarnings budgets need attention'
                       : 'Budget health looks stable',
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: TypeScale.caption,
                     color: budgetWarnings > 0 ? CupertinoColors.systemOrange : CupertinoColors.systemGreen,
                   ),
                 ),
@@ -1593,7 +1593,7 @@ class DashboardScreen extends StatelessWidget {
                     Text(
                       'No transactions yet',
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: TypeScale.subhead,
                         color: AppStyles.getSecondaryTextColor(context),
                       ),
                     ),
@@ -1641,7 +1641,7 @@ class DashboardScreen extends StatelessWidget {
                               Text(
                                 tx.description,
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: TypeScale.subhead,
                                   fontWeight: FontWeight.w600,
                                   color: AppStyles.getTextColor(context),
                                 ),
@@ -1651,7 +1651,7 @@ class DashboardScreen extends StatelessWidget {
                               Text(
                                 'Just now',
                                 style: TextStyle(
-                                  fontSize: 11,
+                                  fontSize: TypeScale.caption,
                                   color:
                                       AppStyles.getSecondaryTextColor(context),
                                 ),
@@ -1662,7 +1662,7 @@ class DashboardScreen extends StatelessWidget {
                         Text(
                           '${isDebit ? '-' : '+'}₹${amount.abs().toStringAsFixed(0)}',
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: TypeScale.subhead,
                             fontWeight: FontWeight.bold,
                             color: isDebit ? CupertinoColors.systemRed : CupertinoColors.systemGreen,
                           ),
@@ -1712,7 +1712,7 @@ class DashboardScreen extends StatelessWidget {
                 Text(
                   monthLabel,
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: TypeScale.caption,
                     fontWeight: FontWeight.w600,
                     color: AppStyles.getSecondaryTextColor(context),
                     letterSpacing: 0.5,
@@ -1833,7 +1833,7 @@ class DashboardScreen extends StatelessWidget {
                     Text(
                       'No active notifications',
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: TypeScale.subhead,
                         color: AppStyles.getSecondaryTextColor(context),
                         fontWeight: FontWeight.w600,
                       ),
@@ -1885,7 +1885,7 @@ class DashboardScreen extends StatelessWidget {
                     child: Text(
                       '+$hiddenCount more alerts. Tap to view all',
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: TypeScale.caption,
                         fontWeight: FontWeight.w600,
                         color: AppStyles.getSecondaryTextColor(context),
                       ),
@@ -1929,7 +1929,7 @@ class DashboardScreen extends StatelessWidget {
             child: Text(
               label,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: TypeScale.subhead,
                 fontWeight: FontWeight.w600,
                 color: AppStyles.getTextColor(context),
               ),
@@ -1970,7 +1970,7 @@ class DashboardScreen extends StatelessWidget {
           Text(
             '$label $value',
             style: TextStyle(
-              fontSize: 11,
+              fontSize: TypeScale.caption,
               color: AppStyles.getTextColor(context),
             ),
           ),
@@ -2025,7 +2025,7 @@ class DashboardScreen extends StatelessWidget {
                     Text(
                       label,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: TypeScale.footnote,
                         color: AppStyles.getSecondaryTextColor(context),
                         fontWeight: FontWeight.w500,
                       ),
@@ -2048,7 +2048,7 @@ class DashboardScreen extends StatelessWidget {
                   Text(
                     '₹${amount.toStringAsFixed(0)}',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: TypeScale.subhead,
                       fontWeight: FontWeight.bold,
                       color: AppStyles.getTextColor(context),
                     ),
@@ -2181,7 +2181,7 @@ class DashboardScreen extends StatelessWidget {
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: TypeScale.footnote,
                     fontWeight: FontWeight.w700,
                     color: AppStyles.getTextColor(context),
                   ),
@@ -2234,7 +2234,7 @@ class DashboardScreen extends StatelessWidget {
         Text(
           '₹${amount >= 1e7 ? '${(amount / 1e7).toStringAsFixed(1)}Cr' : amount >= 1e5 ? '${(amount / 1e5).toStringAsFixed(1)}L' : amount >= 1e3 ? '${(amount / 1e3).toStringAsFixed(1)}K' : amount.toStringAsFixed(0)}',
           style: TextStyle(
-            fontSize: 14,
+            fontSize: TypeScale.body,
             fontWeight: FontWeight.w700,
             color: color,
           ),

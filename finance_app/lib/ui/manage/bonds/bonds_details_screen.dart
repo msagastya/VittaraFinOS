@@ -5,6 +5,7 @@ import 'package:vittara_fin_os/logic/bond_cashflow_model.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class BondsDetailsScreen extends StatefulWidget {
@@ -97,7 +98,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                       bondName,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: TypeScale.headline,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -139,7 +140,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                       style: TextStyle(
                         color: AppStyles.getTextColor(context),
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                        fontSize: TypeScale.body,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -180,7 +181,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                       style: TextStyle(
                         color: AppStyles.getTextColor(context),
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                        fontSize: TypeScale.body,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -254,7 +255,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                                 'Date',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 12,
+                                  fontSize: TypeScale.footnote,
                                   color: const Color(0xFF00A6CC),
                                 ),
                               ),
@@ -266,7 +267,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                                 textAlign: TextAlign.right,
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 12,
+                                  fontSize: TypeScale.footnote,
                                   color: const Color(0xFF00A6CC),
                                 ),
                               ),
@@ -278,7 +279,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                                 textAlign: TextAlign.right,
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 12,
+                                  fontSize: TypeScale.footnote,
                                   color: const Color(0xFF00A6CC),
                                 ),
                               ),
@@ -304,7 +305,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                                     flex: 2,
                                     child: Text(
                                       '${cf.date.day}/${cf.date.month}/${cf.date.year}',
-                                      style: const TextStyle(fontSize: 12),
+                                      style: const TextStyle(fontSize: TypeScale.footnote),
                                     ),
                                   ),
                                   Expanded(
@@ -313,7 +314,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                                       '${isNegative ? '-' : '+'}₹${cf.amount.abs().toStringAsFixed(2)}',
                                       textAlign: TextAlign.right,
                                       style: TextStyle(
-                                        fontSize: 12,
+                                        fontSize: TypeScale.footnote,
                                         fontWeight: FontWeight.w600,
                                         color: isNegative
                                             ? CupertinoColors.systemRed
@@ -327,7 +328,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                                       cf.description,
                                       textAlign: TextAlign.right,
                                       style: TextStyle(
-                                        fontSize: 11,
+                                        fontSize: TypeScale.caption,
                                         color: AppStyles.getSecondaryTextColor(
                                             context),
                                       ),
@@ -431,7 +432,7 @@ class _DetailRow extends StatelessWidget {
           label,
           style: TextStyle(
             color: AppStyles.getSecondaryTextColor(context),
-            fontSize: 13,
+            fontSize: TypeScale.subhead,
           ),
         ),
         Text(

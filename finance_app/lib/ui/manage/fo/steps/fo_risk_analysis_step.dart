@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:vittara_fin_os/logic/fo_model.dart';
 import 'package:vittara_fin_os/ui/manage/fo/fo_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class FORiskAnalysisStep extends StatelessWidget {
   final FOWizardController ctrl;
@@ -120,7 +121,7 @@ class _AnalysisCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title,
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: TypeScale.body)),
           const SizedBox(height: 16),
           ...List.generate(
             children.length,
@@ -168,7 +169,7 @@ class _AnalysisRow extends StatelessWidget {
             Text(label,
                 style: TextStyle(
                     color: AppStyles.getSecondaryTextColor(context),
-                    fontSize: 13)),
+                    fontSize: TypeScale.subhead)),
             Text(value,
                 style: TextStyle(
                     fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
@@ -181,7 +182,7 @@ class _AnalysisRow extends StatelessWidget {
             padding: const EdgeInsets.only(top: 4),
             child: Text(note!,
                 style: TextStyle(
-                    fontSize: 11,
+                    fontSize: TypeScale.caption,
                     color: AppStyles.getSecondaryTextColor(context))),
           ),
       ],

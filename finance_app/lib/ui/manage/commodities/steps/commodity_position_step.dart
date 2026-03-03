@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/logic/commodities_model.dart';
 import 'package:vittara_fin_os/ui/manage/commodities/commodities_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class CommodityPositionStep extends StatefulWidget {
   final CommoditiesWizardController ctrl;
@@ -41,7 +42,7 @@ class _CommodityPositionStepState extends State<CommodityPositionStep> {
               style: AppStyles.titleStyle(context)),
           const SizedBox(height: 30),
           Text('Current Price Per ${widget.ctrl.unit ?? 'Unit'} (₹)',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           CupertinoTextField(
             controller: _currentPriceController,
@@ -63,7 +64,7 @@ class _CommodityPositionStepState extends State<CommodityPositionStep> {
           ),
           const SizedBox(height: 24),
           Text('Trade Position',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           Container(
             decoration: BoxDecoration(
@@ -122,7 +123,7 @@ class _CommodityPositionStepState extends State<CommodityPositionStep> {
                                       fontWeight: FontWeight.bold)),
                               Text('Profit if price increases',
                                   style: TextStyle(
-                                      fontSize: 12,
+                                      fontSize: TypeScale.footnote,
                                       color: AppStyles.getSecondaryTextColor(
                                           context))),
                             ],
@@ -175,7 +176,7 @@ class _CommodityPositionStepState extends State<CommodityPositionStep> {
                                       fontWeight: FontWeight.bold)),
                               Text('Profit if price decreases',
                                   style: TextStyle(
-                                      fontSize: 12,
+                                      fontSize: TypeScale.footnote,
                                       color: AppStyles.getSecondaryTextColor(
                                           context))),
                             ],
@@ -244,7 +245,7 @@ class _Summary extends StatelessWidget {
       children: [
         Text(label,
             style: TextStyle(
-                color: AppStyles.getSecondaryTextColor(context), fontSize: 13)),
+                color: AppStyles.getSecondaryTextColor(context), fontSize: TypeScale.subhead)),
         Text(value,
             style: TextStyle(
                 fontWeight: isBold ? FontWeight.bold : FontWeight.w500,

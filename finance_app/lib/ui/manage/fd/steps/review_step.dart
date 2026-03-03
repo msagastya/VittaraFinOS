@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/ui/manage/fd/fd_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class ReviewStep extends StatefulWidget {
   const ReviewStep({super.key});
@@ -113,7 +114,7 @@ class _ReviewStepState extends State<ReviewStep> {
                   style: TextStyle(
                     color: AppStyles.getTextColor(context),
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: TypeScale.headline,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -181,7 +182,7 @@ class _ReviewStepState extends State<ReviewStep> {
                         style: TextStyle(
                           color: AppStyles.getPrimaryColor(context),
                           fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                          fontSize: TypeScale.headline,
                         ),
                       ),
                     ],
@@ -195,7 +196,7 @@ class _ReviewStepState extends State<ReviewStep> {
                       'Total Interest',
                       style: TextStyle(
                         color: AppStyles.getSecondaryTextColor(context),
-                        fontSize: 13,
+                        fontSize: TypeScale.subhead,
                       ),
                     ),
                     Text(
@@ -236,7 +237,7 @@ class _ReviewStepState extends State<ReviewStep> {
                         'Automatically credit payouts to linked account',
                         style: TextStyle(
                           color: AppStyles.getSecondaryTextColor(context),
-                          fontSize: 12,
+                          fontSize: TypeScale.footnote,
                         ),
                       ),
                     ],

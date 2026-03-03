@@ -93,7 +93,7 @@ class _DeductionStepState extends State<DeductionStep> {
                             'Balance: ₹${account.balance.toStringAsFixed(2)}',
                             style: TextStyle(
                               color: AppStyles.getSecondaryTextColor(context),
-                              fontSize: 13,
+                              fontSize: TypeScale.subhead,
                             ),
                           ),
                         ],

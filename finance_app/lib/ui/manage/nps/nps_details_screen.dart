@@ -4,6 +4,7 @@ import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/nps_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class NPSDetailsScreen extends StatefulWidget {
@@ -189,7 +190,7 @@ class _DetailCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title,
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: TypeScale.body)),
           const SizedBox(height: 16),
           ...List.generate(
             children.length,
@@ -239,12 +240,12 @@ class _DetailRow extends StatelessWidget {
             Text(label,
                 style: TextStyle(
                     color: AppStyles.getSecondaryTextColor(context),
-                    fontSize: 13)),
+                    fontSize: TypeScale.subhead)),
             if (note != null)
               Text(note!,
                   style: TextStyle(
                       color: AppStyles.getSecondaryTextColor(context),
-                      fontSize: 11)),
+                      fontSize: TypeScale.caption)),
           ],
         ),
         Text(value,

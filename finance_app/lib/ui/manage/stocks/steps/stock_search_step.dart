@@ -147,14 +147,14 @@ class _StockSearchStepState extends State<StockSearchStep> {
                               Text(
                                 stock.symbol,
                                 style: AppStyles.titleStyle(context)
-                                    .copyWith(fontSize: 16),
+                                    .copyWith(fontSize: TypeScale.headline),
                               ),
                               Text(
                                 '${stock.name} • ${stock.exchange}',
                                 style: TextStyle(
                                   color:
                                       AppStyles.getSecondaryTextColor(context),
-                                  fontSize: 12,
+                                  fontSize: TypeScale.footnote,
                                 ),
                               ),
                             ],

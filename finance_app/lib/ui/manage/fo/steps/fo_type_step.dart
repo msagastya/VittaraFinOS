@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:vittara_fin_os/logic/fo_model.dart';
 import 'package:vittara_fin_os/ui/manage/fo/fo_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class FOTypeStep extends StatelessWidget {
   final FOWizardController ctrl;
@@ -88,7 +89,7 @@ class FOTypeStep extends StatelessWidget {
                                     fontWeight: FontWeight.bold)),
                             Text(desc,
                                 style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: TypeScale.footnote,
                                     color: AppStyles.getSecondaryTextColor(
                                         context))),
                           ],
@@ -102,7 +103,7 @@ class FOTypeStep extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Text('Symbol',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           CupertinoTextField(
             placeholder: 'e.g., NIFTY, BANKNIFTY, GOLD',
@@ -115,7 +116,7 @@ class FOTypeStep extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           Text('Contract Name',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           CupertinoTextField(
             placeholder: 'e.g., NIFTY 50 Index Futures',

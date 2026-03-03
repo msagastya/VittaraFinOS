@@ -67,7 +67,7 @@ class _DashboardSettingsModalState extends State<DashboardSettingsModal> {
                   Text(
                     'Show or hide widgets on your dashboard',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: TypeScale.subhead,
                       color: AppStyles.getSecondaryTextColor(context),
                     ),
                   ),
@@ -167,7 +167,7 @@ class _DashboardSettingsModalState extends State<DashboardSettingsModal> {
                 Text(
                   widget.title,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: TypeScale.body,
                     fontWeight: FontWeight.w600,
                     color: AppStyles.getTextColor(context),
                   ),
@@ -176,7 +176,7 @@ class _DashboardSettingsModalState extends State<DashboardSettingsModal> {
                 Text(
                   _getWidgetDescription(widget.type),
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: TypeScale.footnote,
                     color: AppStyles.getSecondaryTextColor(context),
                   ),
                 ),

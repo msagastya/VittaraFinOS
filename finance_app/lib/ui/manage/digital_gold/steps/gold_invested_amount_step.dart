@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/ui/manage/digital_gold/digital_gold_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class GoldInvestedAmountStep extends StatefulWidget {
   const GoldInvestedAmountStep({super.key});
@@ -101,7 +102,7 @@ class _GoldInvestedAmountStepState extends State<GoldInvestedAmountStep> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: AppStyles.getTextColor(context),
-                    fontSize: 12,
+                    fontSize: TypeScale.footnote,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -109,7 +110,7 @@ class _GoldInvestedAmountStepState extends State<GoldInvestedAmountStep> {
                   'Example: You spent ₹49.44\n• Actual gold cost: ₹48 (49.44 ÷ 1.03)\n• GST (3%): ₹1.44\n• Total: ₹49.44\n\nJust enter your total spent amount, we\'ll calculate the rest!',
                   style: TextStyle(
                     color: AppStyles.getSecondaryTextColor(context),
-                    fontSize: 12,
+                    fontSize: TypeScale.footnote,
                     height: 1.6,
                   ),
                 ),
@@ -137,14 +138,14 @@ class _GoldInvestedAmountStepState extends State<GoldInvestedAmountStep> {
                         'Actual Gold Cost',
                         style: TextStyle(
                           color: AppStyles.getSecondaryTextColor(context),
-                          fontSize: 12,
+                          fontSize: TypeScale.footnote,
                         ),
                       ),
                       Text(
                         '₹${controller.actualAmount.toStringAsFixed(2)}',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                          fontSize: TypeScale.body,
                         ),
                       ),
                     ],
@@ -157,14 +158,14 @@ class _GoldInvestedAmountStepState extends State<GoldInvestedAmountStep> {
                         'GST (${controller.gstRate}%)',
                         style: TextStyle(
                           color: AppStyles.getSecondaryTextColor(context),
-                          fontSize: 12,
+                          fontSize: TypeScale.footnote,
                         ),
                       ),
                       Text(
                         '₹${controller.gstAmount.toStringAsFixed(2)}',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                          fontSize: TypeScale.body,
                         ),
                       ),
                     ],
@@ -177,14 +178,14 @@ class _GoldInvestedAmountStepState extends State<GoldInvestedAmountStep> {
                         'Total Invested',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                          fontSize: TypeScale.body,
                         ),
                       ),
                       Text(
                         '₹${controller.investedAmount.toStringAsFixed(2)}',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                          fontSize: TypeScale.headline,
                           color: Color(0xFFFFB81C),
                         ),
                       ),

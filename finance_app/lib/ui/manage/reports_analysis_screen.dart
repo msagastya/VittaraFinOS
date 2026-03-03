@@ -437,7 +437,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
                     '$_activeFilterCount filter${_activeFilterCount == 1 ? '' : 's'} active'
                     '${hidden > 0 ? ' · $hidden txns hidden' : ''}',
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: TypeScale.footnote,
                       fontWeight: FontWeight.w600,
                       color: SemanticColors.warning,
                     ),
@@ -455,7 +455,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
                     child: Text(
                       'Clear All',
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: TypeScale.caption,
                         fontWeight: FontWeight.w700,
                         color: SemanticColors.warning,
                       ),
@@ -2557,7 +2557,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
         title: Text('$format Export Ready'),
         content: Text(
           path,
-          style: const TextStyle(fontSize: 12),
+          style: const TextStyle(fontSize: TypeScale.footnote),
         ),
         actions: [
           CupertinoDialogAction(

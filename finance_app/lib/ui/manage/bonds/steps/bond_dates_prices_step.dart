@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:vittara_fin_os/ui/manage/bonds/bonds_wizard_controller_v2.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class BondDatesPricesStep extends StatefulWidget {
   final BondsWizardControllerV2 ctrl;
@@ -46,7 +47,7 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
           Text('Bond Dates & Prices', style: AppStyles.titleStyle(context)),
           const SizedBox(height: 30),
           Text('Purchase Date',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           GestureDetector(
             onTap: () {
@@ -71,7 +72,7 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
                           children: [
                             Text('Select Date',
                                 style: const TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold)),
+                                    fontSize: TypeScale.headline, fontWeight: FontWeight.bold)),
                             GestureDetector(
                               onTap: () => Navigator.pop(ctx),
                               child: const Icon(CupertinoIcons.xmark),
@@ -114,7 +115,7 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
           ),
           const SizedBox(height: 24),
           Text('Maturity Date',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           GestureDetector(
             onTap: () {
@@ -139,7 +140,7 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
                           children: [
                             Text('Select Date',
                                 style: const TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold)),
+                                    fontSize: TypeScale.headline, fontWeight: FontWeight.bold)),
                             GestureDetector(
                               onTap: () => Navigator.pop(ctx),
                               child: const Icon(CupertinoIcons.xmark),
@@ -182,7 +183,7 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
           ),
           const SizedBox(height: 24),
           Text('Purchase Price (₹)',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           CupertinoTextField(
             controller: _purchasePriceController,
@@ -204,7 +205,7 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
           ),
           const SizedBox(height: 24),
           Text('Face Value (₹)',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           CupertinoTextField(
             controller: _faceValueController,
@@ -226,7 +227,7 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
           ),
           const SizedBox(height: 24),
           Text('Payment Frequency',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           Row(
             children: [
@@ -293,7 +294,7 @@ class _FrequencyButton extends StatelessWidget {
           child: Text(
             label,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: TypeScale.footnote,
               fontWeight: FontWeight.w600,
               color: isSelected
                   ? const Color(0xFF00A6CC)

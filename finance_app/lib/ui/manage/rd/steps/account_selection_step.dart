@@ -6,6 +6,7 @@ import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/ui/manage/account_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/rd/rd_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 
 class AccountSelectionStep extends StatefulWidget {
@@ -177,7 +178,7 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
                                         account.name,
                                         style: const TextStyle(
                                             fontWeight: FontWeight.bold,
-                                            fontSize: 16),
+                                            fontSize: TypeScale.headline),
                                       ),
                                       Text(
                                         account.bankName ?? 'Bank Account',
@@ -185,7 +186,7 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
                                           color:
                                               AppStyles.getSecondaryTextColor(
                                                   context),
-                                          fontSize: 13,
+                                          fontSize: TypeScale.subhead,
                                         ),
                                       ),
                                     ],

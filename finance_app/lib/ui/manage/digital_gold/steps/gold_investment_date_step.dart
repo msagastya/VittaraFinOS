@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/ui/manage/digital_gold/digital_gold_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class GoldInvestmentDateStep extends StatelessWidget {
   const GoldInvestmentDateStep({super.key});
@@ -112,14 +113,14 @@ class GoldInvestmentDateStep extends StatelessWidget {
                       'Provider',
                       style: TextStyle(
                         color: AppStyles.getSecondaryTextColor(context),
-                        fontSize: 12,
+                        fontSize: TypeScale.footnote,
                       ),
                     ),
                     Text(
                       controller.selectedCompany?.name ?? '-',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                        fontSize: TypeScale.footnote,
                       ),
                     ),
                   ],
@@ -132,14 +133,14 @@ class GoldInvestmentDateStep extends StatelessWidget {
                       'Actual Gold Cost',
                       style: TextStyle(
                         color: AppStyles.getSecondaryTextColor(context),
-                        fontSize: 12,
+                        fontSize: TypeScale.footnote,
                       ),
                     ),
                     Text(
                       '₹${controller.actualAmount.toStringAsFixed(2)}',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                        fontSize: TypeScale.footnote,
                       ),
                     ),
                   ],
@@ -152,14 +153,14 @@ class GoldInvestmentDateStep extends StatelessWidget {
                       'GST (${controller.gstRate}%)',
                       style: TextStyle(
                         color: AppStyles.getSecondaryTextColor(context),
-                        fontSize: 12,
+                        fontSize: TypeScale.footnote,
                       ),
                     ),
                     Text(
                       '₹${controller.gstAmount.toStringAsFixed(2)}',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                        fontSize: TypeScale.footnote,
                       ),
                     ),
                   ],
@@ -172,14 +173,14 @@ class GoldInvestmentDateStep extends StatelessWidget {
                       'Total Invested',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                        fontSize: TypeScale.footnote,
                       ),
                     ),
                     Text(
                       '₹${controller.investedAmount.toStringAsFixed(2)}',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                        fontSize: TypeScale.body,
                         color: Color(0xFFFFB81C),
                       ),
                     ),

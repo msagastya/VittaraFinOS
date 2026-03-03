@@ -4,6 +4,7 @@ import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/models/cryptocurrency_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class CryptoDetailsScreen extends StatefulWidget {
@@ -110,7 +111,7 @@ class _CryptoDetailsScreenState extends State<CryptoDetailsScreen> {
                       style: TextStyle(
                         color: AppStyles.getTextColor(context),
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                        fontSize: TypeScale.body,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -153,7 +154,7 @@ class _CryptoDetailsScreenState extends State<CryptoDetailsScreen> {
                       style: TextStyle(
                         color: AppStyles.getTextColor(context),
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                        fontSize: TypeScale.body,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -205,7 +206,7 @@ class _CryptoDetailsScreenState extends State<CryptoDetailsScreen> {
                       style: TextStyle(
                         color: AppStyles.getTextColor(context),
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                        fontSize: TypeScale.body,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -248,7 +249,7 @@ class _CryptoDetailsScreenState extends State<CryptoDetailsScreen> {
                         style: TextStyle(
                           color: AppStyles.getTextColor(context),
                           fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                          fontSize: TypeScale.body,
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -256,7 +257,7 @@ class _CryptoDetailsScreenState extends State<CryptoDetailsScreen> {
                         crypto.notes!,
                         style: TextStyle(
                           color: AppStyles.getSecondaryTextColor(context),
-                          fontSize: 13,
+                          fontSize: TypeScale.subhead,
                         ),
                       ),
                     ],
@@ -359,7 +360,7 @@ class _DetailRow extends StatelessWidget {
           label,
           style: TextStyle(
             color: AppStyles.getSecondaryTextColor(context),
-            fontSize: 13,
+            fontSize: TypeScale.subhead,
           ),
         ),
         Text(
@@ -367,7 +368,7 @@ class _DetailRow extends StatelessWidget {
           style: TextStyle(
             color: valueColor,
             fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
-            fontSize: 13,
+            fontSize: TypeScale.subhead,
             fontFamily: isMonospace ? 'monospace' : null,
           ),
           textAlign: TextAlign.end,

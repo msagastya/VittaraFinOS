@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/recurring_deposit_model.dart';
 import 'package:vittara_fin_os/ui/manage/rd/rd_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class FrequencyStep extends StatelessWidget {
   const FrequencyStep({super.key});
@@ -106,7 +107,7 @@ class FrequencyStep extends StatelessWidget {
                               style: TextStyle(
                                 color: AppStyles.getTextColor(context),
                                 fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                                fontSize: TypeScale.headline,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -114,7 +115,7 @@ class FrequencyStep extends StatelessWidget {
                               option['description'] as String,
                               style: TextStyle(
                                 color: AppStyles.getSecondaryTextColor(context),
-                                fontSize: 13,
+                                fontSize: TypeScale.subhead,
                               ),
                             ),
                           ],

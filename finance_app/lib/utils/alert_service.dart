@@ -160,7 +160,7 @@ class AlertService {
               Text(
                 details,
                 style: const TextStyle(
-                  fontSize: 12,
+                  fontSize: TypeScale.footnote,
                   color: CupertinoColors.systemGrey,
                 ),
               ),
@@ -203,7 +203,7 @@ class AlertService {
                 SizedBox(height: Spacing.lg),
                 Text(
                   message,
-                  style: const TextStyle(fontSize: 16),
+                  style: const TextStyle(fontSize: TypeScale.headline),
                 ),
               ],
             ),
@@ -474,7 +474,7 @@ class _ToastNotificationState extends State<_ToastNotification>
                       widget.message,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 15,
+                        fontSize: TypeScale.callout,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -490,7 +490,7 @@ class _ToastNotificationState extends State<_ToastNotification>
                         widget.actionLabel!,
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 15,
+                          fontSize: TypeScale.callout,
                           fontWeight: FontWeight.w600,
                         ),
                       ),

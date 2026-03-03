@@ -450,7 +450,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
         backgroundColor: AppStyles.getCardColor(context),
         style: TextStyle(color: AppStyles.getTextColor(context)),
         placeholderStyle: TextStyle(
-            color: AppStyles.getSecondaryTextColor(context), fontSize: 14),
+            color: AppStyles.getSecondaryTextColor(context), fontSize: TypeScale.body),
         onChanged: (v) => setState(() => _searchQuery = v),
       ),
     );
@@ -534,13 +534,13 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                 children: [
                   Text(
                     label,
-                    style: AppStyles.titleStyle(context).copyWith(fontSize: 13),
+                    style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.subhead),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     CurrencyFormatter.compact(total),
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: TypeScale.footnote,
                       fontWeight: FontWeight.w700,
                       color: isSelected
                           ? color
@@ -582,7 +582,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                   Text(
                     _getSortLabel(_sortBy),
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: TypeScale.caption,
                       fontWeight: FontWeight.w600,
                       color: SemanticColors.investments,
                     ),
@@ -745,7 +745,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                       style: TextStyle(
                                         color: AppStyles.getSecondaryTextColor(
                                             context),
-                                        fontSize: 16,
+                                        fontSize: TypeScale.headline,
                                       ),
                                     ),
                                   ],
@@ -918,7 +918,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                               child: Text(
                                 _getInvestmentTypeLabel(e.key),
                                 style: TextStyle(
-                                  fontSize: 11,
+                                  fontSize: TypeScale.caption,
                                   color:
                                       AppStyles.getSecondaryTextColor(context),
                                 ),
@@ -928,7 +928,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                             Text(
                               '${pct.toStringAsFixed(1)}%',
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: TypeScale.caption,
                                 fontWeight: FontWeight.w600,
                                 color: _getInvestmentTypeColor(e.key),
                               ),
@@ -971,7 +971,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               Text(
                 '${investments.length} Investment${investments.length == 1 ? '' : 's'}',
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: TypeScale.headline,
                   fontWeight: FontWeight.bold,
                   color: AppStyles.getTextColor(context),
                 ),
@@ -980,7 +980,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               Text(
                 refreshLabel,
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: TypeScale.caption,
                   color: AppStyles.getSecondaryTextColor(context),
                 ),
               ),
@@ -997,7 +997,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             child: Text(
               _getSortLabel(_sortBy),
               style: TextStyle(
-                fontSize: 12,
+                fontSize: TypeScale.footnote,
                 fontWeight: FontWeight.w600,
                 color: SemanticColors.investments,
               ),
@@ -1039,7 +1039,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                   Text(
                     'Filter by Type',
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: TypeScale.headline,
                       fontWeight: FontWeight.bold,
                       color: AppStyles.getTextColor(context),
                     ),
@@ -1132,7 +1132,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             Text(
               label,
               style: TextStyle(
-                fontSize: 15,
+                fontSize: TypeScale.callout,
                 fontWeight: FontWeight.w600,
                 color: AppStyles.getTextColor(context),
               ),
@@ -1177,7 +1177,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                   Text(
                     'Sort By',
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: TypeScale.headline,
                       fontWeight: FontWeight.bold,
                       color: AppStyles.getTextColor(context),
                     ),
@@ -1254,7 +1254,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             Text(
               label,
               style: TextStyle(
-                fontSize: 15,
+                fontSize: TypeScale.callout,
                 fontWeight: FontWeight.w600,
                 color: AppStyles.getTextColor(context),
               ),
@@ -1289,7 +1289,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                   Text(
                     '${investments.length} Investments',
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: TypeScale.headline,
                       fontWeight: FontWeight.bold,
                       color: AppStyles.getTextColor(context),
                     ),
@@ -1298,7 +1298,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                   Text(
                     '${_getDistinctTypesCount(investments)} categories',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: TypeScale.subhead,
                       color: AppStyles.getSecondaryTextColor(context),
                     ),
                   ),
@@ -1335,7 +1335,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                       Text(
                         _sortAscending ? 'Ascending' : 'Descending',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: TypeScale.footnote,
                           fontWeight: FontWeight.bold,
                           color: SemanticColors.investments,
                         ),
@@ -1354,7 +1354,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               Text(
                 'Filter',
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: TypeScale.footnote,
                   fontWeight: FontWeight.w600,
                   color: AppStyles.getSecondaryTextColor(context),
                   letterSpacing: 0.5,
@@ -1392,7 +1392,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                         child: Text(
                           'All',
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: TypeScale.subhead,
                             fontWeight: FontWeight.w600,
                             color: _selectedFilter == null
                                 ? Colors.white
@@ -1435,7 +1435,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                               Text(
                                 _getInvestmentTypeLabel(type),
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: TypeScale.subhead,
                                   fontWeight: FontWeight.w600,
                                   color: isSelected
                                       ? Colors.white
@@ -1446,7 +1446,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                               Text(
                                 '($count)',
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: TypeScale.footnote,
                                   fontWeight: FontWeight.w500,
                                   color: isSelected
                                       ? Colors.white.withValues(alpha: 0.8)
@@ -1472,7 +1472,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               Text(
                 'Sort By',
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: TypeScale.footnote,
                   fontWeight: FontWeight.w600,
                   color: AppStyles.getSecondaryTextColor(context),
                   letterSpacing: 0.5,
@@ -1512,7 +1512,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                           child: Text(
                             _getSortLabel(sort),
                             style: TextStyle(
-                              fontSize: 13,
+                              fontSize: TypeScale.subhead,
                               fontWeight: FontWeight.w600,
                               color: isSelected
                                   ? SemanticColors.investments
@@ -1547,7 +1547,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             style: TextStyle(
               color: AppStyles.getTextColor(context),
               fontWeight: FontWeight.w600,
-              fontSize: 14,
+              fontSize: TypeScale.body,
             ),
           ),
         ),
@@ -1582,7 +1582,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                           ? Colors.white
                           : AppStyles.getTextColor(context),
                       fontWeight: FontWeight.w600,
-                      fontSize: 13,
+                      fontSize: TypeScale.subhead,
                     ),
                   ),
                 ),
@@ -1624,7 +1624,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                   ? Colors.white
                                   : AppStyles.getTextColor(context),
                               fontWeight: FontWeight.w600,
-                              fontSize: 13,
+                              fontSize: TypeScale.subhead,
                             ),
                           ),
                           if (count > 0)
@@ -1634,7 +1634,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                 color: isSelected
                                     ? Colors.white.withValues(alpha: 0.8)
                                     : AppStyles.getSecondaryTextColor(context),
-                                fontSize: 11,
+                                fontSize: TypeScale.caption,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -1666,7 +1666,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                 style: TextStyle(
                   color: AppStyles.getTextColor(context),
                   fontWeight: FontWeight.w600,
-                  fontSize: 14,
+                  fontSize: TypeScale.body,
                 ),
               ),
               GestureDetector(
@@ -1697,7 +1697,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                         _sortAscending ? 'Ascending' : 'Descending',
                         style: TextStyle(
                           color: AppStyles.getSecondaryTextColor(context),
-                          fontSize: 12,
+                          fontSize: TypeScale.footnote,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -1750,7 +1750,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                 color:
                     isSelected ? Colors.white : AppStyles.getTextColor(context),
                 fontWeight: FontWeight.w600,
-                fontSize: 13,
+                fontSize: TypeScale.subhead,
               ),
             ),
           ),
@@ -1903,7 +1903,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                           Text(
                             '${investments.length} investments across ${_getDistinctTypesCount(investments)} categories',
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: TypeScale.footnote,
                               color: AppStyles.getSecondaryTextColor(context),
                             ),
                           ),
@@ -1996,14 +1996,14 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                         Text(
                           typeLabel,
                           style: AppStyles.titleStyle(context)
-                              .copyWith(fontSize: 14),
+                              .copyWith(fontSize: TypeScale.body),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
                           '$count ${count == 1 ? 'investment' : 'investments'}',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: TypeScale.footnote,
                             color: AppStyles.getSecondaryTextColor(context),
                           ),
                         ),
@@ -2018,7 +2018,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               Text(
                 'Invested',
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: TypeScale.footnote,
                   color: AppStyles.getSecondaryTextColor(context),
                 ),
               ),
@@ -2029,7 +2029,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                 decimals: 2,
                 duration: AppDurations.counter,
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: TypeScale.headline,
                   color: AppStyles.getTextColor(context),
                   fontWeight: FontWeight.w600,
                 ),
@@ -2040,7 +2040,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               Text(
                 'Current Value',
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: TypeScale.footnote,
                   color: AppStyles.getSecondaryTextColor(context),
                 ),
               ),
@@ -2051,7 +2051,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                 decimals: 2,
                 duration: AppDurations.counter,
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: TypeScale.headline,
                   color: color,
                   fontWeight: FontWeight.w600,
                 ),
@@ -2079,7 +2079,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                         Text(
                           isPositive ? 'Gain' : 'Loss',
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: TypeScale.caption,
                             color: AppStyles.getSecondaryTextColor(context),
                           ),
                         ),
@@ -2090,7 +2090,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                           decimals: 2,
                           duration: AppDurations.counter,
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: TypeScale.subhead,
                             color: isPositive
                                 ? CupertinoColors.systemGreen
                                 : CupertinoColors.systemRed,
@@ -2105,7 +2105,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                         Text(
                           '',
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: TypeScale.caption,
                             color: AppStyles.getSecondaryTextColor(context),
                           ),
                         ),
@@ -2113,7 +2113,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                         Text(
                           '${gainLossPercent.toStringAsFixed(1)}%',
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: TypeScale.subhead,
                             color: isPositive
                                 ? CupertinoColors.systemGreen
                                 : CupertinoColors.systemRed,
@@ -2209,7 +2209,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                     Text(
                                       'Invested',
                                       style: TextStyle(
-                                        fontSize: 11,
+                                        fontSize: TypeScale.caption,
                                         color: AppStyles.getSecondaryTextColor(
                                             context),
                                       ),
@@ -2217,7 +2217,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                     Text(
                                       '₹${investedAmount.toStringAsFixed(2)}',
                                       style: TextStyle(
-                                        fontSize: 13,
+                                        fontSize: TypeScale.subhead,
                                         fontWeight: FontWeight.w600,
                                         color: AppStyles.getTextColor(context),
                                       ),
@@ -2233,7 +2233,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                     Text(
                                       'Current',
                                       style: TextStyle(
-                                        fontSize: 11,
+                                        fontSize: TypeScale.caption,
                                         color: AppStyles.getSecondaryTextColor(
                                             context),
                                       ),
@@ -2243,7 +2243,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                       Text(
                                         'Fetching...',
                                         style: TextStyle(
-                                          fontSize: 13,
+                                          fontSize: TypeScale.subhead,
                                           fontWeight: FontWeight.w600,
                                           color:
                                               AppStyles.getSecondaryTextColor(
@@ -2254,7 +2254,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                       Text(
                                         '₹${currentValue.toStringAsFixed(2)}',
                                         style: TextStyle(
-                                          fontSize: 13,
+                                          fontSize: TypeScale.subhead,
                                           fontWeight: FontWeight.w600,
                                           color:
                                               AppStyles.getTextColor(context),
@@ -2285,7 +2285,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                           child: Text(
                             '${isProfit ? '+' : ''}${gainLossPercent.toStringAsFixed(2)}%',
                             style: TextStyle(
-                              fontSize: 13,
+                              fontSize: TypeScale.subhead,
                               fontWeight: FontWeight.bold,
                               color: isProfit
                                   ? CupertinoColors.systemGreen
@@ -2531,7 +2531,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                 Text(
                                   'Invested',
                                   style: TextStyle(
-                                    fontSize: 11,
+                                    fontSize: TypeScale.caption,
                                     color: AppStyles.getSecondaryTextColor(
                                         context),
                                   ),
@@ -2539,7 +2539,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                 Text(
                                   '₹${investedAmount.toStringAsFixed(2)}',
                                   style: TextStyle(
-                                    fontSize: 13,
+                                    fontSize: TypeScale.subhead,
                                     fontWeight: FontWeight.w600,
                                     color: AppStyles.getTextColor(context),
                                   ),
@@ -2555,7 +2555,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                 Text(
                                   'Current',
                                   style: TextStyle(
-                                    fontSize: 11,
+                                    fontSize: TypeScale.caption,
                                     color: AppStyles.getSecondaryTextColor(
                                         context),
                                   ),
@@ -2563,7 +2563,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                 Text(
                                   '₹${currentValue.toStringAsFixed(2)}',
                                   style: TextStyle(
-                                    fontSize: 13,
+                                    fontSize: TypeScale.subhead,
                                     fontWeight: FontWeight.w600,
                                     color: AppStyles.getTextColor(context),
                                   ),
@@ -2592,7 +2592,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                       child: Text(
                         '${isProfit ? '+' : ''}${gainLossPercent.toStringAsFixed(2)}%',
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: TypeScale.subhead,
                           fontWeight: FontWeight.bold,
                           color: isProfit
                               ? CupertinoColors.systemGreen

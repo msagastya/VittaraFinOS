@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/ui/manage/commodities/commodities_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class CommodityPriceStep extends StatefulWidget {
   final CommoditiesWizardController ctrl;
@@ -49,7 +50,7 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
               style: AppStyles.titleStyle(context)),
           const SizedBox(height: 30),
           Text('Price Per ${widget.ctrl.unit ?? 'Unit'} (₹)',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           CupertinoTextField(
             controller: _priceController,
@@ -71,7 +72,7 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
           ),
           const SizedBox(height: 24),
           Text('Purchase Date',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           GestureDetector(
             onTap: () {
@@ -96,7 +97,7 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
                           children: [
                             Text('Select Date',
                                 style: const TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold)),
+                                    fontSize: TypeScale.headline, fontWeight: FontWeight.bold)),
                             GestureDetector(
                               onTap: () => Navigator.pop(ctx),
                               child: const Icon(CupertinoIcons.xmark),
@@ -139,7 +140,7 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
           ),
           const SizedBox(height: 24),
           Text('Exchange',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -172,7 +173,7 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
                               Text(
                                 'Select Exchange',
                                 style: TextStyle(
-                                  fontSize: 16,
+                                  fontSize: TypeScale.headline,
                                   fontWeight: FontWeight.bold,
                                   color: AppStyles.getTextColor(context),
                                 ),
@@ -216,7 +217,7 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
                                   child: Text(
                                     exchange,
                                     style: TextStyle(
-                                      fontSize: 14,
+                                      fontSize: TypeScale.body,
                                       color: widget.ctrl.exchange == exchange
                                           ? const Color(0xFF8B4513)
                                           : AppStyles.getTextColor(context),
@@ -267,12 +268,12 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
                     children: [
                       Text('Total Cost',
                           style: TextStyle(
-                              fontSize: 12,
+                              fontSize: TypeScale.footnote,
                               color: AppStyles.getSecondaryTextColor(context))),
                       const SizedBox(height: 4),
                       Text('₹${widget.ctrl.totalCost.toStringAsFixed(2)}',
                           style: const TextStyle(
-                              fontSize: 16,
+                              fontSize: TypeScale.headline,
                               fontWeight: FontWeight.bold,
                               color: Color(0xFF8B4513))),
                     ],

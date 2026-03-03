@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/ui/manage/fd/fd_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class PrincipalStep extends StatefulWidget {
   const PrincipalStep({super.key});
@@ -100,7 +101,7 @@ class _PrincipalStepState extends State<PrincipalStep> {
                       'Summary',
                       style: TextStyle(
                         color: AppStyles.getSecondaryTextColor(context),
-                        fontSize: 12,
+                        fontSize: TypeScale.footnote,
                         fontWeight: FontWeight.w600,
                       ),
                     ),

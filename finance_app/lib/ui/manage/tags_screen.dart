@@ -44,14 +44,14 @@ class _TagsScreenState extends State<TagsScreen> {
                       Text(
                         'Your Tags',
                         style: AppStyles.titleStyle(context).copyWith(
-                            fontSize: 28, fontWeight: FontWeight.w800),
+                            fontSize: TypeScale.largeTitle, fontWeight: FontWeight.w800),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'Organize transactions with custom labels',
                         style: TextStyle(
                             color: AppStyles.getSecondaryTextColor(context),
-                            fontSize: 14),
+                            fontSize: TypeScale.body),
                       ),
                       const SizedBox(height: 32),
                       if (tags.isEmpty)
@@ -86,7 +86,7 @@ class _TagsScreenState extends State<TagsScreen> {
                               Text(
                                 'No tags created yet',
                                 style: TextStyle(
-                                  fontSize: 16,
+                                  fontSize: TypeScale.headline,
                                   fontWeight: FontWeight.w700,
                                   color: AppStyles.getTextColor(context),
                                 ),
@@ -95,7 +95,7 @@ class _TagsScreenState extends State<TagsScreen> {
                               Text(
                                 'Tap the + button to create your first tag',
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: TypeScale.subhead,
                                   color:
                                       AppStyles.getSecondaryTextColor(context),
                                 ),
@@ -125,7 +125,7 @@ class _TagsScreenState extends State<TagsScreen> {
                                     child: Text(
                                       '${tags.length} tag${tags.length > 1 ? 's' : ''} created',
                                       style: TextStyle(
-                                        fontSize: 13,
+                                        fontSize: TypeScale.subhead,
                                         fontWeight: FontWeight.w600,
                                         color: AppStyles.accentBlue,
                                       ),
@@ -255,7 +255,7 @@ class _TagsScreenState extends State<TagsScreen> {
               Text(
                 'Give it a name and choose a color',
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: TypeScale.subhead,
                   color: AppStyles.getSecondaryTextColor(context),
                 ),
               ),
@@ -280,7 +280,7 @@ class _TagsScreenState extends State<TagsScreen> {
                   style: TextStyle(
                     color: AppStyles.getTextColor(context),
                     fontWeight: FontWeight.w600,
-                    fontSize: 14,
+                    fontSize: TypeScale.body,
                   ),
                   onChanged: (_) => setState(() {}),
                 ),
@@ -291,7 +291,7 @@ class _TagsScreenState extends State<TagsScreen> {
                     Text(
                       'Pick a color:',
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: TypeScale.subhead,
                         fontWeight: FontWeight.w700,
                         color: AppStyles.getTextColor(context),
                       ),
@@ -412,7 +412,7 @@ class _TagsScreenState extends State<TagsScreen> {
             Text(
               'Created ${_formatDate(tag.createdDate)}',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: TypeScale.footnote,
                 color: AppStyles.getSecondaryTextColor(context),
               ),
             ),
@@ -521,7 +521,7 @@ class _TagsScreenState extends State<TagsScreen> {
             Text(
               'Choose a new color for this tag',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: TypeScale.footnote,
                 color: AppStyles.getSecondaryTextColor(context),
               ),
             ),

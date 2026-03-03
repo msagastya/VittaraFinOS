@@ -460,7 +460,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
               'Delete Transaction',
               style: TextStyle(
                 color: CupertinoColors.systemRed,
-                fontSize: 14,
+                fontSize: TypeScale.body,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -486,7 +486,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
             label,
             style: TextStyle(
               color: AppStyles.getSecondaryTextColor(context),
-              fontSize: 14,
+              fontSize: TypeScale.body,
             ),
           ),
           Text(
@@ -497,7 +497,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                   : isNegative
                       ? CupertinoColors.systemRed
                       : AppStyles.getTextColor(context),
-              fontSize: 14,
+              fontSize: TypeScale.body,
               fontWeight: FontWeight.w600,
             ),
           ),

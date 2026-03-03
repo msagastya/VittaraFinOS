@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/payment_apps_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 
@@ -236,7 +237,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                           Text('Add App',
                               style: const TextStyle(
                                   color: Colors.white,
-                                  fontSize: 16,
+                                  fontSize: TypeScale.headline,
                                   fontWeight: FontWeight.w600)),
                         ],
                       ),
@@ -408,7 +409,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                     'Wallet ₹${((app['walletBalance'] as num?)?.toDouble() ?? 0).toStringAsFixed(0)}',
                     style: const TextStyle(
                       color: CupertinoColors.systemBlue,
-                      fontSize: 12,
+                      fontSize: TypeScale.footnote,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -538,7 +539,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                           const SizedBox(height: 16),
                           Text('Add Payment App',
                               style: AppStyles.titleStyle(context)
-                                  .copyWith(fontSize: 20)),
+                                  .copyWith(fontSize: TypeScale.title2)),
                         ],
                       ),
                     ),
@@ -555,7 +556,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                           children: [
                             Text('App Name',
                                 style: TextStyle(
-                                    fontSize: 14,
+                                    fontSize: TypeScale.body,
                                     fontWeight: FontWeight.w500,
                                     color: AppStyles.getSecondaryTextColor(
                                         context))),
@@ -579,7 +580,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                             const SizedBox(height: 24),
                             Text('Wallet feature',
                                 style: TextStyle(
-                                    fontSize: 14,
+                                    fontSize: TypeScale.body,
                                     fontWeight: FontWeight.w500,
                                     color: AppStyles.getSecondaryTextColor(
                                         context))),
@@ -651,7 +652,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                               const SizedBox(height: 20),
                               Text('Opening wallet balance',
                                   style: TextStyle(
-                                      fontSize: 14,
+                                      fontSize: TypeScale.body,
                                       fontWeight: FontWeight.w500,
                                       color: AppStyles.getSecondaryTextColor(
                                           context))),
@@ -711,7 +712,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                                   child: Text('Save',
                                       style: TextStyle(
                                           color: Colors.white,
-                                          fontSize: 16,
+                                          fontSize: TypeScale.headline,
                                           fontWeight: FontWeight.w600)),
                                 ),
                               ),

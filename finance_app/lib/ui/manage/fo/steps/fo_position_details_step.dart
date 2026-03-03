@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:vittara_fin_os/ui/manage/fo/fo_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class FOPositionDetailsStep extends StatefulWidget {
   final FOWizardController ctrl;
@@ -38,7 +39,7 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
           Text('Position Details', style: AppStyles.titleStyle(context)),
           const SizedBox(height: 30),
           Text('Current Price (₹)',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           CupertinoTextField(
             controller: _currentPriceController,
@@ -60,7 +61,7 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
           ),
           const SizedBox(height: 24),
           Text('Entry Date',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           GestureDetector(
             onTap: () {
@@ -85,7 +86,7 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
                           children: [
                             Text('Select Date',
                                 style: const TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold)),
+                                    fontSize: TypeScale.headline, fontWeight: FontWeight.bold)),
                             GestureDetector(
                               onTap: () => Navigator.pop(ctx),
                               child: const Icon(CupertinoIcons.xmark),
@@ -128,7 +129,7 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
           ),
           const SizedBox(height: 24),
           Text('Expiry Date',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           GestureDetector(
             onTap: () {
@@ -153,7 +154,7 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
                           children: [
                             Text('Select Date',
                                 style: const TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold)),
+                                    fontSize: TypeScale.headline, fontWeight: FontWeight.bold)),
                             GestureDetector(
                               onTap: () => Navigator.pop(ctx),
                               child: const Icon(CupertinoIcons.xmark),
@@ -249,7 +250,7 @@ class _Summary extends StatelessWidget {
       children: [
         Text(label,
             style: TextStyle(
-                color: AppStyles.getSecondaryTextColor(context), fontSize: 13)),
+                color: AppStyles.getSecondaryTextColor(context), fontSize: TypeScale.subhead)),
         Text(value,
             style: TextStyle(
                 fontWeight: isBold ? FontWeight.bold : FontWeight.w500,

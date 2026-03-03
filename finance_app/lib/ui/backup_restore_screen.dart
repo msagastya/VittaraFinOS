@@ -20,6 +20,7 @@ import 'package:vittara_fin_os/logic/tags_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_archive_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class BackupRestoreScreen extends StatefulWidget {
@@ -372,7 +373,7 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
                 _lastStatus!,
                 style: TextStyle(
                   color: AppStyles.getSecondaryTextColor(context),
-                  fontSize: 13,
+                  fontSize: TypeScale.subhead,
                 ),
               ),
             ],
@@ -400,7 +401,7 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
         children: [
           Text(
             'Current Data Snapshot',
-            style: AppStyles.titleStyle(context).copyWith(fontSize: 17),
+            style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title3),
           ),
           const SizedBox(height: 8),
           Text(
@@ -412,7 +413,7 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
             'Backups are versioned and include typed storage snapshot for compatibility with future app upgrades.',
             style: TextStyle(
               color: AppStyles.getSecondaryTextColor(context),
-              fontSize: 12,
+              fontSize: TypeScale.footnote,
             ),
           ),
         ],
@@ -454,14 +455,14 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
                       Text(
                         title,
                         style: AppStyles.titleStyle(context)
-                            .copyWith(fontSize: 15),
+                            .copyWith(fontSize: TypeScale.callout),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         subtitle,
                         style: TextStyle(
                           color: AppStyles.getSecondaryTextColor(context),
-                          fontSize: 12,
+                          fontSize: TypeScale.footnote,
                         ),
                       ),
                     ],
@@ -486,7 +487,7 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
         children: [
           Text(
             'Last Operation Summary',
-            style: AppStyles.titleStyle(context).copyWith(fontSize: 14),
+            style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.body),
           ),
           const SizedBox(height: 8),
           Text('Source: ${value('source')}'),

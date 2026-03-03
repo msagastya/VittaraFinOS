@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/investment_type_preferences_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 
 class InvestmentTypeSelectionModal extends StatefulWidget {
@@ -132,7 +133,7 @@ class _InvestmentTypeSelectionModalState
                   'Choose the type of investment to add',
                   style: TextStyle(
                     color: AppStyles.getSecondaryTextColor(context),
-                    fontSize: 14,
+                    fontSize: TypeScale.body,
                   ),
                 ),
               ),
@@ -202,7 +203,7 @@ class _InvestmentTypeSelectionModalState
                                 details['label'],
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: TypeScale.footnote,
                                   fontWeight: FontWeight.w600,
                                   color: AppStyles.getTextColor(context),
                                 ),
@@ -359,14 +360,14 @@ class _InvestmentTypePreferencesModalState
                     Text(
                       'Customize First Screen',
                       style:
-                          AppStyles.titleStyle(context).copyWith(fontSize: 20),
+                          AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title2),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Select investment types to show on the first screen',
                       style: TextStyle(
                         color: AppStyles.getSecondaryTextColor(context),
-                        fontSize: 12,
+                        fontSize: TypeScale.footnote,
                       ),
                     ),
                   ],
@@ -384,7 +385,7 @@ class _InvestmentTypePreferencesModalState
                       'Selected: ${_tempSelectedTypes.length}/$_maxSelectable',
                       style: TextStyle(
                         color: AppStyles.getSecondaryTextColor(context),
-                        fontSize: 12,
+                        fontSize: TypeScale.footnote,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -393,7 +394,7 @@ class _InvestmentTypePreferencesModalState
                         '${widget.prefsController.getRemainingSlots()} slot${widget.prefsController.getRemainingSlots() > 1 ? 's' : ''} left',
                         style: TextStyle(
                           color: AppStyles.accentBlue,
-                          fontSize: 12,
+                          fontSize: TypeScale.footnote,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -470,7 +471,7 @@ class _InvestmentTypePreferencesModalState
                                 child: Text(
                                   details['label'],
                                   style: TextStyle(
-                                    fontSize: 14,
+                                    fontSize: TypeScale.body,
                                     fontWeight: isSelected
                                         ? FontWeight.w600
                                         : FontWeight.w500,

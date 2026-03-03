@@ -6,6 +6,7 @@ import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/ui/manage/account_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/bonds/bonds_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 
 class BondsAccountStep extends StatefulWidget {
@@ -129,7 +130,7 @@ class _BondsAccountStepState extends State<BondsAccountStep> {
                                         account.name,
                                         style: const TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 16,
+                                          fontSize: TypeScale.headline,
                                         ),
                                       ),
                                       Text(
@@ -138,7 +139,7 @@ class _BondsAccountStepState extends State<BondsAccountStep> {
                                           color:
                                               AppStyles.getSecondaryTextColor(
                                                   context),
-                                          fontSize: 13,
+                                          fontSize: TypeScale.subhead,
                                         ),
                                       ),
                                     ],

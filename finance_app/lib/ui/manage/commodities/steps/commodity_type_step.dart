@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:vittara_fin_os/logic/commodities_model.dart';
 import 'package:vittara_fin_os/ui/manage/commodities/commodities_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class CommodityTypeStep extends StatelessWidget {
   final CommoditiesWizardController ctrl;
@@ -82,7 +83,7 @@ class CommodityTypeStep extends StatelessWidget {
                                     fontWeight: FontWeight.bold)),
                             Text(desc,
                                 style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: TypeScale.footnote,
                                     color: AppStyles.getSecondaryTextColor(
                                         context))),
                           ],
@@ -96,7 +97,7 @@ class CommodityTypeStep extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           Text('Custom Commodity Name',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: 12),
           CupertinoTextField(
             placeholder: 'e.g., Gold ETF, Oil Futures',

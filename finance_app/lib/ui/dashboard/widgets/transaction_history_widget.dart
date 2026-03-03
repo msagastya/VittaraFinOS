@@ -190,7 +190,7 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
                   child: Text(
                     description,
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: TypeScale.caption,
                       fontWeight: FontWeight.w500,
                       color: AppStyles.getTextColor(context),
                     ),
@@ -263,7 +263,7 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
                 Text(
                   description,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: TypeScale.subhead,
                     fontWeight: FontWeight.w600,
                     color: AppStyles.getTextColor(context),
                   ),
@@ -292,7 +292,7 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
                     Text(
                       'Just now',
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: TypeScale.caption,
                         color: AppStyles.getSecondaryTextColor(context),
                       ),
                     ),
@@ -306,7 +306,7 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
           Text(
             '$amountPrefix₹${displayAmount.toStringAsFixed(0)}',
             style: TextStyle(
-              fontSize: 14,
+              fontSize: TypeScale.body,
               fontWeight: FontWeight.bold,
               color: amountColor,
             ),

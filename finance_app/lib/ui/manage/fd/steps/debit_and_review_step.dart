@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/ui/manage/fd/fd_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 class DebitAndReviewStep extends StatefulWidget {
   const DebitAndReviewStep({super.key});
@@ -111,7 +112,7 @@ class _DebitAndReviewStepState extends State<DebitAndReviewStep> {
                   style: TextStyle(
                     color: AppStyles.getTextColor(context),
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: TypeScale.headline,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -151,7 +152,7 @@ class _DebitAndReviewStepState extends State<DebitAndReviewStep> {
                         style: TextStyle(
                           color: AppStyles.getPrimaryColor(context),
                           fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                          fontSize: TypeScale.headline,
                         ),
                       ),
                     ],
@@ -188,7 +189,7 @@ class _DebitAndReviewStepState extends State<DebitAndReviewStep> {
                             style: TextStyle(
                               color: AppStyles.getTextColor(context),
                               fontWeight: FontWeight.w600,
-                              fontSize: 15,
+                              fontSize: TypeScale.callout,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -196,7 +197,7 @@ class _DebitAndReviewStepState extends State<DebitAndReviewStep> {
                             'Deduct ₹${controller.principal.toStringAsFixed(2)} from ${controller.selectedAccount?.name ?? 'account'}',
                             style: TextStyle(
                               color: AppStyles.getSecondaryTextColor(context),
-                              fontSize: 12,
+                              fontSize: TypeScale.footnote,
                             ),
                           ),
                         ],
@@ -230,7 +231,7 @@ class _DebitAndReviewStepState extends State<DebitAndReviewStep> {
                           'Turn on only if you want to debit now. For old FDs, leave off.',
                           style: TextStyle(
                             color: AppStyles.getSecondaryTextColor(context),
-                            fontSize: 11,
+                            fontSize: TypeScale.caption,
                           ),
                         ),
                       ),
@@ -267,7 +268,7 @@ class _DebitAndReviewStepState extends State<DebitAndReviewStep> {
                         'Auto-credit payouts to account',
                         style: TextStyle(
                           color: AppStyles.getSecondaryTextColor(context),
-                          fontSize: 12,
+                          fontSize: TypeScale.footnote,
                         ),
                       ),
                     ],
@@ -296,7 +297,7 @@ class _DebitAndReviewStepState extends State<DebitAndReviewStep> {
             label,
             style: TextStyle(
               color: AppStyles.getSecondaryTextColor(context),
-              fontSize: 13,
+              fontSize: TypeScale.subhead,
             ),
           ),
           Text(

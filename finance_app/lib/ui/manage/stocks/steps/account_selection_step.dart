@@ -128,7 +128,7 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
                                         account.name,
                                         style: const TextStyle(
                                             fontWeight: FontWeight.bold,
-                                            fontSize: 16),
+                                            fontSize: TypeScale.headline),
                                       ),
                                       Text(
                                         account.bankName,
@@ -136,7 +136,7 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
                                           color:
                                               AppStyles.getSecondaryTextColor(
                                                   context),
-                                          fontSize: 13,
+                                          fontSize: TypeScale.subhead,
                                         ),
                                       ),
                                     ],

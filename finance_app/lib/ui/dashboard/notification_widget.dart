@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/logic/fixed_deposit_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 enum NotificationType {
   fdPayout, // Fixed Deposit payout
@@ -125,7 +126,7 @@ class NotificationWidget extends StatelessWidget {
                       _getNotificationLabel(type),
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 11,
+                        fontSize: TypeScale.caption,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -143,7 +144,7 @@ class NotificationWidget extends StatelessWidget {
                   timeInfo,
                   style: TextStyle(
                     color: badgeColor,
-                    fontSize: 11,
+                    fontSize: TypeScale.caption,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -164,7 +165,7 @@ class NotificationWidget extends StatelessWidget {
                       style: TextStyle(
                         color: AppStyles.getTextColor(context),
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: TypeScale.headline,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -172,7 +173,7 @@ class NotificationWidget extends StatelessWidget {
                       subtitle,
                       style: TextStyle(
                         color: AppStyles.getSecondaryTextColor(context),
-                        fontSize: 12,
+                        fontSize: TypeScale.footnote,
                       ),
                     ),
                   ],
@@ -193,7 +194,7 @@ class NotificationWidget extends StatelessWidget {
                     _getAmountLabel(type),
                     style: TextStyle(
                       color: AppStyles.getSecondaryTextColor(context),
-                      fontSize: 11,
+                      fontSize: TypeScale.caption,
                     ),
                   ),
                 ],
@@ -234,7 +235,7 @@ class NotificationWidget extends StatelessWidget {
               'Auto-link enabled. Payout will be credited to ${fd.linkedAccountName}',
               style: const TextStyle(
                 color: CupertinoColors.systemGreen,
-                fontSize: 12,
+                fontSize: TypeScale.footnote,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -264,7 +265,7 @@ class NotificationWidget extends StatelessWidget {
               'Auto-link is disabled. Enable to auto-credit this payout.',
               style: TextStyle(
                 color: AppStyles.getSecondaryTextColor(context),
-                fontSize: 12,
+                fontSize: TypeScale.footnote,
               ),
             ),
           ),
@@ -294,7 +295,7 @@ class NotificationWidget extends StatelessWidget {
               'Will be debited from $accountName',
               style: TextStyle(
                 color: AppStyles.getSecondaryTextColor(context),
-                fontSize: 12,
+                fontSize: TypeScale.footnote,
               ),
             ),
           ),

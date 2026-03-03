@@ -77,7 +77,7 @@ class MFDetailsScreen extends StatelessWidget {
                       metadata['fundHouse'] as String? ?? '',
                       style: TextStyle(
                         color: AppStyles.getSecondaryTextColor(context),
-                        fontSize: 12,
+                        fontSize: TypeScale.footnote,
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -91,7 +91,7 @@ class MFDetailsScreen extends StatelessWidget {
                               'Invested',
                               style: TextStyle(
                                 color: AppStyles.getSecondaryTextColor(context),
-                                fontSize: 12,
+                                fontSize: TypeScale.footnote,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -99,7 +99,7 @@ class MFDetailsScreen extends StatelessWidget {
                               '₹${investedAmount.toStringAsFixed(2)}',
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                                fontSize: TypeScale.headline,
                               ),
                             ),
                           ],
@@ -111,7 +111,7 @@ class MFDetailsScreen extends StatelessWidget {
                               'Current Value',
                               style: TextStyle(
                                 color: AppStyles.getSecondaryTextColor(context),
-                                fontSize: 12,
+                                fontSize: TypeScale.footnote,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -119,7 +119,7 @@ class MFDetailsScreen extends StatelessWidget {
                               '₹${currentValue.toStringAsFixed(2)}',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                                fontSize: TypeScale.headline,
                                 color: currentValue >= investedAmount
                                     ? CupertinoColors.systemGreen
                                     : CupertinoColors.systemRed,
@@ -158,7 +158,7 @@ class MFDetailsScreen extends StatelessWidget {
                           'Gain/Loss',
                           style: TextStyle(
                             color: AppStyles.getSecondaryTextColor(context),
-                            fontSize: 12,
+                            fontSize: TypeScale.footnote,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -166,7 +166,7 @@ class MFDetailsScreen extends StatelessWidget {
                           '${gainLoss >= 0 ? '+' : ''}₹${gainLoss.toStringAsFixed(2)}',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                            fontSize: TypeScale.headline,
                             color: gainLoss >= 0
                                 ? CupertinoColors.systemGreen
                                 : CupertinoColors.systemRed,
@@ -181,7 +181,7 @@ class MFDetailsScreen extends StatelessWidget {
                           'Return %',
                           style: TextStyle(
                             color: AppStyles.getSecondaryTextColor(context),
-                            fontSize: 12,
+                            fontSize: TypeScale.footnote,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -189,7 +189,7 @@ class MFDetailsScreen extends StatelessWidget {
                           '${gainPercent >= 0 ? '+' : ''}${gainPercent.toStringAsFixed(2)}%',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                            fontSize: TypeScale.headline,
                             color: gainPercent >= 0
                                 ? CupertinoColors.systemGreen
                                 : CupertinoColors.systemRed,
@@ -207,7 +207,7 @@ class MFDetailsScreen extends StatelessWidget {
                 'Investment Details',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 16,
+                  fontSize: TypeScale.headline,
                   color: AppStyles.getTextColor(context),
                 ),
               ),
@@ -238,7 +238,7 @@ class MFDetailsScreen extends StatelessWidget {
                   'SIP Details',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: TypeScale.headline,
                     color: AppStyles.getTextColor(context),
                   ),
                 ),
@@ -256,7 +256,7 @@ class MFDetailsScreen extends StatelessWidget {
                     'This investment has an active SIP setup.',
                     style: TextStyle(
                       color: AppStyles.getSecondaryTextColor(context),
-                      fontSize: 12,
+                      fontSize: TypeScale.footnote,
                     ),
                   ),
                 ),
@@ -267,7 +267,7 @@ class MFDetailsScreen extends StatelessWidget {
               Text(
                 'Actions',
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: TypeScale.headline,
                   fontWeight: FontWeight.bold,
                   color: AppStyles.getTextColor(context),
                 ),
@@ -342,13 +342,13 @@ class MFDetailsScreen extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(fontSize: 13),
+            style: const TextStyle(fontSize: TypeScale.subhead),
           ),
           Text(
             value,
             style: const TextStyle(
               fontWeight: FontWeight.w600,
-              fontSize: 13,
+              fontSize: TypeScale.subhead,
             ),
           ),
         ],
@@ -630,7 +630,7 @@ class MFDetailsScreen extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontWeight: FontWeight.w600,
-                fontSize: 14,
+                fontSize: TypeScale.body,
                 color: AppStyles.getTextColor(context),
               ),
             ),
@@ -725,7 +725,7 @@ class _MFDividendModalState extends State<_MFDividendModal> {
             SizedBox(height: Spacing.lg),
             Text(
               'Dividend',
-              style: AppStyles.titleStyle(context).copyWith(fontSize: 22),
+              style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title1),
             ),
             SizedBox(height: Spacing.xxxl),
             _buildField(context, 'Amount', prefix: '₹'),
@@ -890,7 +890,7 @@ class _EditMFModalState extends State<_EditMFModal> {
               SizedBox(height: Spacing.lg),
               Text(
                 'Edit Mutual Fund',
-                style: AppStyles.titleStyle(context).copyWith(fontSize: 22),
+                style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title1),
               ),
               SizedBox(height: Spacing.xxxl),
               _buildInputField(context, 'Investment Amount', _amountController,
