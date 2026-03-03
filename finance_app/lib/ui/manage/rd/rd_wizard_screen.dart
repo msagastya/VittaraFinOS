@@ -94,21 +94,16 @@ class _RDWizardScreenState extends State<RDWizardScreen> {
           Provider.of<AccountsController>(context, listen: false);
 
       // Debit first installment from linked account if enabled
+      // If debit fails, abort investment creation
       if (_controller.debitFromAccount) {
-        try {
-          final account = accountsController.accounts.firstWhere(
-            (a) => a.id == rd.linkedAccountId,
-            orElse: () => throw Exception('Account not found'),
-          );
-          final updatedAccount = account.copyWith(
-            balance: account.balance - rd.monthlyAmount,
-          );
-          await accountsController.updateAccount(updatedAccount);
-        } catch (e) {
-          if (mounted) {
-            toast.showError('Failed to debit from account: $e');
-          }
-        }
+        final account = accountsController.accounts.firstWhere(
+          (a) => a.id == rd.linkedAccountId,
+          orElse: () => throw Exception('Linked account not found'),
+        );
+        final updatedAccount = account.copyWith(
+          balance: account.balance - rd.monthlyAmount,
+        );
+        await accountsController.updateAccount(updatedAccount);
       }
 
       // Save RD as Investment
