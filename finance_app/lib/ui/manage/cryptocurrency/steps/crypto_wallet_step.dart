@@ -89,7 +89,7 @@ class _CryptoWalletStepState extends State<CryptoWalletStep> {
                       border: Border.all(
                         color: isSelected
                             ? const Color(0xFFF7931A)
-                            : Colors.grey.withValues(alpha: 0.2),
+                            : CupertinoColors.systemGrey.withValues(alpha: 0.2),
                       ),
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -193,7 +193,7 @@ class _CryptoWalletStepState extends State<CryptoWalletStep> {
                       border: Border.all(
                         color: isSelected
                             ? const Color(0xFFF7931A)
-                            : Colors.grey.withValues(alpha: 0.2),
+                            : CupertinoColors.systemGrey.withValues(alpha: 0.2),
                       ),
                     ),
                     child: Text(

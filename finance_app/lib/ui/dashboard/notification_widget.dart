@@ -50,7 +50,7 @@ class NotificationWidget extends StatelessWidget {
       amount:
           '₹${(record.interestAmount + record.principalAmount).toStringAsFixed(2)}',
       timeInfo: 'In $daysUntil day${daysUntil > 1 ? 's' : ''}',
-      badgeColor: daysUntil <= 3 ? Colors.red : Colors.orange,
+      badgeColor: daysUntil <= 3 ? CupertinoColors.systemRed : CupertinoColors.systemOrange,
       icon: CupertinoIcons.bell_fill,
       statusWidget: fd.autoLinkEnabled
           ? _buildAutoLinkEnabled(context, fd)
@@ -74,7 +74,7 @@ class NotificationWidget extends StatelessWidget {
       subtitle: 'Next installment due on ${_formatDate(dueDate)}',
       amount: '₹${amount.toStringAsFixed(2)}',
       timeInfo: 'In $daysUntil day${daysUntil > 1 ? 's' : ''}',
-      badgeColor: daysUntil <= 3 ? Colors.red : Colors.blue,
+      badgeColor: daysUntil <= 3 ? CupertinoColors.systemRed : CupertinoColors.activeBlue,
       icon: CupertinoIcons.money_dollar_circle_fill,
       statusWidget: _buildRDInstallmentInfo(context, accountName),
     );
@@ -218,7 +218,7 @@ class NotificationWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.green.withValues(alpha: 0.1),
+        color: CupertinoColors.systemGreen.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -226,14 +226,14 @@ class NotificationWidget extends StatelessWidget {
           const Icon(
             CupertinoIcons.checkmark_circle_fill,
             size: 16,
-            color: Colors.green,
+            color: CupertinoColors.systemGreen,
           ),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               'Auto-link enabled. Payout will be credited to ${fd.linkedAccountName}',
               style: const TextStyle(
-                color: Colors.green,
+                color: CupertinoColors.systemGreen,
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
               ),

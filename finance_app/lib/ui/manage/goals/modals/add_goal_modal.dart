@@ -134,7 +134,7 @@ class _AddGoalModalState extends State<AddGoalModal> {
                           currentAmount: 0,
                           createdDate: DateTime.now(),
                           targetDate: DateTime.now(),
-                          color: Colors.blue,
+                          color: CupertinoColors.activeBlue,
                         );
                         final isSelected = _selectedType == type;
                         return GestureDetector(

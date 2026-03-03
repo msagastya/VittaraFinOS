@@ -138,21 +138,21 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
       switch (categoryName.toLowerCase()) {
         case 'groceries':
         case 'food':
-          return Colors.green;
+          return CupertinoColors.systemGreen;
         case 'transport':
         case 'fuel':
-          return Colors.orange;
+          return CupertinoColors.systemOrange;
         case 'entertainment':
           return Colors.purple;
         case 'shopping':
           return Colors.pink;
         case 'utilities':
-          return Colors.blue;
+          return CupertinoColors.activeBlue;
         case 'salary':
         case 'income':
-          return Colors.green;
+          return CupertinoColors.systemGreen;
         default:
-          return Colors.grey;
+          return CupertinoColors.systemGrey;
       }
     }
 

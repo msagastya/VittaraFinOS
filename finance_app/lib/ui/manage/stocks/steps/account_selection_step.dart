@@ -57,7 +57,7 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const Icon(CupertinoIcons.chart_pie,
-                              size: 48, color: Colors.grey),
+                              size: 48, color: CupertinoColors.systemGrey),
                           const SizedBox(height: 16),
                           Text(
                             'No Investment Accounts Found',

@@ -226,14 +226,14 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
                         Icon(
                           CupertinoIcons.check_mark_circled_solid,
                           size: 16,
-                          color: Colors.green,
+                          color: CupertinoColors.systemGreen,
                         ),
                         SizedBox(width: Spacing.sm),
                         Expanded(
                           child: Text(
                             'Maturity value includes principal + interest',
                             style: TextStyle(
-                              color: Colors.green,
+                              color: CupertinoColors.systemGreen,
                               fontSize: 12,
                             ),
                           ),
@@ -249,7 +249,7 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
               SizedBox(
                 width: double.infinity,
                 child: CupertinoButton(
-                  color: Colors.green,
+                  color: CupertinoColors.systemGreen,
                   onPressed: () async {
                     // If we have the investment controller, persist the withdrawal
                     if (widget.investmentController != null &&

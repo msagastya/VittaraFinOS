@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/ui/manage/nps/nps_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -130,8 +129,8 @@ class _StatRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = isHighlight
-        ? (isPositive ? Colors.green : Colors.red)
-        : (isPositive ? null : Colors.red);
+        ? (isPositive ? CupertinoColors.systemGreen : CupertinoColors.systemRed)
+        : (isPositive ? null : CupertinoColors.systemRed);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,

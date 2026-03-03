@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/ui/manage/bonds/bonds_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -119,7 +118,7 @@ class _BondsPurchaseStepState extends State<BondsPurchaseStep> {
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: Colors.grey.withValues(alpha: 0.3),
+                  color: CupertinoColors.systemGrey.withValues(alpha: 0.3),
                 ),
               ),
               child: Row(

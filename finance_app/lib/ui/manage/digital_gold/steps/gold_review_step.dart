@@ -100,7 +100,7 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
                       Text(
                         controller.priceError,
                         style: const TextStyle(
-                          color: Colors.red,
+                          color: CupertinoColors.systemRed,
                           fontSize: 12,
                         ),
                       ),
@@ -142,7 +142,7 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
                         child: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Colors.grey.withValues(alpha: 0.1),
+                            color: CupertinoColors.systemGrey.withValues(alpha: 0.1),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
@@ -202,7 +202,7 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
                 Container(
                   height: 1,
                   margin: const EdgeInsets.symmetric(vertical: 8),
-                  color: Colors.grey.withValues(alpha: 0.2),
+                  color: CupertinoColors.systemGrey.withValues(alpha: 0.2),
                 ),
                 _buildDetailRow('Total Investment',
                     '₹${controller.investedAmount.toStringAsFixed(2)}',

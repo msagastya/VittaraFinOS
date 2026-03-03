@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 /// Budget period types
@@ -115,11 +116,11 @@ class Budget {
   Color getStatusColor() {
     switch (status) {
       case BudgetStatus.onTrack:
-        return Colors.green;
+        return CupertinoColors.systemGreen;
       case BudgetStatus.warning:
-        return Colors.orange;
+        return CupertinoColors.systemOrange;
       case BudgetStatus.exceeded:
-        return Colors.red;
+        return CupertinoColors.systemRed;
     }
   }
 

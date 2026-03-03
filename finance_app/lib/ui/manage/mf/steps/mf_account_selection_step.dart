@@ -58,7 +58,7 @@ class _MFAccountSelectionStepState extends State<MFAccountSelectionStep> {
                           const Icon(
                             CupertinoIcons.chart_pie,
                             size: 48,
-                            color: Colors.grey,
+                            color: CupertinoColors.systemGrey,
                           ),
                           const SizedBox(height: 16),
                           Text(

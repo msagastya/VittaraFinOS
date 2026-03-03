@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/logic/commodities_model.dart';
 import 'package:vittara_fin_os/ui/manage/commodities/commodities_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -43,7 +42,7 @@ class CommodityTypeStep extends StatelessWidget {
                     border: Border.all(
                       color: isSelected
                           ? const Color(0xFF8B4513)
-                          : Colors.grey.withValues(alpha: 0.2),
+                          : CupertinoColors.systemGrey.withValues(alpha: 0.2),
                     ),
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -57,7 +56,7 @@ class CommodityTypeStep extends StatelessWidget {
                           border: Border.all(
                             color: isSelected
                                 ? const Color(0xFF8B4513)
-                                : Colors.grey,
+                                : CupertinoColors.systemGrey,
                           ),
                         ),
                         child: isSelected

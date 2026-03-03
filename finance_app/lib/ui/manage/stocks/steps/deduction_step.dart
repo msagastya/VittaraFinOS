@@ -152,11 +152,11 @@ class _DeductionStepState extends State<DeductionStep> {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: hasInsufficientBalance
-                    ? Colors.red.withValues(alpha: 0.1)
-                    : Colors.green.withValues(alpha: 0.1),
+                    ? CupertinoColors.systemRed.withValues(alpha: 0.1)
+                    : CupertinoColors.systemGreen.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: hasInsufficientBalance ? Colors.red : Colors.green,
+                  color: hasInsufficientBalance ? CupertinoColors.systemRed : CupertinoColors.systemGreen,
                   width: 1,
                 ),
               ),
@@ -198,12 +198,12 @@ class _DeductionStepState extends State<DeductionStep> {
                 child: Row(
                   children: [
                     const Icon(CupertinoIcons.exclamationmark_triangle_fill,
-                        color: Colors.red),
+                        color: CupertinoColors.systemRed),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'Insufficient balance in ${account.name}. Please add funds first.',
-                        style: const TextStyle(color: Colors.red),
+                        style: const TextStyle(color: CupertinoColors.systemRed),
                       ),
                     ),
                   ],

@@ -332,7 +332,7 @@ class _AddBudgetModalState extends State<AddBudgetModal> {
                             period: period,
                             startDate: DateTime.now(),
                             endDate: DateTime.now(),
-                            color: Colors.blue);
+                            color: CupertinoColors.activeBlue);
                         final isSelected = _selectedPeriod == period;
                         return GestureDetector(
                           onTap: () => setState(() => _selectedPeriod = period),

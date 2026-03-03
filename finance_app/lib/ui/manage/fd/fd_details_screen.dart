@@ -33,14 +33,19 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('FD Details'),
-        elevation: 0,
+    return CupertinoPageScaffold(
+      backgroundColor: AppStyles.getBackground(context),
+      navigationBar: CupertinoNavigationBar(
+        middle: Text(
+          'FD Details',
+          style: TextStyle(color: AppStyles.getTextColor(context)),
+        ),
+        previousPageTitle: 'Investments',
         backgroundColor: AppStyles.getBackground(context),
-        foregroundColor: AppStyles.getTextColor(context),
+        border: null,
       ),
-      body: SingleChildScrollView(
+      child: SafeArea(
+        child: SingleChildScrollView(
         child: Column(
           children: [
             // Maturity Alert (if within 10 days)
@@ -130,7 +135,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                         context,
                         'CAGR',
                         '${_calculateCAGR(widget.fd).toStringAsFixed(2)}%',
-                        Colors.green,
+                        CupertinoColors.systemGreen,
                       ),
                     ],
                   ),
@@ -258,6 +263,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
           ],
         ),
       ),
+      ),
     );
   }
 
@@ -370,7 +376,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
               'Premature Withdrawal',
               'Withdraw before maturity',
               CupertinoIcons.money_dollar_circle,
-              Colors.orange,
+              CupertinoColors.systemOrange,
               () => _showPrematureWithdrawalModal(context),
             ),
             const SizedBox(height: 12),
@@ -407,7 +413,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
             'Delete',
             'Remove this FD',
             CupertinoIcons.trash,
-            Colors.red,
+            CupertinoColors.systemRed,
             () => _showDeleteConfirmation(context),
             isDangerous: true,
           ),
@@ -541,7 +547,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                       Text(
                         '₹${widget.fd.maturityValue.toStringAsFixed(2)}',
                         style: TextStyle(
-                          color: Colors.green,
+                          color: CupertinoColors.systemGreen,
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
@@ -733,14 +739,14 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: Colors.orange.withValues(alpha: 0.1),
+                              color: CupertinoColors.systemOrange.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(
                               children: [
                                 Icon(
                                   CupertinoIcons.exclamationmark_triangle_fill,
-                                  color: Colors.orange,
+                                  color: CupertinoColors.systemOrange,
                                   size: 16,
                                 ),
                                 const SizedBox(width: 8),
@@ -748,7 +754,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                                   child: Text(
                                     'Early withdrawal may incur penalties and reduced interest.',
                                     style: TextStyle(
-                                      color: Colors.orange,
+                                      color: CupertinoColors.systemOrange,
                                       fontSize: 12,
                                     ),
                                   ),
@@ -1114,7 +1120,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                                 }
                               }
                             },
-                            color: Colors.orange,
+                            color: CupertinoColors.systemOrange,
                             child: const Text('Withdraw'),
                           ),
                         ),
@@ -1261,7 +1267,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                 '₹${(payout.interestAmount + payout.principalAmount).toStringAsFixed(2)}',
                 style: TextStyle(
                   color: isPast
-                      ? Colors.green
+                      ? CupertinoColors.systemGreen
                       : AppStyles.getPrimaryColor(context),
                   fontWeight: FontWeight.bold,
                 ),
@@ -1270,7 +1276,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                 Text(
                   'Credited',
                   style: TextStyle(
-                    color: Colors.green,
+                    color: CupertinoColors.systemGreen,
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
                   ),
@@ -1669,13 +1675,13 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
   Color _getStatusColor(FDStatus status) {
     switch (status) {
       case FDStatus.active:
-        return Colors.green;
+        return CupertinoColors.systemGreen;
       case FDStatus.mature:
-        return Colors.orange;
+        return CupertinoColors.systemOrange;
       case FDStatus.prematurelyWithdrawn:
-        return Colors.red;
+        return CupertinoColors.systemRed;
       case FDStatus.completed:
-        return Colors.grey;
+        return CupertinoColors.systemGrey;
     }
   }
 
@@ -1815,13 +1821,13 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.orange.withValues(alpha: 0.15),
-            Colors.orange.withValues(alpha: 0.05),
+            CupertinoColors.systemOrange.withValues(alpha: 0.15),
+            CupertinoColors.systemOrange.withValues(alpha: 0.05),
           ],
         ),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Colors.orange.withValues(alpha: 0.3),
+          color: CupertinoColors.systemOrange.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -1833,7 +1839,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.orange,
+                  color: CupertinoColors.systemOrange,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Row(
@@ -1860,13 +1866,13 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.orange.withValues(alpha: 0.2),
+                  color: CupertinoColors.systemOrange.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   'In $daysUntil day${daysUntil > 1 ? 's' : ''}',
                   style: const TextStyle(
-                    color: Colors.orange,
+                    color: CupertinoColors.systemOrange,
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                   ),
@@ -1942,7 +1948,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: CupertinoButton(
-                  color: Colors.green,
+                  color: CupertinoColors.systemGreen,
                   onPressed: () {
                     final investmentsController =
                         Provider.of<InvestmentsController>(context,

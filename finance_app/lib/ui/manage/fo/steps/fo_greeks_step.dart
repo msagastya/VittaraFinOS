@@ -148,7 +148,7 @@ class _FOGreeksStepState extends State<FOGreeksStep> {
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+                border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
               ),
               child: Column(
                 children: [
@@ -230,7 +230,7 @@ class _Divider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Divider(color: Colors.grey.withValues(alpha: 0.2), height: 1),
+      child: Divider(color: CupertinoColors.systemGrey.withValues(alpha: 0.2), height: 1),
     );
   }
 }

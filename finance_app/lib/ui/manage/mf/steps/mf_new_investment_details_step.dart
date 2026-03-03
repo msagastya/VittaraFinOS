@@ -242,14 +242,14 @@ class _MFNewInvestmentDetailsStepState
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.red.withValues(alpha: 0.1),
+                color: CupertinoColors.systemRed.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+                border: Border.all(color: CupertinoColors.systemRed.withValues(alpha: 0.3)),
               ),
               child: Text(
                 _navError,
                 style: const TextStyle(
-                  color: Colors.red,
+                  color: CupertinoColors.systemRed,
                   fontSize: 12,
                 ),
               ),
@@ -308,7 +308,7 @@ class _MFNewInvestmentDetailsStepState
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.orange.withValues(alpha: 0.1),
+                          color: CupertinoColors.systemOrange.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(

@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/models/cryptocurrency_model.dart';
@@ -106,7 +105,7 @@ class _CryptoSelectionStepState extends State<CryptoSelectionStep> {
                     border: Border.all(
                       color: isSelected
                           ? const Color(0xFFF7931A)
-                          : Colors.grey.withValues(alpha: 0.2),
+                          : CupertinoColors.systemGrey.withValues(alpha: 0.2),
                     ),
                     borderRadius: BorderRadius.circular(12),
                   ),

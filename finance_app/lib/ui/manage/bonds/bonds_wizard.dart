@@ -205,7 +205,7 @@ class _BondNameStep extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+              border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
             ),
             onChanged: ctrl.updateBondName,
           ),
@@ -242,7 +242,7 @@ class _BondAmountStep extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+              border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
             ),
             prefix: Padding(
               padding: const EdgeInsets.only(left: 16),
@@ -307,7 +307,7 @@ class _AccountSelectionStepState extends State<_AccountSelectionStep> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Icon(CupertinoIcons.briefcase,
-                          size: 48, color: Colors.grey),
+                          size: 48, color: CupertinoColors.systemGrey),
                       const SizedBox(height: 16),
                       Text(
                         'No Accounts Found',
@@ -510,7 +510,7 @@ class _PayoutFrequencyStep extends StatelessWidget {
                   border: Border.all(
                     color: isSelected
                         ? const Color(0xFF00A6CC)
-                        : Colors.grey.withValues(alpha: 0.2),
+                        : CupertinoColors.systemGrey.withValues(alpha: 0.2),
                   ),
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -524,7 +524,7 @@ class _PayoutFrequencyStep extends StatelessWidget {
                         border: Border.all(
                           color: isSelected
                               ? const Color(0xFF00A6CC)
-                              : Colors.grey,
+                              : CupertinoColors.systemGrey,
                         ),
                       ),
                       child: isSelected
@@ -598,7 +598,7 @@ class _PayoutDatesStep extends StatelessWidget {
                       color: AppStyles.getCardColor(context),
                       borderRadius: BorderRadius.circular(8),
                       border:
-                          Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+                          Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
                     ),
                     onChanged: (v) {
                       final month = int.tryParse(v) ?? 1;
@@ -616,7 +616,7 @@ class _PayoutDatesStep extends StatelessWidget {
                       color: AppStyles.getCardColor(context),
                       borderRadius: BorderRadius.circular(8),
                       border:
-                          Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+                          Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
                     ),
                     onChanged: (v) {
                       final day = int.tryParse(v) ?? 1;
@@ -646,7 +646,7 @@ class _PayoutDatesStep extends StatelessWidget {
                           color: AppStyles.getCardColor(context),
                           border: Border(
                             bottom: BorderSide(
-                                color: Colors.grey.withValues(alpha: 0.2)),
+                                color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
                           ),
                         ),
                         child: Row(
@@ -679,7 +679,7 @@ class _PayoutDatesStep extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+                border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -718,7 +718,7 @@ class _ReviewStep extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+              border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

@@ -100,7 +100,7 @@ class _NPSContributionStepState extends State<NPSContributionStep> {
                     border: Border.all(
                       color: isSelected
                           ? const Color(0xFF9B59B6)
-                          : Colors.grey.withValues(alpha: 0.2),
+                          : CupertinoColors.systemGrey.withValues(alpha: 0.2),
                     ),
                   ),
                   child: Text(label,

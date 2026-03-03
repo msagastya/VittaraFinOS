@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/ui/manage/fo/fo_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 
@@ -78,7 +77,7 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
                           color: AppStyles.getCardColor(context),
                           border: Border(
                             bottom: BorderSide(
-                                color: Colors.grey.withValues(alpha: 0.2)),
+                                color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
                           ),
                         ),
                         child: Row(
@@ -113,7 +112,7 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+                border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -146,7 +145,7 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
                           color: AppStyles.getCardColor(context),
                           border: Border(
                             bottom: BorderSide(
-                                color: Colors.grey.withValues(alpha: 0.2)),
+                                color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
                           ),
                         ),
                         child: Row(
@@ -181,7 +180,7 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+                border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -201,12 +200,12 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: (widget.ctrl.gainLoss >= 0 ? Colors.green : Colors.red)
+                color: (widget.ctrl.gainLoss >= 0 ? CupertinoColors.systemGreen : CupertinoColors.systemRed)
                     .withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                     color:
-                        (widget.ctrl.gainLoss >= 0 ? Colors.green : Colors.red)
+                        (widget.ctrl.gainLoss >= 0 ? CupertinoColors.systemGreen : CupertinoColors.systemRed)
                             .withValues(alpha: 0.3)),
               ),
               child: Column(
@@ -255,7 +254,7 @@ class _Summary extends StatelessWidget {
             style: TextStyle(
                 fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
                 fontSize: isBold ? 14 : 13,
-                color: isPositive ? Colors.green : Colors.red)),
+                color: isPositive ? CupertinoColors.systemGreen : CupertinoColors.systemRed)),
       ],
     );
   }

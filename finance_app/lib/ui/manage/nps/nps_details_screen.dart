@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
@@ -129,7 +128,7 @@ class _NPSDetailsScreenState extends State<NPSDetailsScreen> {
               SizedBox(
                 width: double.infinity,
                 child: CupertinoButton(
-                  color: Colors.red.withValues(alpha: 0.1),
+                  color: CupertinoColors.systemRed.withValues(alpha: 0.1),
                   onPressed: () {
                     showCupertinoDialog(
                       context: context,
@@ -159,7 +158,7 @@ class _NPSDetailsScreenState extends State<NPSDetailsScreen> {
                     );
                   },
                   child: const Text('Delete Account',
-                      style: TextStyle(color: Colors.red)),
+                      style: TextStyle(color: CupertinoColors.systemRed)),
                 ),
               ),
               const SizedBox(height: 20),
@@ -184,7 +183,7 @@ class _DetailCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+        border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -228,7 +227,7 @@ class _DetailRow extends StatelessWidget {
   Widget build(BuildContext context) {
     Color? color;
     if (isGainLoss) {
-      color = isPositive ? Colors.green : Colors.red;
+      color = isPositive ? CupertinoColors.systemGreen : CupertinoColors.systemRed;
     }
 
     return Row(

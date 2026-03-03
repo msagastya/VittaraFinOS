@@ -123,7 +123,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                     Icon(
                       CupertinoIcons.exclamationmark_circle,
                       size: 50,
-                      color: Colors.red.withValues(alpha: 0.7),
+                      color: CupertinoColors.systemRed.withValues(alpha: 0.7),
                     ),
                     SizedBox(height: Spacing.lg),
                     Text(
@@ -192,7 +192,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
 
     // Determine color based on positive/negative
     final netWorthColor =
-        totalNetWorth >= 0 ? SemanticColors.primary : Colors.red;
+        totalNetWorth >= 0 ? SemanticColors.primary : CupertinoColors.systemRed;
 
     return Container(
       padding: EdgeInsets.all(Spacing.xl),
@@ -238,7 +238,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
+              border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.1)),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -260,7 +260,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: Colors.green,
+                        color: CupertinoColors.systemGreen,
                       ),
                     ),
                   ],
@@ -285,7 +285,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: Colors.blue,
+                          color: CupertinoColors.activeBlue,
                         ),
                       ),
                     ],
@@ -338,7 +338,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: Colors.red,
+                          color: CupertinoColors.systemRed,
                         ),
                       ),
                     ],
@@ -370,7 +370,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
         decoration: BoxDecoration(
           color: AppStyles.getCardColor(context),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
+          border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.1)),
         ),
         child: Center(
           child: Text(
@@ -393,7 +393,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
+        border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.1)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -405,11 +405,11 @@ class _NetWorthPageState extends State<NetWorthPage> {
                 Container(
                   padding: EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.blue.withValues(alpha: 0.15),
+                    color: CupertinoColors.activeBlue.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(CupertinoIcons.creditcard_fill,
-                      size: 20, color: Colors.blue),
+                      size: 20, color: CupertinoColors.activeBlue),
                 ),
                 SizedBox(width: Spacing.md),
                 Expanded(
@@ -529,7 +529,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
+        border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.1)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -541,11 +541,11 @@ class _NetWorthPageState extends State<NetWorthPage> {
                 Container(
                   padding: EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.orange.withValues(alpha: 0.15),
+                    color: CupertinoColors.systemOrange.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(CupertinoIcons.chart_bar_fill,
-                      size: 20, color: Colors.orange),
+                      size: 20, color: CupertinoColors.systemOrange),
                 ),
                 SizedBox(width: Spacing.md),
                 Expanded(
@@ -669,7 +669,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
+        border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.1)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -681,11 +681,11 @@ class _NetWorthPageState extends State<NetWorthPage> {
                 Container(
                   padding: EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.red.withValues(alpha: 0.15),
+                    color: CupertinoColors.systemRed.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(CupertinoIcons.creditcard_fill,
-                      size: 20, color: Colors.red),
+                      size: 20, color: CupertinoColors.systemRed),
                 ),
                 SizedBox(width: Spacing.md),
                 Expanded(
@@ -715,7 +715,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: Colors.red,
+                    color: CupertinoColors.systemRed,
                   ),
                 ),
               ],
@@ -805,7 +805,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                                 'Used',
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: Colors.red,
+                                  color: CupertinoColors.systemRed,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -815,7 +815,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.red,
+                                  color: CupertinoColors.systemRed,
                                 ),
                               ),
                             ],
@@ -830,7 +830,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                                 'Available',
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: Colors.green,
+                                  color: CupertinoColors.systemGreen,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -840,7 +840,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.green,
+                                  color: CupertinoColors.systemGreen,
                                 ),
                               ),
                             ],
@@ -855,9 +855,9 @@ class _NetWorthPageState extends State<NetWorthPage> {
                       child: LinearProgressIndicator(
                         value: utilization / 100,
                         minHeight: 6,
-                        backgroundColor: Colors.grey.withValues(alpha: 0.2),
+                        backgroundColor: CupertinoColors.systemGrey.withValues(alpha: 0.2),
                         valueColor: AlwaysStoppedAnimation<Color>(
-                          utilization > 80 ? Colors.red : Colors.orange,
+                          utilization > 80 ? CupertinoColors.systemRed : CupertinoColors.systemOrange,
                         ),
                       ),
                     ),
@@ -878,7 +878,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
                             color:
-                                utilization > 80 ? Colors.red : Colors.orange,
+                                utilization > 80 ? CupertinoColors.systemRed : CupertinoColors.systemOrange,
                           ),
                         ),
                       ],
@@ -908,7 +908,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
         decoration: BoxDecoration(
           color: AppStyles.getCardColor(context),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
+          border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.1)),
         ),
         child: Center(
           child: Text(
@@ -958,7 +958,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
+        border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.1)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -970,11 +970,11 @@ class _NetWorthPageState extends State<NetWorthPage> {
                 Container(
                   padding: EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.green.withValues(alpha: 0.15),
+                    color: CupertinoColors.systemGreen.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(CupertinoIcons.chart_bar_fill,
-                      size: 20, color: Colors.green),
+                      size: 20, color: CupertinoColors.systemGreen),
                 ),
                 SizedBox(width: Spacing.md),
                 Expanded(
@@ -1094,7 +1094,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                                 '${percentage.toStringAsFixed(1)}%',
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: Colors.green,
+                                  color: CupertinoColors.systemGreen,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -1128,7 +1128,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
-                              color: Colors.green,
+                              color: CupertinoColors.systemGreen,
                             ),
                           ),
                           SizedBox(width: Spacing.xs),
@@ -1137,7 +1137,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                                 ? CupertinoIcons.chevron_up
                                 : CupertinoIcons.chevron_down,
                             size: 14,
-                            color: Colors.green,
+                            color: CupertinoColors.systemGreen,
                           ),
                         ],
                       ),

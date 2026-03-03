@@ -79,12 +79,12 @@ class _BondPayoutModalState extends State<BondPayoutModal> {
                             horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? Colors.blue.withValues(alpha: 0.1)
+                              ? CupertinoColors.activeBlue.withValues(alpha: 0.1)
                               : AppStyles.getBackground(context),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
                             color:
-                                isSelected ? Colors.blue : Colors.transparent,
+                                isSelected ? CupertinoColors.activeBlue : Colors.transparent,
                           ),
                         ),
                         child: Row(
@@ -113,7 +113,7 @@ class _BondPayoutModalState extends State<BondPayoutModal> {
                             if (isSelected)
                               const Icon(
                                   CupertinoIcons.checkmark_alt_circle_fill,
-                                  color: Colors.blue),
+                                  color: CupertinoColors.activeBlue),
                           ],
                         ),
                       ),
@@ -143,7 +143,7 @@ class _BondPayoutModalState extends State<BondPayoutModal> {
                 color: AppStyles.getCardColor(context),
                 border: Border(
                     bottom:
-                        BorderSide(color: Colors.grey.withValues(alpha: 0.2))),
+                        BorderSide(color: CupertinoColors.systemGrey.withValues(alpha: 0.2))),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -246,7 +246,7 @@ class _BondPayoutModalState extends State<BondPayoutModal> {
               decoration: BoxDecoration(
                 color: AppStyles.getBackground(context),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+                border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
               ),
               prefix: const Padding(
                 padding: EdgeInsets.only(left: 12),
@@ -265,7 +265,7 @@ class _BondPayoutModalState extends State<BondPayoutModal> {
                 decoration: BoxDecoration(
                   color: AppStyles.getBackground(context),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+                  border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -291,7 +291,7 @@ class _BondPayoutModalState extends State<BondPayoutModal> {
                 decoration: BoxDecoration(
                   color: AppStyles.getBackground(context),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+                  border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,

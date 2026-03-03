@@ -258,14 +258,14 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                           Icon(
                             CupertinoIcons.check_mark_circled_solid,
                             size: 16,
-                            color: Colors.green,
+                            color: CupertinoColors.systemGreen,
                           ),
                           SizedBox(width: Spacing.sm),
                           Expanded(
                             child: Text(
                               'At maturity: Full interest earned',
                               style: TextStyle(
-                                color: Colors.green,
+                                color: CupertinoColors.systemGreen,
                                 fontSize: 12,
                               ),
                             ),
@@ -281,7 +281,7 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
               SizedBox(
                 width: double.infinity,
                 child: CupertinoButton(
-                  color: Colors.green,
+                  color: CupertinoColors.systemGreen,
                   onPressed: () async {
                     // If we have the investment controller, persist the withdrawal
                     if (widget.investmentController != null &&

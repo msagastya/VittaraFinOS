@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/ui/manage/bonds/bonds_wizard_controller_v2.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 
@@ -64,7 +63,7 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
                           color: AppStyles.getCardColor(context),
                           border: Border(
                             bottom: BorderSide(
-                                color: Colors.grey.withValues(alpha: 0.2)),
+                                color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
                           ),
                         ),
                         child: Row(
@@ -99,7 +98,7 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+                border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -132,7 +131,7 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
                           color: AppStyles.getCardColor(context),
                           border: Border(
                             bottom: BorderSide(
-                                color: Colors.grey.withValues(alpha: 0.2)),
+                                color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
                           ),
                         ),
                         child: Row(
@@ -167,7 +166,7 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+                border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -286,7 +285,7 @@ class _FrequencyButton extends StatelessWidget {
           border: Border.all(
             color: isSelected
                 ? const Color(0xFF00A6CC)
-                : Colors.grey.withValues(alpha: 0.2),
+                : CupertinoColors.systemGrey.withValues(alpha: 0.2),
           ),
           borderRadius: BorderRadius.circular(8),
         ),

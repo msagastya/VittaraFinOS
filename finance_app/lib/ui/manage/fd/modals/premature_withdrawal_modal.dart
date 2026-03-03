@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/logic/fixed_deposit_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
@@ -217,10 +216,10 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.orange.withValues(alpha: 0.1),
+                      color: CupertinoColors.systemOrange.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: Colors.orange.withValues(alpha: 0.3),
+                        color: CupertinoColors.systemOrange.withValues(alpha: 0.3),
                         width: 1,
                       ),
                     ),
@@ -228,7 +227,7 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
                       children: [
                         Icon(
                           CupertinoIcons.exclamationmark_triangle_fill,
-                          color: Colors.orange,
+                          color: CupertinoColors.systemOrange,
                           size: 16,
                         ),
                         const SizedBox(width: 8),
@@ -236,7 +235,7 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
                           child: Text(
                             'Early withdrawal may incur penalties and reduced interest.',
                             style: TextStyle(
-                              color: Colors.orange,
+                              color: CupertinoColors.systemOrange,
                               fontSize: 12,
                             ),
                           ),
@@ -263,7 +262,7 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
                   _buildCalculationRow(
                     'Penalty (${(widget.fd.elapsedMonths < 12 ? 1.0 : 0.5)}%)',
                     '-₹${_penaltyAmount.toStringAsFixed(2)}',
-                    color: Colors.red,
+                    color: CupertinoColors.systemRed,
                   ),
                   const SizedBox(height: 12),
                   Container(
@@ -466,7 +465,7 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
                 Expanded(
                   child: CupertinoButton(
                     onPressed: _showConfirmationDialog,
-                    color: Colors.orange,
+                    color: CupertinoColors.systemOrange,
                     child: const Text('Withdraw'),
                   ),
                 ),

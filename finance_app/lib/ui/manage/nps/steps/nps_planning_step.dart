@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/nps_model.dart';
 import 'package:vittara_fin_os/ui/manage/nps/nps_wizard_controller.dart';
@@ -70,7 +69,7 @@ class NPSPlanningStep extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
+                border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.3)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -116,7 +115,7 @@ class NPSPlanningStep extends StatelessWidget {
                     border: Border.all(
                       color: isSelected
                           ? const Color(0xFF9B59B6)
-                          : Colors.grey.withValues(alpha: 0.2),
+                          : CupertinoColors.systemGrey.withValues(alpha: 0.2),
                     ),
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -130,7 +129,7 @@ class NPSPlanningStep extends StatelessWidget {
                           border: Border.all(
                             color: isSelected
                                 ? const Color(0xFF9B59B6)
-                                : Colors.grey,
+                                : CupertinoColors.systemGrey,
                           ),
                         ),
                         child: isSelected

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/ui/manage/stocks/stocks_wizard_controller.dart';
@@ -70,7 +71,7 @@ class StockReviewStep extends StatelessWidget {
           if (controller.deductFromAccount) ...[
             const SizedBox(height: 8),
             _buildRow(context, 'Deducted from Balance', 'Yes',
-                color: Colors.orange),
+                color: CupertinoColors.systemOrange),
             if (controller.extraCharges > 0)
               _buildRow(context, 'Extra Charges',
                   '₹${controller.extraCharges.toStringAsFixed(2)}'),
@@ -80,7 +81,7 @@ class StockReviewStep extends StatelessWidget {
               'Total Deducted',
               '₹${controller.totalDeduction.toStringAsFixed(2)}',
               isBold: true,
-              color: Colors.red,
+              color: CupertinoColors.systemRed,
             ),
           ],
         ],

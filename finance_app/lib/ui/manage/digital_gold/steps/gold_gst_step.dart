@@ -88,10 +88,10 @@ class _GoldGSTStepState extends State<GoldGSTStep> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.orange.withValues(alpha: 0.1),
+              color: CupertinoColors.systemOrange.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Colors.orange.withValues(alpha: 0.3),
+                color: CupertinoColors.systemOrange.withValues(alpha: 0.3),
               ),
             ),
             child: Column(

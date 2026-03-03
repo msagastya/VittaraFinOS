@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PaymentAppsController with ChangeNotifier {
@@ -147,7 +147,7 @@ class PaymentAppsController with ChangeNotifier {
     _paymentApps.add({
       'id': newApp['id'],
       'name': newApp['name'],
-      'color': newApp['color'] ?? Colors.blue,
+      'color': newApp['color'] ?? CupertinoColors.activeBlue,
       'isEnabled': newApp['isEnabled'] ?? true,
       'hasWallet': newApp['hasWallet'] ?? false,
       'walletBalance': (newApp['walletBalance'] as num?)?.toDouble() ?? 0.0,

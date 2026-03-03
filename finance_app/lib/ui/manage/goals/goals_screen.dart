@@ -155,7 +155,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                                               currentAmount: 0,
                                               createdDate: DateTime.now(),
                                               targetDate: DateTime.now(),
-                                              color: Colors.blue,
+                                              color: CupertinoColors.activeBlue,
                                             ).getTypeLabel(),
                                             style: TextStyle(
                                               color: SemanticColors.getPrimary(
@@ -750,7 +750,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
               currentAmount: 0,
               createdDate: DateTime.now(),
               targetDate: DateTime.now(),
-              color: Colors.blue,
+              color: CupertinoColors.activeBlue,
             );
             return CupertinoActionSheetAction(
               onPressed: () {

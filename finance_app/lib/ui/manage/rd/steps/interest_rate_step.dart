@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/ui/manage/rd/rd_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -127,7 +126,7 @@ class _InterestRateStepState extends State<InterestRateStep> {
                         Text(
                           '₹${controller.totalInterestAtMaturity.toStringAsFixed(2)}',
                           style: TextStyle(
-                            color: Colors.green,
+                            color: CupertinoColors.systemGreen,
                             fontWeight: FontWeight.bold,
                           ),
                         ),

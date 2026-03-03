@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/ui/dashboard/base_dashboard_widget.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
@@ -52,14 +51,14 @@ class ActionsWidget extends BaseDashboardWidget {
     if (rowSpan > 1) actionCount = columnSpan * rowSpan;
 
     final actions = [
-      ('Send Payment', '₹0', CupertinoIcons.paperplane_fill, Colors.blue),
+      ('Send Payment', '₹0', CupertinoIcons.paperplane_fill, CupertinoColors.activeBlue),
       (
         'Request Money',
         'Quick',
         CupertinoIcons.arrow_down_circle_fill,
-        Colors.green
+        CupertinoColors.systemGreen
       ),
-      ('View All', 'More', CupertinoIcons.ellipsis, Colors.orange),
+      ('View All', 'More', CupertinoIcons.ellipsis, CupertinoColors.systemOrange),
     ].take(actionCount).toList();
 
     return Column(

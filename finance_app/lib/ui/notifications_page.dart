@@ -107,7 +107,7 @@ class NotificationsPage extends StatelessWidget {
                             timeInfo:
                                 'In $daysUntil day${daysUntil > 1 ? 's' : ''}',
                             badgeColor:
-                                daysUntil <= 3 ? Colors.red : Colors.orange,
+                                daysUntil <= 3 ? CupertinoColors.systemRed : CupertinoColors.systemOrange,
                             icon: CupertinoIcons.bell_fill,
                             statusWidget: Container(
                               padding: const EdgeInsets.all(10),
@@ -250,7 +250,7 @@ class NotificationsPage extends StatelessWidget {
                                 child: CupertinoButton(
                                   padding: const EdgeInsets.symmetric(
                                       vertical: 8, horizontal: 12),
-                                  color: Colors.grey,
+                                  color: CupertinoColors.systemGrey,
                                   onPressed: () async {
                                     try {
                                       // Construct FixedDeposit from Investment metadata
@@ -420,7 +420,7 @@ class NotificationsPage extends StatelessWidget {
         subtitle: entry.frequencyLabel,
         amount: amountText,
         timeInfo: timeInfo,
-        badgeColor: Colors.blue,
+        badgeColor: CupertinoColors.activeBlue,
         icon: CupertinoIcons.repeat,
         statusWidget: Container(
           padding: const EdgeInsets.all(10),
@@ -440,7 +440,7 @@ class NotificationsPage extends StatelessWidget {
           Expanded(
             child: CupertinoButton(
               padding: const EdgeInsets.symmetric(vertical: 8),
-              color: Colors.blue,
+              color: CupertinoColors.activeBlue,
               onPressed: () =>
                   _openInvestmentDetails(context, entry.investment),
               child: const Text(
@@ -453,7 +453,7 @@ class NotificationsPage extends StatelessWidget {
           Expanded(
             child: CupertinoButton(
               padding: const EdgeInsets.symmetric(vertical: 8),
-              color: Colors.green,
+              color: CupertinoColors.systemGreen,
               onPressed: () => _showSipExecutionModal(context, entry),
               child: const Text(
                 'Execute SIP',
@@ -465,7 +465,7 @@ class NotificationsPage extends StatelessWidget {
           Expanded(
             child: CupertinoButton(
               padding: const EdgeInsets.symmetric(vertical: 8),
-              color: Colors.grey,
+              color: CupertinoColors.systemGrey,
               onPressed: () =>
                   _skipSip(context, entry.investment, entry.dueDate),
               child: const Text(
@@ -525,7 +525,7 @@ class NotificationsPage extends StatelessWidget {
           Expanded(
             child: CupertinoButton(
               padding: const EdgeInsets.symmetric(vertical: 8),
-              color: Colors.blue,
+              color: CupertinoColors.activeBlue,
               onPressed: () => _showBondPayoutModal(context, entry),
               child: const Text(
                 'Edit Payout',
@@ -537,7 +537,7 @@ class NotificationsPage extends StatelessWidget {
           Expanded(
             child: CupertinoButton(
               padding: const EdgeInsets.symmetric(vertical: 8),
-              color: Colors.grey,
+              color: CupertinoColors.systemGrey,
               onPressed: () => _skipBondPayout(context, entry),
               child: const Text(
                 'Skip Payout',

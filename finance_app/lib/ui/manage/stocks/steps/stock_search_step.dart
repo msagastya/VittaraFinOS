@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/services/stock_api_service.dart';
 import 'package:vittara_fin_os/ui/manage/stocks/stocks_wizard_controller.dart';
@@ -88,7 +87,7 @@ class _StockSearchStepState extends State<StockSearchStep> {
           Expanded(
               child: Center(
                   child:
-                      Text(_error, style: const TextStyle(color: Colors.red))))
+                      Text(_error, style: const TextStyle(color: CupertinoColors.systemRed))))
         else
           Expanded(
             child: ListView.builder(

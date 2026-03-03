@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/ui/manage/mf/mf_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -201,7 +200,7 @@ class _MFTransactionDetailsStepState extends State<MFTransactionDetailsStep> {
               color: AppStyles.getBackground(context).withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Colors.grey.withValues(alpha: 0.2),
+                color: CupertinoColors.systemGrey.withValues(alpha: 0.2),
               ),
             ),
             child: Row(

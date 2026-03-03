@@ -88,7 +88,7 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
                           color: AppStyles.getCardColor(context),
                           border: Border(
                             bottom: BorderSide(
-                                color: Colors.grey.withValues(alpha: 0.2)),
+                                color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
                           ),
                         ),
                         child: Row(
@@ -123,7 +123,7 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+                border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -146,7 +146,7 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+              border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
             ),
             child: CupertinoButton(
               onPressed: () {
@@ -163,7 +163,7 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
                             color: AppStyles.getCardColor(context),
                             border: Border(
                               bottom: BorderSide(
-                                  color: Colors.grey.withValues(alpha: 0.2)),
+                                  color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
                             ),
                           ),
                           child: Row(

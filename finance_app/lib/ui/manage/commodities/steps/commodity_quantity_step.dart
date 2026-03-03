@@ -79,7 +79,7 @@ class _CommodityQuantityStepState extends State<CommodityQuantityStep> {
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+              border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
             ),
             child: CupertinoButton(
               onPressed: () {
@@ -96,7 +96,7 @@ class _CommodityQuantityStepState extends State<CommodityQuantityStep> {
                             color: AppStyles.getCardColor(context),
                             border: Border(
                               bottom: BorderSide(
-                                color: Colors.grey.withValues(alpha: 0.2),
+                                color: CupertinoColors.systemGrey.withValues(alpha: 0.2),
                               ),
                             ),
                           ),

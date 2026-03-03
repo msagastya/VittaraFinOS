@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
@@ -164,7 +165,7 @@ class _MeshGradientBackgroundState extends State<MeshGradientBackground>
                     ),
                     radius: 1.5,
                     colors: [
-                      Colors.blue.withValues(alpha: 0.3),
+                      CupertinoColors.activeBlue.withValues(alpha: 0.3),
                       Colors.transparent,
                     ],
                   ),

@@ -32,7 +32,7 @@ class BondTypeNameStep extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 border: Border(
-                  bottom: BorderSide(color: Colors.grey.withValues(alpha: 0.2)),
+                  bottom: BorderSide(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
                 ),
               ),
               child: Row(
@@ -174,7 +174,7 @@ class BondTypeNameStep extends StatelessWidget {
                     border: Border.all(
                       color: isSelected
                           ? const Color(0xFF00A6CC)
-                          : Colors.grey.withValues(alpha: 0.2),
+                          : CupertinoColors.systemGrey.withValues(alpha: 0.2),
                     ),
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -188,7 +188,7 @@ class BondTypeNameStep extends StatelessWidget {
                           border: Border.all(
                             color: isSelected
                                 ? const Color(0xFF00A6CC)
-                                : Colors.grey,
+                                : CupertinoColors.systemGrey,
                           ),
                         ),
                         child: isSelected
@@ -257,7 +257,7 @@ class BondTypeNameStep extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+              border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
             ),
             child: CupertinoButton(
               onPressed: () {
@@ -338,7 +338,7 @@ class BondTypeNameStep extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+              border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
             ),
             child: CupertinoButton(
               onPressed: () {

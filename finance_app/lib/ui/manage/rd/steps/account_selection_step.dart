@@ -95,7 +95,7 @@ class _AccountSelectionStepState extends State<AccountSelectionStep> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const Icon(CupertinoIcons.money_dollar_circle,
-                              size: 48, color: Colors.grey),
+                              size: 48, color: CupertinoColors.systemGrey),
                           const SizedBox(height: 16),
                           Text(
                             'No Accounts Found',

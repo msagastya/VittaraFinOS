@@ -117,13 +117,13 @@ class _DashboardSettingsModalState extends State<DashboardSettingsModal> {
                         Icon(
                           CupertinoIcons.refresh,
                           size: 16,
-                          color: Colors.blue,
+                          color: CupertinoColors.activeBlue,
                         ),
                         SizedBox(width: Spacing.sm),
                         Text(
                           'Reset to Default',
                           style: TextStyle(
-                            color: Colors.blue,
+                            color: CupertinoColors.activeBlue,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -153,7 +153,7 @@ class _DashboardSettingsModalState extends State<DashboardSettingsModal> {
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Colors.grey.withValues(alpha: 0.1),
+          color: CupertinoColors.systemGrey.withValues(alpha: 0.1),
         ),
       ),
       child: Row(

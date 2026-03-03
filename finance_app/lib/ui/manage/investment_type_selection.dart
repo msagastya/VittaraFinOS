@@ -159,7 +159,7 @@ class _InvestmentTypeSelectionModalState
                       name: '',
                       type: invType,
                       amount: 0,
-                      color: Colors.grey,
+                      color: CupertinoColors.systemGrey,
                     ).getTypeColor();
 
                     return BouncyButton(
@@ -415,7 +415,7 @@ class _InvestmentTypePreferencesModalState
                       name: '',
                       type: type,
                       amount: 0,
-                      color: Colors.grey,
+                      color: CupertinoColors.systemGrey,
                     );
                     final color = investment.getTypeColor();
 

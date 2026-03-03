@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/logic/fo_model.dart';
 import 'package:vittara_fin_os/ui/manage/fo/fo_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -49,7 +48,7 @@ class FOTypeStep extends StatelessWidget {
                     border: Border.all(
                       color: isSelected
                           ? const Color(0xFF1ABC9C)
-                          : Colors.grey.withValues(alpha: 0.2),
+                          : CupertinoColors.systemGrey.withValues(alpha: 0.2),
                     ),
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -63,7 +62,7 @@ class FOTypeStep extends StatelessWidget {
                           border: Border.all(
                             color: isSelected
                                 ? const Color(0xFF1ABC9C)
-                                : Colors.grey,
+                                : CupertinoColors.systemGrey,
                           ),
                         ),
                         child: isSelected

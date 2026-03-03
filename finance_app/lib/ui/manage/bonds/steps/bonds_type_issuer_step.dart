@@ -203,7 +203,7 @@ class _BondsTypeIssuerStepState extends State<BondsTypeIssuerStep> {
                         border: Border.all(
                           color: isSelected
                               ? const Color(0xFF007AFF)
-                              : Colors.grey.withValues(alpha: 0.3),
+                              : CupertinoColors.systemGrey.withValues(alpha: 0.3),
                         ),
                       ),
                       child: Text(

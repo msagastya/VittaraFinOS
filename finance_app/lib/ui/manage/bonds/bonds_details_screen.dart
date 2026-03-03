@@ -88,7 +88,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                 decoration: BoxDecoration(
                   color: AppStyles.getCardColor(context),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+                  border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -129,7 +129,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                 decoration: BoxDecoration(
                   color: AppStyles.getCardColor(context),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+                  border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -163,13 +163,13 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: isProfit
-                      ? Colors.green.withValues(alpha: 0.1)
-                      : Colors.red.withValues(alpha: 0.1),
+                      ? CupertinoColors.systemGreen.withValues(alpha: 0.1)
+                      : CupertinoColors.systemRed.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: isProfit
-                        ? Colors.green.withValues(alpha: 0.3)
-                        : Colors.red.withValues(alpha: 0.3),
+                        ? CupertinoColors.systemGreen.withValues(alpha: 0.3)
+                        : CupertinoColors.systemRed.withValues(alpha: 0.3),
                   ),
                 ),
                 child: Column(
@@ -187,13 +187,13 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                     _DetailRow(
                       label: 'Total Invested',
                       value: '₹${totalInvested.toStringAsFixed(2)}',
-                      color: Colors.red,
+                      color: CupertinoColors.systemRed,
                     ),
                     const SizedBox(height: 12),
                     _DetailRow(
                       label: 'Total to Receive',
                       value: '₹${totalReceived.toStringAsFixed(2)}',
-                      color: Colors.green,
+                      color: CupertinoColors.systemGreen,
                     ),
                     const SizedBox(height: 12),
                     Divider(color: AppStyles.getDividerColor(context)),
@@ -202,7 +202,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                       label: 'Gain/Loss',
                       value:
                           '${isProfit ? '+' : ''}₹${gainLoss.toStringAsFixed(2)}',
-                      color: isProfit ? Colors.green : Colors.red,
+                      color: isProfit ? CupertinoColors.systemGreen : CupertinoColors.systemRed,
                       isBold: true,
                     ),
                     const SizedBox(height: 8),
@@ -210,7 +210,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                       label: 'Return %',
                       value:
                           '${isProfit ? '+' : ''}${gainLossPercent.toStringAsFixed(2)}%',
-                      color: isProfit ? Colors.green : Colors.red,
+                      color: isProfit ? CupertinoColors.systemGreen : CupertinoColors.systemRed,
                       isBold: true,
                     ),
                     const SizedBox(height: 8),
@@ -232,7 +232,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                     color: AppStyles.getCardColor(context),
                     borderRadius: BorderRadius.circular(12),
                     border:
-                        Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+                        Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
                   ),
                   child: Column(
                     children: [
@@ -294,7 +294,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                           children: [
                             Divider(
                               height: 1,
-                              color: Colors.grey.withValues(alpha: 0.1),
+                              color: CupertinoColors.systemGrey.withValues(alpha: 0.1),
                             ),
                             Padding(
                               padding: const EdgeInsets.all(12),
@@ -316,8 +316,8 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                                         fontSize: 12,
                                         fontWeight: FontWeight.w600,
                                         color: isNegative
-                                            ? Colors.red
-                                            : Colors.green,
+                                            ? CupertinoColors.systemRed
+                                            : CupertinoColors.systemGreen,
                                       ),
                                     ),
                                   ),
@@ -359,7 +359,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
               SizedBox(
                 width: double.infinity,
                 child: CupertinoButton(
-                  color: Colors.red.withValues(alpha: 0.1),
+                  color: CupertinoColors.systemRed.withValues(alpha: 0.1),
                   onPressed: () async {
                     showCupertinoDialog(
                       context: context,
@@ -394,7 +394,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                   },
                   child: const Text(
                     'Delete Bond',
-                    style: TextStyle(color: Colors.red),
+                    style: TextStyle(color: CupertinoColors.systemRed),
                   ),
                 ),
               ),

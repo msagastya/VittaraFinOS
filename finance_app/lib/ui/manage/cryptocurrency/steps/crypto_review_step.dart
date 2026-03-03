@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/ui/manage/cryptocurrency/crypto_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -32,7 +32,7 @@ class CryptoReviewStep extends StatelessWidget {
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Colors.grey.withValues(alpha: 0.2),
+                color: CupertinoColors.systemGrey.withValues(alpha: 0.2),
               ),
             ),
             child: Column(
@@ -67,7 +67,7 @@ class CryptoReviewStep extends StatelessWidget {
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Colors.grey.withValues(alpha: 0.2),
+                color: CupertinoColors.systemGrey.withValues(alpha: 0.2),
               ),
             ),
             child: Column(
@@ -110,7 +110,7 @@ class CryptoReviewStep extends StatelessWidget {
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Colors.grey.withValues(alpha: 0.2),
+                color: CupertinoColors.systemGrey.withValues(alpha: 0.2),
               ),
             ),
             child: Column(
@@ -174,7 +174,7 @@ class CryptoReviewStep extends StatelessWidget {
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: Colors.grey.withValues(alpha: 0.2),
+                  color: CupertinoColors.systemGrey.withValues(alpha: 0.2),
                 ),
               ),
               child: Column(

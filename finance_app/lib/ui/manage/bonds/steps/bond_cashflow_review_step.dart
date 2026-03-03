@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/ui/manage/bonds/bonds_wizard_controller_v2.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -31,7 +32,7 @@ class BondCashFlowReviewStep extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+              border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
             ),
             child: Column(
               children: [
@@ -93,7 +94,7 @@ class BondCashFlowReviewStep extends StatelessWidget {
                     children: [
                       Divider(
                         height: 1,
-                        color: Colors.grey.withValues(alpha: 0.1),
+                        color: CupertinoColors.systemGrey.withValues(alpha: 0.1),
                       ),
                       Padding(
                         padding: const EdgeInsets.all(12),
@@ -114,7 +115,7 @@ class BondCashFlowReviewStep extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
-                                  color: isNegative ? Colors.red : Colors.green,
+                                  color: isNegative ? CupertinoColors.systemRed : CupertinoColors.systemGreen,
                                 ),
                               ),
                             ),
@@ -147,13 +148,13 @@ class BondCashFlowReviewStep extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: isProfit
-                  ? Colors.green.withValues(alpha: 0.1)
-                  : Colors.red.withValues(alpha: 0.1),
+                  ? CupertinoColors.systemGreen.withValues(alpha: 0.1)
+                  : CupertinoColors.systemRed.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: isProfit
-                    ? Colors.green.withValues(alpha: 0.3)
-                    : Colors.red.withValues(alpha: 0.3),
+                    ? CupertinoColors.systemGreen.withValues(alpha: 0.3)
+                    : CupertinoColors.systemRed.withValues(alpha: 0.3),
               ),
             ),
             child: Column(
@@ -161,13 +162,13 @@ class BondCashFlowReviewStep extends StatelessWidget {
                 _SummaryRow(
                   label: 'Total Invested',
                   value: '₹${ctrl.totalInvested.toStringAsFixed(2)}',
-                  color: Colors.red,
+                  color: CupertinoColors.systemRed,
                 ),
                 const SizedBox(height: 12),
                 _SummaryRow(
                   label: 'Total Received',
                   value: '₹${ctrl.totalReceived.toStringAsFixed(2)}',
-                  color: Colors.green,
+                  color: CupertinoColors.systemGreen,
                 ),
                 const SizedBox(height: 12),
                 Divider(color: AppStyles.getDividerColor(context)),
@@ -176,7 +177,7 @@ class BondCashFlowReviewStep extends StatelessWidget {
                   label: 'Gain/Loss',
                   value:
                       '${isProfit ? '+' : ''}₹${ctrl.gainLoss.toStringAsFixed(2)}',
-                  color: isProfit ? Colors.green : Colors.red,
+                  color: isProfit ? CupertinoColors.systemGreen : CupertinoColors.systemRed,
                   isBold: true,
                 ),
                 const SizedBox(height: 12),
@@ -184,7 +185,7 @@ class BondCashFlowReviewStep extends StatelessWidget {
                   label: 'Return %',
                   value:
                       '${isProfit ? '+' : ''}${ctrl.gainLossPercent.toStringAsFixed(2)}%',
-                  color: isProfit ? Colors.green : Colors.red,
+                  color: isProfit ? CupertinoColors.systemGreen : CupertinoColors.systemRed,
                   isBold: true,
                 ),
                 const SizedBox(height: 12),

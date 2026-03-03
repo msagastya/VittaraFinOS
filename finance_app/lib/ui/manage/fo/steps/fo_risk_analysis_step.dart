@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:vittara_fin_os/logic/fo_model.dart';
 import 'package:vittara_fin_os/ui/manage/fo/fo_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -114,7 +114,7 @@ class _AnalysisCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+        border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -156,7 +156,7 @@ class _AnalysisRow extends StatelessWidget {
   Widget build(BuildContext context) {
     Color? color;
     if (label.contains('P&L') || label.contains('Loss')) {
-      color = isProfit ? Colors.green : Colors.red;
+      color = isProfit ? CupertinoColors.systemGreen : CupertinoColors.systemRed;
     }
 
     return Column(

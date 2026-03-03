@@ -334,7 +334,7 @@ class _MFSearchStepState extends State<MFSearchStep> {
       return Center(
         child: Text(
           _error,
-          style: const TextStyle(color: Colors.red),
+          style: const TextStyle(color: CupertinoColors.systemRed),
           textAlign: TextAlign.center,
         ),
       );

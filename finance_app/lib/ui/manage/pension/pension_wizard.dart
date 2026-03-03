@@ -233,7 +233,7 @@ class _SchemeSelectionStep extends StatelessWidget {
                     border: Border.all(
                       color: isSelected
                           ? const Color(0xFF27AE60)
-                          : Colors.grey.withValues(alpha: 0.2),
+                          : CupertinoColors.systemGrey.withValues(alpha: 0.2),
                     ),
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -247,7 +247,7 @@ class _SchemeSelectionStep extends StatelessWidget {
                           border: Border.all(
                             color: isSelected
                                 ? const Color(0xFF27AE60)
-                                : Colors.grey,
+                                : CupertinoColors.systemGrey,
                           ),
                         ),
                         child: isSelected
@@ -506,7 +506,7 @@ class _Card extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+        border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
       ),
       child: Column(
         children: List.generate(
@@ -570,7 +570,7 @@ class _Summary extends StatelessWidget {
             style: TextStyle(
                 fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
                 fontSize: isBold ? 14 : 13,
-                color: isPositive ? Colors.green : Colors.red)),
+                color: isPositive ? CupertinoColors.systemGreen : CupertinoColors.systemRed)),
       ],
     );
   }

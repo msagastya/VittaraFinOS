@@ -1159,7 +1159,7 @@ class DashboardScreen extends StatelessWidget {
             // Determine color based on positive/negative
             final isPositive = totalNetWorth >= 0;
             final displayColor =
-                isPositive ? AppStyles.getPrimaryColor(context) : Colors.red;
+                isPositive ? AppStyles.getPrimaryColor(context) : CupertinoColors.systemRed;
 
             return Column(
               mainAxisSize: MainAxisSize.min,
@@ -1228,7 +1228,7 @@ class DashboardScreen extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w600,
-                                    color: Colors.green,
+                                    color: CupertinoColors.systemGreen,
                                   ),
                                 ),
                               ],
@@ -1252,7 +1252,7 @@ class DashboardScreen extends StatelessWidget {
                                     style: TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w600,
-                                      color: Colors.blue,
+                                      color: CupertinoColors.activeBlue,
                                     ),
                                   ),
                                 ],
@@ -1277,7 +1277,7 @@ class DashboardScreen extends StatelessWidget {
                                     style: TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w600,
-                                      color: Colors.red,
+                                      color: CupertinoColors.systemRed,
                                     ),
                                   ),
                                 ],
@@ -1333,7 +1333,7 @@ class DashboardScreen extends StatelessWidget {
                   minHeight: 6,
                   backgroundColor:
                       AppStyles.getBackground(context).withValues(alpha: 0.5),
-                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
+                  valueColor: const AlwaysStoppedAnimation<Color>(CupertinoColors.activeBlue),
                 ),
                 SizedBox(height: Spacing.sm),
                 Row(
@@ -1341,7 +1341,7 @@ class DashboardScreen extends StatelessWidget {
                   children: [
                     Text(
                       'Saved ₹${totalSaved.toStringAsFixed(0)}',
-                      style: const TextStyle(fontSize: 12, color: Colors.green),
+                      style: const TextStyle(fontSize: 12, color: CupertinoColors.systemGreen),
                     ),
                     Text(
                       'Goal ₹${totalTarget.toStringAsFixed(0)}',
@@ -1382,11 +1382,11 @@ class DashboardScreen extends StatelessWidget {
                     ),
                     if (exceeded.isNotEmpty)
                       _buildBadge(
-                          context, 'Over', exceeded.length, Colors.red),
+                          context, 'Over', exceeded.length, CupertinoColors.systemRed),
                     if (warning.isNotEmpty) ...[
                       SizedBox(width: Spacing.xs),
                       _buildBadge(context, 'Near', warning.length,
-                          Colors.orange),
+                          CupertinoColors.systemOrange),
                     ],
                   ],
                 ),
@@ -1395,7 +1395,7 @@ class DashboardScreen extends StatelessWidget {
                   ...alertBudgets.map((b) {
                     final isExceeded = b.status.name == 'exceeded';
                     final color =
-                        isExceeded ? Colors.red : Colors.orange;
+                        isExceeded ? CupertinoColors.systemRed : CupertinoColors.systemOrange;
                     final pct = b.usagePercentage.toStringAsFixed(0);
                     return Container(
                       margin: EdgeInsets.only(bottom: Spacing.xs),
@@ -1490,7 +1490,7 @@ class DashboardScreen extends StatelessWidget {
                   minHeight: 6,
                   backgroundColor:
                       AppStyles.getBackground(context).withValues(alpha: 0.5),
-                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.green),
+                  valueColor: const AlwaysStoppedAnimation<Color>(CupertinoColors.systemGreen),
                 ),
                 SizedBox(height: Spacing.sm),
                 Row(
@@ -1498,7 +1498,7 @@ class DashboardScreen extends StatelessWidget {
                   children: [
                     Text(
                       'Saved ₹${totalSaved.toStringAsFixed(0)}',
-                      style: const TextStyle(fontSize: 12, color: Colors.green),
+                      style: const TextStyle(fontSize: 12, color: CupertinoColors.systemGreen),
                     ),
                     Text(
                       'Target ₹${totalTarget.toStringAsFixed(0)}',
@@ -1563,7 +1563,7 @@ class DashboardScreen extends StatelessWidget {
                       : 'Budget health looks stable',
                   style: TextStyle(
                     fontSize: 11,
-                    color: budgetWarnings > 0 ? Colors.orange : Colors.green,
+                    color: budgetWarnings > 0 ? CupertinoColors.systemOrange : CupertinoColors.systemGreen,
                   ),
                 ),
               ],
@@ -1620,7 +1620,7 @@ class DashboardScreen extends StatelessWidget {
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: (isDebit ? Colors.red : Colors.green)
+                            color: (isDebit ? CupertinoColors.systemRed : CupertinoColors.systemGreen)
                                 .withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -1629,7 +1629,7 @@ class DashboardScreen extends StatelessWidget {
                                 ? CupertinoIcons.arrow_up
                                 : CupertinoIcons.arrow_down,
                             size: 18,
-                            color: isDebit ? Colors.red : Colors.green,
+                            color: isDebit ? CupertinoColors.systemRed : CupertinoColors.systemGreen,
                           ),
                         ),
                         SizedBox(width: Spacing.md),
@@ -1664,7 +1664,7 @@ class DashboardScreen extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
-                            color: isDebit ? Colors.red : Colors.green,
+                            color: isDebit ? CupertinoColors.systemRed : CupertinoColors.systemGreen,
                           ),
                         ),
                       ],
@@ -1849,7 +1849,7 @@ class DashboardScreen extends StatelessWidget {
                 _buildCompactDashboardAlert(
                   context,
                   icon: CupertinoIcons.exclamationmark_circle_fill,
-                  color: Colors.red,
+                  color: CupertinoColors.systemRed,
                   title:
                       '${fdsMatured.length} FD${fdsMatured.length > 1 ? 's' : ''} matured',
                   subtitle: 'Action required',
@@ -1858,7 +1858,7 @@ class DashboardScreen extends StatelessWidget {
                 _buildCompactDashboardAlert(
                   context,
                   icon: CupertinoIcons.bell_fill,
-                  color: Colors.orange,
+                  color: CupertinoColors.systemOrange,
                   title:
                       '${fdsNearMaturity.length} FD${fdsNearMaturity.length > 1 ? 's' : ''} maturing soon',
                   subtitle: 'Within 10 days',
@@ -2140,7 +2140,7 @@ class DashboardScreen extends StatelessWidget {
     return _buildCompactDashboardAlert(
       context,
       icon: CupertinoIcons.repeat,
-      color: Colors.blue,
+      color: CupertinoColors.activeBlue,
       title: entry.investment.name,
       subtitle: '${entry.frequencyLabel} • $amountText • $dueLabel',
     );

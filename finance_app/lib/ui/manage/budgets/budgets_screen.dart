@@ -122,7 +122,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                                               period: _filterPeriod!,
                                               startDate: DateTime.now(),
                                               endDate: DateTime.now(),
-                                              color: Colors.blue,
+                                              color: CupertinoColors.activeBlue,
                                             ).getPeriodLabel(),
                                             style: TextStyle(
                                                 color:
@@ -550,7 +550,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                 period: period,
                 startDate: DateTime.now(),
                 endDate: DateTime.now(),
-                color: Colors.blue);
+                color: CupertinoColors.activeBlue);
             return CupertinoActionSheetAction(
               onPressed: () {
                 setState(() => _filterPeriod = period);
