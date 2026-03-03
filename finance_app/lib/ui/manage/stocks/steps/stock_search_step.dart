@@ -5,6 +5,7 @@ import 'package:vittara_fin_os/services/stock_api_service.dart';
 import 'package:vittara_fin_os/ui/manage/stocks/stocks_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 
 class StockSearchStep extends StatefulWidget {
   const StockSearchStep({super.key});
@@ -88,6 +89,15 @@ class _StockSearchStepState extends State<StockSearchStep> {
               child: Center(
                   child:
                       Text(_error, style: const TextStyle(color: CupertinoColors.systemRed))))
+        else if (_results.isEmpty && _searchController.text.isNotEmpty)
+          Expanded(
+            child: EmptyStateView(
+              icon: CupertinoIcons.search,
+              title: 'No stocks found',
+              subtitle: 'Try a different symbol or company name.',
+              showPulse: false,
+            ),
+          )
         else
           Expanded(
             child: ListView.builder(

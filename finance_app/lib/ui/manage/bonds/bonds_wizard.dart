@@ -35,6 +35,8 @@ class _BondsWizardContent extends StatelessWidget {
     final investmentsController =
         Provider.of<InvestmentsController>(context, listen: false);
 
+    controller.isSubmitting = true;
+    controller.notifyListeners();
     try {
       // Generate payout schedule
       final payoutSchedule = BondPayoutGenerator.generatePayoutSchedule(
@@ -79,6 +81,9 @@ class _BondsWizardContent extends StatelessWidget {
       if (context.mounted) {
         toast.showError('Failed to save investment: $e');
       }
+    } finally {
+      controller.isSubmitting = false;
+      controller.notifyListeners();
     }
   }
 
@@ -155,7 +160,7 @@ class _BondsWizardContent extends StatelessWidget {
               child: SizedBox(
                 width: double.infinity,
                 child: CupertinoButton.filled(
-                  onPressed: controller.canProceed()
+                  onPressed: controller.canProceed() && !controller.isSubmitting
                       ? () async {
                           if (controller.currentStep <
                               controller.totalSteps - 1) {
@@ -165,11 +170,13 @@ class _BondsWizardContent extends StatelessWidget {
                           }
                         }
                       : null,
-                  child: Text(
-                    controller.currentStep >= controller.totalSteps - 1
-                        ? 'Save Bond'
-                        : 'Continue',
-                  ),
+                  child: controller.isSubmitting
+                      ? const CupertinoActivityIndicator()
+                      : Text(
+                          controller.currentStep >= controller.totalSteps - 1
+                              ? 'Save Bond'
+                              : 'Continue',
+                        ),
                 ),
               ),
             ),

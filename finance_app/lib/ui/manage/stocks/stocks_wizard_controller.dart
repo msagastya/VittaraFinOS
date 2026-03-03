@@ -5,6 +5,7 @@ import 'package:vittara_fin_os/services/stock_api_service.dart';
 class StocksWizardController extends ChangeNotifier {
   final PageController pageController = PageController();
   int _currentStep = 0;
+  bool isSubmitting = false;
 
   // Step 1: Stock Selection
   StockSearchResult? selectedStock;

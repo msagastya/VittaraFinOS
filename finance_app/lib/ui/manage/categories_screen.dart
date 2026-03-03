@@ -160,6 +160,17 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                                 },
                               ),
                             ],
+                            // Empty state when search finds nothing
+                            if (filteredCategories.isEmpty && _searchQuery.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 40),
+                                child: EmptyStateView(
+                                  icon: CupertinoIcons.search,
+                                  title: 'No categories found',
+                                  subtitle: 'No results for "$_searchQuery"',
+                                  showPulse: false,
+                                ),
+                              ),
                             // Custom Categories
                             if (customCats.isNotEmpty) ...[
                               Padding(

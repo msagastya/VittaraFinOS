@@ -105,31 +105,19 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                     // Records List
                     Expanded(
                       child: displayRecords.isEmpty
-                          ? Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    CupertinoIcons.person_2_fill,
-                                    size: 48,
-                                    color: AppStyles.getSecondaryTextColor(
-                                        context),
-                                  ),
-                                  const SizedBox(height: Spacing.lg),
-                                  Text(
-                                    _selectedTab == 0
-                                        ? 'No lending records yet'
-                                        : _selectedTab == 1
-                                            ? 'No borrowing records yet'
-                                            : 'No settled records yet',
-                                    style: TextStyle(
-                                      color: AppStyles.getSecondaryTextColor(
-                                          context),
-                                      fontSize: TypeScale.body,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                          ? EmptyStateView(
+                              icon: _selectedTab == 2
+                                  ? CupertinoIcons.checkmark_seal
+                                  : CupertinoIcons.person_2_fill,
+                              title: _selectedTab == 0
+                                  ? 'No lending records yet'
+                                  : _selectedTab == 1
+                                      ? 'No borrowing records yet'
+                                      : 'No settled records yet',
+                              subtitle: _selectedTab == 2
+                                  ? 'Settled records will appear here.'
+                                  : null,
+                              showPulse: false,
                             )
                           : ListView.builder(
                               padding:

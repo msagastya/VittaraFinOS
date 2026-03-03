@@ -5,6 +5,7 @@ import 'package:vittara_fin_os/logic/payment_apps_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
+import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 
 class PaymentAppsScreen extends StatefulWidget {
@@ -193,17 +194,35 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                       ),
                     ),
                     Expanded(
-                      child: ReorderableListView.builder(
-                        buildDefaultDragHandles: false,
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
-                        itemCount: filteredApps.length,
-                        onReorder: (oldIndex, newIndex) =>
-                            _onReorder(oldIndex, newIndex, appsController),
-                        itemBuilder: (context, index) {
-                          final app = filteredApps[index];
-                          return _buildPaymentAppCard(app, appsController);
-                        },
-                      ),
+                      child: filteredApps.isEmpty
+                          ? EmptyStateView(
+                              icon: CupertinoIcons.device_phone_portrait,
+                              title: appsController.paymentApps.isEmpty
+                                  ? 'No payment apps yet'
+                                  : 'No apps match your search',
+                              subtitle: appsController.paymentApps.isEmpty
+                                  ? 'Add your first payment app to track wallet balances.'
+                                  : 'Try a different search term.',
+                              actionLabel: appsController.paymentApps.isEmpty
+                                  ? 'Add First App'
+                                  : null,
+                              onAction: appsController.paymentApps.isEmpty
+                                  ? () => _showAddPaymentAppModal(
+                                      context, appsController)
+                                  : null,
+                            )
+                          : ReorderableListView.builder(
+                              buildDefaultDragHandles: false,
+                              padding:
+                                  const EdgeInsets.fromLTRB(16, 0, 16, 120),
+                              itemCount: filteredApps.length,
+                              onReorder: (oldIndex, newIndex) =>
+                                  _onReorder(oldIndex, newIndex, appsController),
+                              itemBuilder: (context, index) {
+                                final app = filteredApps[index];
+                                return _buildPaymentAppCard(app, appsController);
+                              },
+                            ),
                     ),
                   ],
                 ),

@@ -728,28 +728,13 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                     investments, categoryType)));
 
                             if (pageInvestments.isEmpty) {
-                              return Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      CupertinoIcons.search,
-                                      size: 48,
-                                      color: AppStyles.getSecondaryTextColor(
-                                              context)
-                                          .withValues(alpha: 0.5),
-                                    ),
-                                    SizedBox(height: Spacing.md),
-                                    Text(
-                                      'No investments found',
-                                      style: TextStyle(
-                                        color: AppStyles.getSecondaryTextColor(
-                                            context),
-                                        fontSize: TypeScale.headline,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                              return EmptyStateView(
+                                icon: CupertinoIcons.chart_bar_square,
+                                title: 'No investments yet',
+                                subtitle: _searchQuery.isNotEmpty
+                                    ? 'No results for "$_searchQuery"'
+                                    : 'Add your first ${categoryType?.name ?? ""} investment.',
+                                showPulse: false,
                               );
                             }
 

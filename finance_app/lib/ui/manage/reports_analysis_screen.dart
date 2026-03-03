@@ -16,6 +16,7 @@ import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
+import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/floating_particle_background.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
@@ -1481,12 +1482,10 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
           ),
           SizedBox(height: Spacing.md),
           if (groups.isEmpty)
-            Text(
-              'No groups found for current filters.',
-              style: TextStyle(
-                color: AppStyles.getSecondaryTextColor(context),
-                fontSize: TypeScale.footnote,
-              ),
+            EmptyStateView(
+              icon: CupertinoIcons.search,
+              title: 'No results found',
+              subtitle: 'Try adjusting your date range or filters.',
             ),
           ...groups.map((group) => _buildGroupCard(group)),
           if (groupedMetrics.length > groups.length) ...[

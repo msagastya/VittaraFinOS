@@ -12,6 +12,7 @@ enum PayoutFrequency {
 class BondsWizardControllerV2 extends ChangeNotifier {
   final PageController pageController = PageController();
   int _currentStep = 0;
+  bool isSubmitting = false;
 
   // Step 1: Bond Name
   String bondName = '';

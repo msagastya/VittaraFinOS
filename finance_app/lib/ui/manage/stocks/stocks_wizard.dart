@@ -36,6 +36,8 @@ class _StocksWizardContent extends StatelessWidget {
     final accountsController =
         Provider.of<AccountsController>(context, listen: false);
 
+    controller.isSubmitting = true;
+    controller.notifyListeners();
     try {
       // 1. Deduct from account if needed
       if (controller.deductFromAccount && controller.selectedAccount != null) {
@@ -80,6 +82,9 @@ class _StocksWizardContent extends StatelessWidget {
       if (context.mounted) {
         toast.showError('Failed to save investment: $e');
       }
+    } finally {
+      controller.isSubmitting = false;
+      controller.notifyListeners();
     }
   }
 
@@ -147,7 +152,7 @@ class _StocksWizardContent extends StatelessWidget {
               child: SizedBox(
                 width: double.infinity,
                 child: CupertinoButton.filled(
-                  onPressed: controller.canProceed()
+                  onPressed: controller.canProceed() && !controller.isSubmitting
                       ? () async {
                           if (controller.currentStep == 4) {
                             await _saveInvestment(context, controller);
@@ -156,9 +161,11 @@ class _StocksWizardContent extends StatelessWidget {
                           }
                         }
                       : null,
-                  child: Text(controller.currentStep == 4
-                      ? 'Confirm & Save'
-                      : 'Continue'),
+                  child: controller.isSubmitting
+                      ? const CupertinoActivityIndicator()
+                      : Text(controller.currentStep == 4
+                          ? 'Confirm & Save'
+                          : 'Continue'),
                 ),
               ),
             ),
