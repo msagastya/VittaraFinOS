@@ -163,28 +163,28 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                     context,
                     'Created',
                     _formatDate(widget.fd.createdDate),
-                    Icons.check_circle,
+                    CupertinoIcons.checkmark_circle,
                   ),
                   _buildTimelineItem(
                     context,
                     'Investment Date',
                     _formatDate(widget.fd.investmentDate),
-                    Icons.check_circle,
+                    CupertinoIcons.checkmark_circle,
                   ),
                   _buildTimelineItem(
                     context,
                     'Maturity Date',
                     _formatDate(_getMaturityDate()),
                     widget.fd.daysUntilMaturity <= 0
-                        ? Icons.check_circle
-                        : Icons.schedule,
+                        ? CupertinoIcons.checkmark_circle
+                        : CupertinoIcons.clock,
                   ),
                   if (_hasBeenRenewed())
                     _buildTimelineItem(
                       context,
                       'Renewed',
                       _formatDate(_getRenewalDate() ?? DateTime.now()),
-                      Icons.check_circle,
+                      CupertinoIcons.checkmark_circle,
                     ),
                   const SizedBox(height: 20),
                   // Details Grid
@@ -1537,14 +1537,14 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                         'Created',
                         _formatDate(widget.fd.createdDate),
                         'FD account opened',
-                        Icons.check_circle,
+                        CupertinoIcons.checkmark_circle,
                       ),
                       _buildHistoryItem(
                         context,
                         'Investment',
                         _formatDate(widget.fd.investmentDate),
                         'Initial amount invested',
-                        Icons.check_circle,
+                        CupertinoIcons.checkmark_circle,
                       ),
                       if (widget.fd.elapsedMonths > 0)
                         _buildHistoryItem(
@@ -1552,7 +1552,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                           'Active',
                           '${widget.fd.elapsedMonths} months invested',
                           'Currently earning interest',
-                          Icons.schedule,
+                          CupertinoIcons.clock,
                         ),
                       _buildHistoryItem(
                         context,
@@ -1562,8 +1562,8 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                             ? 'FD matured'
                             : '${widget.fd.daysUntilMaturity} days remaining',
                         widget.fd.daysUntilMaturity <= 0
-                            ? Icons.check_circle
-                            : Icons.schedule,
+                            ? CupertinoIcons.checkmark_circle
+                            : CupertinoIcons.clock,
                       ),
                     ],
                   ),

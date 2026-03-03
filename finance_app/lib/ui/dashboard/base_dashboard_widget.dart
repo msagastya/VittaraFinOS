@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:vittara_fin_os/logic/dashboard_widget_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
@@ -113,7 +114,7 @@ abstract class BaseDashboardWidget extends StatelessWidget {
                   top: 8,
                   right: 8,
                   child: Icon(
-                    Icons.open_in_new,
+                    CupertinoIcons.arrow_up_right_circle,
                     size: 14,
                     color: AppStyles.getPrimaryColor(context)
                         .withValues(alpha: 0.4),

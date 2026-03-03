@@ -143,15 +143,15 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                     context,
                     'Started',
                     _formatDate(widget.rd.startDate),
-                    Icons.check_circle,
+                    CupertinoIcons.checkmark_circle,
                   ),
                   _buildTimelineItem(
                     context,
                     'Maturity',
                     _formatDate(widget.rd.maturityDate),
                     widget.rd.daysUntilMaturity <= 0
-                        ? Icons.check_circle
-                        : Icons.schedule,
+                        ? CupertinoIcons.checkmark_circle
+                        : CupertinoIcons.clock,
                   ),
                   const SizedBox(height: 20),
                   // Details Grid
@@ -724,14 +724,14 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                         'Started',
                         _formatDate(widget.rd.startDate),
                         'RD account created',
-                        Icons.check_circle,
+                        CupertinoIcons.checkmark_circle,
                       ),
                       _buildHistoryItem(
                         context,
                         'Active',
                         '${widget.rd.completedInstallments} of ${widget.rd.totalInstallments} completed',
                         'Currently running',
-                        Icons.schedule,
+                        CupertinoIcons.clock,
                       ),
                       _buildHistoryItem(
                         context,
@@ -741,8 +741,8 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                             ? 'RD matured'
                             : '${widget.rd.daysUntilMaturity} days remaining',
                         widget.rd.daysUntilMaturity <= 0
-                            ? Icons.check_circle
-                            : Icons.schedule,
+                            ? CupertinoIcons.checkmark_circle
+                            : CupertinoIcons.clock,
                       ),
                     ],
                   ),

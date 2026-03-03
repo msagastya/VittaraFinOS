@@ -442,7 +442,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                   ),
                   child: PopupMenuButton<String>(
                     icon: Icon(
-                      Icons.more_vert,
+                      CupertinoIcons.ellipsis_vertical,
                       color: AppStyles.getSecondaryTextColor(context),
                     ),
                     onSelected: (String result) {

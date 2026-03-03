@@ -450,7 +450,7 @@ class _BanksScreenState extends State<BanksScreen> {
                     ),
                   ),
                   child: PopupMenuButton<String>(
-                    icon: Icon(Icons.more_vert,
+                    icon: Icon(CupertinoIcons.ellipsis_vertical,
                         color: AppStyles.getSecondaryTextColor(context)),
                     onSelected: (String result) {
                       if (result == 'edit') {
