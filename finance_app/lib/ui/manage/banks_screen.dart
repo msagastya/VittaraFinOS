@@ -8,6 +8,7 @@ import 'package:vittara_fin_os/logic/banks_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
+import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
 import 'package:vittara_fin_os/utils/logger.dart';
 
 class BanksScreen extends StatefulWidget {
@@ -31,7 +32,38 @@ class _BanksScreenState extends State<BanksScreen> {
   }
 
   void _deleteBank(String bankId, BanksController banksController) {
-    banksController.deleteBank(bankId);
+    final bank = banksController.banks.firstWhere(
+      (b) => b['id'] == bankId,
+      orElse: () => <String, dynamic>{},
+    );
+    if (bank.isEmpty) return;
+
+    showCupertinoDialog<bool>(
+      context: context,
+      builder: (ctx) => CupertinoAlertDialog(
+        title: const Text('Delete Bank'),
+        content: Text('Remove "${bank['name']}" from your list?'),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    ).then((confirmed) {
+      if (confirmed != true || !mounted) return;
+      banksController.deleteBank(bankId);
+      toast_lib.toast.showSuccess(
+        '"${bank['name']}" removed',
+        actionLabel: 'Undo',
+        onAction: () => banksController.addBank(bank),
+      );
+    });
   }
 
   void _sortBanks(BanksController banksController) {
