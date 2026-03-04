@@ -400,6 +400,214 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     investmentsController.reorderInvestments(oldIndex, newIndex);
   }
 
+  // F9/J10 — FD Maturity Calendar
+  void _showMaturityCalendar(
+      BuildContext context, List<Investment> investments) {
+    // Collect FDs and RDs with their maturity dates
+    final entries = <({String name, String bank, DateTime maturityDate, double maturityValue, String type})>[];
+
+    for (final inv in investments) {
+      final meta = inv.metadata;
+      if (meta == null) continue;
+      if (inv.type == InvestmentType.fixedDeposit &&
+          meta.containsKey('fdData')) {
+        try {
+          final fd = FixedDeposit.fromMap(
+              Map<String, dynamic>.from(meta['fdData'] as Map));
+          if (!fd.isWithdrawn) {
+            entries.add((
+              name: fd.name,
+              bank: fd.bankName,
+              maturityDate: fd.maturityDate,
+              maturityValue: fd.maturityValue,
+              type: 'FD',
+            ));
+          }
+        } catch (_) {}
+      } else if (inv.type == InvestmentType.recurringDeposit &&
+          meta.containsKey('rdData')) {
+        try {
+          final rd = RecurringDeposit.fromMap(
+              Map<String, dynamic>.from(meta['rdData'] as Map));
+          entries.add((
+            name: rd.name,
+            bank: rd.bankName,
+            maturityDate: rd.maturityDate,
+            maturityValue: rd.maturityValue,
+            type: 'RD',
+          ));
+        } catch (_) {}
+      }
+    }
+    entries.sort((a, b) => a.maturityDate.compareTo(b.maturityDate));
+
+    showCupertinoModalPopup(
+      context: context,
+      builder: (ctx) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.6,
+        minChildSize: 0.4,
+        maxChildSize: 0.9,
+        builder: (drag, scrollController) {
+          return Container(
+            decoration: BoxDecoration(
+              color: AppStyles.getCardColor(context),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: Column(
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(top: 12),
+                  width: 40,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: CupertinoColors.systemGrey3,
+                    borderRadius: BorderRadius.circular(2.5),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                  child: Row(
+                    children: [
+                      const Icon(CupertinoIcons.calendar,
+                          size: 20, color: CupertinoColors.systemOrange),
+                      const SizedBox(width: 8),
+                      Text('Maturity Calendar',
+                          style: AppStyles.titleStyle(context)
+                              .copyWith(fontSize: TypeScale.title3)),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: entries.isEmpty
+                      ? Center(
+                          child: EmptyStateView(
+                            icon: CupertinoIcons.calendar_badge_plus,
+                            title: 'No FDs or RDs',
+                            subtitle:
+                                'Add Fixed Deposits or Recurring Deposits to see maturity dates here',
+                          ),
+                        )
+                      : ListView.builder(
+                          controller: scrollController,
+                          padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
+                          itemCount: entries.length,
+                          itemBuilder: (ctx2, i) {
+                            final e = entries[i];
+                            final now = DateTime.now();
+                            final today = DateTime(now.year, now.month, now.day);
+                            final matDay = DateTime(e.maturityDate.year,
+                                e.maturityDate.month, e.maturityDate.day);
+                            final daysLeft =
+                                matDay.difference(today).inDays;
+                            final isOverdue = daysLeft < 0;
+                            final isToday = daysLeft == 0;
+                            final statusColor = isOverdue
+                                ? CupertinoColors.systemRed
+                                : isToday
+                                    ? CupertinoColors.systemOrange
+                                    : daysLeft <= 30
+                                        ? CupertinoColors.systemYellow
+                                        : CupertinoColors.systemGreen;
+                            final statusText = isOverdue
+                                ? 'Matured ${(-daysLeft)} day${(-daysLeft) == 1 ? '' : 's'} ago'
+                                : isToday
+                                    ? 'Matures today!'
+                                    : 'In $daysLeft day${daysLeft == 1 ? '' : 's'}';
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: Spacing.md),
+                              padding: const EdgeInsets.all(Spacing.lg),
+                              decoration: AppStyles.cardDecoration(context),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 48,
+                                    height: 48,
+                                    decoration: BoxDecoration(
+                                      color:
+                                          statusColor.withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        e.type,
+                                        style: TextStyle(
+                                          color: statusColor,
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: TypeScale.footnote,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: Spacing.lg),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(e.name,
+                                            style:
+                                                AppStyles.titleStyle(context)),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          e.bank,
+                                          style: TextStyle(
+                                            fontSize: TypeScale.footnote,
+                                            color:
+                                                AppStyles.getSecondaryTextColor(
+                                                    context),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          statusText,
+                                          style: TextStyle(
+                                            fontSize: TypeScale.caption,
+                                            color: statusColor,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Text(
+                                        DateFormatter.format(e.maturityDate),
+                                        style: TextStyle(
+                                          fontSize: TypeScale.caption,
+                                          color: AppStyles
+                                              .getSecondaryTextColor(context),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        CurrencyFormatter.compact(
+                                            e.maturityValue),
+                                        style: AppStyles.titleStyle(context)
+                                            .copyWith(
+                                          color: CupertinoColors.systemGreen,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   List<InvestmentType?> _buildCategoryFilters(List<Investment> investments) {
     final availableTypes = _availableSupportedTypes(investments);
     availableTypes.sort((a, b) => _getCurrentValueByType(investments, b)
@@ -626,9 +834,22 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Maturity Calendar Icon
+            CupertinoButton(
+              padding: EdgeInsets.symmetric(horizontal: Spacing.sm),
+              onPressed: () => _showMaturityCalendar(
+                  context,
+                  Provider.of<InvestmentsController>(context, listen: false)
+                      .investments),
+              child: Icon(
+                CupertinoIcons.calendar,
+                size: 20,
+                color: SemanticColors.investments,
+              ),
+            ),
             // Sort Icon
             CupertinoButton(
-              padding: EdgeInsets.symmetric(horizontal: Spacing.md),
+              padding: EdgeInsets.symmetric(horizontal: Spacing.sm),
               onPressed: () => _showSortModal(context),
               child: Icon(
                 CupertinoIcons.arrow_up_arrow_down,
