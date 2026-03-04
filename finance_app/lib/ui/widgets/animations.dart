@@ -58,16 +58,18 @@ class AnimatedCounter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0, end: value),
-      duration: duration,
-      curve: Curves.easeOutCubic,
-      builder: (context, animatedValue, child) {
-        return Text(
-          '$prefix${animatedValue.toStringAsFixed(decimals)}$suffix',
-          style: style,
-        );
-      },
+    return RepaintBoundary(
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0, end: value),
+        duration: duration,
+        curve: Curves.easeOutCubic,
+        builder: (context, animatedValue, child) {
+          return Text(
+            '$prefix${animatedValue.toStringAsFixed(decimals)}$suffix',
+            style: style,
+          );
+        },
+      ),
     );
   }
 }

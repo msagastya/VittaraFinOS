@@ -574,7 +574,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
           );
         },
       ),
-    );
+    ).whenComplete(amountController.dispose);
   }
 
   void _navigateToEditWizard(BuildContext context, LendingBorrowing record) {

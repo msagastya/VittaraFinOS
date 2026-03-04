@@ -371,7 +371,7 @@ class _TagsScreenState extends State<TagsScreen> {
           ],
         ),
       ),
-    );
+    ).whenComplete(nameController.dispose);
   }
 
   void _showTagDetailsSheet(

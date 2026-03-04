@@ -1220,7 +1220,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
           },
         );
       },
-    );
+    ).whenComplete(amountController.dispose);
   }
 
   Future<void> _editAccount(Account account) async {

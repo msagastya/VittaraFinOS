@@ -316,7 +316,10 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
           ),
         ),
       ),
-    );
+    ).whenComplete(() {
+      nameController.dispose();
+      targetController.dispose();
+    });
   }
 
   @override

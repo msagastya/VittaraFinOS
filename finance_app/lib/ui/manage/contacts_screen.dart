@@ -353,7 +353,10 @@ class _ContactsScreenState extends State<ContactsScreen> {
           ),
         ],
       ),
-    );
+    ).whenComplete(() {
+      nameController.dispose();
+      phoneController.dispose();
+    });
   }
 
   void _showEditContactDialog(
@@ -418,7 +421,10 @@ class _ContactsScreenState extends State<ContactsScreen> {
           ),
         ],
       ),
-    );
+    ).whenComplete(() {
+      nameController.dispose();
+      phoneController.dispose();
+    });
   }
 }
 

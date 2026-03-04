@@ -142,6 +142,7 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
         ),
       ),
     );
+    controller.dispose();
 
     if (!mounted) return;
     if (restoreJson == null || restoreJson.trim().isEmpty) {

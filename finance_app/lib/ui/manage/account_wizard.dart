@@ -634,7 +634,7 @@ class _AccountWizardState extends State<AccountWizard> {
           },
         );
       },
-    );
+    ).whenComplete(brokerNameController.dispose);
   }
 
   Widget _buildInvestmentDetailsStep() {
@@ -1449,7 +1449,7 @@ class _AccountWizardState extends State<AccountWizard> {
           },
         );
       },
-    );
+    ).whenComplete(bankNameController.dispose);
   }
 
   Widget _buildAccountTypeStep() {
