@@ -261,6 +261,41 @@ class _TransactionWizardState extends State<TransactionWizard> {
       return;
     }
 
+    // J14: Duplicate transaction detection
+    final merchant = _merchantController.text.trim();
+    if (merchant.isNotEmpty) {
+      final cutoff = DateTime.now().subtract(const Duration(minutes: 30));
+      final duplicate = transactionsController.transactions.where((t) {
+        final tMerchant = t.metadata?['merchant'] as String? ?? '';
+        return t.amount == amount &&
+            tMerchant.toLowerCase() == merchant.toLowerCase() &&
+            t.dateTime.isAfter(cutoff);
+      }).firstOrNull;
+      if (duplicate != null) {
+        if (!mounted) return;
+        final proceed = await showCupertinoDialog<bool>(
+          context: context,
+          builder: (ctx) => CupertinoAlertDialog(
+            title: const Text('Possible Duplicate'),
+            content: Text(
+                'A ₹${amount.toStringAsFixed(2)} transaction at "$merchant" was logged within the last 30 minutes. Add anyway?'),
+            actions: [
+              CupertinoDialogAction(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Cancel'),
+              ),
+              CupertinoDialogAction(
+                isDefaultAction: true,
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('Add Anyway'),
+              ),
+            ],
+          ),
+        );
+        if (proceed != true || !mounted) return;
+      }
+    }
+
     final metadata = <String, dynamic>{
       'paymentType': _paymentType?.name,
       'categoryId': _selectedCategory?.id,
