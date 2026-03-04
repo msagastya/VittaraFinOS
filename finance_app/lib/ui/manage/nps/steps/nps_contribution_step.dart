@@ -202,6 +202,34 @@ class _NPSContributionStepState extends State<NPSContributionStep> {
                     'Extra 80CCD',
                     '₹${((ctrl.totalContributed! - 150000).clamp(0, 50000)).toStringAsFixed(2)}',
                   ),
+                  if (ctrl.totalContributed! > 200000) ...[
+                    const SizedBox(height: Spacing.md),
+                    Container(
+                      padding: const EdgeInsets.all(Spacing.md),
+                      decoration: BoxDecoration(
+                        color: CupertinoColors.systemOrange
+                            .withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(CupertinoIcons.exclamationmark_circle,
+                              size: 16,
+                              color: CupertinoColors.systemOrange),
+                          const SizedBox(width: 8),
+                          const Expanded(
+                            child: Text(
+                              'Contribution exceeds ₹2L limit. Amounts above ₹2,00,000 (₹1.5L 80C + ₹50K 80CCD) do not attract additional tax deduction.',
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  color: CupertinoColors.systemOrange),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
