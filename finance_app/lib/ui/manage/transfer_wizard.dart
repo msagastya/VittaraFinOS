@@ -1500,6 +1500,7 @@ class _TransferWizardState extends State<TransferWizard> {
               child: CupertinoDatePicker(
                 mode: CupertinoDatePickerMode.date,
                 initialDateTime: _selectedTransferDate,
+                minimumDate: DateTime.now().subtract(const Duration(days: 365 * 30)),
                 maximumDate: DateTime.now().add(const Duration(days: 3650)),
                 onDateTimeChanged: (value) {
                   setState(() => _selectedTransferDate = value);

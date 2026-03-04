@@ -84,6 +84,7 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
                         child: CupertinoDatePicker(
                           mode: CupertinoDatePickerMode.date,
                           initialDateTime: widget.ctrl.purchaseDate,
+                          minimumDate: DateTime.now().subtract(const Duration(days: 365 * 30)),
                           maximumDate: DateTime.now(),
                           onDateTimeChanged: (date) {
                             widget.ctrl.updatePurchaseDate(date);

@@ -854,6 +854,8 @@ class _TransactionWizardState extends State<TransactionWizard> {
               child: CupertinoDatePicker(
                 mode: CupertinoDatePickerMode.date,
                 initialDateTime: _selectedDate,
+                minimumDate: DateTime.now().subtract(const Duration(days: 365 * 30)),
+                maximumDate: DateTime.now(),
                 onDateTimeChanged: (value) {
                   setState(() => _selectedDate = value);
                 },

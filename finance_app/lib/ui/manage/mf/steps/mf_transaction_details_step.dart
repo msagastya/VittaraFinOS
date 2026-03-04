@@ -59,6 +59,7 @@ class _MFTransactionDetailsStepState extends State<MFTransactionDetailsStep> {
           child: CupertinoDatePicker(
             initialDateTime: controller.investmentDate,
             mode: CupertinoDatePickerMode.date,
+            minimumDate: DateTime.now().subtract(const Duration(days: 365 * 30)),
             maximumDate: DateTime.now(),
             onDateTimeChanged: (DateTime newDate) {
               controller.updatePurchaseDate(newDate);

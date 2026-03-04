@@ -102,6 +102,7 @@ class _MFNewInvestmentDetailsStepState
           child: CupertinoDatePicker(
             initialDateTime: controller.investmentDate,
             mode: CupertinoDatePickerMode.date,
+            minimumDate: DateTime.now().subtract(const Duration(days: 365 * 30)),
             maximumDate: DateTime.now(),
             onDateTimeChanged: (DateTime newDate) {
               controller.updatePurchaseDate(newDate);
