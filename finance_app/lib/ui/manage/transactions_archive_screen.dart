@@ -14,9 +14,52 @@ import 'package:vittara_fin_os/ui/widgets/transaction_details_content.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 
-class TransactionsArchiveScreen extends StatelessWidget {
+class TransactionsArchiveScreen extends StatefulWidget {
   const TransactionsArchiveScreen({super.key});
-  static const _loggerContext = 'TransactionsArchive';
+
+  @override
+  State<TransactionsArchiveScreen> createState() =>
+      _TransactionsArchiveScreenState();
+}
+
+class _TransactionsArchiveScreenState
+    extends State<TransactionsArchiveScreen> {
+  TransactionType? _filterType;
+
+  void _showFilterSheet() {
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (ctx) => CupertinoActionSheet(
+        title: const Text('Filter by Type'),
+        actions: [
+          _filterAction(ctx, null, 'All Types'),
+          _filterAction(ctx, TransactionType.expense, 'Expense'),
+          _filterAction(ctx, TransactionType.income, 'Income'),
+          _filterAction(ctx, TransactionType.transfer, 'Transfer'),
+          _filterAction(ctx, TransactionType.lending, 'Lending'),
+          _filterAction(ctx, TransactionType.borrowing, 'Borrowing'),
+          _filterAction(ctx, TransactionType.investment, 'Investment'),
+          _filterAction(ctx, TransactionType.cashback, 'Cashback'),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(ctx),
+          child: const Text('Cancel'),
+        ),
+      ),
+    );
+  }
+
+  CupertinoActionSheetAction _filterAction(
+      BuildContext ctx, TransactionType? type, String label) {
+    final isActive = _filterType == type;
+    return CupertinoActionSheetAction(
+      onPressed: () {
+        Navigator.pop(ctx);
+        setState(() => _filterType = type);
+      },
+      child: Text('$label${isActive ? ' ✓' : ''}'),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,6 +71,19 @@ class TransactionsArchiveScreen extends StatelessWidget {
         previousPageTitle: 'Manage',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
+        trailing: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: _showFilterSheet,
+          child: Icon(
+            _filterType != null
+                ? CupertinoIcons.line_horizontal_3_decrease_circle_fill
+                : CupertinoIcons.line_horizontal_3_decrease_circle,
+            color: _filterType != null
+                ? AppStyles.accentBlue
+                : AppStyles.getPrimaryColor(context),
+            size: 22,
+          ),
+        ),
       ),
       child: Consumer4<TransactionsArchiveController, TransactionsController,
           AccountsController, PaymentAppsController>(
@@ -47,8 +103,28 @@ class TransactionsArchiveScreen extends StatelessWidget {
             );
           }
 
+          final filtered = _filterType == null
+              ? archived
+              : archived
+                  .where((t) => t.type == _filterType)
+                  .toList();
+
+          if (filtered.isEmpty) {
+            return SafeArea(
+              child: Center(
+                child: EmptyStateView(
+                  icon: CupertinoIcons.line_horizontal_3_decrease_circle,
+                  title: 'No Matching Transactions',
+                  subtitle: 'No archived ${_filterType!.name} transactions found',
+                  actionLabel: 'Clear Filter',
+                  onAction: () => setState(() => _filterType = null),
+                ),
+              ),
+            );
+          }
+
           // Build date-grouped list
-          final groups = DateFormatter.groupByDate(archived, (t) => t.dateTime);
+          final groups = DateFormatter.groupByDate(filtered, (t) => t.dateTime);
           final listItems = <_ArchiveListItem>[];
           for (final entry in groups.entries) {
             listItems.add(_ArchiveListItem.header(entry.key));
