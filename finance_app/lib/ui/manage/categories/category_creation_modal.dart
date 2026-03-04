@@ -20,6 +20,7 @@ Future<Category?> showCreateCategoryModal(
   Future<void> createAndClose(BuildContext modalContext) async {
     final name = nameController.text.trim();
     if (name.isEmpty) return;
+    if (name.length > 40) return;
 
     final categoryToPersist = Category(
       id: initialCategory?.id ??
@@ -185,6 +186,7 @@ Future<Category?> showCreateCategoryModal(
                           controller: nameController,
                           autofocus: !isEditMode,
                           textInputAction: TextInputAction.done,
+                          maxLength: 40,
                           onSubmitted: (_) {
                             createAndClose(modalContext);
                           },

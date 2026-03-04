@@ -346,6 +346,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
             CupertinoTextField(
               controller: nameController,
               placeholder: 'Name',
+              maxLength: 60,
               padding: const EdgeInsets.all(Spacing.md),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
@@ -373,12 +374,12 @@ class _ContactsScreenState extends State<ContactsScreen> {
           CupertinoDialogAction(
             isDefaultAction: true,
             onPressed: () {
-              if (nameController.text.isNotEmpty) {
+              if (nameController.text.trim().isNotEmpty) {
                 final contact = Contact(
                   id: DateTime.now().millisecondsSinceEpoch.toString(),
-                  name: nameController.text,
-                  phoneNumber: phoneController.text.isNotEmpty
-                      ? phoneController.text
+                  name: nameController.text.trim(),
+                  phoneNumber: phoneController.text.trim().isNotEmpty
+                      ? phoneController.text.trim()
                       : null,
                   createdDate: DateTime.now(),
                 );
@@ -415,6 +416,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
             CupertinoTextField(
               controller: nameController,
               placeholder: 'Name',
+              maxLength: 60,
               padding: const EdgeInsets.all(Spacing.md),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
@@ -442,11 +444,11 @@ class _ContactsScreenState extends State<ContactsScreen> {
           CupertinoDialogAction(
             isDefaultAction: true,
             onPressed: () {
-              if (nameController.text.isNotEmpty) {
+              if (nameController.text.trim().isNotEmpty) {
                 final updatedContact = contact.copyWith(
-                  name: nameController.text,
-                  phoneNumber: phoneController.text.isNotEmpty
-                      ? phoneController.text
+                  name: nameController.text.trim(),
+                  phoneNumber: phoneController.text.trim().isNotEmpty
+                      ? phoneController.text.trim()
                       : null,
                 );
                 controller.removeContact(contact.id);
