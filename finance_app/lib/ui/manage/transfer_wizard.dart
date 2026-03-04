@@ -151,6 +151,32 @@ class _TransferWizardState extends State<TransferWizard> {
       return;
     }
 
+    // I12: Warn when transferring TO a credit card / pay-later account
+    if (_destinationAccount != null &&
+        (_destinationAccount!.type == AccountType.credit ||
+            _destinationAccount!.type == AccountType.payLater)) {
+      final proceed = await showCupertinoDialog<bool>(
+        context: context,
+        builder: (ctx) => CupertinoAlertDialog(
+          title: const Text('Transferring to Credit Account'),
+          content: const Text(
+              'You are transferring money to a credit card or pay-later account. This will reduce the outstanding balance. Continue?'),
+          actions: [
+            CupertinoDialogAction(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
+            ),
+            CupertinoDialogAction(
+              isDefaultAction: true,
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Continue'),
+            ),
+          ],
+        ),
+      );
+      if (proceed != true || !mounted) return;
+    }
+
     // Update source account
     if (_sourceAccount != null) {
       final updatedSource = _sourceAccount!.copyWith(
