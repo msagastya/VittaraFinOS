@@ -801,13 +801,32 @@ class _AccountsScreenState extends State<AccountsScreen> {
                               ),
                             ),
                             const SizedBox(height: Spacing.xs),
-                            Text(
-                              account.creditCardNumber!,
-                              style: TextStyle(
-                                color: AppStyles.getTextColor(dragContext),
-                                fontSize: TypeScale.headline,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 2,
+                            GestureDetector(
+                              onLongPress: () {
+                                Clipboard.setData(ClipboardData(
+                                    text: account.creditCardNumber!));
+                                Haptics.light();
+                                toast.showSuccess('Card number copied');
+                              },
+                              child: Row(
+                                children: [
+                                  Text(
+                                    account.creditCardNumber!,
+                                    style: TextStyle(
+                                      color: AppStyles.getTextColor(dragContext),
+                                      fontSize: TypeScale.headline,
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: 2,
+                                    ),
+                                  ),
+                                  const SizedBox(width: Spacing.sm),
+                                  Icon(
+                                    CupertinoIcons.doc_on_doc,
+                                    size: 16,
+                                    color: AppStyles.getSecondaryTextColor(
+                                        dragContext),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
