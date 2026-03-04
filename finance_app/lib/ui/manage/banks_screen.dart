@@ -283,16 +283,40 @@ class _BanksScreenState extends State<BanksScreen> {
                                               color: Colors.white)),
                                       onPressed: () {
                                         if (isEditMode) {
-                                          // Update existing bank with new sender IDs
-                                          existingBank['senderIds'] =
-                                              tempSenderIds;
-                                          banksController.notifyListeners();
+                                          final updated =
+                                              Map<String, dynamic>.from(
+                                                  existingBank);
+                                          updated['senderIds'] = tempSenderIds;
+                                          banksController.updateBank(updated);
+                                          Navigator.pop(context);
                                         } else {
-                                          // Add new bank
-                                          // For now, just update sender IDs of an existing bank
-                                          // Full add bank functionality can be expanded later
+                                          final error =
+                                              banksController.addNewBank(
+                                                  nameController.text,
+                                                  tempSenderIds);
+                                          if (error != null) {
+                                            showCupertinoDialog(
+                                              context: context,
+                                              builder: (ctx) =>
+                                                  CupertinoAlertDialog(
+                                                title: const Text(
+                                                    'Cannot Add Bank'),
+                                                content: Text(error),
+                                                actions: [
+                                                  CupertinoDialogAction(
+                                                    onPressed: () =>
+                                                        Navigator.pop(ctx),
+                                                    child: const Text('OK'),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                            return;
+                                          }
+                                          Navigator.pop(context);
+                                          toast_lib.toast
+                                              .showSuccess('Bank added');
                                         }
-                                        Navigator.pop(context);
                                       },
                                     ),
                                   ),

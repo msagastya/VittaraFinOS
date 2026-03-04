@@ -103,6 +103,38 @@ class BanksController with ChangeNotifier {
     notifyListeners();
   }
 
+  void updateBank(Map<String, dynamic> updatedBank) {
+    final index = _banks.indexWhere((b) => b['id'] == updatedBank['id']);
+    if (index != -1) {
+      _banks[index] = updatedBank;
+      notifyListeners();
+    }
+  }
+
+  /// Returns null on success, or an error message on failure.
+  String? addNewBank(String name, List<String> senderIds) {
+    final trimmed = name.trim();
+    if (trimmed.isEmpty) return 'Bank name cannot be empty';
+    if (bankNameExists(trimmed)) return 'A bank with this name already exists';
+
+    var id = _slugify(trimmed);
+    var suffix = 2;
+    while (_banks.any((bank) => bank['id'] == id)) {
+      id = '${_slugify(trimmed)}_$suffix';
+      suffix++;
+    }
+
+    _banks.add({
+      'id': id,
+      'name': trimmed,
+      'color': const Color(0xFF007AFF),
+      'isEnabled': true,
+      'senderIds': senderIds,
+    });
+    notifyListeners();
+    return null;
+  }
+
   void ensureBankEnabledByName(String bankName, {Color? color}) {
     final trimmedName = bankName.trim();
     if (trimmedName.isEmpty) return;
