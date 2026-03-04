@@ -12,6 +12,7 @@ import 'package:vittara_fin_os/ui/manage/commodities/steps/commodity_position_st
 import 'package:vittara_fin_os/ui/manage/commodities/steps/commodity_review_step.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class CommoditiesWizard extends StatelessWidget {
@@ -88,6 +89,7 @@ class _CommoditiesWizardContentState extends State<_CommoditiesWizardContent> {
       await investmentsController.addInvestment(investment);
 
       if (context.mounted) {
+        Haptics.success();
         toast.showSuccess('Commodity investment added successfully!');
         Navigator.of(context).pop();
       }

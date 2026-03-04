@@ -13,6 +13,7 @@ import 'package:vittara_fin_os/ui/manage/fo/steps/fo_risk_analysis_step.dart';
 import 'package:vittara_fin_os/ui/manage/fo/steps/fo_review_step.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class FOWizard extends StatelessWidget {
@@ -108,6 +109,7 @@ class _FOWizardContentState extends State<_FOWizardContent> {
       await investmentsController.addInvestment(investment);
 
       if (context.mounted) {
+        Haptics.success();
         toast.showSuccess('F&O investment added successfully!');
         Navigator.of(context).pop();
       }

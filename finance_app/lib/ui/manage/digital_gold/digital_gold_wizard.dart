@@ -11,6 +11,7 @@ import 'package:vittara_fin_os/ui/manage/digital_gold/steps/gold_gst_step.dart';
 import 'package:vittara_fin_os/ui/manage/digital_gold/steps/gold_investment_date_step.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class DigitalGoldWizard extends StatelessWidget {
@@ -62,6 +63,7 @@ class _DigitalGoldWizardContent extends StatelessWidget {
       await investmentsController.addInvestment(investment);
 
       if (context.mounted) {
+        Haptics.success();
         toast.showSuccess('Digital Gold investment added successfully!');
         Navigator.of(context).pop();
       }

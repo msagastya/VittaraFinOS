@@ -76,16 +76,18 @@ class _AnimatedCounterState extends State<AnimatedCounter>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, child) {
-        final displayValue =
-            _animation.value.toStringAsFixed(widget.decimalPlaces);
-        return Text(
-          '${widget.prefix}$displayValue${widget.suffix}',
-          style: widget.textStyle,
-        );
-      },
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: _animation,
+        builder: (context, child) {
+          final displayValue =
+              _animation.value.toStringAsFixed(widget.decimalPlaces);
+          return Text(
+            '${widget.prefix}$displayValue${widget.suffix}',
+            style: widget.textStyle,
+          );
+        },
+      ),
     );
   }
 }

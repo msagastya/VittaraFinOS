@@ -7,6 +7,7 @@ import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class SimpleInvestmentEntryWizard extends StatefulWidget {
@@ -167,6 +168,7 @@ class _SimpleInvestmentEntryWizardState
       await context.read<InvestmentsController>().addInvestment(investment);
 
       if (!mounted) return;
+      Haptics.success();
       toast.showSuccess('Investment added.');
       Navigator.of(context).pop();
     } catch (error) {

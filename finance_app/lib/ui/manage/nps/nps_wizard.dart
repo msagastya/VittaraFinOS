@@ -12,6 +12,7 @@ import 'package:vittara_fin_os/ui/manage/nps/steps/nps_review_step.dart';
 import 'package:vittara_fin_os/ui/manage/nps/steps/nps_valuation_step.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class NPSWizard extends StatelessWidget {
@@ -94,6 +95,7 @@ class _NPSWizardContentState extends State<_NPSWizardContent> {
       await investmentsController.addInvestment(investment);
 
       if (context.mounted) {
+        Haptics.success();
         toast.showSuccess('NPS account added successfully!');
         Navigator.of(context).pop();
       }

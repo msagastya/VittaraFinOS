@@ -7,6 +7,7 @@ import 'package:vittara_fin_os/logic/pension_model.dart';
 import 'package:vittara_fin_os/ui/manage/pension/pension_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class PensionWizard extends StatelessWidget {
@@ -78,6 +79,7 @@ class _PensionWizardContentState extends State<_PensionWizardContent> {
       await investmentsController.addInvestment(investment);
 
       if (context.mounted) {
+        Haptics.success();
         toast.showSuccess('Pension scheme added successfully!');
         Navigator.of(context).pop();
       }

@@ -12,6 +12,7 @@ import 'package:vittara_fin_os/ui/manage/stocks/steps/deduction_step.dart';
 import 'package:vittara_fin_os/ui/manage/stocks/steps/stock_review_step.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class StocksWizard extends StatelessWidget {
@@ -75,6 +76,7 @@ class _StocksWizardContent extends StatelessWidget {
       await investmentsController.addInvestment(investment);
 
       if (context.mounted) {
+        Haptics.success();
         toast.showSuccess('Investment added successfully!');
         Navigator.of(context).pop();
       }

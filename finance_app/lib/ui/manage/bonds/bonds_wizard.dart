@@ -74,6 +74,7 @@ class _BondsWizardContent extends StatelessWidget {
       await investmentsController.addInvestment(investment);
 
       if (context.mounted) {
+        Haptics.success();
         toast.showSuccess('Bond investment added successfully!');
         Navigator.of(context).pop();
       }

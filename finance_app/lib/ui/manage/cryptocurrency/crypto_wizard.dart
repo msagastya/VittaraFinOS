@@ -11,6 +11,7 @@ import 'package:vittara_fin_os/ui/manage/cryptocurrency/steps/crypto_selection_s
 import 'package:vittara_fin_os/ui/manage/cryptocurrency/steps/crypto_wallet_step.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class CryptoWizard extends StatelessWidget {
@@ -82,6 +83,7 @@ class _CryptoWizardContent extends StatelessWidget {
       await investmentsController.addInvestment(investment);
 
       if (context.mounted) {
+        Haptics.success();
         toast.showSuccess('Cryptocurrency investment added successfully!');
         Navigator.of(context).pop();
       }
