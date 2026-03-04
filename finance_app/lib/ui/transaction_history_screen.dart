@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show RefreshIndicator;
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_feed_builder.dart';
@@ -32,6 +34,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   double? _minAmount;
   double? _maxAmount;
   TransactionType? _typeFilter;
+  bool _isExportingCsv = false;
 
   @override
   void dispose() {
@@ -263,6 +266,55 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   }
 
 
+  Future<void> _exportCsv(List<Transaction> transactions) async {
+    if (_isExportingCsv) return;
+    setState(() => _isExportingCsv = true);
+    try {
+      final buffer = StringBuffer();
+      // Header
+      buffer.writeln(
+          'Date,Type,Summary,Amount,Account,Merchant,Description,Category,Tags');
+      for (final t in transactions) {
+        final meta = t.metadata ?? {};
+        final row = [
+          DateFormatter.formatWithTime(t.dateTime),
+          t.getTypeLabel(),
+          _escapeCsv(t.getSummary()),
+          t.amount.toStringAsFixed(2),
+          _escapeCsv(
+              (meta['accountName'] ?? t.sourceAccountName ?? '').toString()),
+          _escapeCsv((meta['merchant'] ?? '').toString()),
+          _escapeCsv((meta['description'] ?? t.description).toString()),
+          _escapeCsv((meta['categoryName'] ?? '').toString()),
+          _escapeCsv((meta['tags'] as List?)?.join('; ') ?? ''),
+        ].join(',');
+        buffer.writeln(row);
+      }
+      final dir = await getApplicationDocumentsDirectory();
+      final reportsDir = Directory('${dir.path}/reports')
+        ..createSync(recursive: true);
+      final ts = DateTime.now()
+          .toIso8601String()
+          .replaceAll(':', '-')
+          .substring(0, 19);
+      final file = File('${reportsDir.path}/transactions_$ts.csv');
+      await file.writeAsString(buffer.toString());
+      if (!mounted) return;
+      toast_lib.toast.showSuccess('CSV saved: ${file.path.split('/').last}');
+    } catch (e) {
+      if (mounted) toast_lib.toast.showError('Export failed: $e');
+    } finally {
+      if (mounted) setState(() => _isExportingCsv = false);
+    }
+  }
+
+  String _escapeCsv(String value) {
+    if (value.contains(',') || value.contains('"') || value.contains('\n')) {
+      return '"${value.replaceAll('"', '""')}"';
+    }
+    return value;
+  }
+
   String _formatDate(DateTime dateTime) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -288,18 +340,46 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         previousPageTitle: 'Dashboard',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
-        trailing: CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: () => _showFilterSheet(context),
-          child: Icon(
-            _hasActiveFilter
-                ? CupertinoIcons.line_horizontal_3_decrease_circle_fill
-                : CupertinoIcons.line_horizontal_3_decrease_circle,
-            size: 22,
-            color: _hasActiveFilter
-                ? AppStyles.getPrimaryColor(context)
-                : AppStyles.getSecondaryTextColor(context),
-          ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CupertinoButton(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              onPressed: () => _showFilterSheet(context),
+              child: Icon(
+                _hasActiveFilter
+                    ? CupertinoIcons.line_horizontal_3_decrease_circle_fill
+                    : CupertinoIcons.line_horizontal_3_decrease_circle,
+                size: 22,
+                color: _hasActiveFilter
+                    ? AppStyles.getPrimaryColor(context)
+                    : AppStyles.getSecondaryTextColor(context),
+              ),
+            ),
+            // F22: CSV Export
+            Consumer2<TransactionsController, InvestmentsController>(
+              builder: (ctx, txCtrl, invCtrl, _) {
+                final all = TransactionFeedBuilder.buildUnifiedFeed(
+                  transactions: txCtrl.transactions,
+                  investments: invCtrl.investments,
+                );
+                final filtered = _filterBySearch(all);
+                return CupertinoButton(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  onPressed: _isExportingCsv || filtered.isEmpty
+                      ? null
+                      : () => _exportCsv(filtered),
+                  child: _isExportingCsv
+                      ? const CupertinoActivityIndicator(radius: 10)
+                      : Icon(
+                          CupertinoIcons.share,
+                          size: 20,
+                          color: AppStyles.getSecondaryTextColor(ctx),
+                        ),
+                );
+              },
+            ),
+          ],
         ),
       ),
       child: Consumer2<TransactionsController, InvestmentsController>(
