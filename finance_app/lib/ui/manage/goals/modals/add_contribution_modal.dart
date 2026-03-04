@@ -27,11 +27,33 @@ class _AddContributionModalState extends State<AddContributionModal> {
     super.dispose();
   }
 
-  void _saveContribution() async {
+  Future<void> _saveContribution() async {
     final amount = double.tryParse(_amountController.text.trim());
     if (amount == null || amount <= 0) {
       AlertService.showError(context, 'Please enter a valid amount');
       return;
+    }
+
+    final remaining = widget.goal.targetAmount - widget.goal.currentAmount;
+    if (amount > remaining && remaining > 0) {
+      final proceed = await showCupertinoDialog<bool>(
+        context: context,
+        builder: (ctx) => CupertinoAlertDialog(
+          title: const Text('Exceeds Remaining Target'),
+          content: Text(
+              'Contribution of ₹${amount.toStringAsFixed(2)} exceeds the remaining ₹${remaining.toStringAsFixed(2)}. Proceed anyway?'),
+          actions: [
+            CupertinoDialogAction(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Cancel')),
+            CupertinoDialogAction(
+                isDefaultAction: true,
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('Proceed')),
+          ],
+        ),
+      );
+      if (proceed != true || !mounted) return;
     }
 
     final contribution = GoalContribution(
