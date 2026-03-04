@@ -227,7 +227,13 @@ class _ContactsScreenState extends State<ContactsScreen> {
             isDestructiveAction: true,
             onPressed: () {
               Navigator.pop(context);
+              final deletedContact = contact;
               controller.removeContact(contact.id);
+              toast_lib.toast.showSuccess(
+                '"${contact.name}" removed',
+                actionLabel: 'Undo',
+                onAction: () => controller.addContact(deletedContact),
+              );
             },
             child: const Text('Delete Contact'),
           ),
