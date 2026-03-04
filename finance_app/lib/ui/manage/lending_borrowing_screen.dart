@@ -23,6 +23,8 @@ class LendingBorrowingScreen extends StatefulWidget {
 class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
   final AppLogger logger = AppLogger();
   int _selectedTab = 0; // 0 = I Lent, 1 = I Borrowed, 2 = Settled
+  String _sortBy = 'date';
+  bool _sortAscending = false;
 
   @override
   Widget build(BuildContext context) {
@@ -34,17 +36,43 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
         previousPageTitle: 'Manage',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
+        trailing: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: () => _showSortSheet(),
+          child: Icon(
+            CupertinoIcons.arrow_up_arrow_down,
+            color: AppStyles.getPrimaryColor(context),
+            size: 20,
+          ),
+        ),
       ),
       child: Consumer<LendingBorrowingController>(
         builder: (context, controller, child) {
           final lentRecords = controller.getLentActiveRecords();
           final borrowedRecords = controller.getBorrowedActiveRecords();
           final settledRecords = controller.getSettledRecords();
-          final displayRecords = _selectedTab == 0
+          final rawRecords = _selectedTab == 0
               ? lentRecords
               : _selectedTab == 1
                   ? borrowedRecords
                   : settledRecords;
+          final displayRecords = List<LendingBorrowing>.from(rawRecords)
+            ..sort((a, b) {
+              int cmp;
+              switch (_sortBy) {
+                case 'amount':
+                  cmp = a.amount.compareTo(b.amount);
+                  break;
+                case 'name':
+                  cmp = a.personName
+                      .toLowerCase()
+                      .compareTo(b.personName.toLowerCase());
+                  break;
+                default: // 'date'
+                  cmp = a.date.compareTo(b.date);
+              }
+              return _sortAscending ? cmp : -cmp;
+            });
 
           return Stack(
             children: [
@@ -200,6 +228,66 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  void _showSortSheet() {
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (ctx) => CupertinoActionSheet(
+        title: const Text('Sort By'),
+        actions: [
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(ctx);
+              setState(() {
+                if (_sortBy == 'date') {
+                  _sortAscending = !_sortAscending;
+                } else {
+                  _sortBy = 'date';
+                  _sortAscending = false;
+                }
+              });
+            },
+            child: Text(
+                'Date${_sortBy == 'date' ? (_sortAscending ? ' (Oldest first)' : ' (Newest first) ✓') : ''}'),
+          ),
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(ctx);
+              setState(() {
+                if (_sortBy == 'amount') {
+                  _sortAscending = !_sortAscending;
+                } else {
+                  _sortBy = 'amount';
+                  _sortAscending = false;
+                }
+              });
+            },
+            child: Text(
+                'Amount${_sortBy == 'amount' ? (_sortAscending ? ' (Low to High)' : ' (High to Low) ✓') : ''}'),
+          ),
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(ctx);
+              setState(() {
+                if (_sortBy == 'name') {
+                  _sortAscending = !_sortAscending;
+                } else {
+                  _sortBy = 'name';
+                  _sortAscending = true;
+                }
+              });
+            },
+            child: Text(
+                'Person Name${_sortBy == 'name' ? (_sortAscending ? ' (A–Z) ✓' : ' (Z–A)') : ''}'),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(ctx),
+          child: const Text('Cancel'),
         ),
       ),
     );
