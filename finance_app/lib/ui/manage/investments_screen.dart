@@ -938,15 +938,30 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
           diffMins == 0 ? 'Refreshed just now' : 'Refreshed ${diffMins}m ago';
     }
 
+    // Calculate portfolio P&L
+    double totalInvested = 0;
+    double totalCurrentValue = 0;
+    for (final inv in investments) {
+      final meta = inv.metadata;
+      final invested = (meta?['investmentAmount'] as num?)?.toDouble() ?? inv.amount;
+      final current = _calculateCurrentValue(inv);
+      totalInvested += invested;
+      totalCurrentValue += current;
+    }
+    final gainLoss = totalCurrentValue - totalInvested;
+    final gainPercent = totalInvested > 0 ? (gainLoss / totalInvested) * 100 : 0.0;
+    final isGain = gainLoss >= 0;
+    final gainColor = isGain ? CupertinoColors.systemGreen : CupertinoColors.systemRed;
+
     return Container(
       color: AppStyles.getCardColor(context),
       padding:
           EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.md),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 '${investments.length} Investment${investments.length == 1 ? '' : 's'}',
@@ -956,35 +971,103 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                   color: AppStyles.getTextColor(context),
                 ),
               ),
-              SizedBox(height: Spacing.xs),
-              Text(
-                refreshLabel,
-                style: TextStyle(
-                  fontSize: TypeScale.caption,
-                  color: AppStyles.getSecondaryTextColor(context),
+              Container(
+                padding: EdgeInsets.symmetric(
+                    horizontal: Spacing.md, vertical: Spacing.sm),
+                decoration: BoxDecoration(
+                  color: AppStyles.getBackground(context),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  _getSortLabel(_sortBy),
+                  style: TextStyle(
+                    fontSize: TypeScale.footnote,
+                    fontWeight: FontWeight.w600,
+                    color: SemanticColors.investments,
+                  ),
                 ),
               ),
             ],
           ),
-          // Current sort indicator
+          SizedBox(height: Spacing.md),
+          // P&L Summary Row
           Container(
-            padding: EdgeInsets.symmetric(
-                horizontal: Spacing.md, vertical: Spacing.sm),
+            padding: EdgeInsets.all(Spacing.md),
             decoration: BoxDecoration(
               color: AppStyles.getBackground(context),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: Text(
-              _getSortLabel(_sortBy),
-              style: TextStyle(
-                fontSize: TypeScale.footnote,
-                fontWeight: FontWeight.w600,
-                color: SemanticColors.investments,
-              ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _buildPnLColumn(context, 'Invested',
+                      '₹${totalInvested.toStringAsFixed(0)}',
+                      AppStyles.getTextColor(context)),
+                ),
+                Container(
+                  width: 1,
+                  height: 28,
+                  color: AppStyles.getSecondaryTextColor(context)
+                      .withValues(alpha: 0.2),
+                ),
+                Expanded(
+                  child: _buildPnLColumn(context, 'Current Value',
+                      '₹${totalCurrentValue.toStringAsFixed(0)}',
+                      gainColor),
+                ),
+                Container(
+                  width: 1,
+                  height: 28,
+                  color: AppStyles.getSecondaryTextColor(context)
+                      .withValues(alpha: 0.2),
+                ),
+                Expanded(
+                  child: _buildPnLColumn(
+                    context,
+                    'Gain / Loss',
+                    '${isGain ? '+' : ''}${gainPercent.toStringAsFixed(1)}%',
+                    gainColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: Spacing.xs),
+          Text(
+            refreshLabel,
+            style: TextStyle(
+              fontSize: TypeScale.caption,
+              color: AppStyles.getSecondaryTextColor(context),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildPnLColumn(
+      BuildContext context, String label, String value, Color valueColor) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: TypeScale.caption,
+            color: AppStyles.getSecondaryTextColor(context),
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: TypeScale.footnote,
+            fontWeight: FontWeight.w700,
+            color: valueColor,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
     );
   }
 
