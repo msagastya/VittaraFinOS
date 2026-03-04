@@ -7,6 +7,7 @@ import 'package:vittara_fin_os/logic/brokers_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
+import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
 
 class AccountWizard extends StatefulWidget {
   final bool isInvestment;
@@ -1393,14 +1394,20 @@ class _AccountWizardState extends State<AccountWizard> {
                         Expanded(
                           child: BouncyButton(
                             onPressed: () {
-                              if (bankNameController.text.isNotEmpty) {
+                              if (bankNameController.text.trim().isNotEmpty) {
+                                final name = bankNameController.text.trim();
+                                if (banksController.bankNameExists(name)) {
+                                  toast_lib.toast.showError(
+                                      '"$name" already exists');
+                                  return;
+                                }
                                 // Add new bank to controller
-                                final newBankId = bankNameController.text
+                                final newBankId = name
                                     .replaceAll(' ', '_')
                                     .toLowerCase();
                                 final newBank = {
                                   'id': newBankId,
-                                  'name': bankNameController.text,
+                                  'name': name,
                                   'color': selectedColor,
                                   'isEnabled': true,
                                   'senderIds': <String>[],
@@ -1411,7 +1418,7 @@ class _AccountWizardState extends State<AccountWizard> {
 
                                 // Select it for wizard
                                 setState(() {
-                                  _selectedBank = bankNameController.text;
+                                  _selectedBank = name;
                                   _selectedColor = selectedColor;
                                 });
 

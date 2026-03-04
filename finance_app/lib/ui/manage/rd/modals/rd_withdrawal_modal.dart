@@ -365,6 +365,7 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
                 mode: CupertinoDatePickerMode.date,
                 initialDateTime: _withdrawalDate,
                 minimumDate: widget.rd.startDate,
+                maximumDate: DateTime.now(),
                 onDateTimeChanged: (DateTime newDate) {
                   setState(() {
                     _withdrawalDate = newDate;

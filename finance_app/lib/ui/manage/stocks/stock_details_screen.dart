@@ -2654,6 +2654,7 @@ class _DividendModalState extends State<_DividendModal> {
           child: CupertinoDatePicker(
             initialDateTime: _dividendDate,
             mode: CupertinoDatePickerMode.date,
+            maximumDate: DateTime.now(),
             onDateTimeChanged: (DateTime newDate) {
               setState(() {
                 _dividendDate = newDate;

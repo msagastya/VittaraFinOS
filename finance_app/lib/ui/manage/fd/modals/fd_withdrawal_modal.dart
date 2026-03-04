@@ -446,6 +446,7 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                 mode: CupertinoDatePickerMode.date,
                 initialDateTime: _withdrawalDate,
                 minimumDate: widget.fd.investmentDate,
+                maximumDate: DateTime.now(),
                 onDateTimeChanged: (DateTime newDate) {
                   setState(() {
                     _withdrawalDate = newDate;

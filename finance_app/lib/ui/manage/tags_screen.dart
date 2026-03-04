@@ -348,7 +348,7 @@ class _TagsScreenState extends State<TagsScreen> {
               onPressed: () => Navigator.pop(context),
               child: const Text('Cancel'),
             ),
-            if (nameController.text.isNotEmpty)
+            if (nameController.text.trim().isNotEmpty)
               CupertinoActionSheetAction(
                 isDefaultAction: true,
                 onPressed: () {

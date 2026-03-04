@@ -98,6 +98,7 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
                         child: CupertinoDatePicker(
                           mode: CupertinoDatePickerMode.date,
                           initialDateTime: widget.ctrl.entryDate,
+                          maximumDate: DateTime.now(),
                           onDateTimeChanged: (date) {
                             widget.ctrl.updateEntryDate(date);
                           },

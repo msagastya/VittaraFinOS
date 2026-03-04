@@ -1906,6 +1906,14 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                 child: CupertinoButton(
                   color: AppStyles.getPrimaryColor(context),
                   onPressed: () {
+                    final daysLeft = widget.fd.maturityDate
+                        .difference(DateTime.now())
+                        .inDays;
+                    if (daysLeft > 0) {
+                      toast.showError(
+                          'FD matures in $daysLeft day${daysLeft == 1 ? '' : 's'} — renewal available after maturity');
+                      return;
+                    }
                     final investmentsController =
                         Provider.of<InvestmentsController>(context,
                             listen: false);
