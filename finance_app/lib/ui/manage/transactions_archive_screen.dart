@@ -8,6 +8,7 @@ import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/transaction_type_theme.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/transaction_details_content.dart';
@@ -205,8 +206,8 @@ class _ArchivedTransactionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final typeColor = _getTransactionTypeColor(transaction.type);
-    final typeIcon = _getTransactionTypeIcon(transaction.type);
+    final typeColor = transaction.type.typeColor;
+    final typeIcon = transaction.type.typeIcon;
 
     return BouncyButton(
       onPressed: () => _showDetailSheet(context),
@@ -378,44 +379,6 @@ class _ArchivedTransactionCard extends StatelessWidget {
         );
       },
     );
-  }
-
-  Color _getTransactionTypeColor(TransactionType type) {
-    switch (type) {
-      case TransactionType.transfer:
-        return CupertinoColors.systemBlue;
-      case TransactionType.cashback:
-        return CupertinoColors.systemGreen;
-      case TransactionType.lending:
-        return CupertinoColors.systemOrange;
-      case TransactionType.borrowing:
-        return CupertinoColors.systemPurple;
-      case TransactionType.investment:
-        return CupertinoColors.systemRed;
-      case TransactionType.expense:
-        return CupertinoColors.systemRed;
-      case TransactionType.income:
-        return CupertinoColors.systemGreen;
-    }
-  }
-
-  IconData _getTransactionTypeIcon(TransactionType type) {
-    switch (type) {
-      case TransactionType.transfer:
-        return CupertinoIcons.arrow_right_arrow_left;
-      case TransactionType.cashback:
-        return CupertinoIcons.gift_fill;
-      case TransactionType.lending:
-        return CupertinoIcons.arrow_up_circle_fill;
-      case TransactionType.borrowing:
-        return CupertinoIcons.arrow_down_circle_fill;
-      case TransactionType.investment:
-        return CupertinoIcons.chart_bar_square_fill;
-      case TransactionType.expense:
-        return CupertinoIcons.arrow_down_circle_fill;
-      case TransactionType.income:
-        return CupertinoIcons.arrow_up_circle_fill;
-    }
   }
 
   String _formatDate(DateTime dateTime) {
