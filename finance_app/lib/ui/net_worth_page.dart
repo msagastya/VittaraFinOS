@@ -1,7 +1,10 @@
+import 'dart:math' as math;
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
@@ -20,6 +23,74 @@ class NetWorthPage extends StatefulWidget {
 
 class _NetWorthPageState extends State<NetWorthPage> {
   bool _expandInvestments = false;
+  List<_NetWorthSnapshot> _historySnapshots = [];
+  bool _snapshotSavedThisSession = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNetWorthHistory();
+  }
+
+  Future<void> _loadNetWorthHistory() async {
+    final prefs = await SharedPreferences.getInstance();
+    final keys = prefs
+        .getKeys()
+        .where((k) => k.startsWith('nw_history_'))
+        .toList()
+      ..sort();
+    final snapshots = <_NetWorthSnapshot>[];
+    for (final key in keys) {
+      final value = prefs.getDouble(key);
+      if (value == null) continue;
+      // key format: nw_history_YYYY_MM
+      final datePart = key.substring('nw_history_'.length);
+      final parts = datePart.split('_');
+      if (parts.length == 2) {
+        final year = int.tryParse(parts[0]);
+        final month = int.tryParse(parts[1]);
+        if (year != null && month != null) {
+          snapshots.add(_NetWorthSnapshot(date: DateTime(year, month), value: value));
+        }
+      }
+    }
+    // Keep last 12 months
+    final trimmed = snapshots.length > 12 ? snapshots.sublist(snapshots.length - 12) : snapshots;
+    if (mounted) setState(() => _historySnapshots = trimmed);
+  }
+
+  void _maybeSaveSnapshot(double netWorth) {
+    if (_snapshotSavedThisSession) return;
+    _snapshotSavedThisSession = true;
+    final now = DateTime.now();
+    final key = 'nw_history_${now.year}_${now.month.toString().padLeft(2, '0')}';
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.setDouble(key, netWorth);
+      _loadNetWorthHistory();
+    });
+  }
+
+  double _calculateNetWorth(AccountsController ac, InvestmentsController ic) {
+    double savings = 0;
+    for (final a in ac.accounts) {
+      if (a.type != AccountType.credit && a.type != AccountType.payLater) {
+        savings += a.balance;
+      }
+    }
+    double investments = 0;
+    for (final inv in ic.investments) {
+      final metadata = inv.metadata ?? {};
+      final cv = (metadata['currentValue'] as num?)?.toDouble();
+      investments += cv ?? inv.amount;
+    }
+    double creditUsed = 0;
+    for (final a in ac.accounts) {
+      if (a.type == AccountType.credit || a.type == AccountType.payLater) {
+        creditUsed += (a.creditLimit ?? 0.0) - a.balance;
+      }
+    }
+    return savings + investments - creditUsed;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -93,12 +164,22 @@ class _NetWorthPageState extends State<NetWorthPage> {
             }
 
             try {
+              final totalNetWorth =
+                  _calculateNetWorth(accountsController, investmentsController);
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) _maybeSaveSnapshot(totalNetWorth);
+              });
+
               return SingleChildScrollView(
                 padding: EdgeInsets.all(Spacing.lg),
                 child: Column(
                   children: [
                     _buildTotalNetWorthCard(
                         context, accountsController, investmentsController),
+                    if (_historySnapshots.length >= 2) ...[
+                      SizedBox(height: Spacing.xl),
+                      _buildNetWorthTrendCard(context),
+                    ],
                     SizedBox(height: Spacing.xl),
                     _buildBankAccountsSection(context, accountsController),
                     SizedBox(height: Spacing.lg),
@@ -1182,6 +1263,128 @@ class _NetWorthPageState extends State<NetWorthPage> {
     }
   }
 
+  Widget _buildNetWorthTrendCard(BuildContext context) {
+    final snapshots = _historySnapshots;
+    final first = snapshots.first.value;
+    final last = snapshots.last.value;
+    final change = last - first;
+    final changePct = first != 0 ? (change / first.abs()) * 100 : 0.0;
+    final isPositive = change >= 0;
+    final trendColor =
+        isPositive ? CupertinoColors.systemGreen : CupertinoColors.systemRed;
+    final monthCount = snapshots.length;
+    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    return Container(
+      padding: EdgeInsets.all(Spacing.lg),
+      decoration: BoxDecoration(
+        color: AppStyles.getCardColor(context),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+            color: CupertinoColors.systemGrey.withValues(alpha: 0.1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Header row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Net Worth Trend',
+                style: TextStyle(
+                  fontSize: TypeScale.headline,
+                  fontWeight: FontWeight.w600,
+                  color: AppStyles.getTextColor(context),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: trendColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      isPositive
+                          ? CupertinoIcons.arrow_up_right
+                          : CupertinoIcons.arrow_down_right,
+                      size: 12,
+                      color: trendColor,
+                    ),
+                    const SizedBox(width: 3),
+                    Text(
+                      '${changePct.abs().toStringAsFixed(1)}%',
+                      style: TextStyle(
+                        fontSize: TypeScale.footnote,
+                        fontWeight: FontWeight.w600,
+                        color: trendColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: Spacing.xs),
+          Text(
+            'Last $monthCount month${monthCount == 1 ? '' : 's'}',
+            style: TextStyle(
+              fontSize: TypeScale.footnote,
+              color: AppStyles.getSecondaryTextColor(context),
+            ),
+          ),
+          SizedBox(height: Spacing.lg),
+          // Sparkline chart
+          SizedBox(
+            height: 120,
+            child: CustomPaint(
+              painter: _NetWorthSparklinePainter(
+                snapshots: snapshots,
+                lineColor: trendColor,
+                gridColor: AppStyles.getSecondaryTextColor(context),
+              ),
+              size: Size.infinite,
+            ),
+          ),
+          SizedBox(height: Spacing.sm),
+          // X-axis month labels
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                months[snapshots.first.date.month - 1],
+                style: TextStyle(
+                  fontSize: 10,
+                  color: AppStyles.getSecondaryTextColor(context),
+                ),
+              ),
+              if (monthCount > 2)
+                Text(
+                  months[snapshots[monthCount ~/ 2].date.month - 1],
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: AppStyles.getSecondaryTextColor(context),
+                  ),
+                ),
+              Text(
+                months[snapshots.last.date.month - 1],
+                style: TextStyle(
+                  fontSize: 10,
+                  color: AppStyles.getSecondaryTextColor(context),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   double _currentValueForInvestment(Investment investment) {
     final metadata = investment.metadata ?? {};
     final currentValue = (metadata['currentValue'] as num?)?.toDouble();
@@ -1196,4 +1399,124 @@ class _NetWorthPageState extends State<NetWorthPage> {
     }
     return investment.amount;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Net Worth History data model
+// ---------------------------------------------------------------------------
+
+class _NetWorthSnapshot {
+  final DateTime date;
+  final double value;
+  const _NetWorthSnapshot({required this.date, required this.value});
+}
+
+// ---------------------------------------------------------------------------
+// Sparkline painter for net worth trend chart
+// ---------------------------------------------------------------------------
+
+class _NetWorthSparklinePainter extends CustomPainter {
+  final List<_NetWorthSnapshot> snapshots;
+  final Color lineColor;
+  final Color gridColor;
+
+  const _NetWorthSparklinePainter({
+    required this.snapshots,
+    required this.lineColor,
+    required this.gridColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (snapshots.length < 2) return;
+
+    const leftPad = 4.0;
+    const rightPad = 4.0;
+    const topPad = 8.0;
+    const bottomPad = 8.0;
+    final w = size.width - leftPad - rightPad;
+    final h = size.height - topPad - bottomPad;
+
+    final values = snapshots.map((s) => s.value).toList();
+    final minV = values.reduce(math.min);
+    final maxV = values.reduce(math.max);
+    final range = (maxV - minV).abs();
+    final adjustedMin = range == 0 ? minV - 1 : minV;
+    final adjustedMax = range == 0 ? maxV + 1 : maxV;
+    final adjustedRange = adjustedMax - adjustedMin;
+
+    double xOf(int i) => leftPad + (i / (snapshots.length - 1)) * w;
+    double yOf(double v) =>
+        topPad + h - ((v - adjustedMin) / adjustedRange * h);
+
+    // Draw horizontal grid lines (3 lines)
+    final gridPaint = Paint()
+      ..color = gridColor.withValues(alpha: 0.08)
+      ..strokeWidth = 1;
+    for (int i = 0; i <= 2; i++) {
+      final y = topPad + (i / 2) * h;
+      canvas.drawLine(Offset(leftPad, y), Offset(leftPad + w, y), gridPaint);
+    }
+
+    // Build path for line
+    final path = Path();
+    for (int i = 0; i < snapshots.length; i++) {
+      final x = xOf(i);
+      final y = yOf(snapshots[i].value);
+      if (i == 0) {
+        path.moveTo(x, y);
+      } else {
+        path.lineTo(x, y);
+      }
+    }
+
+    // Gradient fill below the line
+    final fillPath = Path.from(path);
+    fillPath.lineTo(xOf(snapshots.length - 1), topPad + h);
+    fillPath.lineTo(leftPad, topPad + h);
+    fillPath.close();
+
+    final fillPaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          lineColor.withValues(alpha: 0.20),
+          lineColor.withValues(alpha: 0.0),
+        ],
+      ).createShader(Rect.fromLTWH(leftPad, topPad, w, h));
+    canvas.drawPath(fillPath, fillPaint);
+
+    // Draw line
+    final linePaint = Paint()
+      ..color = lineColor
+      ..strokeWidth = 2.0
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    canvas.drawPath(path, linePaint);
+
+    // Draw dots at each point
+    final dotPaint = Paint()..color = lineColor;
+    final dotRadius = snapshots.length <= 6 ? 3.5 : 2.5;
+    for (int i = 0; i < snapshots.length; i++) {
+      canvas.drawCircle(Offset(xOf(i), yOf(snapshots[i].value)), dotRadius, dotPaint);
+    }
+
+    // Highlight last point
+    final lastX = xOf(snapshots.length - 1);
+    final lastY = yOf(snapshots.last.value);
+    canvas.drawCircle(
+      Offset(lastX, lastY),
+      5.0,
+      Paint()
+        ..color = lineColor.withValues(alpha: 0.25)
+        ..style = PaintingStyle.fill,
+    );
+    canvas.drawCircle(Offset(lastX, lastY), 3.5, dotPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _NetWorthSparklinePainter old) =>
+      old.snapshots != snapshots || old.lineColor != lineColor;
 }
