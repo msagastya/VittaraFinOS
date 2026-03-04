@@ -32,6 +32,7 @@ class _AddGoalModalState extends State<AddGoalModal> {
   }
 
   void _saveGoal() async {
+    FocusManager.instance.primaryFocus?.unfocus();
     if (_nameController.text.trim().isEmpty) {
       AlertService.showError(context, 'Please enter a goal name');
       return;

@@ -387,6 +387,7 @@ class _TagsScreenState extends State<TagsScreen> {
               CupertinoActionSheetAction(
                 isDefaultAction: true,
                 onPressed: () {
+                  FocusManager.instance.primaryFocus?.unfocus();
                   final tag = Tag(
                     id: DateTime.now().millisecondsSinceEpoch.toString(),
                     name: nameController.text.trim(),
@@ -527,6 +528,7 @@ class _TagsScreenState extends State<TagsScreen> {
             isDefaultAction: true,
             onPressed: () {
               if (nameController.text.isNotEmpty) {
+                FocusManager.instance.primaryFocus?.unfocus();
                 controller.updateTag(tag.id, nameController.text.trim());
                 Navigator.pop(context);
               }

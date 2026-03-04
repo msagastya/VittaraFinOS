@@ -31,6 +31,7 @@ class _AddBudgetModalState extends State<AddBudgetModal> {
   }
 
   void _saveBudget() async {
+    FocusManager.instance.primaryFocus?.unfocus();
     if (_nameController.text.trim().isEmpty) {
       AlertService.showError(context, 'Please enter a budget name');
       return;

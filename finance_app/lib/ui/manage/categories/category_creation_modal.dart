@@ -18,6 +18,7 @@ Future<Category?> showCreateCategoryModal(
   Color selectedColor = initialCategory?.color ?? const Color(0xFF007AFF);
 
   Future<void> createAndClose(BuildContext modalContext) async {
+    FocusManager.instance.primaryFocus?.unfocus();
     final name = nameController.text.trim();
     if (name.isEmpty) return;
     if (name.length > 40) return;
