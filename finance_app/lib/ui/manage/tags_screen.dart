@@ -474,6 +474,7 @@ class _TagsScreenState extends State<TagsScreen> {
             isDestructiveAction: true,
             onPressed: () {
               Navigator.pop(context);
+              Haptics.delete();
               controller.removeTag(tag.id);
             },
             child: const Text('Delete Tag'),

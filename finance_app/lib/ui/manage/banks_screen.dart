@@ -58,6 +58,7 @@ class _BanksScreenState extends State<BanksScreen> {
       ),
     ).then((confirmed) {
       if (confirmed != true || !mounted) return;
+      Haptics.delete();
       banksController.deleteBank(bankId);
       toast_lib.toast.showSuccess(
         '"${bank['name']}" removed',

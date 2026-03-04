@@ -228,6 +228,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
             onPressed: () {
               Navigator.pop(context);
               final deletedContact = contact;
+              Haptics.delete();
               controller.removeContact(contact.id);
               toast_lib.toast.showSuccess(
                 '"${contact.name}" removed',

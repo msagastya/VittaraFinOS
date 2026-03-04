@@ -13,6 +13,7 @@ import 'package:vittara_fin_os/ui/manage/mf/steps/mf_new_investment_details_step
 import 'package:vittara_fin_os/ui/manage/mf/steps/mf_review_step.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class MFWizard extends StatelessWidget {
@@ -94,6 +95,7 @@ class _MFWizardContentState extends State<_MFWizardContent> {
       await investmentsController.addInvestment(investment);
 
       if (context.mounted) {
+        Haptics.success();
         toast.showSuccess('Mutual Fund investment added successfully!');
         Navigator.of(context).pop();
       }
@@ -164,6 +166,7 @@ class _MFWizardContentState extends State<_MFWizardContent> {
     try {
       await investmentsController.updateInvestment(updatedInvestment);
       if (context.mounted) {
+        Haptics.success();
         toast.showSuccess('Mutual Fund investment updated!');
         Navigator.of(context).pop();
       }

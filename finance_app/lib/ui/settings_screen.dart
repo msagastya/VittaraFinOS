@@ -186,7 +186,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           CupertinoSwitch(
             value: value,
             activeTrackColor: CupertinoColors.activeGreen,
-            onChanged: onChanged,
+            onChanged: (v) {
+              Haptics.light();
+              onChanged(v);
+            },
           ),
         ],
       ),
