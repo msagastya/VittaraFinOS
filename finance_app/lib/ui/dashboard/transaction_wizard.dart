@@ -29,7 +29,9 @@ enum TransactionWizardBranch { expense, income, transfer }
 enum TransactionPaymentType { cash, upi, card, bank, wallet }
 
 class TransactionWizard extends StatefulWidget {
-  const TransactionWizard({super.key});
+  final Transaction? cloneFrom;
+
+  const TransactionWizard({super.key, this.cloneFrom});
 
   @override
   State<TransactionWizard> createState() => _TransactionWizardState();
@@ -122,7 +124,52 @@ class _TransactionWizardState extends State<TransactionWizard> {
   void initState() {
     super.initState();
     _amountController.addListener(() => setState(() {}));
-    WidgetsBinding.instance.addPostFrameCallback((_) => _restoreLastCategory());
+    final clone = widget.cloneFrom;
+    if (clone != null) {
+      _amountController.text = clone.amount.toStringAsFixed(2);
+      _branch = clone.type == TransactionType.income
+          ? TransactionWizardBranch.income
+          : TransactionWizardBranch.expense;
+      final meta = clone.metadata ?? {};
+      _merchantController.text = (meta['merchant'] as String?) ?? '';
+      _descriptionController.text = clone.description;
+      final tags = meta['tags'];
+      if (tags is List) _selectedTags.addAll(tags.cast<String>());
+      final ptName = meta['paymentType'] as String?;
+      if (ptName != null) {
+        _paymentType = TransactionPaymentType.values.firstWhere(
+          (e) => e.name == ptName,
+          orElse: () => TransactionPaymentType.upi,
+        );
+      }
+      _selectedPaymentApp = meta['paymentApp'] as String?;
+      // Category and account resolved in postFrameCallback
+    }
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _restoreOrCloneCategory());
+  }
+
+  Future<void> _restoreOrCloneCategory() async {
+    final clone = widget.cloneFrom;
+    if (clone != null) {
+      final meta = clone.metadata ?? {};
+      final catId = meta['categoryId'] as String?;
+      final accountId = meta['accountId'] as String?;
+      if (!mounted) return;
+      if (catId != null) {
+        final cats = Provider.of<CategoriesController>(context, listen: false);
+        final match = cats.categories.where((c) => c.id == catId).firstOrNull;
+        if (match != null) setState(() => _selectedCategory = match);
+      }
+      if (accountId != null) {
+        final accts =
+            Provider.of<AccountsController>(context, listen: false);
+        final match = accts.accounts.where((a) => a.id == accountId).firstOrNull;
+        if (match != null) setState(() => _selectedAccount = match);
+      }
+      return;
+    }
+    await _restoreLastCategory();
   }
 
   Future<void> _restoreLastCategory() async {

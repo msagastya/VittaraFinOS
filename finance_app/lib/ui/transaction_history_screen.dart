@@ -10,6 +10,7 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
+import 'package:vittara_fin_os/ui/dashboard/transaction_wizard.dart';
 import 'package:vittara_fin_os/ui/widgets/transaction_details_content.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
 import 'package:vittara_fin_os/utils/date_formatter.dart';
@@ -353,17 +354,29 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                     ),
                     TransactionDetailsContent(
                       transaction: transaction,
-                      actionButtons: allowArchive
-                          ? [
-                              _buildDeleteAction(
-                                context,
-                                modalContext,
-                                transaction,
-                                controller,
-                                archiveController,
+                      actionButtons: [
+                        CupertinoButton(
+                          onPressed: () {
+                            Navigator.pop(modalContext);
+                            Navigator.push(
+                              context,
+                              CupertinoPageRoute(
+                                builder: (_) => TransactionWizard(
+                                    cloneFrom: transaction),
                               ),
-                            ]
-                          : const [],
+                            );
+                          },
+                          child: const Text('Clone Transaction'),
+                        ),
+                        if (allowArchive)
+                          _buildDeleteAction(
+                            context,
+                            modalContext,
+                            transaction,
+                            controller,
+                            archiveController,
+                          ),
+                      ],
                     ),
                   ],
                 ),
