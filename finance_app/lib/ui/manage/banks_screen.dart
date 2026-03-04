@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:vittara_fin_os/logic/banks_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
@@ -425,6 +426,44 @@ class _BanksScreenState extends State<BanksScreen> {
   }
 
   Widget _build3DBankCard(
+      Map<String, dynamic> bank, BanksController banksController) {
+    return Slidable(
+      key: ValueKey('slide_${bank['id']}'),
+      endActionPane: ActionPane(
+        motion: const BehindMotion(),
+        extentRatio: 0.45,
+        children: [
+          SlidableAction(
+            onPressed: (_) {
+              HapticFeedback.lightImpact();
+              _showBankBottomSheet(existingBank: bank);
+            },
+            backgroundColor: CupertinoColors.systemBlue,
+            foregroundColor: Colors.white,
+            icon: CupertinoIcons.pencil,
+            label: 'Edit',
+            borderRadius:
+                const BorderRadius.horizontal(left: Radius.circular(12)),
+          ),
+          SlidableAction(
+            onPressed: (_) {
+              HapticFeedback.heavyImpact();
+              _deleteBank(bank['id'], banksController);
+            },
+            backgroundColor: CupertinoColors.destructiveRed,
+            foregroundColor: Colors.white,
+            icon: CupertinoIcons.trash,
+            label: 'Delete',
+            borderRadius:
+                const BorderRadius.horizontal(right: Radius.circular(12)),
+          ),
+        ],
+      ),
+      child: _buildBankCardContent(bank, banksController),
+    );
+  }
+
+  Widget _buildBankCardContent(
       Map<String, dynamic> bank, BanksController banksController) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
