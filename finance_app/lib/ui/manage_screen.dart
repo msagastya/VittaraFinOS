@@ -148,19 +148,17 @@ class _ManageScreenState extends State<ManageScreen> {
         backgroundColor: AppStyles.getCardColor(context).withValues(alpha: 0.9),
         border: null,
       ),
-      child: Consumer<SettingsController>(
-        builder: (context, settings, child) {
-          // Filter items based on settings
+      child: Builder(
+        builder: (context) {
+          // Only select the two booleans we need — avoids full rebuild on unrelated settings changes
+          final showInvestments = context.select<SettingsController, bool>(
+              (s) => s.isInvestmentTrackingEnabled);
+          final showArchived = context.select<SettingsController, bool>(
+              (s) => s.isArchivedTransactionsEnabled);
+
           final filteredItems = _items.where((item) {
-            // Hide Investments if Investment Tracking is disabled
-            if (item['id'] == 'invest' &&
-                !settings.isInvestmentTrackingEnabled) {
-              return false;
-            }
-            if (item['id'] == 'archived' &&
-                !settings.isArchivedTransactionsEnabled) {
-              return false;
-            }
+            if (item['id'] == 'invest' && !showInvestments) return false;
+            if (item['id'] == 'archived' && !showArchived) return false;
             return true;
           }).toList();
 
@@ -219,7 +217,7 @@ class _ManageScreenState extends State<ManageScreen> {
                     },
                     itemBuilder: (context, index) {
                       final item = filteredItems[index];
-                      return _build3DCard(item, index, settings);
+                      return _build3DCard(item, index);
                     },
                   ),
                 ),
@@ -246,15 +244,14 @@ class _ManageScreenState extends State<ManageScreen> {
     );
   }
 
-  Widget _build3DCard(
-      Map<String, dynamic> item, int index, SettingsController settings) {
+  Widget _build3DCard(Map<String, dynamic> item, int index) {
     return Padding(
       key: ValueKey(item['id']),
       padding: EdgeInsets.only(bottom: Spacing.lg),
       child: Hero(
         tag: 'manage_${item['id']}',
         child: BouncyButton(
-          onPressed: () => _onCardPressed(item, settings),
+          onPressed: () => _onCardPressed(item),
           child: Container(
             decoration: AppStyles.sectionDecoration(
               context,
@@ -328,15 +325,17 @@ class _ManageScreenState extends State<ManageScreen> {
     );
   }
 
-  Future<void> _onCardPressed(
-      Map<String, dynamic> item, SettingsController settings) async {
+  Future<void> _onCardPressed(Map<String, dynamic> item) async {
     if (item['comingSoon'] == true) {
       toast_lib.toast.showInfo('${item['title']} – Coming Soon');
       return;
     }
-    if (item['id'] == 'archived' && settings.isArchivedTransactionsEnabled) {
-      final allowed = await settings.authenticateArchivedAccess();
-      if (!allowed) return;
+    if (item['id'] == 'archived') {
+      final settings = context.read<SettingsController>();
+      if (settings.isArchivedTransactionsEnabled) {
+        final allowed = await settings.authenticateArchivedAccess();
+        if (!allowed) return;
+      }
     }
     _navigateToScreen(item['id']);
   }

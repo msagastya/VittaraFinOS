@@ -265,6 +265,33 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
   bool _isExportingPdf = false;
   bool _isExportingExcel = false;
 
+  // Memoization cache — avoids recomputing expensive aggregations on every rebuild
+  String? _lastCacheKey;
+  Map<String, Object?>? _cache;
+
+  String _buildCacheKey(List<Transaction> transactions) => [
+        _startDate.millisecondsSinceEpoch,
+        _endDate.millisecondsSinceEpoch,
+        _primaryGroupBy.index,
+        _secondaryGroupBy.index,
+        _sortMetric.index,
+        _sortDescending ? 1 : 0,
+        _includeTransfers ? 1 : 0,
+        _includeInvestments ? 1 : 0,
+        _includeCashbackFlows ? 1 : 0,
+        _selectedTransactionTypes.map((t) => t.index).join(','),
+        _selectedCategoryIds.join(','),
+        _selectedAccountIds.join(','),
+        _selectedAccountTypes.map((t) => t.index).join(','),
+        _selectedTags.join(','),
+        _selectedPaymentApps.join(','),
+        _strategyPreset.index,
+        (_customSavingsTargetRate * 1000).round(),
+        transactions.length,
+        transactions.isEmpty ? '' : transactions.first.id,
+        transactions.isEmpty ? '' : transactions.last.id,
+      ].join('|');
+
   @override
   void initState() {
     super.initState();
@@ -299,24 +326,52 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
               account.id: account
           };
 
-          final filteredTransactions = _applyFilters(
-            transactionsController.transactions,
-            accountsById,
-          );
-          final summary = _computeSummary(filteredTransactions);
-          final groupedMetrics = _buildGroupedMetrics(
-            filteredTransactions,
-            accountsById,
-            _primaryGroupBy,
-            _secondaryGroupBy,
-          );
-          final trendPoints = _buildTrendPoints(filteredTransactions);
-          final strategyProfile = _effectiveStrategyProfile();
-          final strategyEvaluation = _evaluateStrategy(
-            filteredTransactions,
-            summary,
-            strategyProfile,
-          );
+          // Memoized aggregation — only recomputes when filter state or transactions change
+          final cacheKey = _buildCacheKey(transactionsController.transactions);
+          if (cacheKey != _lastCacheKey) {
+            _lastCacheKey = cacheKey;
+            final filteredTransactions = _applyFilters(
+              transactionsController.transactions,
+              accountsById,
+            );
+            final summary = _computeSummary(filteredTransactions);
+            final groupedMetrics = _buildGroupedMetrics(
+              filteredTransactions,
+              accountsById,
+              _primaryGroupBy,
+              _secondaryGroupBy,
+            );
+            final trendPoints = _buildTrendPoints(filteredTransactions);
+            final strategyProfile = _effectiveStrategyProfile();
+            final strategyEvaluation = _evaluateStrategy(
+              filteredTransactions,
+              summary,
+              strategyProfile,
+            );
+            _cache = {
+              'filtered': filteredTransactions,
+              'summary': summary,
+              'grouped': groupedMetrics,
+              'trend': trendPoints,
+              'strategyProfile': strategyProfile,
+              'strategyEval': strategyEvaluation,
+              'tags': _collectAvailableTags(transactionsController.transactions),
+              'apps': _collectAvailablePaymentApps(transactionsController.transactions),
+            };
+          }
+          final filteredTransactions =
+              _cache!['filtered'] as List<Transaction>;
+          final summary = _cache!['summary'] as _ReportSummary;
+          final groupedMetrics =
+              _cache!['grouped'] as List<_GroupedMetric>;
+          final trendPoints = _cache!['trend'] as List<_TrendPoint>;
+          final strategyProfile =
+              _cache!['strategyProfile'] as _StrategyProfile;
+          final strategyEvaluation =
+              _cache!['strategyEval'] as _StrategyEvaluation;
+          final availableTags = _cache!['tags'] as List<String>;
+          final availableApps = _cache!['apps'] as List<String>;
+
           final snapshot = _ReportSnapshot(
             generatedAt: DateTime.now(),
             startDate: _startDate,
@@ -330,12 +385,6 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
             strategyProfile: strategyProfile,
             strategyEvaluation: strategyEvaluation,
             accountsById: accountsById,
-          );
-
-          final availableTags =
-              _collectAvailableTags(transactionsController.transactions);
-          final availableApps = _collectAvailablePaymentApps(
-            transactionsController.transactions,
           );
 
           return SafeArea(

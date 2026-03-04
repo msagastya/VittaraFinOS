@@ -69,11 +69,9 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
   SortBy _sortBy = SortBy.currentAmount;
   bool _sortAscending = false; // true = ascending, false = descending
 
-  // Memoized sort cache — avoids O(n log n) sort on every build
-  List<Investment> _cachedSortedList = [];
-  List<Investment>? _lastSortedSource;
-  SortBy _lastSortBy = SortBy.currentAmount;
-  bool _lastSortAscending = false;
+  // Memoized filter+sort cache — avoids redundant work on every build
+  final Map<String, List<Investment>> _filterSortCache = {};
+  String _lastFilterSortKey = '';
 
   // Search
   String _searchQuery = '';
@@ -112,65 +110,63 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     }
   }
 
-  List<Investment> _sortInvestments(List<Investment> investments) {
-    // Return cached result when nothing has changed
-    if (identical(investments, _lastSortedSource) &&
-        _lastSortBy == _sortBy &&
-        _lastSortAscending == _sortAscending) {
-      return _cachedSortedList;
+  /// Returns filtered + sorted investments for the given category tab.
+  /// Memoized: recomputes only when source list, filters, or sort settings change.
+  List<Investment> _getFilteredSorted(
+      List<Investment> all, InvestmentType? categoryType) {
+    final key = [
+      all.length,
+      all.isEmpty ? '' : all.first.id,
+      all.isEmpty ? '' : all.last.id,
+      categoryType?.index ?? -1,
+      _searchQuery,
+      _sortBy.index,
+      _sortAscending ? 1 : 0,
+    ].join('|');
+
+    if (_filterSortCache.containsKey(key)) return _filterSortCache[key]!;
+
+    // Evict stale entries when source list changes (different first/last key prefix)
+    if (_lastFilterSortKey != key) {
+      _filterSortCache.clear();
+      _lastFilterSortKey = key;
     }
 
-    final sorted = List<Investment>.from(investments);
+    final filtered = _filterBySearch(_filterByCategory(all, categoryType));
+    final sorted = List<Investment>.from(filtered)
+      ..sort((a, b) {
+        int comparison = 0;
+        switch (_sortBy) {
+          case SortBy.currentAmount:
+            comparison =
+                _calculateCurrentValue(a).compareTo(_calculateCurrentValue(b));
+            break;
+          case SortBy.investedAmount:
+            comparison = a.amount.compareTo(b.amount);
+            break;
+          case SortBy.gainPercent:
+            comparison = _calculateGainLossPercent(a)
+                .compareTo(_calculateGainLossPercent(b));
+            break;
+          case SortBy.gainAmount:
+            comparison = (_calculateCurrentValue(a) - a.amount)
+                .compareTo(_calculateCurrentValue(b) - b.amount);
+            break;
+          case SortBy.name:
+            comparison = a.name.compareTo(b.name);
+            break;
+          case SortBy.type:
+            comparison = a.type.index.compareTo(b.type.index);
+            break;
+          case SortBy.dateAdded:
+            comparison = a.id.compareTo(b.id);
+            break;
+        }
+        return _sortAscending ? comparison : -comparison;
+      });
 
-    sorted.sort((a, b) {
-      int comparison = 0;
-
-      switch (_sortBy) {
-        case SortBy.currentAmount:
-          final aValue = _calculateCurrentValue(a);
-          final bValue = _calculateCurrentValue(b);
-          comparison = aValue.compareTo(bValue);
-          break;
-
-        case SortBy.investedAmount:
-          comparison = a.amount.compareTo(b.amount);
-          break;
-
-        case SortBy.gainPercent:
-          final aGainPercent = _calculateGainLossPercent(a);
-          final bGainPercent = _calculateGainLossPercent(b);
-          comparison = aGainPercent.compareTo(bGainPercent);
-          break;
-
-        case SortBy.gainAmount:
-          final aGain = _calculateCurrentValue(a) - a.amount;
-          final bGain = _calculateCurrentValue(b) - b.amount;
-          comparison = aGain.compareTo(bGain);
-          break;
-
-        case SortBy.name:
-          comparison = a.name.compareTo(b.name);
-          break;
-
-        case SortBy.type:
-          comparison = a.type.index.compareTo(b.type.index);
-          break;
-
-        case SortBy.dateAdded:
-          comparison = a.id.compareTo(b.id); // ID as proxy for date added
-          break;
-      }
-
-      return _sortAscending ? comparison : -comparison;
-    });
-
-    // Update cache
-    _cachedSortedList = sorted;
-    _lastSortedSource = investments;
-    _lastSortBy = _sortBy;
-    _lastSortAscending = _sortAscending;
-
-    return _cachedSortedList;
+    _filterSortCache[key] = sorted;
+    return sorted;
   }
 
   // Fetch current gold price with caching
@@ -723,9 +719,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                           },
                           itemBuilder: (context, pageIndex) {
                             final categoryType = categories[pageIndex];
-                            final pageInvestments = _sortInvestments(
-                                _filterBySearch(_filterByCategory(
-                                    investments, categoryType)));
+                            final pageInvestments =
+                                _getFilteredSorted(investments, categoryType);
 
                             if (pageInvestments.isEmpty) {
                               return EmptyStateView(
