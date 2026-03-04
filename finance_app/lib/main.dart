@@ -1779,6 +1779,33 @@ class DashboardScreen extends StatelessWidget {
                     ],
                   ),
                 ),
+                // F30 — Savings rate
+                if (income > 0) ...[
+                  SizedBox(height: Spacing.sm),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Icon(
+                        CupertinoIcons.percent,
+                        size: 11,
+                        color: net >= 0
+                            ? AppStyles.accentTeal
+                            : CupertinoColors.systemOrange,
+                      ),
+                      SizedBox(width: 3),
+                      Text(
+                        'Savings rate: ${((net / income) * 100).clamp(0.0, 100.0).toStringAsFixed(1)}%',
+                        style: TextStyle(
+                          fontSize: TypeScale.caption,
+                          color: net >= 0
+                              ? AppStyles.accentTeal
+                              : CupertinoColors.systemOrange,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             );
           },
