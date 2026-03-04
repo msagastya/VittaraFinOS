@@ -12,16 +12,58 @@ import 'package:vittara_fin_os/ui/manage/mf/sip_wizard.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/services/nav_service.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
-class MFDetailsScreen extends StatelessWidget {
+class MFDetailsScreen extends StatefulWidget {
   final Investment investment;
 
   const MFDetailsScreen({super.key, required this.investment});
 
   @override
+  State<MFDetailsScreen> createState() => _MFDetailsScreenState();
+}
+
+class _MFDetailsScreenState extends State<MFDetailsScreen> {
+  bool _isRefreshingNAV = false;
+  final _navService = NAVService();
+
+  Future<void> _refreshNAV() async {
+    final metadata = widget.investment.metadata ?? {};
+    final schemeCode = metadata['schemeCode'] as String?;
+    if (schemeCode == null) {
+      toast.showError('Scheme code not found');
+      return;
+    }
+    setState(() => _isRefreshingNAV = true);
+    try {
+      final navData = await _navService.getCurrentNAV(schemeCode, forceRefresh: true);
+      if (!mounted) return;
+      if (navData == null) {
+        toast.showError('Could not fetch NAV — try again later');
+        return;
+      }
+      final units = (metadata['units'] as num?)?.toDouble() ?? 0;
+      final updatedMeta = Map<String, dynamic>.from(metadata)
+        ..['currentNAV'] = navData.nav
+        ..['currentValue'] = navData.nav * units;
+      final updatedInvestment =
+          widget.investment.copyWith(metadata: updatedMeta);
+      await Provider.of<InvestmentsController>(context, listen: false)
+          .updateInvestment(updatedInvestment);
+      toast.showSuccess(
+          'NAV updated: ₹${navData.nav.toStringAsFixed(4)}');
+    } catch (e) {
+      if (mounted) toast.showError('Failed to refresh NAV');
+    } finally {
+      if (mounted) setState(() => _isRefreshingNAV = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final investment = widget.investment;
     final metadata = investment.metadata ?? {};
     final investedAmount =
         (metadata['investmentAmount'] as num?)?.toDouble() ?? investment.amount;
@@ -42,6 +84,17 @@ class MFDetailsScreen extends StatelessWidget {
         ),
         previousPageTitle: 'Back',
         backgroundColor: AppStyles.getBackground(context),
+        trailing: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: _isRefreshingNAV ? null : _refreshNAV,
+          child: _isRefreshingNAV
+              ? const CupertinoActivityIndicator()
+              : Icon(
+                  CupertinoIcons.arrow_clockwise,
+                  color: AppStyles.accentBlue,
+                  size: 20,
+                ),
+        ),
       ),
       child: SafeArea(
         child: SingleChildScrollView(
