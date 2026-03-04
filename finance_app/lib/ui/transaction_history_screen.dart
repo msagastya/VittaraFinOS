@@ -29,6 +29,9 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   final AppLogger logger = AppLogger();
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
+  double? _minAmount;
+  double? _maxAmount;
+  TransactionType? _typeFilter;
 
   @override
   void dispose() {
@@ -36,14 +39,227 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     super.dispose();
   }
 
+  bool get _hasActiveFilter =>
+      _minAmount != null || _maxAmount != null || _typeFilter != null;
+
   List<Transaction> _filterBySearch(List<Transaction> txns) {
-    if (_searchQuery.isEmpty) return txns;
-    final q = _searchQuery.toLowerCase();
-    return txns.where((t) {
-      return t.getTypeLabel().toLowerCase().contains(q) ||
-          t.getSummary().toLowerCase().contains(q) ||
-          t.amount.toString().contains(q);
-    }).toList();
+    var result = txns;
+    if (_searchQuery.isNotEmpty) {
+      final q = _searchQuery.toLowerCase();
+      result = result.where((t) {
+        return t.getTypeLabel().toLowerCase().contains(q) ||
+            t.getSummary().toLowerCase().contains(q) ||
+            t.amount.toString().contains(q);
+      }).toList();
+    }
+    if (_typeFilter != null) {
+      result = result.where((t) => t.type == _typeFilter).toList();
+    }
+    if (_minAmount != null) {
+      result = result.where((t) => t.amount >= _minAmount!).toList();
+    }
+    if (_maxAmount != null) {
+      result = result.where((t) => t.amount <= _maxAmount!).toList();
+    }
+    return result;
+  }
+
+  void _showFilterSheet(BuildContext context) {
+    final minCtrl =
+        TextEditingController(text: _minAmount?.toStringAsFixed(0) ?? '');
+    final maxCtrl =
+        TextEditingController(text: _maxAmount?.toStringAsFixed(0) ?? '');
+    TransactionType? tempType = _typeFilter;
+
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheet) {
+          return Container(
+            padding: EdgeInsets.only(
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + 24),
+            decoration: BoxDecoration(
+              color: AppStyles.getCardColor(ctx),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      margin: const EdgeInsets.only(top: 12, bottom: 16),
+                      width: 40,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: CupertinoColors.systemGrey3,
+                        borderRadius: BorderRadius.circular(2.5),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Text('Filter Transactions',
+                        style: AppStyles.titleStyle(ctx)
+                            .copyWith(fontSize: TypeScale.title3)),
+                  ),
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Text('Type',
+                        style: TextStyle(
+                          color: AppStyles.getSecondaryTextColor(ctx),
+                          fontWeight: FontWeight.w600,
+                          fontSize: TypeScale.footnote,
+                        )),
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 36,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      children: [
+                        null,
+                        ...TransactionType.values,
+                      ].map((type) {
+                        final isSelected = tempType == type;
+                        final label =
+                            type == null ? 'All' : type.name[0].toUpperCase() + type.name.substring(1);
+                        return GestureDetector(
+                          onTap: () => setSheet(() => tempType = type),
+                          child: Container(
+                            margin: const EdgeInsets.only(right: 8),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? AppStyles.getPrimaryColor(ctx)
+                                  : AppStyles.getCardColor(ctx),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: isSelected
+                                    ? AppStyles.getPrimaryColor(ctx)
+                                    : AppStyles.getDividerColor(ctx),
+                              ),
+                            ),
+                            child: Text(
+                              label,
+                              style: TextStyle(
+                                color: isSelected
+                                    ? CupertinoColors.white
+                                    : AppStyles.getTextColor(ctx),
+                                fontSize: TypeScale.footnote,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Text('Amount Range',
+                        style: TextStyle(
+                          color: AppStyles.getSecondaryTextColor(ctx),
+                          fontWeight: FontWeight.w600,
+                          fontSize: TypeScale.footnote,
+                        )),
+                  ),
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: CupertinoTextField(
+                            controller: minCtrl,
+                            keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true),
+                            placeholder: 'Min ₹',
+                            prefix: const Padding(
+                              padding: EdgeInsets.only(left: 12),
+                              child: Text('₹'),
+                            ),
+                            style: TextStyle(
+                                color: AppStyles.getTextColor(ctx)),
+                            decoration: BoxDecoration(
+                              color: AppStyles.getBackground(ctx),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: CupertinoTextField(
+                            controller: maxCtrl,
+                            keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true),
+                            placeholder: 'Max ₹',
+                            prefix: const Padding(
+                              padding: EdgeInsets.only(left: 12),
+                              child: Text('₹'),
+                            ),
+                            style: TextStyle(
+                                color: AppStyles.getTextColor(ctx)),
+                            decoration: BoxDecoration(
+                              color: AppStyles.getBackground(ctx),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: CupertinoButton(
+                            color: CupertinoColors.systemGrey5,
+                            onPressed: () {
+                              setState(() {
+                                _minAmount = null;
+                                _maxAmount = null;
+                                _typeFilter = null;
+                              });
+                              Navigator.pop(ctx);
+                            },
+                            child: Text('Clear',
+                                style: TextStyle(
+                                    color: AppStyles.getTextColor(ctx))),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: CupertinoButton.filled(
+                            onPressed: () {
+                              setState(() {
+                                _minAmount = double.tryParse(minCtrl.text);
+                                _maxAmount = double.tryParse(maxCtrl.text);
+                                _typeFilter = tempType;
+                              });
+                              Navigator.pop(ctx);
+                            },
+                            child: const Text('Apply'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 
 
@@ -72,6 +288,19 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         previousPageTitle: 'Dashboard',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
+        trailing: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: () => _showFilterSheet(context),
+          child: Icon(
+            _hasActiveFilter
+                ? CupertinoIcons.line_horizontal_3_decrease_circle_fill
+                : CupertinoIcons.line_horizontal_3_decrease_circle,
+            size: 22,
+            color: _hasActiveFilter
+                ? AppStyles.getPrimaryColor(context)
+                : AppStyles.getSecondaryTextColor(context),
+          ),
+        ),
       ),
       child: Consumer2<TransactionsController, InvestmentsController>(
         builder:
@@ -104,10 +333,55 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                     onSubmitted: (v) => setState(() => _searchQuery = v),
                   ),
                 ),
+                if (_hasActiveFilter)
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(
+                        Spacing.lg, 0, Spacing.lg, Spacing.sm),
+                    child: Row(
+                      children: [
+                        Icon(
+                            CupertinoIcons.line_horizontal_3_decrease_circle_fill,
+                            size: 14,
+                            color: AppStyles.getPrimaryColor(context)),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            [
+                              if (_typeFilter != null)
+                                _typeFilter!.name[0].toUpperCase() +
+                                    _typeFilter!.name.substring(1),
+                              if (_minAmount != null) '≥₹${_minAmount!.toStringAsFixed(0)}',
+                              if (_maxAmount != null) '≤₹${_maxAmount!.toStringAsFixed(0)}',
+                            ].join(' · '),
+                            style: TextStyle(
+                              fontSize: TypeScale.caption,
+                              color: AppStyles.getPrimaryColor(context),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () => setState(() {
+                            _minAmount = null;
+                            _maxAmount = null;
+                            _typeFilter = null;
+                          }),
+                          child: Icon(
+                            CupertinoIcons.xmark_circle_fill,
+                            size: 16,
+                            color: AppStyles.getSecondaryTextColor(context),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 if (transactions.isEmpty)
                   Expanded(
                     child: Center(
-                      child: Text('No transactions match "$_searchQuery"',
+                      child: Text(
+                          _hasActiveFilter || _searchQuery.isNotEmpty
+                              ? 'No transactions match the current filter'
+                              : 'No transactions found',
                           style: TextStyle(
                               color: AppStyles.getSecondaryTextColor(context))),
                     ),
