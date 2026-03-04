@@ -124,6 +124,7 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
       navigationBar: CupertinoNavigationBar(
         middle: Text(_symbol,
             style: TextStyle(color: AppStyles.getTextColor(context))),
+        previousPageTitle: 'Investments',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
       ),
