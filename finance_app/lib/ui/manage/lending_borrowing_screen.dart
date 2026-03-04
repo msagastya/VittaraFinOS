@@ -25,6 +25,14 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
   int _selectedTab = 0; // 0 = I Lent, 1 = I Borrowed, 2 = Settled
   String _sortBy = 'date';
   bool _sortAscending = false;
+  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +64,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
               : _selectedTab == 1
                   ? borrowedRecords
                   : settledRecords;
-          final displayRecords = List<LendingBorrowing>.from(rawRecords)
+          final sortedRecords = List<LendingBorrowing>.from(rawRecords)
             ..sort((a, b) {
               int cmp;
               switch (_sortBy) {
@@ -73,6 +81,15 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
               }
               return _sortAscending ? cmp : -cmp;
             });
+          final q = _searchQuery.toLowerCase();
+          final displayRecords = q.isEmpty
+              ? sortedRecords
+              : sortedRecords
+                  .where((r) =>
+                      r.personName.toLowerCase().contains(q) ||
+                      r.amount.toString().contains(q) ||
+                      (r.note?.toLowerCase().contains(q) ?? false))
+                  .toList();
 
           return Stack(
             children: [
@@ -131,19 +148,33 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                         ],
                       ),
                     ),
+                    // Search Bar
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                      child: CupertinoSearchTextField(
+                        controller: _searchController,
+                        placeholder: 'Search by name or amount',
+                        onChanged: (v) => setState(() => _searchQuery = v),
+                        onSubmitted: (v) => setState(() => _searchQuery = v),
+                      ),
+                    ),
                     // Records List
                     Expanded(
                       child: displayRecords.isEmpty
                           ? EmptyStateView(
-                              icon: _selectedTab == 2
-                                  ? CupertinoIcons.checkmark_seal
-                                  : CupertinoIcons.person_2_fill,
-                              title: _selectedTab == 0
-                                  ? 'No lending records yet'
-                                  : _selectedTab == 1
-                                      ? 'No borrowing records yet'
-                                      : 'No settled records yet',
-                              subtitle: _selectedTab == 2
+                              icon: _searchQuery.isNotEmpty
+                                  ? CupertinoIcons.search
+                                  : _selectedTab == 2
+                                      ? CupertinoIcons.checkmark_seal
+                                      : CupertinoIcons.person_2_fill,
+                              title: _searchQuery.isNotEmpty
+                                  ? 'No results for "$_searchQuery"'
+                                  : _selectedTab == 0
+                                      ? 'No lending records yet'
+                                      : _selectedTab == 1
+                                          ? 'No borrowing records yet'
+                                          : 'No settled records yet',
+                              subtitle: _searchQuery.isEmpty && _selectedTab == 2
                                   ? 'Settled records will appear here.'
                                   : null,
                               showPulse: false,
