@@ -26,8 +26,6 @@ class FDDetailsScreen extends StatefulWidget {
 }
 
 class _FDDetailsScreenState extends State<FDDetailsScreen> {
-  final bool _isMaturityAlertShown = false;
-
   bool _isFDNearMaturity() {
     final daysUntil = widget.fd.maturityDate.difference(DateTime.now()).inDays;
     return daysUntil <= 10 && daysUntil >= 0;
@@ -225,6 +223,8 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                     'Total Interest',
                     '₹${_getTotalInterest().toStringAsFixed(2)}',
                   ),
+                  const SizedBox(height: Spacing.xl),
+                  _buildTdsSection(context),
                   const SizedBox(height: Spacing.xl),
                   // Status-specific info
                   if (widget.fd.status == FDStatus.prematurelyWithdrawn)
@@ -1773,6 +1773,97 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
   double _getTotalInterest() {
     final currentValue = _getCurrentValue();
     return currentValue - widget.fd.principal;
+  }
+
+  /// Build TDS (Tax Deducted at Source) summary card — H28/J15
+  Widget _buildTdsSection(BuildContext context) {
+    final totalInterest = _getTotalInterest();
+    final tenureMonths =
+        _getLatestRenewalCycle()?.tenureMonths ?? widget.fd.tenureMonths;
+    final tenureYears = tenureMonths / 12.0;
+    final annualInterest =
+        tenureYears > 0 ? totalInterest / tenureYears : totalInterest;
+
+    const tdsThreshold = 40000.0; // ₹40,000/yr standard threshold
+    const tdsRate = 0.10; // 10% with PAN
+    final tdsApplicable = annualInterest >= tdsThreshold;
+    final estimatedTds =
+        tdsApplicable ? totalInterest * tdsRate : 0.0;
+    final netInterest = totalInterest - estimatedTds;
+
+    return Container(
+      padding: const EdgeInsets.all(Spacing.lg),
+      decoration: BoxDecoration(
+        color: tdsApplicable
+            ? CupertinoColors.systemOrange.withValues(alpha: 0.08)
+            : CupertinoColors.systemGreen.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: tdsApplicable
+              ? CupertinoColors.systemOrange.withValues(alpha: 0.25)
+              : CupertinoColors.systemGreen.withValues(alpha: 0.25),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                tdsApplicable
+                    ? CupertinoIcons.exclamationmark_triangle
+                    : CupertinoIcons.checkmark_shield,
+                size: 16,
+                color: tdsApplicable
+                    ? CupertinoColors.systemOrange
+                    : CupertinoColors.systemGreen,
+              ),
+              const SizedBox(width: Spacing.sm),
+              Text(
+                'Tax (TDS) — ${tdsApplicable ? 'Applicable' : 'Not Applicable'}',
+                style: TextStyle(
+                  fontSize: TypeScale.subhead,
+                  fontWeight: FontWeight.w700,
+                  color: tdsApplicable
+                      ? CupertinoColors.systemOrange
+                      : CupertinoColors.systemGreen,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: Spacing.md),
+          _buildDetailRow(
+            'Avg. Annual Interest',
+            '₹${annualInterest.toStringAsFixed(0)}',
+          ),
+          _buildDetailRow(
+            'TDS Threshold',
+            '₹${tdsThreshold.toStringAsFixed(0)}/yr',
+          ),
+          if (tdsApplicable) ...[
+            _buildDetailRow(
+              'Est. TDS (10% of interest)',
+              '−₹${estimatedTds.toStringAsFixed(2)}',
+            ),
+            _buildDetailRow(
+              'Net Interest After TDS',
+              '₹${netInterest.toStringAsFixed(2)}',
+              isHighlight: true,
+            ),
+          ],
+          const SizedBox(height: Spacing.sm),
+          Text(
+            tdsApplicable
+                ? 'Bank may deduct 10% TDS when annual interest exceeds ₹40,000. Ensure PAN is submitted to avoid 20% deduction.'
+                : 'Annual interest is below ₹40,000. No TDS should be deducted. Submit Form 15G/H if applicable.',
+            style: TextStyle(
+              fontSize: TypeScale.caption,
+              color: AppStyles.getSecondaryTextColor(context),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   /// Get elapsed days and months
