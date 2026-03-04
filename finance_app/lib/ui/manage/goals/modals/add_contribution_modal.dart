@@ -5,6 +5,8 @@ import 'package:vittara_fin_os/logic/goals_controller.dart';
 import 'package:vittara_fin_os/logic/goal_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/widgets/animations.dart';
+import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
 import 'package:vittara_fin_os/utils/alert_service.dart';
 
 class AddContributionModal extends StatefulWidget {
@@ -65,10 +67,36 @@ class _AddContributionModalState extends State<AddContributionModal> {
           : _notesController.text.trim(),
     );
 
+    final prevProgress = widget.goal.targetAmount > 0
+        ? (widget.goal.currentAmount / widget.goal.targetAmount) * 100
+        : 0.0;
+
     await Provider.of<GoalsController>(context, listen: false)
         .addContribution(widget.goal.id, contribution);
+
+    final newAmount = widget.goal.currentAmount + amount;
+    final newProgress = widget.goal.targetAmount > 0
+        ? (newAmount / widget.goal.targetAmount) * 100
+        : 0.0;
+
+    // J8 — milestone celebrations at 25/50/75/100%
+    final milestones = [100.0, 75.0, 50.0, 25.0];
+    String? milestone;
+    for (final m in milestones) {
+      if (prevProgress < m && newProgress >= m) {
+        milestone = m == 100.0 ? '🎉 Goal Achieved!' : '${m.toInt()}% reached!';
+        break;
+      }
+    }
+
+    if (!mounted) return;
     Navigator.pop(context);
-    AlertService.showSuccess(context, 'Contribution added successfully!');
+    if (milestone != null) {
+      Haptics.success();
+      toast_lib.toast.showSuccess('${widget.goal.name}: $milestone');
+    } else {
+      AlertService.showSuccess(context, 'Contribution added successfully!');
+    }
   }
 
   @override
