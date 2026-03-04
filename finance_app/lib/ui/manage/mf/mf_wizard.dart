@@ -29,13 +29,21 @@ class MFWizard extends StatelessWidget {
   }
 }
 
-class _MFWizardContent extends StatelessWidget {
+class _MFWizardContent extends StatefulWidget {
   const _MFWizardContent();
+
+  @override
+  State<_MFWizardContent> createState() => _MFWizardContentState();
+}
+
+class _MFWizardContentState extends State<_MFWizardContent> {
+  bool _isSubmitting = false;
 
   Future<void> _saveInvestment(
     BuildContext context,
     MFWizardController controller,
   ) async {
+    setState(() => _isSubmitting = true);
     final investmentsController =
         Provider.of<InvestmentsController>(context, listen: false);
 
@@ -93,6 +101,8 @@ class _MFWizardContent extends StatelessWidget {
       if (context.mounted) {
         toast.showError('Failed to save investment: $e');
       }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
@@ -150,11 +160,19 @@ class _MFWizardContent extends StatelessWidget {
 
     final updatedInvestment =
         target.copyWith(amount: freshAmount, metadata: metadata);
-    await investmentsController.updateInvestment(updatedInvestment);
-
-    if (context.mounted) {
-      toast.showSuccess('Mutual Fund investment updated!');
-      Navigator.of(context).pop();
+    setState(() => _isSubmitting = true);
+    try {
+      await investmentsController.updateInvestment(updatedInvestment);
+      if (context.mounted) {
+        toast.showSuccess('Mutual Fund investment updated!');
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (context.mounted) {
+        toast.showError('Failed to update investment: $e');
+      }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
@@ -253,7 +271,7 @@ class _MFWizardContent extends StatelessWidget {
               child: SizedBox(
                 width: double.infinity,
                 child: CupertinoButton.filled(
-                  onPressed: controller.canProceed()
+                  onPressed: controller.canProceed() && !_isSubmitting
                       ? () async {
                           // Step 4: SIP Active toggle
                           if (controller.currentStep == 4 &&
@@ -271,13 +289,15 @@ class _MFWizardContent extends StatelessWidget {
                           }
                         }
                       : null,
-                  child: Text(
-                    controller.currentStep >= 4
-                        ? (controller.sipActive
-                            ? 'Configure SIP'
-                            : 'Confirm & Save')
-                        : 'Continue',
-                  ),
+                  child: _isSubmitting
+                      ? const CupertinoActivityIndicator(color: CupertinoColors.white)
+                      : Text(
+                          controller.currentStep >= 4
+                              ? (controller.sipActive
+                                  ? 'Configure SIP'
+                                  : 'Confirm & Save')
+                              : 'Continue',
+                        ),
                 ),
               ),
             ),
