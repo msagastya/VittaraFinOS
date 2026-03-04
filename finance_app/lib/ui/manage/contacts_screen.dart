@@ -18,6 +18,8 @@ class ContactsScreen extends StatefulWidget {
 }
 
 class _ContactsScreenState extends State<ContactsScreen> {
+  String _searchQuery = '';
+
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
@@ -46,6 +48,13 @@ class _ContactsScreenState extends State<ContactsScreen> {
       child: Consumer<ContactsController>(
         builder: (context, contactsController, child) {
           final contacts = contactsController.contacts;
+          final q = _searchQuery.toLowerCase();
+          final filtered = q.isEmpty
+              ? contacts
+              : contacts.where((c) {
+                  return c.name.toLowerCase().contains(q) ||
+                      (c.phoneNumber?.toLowerCase().contains(q) ?? false);
+                }).toList();
 
           return Stack(
             children: [
@@ -59,18 +68,46 @@ class _ContactsScreenState extends State<ContactsScreen> {
                         onAction: () =>
                             _showAddContactOptions(context, contactsController),
                       )
-                    : ListView.builder(
-                        padding: EdgeInsets.fromLTRB(
-                            Spacing.lg, Spacing.md, Spacing.lg, 100),
-                        itemCount: contacts.length,
-                        itemBuilder: (context, index) {
-                          final contact = contacts[index];
-                          return StaggeredItem(
-                            index: index,
-                            child: _buildContactCard(
-                                contact, context, contactsController),
-                          );
-                        },
+                    : Column(
+                        children: [
+                          Container(
+                            margin: EdgeInsets.fromLTRB(
+                                Spacing.lg, Spacing.md, Spacing.lg, Spacing.sm),
+                            decoration: BoxDecoration(
+                              color: AppStyles.getCardColor(context),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: CupertinoSearchTextField(
+                              placeholder: 'Search People',
+                              backgroundColor:
+                                  CupertinoColors.systemFill.resolveFrom(context),
+                              onChanged: (value) =>
+                                  setState(() => _searchQuery = value),
+                            ),
+                          ),
+                          Expanded(
+                            child: filtered.isEmpty
+                                ? EmptyStateView(
+                                    icon: CupertinoIcons.search,
+                                    title: 'No results',
+                                    subtitle:
+                                        'No contacts match "$_searchQuery"',
+                                  )
+                                : ListView.builder(
+                                    padding: EdgeInsets.fromLTRB(
+                                        Spacing.lg, Spacing.sm, Spacing.lg, 100),
+                                    itemCount: filtered.length,
+                                    itemBuilder: (context, index) {
+                                      final contact = filtered[index];
+                                      return StaggeredItem(
+                                        index: index,
+                                        child: _buildContactCard(
+                                            contact, context, contactsController),
+                                      );
+                                    },
+                                  ),
+                          ),
+                        ],
                       ),
               ),
               // Add Button

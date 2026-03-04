@@ -17,6 +17,8 @@ class TagsScreen extends StatefulWidget {
 }
 
 class _TagsScreenState extends State<TagsScreen> {
+  String _searchQuery = '';
+
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
@@ -33,6 +35,10 @@ class _TagsScreenState extends State<TagsScreen> {
       child: Consumer<TagsController>(
         builder: (context, tagsController, child) {
           final tags = tagsController.tags;
+          final q = _searchQuery.toLowerCase();
+          final filteredTags = q.isEmpty
+              ? tags
+              : tags.where((t) => t.name.toLowerCase().contains(q)).toList();
 
           return Stack(
             children: [
@@ -54,6 +60,22 @@ class _TagsScreenState extends State<TagsScreen> {
                             color: AppStyles.getSecondaryTextColor(context),
                             fontSize: TypeScale.body),
                       ),
+                      if (tags.isNotEmpty) ...[
+                        const SizedBox(height: Spacing.lg),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: AppStyles.getCardColor(context),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: CupertinoSearchTextField(
+                            placeholder: 'Search Tags',
+                            backgroundColor:
+                                CupertinoColors.systemFill.resolveFrom(context),
+                            onChanged: (value) =>
+                                setState(() => _searchQuery = value),
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: Spacing.xxxl),
                       if (tags.isEmpty)
                         Container(
@@ -104,6 +126,19 @@ class _TagsScreenState extends State<TagsScreen> {
                             ],
                           ),
                         )
+                      else if (filteredTags.isEmpty)
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 40),
+                            child: Text(
+                              'No tags match "$_searchQuery"',
+                              style: TextStyle(
+                                color: AppStyles.getSecondaryTextColor(context),
+                                fontSize: TypeScale.body,
+                              ),
+                            ),
+                          ),
+                        )
                       else
                         Column(
                           children: [
@@ -124,7 +159,7 @@ class _TagsScreenState extends State<TagsScreen> {
                                   const SizedBox(width: Spacing.md),
                                   Expanded(
                                     child: Text(
-                                      '${tags.length} tag${tags.length > 1 ? 's' : ''} created',
+                                      '${filteredTags.length} of ${tags.length} tag${tags.length > 1 ? 's' : ''}',
                                       style: TextStyle(
                                         fontSize: TypeScale.subhead,
                                         fontWeight: FontWeight.w600,
@@ -139,7 +174,7 @@ class _TagsScreenState extends State<TagsScreen> {
                             Wrap(
                               spacing: Spacing.md,
                               runSpacing: Spacing.md,
-                              children: tags
+                              children: filteredTags
                                   .asMap()
                                   .entries
                                   .map((entry) => _buildTagChip(entry.value,
