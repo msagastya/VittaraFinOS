@@ -10,6 +10,7 @@ import 'package:vittara_fin_os/logic/notification_helpers.dart';
 import 'package:vittara_fin_os/ui/dashboard/notification_widget.dart';
 import 'package:vittara_fin_os/ui/manage/fd/modals/fd_renewal_modal.dart';
 import 'package:vittara_fin_os/ui/manage/fd/modals/fd_withdrawal_modal.dart';
+import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
@@ -644,7 +645,7 @@ class NotificationsPage extends StatelessWidget {
     } else if (targetDay == today.add(const Duration(days: 1))) {
       return 'Tomorrow';
     } else {
-      return '${date.day} ${months[date.month]}';
+      return '${date.day} ${DateFormatter.getMonthName(date.month)}';
     }
   }
 
@@ -1235,22 +1236,6 @@ class _SipExecutionModalState extends State<_SipExecutionModal> {
     return null;
   }
 
-  String _formatDate(DateTime date) {
-    const months = [
-      '',
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return '${date.day} ${months[date.month]} ${date.year}';
+  String _formatDate(DateTime date) {return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
   }
 }

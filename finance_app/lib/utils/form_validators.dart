@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/utils/date_formatter.dart';
 
 /// Comprehensive form validation utilities
 class FormValidators {
@@ -453,7 +454,7 @@ class FormValidators {
       'Nov',
       'Dec'
     ];
-    return '${date.day} ${months[date.month - 1]} ${date.year}';
+    return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
   }
 }
 

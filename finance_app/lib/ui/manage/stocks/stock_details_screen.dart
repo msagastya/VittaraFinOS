@@ -6,6 +6,7 @@ import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/services/stock_api_service.dart';
+import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
@@ -416,22 +417,7 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
     );
   }
 
-  String _formatDate(DateTime date) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
-    return '${date.day} ${months[date.month - 1]} ${date.year}';
+  String _formatDate(DateTime date) {return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
   }
 }
 
@@ -1244,22 +1230,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
     );
   }
 
-  String _formatDate(DateTime date) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
-    return '${date.day} ${months[date.month - 1]} ${date.year}';
+  String _formatDate(DateTime date) {return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
   }
 }
 
@@ -1854,22 +1825,7 @@ class _SellModalState extends State<_SellModal> {
     );
   }
 
-  String _formatDate(DateTime date) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
-    return '${date.day} ${months[date.month - 1]} ${date.year}';
+  String _formatDate(DateTime date) {return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
   }
 }
 
@@ -1931,22 +1887,7 @@ class _SIPModalState extends State<_SIPModal> {
     );
   }
 
-  String _formatDate(DateTime date) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
-    return '${date.day} ${months[date.month - 1]} ${date.year}';
+  String _formatDate(DateTime date) {return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
   }
 
   @override
@@ -3019,22 +2960,7 @@ class _DividendModalState extends State<_DividendModal> {
     );
   }
 
-  String _formatDate(DateTime date) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
-    return '${date.day} ${months[date.month - 1]} ${date.year}';
+  String _formatDate(DateTime date) {return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
   }
 }
 

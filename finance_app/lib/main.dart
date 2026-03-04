@@ -45,6 +45,7 @@ import 'package:vittara_fin_os/ui/manage/budgets/budgets_screen.dart';
 import 'package:vittara_fin_os/ui/manage/savings/savings_planners_screen.dart';
 import 'package:vittara_fin_os/ui/manage/ai_planner/ai_monthly_planner_screen.dart';
 import 'package:vittara_fin_os/ui/app_menu/app_menu_screen.dart';
+import 'package:vittara_fin_os/utils/date_formatter.dart';
 
 final AppLogger logger = AppLogger();
 
@@ -1113,7 +1114,7 @@ class DashboardScreen extends StatelessWidget {
       'Sunday'
     ];
 
-    return '${days[date.weekday - 1]}, ${date.day} ${months[date.month - 1]} ${date.year}';
+    return '${days[date.weekday - 1]}, ${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
   }
 
   Widget _buildWidgetPreview(

@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/lending_borrowing_controller.dart';
 import 'package:vittara_fin_os/logic/lending_borrowing_model.dart';
 import 'package:vittara_fin_os/ui/manage/lending_wizard.dart';
+import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
@@ -1064,7 +1065,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
       'Nov',
       'Dec'
     ];
-    return '${date.day.toString().padLeft(2, '0')} ${months[date.month - 1]} ${date.year}';
+    return '${date.day.toString().padLeft(2, '0')} ${DateFormatter.getMonthName(date.month)} ${date.year}';
   }
 
   String _formatDateTime(DateTime date) {

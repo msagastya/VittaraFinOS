@@ -12,6 +12,7 @@ import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/transaction_details_content.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
+import 'package:vittara_fin_os/utils/date_formatter.dart';
 
 class TransactionsArchiveScreen extends StatelessWidget {
   const TransactionsArchiveScreen({super.key});
@@ -47,7 +48,7 @@ class TransactionsArchiveScreen extends StatelessWidget {
           }
 
           // Build date-grouped list
-          final groups = _groupByDate(archived);
+          final groups = DateFormatter.groupByDate(archived, (t) => t.dateTime);
           final listItems = <_ArchiveListItem>[];
           for (final entry in groups.entries) {
             listItems.add(_ArchiveListItem.header(entry.key));
@@ -101,48 +102,6 @@ class TransactionsArchiveScreen extends StatelessWidget {
 }
 
 /// Groups archived transactions by date label (Today / Yesterday / "15 Jan 2024")
-Map<String, List<Transaction>> _groupByDate(List<Transaction> txns) {
-  final now = DateTime.now();
-  final today = DateTime(now.year, now.month, now.day);
-  final yesterday = today.subtract(const Duration(days: 1));
-
-  const months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec'
-  ];
-
-  // Use LinkedHashMap to preserve insertion order
-  final result = <String, List<Transaction>>{};
-  // Sort newest first
-  final sorted = List<Transaction>.from(txns)
-    ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
-
-  for (final t in sorted) {
-    final d = DateTime(t.dateTime.year, t.dateTime.month, t.dateTime.day);
-    final String label;
-    if (d == today) {
-      label = 'Today';
-    } else if (d == yesterday) {
-      label = 'Yesterday';
-    } else {
-      label =
-          '${t.dateTime.day} ${months[t.dateTime.month - 1]} ${t.dateTime.year}';
-    }
-    result.putIfAbsent(label, () => []).add(t);
-  }
-  return result;
-}
-
 class _ArchiveListItem {
   final String? header;
   final Transaction? transaction;
@@ -397,24 +356,7 @@ class _ArchivedTransactionCard extends StatelessWidget {
       return 'Yesterday';
     }
 
-    return '${dateTime.day} ${_getMonthName(dateTime.month)}';
+    return '${dateTime.day} ${DateFormatter.getMonthName(dateTime.month)}';
   }
 
-  String _getMonthName(int month) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
-    return months[month - 1];
-  }
 }

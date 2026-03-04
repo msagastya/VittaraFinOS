@@ -12,6 +12,7 @@ import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/transaction_details_content.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
+import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 
 class TransactionHistoryScreen extends StatefulWidget {
@@ -92,26 +93,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     } else if (txnDate == yesterday) {
       return 'Yesterday';
     } else {
-      return '${dateTime.day} ${_getMonthName(dateTime.month)}';
+      return '${dateTime.day} ${DateFormatter.getMonthName(dateTime.month)}';
     }
-  }
-
-  String _getMonthName(int month) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
-    return months[month - 1];
   }
 
   @override
@@ -177,47 +160,12 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     );
   }
 
-  Map<String, List<Transaction>> _groupByDate(List<Transaction> txns) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final yesterday = today.subtract(const Duration(days: 1));
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
-    final result = <String, List<Transaction>>{};
-    for (final t in txns) {
-      final d = DateTime(t.dateTime.year, t.dateTime.month, t.dateTime.day);
-      final String label;
-      if (d == today) {
-        label = 'Today';
-      } else if (d == yesterday) {
-        label = 'Yesterday';
-      } else {
-        label =
-            '${t.dateTime.day} ${months[t.dateTime.month - 1]} ${t.dateTime.year}';
-      }
-      result.putIfAbsent(label, () => []).add(t);
-    }
-    return result;
-  }
-
   Widget _buildGroupedList(
     BuildContext context,
     List<Transaction> transactions,
     TransactionsController controller,
   ) {
-    final groups = _groupByDate(transactions);
+    final groups = DateFormatter.groupByDate(transactions, (t) => t.dateTime);
     final listItems = <_TxnListItem>[];
     for (final entry in groups.entries) {
       listItems.add(_TxnListItem.header(entry.key));
@@ -466,42 +414,6 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildDetailRow(
-    BuildContext context,
-    String label,
-    String value, {
-    bool isPositive = false,
-    bool isNegative = false,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: AppStyles.getSecondaryTextColor(context),
-              fontSize: TypeScale.body,
-            ),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              color: isPositive
-                  ? CupertinoColors.systemGreen
-                  : isNegative
-                      ? CupertinoColors.systemRed
-                      : AppStyles.getTextColor(context),
-              fontSize: TypeScale.body,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
       ),
     );
   }

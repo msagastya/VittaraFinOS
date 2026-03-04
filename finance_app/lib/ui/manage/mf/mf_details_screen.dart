@@ -9,6 +9,7 @@ import 'package:vittara_fin_os/models/mutual_fund_model.dart';
 import 'package:vittara_fin_os/ui/manage/mf/mf_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/mf/mf_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/manage/mf/sip_wizard.dart';
+import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
@@ -358,22 +359,7 @@ class MFDetailsScreen extends StatelessWidget {
 
   String _formatDate(String isoDate) {
     try {
-      final date = DateTime.parse(isoDate);
-      const months = [
-        'Jan',
-        'Feb',
-        'Mar',
-        'Apr',
-        'May',
-        'Jun',
-        'Jul',
-        'Aug',
-        'Sep',
-        'Oct',
-        'Nov',
-        'Dec'
-      ];
-      return '${date.day} ${months[date.month - 1]} ${date.year}';
+      final date = DateTime.parse(isoDate);return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
     } catch (e) {
       return isoDate;
     }

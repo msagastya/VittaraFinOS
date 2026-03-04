@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
+import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
@@ -268,26 +269,9 @@ class TransactionDetailsContent extends StatelessWidget {
       return 'Yesterday';
     }
 
-    return '${dateTime.day} ${_getMonthName(dateTime.month)}';
+    return '${dateTime.day} ${DateFormatter.getMonthName(dateTime.month)}';
   }
 
-  String _getMonthName(int month) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
-    return months[month - 1];
-  }
 }
 
 class _DetailEntry {

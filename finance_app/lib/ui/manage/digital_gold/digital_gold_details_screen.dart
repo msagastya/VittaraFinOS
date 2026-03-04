@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/services/gold_price_service.dart';
+import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
@@ -402,22 +403,7 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
   String _formatDate(String? isoDate) {
     if (isoDate == null) return '-';
     try {
-      final date = DateTime.parse(isoDate);
-      const months = [
-        'Jan',
-        'Feb',
-        'Mar',
-        'Apr',
-        'May',
-        'Jun',
-        'Jul',
-        'Aug',
-        'Sep',
-        'Oct',
-        'Nov',
-        'Dec'
-      ];
-      return '${date.day} ${months[date.month - 1]} ${date.year}';
+      final date = DateTime.parse(isoDate);return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
     } catch (e) {
       return isoDate;
     }

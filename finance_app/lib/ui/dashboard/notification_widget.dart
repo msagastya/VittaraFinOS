@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/logic/fixed_deposit_model.dart';
+import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
@@ -363,7 +364,7 @@ class NotificationWidget extends StatelessWidget {
         'Nov',
         'Dec'
       ];
-      return '${date.day} ${months[date.month]}';
+      return '${date.day} ${DateFormatter.getMonthName(date.month)}';
     }
   }
 }

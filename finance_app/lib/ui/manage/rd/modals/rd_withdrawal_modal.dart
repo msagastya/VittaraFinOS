@@ -5,6 +5,7 @@ import 'package:vittara_fin_os/logic/recurring_deposit_model.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
+import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
@@ -427,6 +428,6 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
       'Nov',
       'Dec'
     ];
-    return '${date.day} ${months[date.month]} ${date.year}';
+    return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
   }
 }

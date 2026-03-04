@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/tags_controller.dart';
 import 'package:vittara_fin_os/logic/tag_model.dart';
+import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
@@ -600,6 +601,6 @@ class _TagsScreenState extends State<TagsScreen> {
       'Nov',
       'Dec'
     ];
-    return '${date.day} ${months[date.month - 1]}';
+    return '${date.day} ${DateFormatter.getMonthName(date.month)}';
   }
 }

@@ -116,6 +116,37 @@ class DateFormatter {
     return 'FY $fyStartYear-${(fyStartYear + 1) % 100}';
   }
 
+  /// Group a list of items by date label (Today / Yesterday / DD MMM YYYY).
+  /// Items are sorted newest-first before grouping.
+  /// [getDate] extracts the [DateTime] from each item.
+  static Map<String, List<T>> groupByDate<T>(
+    List<T> items,
+    DateTime Function(T) getDate,
+  ) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+
+    final sorted = List<T>.from(items)
+      ..sort((a, b) => getDate(b).compareTo(getDate(a)));
+
+    final result = <String, List<T>>{};
+    for (final item in sorted) {
+      final d = getDate(item);
+      final day = DateTime(d.year, d.month, d.day);
+      final String label;
+      if (day == today) {
+        label = 'Today';
+      } else if (day == yesterday) {
+        label = 'Yesterday';
+      } else {
+        label = format(d);
+      }
+      result.putIfAbsent(label, () => []).add(item);
+    }
+    return result;
+  }
+
   /// Get month name from month number (1-12)
   static String getMonthName(int month, {bool short = true}) {
     if (month < 1 || month > 12) return '';

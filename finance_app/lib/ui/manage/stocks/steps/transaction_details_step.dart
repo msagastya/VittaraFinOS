@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/services/stock_api_service.dart';
 import 'package:vittara_fin_os/ui/manage/stocks/stocks_wizard_controller.dart';
+import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
@@ -359,21 +360,6 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
     );
   }
 
-  String _monthName(int month) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
-    return months[month - 1];
+  String _monthName(int month) {return DateFormatter.getMonthName(month);
   }
 }
