@@ -280,6 +280,76 @@ class _AccountsScreenState extends State<AccountsScreen> {
     }
   }
 
+  Widget _buildAllAccountsSummary(List<Account> accounts) {
+    const liabilityTypes = {AccountType.credit, AccountType.payLater};
+    final assets = accounts
+        .where((a) => !liabilityTypes.contains(a.type))
+        .fold(0.0, (s, a) => s + a.balance);
+    final liabilities = accounts
+        .where((a) => liabilityTypes.contains(a.type))
+        .fold(0.0, (s, a) => s + a.balance);
+    final net = assets - liabilities;
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: AppStyles.getCardColor(context),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: AppStyles.getSecondaryTextColor(context)
+                .withValues(alpha: 0.15),
+          ),
+        ),
+        child: Row(
+          children: [
+            _buildSummaryColumn('Assets', assets, CupertinoColors.systemGreen),
+            _buildDivider(),
+            _buildSummaryColumn(
+                'Liabilities', liabilities, CupertinoColors.systemRed),
+            _buildDivider(),
+            _buildSummaryColumn(
+                'Net Worth', net, net >= 0 ? AppStyles.accentBlue : CupertinoColors.systemRed),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSummaryColumn(String label, double amount, Color color) {
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: TypeScale.caption,
+              color: AppStyles.getSecondaryTextColor(context),
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            '₹${amount.abs().toStringAsFixed(0)}',
+            style: TextStyle(
+              fontSize: TypeScale.footnote,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return Container(
+      width: 1,
+      height: 28,
+      color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.2),
+    );
+  }
+
   Widget _buildCategoryTabs(List<AccountType> types, List<Account> accounts) {
     return SizedBox(
       height: 88,
@@ -456,6 +526,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
                           onChanged: (v) => setState(() => _searchQuery = v),
                         ),
                       ),
+                      SizedBox(height: Spacing.sm),
+                      _buildAllAccountsSummary(accounts),
                       SizedBox(height: Spacing.sm),
                       _buildCategoryTabs(types, accounts),
                       SizedBox(height: Spacing.md),
