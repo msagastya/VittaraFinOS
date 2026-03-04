@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart' as device_contacts;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/category_model.dart';
@@ -115,10 +116,32 @@ class _TransactionWizardState extends State<TransactionWizard> {
     }
   }
 
+  static const _lastCategoryKey = 'last_used_category_id';
+
   @override
   void initState() {
     super.initState();
     _amountController.addListener(() => setState(() {}));
+    WidgetsBinding.instance.addPostFrameCallback((_) => _restoreLastCategory());
+  }
+
+  Future<void> _restoreLastCategory() async {
+    final prefs = await SharedPreferences.getInstance();
+    final lastId = prefs.getString(_lastCategoryKey);
+    if (lastId == null || !mounted) return;
+    final controller =
+        Provider.of<CategoriesController>(context, listen: false);
+    final match = controller.categories
+        .where((c) => c.id == lastId)
+        .firstOrNull;
+    if (match != null && mounted) {
+      setState(() => _selectedCategory = match);
+    }
+  }
+
+  Future<void> _saveLastCategory(Category category) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_lastCategoryKey, category.id);
   }
 
   void _nextStep() {
@@ -1467,6 +1490,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                           return GestureDetector(
                             onTap: () {
                               setState(() => _selectedCategory = category);
+                              _saveLastCategory(category);
                               _nextStep();
                             },
                             child: Container(
@@ -1530,6 +1554,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
     showCreateCategoryModal(context, controller: controller).then((category) {
       if (!mounted || category == null) return;
       setState(() => _selectedCategory = category);
+      _saveLastCategory(category);
       _nextStep();
     });
   }
