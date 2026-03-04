@@ -88,7 +88,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                   .where((r) =>
                       r.personName.toLowerCase().contains(q) ||
                       r.amount.toString().contains(q) ||
-                      (r.note?.toLowerCase().contains(q) ?? false))
+                      (r.description?.toLowerCase().contains(q) ?? false))
                   .toList();
 
           return Stack(

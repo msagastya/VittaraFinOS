@@ -26,6 +26,8 @@ class MFDetailsScreen extends StatefulWidget {
 }
 
 class _MFDetailsScreenState extends State<MFDetailsScreen> {
+  Investment get investment => widget.investment;
+
   bool _isRefreshingNAV = false;
   final _navService = NAVService();
 

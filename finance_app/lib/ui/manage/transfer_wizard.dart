@@ -84,7 +84,7 @@ class _TransferWizardState extends State<TransferWizard> {
     }
   }
 
-  void _finishTransfer() {
+  Future<void> _finishTransfer() async {
     final accountsController =
         Provider.of<AccountsController>(context, listen: false);
     final transactionsController =

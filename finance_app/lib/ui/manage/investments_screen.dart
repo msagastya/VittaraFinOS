@@ -414,10 +414,10 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
         try {
           final fd = FixedDeposit.fromMap(
               Map<String, dynamic>.from(meta['fdData'] as Map));
-          if (!fd.isWithdrawn) {
+          if (fd.status != FDStatus.prematurelyWithdrawn) {
             entries.add((
               name: fd.name,
-              bank: fd.bankName,
+              bank: fd.bankName ?? '',
               maturityDate: fd.maturityDate,
               maturityValue: fd.maturityValue,
               type: 'FD',
@@ -431,7 +431,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               Map<String, dynamic>.from(meta['rdData'] as Map));
           entries.add((
             name: rd.name,
-            bank: rd.bankName,
+            bank: rd.bankName ?? '',
             maturityDate: rd.maturityDate,
             maturityValue: rd.maturityValue,
             type: 'RD',
