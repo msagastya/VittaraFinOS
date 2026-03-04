@@ -23,14 +23,17 @@ class RDDetailsScreen extends StatefulWidget {
 class _RDDetailsScreenState extends State<RDDetailsScreen> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('RD Details'),
-        elevation: 0,
+    return CupertinoPageScaffold(
+      backgroundColor: AppStyles.getBackground(context),
+      navigationBar: CupertinoNavigationBar(
+        middle: Text('RD Details',
+            style: TextStyle(color: AppStyles.getTextColor(context))),
+        previousPageTitle: 'Investments',
         backgroundColor: AppStyles.getBackground(context),
-        foregroundColor: AppStyles.getTextColor(context),
+        border: null,
       ),
-      body: SingleChildScrollView(
+      child: SafeArea(
+        child: SingleChildScrollView(
         child: Column(
           children: [
             // Header Card
@@ -196,6 +199,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
             const SizedBox(height: 30),
           ],
         ),
+      ),
       ),
     );
   }
