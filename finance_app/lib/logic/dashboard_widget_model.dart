@@ -8,6 +8,7 @@ enum DashboardWidgetType {
   aiPlanner,
   notificationsAndActions,
   monthlySummary,
+  sipTracker,
 }
 
 class DashboardWidgetConfig {

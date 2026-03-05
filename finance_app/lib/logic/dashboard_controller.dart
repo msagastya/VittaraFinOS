@@ -128,6 +128,16 @@ class DashboardController extends ChangeNotifier {
           columnSpan: 3,
           rowSpan: 1,
         ),
+        DashboardWidgetConfig(
+          id: 'sip_tracker',
+          type: DashboardWidgetType.sipTracker,
+          title: 'SIP Tracker',
+          isVisible: false,
+          gridRow: 11,
+          gridColumn: 1,
+          columnSpan: 3,
+          rowSpan: 1,
+        ),
       ],
     );
   }
@@ -141,7 +151,8 @@ class DashboardController extends ChangeNotifier {
         w.id == 'budgets_overview' ||
         w.id == 'savings_planners' ||
         w.id == 'ai_planner' ||
-        w.id == 'monthly_summary');
+        w.id == 'monthly_summary' ||
+        w.id == 'sip_tracker');
 
     for (final optional in defaults) {
       if (!existingIds.contains(optional.id)) {

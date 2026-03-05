@@ -824,6 +824,8 @@ class DashboardScreen extends StatelessWidget {
         return SemanticColors.warning;
       case DashboardWidgetType.monthlySummary:
         return AppStyles.accentGreen;
+      case DashboardWidgetType.sipTracker:
+        return CupertinoColors.activeBlue;
     }
   }
 
@@ -1810,6 +1812,131 @@ class DashboardScreen extends StatelessWidget {
             );
           },
         );
+      case DashboardWidgetType.sipTracker:
+        return Consumer<InvestmentsController>(
+          builder: (context, investmentsController, child) {
+            final activeSips = investmentsController.investments
+                .where((inv) => inv.metadata?['sipActive'] == true)
+                .toList();
+
+            if (activeSips.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(CupertinoIcons.repeat,
+                        size: 28,
+                        color: AppStyles.getSecondaryTextColor(context)
+                            .withValues(alpha: 0.4)),
+                    SizedBox(height: Spacing.sm),
+                    Text(
+                      'No active SIPs',
+                      style: TextStyle(
+                        fontSize: TypeScale.footnote,
+                        color: AppStyles.getSecondaryTextColor(context),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            double totalMonthly = 0;
+            for (final inv in activeSips) {
+              final meta = inv.metadata ?? {};
+              final sipData = meta['sipData'] as Map<String, dynamic>?;
+              final freq = (sipData?['frequency'] as String? ??
+                      meta['sipFrequency'] as String? ??
+                      'monthly')
+                  .toLowerCase();
+              double amt = (sipData?['sipAmount'] as num?)?.toDouble() ??
+                  (meta['sipAmount'] as num?)?.toDouble() ??
+                  0.0;
+              if (freq == 'weekly') amt *= 4.33;
+              if (freq == 'quarterly') amt /= 3;
+              if (freq == 'yearly' || freq == 'annual') amt /= 12;
+              totalMonthly += amt;
+            }
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '${activeSips.length} active SIP${activeSips.length == 1 ? '' : 's'}',
+                      style: TextStyle(
+                        fontSize: TypeScale.footnote,
+                        color: AppStyles.getSecondaryTextColor(context),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    Text(
+                      '~₹${totalMonthly.toStringAsFixed(0)}/mo',
+                      style: TextStyle(
+                        fontSize: TypeScale.footnote,
+                        fontWeight: FontWeight.w700,
+                        color: CupertinoColors.activeBlue,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: Spacing.sm),
+                ...activeSips.take(4).map((inv) {
+                  final meta = inv.metadata ?? {};
+                  final sipData = meta['sipData'] as Map<String, dynamic>?;
+                  final freq = sipData?['frequency'] as String? ??
+                      meta['sipFrequency'] as String? ??
+                      'monthly';
+                  final amt = (sipData?['sipAmount'] as num?)?.toDouble() ??
+                      (meta['sipAmount'] as num?)?.toDouble() ??
+                      0.0;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Row(
+                      children: [
+                        Icon(CupertinoIcons.repeat,
+                            size: 12,
+                            color: CupertinoColors.activeBlue
+                                .withValues(alpha: 0.7)),
+                        SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            inv.name,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: TypeScale.caption,
+                              color: AppStyles.getTextColor(context),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          amt > 0
+                              ? '₹${amt.toStringAsFixed(0)} · $freq'
+                              : freq,
+                          style: TextStyle(
+                            fontSize: TypeScale.caption,
+                            color: AppStyles.getSecondaryTextColor(context),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+                if (activeSips.length > 4)
+                  Text(
+                    '+${activeSips.length - 4} more',
+                    style: TextStyle(
+                      fontSize: TypeScale.caption,
+                      color: AppStyles.getSecondaryTextColor(context),
+                    ),
+                  ),
+              ],
+            );
+          },
+        );
       case DashboardWidgetType.notificationsAndActions:
         return Consumer<InvestmentsController>(
           builder: (context, investmentsController, child) {
@@ -2149,6 +2276,11 @@ class DashboardScreen extends StatelessWidget {
       case DashboardWidgetType.monthlySummary:
         Navigator.of(context).push(
           FadeScalePageRoute(page: const TransactionHistoryScreen()),
+        );
+        break;
+      case DashboardWidgetType.sipTracker:
+        Navigator.of(context).push(
+          FadeScalePageRoute(page: const NotificationsPage()),
         );
         break;
       default:
