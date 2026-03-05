@@ -19,6 +19,7 @@ class ContactsScreen extends StatefulWidget {
 
 class _ContactsScreenState extends State<ContactsScreen> {
   String _searchQuery = '';
+  bool _sortAlpha = false;
 
   @override
   Widget build(BuildContext context) {
@@ -29,17 +30,35 @@ class _ContactsScreenState extends State<ContactsScreen> {
           'People',
           style: TextStyle(color: AppStyles.getTextColor(context)),
         ),
-        trailing: CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: () => _showAddContactOptions(
-            context,
-            context.read<ContactsController>(),
-          ),
-          child: Icon(
-            CupertinoIcons.plus_circle_fill,
-            color: AppStyles.accentBlue,
-            size: 24,
-          ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: () => setState(() => _sortAlpha = !_sortAlpha),
+              child: Icon(
+                _sortAlpha
+                    ? CupertinoIcons.sort_down_circle_fill
+                    : CupertinoIcons.sort_down_circle,
+                color: _sortAlpha
+                    ? AppStyles.accentBlue
+                    : AppStyles.getSecondaryTextColor(context),
+                size: 22,
+              ),
+            ),
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: () => _showAddContactOptions(
+                context,
+                context.read<ContactsController>(),
+              ),
+              child: Icon(
+                CupertinoIcons.plus_circle_fill,
+                color: AppStyles.accentBlue,
+                size: 24,
+              ),
+            ),
+          ],
         ),
         previousPageTitle: 'Manage',
         backgroundColor: AppStyles.getBackground(context),
@@ -49,12 +68,15 @@ class _ContactsScreenState extends State<ContactsScreen> {
         builder: (context, contactsController, child) {
           final contacts = contactsController.contacts;
           final q = _searchQuery.toLowerCase();
-          final filtered = q.isEmpty
-              ? contacts
+          var filtered = q.isEmpty
+              ? contacts.toList()
               : contacts.where((c) {
                   return c.name.toLowerCase().contains(q) ||
                       (c.phoneNumber?.toLowerCase().contains(q) ?? false);
                 }).toList();
+          if (_sortAlpha) {
+            filtered.sort((a, b) => a.name.compareTo(b.name));
+          }
 
           return Stack(
             children: [

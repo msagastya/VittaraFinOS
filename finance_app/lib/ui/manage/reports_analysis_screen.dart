@@ -742,6 +742,8 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
       case _ReportWorkspaceTab.charts:
         return [
           SizedBox(height: Spacing.lg),
+          _buildMonthlyComparisonCard(),
+          SizedBox(height: Spacing.lg),
           _buildChartsCard(groupedMetrics, trendPoints),
           SizedBox(height: Spacing.lg),
           _buildBreakdownTable(groupedMetrics),
@@ -1405,6 +1407,117 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
             min: min,
             max: max,
             onChanged: onChanged,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMonthlyComparisonCard() {
+    final txController = context.read<TransactionsController>();
+    final allTxs = txController.transactions;
+
+    // Build monthly expense totals for last 6 months
+    final now = DateTime.now();
+    final months = List.generate(6, (i) {
+      final d = DateTime(now.year, now.month - 5 + i, 1);
+      return DateTime(d.year, d.month, 1);
+    });
+
+    final monthlyExpenses = <DateTime, double>{};
+    for (final m in months) {
+      monthlyExpenses[m] = 0;
+    }
+    for (final tx in allTxs) {
+      if (tx.type != TransactionType.expense) continue;
+      final mKey = DateTime(tx.dateTime.year, tx.dateTime.month, 1);
+      if (monthlyExpenses.containsKey(mKey)) {
+        monthlyExpenses[mKey] = (monthlyExpenses[mKey] ?? 0) + tx.amount;
+      }
+    }
+
+    final values = months.map((m) => monthlyExpenses[m] ?? 0.0).toList();
+    final maxVal = values.reduce((a, b) => a > b ? a : b);
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    return Container(
+      padding: EdgeInsets.all(Spacing.lg),
+      decoration: AppStyles.sectionDecoration(
+        context,
+        tint: SemanticColors.error.withValues(alpha: 0.6),
+        radius: Radii.xl,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionTitle(
+            icon: CupertinoIcons.chart_bar_fill,
+            title: 'Month-over-Month Spending',
+            subtitle: 'Expense totals for the last 6 months',
+          ),
+          SizedBox(height: Spacing.lg),
+          SizedBox(
+            height: 180,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: List.generate(months.length, (i) {
+                final val = values[i];
+                final barHeight = maxVal > 0
+                    ? (val / maxVal) * 140
+                    : 0.0;
+                final isCurrentMonth = months[i].month == now.month &&
+                    months[i].year == now.year;
+                final label =
+                    monthNames[months[i].month - 1];
+                return Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        if (val > 0)
+                          Text(
+                            '₹${val >= 1000 ? '${(val / 1000).toStringAsFixed(0)}K' : val.toStringAsFixed(0)}',
+                            style: TextStyle(
+                              fontSize: 9,
+                              color: AppStyles.getSecondaryTextColor(context),
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        SizedBox(height: 4),
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 400),
+                          height: barHeight.clamp(4.0, 140.0),
+                          decoration: BoxDecoration(
+                            color: isCurrentMonth
+                                ? SemanticColors.error
+                                : SemanticColors.error
+                                    .withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(4),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 6),
+                        Text(
+                          label,
+                          style: TextStyle(
+                            fontSize: TypeScale.caption,
+                            fontWeight: isCurrentMonth
+                                ? FontWeight.w700
+                                : FontWeight.w400,
+                            color: isCurrentMonth
+                                ? AppStyles.getTextColor(context)
+                                : AppStyles.getSecondaryTextColor(context),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+            ),
           ),
         ],
       ),

@@ -18,6 +18,7 @@ class TagsScreen extends StatefulWidget {
 
 class _TagsScreenState extends State<TagsScreen> {
   String _searchQuery = '';
+  bool _sortAlpha = false;
 
   @override
   Widget build(BuildContext context) {
@@ -28,6 +29,19 @@ class _TagsScreenState extends State<TagsScreen> {
           'Tags',
           style: TextStyle(color: AppStyles.getTextColor(context)),
         ),
+        trailing: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: () => setState(() => _sortAlpha = !_sortAlpha),
+          child: Icon(
+            _sortAlpha
+                ? CupertinoIcons.sort_down_circle_fill
+                : CupertinoIcons.sort_down_circle,
+            color: _sortAlpha
+                ? AppStyles.accentBlue
+                : AppStyles.getSecondaryTextColor(context),
+            size: 22,
+          ),
+        ),
         previousPageTitle: 'Manage',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
@@ -36,9 +50,12 @@ class _TagsScreenState extends State<TagsScreen> {
         builder: (context, tagsController, child) {
           final tags = tagsController.tags;
           final q = _searchQuery.toLowerCase();
-          final filteredTags = q.isEmpty
-              ? tags
+          var filteredTags = q.isEmpty
+              ? tags.toList()
               : tags.where((t) => t.name.toLowerCase().contains(q)).toList();
+          if (_sortAlpha) {
+            filteredTags.sort((a, b) => a.name.compareTo(b.name));
+          }
 
           return Stack(
             children: [
