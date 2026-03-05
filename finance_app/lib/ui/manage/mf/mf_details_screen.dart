@@ -30,6 +30,18 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
 
   bool _isRefreshingNAV = false;
   final _navService = NAVService();
+  Future<List<NAVData>>? _navHistoryFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    final schemeCode =
+        widget.investment.metadata?['schemeCode'] as String?;
+    if (schemeCode != null) {
+      _navHistoryFuture =
+          _navService.getHistoricalNAV(schemeCode, lastNDays: 90);
+    }
+  }
 
   Future<void> _refreshNAV() async {
     final metadata = widget.investment.metadata ?? {};
@@ -257,6 +269,112 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
                 ),
               ),
               const SizedBox(height: Spacing.xl),
+
+              // NAV History Sparkline
+              if (_navHistoryFuture != null)
+                FutureBuilder<List<NAVData>>(
+                  future: _navHistoryFuture,
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData || snapshot.data!.length < 5) {
+                      return const SizedBox.shrink();
+                    }
+                    final navPoints = snapshot.data!.reversed.toList();
+                    final navValues =
+                        navPoints.map((n) => n.nav).toList();
+                    final minNav = navValues.reduce(
+                        (a, b) => a < b ? a : b);
+                    final maxNav = navValues.reduce(
+                        (a, b) => a > b ? a : b);
+                    final isUp =
+                        navValues.last >= navValues.first;
+                    final lineColor = isUp
+                        ? CupertinoColors.systemGreen
+                        : CupertinoColors.systemRed;
+
+                    return Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(Spacing.lg),
+                          decoration: BoxDecoration(
+                            color: AppStyles.getCardColor(context),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                                color: lineColor
+                                    .withValues(alpha: 0.3)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment:
+                                CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'NAV History (90 days)',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: TypeScale.subhead,
+                                      color: AppStyles.getTextColor(
+                                          context),
+                                    ),
+                                  ),
+                                  Text(
+                                    '₹${navValues.last.toStringAsFixed(2)}',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: TypeScale.body,
+                                      color: lineColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: Spacing.md),
+                              SizedBox(
+                                height: 80,
+                                child: CustomPaint(
+                                  size: const Size(double.infinity, 80),
+                                  painter: _SparklinePainter(
+                                    values: navValues,
+                                    minVal: minNav,
+                                    maxVal: maxNav,
+                                    color: lineColor,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: Spacing.sm),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Low: ₹${minNav.toStringAsFixed(2)}',
+                                    style: TextStyle(
+                                      fontSize: TypeScale.caption,
+                                      color:
+                                          AppStyles.getSecondaryTextColor(
+                                              context),
+                                    ),
+                                  ),
+                                  Text(
+                                    'High: ₹${maxNav.toStringAsFixed(2)}',
+                                    style: TextStyle(
+                                      fontSize: TypeScale.caption,
+                                      color:
+                                          AppStyles.getSecondaryTextColor(
+                                              context),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: Spacing.xl),
+                      ],
+                    );
+                  },
+                ),
 
               // Details Section
               Text(
@@ -991,4 +1109,64 @@ class _EditMFModalState extends State<_EditMFModal> {
       ],
     );
   }
+}
+
+class _SparklinePainter extends CustomPainter {
+  final List<double> values;
+  final double minVal;
+  final double maxVal;
+  final Color color;
+
+  _SparklinePainter({
+    required this.values,
+    required this.minVal,
+    required this.maxVal,
+    required this.color,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (values.length < 2) return;
+    final range = maxVal - minVal;
+    if (range == 0) return;
+
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 2.0
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    final fillPaint = Paint()
+      ..color = color.withValues(alpha: 0.12)
+      ..style = PaintingStyle.fill;
+
+    final path = Path();
+    final fillPath = Path();
+
+    double x0 = 0;
+    double y0 = size.height -
+        ((values[0] - minVal) / range) * size.height;
+    path.moveTo(x0, y0);
+    fillPath.moveTo(x0, size.height);
+    fillPath.lineTo(x0, y0);
+
+    for (int i = 1; i < values.length; i++) {
+      final x = (i / (values.length - 1)) * size.width;
+      final y = size.height -
+          ((values[i] - minVal) / range) * size.height;
+      path.lineTo(x, y);
+      fillPath.lineTo(x, y);
+    }
+
+    fillPath.lineTo(size.width, size.height);
+    fillPath.close();
+
+    canvas.drawPath(fillPath, fillPaint);
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(_SparklinePainter oldDelegate) =>
+      values != oldDelegate.values || color != oldDelegate.color;
 }

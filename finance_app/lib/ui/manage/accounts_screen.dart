@@ -461,17 +461,22 @@ class _AccountsScreenState extends State<AccountsScreen> {
           ),
         ),
         Expanded(
-          child: ListView.builder(
-            padding: EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, 110),
-            itemCount: sectionAccounts.length,
-            itemBuilder: (context, index) {
-              final account = sectionAccounts[index];
-              return StaggeredItem(
-                key: ValueKey('${type.name}_${account.id}'),
-                index: index,
-                child: _buildSlidableAccountCard(account),
-              );
-            },
+          child: RefreshIndicator(
+            onRefresh: () =>
+                context.read<AccountsController>().loadAccounts(),
+            color: AppStyles.accentBlue,
+            child: ListView.builder(
+              padding: EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, 110),
+              itemCount: sectionAccounts.length,
+              itemBuilder: (context, index) {
+                final account = sectionAccounts[index];
+                return StaggeredItem(
+                  key: ValueKey('${type.name}_${account.id}'),
+                  index: index,
+                  child: _buildSlidableAccountCard(account),
+                );
+              },
+            ),
           ),
         ),
       ],

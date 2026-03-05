@@ -394,36 +394,41 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
                 decoration: BoxDecoration(
                   gradient: AppStyles.backgroundGradient(context),
                 ),
-                child: ListView(
-                  padding: EdgeInsets.fromLTRB(
-                    Spacing.lg,
-                    Spacing.lg,
-                    Spacing.lg,
-                    Spacing.huge,
+                child: RefreshIndicator(
+                  onRefresh: () =>
+                      transactionsController.loadTransactions(),
+                  color: AppStyles.accentBlue,
+                  child: ListView(
+                    padding: EdgeInsets.fromLTRB(
+                      Spacing.lg,
+                      Spacing.lg,
+                      Spacing.lg,
+                      Spacing.huge,
+                    ),
+                    children: [
+                      _buildSummaryHeader(summary, filteredTransactions.length),
+                      SizedBox(height: Spacing.sm),
+                      _buildActiveFiltersBar(
+                          transactionsController.transactions.length,
+                          filteredTransactions.length),
+                      SizedBox(height: Spacing.sm),
+                      _buildWorkspaceNavigator(
+                        filteredCount: filteredTransactions.length,
+                        totalCount: transactionsController.transactions.length,
+                      ),
+                      ..._buildWorkspaceContent(
+                        summary: summary,
+                        groupedMetrics: groupedMetrics,
+                        trendPoints: trendPoints,
+                        strategyEvaluation: strategyEvaluation,
+                        snapshot: snapshot,
+                        categories: categoriesController.categories,
+                        accounts: accountsController.accounts,
+                        availableTags: availableTags,
+                        availableApps: availableApps,
+                      ),
+                    ],
                   ),
-                  children: [
-                    _buildSummaryHeader(summary, filteredTransactions.length),
-                    SizedBox(height: Spacing.sm),
-                    _buildActiveFiltersBar(
-                        transactionsController.transactions.length,
-                        filteredTransactions.length),
-                    SizedBox(height: Spacing.sm),
-                    _buildWorkspaceNavigator(
-                      filteredCount: filteredTransactions.length,
-                      totalCount: transactionsController.transactions.length,
-                    ),
-                    ..._buildWorkspaceContent(
-                      summary: summary,
-                      groupedMetrics: groupedMetrics,
-                      trendPoints: trendPoints,
-                      strategyEvaluation: strategyEvaluation,
-                      snapshot: snapshot,
-                      categories: categoriesController.categories,
-                      accounts: accountsController.accounts,
-                      availableTags: availableTags,
-                      availableApps: availableApps,
-                    ),
-                  ],
                 ),
               ),
             ),

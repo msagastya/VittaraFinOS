@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:vittara_fin_os/logic/budgets_controller.dart';
 import 'package:vittara_fin_os/logic/budget_model.dart';
+import 'package:vittara_fin_os/logic/transactions_controller.dart';
+import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animated_counter.dart';
@@ -277,12 +279,131 @@ class BudgetDetailsScreen extends StatelessWidget {
                     ),
                   ),
                 ),
+                SliverToBoxAdapter(child: SizedBox(height: Spacing.lg)),
+                _buildCategoryBreakdown(context, budget),
                 SliverToBoxAdapter(child: SizedBox(height: 100)),
               ],
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildCategoryBreakdown(BuildContext context, Budget budget) {
+    return SliverToBoxAdapter(
+      child: Consumer<TransactionsController>(
+        builder: (context, txController, _) {
+          final periodTxs = txController.transactions.where((tx) {
+            if (tx.type != TransactionType.expense) return false;
+            return !tx.dateTime.isBefore(budget.startDate) &&
+                !tx.dateTime.isAfter(budget.endDate);
+          }).toList();
+
+          if (periodTxs.isEmpty) return const SizedBox.shrink();
+
+          // Group by category
+          final Map<String, double> categoryTotals = {};
+          for (final tx in periodTxs) {
+            final cat = (tx.metadata?['categoryName'] as String?)?.trim();
+            final key = (cat == null || cat.isEmpty) ? 'Uncategorized' : cat;
+            categoryTotals[key] = (categoryTotals[key] ?? 0) + tx.amount;
+          }
+
+          final sorted = categoryTotals.entries.toList()
+            ..sort((a, b) => b.value.compareTo(a.value));
+
+          final total = sorted.fold(0.0, (s, e) => s + e.value);
+
+          return Padding(
+            padding: EdgeInsets.fromLTRB(
+                Spacing.lg, 0, Spacing.lg, Spacing.md),
+            child: NeumorphicGlassCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(CupertinoIcons.chart_bar_square,
+                          color: budget.color, size: IconSizes.lg),
+                      SizedBox(width: Spacing.md),
+                      Text(
+                        'Spending Breakdown',
+                        style: TextStyle(
+                          fontSize: TypeScale.callout,
+                          fontWeight: FontWeight.w600,
+                          color: AppStyles.getTextColor(context),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: Spacing.xl),
+                  ...sorted.map((entry) {
+                    final pct = total > 0 ? entry.value / total : 0.0;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: Spacing.lg),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  entry.key,
+                                  style: TextStyle(
+                                    fontSize: TypeScale.subhead,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppStyles.getTextColor(context),
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                '₹${entry.value.toStringAsFixed(0)}',
+                                style: TextStyle(
+                                  fontSize: TypeScale.subhead,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppStyles.getTextColor(context),
+                                ),
+                              ),
+                              SizedBox(width: Spacing.sm),
+                              Text(
+                                '${(pct * 100).toStringAsFixed(0)}%',
+                                style: TextStyle(
+                                  fontSize: TypeScale.footnote,
+                                  color: AppStyles.getSecondaryTextColor(
+                                      context),
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: Spacing.xs),
+                          Container(
+                            height: 6,
+                            decoration: BoxDecoration(
+                              color: budget.color.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: FractionallySizedBox(
+                              alignment: Alignment.centerLeft,
+                              widthFactor: pct.clamp(0.0, 1.0),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: budget.color,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }
