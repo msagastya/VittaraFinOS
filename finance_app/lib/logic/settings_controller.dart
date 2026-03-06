@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -20,6 +22,8 @@ class SettingsController with ChangeNotifier {
   bool _isLocked = false;
   bool _appLoaded = false;
   bool _isArchivedTransactionsEnabled = false;
+  String? _pinHash; // SHA-256 of the PIN
+  bool _showPinFallback = false; // set to true after biometric fails
 
   ThemeMode get themeMode => _themeMode;
   bool get isBiometricEnabled => _isBiometricEnabled;
@@ -29,6 +33,8 @@ class SettingsController with ChangeNotifier {
   bool get isLocked => _isLocked;
   bool get appLoaded => _appLoaded;
   bool get isArchivedTransactionsEnabled => _isArchivedTransactionsEnabled;
+  bool get isPinEnabled => _pinHash != null && _pinHash!.isNotEmpty;
+  bool get showPinFallback => _showPinFallback;
 
   void setAppLoaded() {
     _appLoaded = true;
@@ -52,6 +58,7 @@ class SettingsController with ChangeNotifier {
     _lockTimeoutSeconds = _prefs.getInt('lockTimeoutSeconds') ?? 10;
     _isInvestmentTrackingEnabled =
         _prefs.getBool('isInvestmentTrackingEnabled') ?? false;
+    _pinHash = _prefs.getString('pinHash');
     _isArchivedTransactionsEnabled =
         _prefs.getBool('showArchivedTransactions') ?? false;
 
@@ -193,20 +200,69 @@ class SettingsController with ChangeNotifier {
     }
   }
 
+  static String _hashPin(String pin) {
+    final bytes = utf8.encode('vittara_pin_salt_$pin');
+    return sha256.convert(bytes).toString();
+  }
+
+  Future<void> setPin(String pin) async {
+    _pinHash = _hashPin(pin);
+    await _prefs.setString('pinHash', _pinHash!);
+    notifyListeners();
+  }
+
+  Future<void> clearPin() async {
+    _pinHash = null;
+    await _prefs.remove('pinHash');
+    notifyListeners();
+  }
+
+  bool verifyPin(String pin) {
+    if (_pinHash == null) return false;
+    return _hashPin(pin) == _pinHash;
+  }
+
+  void showPinEntryFallback() {
+    _showPinFallback = true;
+    notifyListeners();
+  }
+
+  void hidePinFallback() {
+    _showPinFallback = false;
+    notifyListeners();
+  }
+
+  void authenticateAndUnlockWithPin() {
+    _showPinFallback = false;
+    _isLocked = false;
+    notifyListeners();
+  }
+
   Future<void> authenticateAndUnlock() async {
     if (kIsWeb) return; // Skip on web
 
     try {
+      final canBiometric = await auth.canCheckBiometrics;
+      if (!canBiometric) {
+        // Biometric not available — show PIN if set
+        if (isPinEnabled) showPinEntryFallback();
+        return;
+      }
       bool authenticated = await auth.authenticate(
         localizedReason: 'Unlock VittaraFinOS',
       );
 
       if (authenticated) {
+        _showPinFallback = false;
         _isLocked = false;
         notifyListeners();
+      } else if (isPinEnabled) {
+        // Biometric failed — offer PIN fallback
+        showPinEntryFallback();
       }
     } catch (e) {
       logger.error('Unlock Error', error: e, context: 'SettingsController');
+      if (isPinEnabled) showPinEntryFallback();
     }
   }
 }

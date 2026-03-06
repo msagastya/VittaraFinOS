@@ -20,6 +20,8 @@ import 'package:vittara_fin_os/ui/manage/bonds/bonds_details_screen.dart';
 import 'package:vittara_fin_os/ui/manage/mf/mf_details_screen.dart';
 import 'package:vittara_fin_os/ui/manage/stocks/stock_details_screen.dart';
 import 'package:vittara_fin_os/logic/recurring_templates_controller.dart';
+import 'package:vittara_fin_os/logic/transactions_controller.dart';
+import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/ui/dashboard/transaction_wizard.dart';
 
 class NotificationsPage extends StatelessWidget {
@@ -40,8 +42,10 @@ class NotificationsPage extends StatelessWidget {
         child: Container(
           color:
               isDark ? Colors.black : CupertinoColors.systemGroupedBackground,
-          child: Consumer2<InvestmentsController, RecurringTemplatesController>(
-            builder: (context, investmentsController, templatesController, child) {
+          child: Consumer3<InvestmentsController, RecurringTemplatesController,
+              TransactionsController>(
+            builder: (context, investmentsController, templatesController,
+                txController, child) {
               final investments = investmentsController.investments;
               final dueTemplates = templatesController.templates.where((t) {
                 final days = t.daysUntilDue();
@@ -49,6 +53,51 @@ class NotificationsPage extends StatelessWidget {
               }).toList()
                 ..sort((a, b) =>
                     (a.daysUntilDue() ?? 99).compareTo(b.daysUntilDue() ?? 99));
+
+              // Spending insights: categories that exceed last month by ≥20%
+              final now = DateTime.now();
+              final thisMonthStart = DateTime(now.year, now.month, 1);
+              final lastMonthStart = DateTime(now.year, now.month - 1, 1);
+              final lastMonthEnd =
+                  thisMonthStart.subtract(const Duration(seconds: 1));
+
+              Map<String, double> sumByCategory(List<Transaction> txs) {
+                final map = <String, double>{};
+                for (final tx in txs) {
+                  if (tx.type != TransactionType.expense) continue;
+                  final cat =
+                      tx.metadata?['categoryName'] as String? ?? 'Uncategorized';
+                  map[cat] = (map[cat] ?? 0) + tx.amount;
+                }
+                return map;
+              }
+
+              final allTx = txController.transactions;
+              final thisMonthSpend = sumByCategory(allTx
+                  .where((t) =>
+                      !t.dateTime.isBefore(thisMonthStart) &&
+                      !t.dateTime.isAfter(now))
+                  .toList());
+              final lastMonthSpend = sumByCategory(allTx
+                  .where((t) =>
+                      !t.dateTime.isBefore(lastMonthStart) &&
+                      !t.dateTime.isAfter(lastMonthEnd))
+                  .toList());
+
+              // Only surface if current month is at least half over (day >= 10)
+              final spendingInsights = <({String category, double current, double last})>[];
+              if (now.day >= 10) {
+                for (final entry in thisMonthSpend.entries) {
+                  final current = entry.value;
+                  final last = lastMonthSpend[entry.key] ?? 0;
+                  if (last > 0 && current >= last * 1.2 && current >= 500) {
+                    spendingInsights
+                        .add((category: entry.key, current: current, last: last));
+                  }
+                }
+                spendingInsights.sort(
+                    (a, b) => (b.current - b.last).compareTo(a.current - a.last));
+              }
 
               // Find FDs near maturity
               final fdsNearMaturity = investments.where((inv) {
@@ -422,13 +471,118 @@ class NotificationsPage extends StatelessWidget {
                       }),
                     ],
 
+                    // Spending Insights
+                    if (spendingInsights.isNotEmpty) ...[
+                      Container(
+                        margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                        child: Row(
+                          children: [
+                            const Icon(CupertinoIcons.chart_bar_alt_fill,
+                                size: 14,
+                                color: CupertinoColors.systemOrange),
+                            const SizedBox(width: Spacing.sm),
+                            Text(
+                              'Spending Insights',
+                              style: TextStyle(
+                                fontSize: TypeScale.footnote,
+                                fontWeight: FontWeight.w600,
+                                color: CupertinoColors.systemOrange,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      ...spendingInsights.take(3).map((insight) {
+                        final pct =
+                            ((insight.current - insight.last) / insight.last * 100)
+                                .round();
+                        return Container(
+                          margin: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 6),
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: AppStyles.getCardColor(context),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color:
+                                  CupertinoColors.systemOrange.withValues(alpha: 0.3),
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: CupertinoColors.systemOrange
+                                      .withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(
+                                  CupertinoIcons.arrow_up_circle_fill,
+                                  size: 20,
+                                  color: CupertinoColors.systemOrange,
+                                ),
+                              ),
+                              const SizedBox(width: Spacing.md),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      insight.category,
+                                      style: TextStyle(
+                                        fontSize: TypeScale.subhead,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppStyles.getTextColor(context),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'Up $pct% vs last month',
+                                      style: TextStyle(
+                                        fontSize: TypeScale.footnote,
+                                        color: CupertinoColors.systemOrange,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    CurrencyFormatter.compact(insight.current),
+                                    style: TextStyle(
+                                      fontSize: TypeScale.subhead,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppStyles.getTextColor(context),
+                                    ),
+                                  ),
+                                  Text(
+                                    'was ${CurrencyFormatter.compact(insight.last)}',
+                                    style: TextStyle(
+                                      fontSize: TypeScale.caption,
+                                      color:
+                                          AppStyles.getSecondaryTextColor(context),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                    ],
+
                     // Empty State
                     if (fdsNearMaturity.isEmpty &&
                         fdsMatured.isEmpty &&
                         rdsWithUpcomingInstallments.isEmpty &&
                         sipNotifications.isEmpty &&
                         bondNotifications.isEmpty &&
-                        dueTemplates.isEmpty)
+                        dueTemplates.isEmpty &&
+                        spendingInsights.isEmpty)
                       Padding(
                         padding: EdgeInsets.only(top: Spacing.xxxl),
                         child: FadeInAnimation(

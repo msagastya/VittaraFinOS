@@ -75,6 +75,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       onTap: () => _showLockTimeoutOptions(context, settings),
                     ),
                   ],
+                  _buildDivider(context),
+                  _buildNavRow(
+                    context,
+                    icon: CupertinoIcons.number_square_fill,
+                    title: 'PIN Lock',
+                    value: settings.isPinEnabled ? 'Enabled' : 'Not set',
+                    color: CupertinoColors.systemPurple,
+                    onTap: () => _showPinSetupSheet(context, settings),
+                  ),
                 ],
               ]),
 
@@ -281,6 +290,207 @@ class _SettingsScreenState extends State<SettingsScreen> {
           onPressed: () => Navigator.pop(context),
           child: const Text('Cancel'),
         ),
+      ),
+    );
+  }
+
+  void _showPinSetupSheet(
+      BuildContext context, SettingsController settings) {
+    if (settings.isPinEnabled) {
+      // Already set — offer to change or clear
+      showCupertinoModalPopup(
+        context: context,
+        builder: (ctx) => CupertinoActionSheet(
+          title: const Text('PIN Lock'),
+          message: const Text('Your PIN is currently set.'),
+          actions: [
+            CupertinoActionSheetAction(
+              onPressed: () {
+                Navigator.pop(ctx);
+                _showPinEntryDialog(context, settings, isSetup: true);
+              },
+              child: const Text('Change PIN'),
+            ),
+            CupertinoActionSheetAction(
+              isDestructiveAction: true,
+              onPressed: () {
+                settings.clearPin();
+                Navigator.pop(ctx);
+              },
+              child: const Text('Remove PIN'),
+            ),
+          ],
+          cancelButton: CupertinoActionSheetAction(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+        ),
+      );
+    } else {
+      _showPinEntryDialog(context, settings, isSetup: true);
+    }
+  }
+
+  void _showPinEntryDialog(BuildContext context, SettingsController settings,
+      {required bool isSetup}) {
+    final List<String> digits = [];
+    final List<String>? confirmDigits = isSetup ? [] : null;
+    bool inConfirm = false;
+    bool error = false;
+
+    showCupertinoModalPopup(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setS) {
+          final isDark = AppStyles.isDarkMode(ctx);
+          final dotColor = error ? CupertinoColors.systemRed : AppStyles.accentBlue;
+          final current = inConfirm ? confirmDigits! : digits;
+
+          void onDigit(String d) {
+            if (current.length >= 6) return;
+            setS(() { current.add(d); error = false; });
+            if (current.length == 6) {
+              if (!isSetup) return; // shouldn't happen
+              if (!inConfirm) {
+                setS(() => inConfirm = true);
+              } else {
+                if (digits.join() == confirmDigits!.join()) {
+                  settings.setPin(digits.join());
+                  Navigator.pop(ctx);
+                } else {
+                  setS(() {
+                    error = true;
+                    confirmDigits.clear();
+                  });
+                }
+              }
+            }
+          }
+
+          void onBack() {
+            if (current.isEmpty) return;
+            setS(() => current.removeLast());
+          }
+
+          return Container(
+            height: MediaQuery.of(ctx).size.height * 0.75,
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1C1C1E) : CupertinoColors.white,
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: SafeArea(
+              child: Column(
+                children: [
+                  const SizedBox(height: 16),
+                  Container(
+                    width: 36, height: 5,
+                    decoration: BoxDecoration(
+                      color: CupertinoColors.systemGrey3,
+                      borderRadius: BorderRadius.circular(2.5),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Icon(CupertinoIcons.number_square_fill,
+                      size: 36, color: CupertinoColors.systemPurple),
+                  const SizedBox(height: 12),
+                  Text(
+                    inConfirm ? 'Confirm PIN' : 'Set New PIN',
+                    style: TextStyle(
+                      color: AppStyles.getTextColor(ctx),
+                      fontSize: TypeScale.title2,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    error
+                        ? 'PINs do not match. Try again.'
+                        : inConfirm
+                            ? 'Re-enter your 6-digit PIN'
+                            : 'Choose a 6-digit PIN',
+                    style: TextStyle(
+                      color: error
+                          ? CupertinoColors.systemRed
+                          : AppStyles.getSecondaryTextColor(ctx),
+                      fontSize: TypeScale.body,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(6, (i) {
+                      final filled = i < current.length;
+                      return Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 8),
+                        width: 16, height: 16,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: filled ? dotColor : Colors.transparent,
+                          border: Border.all(color: dotColor, width: 1.5),
+                        ),
+                      );
+                    }),
+                  ),
+                  const Spacer(),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    child: Column(
+                      children: [
+                        for (final row in [
+                          ['1', '2', '3'],
+                          ['4', '5', '6'],
+                          ['7', '8', '9'],
+                          ['', '0', '⌫'],
+                        ])
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: row.map((label) {
+                                if (label.isEmpty) {
+                                  return const SizedBox(width: 72);
+                                }
+                                return GestureDetector(
+                                  onTap: () {
+                                    if (label == '⌫') {
+                                      onBack();
+                                    } else {
+                                      onDigit(label);
+                                    }
+                                  },
+                                  child: Container(
+                                    width: 72, height: 72,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: isDark
+                                          ? const Color(0xFF2C2C2E)
+                                          : CupertinoColors.systemGrey5,
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        label,
+                                        style: TextStyle(
+                                          color: AppStyles.getTextColor(ctx),
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.w400,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
@@ -268,83 +269,258 @@ class LockScreen extends StatefulWidget {
 }
 
 class _LockScreenState extends State<LockScreen> {
+  final List<String> _enteredDigits = [];
+  bool _pinError = false;
+
   @override
   void initState() {
     super.initState();
-    // Automatically trigger biometric authentication when lock screen appears
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<SettingsController>(context, listen: false)
           .authenticateAndUnlock();
     });
   }
 
+  void _onDigitTap(String digit, SettingsController settings) {
+    if (_enteredDigits.length >= 6) return;
+    setState(() {
+      _enteredDigits.add(digit);
+      _pinError = false;
+    });
+    if (_enteredDigits.length == 6) {
+      _verifyPin(settings);
+    }
+  }
+
+  void _onBackspace() {
+    if (_enteredDigits.isEmpty) return;
+    setState(() => _enteredDigits.removeLast());
+  }
+
+  Future<void> _verifyPin(SettingsController settings) async {
+    final pin = _enteredDigits.join();
+    if (settings.verifyPin(pin)) {
+      settings.hidePinFallback();
+      settings.authenticateAndUnlockWithPin();
+    } else {
+      setState(() {
+        _pinError = true;
+        _enteredDigits.clear();
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: FadeInAnimation(
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Animated lock icon with glow
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: [
-                      SemanticColors.primary.withValues(alpha: 0.3),
-                      SemanticColors.primary.withValues(alpha: 0.1),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: SemanticColors.primary.withValues(alpha: 0.3),
-                      blurRadius: 30,
-                      spreadRadius: 5,
-                    ),
+    return Consumer<SettingsController>(
+      builder: (context, settings, _) {
+        final showPin = settings.showPinFallback;
+        return Scaffold(
+          backgroundColor: Colors.black,
+          body: SafeArea(
+            child: showPin
+                ? _buildPinEntry(context, settings)
+                : _buildBiometricWaiting(context, settings),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildBiometricWaiting(
+      BuildContext context, SettingsController settings) {
+    return FadeInAnimation(
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [
+                    SemanticColors.primary.withValues(alpha: 0.3),
+                    SemanticColors.primary.withValues(alpha: 0.1),
                   ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-                child: const Icon(
-                  CupertinoIcons.lock_shield_fill,
-                  size: 56,
-                  color: Colors.white,
-                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: SemanticColors.primary.withValues(alpha: 0.3),
+                    blurRadius: 30,
+                    spreadRadius: 5,
+                  ),
+                ],
               ),
+              child: const Icon(
+                CupertinoIcons.lock_shield_fill,
+                size: 56,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(height: Spacing.xxxl),
+            Text(
+              'VittaraFinOS Locked',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: TypeScale.title2,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: Spacing.sm),
+            Text(
+              'Authenticating...',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.6),
+                fontSize: TypeScale.body,
+              ),
+            ),
+            SizedBox(height: Spacing.huge),
+            const SizedBox(
+              width: 40,
+              height: 40,
+              child: CupertinoActivityIndicator(
+                color: Colors.white,
+                radius: 15,
+              ),
+            ),
+            if (settings.isPinEnabled) ...[
               SizedBox(height: Spacing.xxxl),
-              Text(
-                'VittaraFinOS Locked',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: TypeScale.title2,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: Spacing.sm),
-              Text(
-                'Authenticating...',
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.6),
-                  fontSize: TypeScale.body,
-                ),
-              ),
-              SizedBox(height: Spacing.huge),
-              const SizedBox(
-                width: 40,
-                height: 40,
-                child: CupertinoActivityIndicator(
-                  color: Colors.white,
-                  radius: 15,
+              CupertinoButton(
+                onPressed: settings.showPinEntryFallback,
+                child: Text(
+                  'Use PIN instead',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.7),
+                    fontSize: TypeScale.body,
+                  ),
                 ),
               ),
             ],
-          ),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _buildPinEntry(BuildContext context, SettingsController settings) {
+    final dotColor = _pinError ? Colors.red : Colors.white;
+    return Column(
+      children: [
+        SizedBox(height: Spacing.xxxl),
+        const Icon(CupertinoIcons.lock_fill, color: Colors.white, size: 40),
+        SizedBox(height: Spacing.lg),
+        Text(
+          'Enter PIN',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: TypeScale.title2,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        SizedBox(height: Spacing.sm),
+        Text(
+          _pinError ? 'Incorrect PIN. Try again.' : 'Enter your 6-digit PIN',
+          style: TextStyle(
+            color: _pinError
+                ? Colors.red
+                : Colors.white.withValues(alpha: 0.6),
+            fontSize: TypeScale.body,
+          ),
+        ),
+        SizedBox(height: Spacing.xxxl),
+        // PIN dots
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(6, (i) {
+            final filled = i < _enteredDigits.length;
+            return Container(
+              margin: const EdgeInsets.symmetric(horizontal: 8),
+              width: 16,
+              height: 16,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: filled ? dotColor : Colors.transparent,
+                border: Border.all(
+                  color: dotColor.withValues(alpha: 0.6),
+                  width: 1.5,
+                ),
+              ),
+            );
+          }),
+        ),
+        const Spacer(),
+        // Numpad
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Column(
+            children: [
+              for (final row in [
+                ['1', '2', '3'],
+                ['4', '5', '6'],
+                ['7', '8', '9'],
+                ['', '0', '⌫'],
+              ])
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: row.map((label) {
+                      if (label.isEmpty) return const SizedBox(width: 80);
+                      return GestureDetector(
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          if (label == '⌫') {
+                            _onBackspace();
+                          } else {
+                            _onDigitTap(label, settings);
+                          }
+                        },
+                        child: Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withValues(alpha: 0.1),
+                          ),
+                          child: Center(
+                            child: Text(
+                              label,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 26,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        if (settings.isBiometricEnabled) ...[
+          CupertinoButton(
+            onPressed: () {
+              settings.hidePinFallback();
+              settings.authenticateAndUnlock();
+            },
+            child: Text(
+              'Use Biometric',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.7),
+                fontSize: TypeScale.body,
+              ),
+            ),
+          ),
+        ],
+        const SizedBox(height: 16),
+      ],
     );
   }
 }
