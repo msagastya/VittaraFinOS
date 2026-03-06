@@ -15,6 +15,8 @@ import 'package:vittara_fin_os/logic/tag_model.dart';
 import 'package:vittara_fin_os/logic/tags_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
+import 'package:vittara_fin_os/logic/recurring_template_model.dart';
+import 'package:vittara_fin_os/logic/recurring_templates_controller.dart';
 import 'package:vittara_fin_os/ui/manage/account_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/categories/category_creation_modal.dart';
 import 'package:vittara_fin_os/ui/manage/payment_apps_screen.dart';
@@ -603,9 +605,14 @@ class _TransactionWizardState extends State<TransactionWizard> {
   }
 
   Widget _buildBranchPage() {
+    final templatesController =
+        context.watch<RecurringTemplatesController>();
+    final templates = templatesController.templates;
+
     return _buildStepShell(
       title: 'What type of transaction?',
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildBranchButton(
             label: 'Expense',
@@ -625,7 +632,393 @@ class _TransactionWizardState extends State<TransactionWizard> {
             color: CupertinoColors.systemBlue,
             onTap: () => _selectBranch(TransactionWizardBranch.transfer),
           ),
+          if (templates.isNotEmpty) ...[
+            SizedBox(height: Spacing.xl),
+            Row(
+              children: [
+                Text(
+                  'Recurring Templates',
+                  style: TextStyle(
+                    fontSize: TypeScale.footnote,
+                    fontWeight: FontWeight.w700,
+                    color: AppStyles.getSecondaryTextColor(context),
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                Spacer(),
+                GestureDetector(
+                  onTap: () => _showManageTemplatesSheet(templatesController),
+                  child: Text(
+                    'Manage',
+                    style: TextStyle(
+                      fontSize: TypeScale.footnote,
+                      color: AppStyles.getPrimaryColor(context),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: Spacing.sm),
+            Wrap(
+              spacing: Spacing.sm,
+              runSpacing: Spacing.sm,
+              children: templates.map((t) {
+                final daysUntil = t.daysUntilDue();
+                final isDue = daysUntil != null && daysUntil <= 0;
+                final color = t.branch == 'income'
+                    ? CupertinoColors.systemGreen
+                    : CupertinoColors.systemRed;
+                return GestureDetector(
+                  onTap: () => _applyTemplate(t, templatesController),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                        horizontal: Spacing.md, vertical: Spacing.sm),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.10),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isDue
+                            ? color.withValues(alpha: 0.6)
+                            : color.withValues(alpha: 0.25),
+                        width: isDue ? 1.5 : 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          isDue
+                              ? CupertinoIcons.bell_fill
+                              : CupertinoIcons.repeat,
+                          size: 12,
+                          color: color,
+                        ),
+                        SizedBox(width: 5),
+                        Text(
+                          t.name,
+                          style: TextStyle(
+                            fontSize: TypeScale.footnote,
+                            fontWeight: FontWeight.w600,
+                            color: color,
+                          ),
+                        ),
+                        SizedBox(width: 4),
+                        Text(
+                          '₹${t.amount % 1 == 0 ? t.amount.toStringAsFixed(0) : t.amount.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            fontSize: TypeScale.caption,
+                            color: color.withValues(alpha: 0.8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
         ],
+      ),
+    );
+  }
+
+  void _applyTemplate(
+      RecurringTemplate t, RecurringTemplatesController ctrl) {
+    _amountController.text = t.amount % 1 == 0
+        ? t.amount.toStringAsFixed(0)
+        : t.amount.toStringAsFixed(2);
+    _branch = t.branch == 'income'
+        ? TransactionWizardBranch.income
+        : TransactionWizardBranch.expense;
+    if (t.merchant != null) _merchantController.text = t.merchant!;
+    if (t.description != null) _descriptionController.text = t.description!;
+    _selectedTags.clear();
+    _selectedTags.addAll(t.tags);
+    if (t.paymentType != null) {
+      _paymentType = TransactionPaymentType.values
+              .where((e) => e.name == t.paymentType)
+              .firstOrNull ??
+          _paymentType;
+    }
+    _selectedPaymentApp = t.paymentApp;
+    // Resolve category and account in postFrame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (t.categoryId != null) {
+        final cats =
+            Provider.of<CategoriesController>(context, listen: false);
+        final cat = cats.categories
+            .where((c) => c.id == t.categoryId)
+            .firstOrNull;
+        if (cat != null) setState(() => _selectedCategory = cat);
+      }
+      if (t.accountId != null) {
+        final accts =
+            Provider.of<AccountsController>(context, listen: false);
+        final acct =
+            accts.accounts.where((a) => a.id == t.accountId).firstOrNull;
+        if (acct != null) setState(() => _selectedAccount = acct);
+      }
+    });
+    setState(() {});
+    ctrl.markUsed(t.id);
+    _nextStep();
+  }
+
+  void _showSaveTemplateSheet() {
+    final nameController = TextEditingController(
+      text: _merchantController.text.isNotEmpty
+          ? _merchantController.text
+          : _selectedCategory?.name ?? '',
+    );
+    String frequency = 'monthly';
+
+    showCupertinoModalPopup(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) => Container(
+          padding: EdgeInsets.only(
+            left: Spacing.xl,
+            right: Spacing.xl,
+            top: Spacing.xl,
+            bottom: Spacing.xl + MediaQuery.of(ctx).viewInsets.bottom,
+          ),
+          decoration: BoxDecoration(
+            color: AppStyles.getCardColor(ctx),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: CupertinoColors.systemGrey4,
+                      borderRadius: BorderRadius.circular(2.5),
+                    ),
+                  ),
+                ),
+                SizedBox(height: Spacing.xl),
+                Text('Save Recurring Template',
+                    style: AppStyles.titleStyle(ctx)),
+                SizedBox(height: Spacing.lg),
+                Text('Template name',
+                    style: TextStyle(
+                        color: AppStyles.getSecondaryTextColor(ctx),
+                        fontSize: TypeScale.footnote)),
+                SizedBox(height: Spacing.xs),
+                CupertinoTextField(
+                  controller: nameController,
+                  placeholder: 'e.g. Netflix, Rent, Salary…',
+                  padding: EdgeInsets.all(Spacing.md),
+                  decoration: BoxDecoration(
+                    color: AppStyles.getBackground(ctx),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  style: TextStyle(color: AppStyles.getTextColor(ctx)),
+                ),
+                SizedBox(height: Spacing.lg),
+                Text('Frequency',
+                    style: TextStyle(
+                        color: AppStyles.getSecondaryTextColor(ctx),
+                        fontSize: TypeScale.footnote)),
+                SizedBox(height: Spacing.xs),
+                Row(
+                  children: [
+                    for (final f in ['daily', 'weekly', 'monthly', 'yearly'])
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => setModalState(() => frequency = f),
+                          child: Container(
+                            margin: EdgeInsets.only(right: f == 'yearly' ? 0 : 6),
+                            padding: EdgeInsets.symmetric(vertical: 8),
+                            decoration: BoxDecoration(
+                              color: frequency == f
+                                  ? AppStyles.getPrimaryColor(ctx)
+                                      .withValues(alpha: 0.15)
+                                  : AppStyles.getBackground(ctx),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: frequency == f
+                                    ? AppStyles.getPrimaryColor(ctx)
+                                    : AppStyles.getSecondaryTextColor(ctx)
+                                        .withValues(alpha: 0.2),
+                              ),
+                            ),
+                            child: Text(
+                              f[0].toUpperCase() + f.substring(1),
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: TypeScale.caption,
+                                fontWeight: frequency == f
+                                    ? FontWeight.w700
+                                    : FontWeight.w400,
+                                color: frequency == f
+                                    ? AppStyles.getPrimaryColor(ctx)
+                                    : AppStyles.getSecondaryTextColor(ctx),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                SizedBox(height: Spacing.xl),
+                SizedBox(
+                  width: double.infinity,
+                  child: CupertinoButton.filled(
+                    onPressed: () {
+                      final name = nameController.text.trim();
+                      if (name.isEmpty) return;
+                      final amount =
+                          double.tryParse(_amountController.text) ?? 0;
+                      // Compute next due date
+                      final now = DateTime.now();
+                      DateTime nextDue;
+                      switch (frequency) {
+                        case 'daily':
+                          nextDue = now.add(const Duration(days: 1));
+                          break;
+                        case 'weekly':
+                          nextDue = now.add(const Duration(days: 7));
+                          break;
+                        case 'yearly':
+                          nextDue = DateTime(now.year + 1, now.month, now.day);
+                          break;
+                        default:
+                          nextDue = DateTime(now.year, now.month + 1, now.day);
+                      }
+                      final template = RecurringTemplate(
+                        id: DateTime.now().millisecondsSinceEpoch.toString(),
+                        name: name,
+                        branch: _branch == TransactionWizardBranch.income
+                            ? 'income'
+                            : 'expense',
+                        amount: amount,
+                        categoryId: _selectedCategory?.id,
+                        categoryName: _selectedCategory?.name,
+                        accountId: _selectedAccount?.id,
+                        accountName: _selectedAccount?.name,
+                        paymentType: _paymentType?.name,
+                        paymentApp: _selectedPaymentApp,
+                        merchant: _merchantController.text.isNotEmpty
+                            ? _merchantController.text
+                            : null,
+                        description: _descriptionController.text.isNotEmpty
+                            ? _descriptionController.text
+                            : null,
+                        tags: List.from(_selectedTags),
+                        frequency: frequency,
+                        nextDueDate: nextDue,
+                        createdAt: now,
+                      );
+                      Provider.of<RecurringTemplatesController>(context,
+                              listen: false)
+                          .addTemplate(template);
+                      Navigator.pop(ctx);
+                      toast_lib.toast.showSuccess(
+                          'Template "$name" saved');
+                    },
+                    child: Text('Save Template'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ).whenComplete(nameController.dispose);
+  }
+
+  void _showManageTemplatesSheet(RecurringTemplatesController ctrl) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (ctx) => Container(
+        decoration: BoxDecoration(
+          color: AppStyles.getCardColor(ctx),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(height: Spacing.lg),
+              Container(
+                width: 40,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: CupertinoColors.systemGrey4,
+                  borderRadius: BorderRadius.circular(2.5),
+                ),
+              ),
+              SizedBox(height: Spacing.lg),
+              Padding(
+                padding:
+                    EdgeInsets.symmetric(horizontal: Spacing.xl),
+                child: Text('Recurring Templates',
+                    style: AppStyles.titleStyle(ctx)),
+              ),
+              SizedBox(height: Spacing.md),
+              ConstrainedBox(
+                constraints: BoxConstraints(maxHeight: 320),
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: ctrl.templates.length,
+                  itemBuilder: (_, i) {
+                    final t = ctrl.templates[i];
+                    final color = t.branch == 'income'
+                        ? CupertinoColors.systemGreen
+                        : CupertinoColors.systemRed;
+                    return Padding(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: Spacing.xl, vertical: Spacing.xs),
+                      child: Row(
+                        children: [
+                          Icon(CupertinoIcons.repeat,
+                              size: 16, color: color),
+                          SizedBox(width: Spacing.sm),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(t.name,
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        color: AppStyles.getTextColor(ctx))),
+                                Text(
+                                    '₹${t.amount.toStringAsFixed(0)} • ${t.frequency}',
+                                    style: TextStyle(
+                                        fontSize: TypeScale.caption,
+                                        color: AppStyles
+                                            .getSecondaryTextColor(ctx))),
+                              ],
+                            ),
+                          ),
+                          CupertinoButton(
+                            padding: EdgeInsets.zero,
+                            minimumSize: Size.zero,
+                            onPressed: () {
+                              ctrl.deleteTemplate(t.id);
+                              Navigator.pop(ctx);
+                            },
+                            child: Icon(CupertinoIcons.trash,
+                                size: 18,
+                                color: CupertinoColors.systemRed),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+              SizedBox(height: Spacing.lg),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -2358,6 +2751,30 @@ class _TransactionWizardState extends State<TransactionWizard> {
           if (_selectedTags.isNotEmpty)
             _buildReviewRow('Tags', _selectedTags.join(', ')),
           const Spacer(),
+          // Save as recurring template option
+          Padding(
+            padding: EdgeInsets.only(bottom: Spacing.sm),
+            child: GestureDetector(
+              onTap: _showSaveTemplateSheet,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(CupertinoIcons.repeat,
+                      size: 13,
+                      color: AppStyles.getSecondaryTextColor(context)),
+                  SizedBox(width: 5),
+                  Text(
+                    'Save as Recurring Template',
+                    style: TextStyle(
+                      fontSize: TypeScale.footnote,
+                      color: AppStyles.getSecondaryTextColor(context),
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
           _buildFooterButton(
               label: 'Save Transaction', onPressed: _completeTransaction),
         ],

@@ -24,6 +24,7 @@ import 'package:vittara_fin_os/logic/transaction_feed_builder.dart';
 import 'package:vittara_fin_os/logic/goals_controller.dart';
 import 'package:vittara_fin_os/logic/budgets_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_archive_controller.dart';
+import 'package:vittara_fin_os/logic/recurring_templates_controller.dart';
 import 'package:vittara_fin_os/ui/fintech_loader.dart';
 import 'package:vittara_fin_os/ui/manage_screen.dart';
 import 'package:vittara_fin_os/ui/settings_screen.dart';
@@ -109,6 +110,9 @@ void main() {
           ),
           ChangeNotifierProvider(
             create: (_) => BudgetsController()..initialize(),
+          ),
+          ChangeNotifierProvider(
+            create: (_) => RecurringTemplatesController(),
           ),
         ],
         child: const MyApp(),
