@@ -1,12 +1,55 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class BrokersController with ChangeNotifier {
+  static const _prefsKey = 'brokers_state_v1';
   late List<Map<String, dynamic>> _brokers;
 
   List<Map<String, dynamic>> get brokers => _brokers;
 
   BrokersController() {
     _brokers = _generateBrokersList();
+    _loadFromPrefs();
+  }
+
+  Future<void> _loadFromPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final json = prefs.getString(_prefsKey);
+    if (json == null) return;
+    try {
+      final List<dynamic> stored = jsonDecode(json);
+      final defaultIds = {for (final b in _brokers) b['id'] as String};
+      final storedMap = <String, Map<String, dynamic>>{
+        for (final b in stored.cast<Map<String, dynamic>>())
+          b['id'] as String: b
+      };
+      // Append custom brokers not in default list
+      for (final entry in storedMap.values) {
+        final id = entry['id'] as String;
+        if (!defaultIds.contains(id)) {
+          _brokers.add({
+            'id': id,
+            'name': entry['name'] ?? 'Custom Broker',
+            'color': Color(entry['colorValue'] as int? ?? 0xFF007AFF),
+          });
+        }
+      }
+      notifyListeners();
+    } catch (_) {}
+  }
+
+  Future<void> _saveToPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final serialized = _brokers.map((b) {
+      final color = b['color'];
+      return {
+        'id': b['id'],
+        'name': b['name'],
+        'colorValue': color is Color ? color.toARGB32() : 0xFF007AFF,
+      };
+    }).toList();
+    await prefs.setString(_prefsKey, jsonEncode(serialized));
   }
 
   List<Map<String, dynamic>> _generateBrokersList() {
@@ -41,6 +84,7 @@ class BrokersController with ChangeNotifier {
   void addBroker(Map<String, dynamic> newBroker) {
     _brokers.add(newBroker);
     notifyListeners();
+    _saveToPrefs();
   }
 
   void sortBrokers(bool ascending) {

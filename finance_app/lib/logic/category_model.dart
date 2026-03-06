@@ -23,14 +23,23 @@ class Category {
       'name': name,
       'color': color.toARGB32(),
       'iconCodePoint': icon.codePoint,
+      'iconFontFamily': icon.fontFamily,
+      'iconFontPackage': icon.fontPackage,
       'isCustom': isCustom,
       'description': description,
     };
   }
 
   factory Category.fromMap(Map<String, dynamic> map) {
-    final iconCodePoint = map['iconCodePoint'] as int;
-    final icon = _getIconFromCodePoint(iconCodePoint);
+    final codePoint = map['iconCodePoint'] as int;
+    final fontFamily = map['iconFontFamily'] as String?;
+    final fontPackage = map['iconFontPackage'] as String?;
+
+    // If font info is stored, reconstruct IconData directly (no lookup needed)
+    // Falls back to lookup table for old records that lack font info
+    final icon = fontFamily != null
+        ? IconData(codePoint, fontFamily: fontFamily, fontPackage: fontPackage)
+        : _getIconFromCodePoint(codePoint);
 
     return Category(
       id: map['id'],
@@ -43,10 +52,9 @@ class Category {
   }
 
   static IconData _getIconFromCodePoint(int codePoint) {
-    // Map of code points to Cupertino icons for deserialization
+    // Fallback for old records without fontFamily stored
     final iconMap = {for (var icon in _allAvailableIcons) icon.codePoint: icon};
-
-    return iconMap[codePoint] ?? CupertinoIcons.question;
+    return iconMap[codePoint] ?? CupertinoIcons.tag_fill;
   }
 
   static const List<IconData> _allAvailableIcons = [

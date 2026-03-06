@@ -1,6 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class BanksController with ChangeNotifier {
+  static const _prefsKey = 'banks_state_v1';
+
   late List<Map<String, dynamic>> _banks;
 
   List<Map<String, dynamic>> get banks => _banks;
@@ -13,6 +17,69 @@ class BanksController with ChangeNotifier {
 
   BanksController() {
     _banks = _generateBankList();
+    _loadFromPrefs();
+  }
+
+  Future<void> _loadFromPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final json = prefs.getString(_prefsKey);
+    if (json == null) return;
+    try {
+      final List<dynamic> stored = jsonDecode(json);
+      // Merge: start with full default list, then apply stored isEnabled/senderIds
+      // and append any custom banks not in the default list
+      final defaultIds = {for (final b in _banks) b['id'] as String};
+      final storedMap = <String, Map<String, dynamic>>{
+        for (final b in stored.cast<Map<String, dynamic>>())
+          b['id'] as String: b
+      };
+
+      // Update defaults with stored state
+      for (int i = 0; i < _banks.length; i++) {
+        final id = _banks[i]['id'] as String;
+        if (storedMap.containsKey(id)) {
+          _banks[i] = {
+            ..._banks[i],
+            'isEnabled': storedMap[id]!['isEnabled'] ?? false,
+            'senderIds': (storedMap[id]!['senderIds'] as List?)
+                    ?.cast<String>() ??
+                <String>[],
+            if (storedMap[id]!['name'] != null) 'name': storedMap[id]!['name'],
+          };
+        }
+      }
+
+      // Append custom banks (not in default list)
+      for (final stored in storedMap.values) {
+        final id = stored['id'] as String;
+        if (!defaultIds.contains(id)) {
+          _banks.add({
+            'id': id,
+            'name': stored['name'] ?? 'Custom Bank',
+            'color': Color(stored['colorValue'] as int? ?? 0xFF007AFF),
+            'isEnabled': stored['isEnabled'] ?? true,
+            'senderIds': (stored['senderIds'] as List?)?.cast<String>() ?? [],
+          });
+        }
+      }
+
+      notifyListeners();
+    } catch (_) {}
+  }
+
+  Future<void> _saveToPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final serialized = _banks.map((b) {
+      final color = b['color'];
+      return {
+        'id': b['id'],
+        'name': b['name'],
+        'colorValue': color is Color ? color.toARGB32() : 0xFF007AFF,
+        'isEnabled': b['isEnabled'] ?? false,
+        'senderIds': b['senderIds'] ?? [],
+      };
+    }).toList();
+    await prefs.setString(_prefsKey, jsonEncode(serialized));
   }
 
   List<Map<String, dynamic>> _generateBankList() {
@@ -62,12 +129,14 @@ class BanksController with ChangeNotifier {
     if (index != -1) {
       _banks[index]['isEnabled'] = value;
       notifyListeners();
+      _saveToPrefs();
     }
   }
 
   void deleteBank(String bankId) {
     _banks.removeWhere((bank) => bank['id'] == bankId);
     notifyListeners();
+    _saveToPrefs();
   }
 
   void reorderBanks(int oldIndex, int newIndex) {
@@ -75,6 +144,7 @@ class BanksController with ChangeNotifier {
     final item = _banks.removeAt(oldIndex);
     _banks.insert(newIndex, item);
     notifyListeners();
+    _saveToPrefs();
   }
 
   void sortBanks(bool ascending) {
@@ -83,6 +153,7 @@ class BanksController with ChangeNotifier {
       return ascending ? comparison : -comparison;
     });
     notifyListeners();
+    _saveToPrefs();
   }
 
   Map<String, dynamic>? getBankByName(String name) {
@@ -101,6 +172,7 @@ class BanksController with ChangeNotifier {
   void addBank(Map<String, dynamic> newBank) {
     _banks.add(newBank);
     notifyListeners();
+    _saveToPrefs();
   }
 
   void updateBank(Map<String, dynamic> updatedBank) {
@@ -108,6 +180,7 @@ class BanksController with ChangeNotifier {
     if (index != -1) {
       _banks[index] = updatedBank;
       notifyListeners();
+      _saveToPrefs();
     }
   }
 
@@ -132,6 +205,7 @@ class BanksController with ChangeNotifier {
       'senderIds': senderIds,
     });
     notifyListeners();
+    _saveToPrefs();
     return null;
   }
 
@@ -168,6 +242,7 @@ class BanksController with ChangeNotifier {
       'senderIds': <String>[],
     });
     notifyListeners();
+    _saveToPrefs();
   }
 
   String _normalizeName(String value) {
