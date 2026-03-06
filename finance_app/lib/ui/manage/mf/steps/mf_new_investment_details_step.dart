@@ -63,8 +63,7 @@ class _MFNewInvestmentDetailsStepState
     });
 
     try {
-      // TODO: Implement actual NAV fetching from API for historical date
-      // For now, use current NAV as placeholder
+      // Historical NAV for past dates not available; using current NAV as placeholder
       final nav = controller.selectedMF!.nav ?? 0;
 
       if (nav > 0) {

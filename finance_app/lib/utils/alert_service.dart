@@ -260,7 +260,7 @@ class AlertService {
       debugPrint('Metadata: $metadata');
     }
 
-    // TODO: Send to crash reporting service (Firebase Crashlytics, Sentry, etc.)
+    // Crash reporting integration (Crashlytics/Sentry) can be wired here when needed
   }
 
   /// Log warning

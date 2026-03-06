@@ -1311,7 +1311,6 @@ class _SellModalState extends State<_SellModal> {
     showCupertinoModalPopup(
       context: context,
       builder: (context) => _AccountSelector(
-        accountType: AccountType.savings,
         onSelected: (account) {
           setState(() => _selectedAccount = account);
           Navigator.pop(context);
@@ -2968,11 +2967,11 @@ class _DividendModalState extends State<_DividendModal> {
 
 // Account Selector Widget
 class _AccountSelector extends StatelessWidget {
-  final AccountType accountType;
+  final AccountType? accountType;
   final Function(Account) onSelected;
 
   const _AccountSelector({
-    required this.accountType,
+    this.accountType,
     required this.onSelected,
   });
 
@@ -2985,8 +2984,11 @@ class _AccountSelector extends StatelessWidget {
       ),
       child: Consumer<AccountsController>(
         builder: (context, controller, _) {
-          final accounts =
-              controller.accounts.where((a) => a.type == accountType).toList();
+          final accounts = accountType == null
+              ? controller.accounts
+              : controller.accounts
+                  .where((a) => a.type == accountType)
+                  .toList();
 
           return SingleChildScrollView(
             child: Padding(

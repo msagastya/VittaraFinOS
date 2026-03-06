@@ -21,6 +21,7 @@ class CategoriesScreen extends StatefulWidget {
 class _CategoriesScreenState extends State<CategoriesScreen> {
   final AppLogger logger = AppLogger();
   String _searchQuery = '';
+  bool _sortAlpha = false;
 
   void _showAddCategoryModal(BuildContext context) {
     final controller =
@@ -81,6 +82,16 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         previousPageTitle: 'Manage',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
+        trailing: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: () => setState(() => _sortAlpha = !_sortAlpha),
+          child: Icon(
+            _sortAlpha
+                ? CupertinoIcons.sort_down_circle_fill
+                : CupertinoIcons.sort_down_circle,
+            color: _sortAlpha ? AppStyles.accentBlue : AppStyles.getSecondaryTextColor(context),
+          ),
+        ),
       ),
       child: Consumer<CategoriesController>(
         builder: (context, categoriesController, child) {
@@ -88,6 +99,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               categoriesController.categories.where((cat) {
             return cat.name.toLowerCase().contains(_searchQuery.toLowerCase());
           }).toList();
+          if (_sortAlpha) {
+            filteredCategories.sort((a, b) => a.name.compareTo(b.name));
+          }
 
           final defaultCats =
               filteredCategories.where((cat) => !cat.isCustom).toList();

@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
@@ -154,14 +153,17 @@ class _FDWizardScreenState extends State<FDWizardScreen> {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider.value(
       value: _controller,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Create Fixed Deposit'),
-          elevation: 0,
+      child: CupertinoPageScaffold(
+        backgroundColor: AppStyles.getBackground(context),
+        navigationBar: CupertinoNavigationBar(
+          middle: Text('Create Fixed Deposit',
+              style: TextStyle(color: AppStyles.getTextColor(context))),
+          previousPageTitle: 'Back',
           backgroundColor: AppStyles.getBackground(context),
-          foregroundColor: AppStyles.getTextColor(context),
+          border: null,
         ),
-        body: Column(
+        child: SafeArea(
+          child: Column(
           children: [
             // Top Progress Bar (Like Stocks)
             Consumer<FDWizardController>(
@@ -171,16 +173,22 @@ class _FDWizardScreenState extends State<FDWizardScreen> {
                 return Column(
                   children: [
                     // Linear Progress Bar
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: progress,
-                        minHeight: 4,
-                        backgroundColor:
-                            AppStyles.getSecondaryTextColor(context)
-                                .withValues(alpha: 0.1),
-                        valueColor: AlwaysStoppedAnimation(
-                            AppStyles.getPrimaryColor(context)),
+                    Container(
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppStyles.getSecondaryTextColor(context)
+                            .withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: FractionallySizedBox(
+                        alignment: Alignment.centerLeft,
+                        widthFactor: progress,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: AppStyles.getPrimaryColor(context),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
                       ),
                     ),
                     // Step Title
@@ -272,7 +280,7 @@ class _FDWizardScreenState extends State<FDWizardScreen> {
                                   height: 20,
                                   width: 20,
                                   child: const CupertinoActivityIndicator(
-                                    color: Colors.white,
+                                    color: CupertinoColors.white,
                                   ),
                                 )
                               : Text(
@@ -280,7 +288,7 @@ class _FDWizardScreenState extends State<FDWizardScreen> {
                                       ? 'Create FD'
                                       : 'Next',
                                   style: const TextStyle(
-                                    color: Colors.white,
+                                    color: CupertinoColors.white,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -292,6 +300,7 @@ class _FDWizardScreenState extends State<FDWizardScreen> {
               ),
             ),
           ],
+        ),
         ),
       ),
     );

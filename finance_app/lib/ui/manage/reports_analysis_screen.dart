@@ -744,6 +744,8 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
           SizedBox(height: Spacing.lg),
           _buildMonthlyComparisonCard(),
           SizedBox(height: Spacing.lg),
+          _buildCategoryTrendCard(),
+          SizedBox(height: Spacing.lg),
           _buildChartsCard(groupedMetrics, trendPoints),
           SizedBox(height: Spacing.lg),
           _buildBreakdownTable(groupedMetrics),
@@ -1407,6 +1409,123 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
             min: min,
             max: max,
             onChanged: onChanged,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryTrendCard() {
+    final txController = context.read<TransactionsController>();
+    final allTxs = txController.transactions;
+    final now = DateTime.now();
+
+    // Last 6 months
+    final months = List.generate(6, (i) {
+      final d = DateTime(now.year, now.month - 5 + i, 1);
+      return DateTime(d.year, d.month, 1);
+    });
+
+    // Build category totals per month
+    final Map<String, List<double>> catMonthly = {};
+    for (final tx in allTxs) {
+      if (tx.type != TransactionType.expense) continue;
+      final mKey = DateTime(tx.dateTime.year, tx.dateTime.month, 1);
+      final mIdx = months.indexOf(mKey);
+      if (mIdx < 0) continue;
+      final cat = (tx.metadata?['categoryName'] as String?)?.trim();
+      final key = (cat == null || cat.isEmpty) ? 'Other' : cat;
+      catMonthly.putIfAbsent(key, () => List.filled(6, 0));
+      catMonthly[key]![mIdx] += tx.amount;
+    }
+
+    if (catMonthly.isEmpty) return const SizedBox.shrink();
+
+    // Top 4 categories by total spend
+    final sorted = catMonthly.entries.toList()
+      ..sort((a, b) => b.value.fold(0.0, (s, v) => s + v)
+          .compareTo(a.value.fold(0.0, (s, v) => s + v)));
+    final top = sorted.take(4).toList();
+
+    final allVals =
+        top.expand((e) => e.value).where((v) => v > 0).toList();
+    if (allVals.isEmpty) return const SizedBox.shrink();
+    final maxVal = allVals.reduce((a, b) => a > b ? a : b);
+
+    const catColors = [
+      Color(0xFF007AFF),
+      Color(0xFFFF9500),
+      Color(0xFF34C759),
+      Color(0xFFAF52DE),
+    ];
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    return Container(
+      padding: EdgeInsets.all(Spacing.lg),
+      decoration: AppStyles.sectionDecoration(
+        context,
+        tint: SemanticColors.info.withValues(alpha: 0.5),
+        radius: Radii.xl,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionTitle(
+            icon: CupertinoIcons.graph_square,
+            title: 'Category Spending Trends',
+            subtitle: 'Top categories over the last 6 months',
+          ),
+          SizedBox(height: Spacing.lg),
+          // Legend
+          Wrap(
+            spacing: Spacing.md,
+            runSpacing: Spacing.sm,
+            children: List.generate(top.length, (i) {
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 12,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: catColors[i % catColors.length],
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  SizedBox(width: 4),
+                  Text(
+                    top[i].key,
+                    style: TextStyle(
+                      fontSize: TypeScale.caption,
+                      color: AppStyles.getTextColor(context),
+                    ),
+                  ),
+                ],
+              );
+            }),
+          ),
+          SizedBox(height: Spacing.md),
+          SizedBox(
+            height: 160,
+            child: CustomPaint(
+              size: const Size(double.infinity, 160),
+              painter: _CategoryTrendPainter(
+                categories: top
+                    .asMap()
+                    .entries
+                    .map((e) => _CategoryTrendLine(
+                          values: e.value.value,
+                          color: catColors[e.key % catColors.length],
+                        ))
+                    .toList(),
+                maxVal: maxVal,
+                monthLabels: months
+                    .map((m) => monthNames[m.month - 1])
+                    .toList(),
+                axisColor: AppStyles.getSecondaryTextColor(context),
+              ),
+            ),
           ),
         ],
       ),
@@ -3438,4 +3557,81 @@ class _MinimalPdfBuilder {
         .replaceAll(')', '\\)')
         .replaceAll('\n', ' ');
   }
+}
+
+class _CategoryTrendLine {
+  final List<double> values;
+  final Color color;
+  const _CategoryTrendLine({required this.values, required this.color});
+}
+
+class _CategoryTrendPainter extends CustomPainter {
+  final List<_CategoryTrendLine> categories;
+  final double maxVal;
+  final List<String> monthLabels;
+  final Color axisColor;
+
+  _CategoryTrendPainter({
+    required this.categories,
+    required this.maxVal,
+    required this.monthLabels,
+    required this.axisColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (categories.isEmpty || maxVal == 0) return;
+    const labelHeight = 20.0;
+    final chartHeight = size.height - labelHeight;
+    final n = monthLabels.length;
+
+    // Draw month labels
+    final labelPaint = TextPainter(textDirection: TextDirection.ltr);
+    for (int i = 0; i < n; i++) {
+      final x = (i / (n - 1)) * size.width;
+      labelPaint.text = TextSpan(
+        text: monthLabels[i],
+        style: TextStyle(
+          color: axisColor,
+          fontSize: 9,
+        ),
+      );
+      labelPaint.layout();
+      labelPaint.paint(
+          canvas, Offset(x - labelPaint.width / 2, size.height - labelHeight));
+    }
+
+    // Draw lines for each category
+    for (final cat in categories) {
+      final paint = Paint()
+        ..color = cat.color
+        ..strokeWidth = 2.0
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round;
+
+      final dotPaint = Paint()
+        ..color = cat.color
+        ..style = PaintingStyle.fill;
+
+      final path = Path();
+      bool first = true;
+      for (int i = 0; i < cat.values.length && i < n; i++) {
+        final x = (i / (n - 1)) * size.width;
+        final y = chartHeight - (cat.values[i] / maxVal) * chartHeight * 0.9;
+        if (first) {
+          path.moveTo(x, y);
+          first = false;
+        } else {
+          path.lineTo(x, y);
+        }
+        canvas.drawCircle(Offset(x, y), 3.5, dotPaint);
+      }
+      canvas.drawPath(path, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_CategoryTrendPainter old) =>
+      categories != old.categories;
 }

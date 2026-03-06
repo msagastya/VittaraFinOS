@@ -634,7 +634,8 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                     child: CupertinoTextField(
                       controller: amountController,
                       placeholder: 'Enter amount',
-                      keyboardType: TextInputType.number,
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
                       prefix: Padding(
                         padding: EdgeInsets.only(left: Spacing.md),
                         child: Text(
