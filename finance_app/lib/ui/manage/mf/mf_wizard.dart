@@ -160,15 +160,25 @@ class _MFWizardContentState extends State<_MFWizardContent> {
       metadata['sipActive'] = true;
     }
 
-    final updatedInvestment =
-        target.copyWith(amount: freshAmount, metadata: metadata);
     setState(() => _isSubmitting = true);
     try {
-      await investmentsController.updateInvestment(updatedInvestment);
-      if (context.mounted) {
-        Haptics.success();
-        toast.showSuccess('Mutual Fund investment updated!');
-        Navigator.of(context).pop();
+      if (controller.mode == MFWizardMode.sell && freshUnits <= 0) {
+        // All units redeemed — remove investment entirely
+        await investmentsController.removeInvestment(target.id);
+        if (context.mounted) {
+          Haptics.success();
+          toast.showSuccess('All units redeemed. Investment removed.');
+          Navigator.of(context).pop();
+        }
+      } else {
+        final updatedInvestment =
+            target.copyWith(amount: freshAmount, metadata: metadata);
+        await investmentsController.updateInvestment(updatedInvestment);
+        if (context.mounted) {
+          Haptics.success();
+          toast.showSuccess('Mutual Fund investment updated!');
+          Navigator.of(context).pop();
+        }
       }
     } catch (e) {
       if (context.mounted) {

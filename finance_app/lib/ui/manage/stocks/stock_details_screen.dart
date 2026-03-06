@@ -1373,17 +1373,26 @@ class _SellModalState extends State<_SellModal> {
       updatedMetadata['currentValue'] =
           newCurrentValue; // Recalculated for remaining shares
 
-      final updatedInvestment = widget.investment.copyWith(
-        amount: newInvested > 0 ? newInvested : 0,
-        metadata: updatedMetadata,
-      );
-
-      investmentsController.updateInvestment(updatedInvestment);
-      if (!mounted) return;
-
-      toast.showSuccess(
-          'Sold $_qty shares!\nRemaining: $newQty shares @ ₹${newAverageCostBasis.toStringAsFixed(2)} avg\nProceeds: ₹${_netProceeds.toStringAsFixed(2)}\nCurrent: ₹${newCurrentValue.toStringAsFixed(2)}');
-      Navigator.pop(context);
+      if (newQty <= 0) {
+        // All shares sold — remove investment entirely
+        investmentsController.removeInvestment(widget.investment.id);
+        if (!mounted) return;
+        toast.showSuccess(
+            'Sold all $_qty shares! Proceeds: ₹${_netProceeds.toStringAsFixed(2)}');
+        // Pop both sell modal and details screen
+        Navigator.pop(context);
+        Navigator.pop(context);
+      } else {
+        final updatedInvestment = widget.investment.copyWith(
+          amount: newInvested,
+          metadata: updatedMetadata,
+        );
+        investmentsController.updateInvestment(updatedInvestment);
+        if (!mounted) return;
+        toast.showSuccess(
+            'Sold $_qty shares!\nRemaining: $newQty @ ₹${newAverageCostBasis.toStringAsFixed(2)} avg\nProceeds: ₹${_netProceeds.toStringAsFixed(2)}');
+        Navigator.pop(context);
+      }
     } catch (e) {
       toast.showError('Error saving transaction: $e');
     }
