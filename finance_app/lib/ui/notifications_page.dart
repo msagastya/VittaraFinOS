@@ -19,6 +19,8 @@ import 'package:vittara_fin_os/ui/manage/bonds/bond_payout_modal.dart';
 import 'package:vittara_fin_os/ui/manage/bonds/bonds_details_screen.dart';
 import 'package:vittara_fin_os/ui/manage/mf/mf_details_screen.dart';
 import 'package:vittara_fin_os/ui/manage/stocks/stock_details_screen.dart';
+import 'package:vittara_fin_os/logic/recurring_templates_controller.dart';
+import 'package:vittara_fin_os/ui/dashboard/transaction_wizard.dart';
 
 class NotificationsPage extends StatelessWidget {
   const NotificationsPage({super.key});
@@ -38,9 +40,15 @@ class NotificationsPage extends StatelessWidget {
         child: Container(
           color:
               isDark ? Colors.black : CupertinoColors.systemGroupedBackground,
-          child: Consumer<InvestmentsController>(
-            builder: (context, investmentsController, child) {
+          child: Consumer2<InvestmentsController, RecurringTemplatesController>(
+            builder: (context, investmentsController, templatesController, child) {
               final investments = investmentsController.investments;
+              final dueTemplates = templatesController.templates.where((t) {
+                final days = t.daysUntilDue();
+                return days != null && days <= 3;
+              }).toList()
+                ..sort((a, b) =>
+                    (a.daysUntilDue() ?? 99).compareTo(b.daysUntilDue() ?? 99));
 
               // Find FDs near maturity
               final fdsNearMaturity = investments.where((inv) {
@@ -345,12 +353,82 @@ class NotificationsPage extends StatelessWidget {
                                 entry,
                               )),
 
+                    // Recurring Template Due Reminders
+                    if (dueTemplates.isNotEmpty) ...[
+                      if (bondNotifications.isNotEmpty ||
+                          sipNotifications.isNotEmpty ||
+                          rdsWithUpcomingInstallments.isNotEmpty)
+                        SizedBox(height: Spacing.md),
+                      ...dueTemplates.map((t) {
+                        final days = t.daysUntilDue()!;
+                        final isOverdue = days < 0;
+                        final color = t.branch == 'income'
+                            ? CupertinoColors.systemGreen
+                            : CupertinoColors.systemRed;
+                        final timeInfo = isOverdue
+                            ? 'Overdue by ${days.abs()} day${days.abs() > 1 ? 's' : ''}'
+                            : days == 0
+                                ? 'Due today'
+                                : 'Due in $days day${days > 1 ? 's' : ''}';
+                        return Container(
+                          margin: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                          child: NotificationWidget(
+                            type: NotificationType.fdPayout,
+                            title: t.name,
+                            subtitle: '${t.branch[0].toUpperCase()}${t.branch.substring(1)} • ${t.frequency}',
+                            amount:
+                                '₹${t.amount % 1 == 0 ? t.amount.toStringAsFixed(0) : t.amount.toStringAsFixed(2)}',
+                            timeInfo: timeInfo,
+                            badgeColor:
+                                isOverdue || days == 0 ? CupertinoColors.systemRed : color,
+                            icon: CupertinoIcons.repeat,
+                            statusWidget: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: AppStyles.getCardColor(context),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  CupertinoButton(
+                                    padding: EdgeInsets.zero,
+                                    minimumSize: Size.zero,
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        CupertinoPageRoute(
+                                          builder: (_) =>
+                                              const TransactionWizard(),
+                                        ),
+                                      );
+                                    },
+                                    child: Text(
+                                      'Use Template',
+                                      style: TextStyle(
+                                        fontSize: TypeScale.footnote,
+                                        color: AppStyles.accentBlue,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      }),
+                    ],
+
                     // Empty State
                     if (fdsNearMaturity.isEmpty &&
                         fdsMatured.isEmpty &&
                         rdsWithUpcomingInstallments.isEmpty &&
                         sipNotifications.isEmpty &&
-                        bondNotifications.isEmpty)
+                        bondNotifications.isEmpty &&
+                        dueTemplates.isEmpty)
                       Padding(
                         padding: EdgeInsets.only(top: Spacing.xxxl),
                         child: FadeInAnimation(
