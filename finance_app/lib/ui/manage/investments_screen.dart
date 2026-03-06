@@ -61,6 +61,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
 
   final AppLogger logger = AppLogger();
   bool _isSummaryExpanded = true;
+  bool _isPnLExpanded = false; // P&L row collapsed by default to save space
+  bool _isAllocationExpanded = false; // Allocation collapsed by default
   InvestmentType? _selectedFilter; // null = All investments
   final PageController _categoryPageController = PageController();
   int _selectedCategoryIndex = 0;
@@ -690,12 +692,12 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     List<InvestmentType?> categories,
   ) {
     return SizedBox(
-      height: 86,
+      height: 60,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
         itemCount: categories.length,
-        separatorBuilder: (_, __) => SizedBox(width: Spacing.sm),
+        separatorBuilder: (_, __) => SizedBox(width: Spacing.xs),
         itemBuilder: (context, index) {
           final type = categories[index];
           final isSelected = index == _selectedCategoryIndex;
@@ -718,12 +720,12 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             },
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 180),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? color.withValues(alpha: 0.16)
+                    ? color.withValues(alpha: 0.15)
                     : AppStyles.getCardColor(context),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10),
                 border: Border.all(
                   color: isSelected
                       ? color
@@ -738,13 +740,19 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                 children: [
                   Text(
                     label,
-                    style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.subhead),
+                    style: TextStyle(
+                      fontSize: TypeScale.footnote,
+                      fontWeight: FontWeight.w600,
+                      color: isSelected
+                          ? color
+                          : AppStyles.getTextColor(context),
+                    ),
                   ),
-                  const SizedBox(height: Spacing.xs),
+                  const SizedBox(height: 2),
                   Text(
                     CurrencyFormatter.compact(total),
                     style: TextStyle(
-                      fontSize: TypeScale.footnote,
+                      fontSize: TypeScale.caption,
                       fontWeight: FontWeight.w700,
                       color: isSelected
                           ? color
@@ -1055,30 +1063,54 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
 
     return Padding(
       padding:
-          EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.sm),
+          EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.xs),
       child: Container(
         decoration: AppStyles.cardDecoration(context),
-        padding: Spacing.cardPadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(CupertinoIcons.chart_pie_fill,
-                    size: 14, color: SemanticColors.investments),
-                const SizedBox(width: 6),
-                Text(
-                  'Allocation',
-                  style: TextStyle(
-                    fontSize: TypeScale.footnote,
-                    fontWeight: FontWeight.w600,
-                    color: AppStyles.getTextColor(context),
-                  ),
+            GestureDetector(
+              onTap: () =>
+                  setState(() => _isAllocationExpanded = !_isAllocationExpanded),
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                    horizontal: Spacing.lg, vertical: Spacing.md),
+                child: Row(
+                  children: [
+                    Icon(CupertinoIcons.chart_pie_fill,
+                        size: 13, color: SemanticColors.investments),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        'Asset Allocation',
+                        style: TextStyle(
+                          fontSize: TypeScale.footnote,
+                          fontWeight: FontWeight.w600,
+                          color: AppStyles.getTextColor(context),
+                        ),
+                      ),
+                    ),
+                    Icon(
+                      _isAllocationExpanded
+                          ? CupertinoIcons.chevron_up
+                          : CupertinoIcons.chevron_down,
+                      size: 13,
+                      color: AppStyles.getSecondaryTextColor(context),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-            SizedBox(height: Spacing.md),
-            Row(
+            AnimatedSize(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeInOut,
+              child: _isAllocationExpanded
+                  ? Padding(
+                      padding: EdgeInsets.only(
+                          left: Spacing.lg,
+                          right: Spacing.lg,
+                          bottom: Spacing.lg),
+                      child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 SizedBox(
@@ -1142,6 +1174,9 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                 ),
               ],
             ),
+                    )
+                  : const SizedBox.shrink(),
+            ),
           ],
         ),
       ),
@@ -1174,94 +1209,116 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     final isGain = gainLoss >= 0;
     final gainColor = isGain ? CupertinoColors.systemGreen : CupertinoColors.systemRed;
 
-    return Container(
-      color: AppStyles.getCardColor(context),
-      padding:
-          EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.md),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '${investments.length} Investment${investments.length == 1 ? '' : 's'}',
-                style: TextStyle(
-                  fontSize: TypeScale.headline,
-                  fontWeight: FontWeight.bold,
-                  color: AppStyles.getTextColor(context),
-                ),
-              ),
-              Container(
-                padding: EdgeInsets.symmetric(
-                    horizontal: Spacing.md, vertical: Spacing.sm),
-                decoration: BoxDecoration(
-                  color: AppStyles.getBackground(context),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  _getSortLabel(_sortBy),
-                  style: TextStyle(
-                    fontSize: TypeScale.footnote,
-                    fontWeight: FontWeight.w600,
-                    color: SemanticColors.investments,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: Spacing.md),
-          // P&L Summary Row
-          Container(
-            padding: EdgeInsets.all(Spacing.md),
-            decoration: BoxDecoration(
-              color: AppStyles.getBackground(context),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Row(
+    return GestureDetector(
+      onTap: () => setState(() => _isPnLExpanded = !_isPnLExpanded),
+      child: Container(
+        color: AppStyles.getCardColor(context),
+        padding: EdgeInsets.symmetric(
+            horizontal: Spacing.lg, vertical: Spacing.sm),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header row — always visible
+            Row(
               children: [
                 Expanded(
-                  child: _buildPnLColumn(context, 'Invested',
-                      '₹${totalInvested.toStringAsFixed(0)}',
-                      AppStyles.getTextColor(context)),
-                ),
-                Container(
-                  width: 1,
-                  height: 28,
-                  color: AppStyles.getSecondaryTextColor(context)
-                      .withValues(alpha: 0.2),
-                ),
-                Expanded(
-                  child: _buildPnLColumn(context, 'Current Value',
-                      '₹${totalCurrentValue.toStringAsFixed(0)}',
-                      gainColor),
-                ),
-                Container(
-                  width: 1,
-                  height: 28,
-                  color: AppStyles.getSecondaryTextColor(context)
-                      .withValues(alpha: 0.2),
-                ),
-                Expanded(
-                  child: _buildPnLColumn(
-                    context,
-                    'Gain / Loss',
-                    '${isGain ? '+' : ''}${gainPercent.toStringAsFixed(1)}%',
-                    gainColor,
+                  child: Row(
+                    children: [
+                      Text(
+                        '${investments.length} Investment${investments.length == 1 ? '' : 's'}',
+                        style: TextStyle(
+                          fontSize: TypeScale.subhead,
+                          fontWeight: FontWeight.bold,
+                          color: AppStyles.getTextColor(context),
+                        ),
+                      ),
+                      SizedBox(width: Spacing.md),
+                      // Compact gain pill
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: Spacing.sm, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: gainColor.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          '${isGain ? '+' : ''}${gainPercent.toStringAsFixed(1)}%',
+                          style: TextStyle(
+                            fontSize: TypeScale.caption,
+                            fontWeight: FontWeight.w700,
+                            color: gainColor,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
+                ),
+                Icon(
+                  _isPnLExpanded
+                      ? CupertinoIcons.chevron_up
+                      : CupertinoIcons.chevron_down,
+                  size: 14,
+                  color: AppStyles.getSecondaryTextColor(context),
                 ),
               ],
             ),
-          ),
-          SizedBox(height: Spacing.xs),
-          Text(
-            refreshLabel,
-            style: TextStyle(
-              fontSize: TypeScale.caption,
-              color: AppStyles.getSecondaryTextColor(context),
+            // Expandable P&L details
+            AnimatedSize(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeInOut,
+              child: _isPnLExpanded
+                  ? Padding(
+                      padding: EdgeInsets.only(top: Spacing.sm),
+                      child: Container(
+                        padding: EdgeInsets.all(Spacing.md),
+                        decoration: BoxDecoration(
+                          color: AppStyles.getBackground(context),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: _buildPnLColumn(
+                                  context,
+                                  'Invested',
+                                  '₹${totalInvested.toStringAsFixed(0)}',
+                                  AppStyles.getTextColor(context)),
+                            ),
+                            Container(
+                              width: 1,
+                              height: 28,
+                              color: AppStyles.getSecondaryTextColor(context)
+                                  .withValues(alpha: 0.2),
+                            ),
+                            Expanded(
+                              child: _buildPnLColumn(
+                                  context,
+                                  'Current',
+                                  '₹${totalCurrentValue.toStringAsFixed(0)}',
+                                  gainColor),
+                            ),
+                            Container(
+                              width: 1,
+                              height: 28,
+                              color: AppStyles.getSecondaryTextColor(context)
+                                  .withValues(alpha: 0.2),
+                            ),
+                            Expanded(
+                              child: _buildPnLColumn(
+                                context,
+                                'Gain / Loss',
+                                '${isGain ? '+' : ''}₹${gainLoss.abs().toStringAsFixed(0)}',
+                                gainColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : const SizedBox.shrink(),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

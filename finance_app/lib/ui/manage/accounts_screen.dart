@@ -285,9 +285,10 @@ class _AccountsScreenState extends State<AccountsScreen> {
     final assets = accounts
         .where((a) => !liabilityTypes.contains(a.type))
         .fold(0.0, (s, a) => s + a.balance);
+    // For credit/payLater: balance = available credit, so amount owed = creditLimit - balance
     final liabilities = accounts
         .where((a) => liabilityTypes.contains(a.type))
-        .fold(0.0, (s, a) => s + a.balance);
+        .fold(0.0, (s, a) => s + ((a.creditLimit ?? 0.0) - a.balance));
     final net = assets - liabilities;
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
