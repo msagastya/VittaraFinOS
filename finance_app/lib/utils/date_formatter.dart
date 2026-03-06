@@ -32,6 +32,36 @@ class CurrencyFormatter {
 
   /// Full format with ₹ prefix (no compact, just 2 decimal places)
   static String full(double amount) => '₹${amount.toStringAsFixed(2)}';
+
+  /// Format with ₹ prefix and Indian number grouping (2,50,000 style).
+  /// [decimals] defaults to 2 for amounts, pass 0 for round numbers.
+  static String format(double amount, {int decimals = 2}) {
+    final sign = amount < 0 ? '-' : '';
+    final abs = amount.abs();
+    final formatted = _indianFormat(abs, decimals);
+    return '$sign₹$formatted';
+  }
+
+  /// Same as [format] but always shows a leading '+' for positive values.
+  static String formatSigned(double amount, {int decimals = 2}) {
+    final sign = amount >= 0 ? '+' : '';
+    return '$sign${format(amount, decimals: decimals)}';
+  }
+
+  static String _indianFormat(double value, int decimals) {
+    final parts = value.toStringAsFixed(decimals).split('.');
+    final intPart = parts[0];
+    final decPart = parts.length > 1 ? '.${parts[1]}' : '';
+    if (intPart.length <= 3) return '$intPart$decPart';
+    // Indian system: last 3 digits, then groups of 2
+    final last3 = intPart.substring(intPart.length - 3);
+    final rest = intPart.substring(0, intPart.length - 3);
+    final groups = <String>[];
+    for (int i = rest.length; i > 0; i -= 2) {
+      groups.insert(0, rest.substring(i < 2 ? 0 : i - 2, i));
+    }
+    return '${groups.join(',')},$last3$decPart';
+  }
 }
 
 /// Centralized date formatting utility
