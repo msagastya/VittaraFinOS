@@ -27,6 +27,9 @@ class FDDetailsScreen extends StatefulWidget {
 
 class _FDDetailsScreenState extends State<FDDetailsScreen> {
   bool _isFDNearMaturity() {
+    final alertEnabled =
+        widget.fd.metadata?['maturityAlertEnabled'] as bool? ?? true;
+    if (!alertEnabled) return false;
     final daysUntil = widget.fd.maturityDate.difference(DateTime.now()).inDays;
     return daysUntil <= 10 && daysUntil >= 0;
   }
@@ -1423,6 +1426,89 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                                   Navigator.of(context).pop();
                                   toast.showSuccess(
                                     'Auto-link ${value ? 'enabled' : 'disabled'}',
+                                  );
+                                } catch (e) {
+                                  if (mounted) {
+                                    toast.showError('Failed to update setting');
+                                  }
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: Spacing.md),
+                      // Maturity Alert Toggle
+                      Container(
+                        padding: const EdgeInsets.all(Spacing.lg),
+                        decoration: BoxDecoration(
+                          color: AppStyles.getCardColor(context),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Maturity Alert',
+                                    style: TextStyle(
+                                      color: AppStyles.getTextColor(context),
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: TypeScale.body,
+                                    ),
+                                  ),
+                                  const SizedBox(height: Spacing.xs),
+                                  Text(
+                                    'Show alert when FD is within 10 days of maturity',
+                                    style: TextStyle(
+                                      color: AppStyles.getSecondaryTextColor(
+                                          context),
+                                      fontSize: TypeScale.footnote,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            CupertinoSwitch(
+                              value: widget.fd.metadata?['maturityAlertEnabled']
+                                      as bool? ??
+                                  true,
+                              onChanged: (value) async {
+                                try {
+                                  if (!mounted) return;
+                                  final investmentsController =
+                                      Provider.of<InvestmentsController>(
+                                          context,
+                                          listen: false);
+                                  final currentInvestment =
+                                      investmentsController.investments
+                                          .firstWhere(
+                                    (inv) => inv.id == widget.fd.id,
+                                    orElse: () =>
+                                        throw Exception('Investment not found'),
+                                  );
+                                  final updatedFD = widget.fd.copyWith(
+                                    metadata: {
+                                      ...?widget.fd.metadata,
+                                      'maturityAlertEnabled': value,
+                                    },
+                                  );
+                                  final updatedInvestment =
+                                      currentInvestment.copyWith(
+                                    metadata: {
+                                      ...?currentInvestment.metadata,
+                                      'fdData': updatedFD.toMap(),
+                                    },
+                                  );
+                                  await investmentsController
+                                      .updateInvestment(updatedInvestment);
+                                  if (!mounted) return;
+                                  Navigator.of(context).pop();
+                                  toast.showSuccess(
+                                    'Maturity alert ${value ? 'enabled' : 'disabled'}',
                                   );
                                 } catch (e) {
                                   if (mounted) {

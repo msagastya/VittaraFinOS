@@ -784,6 +784,113 @@ class _TransactionWizardState extends State<TransactionWizard> {
               ],
             ),
           ),
+          SizedBox(height: Spacing.lg),
+          // Quick amount shortcuts
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                for (final preset in [
+                  ('+10', 10.0),
+                  ('+50', 50.0),
+                  ('+100', 100.0),
+                  ('+200', 200.0),
+                  ('+500', 500.0),
+                  ('+1K', 1000.0),
+                  ('+2K', 2000.0),
+                  ('+5K', 5000.0),
+                  ('+10K', 10000.0),
+                ])
+                  Padding(
+                    padding: const EdgeInsets.only(right: Spacing.sm),
+                    child: CupertinoButton(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: Spacing.lg, vertical: Spacing.sm),
+                      color: AppStyles.getCardColor(context),
+                      borderRadius: BorderRadius.circular(20),
+                      minSize: 0,
+                      onPressed: () {
+                        final current =
+                            double.tryParse(_amountController.text) ?? 0;
+                        final next = current + preset.$2;
+                        _amountController.text =
+                            next == next.truncate().toDouble()
+                                ? next.toStringAsFixed(0)
+                                : next.toStringAsFixed(2);
+                        setState(() {});
+                      },
+                      child: Text(
+                        preset.$1,
+                        style: TextStyle(
+                          fontSize: TypeScale.footnote,
+                          fontWeight: FontWeight.w600,
+                          color: _branch == TransactionWizardBranch.income
+                              ? CupertinoColors.systemGreen
+                              : _branch == TransactionWizardBranch.expense
+                                  ? CupertinoColors.systemRed
+                                  : CupertinoColors.systemBlue,
+                        ),
+                      ),
+                    ),
+                  ),
+                // ÷2 (halve) and ×2 (double)
+                Padding(
+                  padding: const EdgeInsets.only(right: Spacing.sm),
+                  child: CupertinoButton(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: Spacing.lg, vertical: Spacing.sm),
+                    color: AppStyles.getCardColor(context),
+                    borderRadius: BorderRadius.circular(20),
+                    minSize: 0,
+                    onPressed: () {
+                      final current =
+                          double.tryParse(_amountController.text) ?? 0;
+                      if (current <= 0) return;
+                      final next = current / 2;
+                      _amountController.text =
+                          next == next.truncate().toDouble()
+                              ? next.toStringAsFixed(0)
+                              : next.toStringAsFixed(2);
+                      setState(() {});
+                    },
+                    child: Text(
+                      '÷2',
+                      style: TextStyle(
+                        fontSize: TypeScale.footnote,
+                        fontWeight: FontWeight.w600,
+                        color: AppStyles.getSecondaryTextColor(context),
+                      ),
+                    ),
+                  ),
+                ),
+                CupertinoButton(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: Spacing.lg, vertical: Spacing.sm),
+                  color: AppStyles.getCardColor(context),
+                  borderRadius: BorderRadius.circular(20),
+                  minSize: 0,
+                  onPressed: () {
+                    final current =
+                        double.tryParse(_amountController.text) ?? 0;
+                    if (current <= 0) return;
+                    final next = current * 2;
+                    _amountController.text = next == next.truncate().toDouble()
+                        ? next.toStringAsFixed(0)
+                        : next.toStringAsFixed(2);
+                    setState(() {});
+                  },
+                  child: Text(
+                    '×2',
+                    style: TextStyle(
+                      fontSize: TypeScale.footnote,
+                      fontWeight: FontWeight.w600,
+                      color: AppStyles.getSecondaryTextColor(context),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
       footer: _buildFooterButton(
