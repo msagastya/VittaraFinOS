@@ -720,7 +720,63 @@ class _AccountsScreenState extends State<AccountsScreen> {
     );
   }
 
+  /// Compute 30-day balance history for an account by reversing transactions.
+  List<double> _computeBalanceHistory(Account account) {
+    final txController = context.read<TransactionsController>();
+    final now = DateTime.now();
+    final cutoff = now.subtract(const Duration(days: 30));
+
+    bool isForAccount(Transaction tx) {
+      final metaId = tx.metadata?['accountId'] as String?;
+      return metaId == account.id ||
+          tx.sourceAccountId == account.id ||
+          tx.destinationAccountId == account.id;
+    }
+
+    final relevantTxs = txController.transactions
+        .where((tx) => isForAccount(tx) && tx.dateTime.isAfter(cutoff))
+        .toList()
+      ..sort((a, b) => b.dateTime.compareTo(a.dateTime)); // newest first
+
+    // Work backwards from current balance
+    double running = account.balance;
+    final dayPoints = <int, double>{0: running};
+    for (final tx in relevantTxs) {
+      final daysAgo = now.difference(tx.dateTime).inDays.clamp(0, 30);
+      if (tx.sourceAccountId == account.id) {
+        running += tx.amount; // reverse: money left account
+      } else if (tx.destinationAccountId == account.id) {
+        running -= tx.amount; // reverse: money arrived at account
+      } else {
+        // non-transfer: expense reduces balance, income increases
+        if (tx.type == TransactionType.expense ||
+            tx.type == TransactionType.investment ||
+            tx.type == TransactionType.lending) {
+          running += tx.amount;
+        } else if (tx.type == TransactionType.income ||
+            tx.type == TransactionType.cashback ||
+            tx.type == TransactionType.borrowing) {
+          running -= tx.amount;
+        }
+      }
+      dayPoints[daysAgo] = running;
+    }
+
+    // Build result array indexed [0]=30dAgo … [30]=today
+    final result = List<double>.filled(31, running);
+    // Populate known points (daysAgo=0 is today=index30, daysAgo=30 is index0)
+    dayPoints.forEach((daysAgo, v) => result[30 - daysAgo] = v);
+    // Forward fill gaps
+    for (int i = 1; i < 31; i++) {
+      if (result[i] == running && !dayPoints.containsKey(30 - i)) {
+        result[i] = result[i - 1];
+      }
+    }
+    return result;
+  }
+
   void _showAccountDetailsSheet(Account account) {
+    final balanceHistory = _computeBalanceHistory(account);
     showCupertinoModalPopup(
       context: context,
       builder: (modalContext) {
@@ -899,6 +955,34 @@ class _AccountsScreenState extends State<AccountsScreen> {
                               ],
                             ),
                           ],
+
+                          // Balance history sparkline
+                          const SizedBox(height: Spacing.xl),
+                          Text(
+                            '30-Day Balance Trend',
+                            style: TextStyle(
+                              color: AppStyles.getSecondaryTextColor(dragContext),
+                              fontSize: TypeScale.footnote,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: Spacing.sm),
+                          Container(
+                            height: 80,
+                            decoration: BoxDecoration(
+                              color: AppStyles.getBackground(dragContext),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            clipBehavior: Clip.hardEdge,
+                            child: CustomPaint(
+                              painter: _BalanceSparklinePainter(
+                                values: balanceHistory,
+                                lineColor: account.color,
+                                gridColor: AppStyles.getSecondaryTextColor(dragContext),
+                              ),
+                              size: Size.infinite,
+                            ),
+                          ),
 
                           const SizedBox(height: Spacing.xxxl),
                         ],
@@ -1387,4 +1471,84 @@ class _AccountsScreenState extends State<AccountsScreen> {
       },
     );
   }
+}
+
+class _BalanceSparklinePainter extends CustomPainter {
+  final List<double> values; // 31 data points: index 0 = 30 days ago, 30 = today
+  final Color lineColor;
+  final Color gridColor;
+
+  const _BalanceSparklinePainter({
+    required this.values,
+    required this.lineColor,
+    required this.gridColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (values.length < 2) return;
+
+    const pad = 8.0;
+    final w = size.width - pad * 2;
+    final h = size.height - pad * 2;
+
+    final minV = values.reduce((a, b) => a < b ? a : b);
+    final maxV = values.reduce((a, b) => a > b ? a : b);
+    final range = (maxV - minV).abs();
+    final lo = range == 0 ? minV - 1 : minV;
+    final hi = range == 0 ? maxV + 1 : maxV;
+    final span = hi - lo;
+
+    double xOf(int i) => pad + (i / (values.length - 1)) * w;
+    double yOf(double v) => pad + h - ((v - lo) / span * h);
+
+    final path = Path();
+    for (int i = 0; i < values.length; i++) {
+      final x = xOf(i);
+      final y = yOf(values[i]);
+      if (i == 0) {
+        path.moveTo(x, y);
+      } else {
+        path.lineTo(x, y);
+      }
+    }
+
+    // Gradient fill
+    final fillPath = Path.from(path)
+      ..lineTo(xOf(values.length - 1), pad + h)
+      ..lineTo(pad, pad + h)
+      ..close();
+    canvas.drawPath(
+      fillPath,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            lineColor.withValues(alpha: 0.25),
+            lineColor.withValues(alpha: 0.0),
+          ],
+        ).createShader(Rect.fromLTWH(pad, pad, w, h)),
+    );
+
+    // Line
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = lineColor
+        ..strokeWidth = 1.8
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round,
+    );
+
+    // Endpoint dot
+    final lastX = xOf(values.length - 1);
+    final lastY = yOf(values.last);
+    canvas.drawCircle(Offset(lastX, lastY), 3.5, Paint()..color = lineColor);
+  }
+
+  @override
+  bool shouldRepaint(_BalanceSparklinePainter old) =>
+      old.values != values || old.lineColor != lineColor;
 }

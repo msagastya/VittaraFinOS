@@ -1197,17 +1197,40 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     // Calculate portfolio P&L
     double totalInvested = 0;
     double totalCurrentValue = 0;
+    DateTime? earliestDate;
     for (final inv in investments) {
       final meta = inv.metadata;
       final invested = (meta?['investmentAmount'] as num?)?.toDouble() ?? inv.amount;
       final current = _calculateCurrentValue(inv);
       totalInvested += invested;
       totalCurrentValue += current;
+      // Track earliest investment date for CAGR
+      final dateStr = meta?['investmentDate'] as String? ??
+          meta?['purchaseDate'] as String? ??
+          meta?['startDate'] as String?;
+      if (dateStr != null) {
+        try {
+          final d = DateTime.parse(dateStr);
+          if (earliestDate == null || d.isBefore(earliestDate)) {
+            earliestDate = d;
+          }
+        } catch (_) {}
+      }
     }
     final gainLoss = totalCurrentValue - totalInvested;
     final gainPercent = totalInvested > 0 ? (gainLoss / totalInvested) * 100 : 0.0;
     final isGain = gainLoss >= 0;
     final gainColor = isGain ? CupertinoColors.systemGreen : CupertinoColors.systemRed;
+    // Portfolio CAGR
+    String? cagrText;
+    if (earliestDate != null && totalInvested > 0 && totalCurrentValue > 0) {
+      final yearsElapsed =
+          DateTime.now().difference(earliestDate).inDays / 365.25;
+      if (yearsElapsed > 0.05) {
+        final cagr = (pow(totalCurrentValue / totalInvested, 1 / yearsElapsed) - 1) * 100;
+        cagrText = '${cagr >= 0 ? '+' : ''}${cagr.toStringAsFixed(1)}%';
+      }
+    }
 
     return GestureDetector(
       onTap: () => setState(() => _isPnLExpanded = !_isPnLExpanded),
@@ -1275,42 +1298,82 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                           color: AppStyles.getBackground(context),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: Row(
+                        child: Column(
                           children: [
-                            Expanded(
-                              child: _buildPnLColumn(
-                                  context,
-                                  'Invested',
-                                  '₹${totalInvested.toStringAsFixed(0)}',
-                                  AppStyles.getTextColor(context)),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildPnLColumn(
+                                      context,
+                                      'Invested',
+                                      '₹${totalInvested.toStringAsFixed(0)}',
+                                      AppStyles.getTextColor(context)),
+                                ),
+                                Container(
+                                  width: 1,
+                                  height: 28,
+                                  color: AppStyles.getSecondaryTextColor(context)
+                                      .withValues(alpha: 0.2),
+                                ),
+                                Expanded(
+                                  child: _buildPnLColumn(
+                                      context,
+                                      'Current',
+                                      '₹${totalCurrentValue.toStringAsFixed(0)}',
+                                      gainColor),
+                                ),
+                                Container(
+                                  width: 1,
+                                  height: 28,
+                                  color: AppStyles.getSecondaryTextColor(context)
+                                      .withValues(alpha: 0.2),
+                                ),
+                                Expanded(
+                                  child: _buildPnLColumn(
+                                    context,
+                                    'Gain / Loss',
+                                    '${isGain ? '+' : ''}₹${gainLoss.abs().toStringAsFixed(0)}',
+                                    gainColor,
+                                  ),
+                                ),
+                              ],
                             ),
-                            Container(
-                              width: 1,
-                              height: 28,
-                              color: AppStyles.getSecondaryTextColor(context)
-                                  .withValues(alpha: 0.2),
-                            ),
-                            Expanded(
-                              child: _buildPnLColumn(
-                                  context,
-                                  'Current',
-                                  '₹${totalCurrentValue.toStringAsFixed(0)}',
-                                  gainColor),
-                            ),
-                            Container(
-                              width: 1,
-                              height: 28,
-                              color: AppStyles.getSecondaryTextColor(context)
-                                  .withValues(alpha: 0.2),
-                            ),
-                            Expanded(
-                              child: _buildPnLColumn(
-                                context,
-                                'Gain / Loss',
-                                '${isGain ? '+' : ''}₹${gainLoss.abs().toStringAsFixed(0)}',
-                                gainColor,
+                            if (cagrText != null) ...[
+                              SizedBox(height: Spacing.sm),
+                              Container(
+                                height: 1,
+                                color: AppStyles.getSecondaryTextColor(context)
+                                    .withValues(alpha: 0.12),
                               ),
-                            ),
+                              SizedBox(height: Spacing.sm),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Portfolio CAGR  ',
+                                    style: TextStyle(
+                                      fontSize: TypeScale.caption,
+                                      color: AppStyles.getSecondaryTextColor(context),
+                                    ),
+                                  ),
+                                  Text(
+                                    cagrText,
+                                    style: TextStyle(
+                                      fontSize: TypeScale.caption,
+                                      fontWeight: FontWeight.w700,
+                                      color: gainColor,
+                                    ),
+                                  ),
+                                  Text(
+                                    '  p.a.',
+                                    style: TextStyle(
+                                      fontSize: TypeScale.caption,
+                                      color: AppStyles.getSecondaryTextColor(context),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ],
                         ),
                       ),

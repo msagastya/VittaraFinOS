@@ -808,7 +808,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                           horizontal: Spacing.lg, vertical: Spacing.sm),
                       color: AppStyles.getCardColor(context),
                       borderRadius: BorderRadius.circular(20),
-                      minSize: 0,
+                      minimumSize: Size.zero,
                       onPressed: () {
                         final current =
                             double.tryParse(_amountController.text) ?? 0;
@@ -841,7 +841,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                         horizontal: Spacing.lg, vertical: Spacing.sm),
                     color: AppStyles.getCardColor(context),
                     borderRadius: BorderRadius.circular(20),
-                    minSize: 0,
+                    minimumSize: Size.zero,
                     onPressed: () {
                       final current =
                           double.tryParse(_amountController.text) ?? 0;
@@ -868,7 +868,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                       horizontal: Spacing.lg, vertical: Spacing.sm),
                   color: AppStyles.getCardColor(context),
                   borderRadius: BorderRadius.circular(20),
-                  minSize: 0,
+                  minimumSize: Size.zero,
                   onPressed: () {
                     final current =
                         double.tryParse(_amountController.text) ?? 0;
