@@ -24,6 +24,7 @@ import 'package:vittara_fin_os/ui/manage/transfer_wizard.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
+import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
 
 enum TransactionWizardBranch { expense, income, transfer }
@@ -118,6 +119,246 @@ class _TransactionWizardState extends State<TransactionWizard> {
     if (_hasValidAmount) {
       _nextStep();
     }
+  }
+
+  void _showCalculator(BuildContext context) {
+    String display =
+        _amountController.text.isNotEmpty ? _amountController.text : '0';
+    String? pendingOp;
+    double? pendingValue;
+    bool justEvaled = false;
+
+    showCupertinoModalPopup(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setS) {
+          final isDark = AppStyles.isDarkMode(ctx);
+          final btnBg = isDark
+              ? const Color(0xFF2C2C2E)
+              : CupertinoColors.systemGrey6;
+          final opColor = _branch == TransactionWizardBranch.income
+              ? CupertinoColors.systemGreen
+              : _branch == TransactionWizardBranch.expense
+                  ? CupertinoColors.systemRed
+                  : CupertinoColors.systemBlue;
+
+          void onDigit(String d) => setS(() {
+                if (justEvaled || display == '0') {
+                  display = d;
+                  justEvaled = false;
+                } else {
+                  display += d;
+                }
+              });
+
+          void onDecimal() => setS(() {
+                if (justEvaled) {
+                  display = '0.';
+                  justEvaled = false;
+                } else if (!display.contains('.')) {
+                  display += '.';
+                }
+              });
+
+          void onOp(String op) => setS(() {
+                pendingValue = double.tryParse(display) ?? 0;
+                pendingOp = op;
+                justEvaled = true;
+              });
+
+          void onEquals() {
+            if (pendingOp == null || pendingValue == null) return;
+            final cur = double.tryParse(display) ?? 0;
+            double r;
+            switch (pendingOp) {
+              case '+':
+                r = pendingValue! + cur;
+              case '-':
+                r = pendingValue! - cur;
+              case '×':
+                r = pendingValue! * cur;
+              case '÷':
+                r = cur != 0 ? pendingValue! / cur : 0;
+              default:
+                r = cur;
+            }
+            setS(() {
+              display = r == r.truncateToDouble()
+                  ? r.toStringAsFixed(0)
+                  : r.toStringAsFixed(2);
+              pendingOp = null;
+              pendingValue = null;
+              justEvaled = true;
+            });
+          }
+
+          void onClear() => setS(() {
+                display = '0';
+                pendingOp = null;
+                pendingValue = null;
+                justEvaled = false;
+              });
+
+          void onBack() => setS(() {
+                if (display.length > 1) {
+                  display = display.substring(0, display.length - 1);
+                } else {
+                  display = '0';
+                }
+              });
+
+          Widget btn(String label,
+              {VoidCallback? onTap,
+              Color? bg,
+              Color? fg,
+              bool wide = false}) {
+            return Expanded(
+              flex: wide ? 2 : 1,
+              child: Padding(
+                padding: const EdgeInsets.all(3),
+                child: CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  color: bg ?? btnBg,
+                  borderRadius: BorderRadius.circular(12),
+                  minimumSize: const Size(0, 52),
+                  onPressed: onTap ?? () {},
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: fg ?? AppStyles.getTextColor(ctx),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }
+
+          return Container(
+            height: MediaQuery.of(ctx).size.height * 0.62,
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1C1C1E) : CupertinoColors.white,
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: SafeArea(
+              child: Column(
+                children: [
+                  const SizedBox(height: 12),
+                  const ModalHandle(),
+                  const SizedBox(height: 4),
+                  if (pendingOp != null)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: Text(
+                          '₹$pendingValue $pendingOp',
+                          style: TextStyle(
+                            color: AppStyles.getSecondaryTextColor(ctx),
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 8),
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        '₹$display',
+                        style: TextStyle(
+                          fontSize: 38,
+                          fontWeight: FontWeight.bold,
+                          color: AppStyles.getTextColor(ctx),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Divider(
+                      color: AppStyles.getDividerColor(ctx), height: 1),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: Column(
+                        children: [
+                          Row(children: [
+                            btn('C',
+                                onTap: onClear,
+                                bg: CupertinoColors.systemRed
+                                    .withValues(alpha: 0.12),
+                                fg: CupertinoColors.systemRed),
+                            btn('←', onTap: onBack),
+                            btn('÷',
+                                onTap: () => onOp('÷'),
+                                bg: opColor.withValues(alpha: 0.12),
+                                fg: opColor),
+                            btn('×',
+                                onTap: () => onOp('×'),
+                                bg: opColor.withValues(alpha: 0.12),
+                                fg: opColor),
+                          ]),
+                          Row(children: [
+                            btn('7', onTap: () => onDigit('7')),
+                            btn('8', onTap: () => onDigit('8')),
+                            btn('9', onTap: () => onDigit('9')),
+                            btn('-',
+                                onTap: () => onOp('-'),
+                                bg: opColor.withValues(alpha: 0.12),
+                                fg: opColor),
+                          ]),
+                          Row(children: [
+                            btn('4', onTap: () => onDigit('4')),
+                            btn('5', onTap: () => onDigit('5')),
+                            btn('6', onTap: () => onDigit('6')),
+                            btn('+',
+                                onTap: () => onOp('+'),
+                                bg: opColor.withValues(alpha: 0.12),
+                                fg: opColor),
+                          ]),
+                          Row(children: [
+                            btn('1', onTap: () => onDigit('1')),
+                            btn('2', onTap: () => onDigit('2')),
+                            btn('3', onTap: () => onDigit('3')),
+                            btn('=',
+                                onTap: onEquals,
+                                bg: opColor.withValues(alpha: 0.15),
+                                fg: opColor),
+                          ]),
+                          Row(children: [
+                            btn('0',
+                                onTap: () => onDigit('0'), wide: true),
+                            btn('.', onTap: onDecimal),
+                            btn('✓',
+                                onTap: () {
+                                  onEquals();
+                                  final val =
+                                      double.tryParse(display) ?? 0;
+                                  if (val > 0) {
+                                    _amountController.text =
+                                        val == val.truncateToDouble()
+                                            ? val.toStringAsFixed(0)
+                                            : val.toStringAsFixed(2);
+                                    setState(() {});
+                                  }
+                                  Navigator.pop(ctx);
+                                },
+                                bg: opColor,
+                                fg: CupertinoColors.white),
+                          ]),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   static const _lastCategoryKey = 'last_used_category_id';
@@ -1137,16 +1378,33 @@ class _TransactionWizardState extends State<TransactionWizard> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(
-                  '₹',
-                  style: TextStyle(
-                    fontSize: 36,
-                    fontWeight: FontWeight.w800,
-                    color: _branch == TransactionWizardBranch.income
-                        ? CupertinoColors.systemGreen
-                        : _branch == TransactionWizardBranch.expense
-                            ? CupertinoColors.systemRed
-                            : CupertinoColors.systemBlue,
+                GestureDetector(
+                  onTap: () => _showCalculator(context),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '₹',
+                        style: TextStyle(
+                          fontSize: 36,
+                          fontWeight: FontWeight.w800,
+                          color: _branch == TransactionWizardBranch.income
+                              ? CupertinoColors.systemGreen
+                              : _branch == TransactionWizardBranch.expense
+                                  ? CupertinoColors.systemRed
+                                  : CupertinoColors.systemBlue,
+                        ),
+                      ),
+                      Text(
+                        'calc',
+                        style: TextStyle(
+                          fontSize: 8,
+                          color: AppStyles.getSecondaryTextColor(context)
+                              .withValues(alpha: 0.6),
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 SizedBox(width: Spacing.sm),
