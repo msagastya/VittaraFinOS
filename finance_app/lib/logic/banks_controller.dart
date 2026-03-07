@@ -41,9 +41,9 @@ class BanksController with ChangeNotifier {
           _banks[i] = {
             ..._banks[i],
             'isEnabled': storedMap[id]!['isEnabled'] ?? false,
-            'senderIds': (storedMap[id]!['senderIds'] as List?)
-                    ?.cast<String>() ??
-                <String>[],
+            'senderIds':
+                (storedMap[id]!['senderIds'] as List?)?.cast<String>() ??
+                    <String>[],
             if (storedMap[id]!['name'] != null) 'name': storedMap[id]!['name'],
           };
         }
@@ -166,7 +166,8 @@ class BanksController with ChangeNotifier {
 
   bool bankNameExists(String name) {
     final normalized = _normalizeName(name);
-    return _banks.any((b) => _normalizeName(b['name']?.toString() ?? '') == normalized);
+    return _banks
+        .any((b) => _normalizeName(b['name']?.toString() ?? '') == normalized);
   }
 
   void addBank(Map<String, dynamic> newBank) {

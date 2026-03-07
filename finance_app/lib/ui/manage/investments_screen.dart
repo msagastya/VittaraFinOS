@@ -407,7 +407,13 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
   void _showMaturityCalendar(
       BuildContext context, List<Investment> investments) {
     // Collect FDs and RDs with their maturity dates
-    final entries = <({String name, String bank, DateTime maturityDate, double maturityValue, String type})>[];
+    final entries = <({
+      String name,
+      String bank,
+      DateTime maturityDate,
+      double maturityValue,
+      String type
+    })>[];
 
     for (final inv in investments) {
       final meta = inv.metadata;
@@ -499,11 +505,11 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                           itemBuilder: (ctx2, i) {
                             final e = entries[i];
                             final now = DateTime.now();
-                            final today = DateTime(now.year, now.month, now.day);
+                            final today =
+                                DateTime(now.year, now.month, now.day);
                             final matDay = DateTime(e.maturityDate.year,
                                 e.maturityDate.month, e.maturityDate.day);
-                            final daysLeft =
-                                matDay.difference(today).inDays;
+                            final daysLeft = matDay.difference(today).inDays;
                             final isOverdue = daysLeft < 0;
                             final isToday = daysLeft == 0;
                             final statusColor = isOverdue
@@ -581,8 +587,9 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                         DateFormatter.format(e.maturityDate),
                                         style: TextStyle(
                                           fontSize: TypeScale.caption,
-                                          color: AppStyles
-                                              .getSecondaryTextColor(context),
+                                          color:
+                                              AppStyles.getSecondaryTextColor(
+                                                  context),
                                         ),
                                       ),
                                       const SizedBox(height: 4),
@@ -657,7 +664,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
         backgroundColor: AppStyles.getCardColor(context),
         style: TextStyle(color: AppStyles.getTextColor(context)),
         placeholderStyle: TextStyle(
-            color: AppStyles.getSecondaryTextColor(context), fontSize: TypeScale.body),
+            color: AppStyles.getSecondaryTextColor(context),
+            fontSize: TypeScale.body),
         onChanged: (v) => setState(() => _searchQuery = v),
       ),
     );
@@ -744,9 +752,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                     style: TextStyle(
                       fontSize: TypeScale.footnote,
                       fontWeight: FontWeight.w600,
-                      color: isSelected
-                          ? color
-                          : AppStyles.getTextColor(context),
+                      color:
+                          isSelected ? color : AppStyles.getTextColor(context),
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -1071,8 +1078,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             GestureDetector(
-              onTap: () =>
-                  setState(() => _isAllocationExpanded = !_isAllocationExpanded),
+              onTap: () => setState(
+                  () => _isAllocationExpanded = !_isAllocationExpanded),
               child: Padding(
                 padding: EdgeInsets.symmetric(
                     horizontal: Spacing.lg, vertical: Spacing.md),
@@ -1112,69 +1119,71 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                           right: Spacing.lg,
                           bottom: Spacing.lg),
                       child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                SizedBox(
-                  width: 80,
-                  height: 80,
-                  child: CustomPaint(
-                    painter: _DonutChartPainter(
-                      slices: entries
-                          .map((e) => _DonutSlice(
-                                value: e.value / total,
-                                color: _getInvestmentTypeColor(e.key),
-                              ))
-                          .toList(),
-                      holeColor: AppStyles.getCardColor(context),
-                    ),
-                  ),
-                ),
-                SizedBox(width: Spacing.lg),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: entries.take(5).map((e) {
-                      final pct = (e.value / total * 100);
-                      return Padding(
-                        padding: EdgeInsets.only(bottom: Spacing.xs),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 8,
-                              height: 8,
-                              decoration: BoxDecoration(
-                                color: _getInvestmentTypeColor(e.key),
-                                borderRadius: BorderRadius.circular(2),
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: 80,
+                            height: 80,
+                            child: CustomPaint(
+                              painter: _DonutChartPainter(
+                                slices: entries
+                                    .map((e) => _DonutSlice(
+                                          value: e.value / total,
+                                          color: _getInvestmentTypeColor(e.key),
+                                        ))
+                                    .toList(),
+                                holeColor: AppStyles.getCardColor(context),
                               ),
                             ),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Text(
-                                _getInvestmentTypeLabel(e.key),
-                                style: TextStyle(
-                                  fontSize: TypeScale.caption,
-                                  color:
-                                      AppStyles.getSecondaryTextColor(context),
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                          ),
+                          SizedBox(width: Spacing.lg),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: entries.take(5).map((e) {
+                                final pct = (e.value / total * 100);
+                                return Padding(
+                                  padding: EdgeInsets.only(bottom: Spacing.xs),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 8,
+                                        height: 8,
+                                        decoration: BoxDecoration(
+                                          color: _getInvestmentTypeColor(e.key),
+                                          borderRadius:
+                                              BorderRadius.circular(2),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Expanded(
+                                        child: Text(
+                                          _getInvestmentTypeLabel(e.key),
+                                          style: TextStyle(
+                                            fontSize: TypeScale.caption,
+                                            color:
+                                                AppStyles.getSecondaryTextColor(
+                                                    context),
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      Text(
+                                        '${pct.toStringAsFixed(1)}%',
+                                        style: TextStyle(
+                                          fontSize: TypeScale.caption,
+                                          fontWeight: FontWeight.w600,
+                                          color: _getInvestmentTypeColor(e.key),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
                             ),
-                            Text(
-                              '${pct.toStringAsFixed(1)}%',
-                              style: TextStyle(
-                                fontSize: TypeScale.caption,
-                                fontWeight: FontWeight.w600,
-                                color: _getInvestmentTypeColor(e.key),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-              ],
-            ),
+                          ),
+                        ],
+                      ),
                     )
                   : const SizedBox.shrink(),
             ),
@@ -1201,7 +1210,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     DateTime? earliestDate;
     for (final inv in investments) {
       final meta = inv.metadata;
-      final invested = (meta?['investmentAmount'] as num?)?.toDouble() ?? inv.amount;
+      final invested =
+          (meta?['investmentAmount'] as num?)?.toDouble() ?? inv.amount;
       final current = _calculateCurrentValue(inv);
       totalInvested += invested;
       totalCurrentValue += current;
@@ -1219,16 +1229,20 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       }
     }
     final gainLoss = totalCurrentValue - totalInvested;
-    final gainPercent = totalInvested > 0 ? (gainLoss / totalInvested) * 100 : 0.0;
+    final gainPercent =
+        totalInvested > 0 ? (gainLoss / totalInvested) * 100 : 0.0;
     final isGain = gainLoss >= 0;
-    final gainColor = isGain ? CupertinoColors.systemGreen : CupertinoColors.systemRed;
+    final gainColor =
+        isGain ? CupertinoColors.systemGreen : CupertinoColors.systemRed;
     // Portfolio CAGR
     String? cagrText;
     if (earliestDate != null && totalInvested > 0 && totalCurrentValue > 0) {
       final yearsElapsed =
           DateTime.now().difference(earliestDate).inDays / 365.25;
       if (yearsElapsed > 0.05) {
-        final cagr = (pow(totalCurrentValue / totalInvested, 1 / yearsElapsed) - 1) * 100;
+        final cagr =
+            (pow(totalCurrentValue / totalInvested, 1 / yearsElapsed) - 1) *
+                100;
         cagrText = '${cagr >= 0 ? '+' : ''}${cagr.toStringAsFixed(1)}%';
       }
     }
@@ -1237,8 +1251,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       onTap: () => setState(() => _isPnLExpanded = !_isPnLExpanded),
       child: Container(
         color: AppStyles.getCardColor(context),
-        padding: EdgeInsets.symmetric(
-            horizontal: Spacing.lg, vertical: Spacing.sm),
+        padding:
+            EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.sm),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1313,8 +1327,9 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                 Container(
                                   width: 1,
                                   height: 28,
-                                  color: AppStyles.getSecondaryTextColor(context)
-                                      .withValues(alpha: 0.2),
+                                  color:
+                                      AppStyles.getSecondaryTextColor(context)
+                                          .withValues(alpha: 0.2),
                                 ),
                                 Expanded(
                                   child: _buildPnLColumn(
@@ -1326,8 +1341,9 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                 Container(
                                   width: 1,
                                   height: 28,
-                                  color: AppStyles.getSecondaryTextColor(context)
-                                      .withValues(alpha: 0.2),
+                                  color:
+                                      AppStyles.getSecondaryTextColor(context)
+                                          .withValues(alpha: 0.2),
                                 ),
                                 Expanded(
                                   child: _buildPnLColumn(
@@ -1354,7 +1370,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                     'Portfolio CAGR  ',
                                     style: TextStyle(
                                       fontSize: TypeScale.caption,
-                                      color: AppStyles.getSecondaryTextColor(context),
+                                      color: AppStyles.getSecondaryTextColor(
+                                          context),
                                     ),
                                   ),
                                   Text(
@@ -1369,7 +1386,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                     '  p.a.',
                                     style: TextStyle(
                                       fontSize: TypeScale.caption,
-                                      color: AppStyles.getSecondaryTextColor(context),
+                                      color: AppStyles.getSecondaryTextColor(
+                                          context),
                                     ),
                                   ),
                                 ],

@@ -51,14 +51,24 @@ class ActionsWidget extends BaseDashboardWidget {
     if (rowSpan > 1) actionCount = columnSpan * rowSpan;
 
     final actions = [
-      ('Send Payment', '₹0', CupertinoIcons.paperplane_fill, CupertinoColors.activeBlue),
+      (
+        'Send Payment',
+        '₹0',
+        CupertinoIcons.paperplane_fill,
+        CupertinoColors.activeBlue
+      ),
       (
         'Request Money',
         'Quick',
         CupertinoIcons.arrow_down_circle_fill,
         CupertinoColors.systemGreen
       ),
-      ('View All', 'More', CupertinoIcons.ellipsis, CupertinoColors.systemOrange),
+      (
+        'View All',
+        'More',
+        CupertinoIcons.ellipsis,
+        CupertinoColors.systemOrange
+      ),
     ].take(actionCount).toList();
 
     return Column(

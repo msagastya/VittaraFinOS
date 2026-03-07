@@ -180,6 +180,7 @@ class MFReviewStep extends StatelessWidget {
     );
   }
 
-  String _monthName(int month) {return DateFormatter.getMonthName(month);
+  String _monthName(int month) {
+    return DateFormatter.getMonthName(month);
   }
 }

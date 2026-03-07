@@ -97,7 +97,8 @@ class CommodityTypeStep extends StatelessWidget {
           ),
           const SizedBox(height: Spacing.xl),
           Text('Custom Commodity Name',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           CupertinoTextField(
             placeholder: 'e.g., Gold ETF, Oil Futures',

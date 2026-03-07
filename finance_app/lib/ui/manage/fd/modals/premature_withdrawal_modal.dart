@@ -217,10 +217,12 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
                   Container(
                     padding: const EdgeInsets.all(Spacing.md),
                     decoration: BoxDecoration(
-                      color: CupertinoColors.systemOrange.withValues(alpha: 0.1),
+                      color:
+                          CupertinoColors.systemOrange.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: CupertinoColors.systemOrange.withValues(alpha: 0.3),
+                        color:
+                            CupertinoColors.systemOrange.withValues(alpha: 0.3),
                         width: 1,
                       ),
                     ),

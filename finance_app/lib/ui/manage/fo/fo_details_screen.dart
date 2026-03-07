@@ -180,8 +180,7 @@ class _FODetailsScreenState extends State<FODetailsScreen> {
       BuildContext context, InvestmentsController investmentsCtrl) {
     final priceCtrl =
         TextEditingController(text: fo.currentPrice.toStringAsFixed(2));
-    final quantityCtrl =
-        TextEditingController(text: fo.quantity.toString());
+    final quantityCtrl = TextEditingController(text: fo.quantity.toString());
     final notesCtrl = TextEditingController(text: fo.notes ?? '');
 
     showCupertinoModalPopup(
@@ -259,25 +258,21 @@ class _FODetailsScreenState extends State<FODetailsScreen> {
                       Expanded(
                         child: CupertinoButton.filled(
                           onPressed: () async {
-                            final newPrice =
-                                double.tryParse(priceCtrl.text) ??
-                                    fo.currentPrice;
-                            final newQty =
-                                double.tryParse(quantityCtrl.text) ??
-                                    fo.quantity;
-                            final newNotes =
-                                notesCtrl.text.trim().isEmpty
-                                    ? null
-                                    : notesCtrl.text.trim();
+                            final newPrice = double.tryParse(priceCtrl.text) ??
+                                fo.currentPrice;
+                            final newQty = double.tryParse(quantityCtrl.text) ??
+                                fo.quantity;
+                            final newNotes = notesCtrl.text.trim().isEmpty
+                                ? null
+                                : notesCtrl.text.trim();
                             final updatedMap = fo.toMap();
                             updatedMap['currentPrice'] = newPrice;
                             updatedMap['quantity'] = newQty;
                             updatedMap['notes'] = newNotes;
                             final updatedFo =
                                 FuturesOptions.fromMap(updatedMap);
-                            final updatedMeta =
-                                Map<String, dynamic>.from(
-                                    widget.investment.metadata ?? {});
+                            final updatedMeta = Map<String, dynamic>.from(
+                                widget.investment.metadata ?? {});
                             updatedMeta['foData'] = updatedFo.toMap();
                             final updatedInvestment =
                                 widget.investment.copyWith(
@@ -343,9 +338,8 @@ class _EditField extends StatelessWidget {
           maxLines: maxLines,
           style: TextStyle(color: AppStyles.getTextColor(context)),
           decoration: BoxDecoration(
-            color: isDark
-                ? const Color(0xFF2C2C2E)
-                : CupertinoColors.systemGrey6,
+            color:
+                isDark ? const Color(0xFF2C2C2E) : CupertinoColors.systemGrey6,
             borderRadius: BorderRadius.circular(8),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -368,13 +362,15 @@ class _DetailCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+        border: Border.all(
+            color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title,
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.lg),
           ...List.generate(
             children.length,
@@ -410,7 +406,8 @@ class _DetailRow extends StatelessWidget {
   Widget build(BuildContext context) {
     Color? color;
     if (isGainLoss) {
-      color = isPositive ? CupertinoColors.systemGreen : CupertinoColors.systemRed;
+      color =
+          isPositive ? CupertinoColors.systemGreen : CupertinoColors.systemRed;
     }
 
     return Row(
@@ -418,7 +415,8 @@ class _DetailRow extends StatelessWidget {
       children: [
         Text(label,
             style: TextStyle(
-                color: AppStyles.getSecondaryTextColor(context), fontSize: TypeScale.subhead)),
+                color: AppStyles.getSecondaryTextColor(context),
+                fontSize: TypeScale.subhead)),
         Text(value,
             style: TextStyle(
                 fontWeight: isBold ? FontWeight.bold : FontWeight.w500,

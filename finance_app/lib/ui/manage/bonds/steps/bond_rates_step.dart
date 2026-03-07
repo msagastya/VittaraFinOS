@@ -88,7 +88,8 @@ class _FixedCouponRateInputState extends State<_FixedCouponRateInput> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Annual Coupon Rate (%)',
-            style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+            style: TextStyle(
+                fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
         const SizedBox(height: Spacing.md),
         CupertinoTextField(
           controller: _couponController,
@@ -118,7 +119,8 @@ class _FixedCouponRateInputState extends State<_FixedCouponRateInput> {
           child: Text(
             'This rate is used for all coupon payments.',
             style: TextStyle(
-                fontSize: TypeScale.footnote, color: AppStyles.getSecondaryTextColor(context)),
+                fontSize: TypeScale.footnote,
+                color: AppStyles.getSecondaryTextColor(context)),
           ),
         ),
       ],
@@ -159,7 +161,8 @@ class _ZeroCouponInputState extends State<_ZeroCouponInput> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Maturity Value (₹)',
-            style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+            style: TextStyle(
+                fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
         const SizedBox(height: Spacing.md),
         CupertinoTextField(
           controller: _maturityValueController,
@@ -242,7 +245,8 @@ class _AmortizingRateInputState extends State<_AmortizingRateInput> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Annual Interest Rate (%)',
-            style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+            style: TextStyle(
+                fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
         const SizedBox(height: Spacing.md),
         CupertinoTextField(
           controller: _interestController,
@@ -272,7 +276,8 @@ class _AmortizingRateInputState extends State<_AmortizingRateInput> {
           child: Text(
             'Principal is repaid gradually. Interest decreases over time as balance decreases.',
             style: TextStyle(
-                fontSize: TypeScale.footnote, color: AppStyles.getSecondaryTextColor(context)),
+                fontSize: TypeScale.footnote,
+                color: AppStyles.getSecondaryTextColor(context)),
           ),
         ),
       ],
@@ -320,7 +325,8 @@ class _FloatingRateInputState extends State<_FloatingRateInput> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Reference Rate (%) - Current',
-            style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+            style: TextStyle(
+                fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
         const SizedBox(height: Spacing.md),
         CupertinoTextField(
           controller: _referenceController,
@@ -342,7 +348,8 @@ class _FloatingRateInputState extends State<_FloatingRateInput> {
         ),
         const SizedBox(height: Spacing.xxl),
         Text('Spread (%) - Fixed',
-            style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+            style: TextStyle(
+                fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
         const SizedBox(height: Spacing.md),
         CupertinoTextField(
           controller: _spreadController,

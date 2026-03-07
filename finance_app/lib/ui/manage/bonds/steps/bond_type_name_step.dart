@@ -33,7 +33,8 @@ class BondTypeNameStep extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 border: Border(
-                  bottom: BorderSide(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+                  bottom: BorderSide(
+                      color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
                 ),
               ),
               child: Row(
@@ -229,7 +230,8 @@ class BondTypeNameStep extends StatelessWidget {
           ),
           const SizedBox(height: Spacing.xxl),
           Text('Bond Name',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           CupertinoTextField(
             placeholder: 'e.g., RBI Bond 2028, Government Securities',
@@ -243,7 +245,8 @@ class BondTypeNameStep extends StatelessWidget {
           const SizedBox(height: Spacing.xxl),
           // Purchase Account Section
           Text('Purchase Account (Optional)',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.sm),
           Text(
             'Account to debit when purchasing this bond',
@@ -258,7 +261,8 @@ class BondTypeNameStep extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+              border: Border.all(
+                  color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
             ),
             child: CupertinoButton(
               onPressed: () {
@@ -324,7 +328,8 @@ class BondTypeNameStep extends StatelessWidget {
           const SizedBox(height: Spacing.xxl),
           // Payment Account Section
           Text('Payment Account (Optional)',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.sm),
           Text(
             'Account to receive coupon/maturity payments',
@@ -339,7 +344,8 @@ class BondTypeNameStep extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+              border: Border.all(
+                  color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
             ),
             child: CupertinoButton(
               onPressed: () {

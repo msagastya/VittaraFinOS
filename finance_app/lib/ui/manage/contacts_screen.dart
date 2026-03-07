@@ -101,8 +101,8 @@ class _ContactsScreenState extends State<ContactsScreen> {
                             ),
                             child: CupertinoSearchTextField(
                               placeholder: 'Search People',
-                              backgroundColor:
-                                  CupertinoColors.systemFill.resolveFrom(context),
+                              backgroundColor: CupertinoColors.systemFill
+                                  .resolveFrom(context),
                               onChanged: (value) =>
                                   setState(() => _searchQuery = value),
                             ),
@@ -116,15 +116,15 @@ class _ContactsScreenState extends State<ContactsScreen> {
                                         'No contacts match "$_searchQuery"',
                                   )
                                 : ListView.builder(
-                                    padding: EdgeInsets.fromLTRB(
-                                        Spacing.lg, Spacing.sm, Spacing.lg, 100),
+                                    padding: EdgeInsets.fromLTRB(Spacing.lg,
+                                        Spacing.sm, Spacing.lg, 100),
                                     itemCount: filtered.length,
                                     itemBuilder: (context, index) {
                                       final contact = filtered[index];
                                       return StaggeredItem(
                                         index: index,
-                                        child: _buildContactCard(
-                                            contact, context, contactsController),
+                                        child: _buildContactCard(contact,
+                                            context, contactsController),
                                       );
                                     },
                                   ),
@@ -549,7 +549,8 @@ class _PhoneContactsPickerSheetState extends State<_PhoneContactsPickerSheet> {
                 children: [
                   Text(
                     'Phone contacts',
-                    style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title2),
+                    style: AppStyles.titleStyle(context)
+                        .copyWith(fontSize: TypeScale.title2),
                   ),
                   const Spacer(),
                   CupertinoButton(

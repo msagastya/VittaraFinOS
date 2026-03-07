@@ -38,7 +38,8 @@ class SIPReviewStep extends StatelessWidget {
           Center(
             child: Text(
               'SIP Configuration',
-              style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title2),
+              style: AppStyles.titleStyle(context)
+                  .copyWith(fontSize: TypeScale.title2),
             ),
           ),
           const SizedBox(height: Spacing.xxxl),

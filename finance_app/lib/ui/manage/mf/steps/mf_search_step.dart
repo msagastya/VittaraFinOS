@@ -276,12 +276,13 @@ class _MFSearchStepState extends State<MFSearchStep> {
                     _performSearch(query);
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: SemanticColors.investments.withValues(alpha: 0.1),
                       border: Border.all(
-                        color: SemanticColors.investments.withValues(alpha: 0.3),
+                        color:
+                            SemanticColors.investments.withValues(alpha: 0.3),
                       ),
                       borderRadius: BorderRadius.circular(20),
                     ),

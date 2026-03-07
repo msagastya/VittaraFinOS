@@ -47,7 +47,8 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
           Text('Bond Dates & Prices', style: AppStyles.titleStyle(context)),
           const SizedBox(height: 30),
           Text('Purchase Date',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           GestureDetector(
             onTap: () {
@@ -64,7 +65,8 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
                           color: AppStyles.getCardColor(context),
                           border: Border(
                             bottom: BorderSide(
-                                color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+                                color: CupertinoColors.systemGrey
+                                    .withValues(alpha: 0.2)),
                           ),
                         ),
                         child: Row(
@@ -72,7 +74,8 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
                           children: [
                             Text('Select Date',
                                 style: const TextStyle(
-                                    fontSize: TypeScale.headline, fontWeight: FontWeight.bold)),
+                                    fontSize: TypeScale.headline,
+                                    fontWeight: FontWeight.bold)),
                             GestureDetector(
                               onTap: () => Navigator.pop(ctx),
                               child: const Icon(CupertinoIcons.xmark),
@@ -84,7 +87,8 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
                         child: CupertinoDatePicker(
                           mode: CupertinoDatePickerMode.date,
                           initialDateTime: widget.ctrl.purchaseDate,
-                          minimumDate: DateTime.now().subtract(const Duration(days: 365 * 30)),
+                          minimumDate: DateTime.now()
+                              .subtract(const Duration(days: 365 * 30)),
                           maximumDate: DateTime.now(),
                           onDateTimeChanged: (date) {
                             widget.ctrl.updatePurchaseDate(date);
@@ -101,7 +105,8 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+                border: Border.all(
+                    color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -117,7 +122,8 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
           ),
           const SizedBox(height: Spacing.xxl),
           Text('Maturity Date',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           GestureDetector(
             onTap: () {
@@ -134,7 +140,8 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
                           color: AppStyles.getCardColor(context),
                           border: Border(
                             bottom: BorderSide(
-                                color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+                                color: CupertinoColors.systemGrey
+                                    .withValues(alpha: 0.2)),
                           ),
                         ),
                         child: Row(
@@ -142,7 +149,8 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
                           children: [
                             Text('Select Date',
                                 style: const TextStyle(
-                                    fontSize: TypeScale.headline, fontWeight: FontWeight.bold)),
+                                    fontSize: TypeScale.headline,
+                                    fontWeight: FontWeight.bold)),
                             GestureDetector(
                               onTap: () => Navigator.pop(ctx),
                               child: const Icon(CupertinoIcons.xmark),
@@ -169,7 +177,8 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+                border: Border.all(
+                    color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -185,7 +194,8 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
           ),
           const SizedBox(height: Spacing.xxl),
           Text('Purchase Price (₹)',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _purchasePriceController,
@@ -207,7 +217,8 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
           ),
           const SizedBox(height: Spacing.xxl),
           Text('Face Value (₹)',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _faceValueController,
@@ -229,7 +240,8 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
           ),
           const SizedBox(height: Spacing.xxl),
           Text('Payment Frequency',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           Row(
             children: [

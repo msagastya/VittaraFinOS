@@ -71,7 +71,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
                   const SizedBox(height: Spacing.xxl),
                   Text(
                     'Add New Account',
-                    style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title1),
+                    style: AppStyles.titleStyle(context)
+                        .copyWith(fontSize: TypeScale.title1),
                   ),
                   const SizedBox(height: Spacing.sm),
                   Text(
@@ -156,7 +157,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
             Text(
               title,
               textAlign: TextAlign.center,
-              style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.headline),
+              style: AppStyles.titleStyle(context)
+                  .copyWith(fontSize: TypeScale.headline),
             ),
           ],
         ),
@@ -309,8 +311,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
             _buildSummaryColumn(
                 'Liabilities', liabilities, CupertinoColors.systemRed),
             _buildDivider(),
-            _buildSummaryColumn(
-                'Net Worth', net, net >= 0 ? AppStyles.accentBlue : CupertinoColors.systemRed),
+            _buildSummaryColumn('Net Worth', net,
+                net >= 0 ? AppStyles.accentBlue : CupertinoColors.systemRed),
           ],
         ),
       ),
@@ -394,7 +396,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
                 children: [
                   Text(
                     _getAccountTypeLabel(type),
-                    style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.subhead),
+                    style: AppStyles.titleStyle(context)
+                        .copyWith(fontSize: TypeScale.subhead),
                   ),
                   const SizedBox(height: Spacing.xs),
                   Text(
@@ -448,7 +451,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
               Expanded(
                 child: Text(
                   '${_getAccountTypeLabel(type)} Total',
-                  style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.body),
+                  style: AppStyles.titleStyle(context)
+                      .copyWith(fontSize: TypeScale.body),
                 ),
               ),
               Text(
@@ -463,8 +467,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
         ),
         Expanded(
           child: RefreshIndicator(
-            onRefresh: () =>
-                context.read<AccountsController>().loadAccounts(),
+            onRefresh: () => context.read<AccountsController>().loadAccounts(),
             color: AppStyles.accentBlue,
             child: ListView.builder(
               padding: EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, 110),
@@ -875,7 +878,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                   Text(
                                     account.creditCardNumber!,
                                     style: TextStyle(
-                                      color: AppStyles.getTextColor(dragContext),
+                                      color:
+                                          AppStyles.getTextColor(dragContext),
                                       fontSize: TypeScale.headline,
                                       fontWeight: FontWeight.w600,
                                       letterSpacing: 2,
@@ -961,7 +965,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
                           Text(
                             '30-Day Balance Trend',
                             style: TextStyle(
-                              color: AppStyles.getSecondaryTextColor(dragContext),
+                              color:
+                                  AppStyles.getSecondaryTextColor(dragContext),
                               fontSize: TypeScale.footnote,
                               fontWeight: FontWeight.w600,
                             ),
@@ -978,7 +983,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
                               painter: _BalanceSparklinePainter(
                                 values: balanceHistory,
                                 lineColor: account.color,
-                                gridColor: AppStyles.getSecondaryTextColor(dragContext),
+                                gridColor: AppStyles.getSecondaryTextColor(
+                                    dragContext),
                               ),
                               size: Size.infinite,
                             ),
@@ -1474,7 +1480,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
 }
 
 class _BalanceSparklinePainter extends CustomPainter {
-  final List<double> values; // 31 data points: index 0 = 30 days ago, 30 = today
+  final List<double>
+      values; // 31 data points: index 0 = 30 days ago, 30 = today
   final Color lineColor;
   final Color gridColor;
 

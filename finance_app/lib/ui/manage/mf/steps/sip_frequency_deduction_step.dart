@@ -113,7 +113,8 @@ class _SIPFrequencyDeductionStepState extends State<SIPFrequencyDeductionStep> {
                           border: sipController.selectedWeekday == entry.key
                               ? null
                               : Border.all(
-                                  color: CupertinoColors.systemGrey.withValues(alpha: 0.3),
+                                  color: CupertinoColors.systemGrey
+                                      .withValues(alpha: 0.3),
                                 ),
                         ),
                         child: Center(
@@ -190,10 +191,12 @@ class _SIPFrequencyDeductionStepState extends State<SIPFrequencyDeductionStep> {
                     Container(
                       padding: const EdgeInsets.all(Spacing.lg),
                       decoration: BoxDecoration(
-                        color: CupertinoColors.systemOrange.withValues(alpha: 0.1),
+                        color:
+                            CupertinoColors.systemOrange.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                            color: CupertinoColors.systemOrange.withValues(alpha: 0.3)),
+                            color: CupertinoColors.systemOrange
+                                .withValues(alpha: 0.3)),
                       ),
                       child: Text(
                         'No bank accounts found. Please add one.',

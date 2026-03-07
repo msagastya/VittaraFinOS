@@ -58,7 +58,8 @@ class MFTypeSelectionStep extends StatelessWidget {
                           ? Border.all(
                               color: SemanticColors.investments, width: 2)
                           : Border.all(
-                              color: CupertinoColors.systemGrey.withValues(alpha: 0.3),
+                              color: CupertinoColors.systemGrey
+                                  .withValues(alpha: 0.3),
                               width: 1,
                             ),
                       borderRadius: BorderRadius.circular(16),
@@ -147,7 +148,8 @@ class MFTypeSelectionStep extends StatelessWidget {
                           ? Border.all(
                               color: SemanticColors.investments, width: 2)
                           : Border.all(
-                              color: CupertinoColors.systemGrey.withValues(alpha: 0.3),
+                              color: CupertinoColors.systemGrey
+                                  .withValues(alpha: 0.3),
                               width: 1,
                             ),
                       borderRadius: BorderRadius.circular(16),
@@ -166,7 +168,8 @@ class MFTypeSelectionStep extends StatelessWidget {
                           width: 60,
                           height: 60,
                           decoration: BoxDecoration(
-                            color: CupertinoColors.activeBlue.withValues(alpha: 0.15),
+                            color: CupertinoColors.activeBlue
+                                .withValues(alpha: 0.15),
                             shape: BoxShape.circle,
                           ),
                           child: const Center(

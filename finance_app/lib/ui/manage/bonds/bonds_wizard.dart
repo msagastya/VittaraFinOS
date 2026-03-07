@@ -214,7 +214,8 @@ class _BondNameStep extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+              border: Border.all(
+                  color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
             ),
             onChanged: ctrl.updateBondName,
           ),
@@ -251,7 +252,8 @@ class _BondAmountStep extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+              border: Border.all(
+                  color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
             ),
             prefix: Padding(
               padding: const EdgeInsets.only(left: 16),
@@ -594,7 +596,8 @@ class _PayoutDatesStep extends StatelessWidget {
           const SizedBox(height: Spacing.xl),
           if (!isAtMaturity) ...[
             Text('First Payout Month & Day',
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+                style: TextStyle(
+                    fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
             const SizedBox(height: Spacing.md),
             Row(
               children: [
@@ -606,8 +609,9 @@ class _PayoutDatesStep extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: AppStyles.getCardColor(context),
                       borderRadius: BorderRadius.circular(8),
-                      border:
-                          Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+                      border: Border.all(
+                          color: CupertinoColors.systemGrey
+                              .withValues(alpha: 0.2)),
                     ),
                     onChanged: (v) {
                       final month = int.tryParse(v) ?? 1;
@@ -624,8 +628,9 @@ class _PayoutDatesStep extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: AppStyles.getCardColor(context),
                       borderRadius: BorderRadius.circular(8),
-                      border:
-                          Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+                      border: Border.all(
+                          color: CupertinoColors.systemGrey
+                              .withValues(alpha: 0.2)),
                     ),
                     onChanged: (v) {
                       final day = int.tryParse(v) ?? 1;
@@ -638,7 +643,8 @@ class _PayoutDatesStep extends StatelessWidget {
             const SizedBox(height: Spacing.xxl),
           ],
           Text('Bond Maturity Date',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           GestureDetector(
             onTap: () {
@@ -655,7 +661,8 @@ class _PayoutDatesStep extends StatelessWidget {
                           color: AppStyles.getCardColor(context),
                           border: Border(
                             bottom: BorderSide(
-                                color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+                                color: CupertinoColors.systemGrey
+                                    .withValues(alpha: 0.2)),
                           ),
                         ),
                         child: Row(
@@ -663,7 +670,8 @@ class _PayoutDatesStep extends StatelessWidget {
                           children: [
                             const Text('Select Date',
                                 style: TextStyle(
-                                    fontSize: TypeScale.headline, fontWeight: FontWeight.bold)),
+                                    fontSize: TypeScale.headline,
+                                    fontWeight: FontWeight.bold)),
                             GestureDetector(
                               onTap: () => Navigator.pop(ctx),
                               child: const Icon(CupertinoIcons.xmark),
@@ -688,7 +696,8 @@ class _PayoutDatesStep extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+                border: Border.all(
+                    color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -727,7 +736,8 @@ class _ReviewStep extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+              border: Border.all(
+                  color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

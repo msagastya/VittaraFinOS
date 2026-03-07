@@ -240,8 +240,9 @@ class _LendingWizardState extends State<LendingWizard> {
               children: [
                 Text(
                   'Who did you ${widget.type == LendingType.lent ? "lend" : "borrow"} from?',
-                  style: AppStyles.titleStyle(context)
-                      .copyWith(fontSize: TypeScale.largeTitle, fontWeight: FontWeight.w800),
+                  style: AppStyles.titleStyle(context).copyWith(
+                      fontSize: TypeScale.largeTitle,
+                      fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: Spacing.sm),
                 Text(
@@ -872,14 +873,15 @@ class _LendingWizardState extends State<LendingWizard> {
         children: [
           Text(
             'How much did you ${widget.type == LendingType.lent ? "lend" : "borrow"}?',
-            style: AppStyles.titleStyle(context)
-                .copyWith(fontSize: TypeScale.largeTitle, fontWeight: FontWeight.w800),
+            style: AppStyles.titleStyle(context).copyWith(
+                fontSize: TypeScale.largeTitle, fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: Spacing.sm),
           Text(
             'Enter the amount in rupees',
             style: TextStyle(
-                color: AppStyles.getSecondaryTextColor(context), fontSize: TypeScale.body),
+                color: AppStyles.getSecondaryTextColor(context),
+                fontSize: TypeScale.body),
           ),
           const SizedBox(height: Spacing.massive),
           Center(
@@ -889,8 +891,8 @@ class _LendingWizardState extends State<LendingWizard> {
               children: [
                 Text(
                   '₹',
-                  style: AppStyles.titleStyle(context)
-                      .copyWith(fontSize: TypeScale.hero, fontWeight: FontWeight.w700),
+                  style: AppStyles.titleStyle(context).copyWith(
+                      fontSize: TypeScale.hero, fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(width: Spacing.md),
                 IntrinsicWidth(
@@ -939,14 +941,15 @@ class _LendingWizardState extends State<LendingWizard> {
         children: [
           Text(
             'Anything else?',
-            style: AppStyles.titleStyle(context)
-                .copyWith(fontSize: TypeScale.largeTitle, fontWeight: FontWeight.w800),
+            style: AppStyles.titleStyle(context).copyWith(
+                fontSize: TypeScale.largeTitle, fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: Spacing.sm),
           Text(
             'Add notes and important dates',
             style: TextStyle(
-                color: AppStyles.getSecondaryTextColor(context), fontSize: TypeScale.body),
+                color: AppStyles.getSecondaryTextColor(context),
+                fontSize: TypeScale.body),
           ),
           const SizedBox(height: 40),
 
@@ -979,7 +982,8 @@ class _LendingWizardState extends State<LendingWizard> {
                   ),
                 ),
                 style: TextStyle(
-                    color: AppStyles.getTextColor(context), fontSize: TypeScale.body),
+                    color: AppStyles.getTextColor(context),
+                    fontSize: TypeScale.body),
               ),
             ],
           ),

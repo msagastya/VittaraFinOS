@@ -42,7 +42,8 @@ class TransactionDetailsContent extends StatelessWidget {
                 const SizedBox(height: Spacing.md),
                 Text(
                   transaction.getTypeLabel(),
-                  style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title2),
+                  style: AppStyles.titleStyle(context)
+                      .copyWith(fontSize: TypeScale.title2),
                 ),
                 const SizedBox(height: Spacing.xs),
                 Text(
@@ -271,7 +272,6 @@ class TransactionDetailsContent extends StatelessWidget {
 
     return '${dateTime.day} ${DateFormatter.getMonthName(dateTime.month)}';
   }
-
 }
 
 class _DetailEntry {

@@ -68,7 +68,8 @@ class _TagsScreenState extends State<TagsScreen> {
                       Text(
                         'Your Tags',
                         style: AppStyles.titleStyle(context).copyWith(
-                            fontSize: TypeScale.largeTitle, fontWeight: FontWeight.w800),
+                            fontSize: TypeScale.largeTitle,
+                            fontWeight: FontWeight.w800),
                       ),
                       const SizedBox(height: Spacing.sm),
                       Text(

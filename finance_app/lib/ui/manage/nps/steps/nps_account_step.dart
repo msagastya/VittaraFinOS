@@ -55,7 +55,8 @@ class _NPSAccountStepState extends State<NPSAccountStep> {
           const SizedBox(height: 30),
           // PRN
           Text('Permanent Retirement Number (PRN)',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _prnController,
@@ -70,7 +71,8 @@ class _NPSAccountStepState extends State<NPSAccountStep> {
           const SizedBox(height: Spacing.xxl),
           // NRN
           Text('National Registration Number (NRN)',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _nrnController,
@@ -85,7 +87,8 @@ class _NPSAccountStepState extends State<NPSAccountStep> {
           const SizedBox(height: Spacing.xxl),
           // Name
           Text('Subscriber Name',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _nameController,
@@ -100,7 +103,8 @@ class _NPSAccountStepState extends State<NPSAccountStep> {
           const SizedBox(height: Spacing.xxl),
           // PAN
           Text('PAN Number',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _panController,
@@ -115,7 +119,8 @@ class _NPSAccountStepState extends State<NPSAccountStep> {
           const SizedBox(height: Spacing.xxl),
           // Account Type
           Text('Account Type',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           Wrap(
             spacing: 8,
@@ -158,7 +163,8 @@ class _NPSAccountStepState extends State<NPSAccountStep> {
           const SizedBox(height: Spacing.xxl),
           // Tier
           Text('NPS Tier',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           Row(
             children: NPSTier.values.map((tier) {

@@ -89,7 +89,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             _sortAlpha
                 ? CupertinoIcons.sort_down_circle_fill
                 : CupertinoIcons.sort_down_circle,
-            color: _sortAlpha ? AppStyles.accentBlue : AppStyles.getSecondaryTextColor(context),
+            color: _sortAlpha
+                ? AppStyles.accentBlue
+                : AppStyles.getSecondaryTextColor(context),
           ),
         ),
       ),
@@ -175,9 +177,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                               ),
                             ],
                             // Empty state when search finds nothing
-                            if (filteredCategories.isEmpty && _searchQuery.isNotEmpty)
+                            if (filteredCategories.isEmpty &&
+                                _searchQuery.isNotEmpty)
                               Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 40),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 40),
                                 child: EmptyStateView(
                                   icon: CupertinoIcons.search,
                                   title: 'No categories found',

@@ -216,11 +216,12 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                               padding:
                                   const EdgeInsets.fromLTRB(16, 0, 16, 120),
                               itemCount: filteredApps.length,
-                              onReorder: (oldIndex, newIndex) =>
-                                  _onReorder(oldIndex, newIndex, appsController),
+                              onReorder: (oldIndex, newIndex) => _onReorder(
+                                  oldIndex, newIndex, appsController),
                               itemBuilder: (context, index) {
                                 final app = filteredApps[index];
-                                return _buildPaymentAppCard(app, appsController);
+                                return _buildPaymentAppCard(
+                                    app, appsController);
                               },
                             ),
                     ),

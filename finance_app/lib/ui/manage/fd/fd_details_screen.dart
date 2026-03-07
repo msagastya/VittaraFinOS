@@ -49,225 +49,229 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
       ),
       child: SafeArea(
         child: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Maturity Alert (if within 10 days)
-            if (_isFDNearMaturity()) _buildMaturityAlert(context),
+          child: Column(
+            children: [
+              // Maturity Alert (if within 10 days)
+              if (_isFDNearMaturity()) _buildMaturityAlert(context),
 
-            // Header Card with Key Information
-            Container(
-              padding: const EdgeInsets.all(Spacing.xl),
-              decoration: BoxDecoration(
-                color: AppStyles.getCardColor(context),
-                border: Border(
-                  bottom: BorderSide(
-                    color: AppStyles.getDividerColor(context),
-                    width: 0.5,
+              // Header Card with Key Information
+              Container(
+                padding: const EdgeInsets.all(Spacing.xl),
+                decoration: BoxDecoration(
+                  color: AppStyles.getCardColor(context),
+                  border: Border(
+                    bottom: BorderSide(
+                      color: AppStyles.getDividerColor(context),
+                      width: 0.5,
+                    ),
                   ),
                 ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // FD Name and Status
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              widget.fd.name,
-                              style: TextStyle(
-                                color: AppStyles.getTextColor(context),
-                                fontSize: TypeScale.title2,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: Spacing.xs),
-                            Text(
-                              'Linked: ${widget.fd.linkedAccountName}',
-                              style: TextStyle(
-                                color: AppStyles.getSecondaryTextColor(context),
-                                fontSize: TypeScale.subhead,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _getStatusColor(widget.fd.status)
-                              .withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          widget.fd.getStatusLabel(),
-                          style: TextStyle(
-                            color: _getStatusColor(widget.fd.status),
-                            fontSize: TypeScale.footnote,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: Spacing.xl),
-                  // Key Metrics
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildMetric(
-                        context,
-                        'Principal',
-                        '₹${widget.fd.principal.toStringAsFixed(0)}',
-                        AppStyles.getSecondaryTextColor(context),
-                      ),
-                      _buildMetric(
-                        context,
-                        'Current Value',
-                        '₹${_getCurrentValue().toStringAsFixed(0)}',
-                        AppStyles.getPrimaryColor(context),
-                      ),
-                      _buildMetric(
-                        context,
-                        'CAGR',
-                        '${_calculateCAGR(widget.fd).toStringAsFixed(2)}%',
-                        CupertinoColors.systemGreen,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            // Detailed Information
-            Container(
-              padding: const EdgeInsets.all(Spacing.xl),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Timeline Section
-                  Text(
-                    'Timeline',
-                    style: TextStyle(
-                      color: AppStyles.getTextColor(context),
-                      fontWeight: FontWeight.bold,
-                      fontSize: TypeScale.headline,
-                    ),
-                  ),
-                  const SizedBox(height: Spacing.lg),
-                  _buildTimelineItem(
-                    context,
-                    'Created',
-                    _formatDate(widget.fd.createdDate),
-                    CupertinoIcons.checkmark_circle,
-                  ),
-                  _buildTimelineItem(
-                    context,
-                    'Investment Date',
-                    _formatDate(widget.fd.investmentDate),
-                    CupertinoIcons.checkmark_circle,
-                  ),
-                  _buildTimelineItem(
-                    context,
-                    'Maturity Date',
-                    _formatDate(_getMaturityDate()),
-                    widget.fd.daysUntilMaturity <= 0
-                        ? CupertinoIcons.checkmark_circle
-                        : CupertinoIcons.clock,
-                  ),
-                  if (_hasBeenRenewed())
-                    _buildTimelineItem(
-                      context,
-                      'Renewed',
-                      _formatDate(_getRenewalDate() ?? DateTime.now()),
-                      CupertinoIcons.checkmark_circle,
-                    ),
-                  const SizedBox(height: Spacing.xl),
-                  // Details Grid
-                  Text(
-                    'Details',
-                    style: TextStyle(
-                      color: AppStyles.getTextColor(context),
-                      fontWeight: FontWeight.bold,
-                      fontSize: TypeScale.headline,
-                    ),
-                  ),
-                  const SizedBox(height: Spacing.lg),
-                  _buildDetailRow(
-                    'Interest Rate',
-                    '${_getLatestRenewalCycle()?.interestRate ?? widget.fd.interestRate}% p.a.',
-                  ),
-                  _buildDetailRow(
-                    'Tenure',
-                    '${_getLatestRenewalCycle()?.tenureMonths ?? widget.fd.tenureMonths} months',
-                  ),
-                  _buildDetailRow(
-                    'Elapsed',
-                    '${_getElapsed()['elapsed']} of ${_getElapsed()['total']} months',
-                  ),
-                  _buildDetailRow(
-                      'Compounding', widget.fd.getCompoundingLabel()),
-                  _buildDetailRow(
-                      'Payout Frequency', widget.fd.getPayoutLabel()),
-                  _buildDetailRow('FD Type',
-                      widget.fd.isCumulative ? 'Cumulative' : 'Non-Cumulative'),
-                  _buildDetailRow(
-                    'Maturity Value',
-                    '₹${(_getLatestRenewalCycle()?.maturityValue ?? widget.fd.maturityValue).toStringAsFixed(2)}',
-                    isHighlight: true,
-                  ),
-                  _buildDetailRow(
-                    'Total Interest',
-                    '₹${_getTotalInterest().toStringAsFixed(2)}',
-                  ),
-                  const SizedBox(height: Spacing.xl),
-                  _buildTdsSection(context),
-                  const SizedBox(height: Spacing.xl),
-                  // Status-specific info
-                  if (widget.fd.status == FDStatus.prematurelyWithdrawn)
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // FD Name and Status
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'Withdrawal Details',
-                          style: TextStyle(
-                            color: AppStyles.getTextColor(context),
-                            fontWeight: FontWeight.bold,
-                            fontSize: TypeScale.body,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.fd.name,
+                                style: TextStyle(
+                                  color: AppStyles.getTextColor(context),
+                                  fontSize: TypeScale.title2,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: Spacing.xs),
+                              Text(
+                                'Linked: ${widget.fd.linkedAccountName}',
+                                style: TextStyle(
+                                  color:
+                                      AppStyles.getSecondaryTextColor(context),
+                                  fontSize: TypeScale.subhead,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: Spacing.md),
-                        _buildDetailRow(
-                          'Withdrawal Date',
-                          _formatDate(
-                              widget.fd.withdrawalDate ?? DateTime.now()),
-                        ),
-                        _buildDetailRow(
-                          'Withdrawal Amount',
-                          '₹${(widget.fd.withdrawalAmount ?? 0).toStringAsFixed(2)}',
-                        ),
-                        if (widget.fd.withdrawalReason != null)
-                          _buildDetailRow(
-                            'Reason',
-                            widget.fd.withdrawalReason ?? 'N/A',
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
                           ),
+                          decoration: BoxDecoration(
+                            color: _getStatusColor(widget.fd.status)
+                                .withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            widget.fd.getStatusLabel(),
+                            style: TextStyle(
+                              color: _getStatusColor(widget.fd.status),
+                              fontSize: TypeScale.footnote,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
-                ],
+                    const SizedBox(height: Spacing.xl),
+                    // Key Metrics
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildMetric(
+                          context,
+                          'Principal',
+                          '₹${widget.fd.principal.toStringAsFixed(0)}',
+                          AppStyles.getSecondaryTextColor(context),
+                        ),
+                        _buildMetric(
+                          context,
+                          'Current Value',
+                          '₹${_getCurrentValue().toStringAsFixed(0)}',
+                          AppStyles.getPrimaryColor(context),
+                        ),
+                        _buildMetric(
+                          context,
+                          'CAGR',
+                          '${_calculateCAGR(widget.fd).toStringAsFixed(2)}%',
+                          CupertinoColors.systemGreen,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-            // Action Buttons
-            _buildActionButtons(context),
-            const SizedBox(height: 30),
-          ],
+              // Detailed Information
+              Container(
+                padding: const EdgeInsets.all(Spacing.xl),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Timeline Section
+                    Text(
+                      'Timeline',
+                      style: TextStyle(
+                        color: AppStyles.getTextColor(context),
+                        fontWeight: FontWeight.bold,
+                        fontSize: TypeScale.headline,
+                      ),
+                    ),
+                    const SizedBox(height: Spacing.lg),
+                    _buildTimelineItem(
+                      context,
+                      'Created',
+                      _formatDate(widget.fd.createdDate),
+                      CupertinoIcons.checkmark_circle,
+                    ),
+                    _buildTimelineItem(
+                      context,
+                      'Investment Date',
+                      _formatDate(widget.fd.investmentDate),
+                      CupertinoIcons.checkmark_circle,
+                    ),
+                    _buildTimelineItem(
+                      context,
+                      'Maturity Date',
+                      _formatDate(_getMaturityDate()),
+                      widget.fd.daysUntilMaturity <= 0
+                          ? CupertinoIcons.checkmark_circle
+                          : CupertinoIcons.clock,
+                    ),
+                    if (_hasBeenRenewed())
+                      _buildTimelineItem(
+                        context,
+                        'Renewed',
+                        _formatDate(_getRenewalDate() ?? DateTime.now()),
+                        CupertinoIcons.checkmark_circle,
+                      ),
+                    const SizedBox(height: Spacing.xl),
+                    // Details Grid
+                    Text(
+                      'Details',
+                      style: TextStyle(
+                        color: AppStyles.getTextColor(context),
+                        fontWeight: FontWeight.bold,
+                        fontSize: TypeScale.headline,
+                      ),
+                    ),
+                    const SizedBox(height: Spacing.lg),
+                    _buildDetailRow(
+                      'Interest Rate',
+                      '${_getLatestRenewalCycle()?.interestRate ?? widget.fd.interestRate}% p.a.',
+                    ),
+                    _buildDetailRow(
+                      'Tenure',
+                      '${_getLatestRenewalCycle()?.tenureMonths ?? widget.fd.tenureMonths} months',
+                    ),
+                    _buildDetailRow(
+                      'Elapsed',
+                      '${_getElapsed()['elapsed']} of ${_getElapsed()['total']} months',
+                    ),
+                    _buildDetailRow(
+                        'Compounding', widget.fd.getCompoundingLabel()),
+                    _buildDetailRow(
+                        'Payout Frequency', widget.fd.getPayoutLabel()),
+                    _buildDetailRow(
+                        'FD Type',
+                        widget.fd.isCumulative
+                            ? 'Cumulative'
+                            : 'Non-Cumulative'),
+                    _buildDetailRow(
+                      'Maturity Value',
+                      '₹${(_getLatestRenewalCycle()?.maturityValue ?? widget.fd.maturityValue).toStringAsFixed(2)}',
+                      isHighlight: true,
+                    ),
+                    _buildDetailRow(
+                      'Total Interest',
+                      '₹${_getTotalInterest().toStringAsFixed(2)}',
+                    ),
+                    const SizedBox(height: Spacing.xl),
+                    _buildTdsSection(context),
+                    const SizedBox(height: Spacing.xl),
+                    // Status-specific info
+                    if (widget.fd.status == FDStatus.prematurelyWithdrawn)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Withdrawal Details',
+                            style: TextStyle(
+                              color: AppStyles.getTextColor(context),
+                              fontWeight: FontWeight.bold,
+                              fontSize: TypeScale.body,
+                            ),
+                          ),
+                          const SizedBox(height: Spacing.md),
+                          _buildDetailRow(
+                            'Withdrawal Date',
+                            _formatDate(
+                                widget.fd.withdrawalDate ?? DateTime.now()),
+                          ),
+                          _buildDetailRow(
+                            'Withdrawal Amount',
+                            '₹${(widget.fd.withdrawalAmount ?? 0).toStringAsFixed(2)}',
+                          ),
+                          if (widget.fd.withdrawalReason != null)
+                            _buildDetailRow(
+                              'Reason',
+                              widget.fd.withdrawalReason ?? 'N/A',
+                            ),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
+              // Action Buttons
+              _buildActionButtons(context),
+              const SizedBox(height: 30),
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
@@ -744,7 +748,8 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                           Container(
                             padding: const EdgeInsets.all(Spacing.md),
                             decoration: BoxDecoration(
-                              color: CupertinoColors.systemOrange.withValues(alpha: 0.1),
+                              color: CupertinoColors.systemOrange
+                                  .withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(
@@ -1873,8 +1878,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
     const tdsThreshold = 40000.0; // ₹40,000/yr standard threshold
     const tdsRate = 0.10; // 10% with PAN
     final tdsApplicable = annualInterest >= tdsThreshold;
-    final estimatedTds =
-        tdsApplicable ? totalInterest * tdsRate : 0.0;
+    final estimatedTds = tdsApplicable ? totalInterest * tdsRate : 0.0;
     final netInterest = totalInterest - estimatedTds;
 
     return Container(

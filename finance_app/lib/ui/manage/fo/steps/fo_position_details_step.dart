@@ -39,7 +39,8 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
           Text('Position Details', style: AppStyles.titleStyle(context)),
           const SizedBox(height: 30),
           Text('Current Price (₹)',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _currentPriceController,
@@ -61,7 +62,8 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
           ),
           const SizedBox(height: Spacing.xxl),
           Text('Entry Date',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           GestureDetector(
             onTap: () {
@@ -78,7 +80,8 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
                           color: AppStyles.getCardColor(context),
                           border: Border(
                             bottom: BorderSide(
-                                color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+                                color: CupertinoColors.systemGrey
+                                    .withValues(alpha: 0.2)),
                           ),
                         ),
                         child: Row(
@@ -86,7 +89,8 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
                           children: [
                             Text('Select Date',
                                 style: const TextStyle(
-                                    fontSize: TypeScale.headline, fontWeight: FontWeight.bold)),
+                                    fontSize: TypeScale.headline,
+                                    fontWeight: FontWeight.bold)),
                             GestureDetector(
                               onTap: () => Navigator.pop(ctx),
                               child: const Icon(CupertinoIcons.xmark),
@@ -114,7 +118,8 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+                border: Border.all(
+                    color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -130,7 +135,8 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
           ),
           const SizedBox(height: Spacing.xxl),
           Text('Expiry Date',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           GestureDetector(
             onTap: () {
@@ -147,7 +153,8 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
                           color: AppStyles.getCardColor(context),
                           border: Border(
                             bottom: BorderSide(
-                                color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+                                color: CupertinoColors.systemGrey
+                                    .withValues(alpha: 0.2)),
                           ),
                         ),
                         child: Row(
@@ -155,7 +162,8 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
                           children: [
                             Text('Select Date',
                                 style: const TextStyle(
-                                    fontSize: TypeScale.headline, fontWeight: FontWeight.bold)),
+                                    fontSize: TypeScale.headline,
+                                    fontWeight: FontWeight.bold)),
                             GestureDetector(
                               onTap: () => Navigator.pop(ctx),
                               child: const Icon(CupertinoIcons.xmark),
@@ -182,7 +190,8 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+                border: Border.all(
+                    color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -202,13 +211,16 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
             Container(
               padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
-                color: (widget.ctrl.gainLoss >= 0 ? CupertinoColors.systemGreen : CupertinoColors.systemRed)
+                color: (widget.ctrl.gainLoss >= 0
+                        ? CupertinoColors.systemGreen
+                        : CupertinoColors.systemRed)
                     .withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                    color:
-                        (widget.ctrl.gainLoss >= 0 ? CupertinoColors.systemGreen : CupertinoColors.systemRed)
-                            .withValues(alpha: 0.3)),
+                    color: (widget.ctrl.gainLoss >= 0
+                            ? CupertinoColors.systemGreen
+                            : CupertinoColors.systemRed)
+                        .withValues(alpha: 0.3)),
               ),
               child: Column(
                 children: [
@@ -251,12 +263,15 @@ class _Summary extends StatelessWidget {
       children: [
         Text(label,
             style: TextStyle(
-                color: AppStyles.getSecondaryTextColor(context), fontSize: TypeScale.subhead)),
+                color: AppStyles.getSecondaryTextColor(context),
+                fontSize: TypeScale.subhead)),
         Text(value,
             style: TextStyle(
                 fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
                 fontSize: isBold ? 14 : 13,
-                color: isPositive ? CupertinoColors.systemGreen : CupertinoColors.systemRed)),
+                color: isPositive
+                    ? CupertinoColors.systemGreen
+                    : CupertinoColors.systemRed)),
       ],
     );
   }

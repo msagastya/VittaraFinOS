@@ -95,14 +95,15 @@ class BondConfirmationStep extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+              border: Border.all(
+                  color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Link to NPS Scheme (Optional)',
-                    style:
-                        TextStyle(fontWeight: FontWeight.bold, fontSize: TypeScale.body)),
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: TypeScale.body)),
                 const SizedBox(height: Spacing.lg),
                 Text(
                   'Some bonds are part of NPS (National Pension Scheme) portfolios. Link this bond to an existing NPS record or create a new one if this bond is a pension investment.',
@@ -117,7 +118,8 @@ class BondConfirmationStep extends StatelessWidget {
                   children: [
                     Text('Link to NPS?',
                         style: TextStyle(
-                            fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+                            fontWeight: FontWeight.w600,
+                            fontSize: TypeScale.body)),
                     CupertinoSwitch(
                       value: ctrl.linkToNPS,
                       onChanged: (value) => ctrl.updateLinkToNPS(value),
@@ -138,7 +140,8 @@ class BondConfirmationStep extends StatelessWidget {
                       children: [
                         Text('Link to Existing NPS Scheme',
                             style: TextStyle(
-                                fontWeight: FontWeight.w600, fontSize: TypeScale.subhead)),
+                                fontWeight: FontWeight.w600,
+                                fontSize: TypeScale.subhead)),
                         const SizedBox(height: Spacing.md),
                         if (existingNpsSchemes.isEmpty)
                           Text(
@@ -207,7 +210,8 @@ class BondConfirmationStep extends StatelessWidget {
                           children: [
                             Text('Create New NPS Entry',
                                 style: TextStyle(
-                                    fontWeight: FontWeight.w600, fontSize: TypeScale.subhead)),
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: TypeScale.subhead)),
                             CupertinoSwitch(
                               value: ctrl.createNewNps,
                               onChanged: (value) =>
@@ -257,13 +261,15 @@ class _ConfirmationCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+        border: Border.all(
+            color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title,
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.lg),
           ...List.generate(
             children.length,

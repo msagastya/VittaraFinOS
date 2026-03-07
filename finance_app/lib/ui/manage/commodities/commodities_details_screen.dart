@@ -119,8 +119,7 @@ class _CommoditiesDetailsScreenState extends State<CommoditiesDetailsScreen> {
               SizedBox(
                 width: double.infinity,
                 child: CupertinoButton.filled(
-                  onPressed: () =>
-                      _showEditSheet(context, investmentsCtrl),
+                  onPressed: () => _showEditSheet(context, investmentsCtrl),
                   child: const Text('Edit Investment'),
                 ),
               ),
@@ -172,12 +171,11 @@ class _CommoditiesDetailsScreenState extends State<CommoditiesDetailsScreen> {
 
   void _showEditSheet(
       BuildContext context, InvestmentsController investmentsCtrl) {
-    final priceCtrl = TextEditingController(
-        text: commodity.currentPrice.toStringAsFixed(2));
+    final priceCtrl =
+        TextEditingController(text: commodity.currentPrice.toStringAsFixed(2));
     final quantityCtrl =
         TextEditingController(text: commodity.quantity.toStringAsFixed(4));
-    final notesCtrl =
-        TextEditingController(text: commodity.notes ?? '');
+    final notesCtrl = TextEditingController(text: commodity.notes ?? '');
 
     showCupertinoModalPopup(
       context: context,
@@ -205,26 +203,28 @@ class _CommoditiesDetailsScreenState extends State<CommoditiesDetailsScreen> {
                   const SizedBox(height: 20),
                   Expanded(
                     child: SingleChildScrollView(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 20),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _EditField(label: 'Current Price (per unit)',
+                          _EditField(
+                              label: 'Current Price (per unit)',
                               controller: priceCtrl,
                               isDark: isDark,
                               keyboardType:
                                   const TextInputType.numberWithOptions(
                                       decimal: true)),
                           const SizedBox(height: 12),
-                          _EditField(label: 'Quantity',
+                          _EditField(
+                              label: 'Quantity',
                               controller: quantityCtrl,
                               isDark: isDark,
                               keyboardType:
                                   const TextInputType.numberWithOptions(
                                       decimal: true)),
                           const SizedBox(height: 12),
-                          _EditField(label: 'Notes',
+                          _EditField(
+                              label: 'Notes',
                               controller: notesCtrl,
                               isDark: isDark,
                               maxLines: 3),
@@ -250,12 +250,10 @@ class _CommoditiesDetailsScreenState extends State<CommoditiesDetailsScreen> {
                       Expanded(
                         child: CupertinoButton.filled(
                           onPressed: () async {
-                            final newPrice =
-                                double.tryParse(priceCtrl.text) ??
-                                    commodity.currentPrice;
-                            final newQty =
-                                double.tryParse(quantityCtrl.text) ??
-                                    commodity.quantity;
+                            final newPrice = double.tryParse(priceCtrl.text) ??
+                                commodity.currentPrice;
+                            final newQty = double.tryParse(quantityCtrl.text) ??
+                                commodity.quantity;
                             final updatedCommodity = Commodity(
                               id: commodity.id,
                               name: commodity.name,
@@ -272,9 +270,8 @@ class _CommoditiesDetailsScreenState extends State<CommoditiesDetailsScreen> {
                                   ? null
                                   : notesCtrl.text.trim(),
                             );
-                            final updatedMeta =
-                                Map<String, dynamic>.from(
-                                    widget.investment.metadata ?? {});
+                            final updatedMeta = Map<String, dynamic>.from(
+                                widget.investment.metadata ?? {});
                             updatedMeta['commodityData'] =
                                 updatedCommodity.toMap();
                             final updatedInvestment =
@@ -285,8 +282,7 @@ class _CommoditiesDetailsScreenState extends State<CommoditiesDetailsScreen> {
                             await investmentsCtrl
                                 .updateInvestment(updatedInvestment);
                             if (ctx.mounted) {
-                              setState(
-                                  () => commodity = updatedCommodity);
+                              setState(() => commodity = updatedCommodity);
                               Navigator.pop(ctx);
                               toast.showSuccess('Investment updated');
                             }
@@ -342,13 +338,11 @@ class _EditField extends StatelessWidget {
           maxLines: maxLines,
           style: TextStyle(color: AppStyles.getTextColor(context)),
           decoration: BoxDecoration(
-            color: isDark
-                ? const Color(0xFF2C2C2E)
-                : CupertinoColors.systemGrey6,
+            color:
+                isDark ? const Color(0xFF2C2C2E) : CupertinoColors.systemGrey6,
             borderRadius: BorderRadius.circular(8),
           ),
-          padding:
-              const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         ),
       ],
     );
@@ -368,13 +362,15 @@ class _DetailCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+        border: Border.all(
+            color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title,
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.lg),
           ...List.generate(
             children.length,
@@ -410,7 +406,8 @@ class _DetailRow extends StatelessWidget {
   Widget build(BuildContext context) {
     Color? color;
     if (isGainLoss) {
-      color = isPositive ? CupertinoColors.systemGreen : CupertinoColors.systemRed;
+      color =
+          isPositive ? CupertinoColors.systemGreen : CupertinoColors.systemRed;
     }
 
     return Row(
@@ -418,7 +415,8 @@ class _DetailRow extends StatelessWidget {
       children: [
         Text(label,
             style: TextStyle(
-                color: AppStyles.getSecondaryTextColor(context), fontSize: TypeScale.subhead)),
+                color: AppStyles.getSecondaryTextColor(context),
+                fontSize: TypeScale.subhead)),
         Text(value,
             style: TextStyle(
                 fontWeight: isBold ? FontWeight.bold : FontWeight.w500,

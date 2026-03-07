@@ -144,7 +144,8 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
                         child: Container(
                           padding: const EdgeInsets.all(Spacing.sm),
                           decoration: BoxDecoration(
-                            color: CupertinoColors.systemGrey.withValues(alpha: 0.1),
+                            color: CupertinoColors.systemGrey
+                                .withValues(alpha: 0.1),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
@@ -323,6 +324,7 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
     );
   }
 
-  String _formatDate(DateTime date) {return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
+  String _formatDate(DateTime date) {
+    return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
   }
 }

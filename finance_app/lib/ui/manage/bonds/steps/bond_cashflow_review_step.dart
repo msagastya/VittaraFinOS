@@ -33,7 +33,8 @@ class BondCashFlowReviewStep extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+              border: Border.all(
+                  color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
             ),
             child: Column(
               children: [
@@ -95,7 +96,8 @@ class BondCashFlowReviewStep extends StatelessWidget {
                     children: [
                       Divider(
                         height: 1,
-                        color: CupertinoColors.systemGrey.withValues(alpha: 0.1),
+                        color:
+                            CupertinoColors.systemGrey.withValues(alpha: 0.1),
                       ),
                       Padding(
                         padding: const EdgeInsets.all(Spacing.md),
@@ -105,7 +107,8 @@ class BondCashFlowReviewStep extends StatelessWidget {
                               flex: 2,
                               child: Text(
                                 '${cf.date.day}/${cf.date.month}/${cf.date.year}',
-                                style: const TextStyle(fontSize: TypeScale.footnote),
+                                style: const TextStyle(
+                                    fontSize: TypeScale.footnote),
                               ),
                             ),
                             Expanded(
@@ -116,7 +119,9 @@ class BondCashFlowReviewStep extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: TypeScale.footnote,
                                   fontWeight: FontWeight.w600,
-                                  color: isNegative ? CupertinoColors.systemRed : CupertinoColors.systemGreen,
+                                  color: isNegative
+                                      ? CupertinoColors.systemRed
+                                      : CupertinoColors.systemGreen,
                                 ),
                               ),
                             ),
@@ -178,7 +183,9 @@ class BondCashFlowReviewStep extends StatelessWidget {
                   label: 'Gain/Loss',
                   value:
                       '${isProfit ? '+' : ''}₹${ctrl.gainLoss.toStringAsFixed(2)}',
-                  color: isProfit ? CupertinoColors.systemGreen : CupertinoColors.systemRed,
+                  color: isProfit
+                      ? CupertinoColors.systemGreen
+                      : CupertinoColors.systemRed,
                   isBold: true,
                 ),
                 const SizedBox(height: Spacing.md),
@@ -186,7 +193,9 @@ class BondCashFlowReviewStep extends StatelessWidget {
                   label: 'Return %',
                   value:
                       '${isProfit ? '+' : ''}${ctrl.gainLossPercent.toStringAsFixed(2)}%',
-                  color: isProfit ? CupertinoColors.systemGreen : CupertinoColors.systemRed,
+                  color: isProfit
+                      ? CupertinoColors.systemGreen
+                      : CupertinoColors.systemRed,
                   isBold: true,
                 ),
                 const SizedBox(height: Spacing.md),

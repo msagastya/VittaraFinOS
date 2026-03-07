@@ -133,9 +133,8 @@ class _TransactionWizardState extends State<TransactionWizard> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setS) {
           final isDark = AppStyles.isDarkMode(ctx);
-          final btnBg = isDark
-              ? const Color(0xFF2C2C2E)
-              : CupertinoColors.systemGrey6;
+          final btnBg =
+              isDark ? const Color(0xFF2C2C2E) : CupertinoColors.systemGrey6;
           final opColor = _branch == TransactionWizardBranch.income
               ? CupertinoColors.systemGreen
               : _branch == TransactionWizardBranch.expense
@@ -208,10 +207,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
               });
 
           Widget btn(String label,
-              {VoidCallback? onTap,
-              Color? bg,
-              Color? fg,
-              bool wide = false}) {
+              {VoidCallback? onTap, Color? bg, Color? fg, bool wide = false}) {
             return Expanded(
               flex: wide ? 2 : 1,
               child: Padding(
@@ -263,8 +259,8 @@ class _TransactionWizardState extends State<TransactionWizard> {
                       ),
                     ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                     child: Align(
                       alignment: Alignment.centerRight,
                       child: Text(
@@ -277,8 +273,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                       ),
                     ),
                   ),
-                  Divider(
-                      color: AppStyles.getDividerColor(ctx), height: 1),
+                  Divider(color: AppStyles.getDividerColor(ctx), height: 1),
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.all(6),
@@ -328,25 +323,20 @@ class _TransactionWizardState extends State<TransactionWizard> {
                                 fg: opColor),
                           ]),
                           Row(children: [
-                            btn('0',
-                                onTap: () => onDigit('0'), wide: true),
+                            btn('0', onTap: () => onDigit('0'), wide: true),
                             btn('.', onTap: onDecimal),
-                            btn('✓',
-                                onTap: () {
-                                  onEquals();
-                                  final val =
-                                      double.tryParse(display) ?? 0;
-                                  if (val > 0) {
-                                    _amountController.text =
-                                        val == val.truncateToDouble()
-                                            ? val.toStringAsFixed(0)
-                                            : val.toStringAsFixed(2);
-                                    setState(() {});
-                                  }
-                                  Navigator.pop(ctx);
-                                },
-                                bg: opColor,
-                                fg: CupertinoColors.white),
+                            btn('✓', onTap: () {
+                              onEquals();
+                              final val = double.tryParse(display) ?? 0;
+                              if (val > 0) {
+                                _amountController.text =
+                                    val == val.truncateToDouble()
+                                        ? val.toStringAsFixed(0)
+                                        : val.toStringAsFixed(2);
+                                setState(() {});
+                              }
+                              Navigator.pop(ctx);
+                            }, bg: opColor, fg: CupertinoColors.white),
                           ]),
                         ],
                       ),
@@ -405,9 +395,9 @@ class _TransactionWizardState extends State<TransactionWizard> {
         if (match != null) setState(() => _selectedCategory = match);
       }
       if (accountId != null) {
-        final accts =
-            Provider.of<AccountsController>(context, listen: false);
-        final match = accts.accounts.where((a) => a.id == accountId).firstOrNull;
+        final accts = Provider.of<AccountsController>(context, listen: false);
+        final match =
+            accts.accounts.where((a) => a.id == accountId).firstOrNull;
         if (match != null) setState(() => _selectedAccount = match);
       }
       return;
@@ -421,9 +411,8 @@ class _TransactionWizardState extends State<TransactionWizard> {
     if (lastId == null || !mounted) return;
     final controller =
         Provider.of<CategoriesController>(context, listen: false);
-    final match = controller.categories
-        .where((c) => c.id == lastId)
-        .firstOrNull;
+    final match =
+        controller.categories.where((c) => c.id == lastId).firstOrNull;
     if (match != null && mounted) {
       setState(() => _selectedCategory = match);
     }
@@ -712,7 +701,8 @@ class _TransactionWizardState extends State<TransactionWizard> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                 decoration: BoxDecoration(
                   color: barColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(20),
@@ -846,8 +836,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
   }
 
   Widget _buildBranchPage() {
-    final templatesController =
-        context.watch<RecurringTemplatesController>();
+    final templatesController = context.watch<RecurringTemplatesController>();
     final templates = templatesController.templates;
 
     return _buildStepShell(
@@ -963,8 +952,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
     );
   }
 
-  void _applyTemplate(
-      RecurringTemplate t, RecurringTemplatesController ctrl) {
+  void _applyTemplate(RecurringTemplate t, RecurringTemplatesController ctrl) {
     _amountController.text = t.amount % 1 == 0
         ? t.amount.toStringAsFixed(0)
         : t.amount.toStringAsFixed(2);
@@ -986,16 +974,13 @@ class _TransactionWizardState extends State<TransactionWizard> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       if (t.categoryId != null) {
-        final cats =
-            Provider.of<CategoriesController>(context, listen: false);
-        final cat = cats.categories
-            .where((c) => c.id == t.categoryId)
-            .firstOrNull;
+        final cats = Provider.of<CategoriesController>(context, listen: false);
+        final cat =
+            cats.categories.where((c) => c.id == t.categoryId).firstOrNull;
         if (cat != null) setState(() => _selectedCategory = cat);
       }
       if (t.accountId != null) {
-        final accts =
-            Provider.of<AccountsController>(context, listen: false);
+        final accts = Provider.of<AccountsController>(context, listen: false);
         final acct =
             accts.accounts.where((a) => a.id == t.accountId).firstOrNull;
         if (acct != null) setState(() => _selectedAccount = acct);
@@ -1075,7 +1060,8 @@ class _TransactionWizardState extends State<TransactionWizard> {
                         child: GestureDetector(
                           onTap: () => setModalState(() => frequency = f),
                           child: Container(
-                            margin: EdgeInsets.only(right: f == 'yearly' ? 0 : 6),
+                            margin:
+                                EdgeInsets.only(right: f == 'yearly' ? 0 : 6),
                             padding: EdgeInsets.symmetric(vertical: 8),
                             decoration: BoxDecoration(
                               color: frequency == f
@@ -1161,8 +1147,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                               listen: false)
                           .addTemplate(template);
                       Navigator.pop(ctx);
-                      toast_lib.toast.showSuccess(
-                          'Template "$name" saved');
+                      toast_lib.toast.showSuccess('Template "$name" saved');
                     },
                     child: Text('Save Template'),
                   ),
@@ -1198,8 +1183,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
               ),
               SizedBox(height: Spacing.lg),
               Padding(
-                padding:
-                    EdgeInsets.symmetric(horizontal: Spacing.xl),
+                padding: EdgeInsets.symmetric(horizontal: Spacing.xl),
                 child: Text('Recurring Templates',
                     style: AppStyles.titleStyle(ctx)),
               ),
@@ -1219,8 +1203,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                           horizontal: Spacing.xl, vertical: Spacing.xs),
                       child: Row(
                         children: [
-                          Icon(CupertinoIcons.repeat,
-                              size: 16, color: color),
+                          Icon(CupertinoIcons.repeat, size: 16, color: color),
                           SizedBox(width: Spacing.sm),
                           Expanded(
                             child: Column(
@@ -1234,8 +1217,8 @@ class _TransactionWizardState extends State<TransactionWizard> {
                                     '₹${t.amount.toStringAsFixed(0)} • ${t.frequency}',
                                     style: TextStyle(
                                         fontSize: TypeScale.caption,
-                                        color: AppStyles
-                                            .getSecondaryTextColor(ctx))),
+                                        color: AppStyles.getSecondaryTextColor(
+                                            ctx))),
                               ],
                             ),
                           ),
@@ -1247,8 +1230,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                               Navigator.pop(ctx);
                             },
                             child: Icon(CupertinoIcons.trash,
-                                size: 18,
-                                color: CupertinoColors.systemRed),
+                                size: 18, color: CupertinoColors.systemRed),
                           ),
                         ],
                       ),
@@ -1694,7 +1676,8 @@ class _TransactionWizardState extends State<TransactionWizard> {
               child: CupertinoDatePicker(
                 mode: CupertinoDatePickerMode.date,
                 initialDateTime: _selectedDate,
-                minimumDate: DateTime.now().subtract(const Duration(days: 365 * 30)),
+                minimumDate:
+                    DateTime.now().subtract(const Duration(days: 365 * 30)),
                 maximumDate: DateTime.now(),
                 onDateTimeChanged: (value) {
                   setState(() => _selectedDate = value);
@@ -2456,8 +2439,8 @@ class _TransactionWizardState extends State<TransactionWizard> {
                     color: AppStyles.getCardColor(context),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 ),
               ),
               const SizedBox(height: Spacing.sm),
@@ -3117,7 +3100,8 @@ class _PhoneContactsPickerSheetState extends State<_PhoneContactsPickerSheet> {
                 children: [
                   Text(
                     'Phone contacts',
-                    style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title2),
+                    style: AppStyles.titleStyle(context)
+                        .copyWith(fontSize: TypeScale.title2),
                   ),
                   const Spacer(),
                   CupertinoButton(

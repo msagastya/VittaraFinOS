@@ -355,15 +355,15 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
               'trend': trendPoints,
               'strategyProfile': strategyProfile,
               'strategyEval': strategyEvaluation,
-              'tags': _collectAvailableTags(transactionsController.transactions),
-              'apps': _collectAvailablePaymentApps(transactionsController.transactions),
+              'tags':
+                  _collectAvailableTags(transactionsController.transactions),
+              'apps': _collectAvailablePaymentApps(
+                  transactionsController.transactions),
             };
           }
-          final filteredTransactions =
-              _cache!['filtered'] as List<Transaction>;
+          final filteredTransactions = _cache!['filtered'] as List<Transaction>;
           final summary = _cache!['summary'] as _ReportSummary;
-          final groupedMetrics =
-              _cache!['grouped'] as List<_GroupedMetric>;
+          final groupedMetrics = _cache!['grouped'] as List<_GroupedMetric>;
           final trendPoints = _cache!['trend'] as List<_TrendPoint>;
           final strategyProfile =
               _cache!['strategyProfile'] as _StrategyProfile;
@@ -395,8 +395,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
                   gradient: AppStyles.backgroundGradient(context),
                 ),
                 child: RefreshIndicator(
-                  onRefresh: () =>
-                      transactionsController.loadTransactions(),
+                  onRefresh: () => transactionsController.loadTransactions(),
                   color: AppStyles.accentBlue,
                   child: ListView(
                     padding: EdgeInsets.fromLTRB(
@@ -1443,12 +1442,12 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
 
     // Top 4 categories by total spend
     final sorted = catMonthly.entries.toList()
-      ..sort((a, b) => b.value.fold(0.0, (s, v) => s + v)
+      ..sort((a, b) => b.value
+          .fold(0.0, (s, v) => s + v)
           .compareTo(a.value.fold(0.0, (s, v) => s + v)));
     final top = sorted.take(4).toList();
 
-    final allVals =
-        top.expand((e) => e.value).where((v) => v > 0).toList();
+    final allVals = top.expand((e) => e.value).where((v) => v > 0).toList();
     if (allVals.isEmpty) return const SizedBox.shrink();
     final maxVal = allVals.reduce((a, b) => a > b ? a : b);
 
@@ -1458,8 +1457,20 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
       Color(0xFF34C759),
       Color(0xFFAF52DE),
     ];
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthNames = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
 
     return Container(
       padding: EdgeInsets.all(Spacing.lg),
@@ -1520,9 +1531,8 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
                         ))
                     .toList(),
                 maxVal: maxVal,
-                monthLabels: months
-                    .map((m) => monthNames[m.month - 1])
-                    .toList(),
+                monthLabels:
+                    months.map((m) => monthNames[m.month - 1]).toList(),
                 axisColor: AppStyles.getSecondaryTextColor(context),
               ),
             ),
@@ -1557,8 +1567,20 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
 
     final values = months.map((m) => monthlyExpenses[m] ?? 0.0).toList();
     final maxVal = values.reduce((a, b) => a > b ? a : b);
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthNames = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
 
     return Container(
       padding: EdgeInsets.all(Spacing.lg),
@@ -1582,13 +1604,10 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: List.generate(months.length, (i) {
                 final val = values[i];
-                final barHeight = maxVal > 0
-                    ? (val / maxVal) * 140
-                    : 0.0;
-                final isCurrentMonth = months[i].month == now.month &&
-                    months[i].year == now.year;
-                final label =
-                    monthNames[months[i].month - 1];
+                final barHeight = maxVal > 0 ? (val / maxVal) * 140 : 0.0;
+                final isCurrentMonth =
+                    months[i].month == now.month && months[i].year == now.year;
+                final label = monthNames[months[i].month - 1];
                 return Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -1611,8 +1630,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
                           decoration: BoxDecoration(
                             color: isCurrentMonth
                                 ? SemanticColors.error
-                                : SemanticColors.error
-                                    .withValues(alpha: 0.5),
+                                : SemanticColors.error.withValues(alpha: 0.5),
                             borderRadius: BorderRadius.vertical(
                               top: Radius.circular(4),
                             ),
@@ -3632,6 +3650,5 @@ class _CategoryTrendPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_CategoryTrendPainter old) =>
-      categories != old.categories;
+  bool shouldRepaint(_CategoryTrendPainter old) => categories != old.categories;
 }

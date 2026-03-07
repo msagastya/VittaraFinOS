@@ -44,7 +44,8 @@ class _FOContractDetailsStepState extends State<FOContractDetailsStep> {
           Text('Contract Details', style: AppStyles.titleStyle(context)),
           const SizedBox(height: 30),
           Text('Entry Price (₹)',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _entryPriceController,
@@ -66,7 +67,8 @@ class _FOContractDetailsStepState extends State<FOContractDetailsStep> {
           ),
           const SizedBox(height: Spacing.xxl),
           Text('Quantity / Lot Size',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _quantityController,

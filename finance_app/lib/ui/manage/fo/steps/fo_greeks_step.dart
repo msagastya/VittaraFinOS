@@ -75,7 +75,8 @@ class _FOGreeksStepState extends State<FOGreeksStep> {
           Text('Greeks & Volatility', style: AppStyles.titleStyle(context)),
           const SizedBox(height: 30),
           Text('Strike Price (₹)',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _strikePriceController,
@@ -97,7 +98,8 @@ class _FOGreeksStepState extends State<FOGreeksStep> {
           ),
           const SizedBox(height: Spacing.xxl),
           Text('Volatility (% p.a.)',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _volatilityController,
@@ -119,7 +121,8 @@ class _FOGreeksStepState extends State<FOGreeksStep> {
           ),
           const SizedBox(height: Spacing.xxl),
           Text('Risk-Free Rate (% p.a.)',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _riskFreeRateController,
@@ -142,14 +145,16 @@ class _FOGreeksStepState extends State<FOGreeksStep> {
           if (widget.ctrl.greeks != null) ...[
             const SizedBox(height: 30),
             Text('Calculated Greeks',
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+                style: TextStyle(
+                    fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
             const SizedBox(height: Spacing.md),
             Container(
               padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+                border: Border.all(
+                    color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
               ),
               child: Column(
                 children: [
@@ -205,7 +210,8 @@ class _GreekRow extends StatelessWidget {
             children: [
               Text(label,
                   style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: TypeScale.subhead)),
+                      fontWeight: FontWeight.bold,
+                      fontSize: TypeScale.subhead)),
               Text(value,
                   style: const TextStyle(
                       fontWeight: FontWeight.w600,
@@ -231,7 +237,8 @@ class _Divider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Divider(color: CupertinoColors.systemGrey.withValues(alpha: 0.2), height: 1),
+      child: Divider(
+          color: CupertinoColors.systemGrey.withValues(alpha: 0.2), height: 1),
     );
   }
 }

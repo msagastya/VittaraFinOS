@@ -92,7 +92,8 @@ class _GoldInvestedAmountStepState extends State<GoldInvestedAmountStep> {
             decoration: BoxDecoration(
               color: CupertinoColors.activeBlue.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: CupertinoColors.activeBlue.withValues(alpha: 0.3)),
+              border: Border.all(
+                  color: CupertinoColors.activeBlue.withValues(alpha: 0.3)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

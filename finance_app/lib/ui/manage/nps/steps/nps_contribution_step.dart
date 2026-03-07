@@ -50,7 +50,8 @@ class _NPSContributionStepState extends State<NPSContributionStep> {
           const SizedBox(height: 30),
           // Total Contributed
           Text('Total Contributed (₹)',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _contributedController,
@@ -74,7 +75,8 @@ class _NPSContributionStepState extends State<NPSContributionStep> {
           const SizedBox(height: Spacing.xxl),
           // Scheme Type
           Text('Investment Scheme',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           Wrap(
             spacing: 8,
@@ -117,7 +119,8 @@ class _NPSContributionStepState extends State<NPSContributionStep> {
           const SizedBox(height: Spacing.xxl),
           // NPS Manager
           Text('NPS Manager',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           CupertinoButton(
             onPressed: () {
@@ -215,8 +218,7 @@ class _NPSContributionStepState extends State<NPSContributionStep> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Icon(CupertinoIcons.exclamationmark_circle,
-                              size: 16,
-                              color: CupertinoColors.systemOrange),
+                              size: 16, color: CupertinoColors.systemOrange),
                           const SizedBox(width: 8),
                           const Expanded(
                             child: Text(
@@ -255,7 +257,8 @@ class _SummaryRow extends StatelessWidget {
       children: [
         Text(label,
             style: TextStyle(
-                fontSize: TypeScale.subhead, color: AppStyles.getSecondaryTextColor(context))),
+                fontSize: TypeScale.subhead,
+                color: AppStyles.getSecondaryTextColor(context))),
         Text(value,
             style: TextStyle(
                 fontWeight: isBold ? FontWeight.bold : FontWeight.w500,

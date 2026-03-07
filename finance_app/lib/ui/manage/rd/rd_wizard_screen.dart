@@ -157,143 +157,145 @@ class _RDWizardScreenState extends State<RDWizardScreen> {
         ),
         child: SafeArea(
           child: Column(
-          children: [
-            // Top Progress Bar (Like Stocks)
-            Consumer<RDWizardController>(
-              builder: (context, controller, child) {
-                final progress = (controller.currentStep + 1) / 7;
+            children: [
+              // Top Progress Bar (Like Stocks)
+              Consumer<RDWizardController>(
+                builder: (context, controller, child) {
+                  final progress = (controller.currentStep + 1) / 7;
 
-                return Column(
-                  children: [
-                    // Linear Progress Bar
-                    Container(
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: AppStyles.getSecondaryTextColor(context)
-                            .withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: FractionallySizedBox(
-                        alignment: Alignment.centerLeft,
-                        widthFactor: progress,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: AppStyles.getPrimaryColor(context),
-                            borderRadius: BorderRadius.circular(4),
+                  return Column(
+                    children: [
+                      // Linear Progress Bar
+                      Container(
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: AppStyles.getSecondaryTextColor(context)
+                              .withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: FractionallySizedBox(
+                          alignment: Alignment.centerLeft,
+                          widthFactor: progress,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: AppStyles.getPrimaryColor(context),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    // Step Title
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
-                      color: AppStyles.getBackground(context),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _getStepTitle(controller.currentStep),
-                            style: TextStyle(
-                              color: AppStyles.getTextColor(context),
-                              fontSize: TypeScale.headline,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: Spacing.xs),
-                          Text(
-                            'Step ${controller.currentStep + 1} of 7',
-                            style: TextStyle(
-                              color: AppStyles.getSecondaryTextColor(context),
-                              fontSize: TypeScale.footnote,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-            // Step content
-            Expanded(
-              child: Consumer<RDWizardController>(
-                builder: (context, controller, child) {
-                  return _buildStepContent(controller.currentStep);
-                },
-              ),
-            ),
-            // Navigation buttons
-            Container(
-              padding: const EdgeInsets.all(Spacing.lg),
-              decoration: BoxDecoration(
-                color: AppStyles.getCardColor(context),
-                border: Border(
-                  top: BorderSide(
-                    color: AppStyles.getDividerColor(context),
-                    width: 0.5,
-                  ),
-                ),
-              ),
-              child: Consumer<RDWizardController>(
-                builder: (context, controller, child) {
-                  return Row(
-                    children: [
-                      // Back button
-                      if (controller.currentStep > 0)
-                        Expanded(
-                          child: CupertinoButton(
-                            onPressed: _isSubmitting
-                                ? null
-                                : () => controller.previousStep(),
-                            color: AppStyles.getSecondaryTextColor(context)
-                                .withValues(alpha: 0.15),
-                            child: Text(
-                              'Back',
+                      // Step Title
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
+                        color: AppStyles.getBackground(context),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _getStepTitle(controller.currentStep),
                               style: TextStyle(
-                                color: AppStyles.getSecondaryTextColor(context),
-                                fontWeight: FontWeight.w600,
+                                color: AppStyles.getTextColor(context),
+                                fontSize: TypeScale.headline,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                          ),
-                        ),
-                      if (controller.currentStep > 0) const SizedBox(width: Spacing.md),
-                      // Next or Submit button
-                      Expanded(
-                        child: CupertinoButton(
-                          onPressed:
-                              _isSubmitting || !controller.canProceedToNextStep
-                                  ? null
-                                  : controller.currentStep == 6
-                                      ? _submitRD
-                                      : () => controller.nextStep(),
-                          color: AppStyles.getPrimaryColor(context),
-                          child: _isSubmitting
-                              ? SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: const CupertinoActivityIndicator(
-                                    color: CupertinoColors.white,
-                                  ),
-                                )
-                              : Text(
-                                  controller.currentStep == 6
-                                      ? 'Create RD'
-                                      : 'Next',
-                                  style: const TextStyle(
-                                    color: CupertinoColors.white,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
+                            const SizedBox(height: Spacing.xs),
+                            Text(
+                              'Step ${controller.currentStep + 1} of 7',
+                              style: TextStyle(
+                                color: AppStyles.getSecondaryTextColor(context),
+                                fontSize: TypeScale.footnote,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   );
                 },
               ),
-            ),
-          ],
-        ),
+              // Step content
+              Expanded(
+                child: Consumer<RDWizardController>(
+                  builder: (context, controller, child) {
+                    return _buildStepContent(controller.currentStep);
+                  },
+                ),
+              ),
+              // Navigation buttons
+              Container(
+                padding: const EdgeInsets.all(Spacing.lg),
+                decoration: BoxDecoration(
+                  color: AppStyles.getCardColor(context),
+                  border: Border(
+                    top: BorderSide(
+                      color: AppStyles.getDividerColor(context),
+                      width: 0.5,
+                    ),
+                  ),
+                ),
+                child: Consumer<RDWizardController>(
+                  builder: (context, controller, child) {
+                    return Row(
+                      children: [
+                        // Back button
+                        if (controller.currentStep > 0)
+                          Expanded(
+                            child: CupertinoButton(
+                              onPressed: _isSubmitting
+                                  ? null
+                                  : () => controller.previousStep(),
+                              color: AppStyles.getSecondaryTextColor(context)
+                                  .withValues(alpha: 0.15),
+                              child: Text(
+                                'Back',
+                                style: TextStyle(
+                                  color:
+                                      AppStyles.getSecondaryTextColor(context),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        if (controller.currentStep > 0)
+                          const SizedBox(width: Spacing.md),
+                        // Next or Submit button
+                        Expanded(
+                          child: CupertinoButton(
+                            onPressed: _isSubmitting ||
+                                    !controller.canProceedToNextStep
+                                ? null
+                                : controller.currentStep == 6
+                                    ? _submitRD
+                                    : () => controller.nextStep(),
+                            color: AppStyles.getPrimaryColor(context),
+                            child: _isSubmitting
+                                ? SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: const CupertinoActivityIndicator(
+                                      color: CupertinoColors.white,
+                                    ),
+                                  )
+                                : Text(
+                                    controller.currentStep == 6
+                                        ? 'Create RD'
+                                        : 'Next',
+                                    style: const TextStyle(
+                                      color: CupertinoColors.white,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

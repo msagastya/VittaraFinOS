@@ -52,7 +52,9 @@ class NotificationWidget extends StatelessWidget {
       amount:
           '₹${(record.interestAmount + record.principalAmount).toStringAsFixed(2)}',
       timeInfo: 'In $daysUntil day${daysUntil > 1 ? 's' : ''}',
-      badgeColor: daysUntil <= 3 ? CupertinoColors.systemRed : CupertinoColors.systemOrange,
+      badgeColor: daysUntil <= 3
+          ? CupertinoColors.systemRed
+          : CupertinoColors.systemOrange,
       icon: CupertinoIcons.bell_fill,
       statusWidget: fd.autoLinkEnabled
           ? _buildAutoLinkEnabled(context, fd)
@@ -76,7 +78,9 @@ class NotificationWidget extends StatelessWidget {
       subtitle: 'Next installment due on ${_formatDate(dueDate)}',
       amount: '₹${amount.toStringAsFixed(2)}',
       timeInfo: 'In $daysUntil day${daysUntil > 1 ? 's' : ''}',
-      badgeColor: daysUntil <= 3 ? CupertinoColors.systemRed : CupertinoColors.activeBlue,
+      badgeColor: daysUntil <= 3
+          ? CupertinoColors.systemRed
+          : CupertinoColors.activeBlue,
       icon: CupertinoIcons.money_dollar_circle_fill,
       statusWidget: _buildRDInstallmentInfo(context, accountName),
     );

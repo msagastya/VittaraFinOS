@@ -336,7 +336,8 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
                       const Text(
                         'Gain/Loss (Initial)',
                         style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: TypeScale.subhead),
+                            fontWeight: FontWeight.bold,
+                            fontSize: TypeScale.subhead),
                       ),
                       Text(
                         '${controller.currentValue >= controller.totalAmount ? '+' : ''}₹${(controller.currentValue - controller.totalAmount).toStringAsFixed(2)}',
@@ -360,6 +361,7 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
     );
   }
 
-  String _monthName(int month) {return DateFormatter.getMonthName(month);
+  String _monthName(int month) {
+    return DateFormatter.getMonthName(month);
   }
 }

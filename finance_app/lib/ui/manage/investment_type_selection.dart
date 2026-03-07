@@ -359,8 +359,8 @@ class _InvestmentTypePreferencesModalState
                   children: [
                     Text(
                       'Customize First Screen',
-                      style:
-                          AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title2),
+                      style: AppStyles.titleStyle(context)
+                          .copyWith(fontSize: TypeScale.title2),
                     ),
                     const SizedBox(height: Spacing.sm),
                     Text(

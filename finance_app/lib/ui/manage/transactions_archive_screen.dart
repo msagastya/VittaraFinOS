@@ -23,8 +23,7 @@ class TransactionsArchiveScreen extends StatefulWidget {
       _TransactionsArchiveScreenState();
 }
 
-class _TransactionsArchiveScreenState
-    extends State<TransactionsArchiveScreen> {
+class _TransactionsArchiveScreenState extends State<TransactionsArchiveScreen> {
   TransactionType? _filterType;
 
   void _showFilterSheet() {
@@ -106,9 +105,7 @@ class _TransactionsArchiveScreenState
 
           final filtered = _filterType == null
               ? archived
-              : archived
-                  .where((t) => t.type == _filterType)
-                  .toList();
+              : archived.where((t) => t.type == _filterType).toList();
 
           if (filtered.isEmpty) {
             return SafeArea(
@@ -116,7 +113,8 @@ class _TransactionsArchiveScreenState
                 child: EmptyStateView(
                   icon: CupertinoIcons.line_horizontal_3_decrease_circle,
                   title: 'No Matching Transactions',
-                  subtitle: 'No archived ${_filterType!.name} transactions found',
+                  subtitle:
+                      'No archived ${_filterType!.name} transactions found',
                   actionLabel: 'Clear Filter',
                   onAction: () => setState(() => _filterType = null),
                 ),
@@ -397,5 +395,4 @@ class _ArchivedTransactionCard extends StatelessWidget {
 
     return '${dateTime.day} ${DateFormatter.getMonthName(dateTime.month)}';
   }
-
 }

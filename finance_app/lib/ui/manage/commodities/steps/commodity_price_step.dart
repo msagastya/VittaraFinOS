@@ -50,7 +50,8 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
               style: AppStyles.titleStyle(context)),
           const SizedBox(height: 30),
           Text('Price Per ${widget.ctrl.unit ?? 'Unit'} (₹)',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _priceController,
@@ -72,7 +73,8 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
           ),
           const SizedBox(height: Spacing.xxl),
           Text('Purchase Date',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           GestureDetector(
             onTap: () {
@@ -89,7 +91,8 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
                           color: AppStyles.getCardColor(context),
                           border: Border(
                             bottom: BorderSide(
-                                color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+                                color: CupertinoColors.systemGrey
+                                    .withValues(alpha: 0.2)),
                           ),
                         ),
                         child: Row(
@@ -97,7 +100,8 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
                           children: [
                             Text('Select Date',
                                 style: const TextStyle(
-                                    fontSize: TypeScale.headline, fontWeight: FontWeight.bold)),
+                                    fontSize: TypeScale.headline,
+                                    fontWeight: FontWeight.bold)),
                             GestureDetector(
                               onTap: () => Navigator.pop(ctx),
                               child: const Icon(CupertinoIcons.xmark),
@@ -124,7 +128,8 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+                border: Border.all(
+                    color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -140,14 +145,16 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
           ),
           const SizedBox(height: Spacing.xxl),
           Text('Exchange',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+              border: Border.all(
+                  color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
             ),
             child: CupertinoButton(
               onPressed: () {
@@ -164,7 +171,8 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
                             color: AppStyles.getCardColor(context),
                             border: Border(
                               bottom: BorderSide(
-                                  color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+                                  color: CupertinoColors.systemGrey
+                                      .withValues(alpha: 0.2)),
                             ),
                           ),
                           child: Row(

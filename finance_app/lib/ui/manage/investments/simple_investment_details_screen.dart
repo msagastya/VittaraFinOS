@@ -33,12 +33,12 @@ class _SimpleInvestmentDetailsScreenState
     final meta = widget.investment.metadata ?? {};
     _currentValue =
         (meta['currentValue'] as num?)?.toDouble() ?? widget.investment.amount;
-    _investmentAmount =
-        (meta['investmentAmount'] as num?)?.toDouble() ?? widget.investment.amount;
+    _investmentAmount = (meta['investmentAmount'] as num?)?.toDouble() ??
+        widget.investment.amount;
     _notes = meta['notes'] as String?;
     _reference = meta['reference'] as String?;
-    final dateStr = meta['investmentDate'] as String? ??
-        meta['purchaseDate'] as String?;
+    final dateStr =
+        meta['investmentDate'] as String? ?? meta['purchaseDate'] as String?;
     _investmentDate = dateStr != null
         ? DateTime.tryParse(dateStr) ?? DateTime.now()
         : DateTime.now();
@@ -244,8 +244,8 @@ class _SimpleInvestmentDetailsScreenState
                       Expanded(
                         child: CupertinoButton.filled(
                           onPressed: () async {
-                            final newValue =
-                                double.tryParse(valueCtrl.text) ?? _currentValue;
+                            final newValue = double.tryParse(valueCtrl.text) ??
+                                _currentValue;
                             final newNotes = notesCtrl.text.trim().isEmpty
                                 ? null
                                 : notesCtrl.text.trim();
@@ -319,9 +319,8 @@ class _EditField extends StatelessWidget {
           maxLines: maxLines,
           style: TextStyle(color: AppStyles.getTextColor(context)),
           decoration: BoxDecoration(
-            color: isDark
-                ? const Color(0xFF2C2C2E)
-                : CupertinoColors.systemGrey6,
+            color:
+                isDark ? const Color(0xFF2C2C2E) : CupertinoColors.systemGrey6,
             borderRadius: BorderRadius.circular(8),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -344,8 +343,8 @@ class _DetailCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(12),
-        border:
-            Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+        border: Border.all(
+            color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

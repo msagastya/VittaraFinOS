@@ -316,8 +316,7 @@ class BudgetDetailsScreen extends StatelessWidget {
           final total = sorted.fold(0.0, (s, e) => s + e.value);
 
           return Padding(
-            padding: EdgeInsets.fromLTRB(
-                Spacing.lg, 0, Spacing.lg, Spacing.md),
+            padding: EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, Spacing.md),
             child: NeumorphicGlassCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -370,8 +369,8 @@ class BudgetDetailsScreen extends StatelessWidget {
                                 '${(pct * 100).toStringAsFixed(0)}%',
                                 style: TextStyle(
                                   fontSize: TypeScale.footnote,
-                                  color: AppStyles.getSecondaryTextColor(
-                                      context),
+                                  color:
+                                      AppStyles.getSecondaryTextColor(context),
                                 ),
                               ),
                             ],

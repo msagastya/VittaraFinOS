@@ -174,9 +174,10 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                                       : _selectedTab == 1
                                           ? 'No borrowing records yet'
                                           : 'No settled records yet',
-                              subtitle: _searchQuery.isEmpty && _selectedTab == 2
-                                  ? 'Settled records will appear here.'
-                                  : null,
+                              subtitle:
+                                  _searchQuery.isEmpty && _selectedTab == 2
+                                      ? 'Settled records will appear here.'
+                                      : null,
                               showPulse: false,
                             )
                           : ListView.builder(
@@ -1244,8 +1245,8 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
               }
             }
             if (months > 0) {
-              payoffDate = DateTime.now()
-                  .add(Duration(days: (months * 30.44).round()));
+              payoffDate =
+                  DateTime.now().add(Duration(days: (months * 30.44).round()));
             }
           }
 
@@ -1315,8 +1316,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                   const SizedBox(height: 20),
                   Expanded(
                     child: SingleChildScrollView(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 20),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -1335,22 +1335,20 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                           const SizedBox(height: 16),
                           Text('Monthly Payment',
                               style: TextStyle(
-                                  color:
-                                      AppStyles.getSecondaryTextColor(ctx),
+                                  color: AppStyles.getSecondaryTextColor(ctx),
                                   fontSize: TypeScale.footnote,
                                   fontWeight: FontWeight.w600)),
                           const SizedBox(height: 6),
                           CupertinoTextField(
                             controller: monthlyController,
-                            keyboardType:
-                                const TextInputType.numberWithOptions(
-                                    decimal: true),
+                            keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true),
                             prefix: const Padding(
                               padding: EdgeInsets.only(left: 12),
                               child: Text('₹'),
                             ),
-                            style: TextStyle(
-                                color: AppStyles.getTextColor(ctx)),
+                            style:
+                                TextStyle(color: AppStyles.getTextColor(ctx)),
                             decoration: BoxDecoration(
                               color: isDark
                                   ? const Color(0xFF2C2C2E)
@@ -1362,22 +1360,20 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                           const SizedBox(height: 12),
                           Text('Annual Interest Rate (%)',
                               style: TextStyle(
-                                  color:
-                                      AppStyles.getSecondaryTextColor(ctx),
+                                  color: AppStyles.getSecondaryTextColor(ctx),
                                   fontSize: TypeScale.footnote,
                                   fontWeight: FontWeight.w600)),
                           const SizedBox(height: 6),
                           CupertinoTextField(
                             controller: rateController,
-                            keyboardType:
-                                const TextInputType.numberWithOptions(
-                                    decimal: true),
+                            keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true),
                             suffix: const Padding(
                               padding: EdgeInsets.only(right: 12),
                               child: Text('%'),
                             ),
-                            style: TextStyle(
-                                color: AppStyles.getTextColor(ctx)),
+                            style:
+                                TextStyle(color: AppStyles.getTextColor(ctx)),
                             decoration: BoxDecoration(
                               color: isDark
                                   ? const Color(0xFF2C2C2E)
@@ -1395,8 +1391,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                             ),
                             child: months > 0
                                 ? Column(children: [
-                                    resultRow(
-                                        'Payoff In',
+                                    resultRow('Payoff In',
                                         '$months month${months > 1 ? 's' : ''}',
                                         valueColor:
                                             CupertinoColors.systemGreen),

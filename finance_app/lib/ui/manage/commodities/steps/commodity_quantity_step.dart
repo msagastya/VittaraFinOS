@@ -55,7 +55,8 @@ class _CommodityQuantityStepState extends State<CommodityQuantityStep> {
           Text('Quantity & Unit', style: AppStyles.titleStyle(context)),
           const SizedBox(height: 30),
           Text('Quantity',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _quantityController,
@@ -73,14 +74,16 @@ class _CommodityQuantityStepState extends State<CommodityQuantityStep> {
           ),
           const SizedBox(height: Spacing.xxl),
           Text('Unit of Measurement',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+              border: Border.all(
+                  color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
             ),
             child: CupertinoButton(
               onPressed: () {
@@ -97,7 +100,8 @@ class _CommodityQuantityStepState extends State<CommodityQuantityStep> {
                             color: AppStyles.getCardColor(context),
                             border: Border(
                               bottom: BorderSide(
-                                color: CupertinoColors.systemGrey.withValues(alpha: 0.2),
+                                color: CupertinoColors.systemGrey
+                                    .withValues(alpha: 0.2),
                               ),
                             ),
                           ),

@@ -156,7 +156,9 @@ class _DeductionStepState extends State<DeductionStep> {
                     : CupertinoColors.systemGreen.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: hasInsufficientBalance ? CupertinoColors.systemRed : CupertinoColors.systemGreen,
+                  color: hasInsufficientBalance
+                      ? CupertinoColors.systemRed
+                      : CupertinoColors.systemGreen,
                   width: 1,
                 ),
               ),
@@ -203,7 +205,8 @@ class _DeductionStepState extends State<DeductionStep> {
                     Expanded(
                       child: Text(
                         'Insufficient balance in ${account.name}. Please add funds first.',
-                        style: const TextStyle(color: CupertinoColors.systemRed),
+                        style:
+                            const TextStyle(color: CupertinoColors.systemRed),
                       ),
                     ),
                   ],

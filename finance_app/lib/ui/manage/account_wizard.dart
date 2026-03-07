@@ -659,8 +659,8 @@ class _AccountWizardState extends State<AccountWizard> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text('₹',
-                    style:
-                        AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.display)),
+                    style: AppStyles.titleStyle(context)
+                        .copyWith(fontSize: TypeScale.display)),
                 const SizedBox(width: Spacing.sm),
                 IntrinsicWidth(
                   child: CupertinoTextField(
@@ -672,8 +672,9 @@ class _AccountWizardState extends State<AccountWizard> {
                       color: AppStyles.getCardColor(context),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    style: AppStyles.titleStyle(context)
-                        .copyWith(fontSize: TypeScale.display, fontWeight: FontWeight.bold),
+                    style: AppStyles.titleStyle(context).copyWith(
+                        fontSize: TypeScale.display,
+                        fontWeight: FontWeight.bold),
                     onChanged: (_) => setState(() {}),
                     onSubmitted: (value) {
                       // Auto-proceed when user taps Done on keyboard
@@ -1397,14 +1398,13 @@ class _AccountWizardState extends State<AccountWizard> {
                               if (bankNameController.text.trim().isNotEmpty) {
                                 final name = bankNameController.text.trim();
                                 if (banksController.bankNameExists(name)) {
-                                  toast_lib.toast.showError(
-                                      '"$name" already exists');
+                                  toast_lib.toast
+                                      .showError('"$name" already exists');
                                   return;
                                 }
                                 // Add new bank to controller
-                                final newBankId = name
-                                    .replaceAll(' ', '_')
-                                    .toLowerCase();
+                                final newBankId =
+                                    name.replaceAll(' ', '_').toLowerCase();
                                 final newBank = {
                                   'id': newBankId,
                                   'name': name,
@@ -1662,8 +1662,8 @@ class _AccountWizardState extends State<AccountWizard> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text('₹',
-                      style:
-                          AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.display)),
+                      style: AppStyles.titleStyle(context)
+                          .copyWith(fontSize: TypeScale.display)),
                   const SizedBox(width: Spacing.sm),
                   IntrinsicWidth(
                     child: CupertinoTextField(
@@ -1675,8 +1675,9 @@ class _AccountWizardState extends State<AccountWizard> {
                         color: AppStyles.getCardColor(context),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      style: AppStyles.titleStyle(context)
-                          .copyWith(fontSize: TypeScale.display, fontWeight: FontWeight.bold),
+                      style: AppStyles.titleStyle(context).copyWith(
+                          fontSize: TypeScale.display,
+                          fontWeight: FontWeight.bold),
                       onSubmitted: (value) {
                         // Auto-proceed when user taps Done on keyboard
                         if (_balanceController.text.isNotEmpty) {
@@ -1697,8 +1698,8 @@ class _AccountWizardState extends State<AccountWizard> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text('₹',
-                      style:
-                          AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.display)),
+                      style: AppStyles.titleStyle(context)
+                          .copyWith(fontSize: TypeScale.display)),
                   const SizedBox(width: Spacing.sm),
                   IntrinsicWidth(
                     child: CupertinoTextField(
@@ -1710,8 +1711,9 @@ class _AccountWizardState extends State<AccountWizard> {
                         color: AppStyles.getCardColor(context),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      style: AppStyles.titleStyle(context)
-                          .copyWith(fontSize: TypeScale.display, fontWeight: FontWeight.bold),
+                      style: AppStyles.titleStyle(context).copyWith(
+                          fontSize: TypeScale.display,
+                          fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
@@ -1725,8 +1727,8 @@ class _AccountWizardState extends State<AccountWizard> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text('₹',
-                      style:
-                          AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.display)),
+                      style: AppStyles.titleStyle(context)
+                          .copyWith(fontSize: TypeScale.display)),
                   const SizedBox(width: Spacing.sm),
                   IntrinsicWidth(
                     child: CupertinoTextField(
@@ -1738,8 +1740,9 @@ class _AccountWizardState extends State<AccountWizard> {
                         color: AppStyles.getCardColor(context),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      style: AppStyles.titleStyle(context)
-                          .copyWith(fontSize: TypeScale.display, fontWeight: FontWeight.bold),
+                      style: AppStyles.titleStyle(context).copyWith(
+                          fontSize: TypeScale.display,
+                          fontWeight: FontWeight.bold),
                       onSubmitted: (value) {
                         // Auto-proceed when user taps Done on keyboard if credit limit is filled
                         if (_creditLimitController.text.isNotEmpty) {
@@ -1787,8 +1790,8 @@ class _AccountWizardState extends State<AccountWizard> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text('₹',
-                      style:
-                          AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.display)),
+                      style: AppStyles.titleStyle(context)
+                          .copyWith(fontSize: TypeScale.display)),
                   const SizedBox(width: Spacing.sm),
                   IntrinsicWidth(
                     child: CupertinoTextField(
@@ -1800,8 +1803,9 @@ class _AccountWizardState extends State<AccountWizard> {
                         color: AppStyles.getCardColor(context),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      style: AppStyles.titleStyle(context)
-                          .copyWith(fontSize: TypeScale.display, fontWeight: FontWeight.bold),
+                      style: AppStyles.titleStyle(context).copyWith(
+                          fontSize: TypeScale.display,
+                          fontWeight: FontWeight.bold),
                       onSubmitted: (value) {
                         // Auto-proceed when user taps Done on keyboard
                         if (_balanceController.text.isNotEmpty) {

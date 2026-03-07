@@ -103,7 +103,8 @@ class FOTypeStep extends StatelessWidget {
           ),
           const SizedBox(height: Spacing.xxl),
           Text('Symbol',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           CupertinoTextField(
             placeholder: 'e.g., NIFTY, BANKNIFTY, GOLD',
@@ -116,7 +117,8 @@ class FOTypeStep extends StatelessWidget {
           ),
           const SizedBox(height: Spacing.xl),
           Text('Contract Name',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           CupertinoTextField(
             placeholder: 'e.g., NIFTY 50 Index Futures',

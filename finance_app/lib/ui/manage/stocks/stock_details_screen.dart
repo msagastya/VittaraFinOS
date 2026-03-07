@@ -418,7 +418,8 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
     );
   }
 
-  String _formatDate(DateTime date) {return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
+  String _formatDate(DateTime date) {
+    return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
   }
 }
 
@@ -619,7 +620,8 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                           : _step == 2
                               ? 'Extra Charges (Optional)'
                               : 'Review & Confirm',
-                  style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title1),
+                  style: AppStyles.titleStyle(context)
+                      .copyWith(fontSize: TypeScale.title1),
                 ),
                 SizedBox(height: Spacing.sm),
                 Text(
@@ -1000,7 +1002,8 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                   SizedBox(height: Spacing.sm),
                   Text(
                     _selectedAccount!.name,
-                    style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.headline),
+                    style: AppStyles.titleStyle(context)
+                        .copyWith(fontSize: TypeScale.headline),
                   ),
                   SizedBox(height: Spacing.xs),
                   Text(
@@ -1135,8 +1138,9 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text('Total Amount',
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: TypeScale.headline)),
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: TypeScale.headline)),
                   Text(
                     '₹${_totalCost.toStringAsFixed(2)}',
                     style: const TextStyle(
@@ -1192,8 +1196,9 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text('Total Amount',
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: TypeScale.headline)),
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: TypeScale.headline)),
                   Text(
                     '₹${_totalCost.toStringAsFixed(2)}',
                     style: const TextStyle(
@@ -1231,7 +1236,8 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
     );
   }
 
-  String _formatDate(DateTime date) {return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
+  String _formatDate(DateTime date) {
+    return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
   }
 }
 
@@ -1446,7 +1452,8 @@ class _SellModalState extends State<_SellModal> {
                           : _step == 2
                               ? 'Extra Charges (Optional)'
                               : 'Review & Confirm',
-                  style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title1),
+                  style: AppStyles.titleStyle(context)
+                      .copyWith(fontSize: TypeScale.title1),
                 ),
                 SizedBox(height: Spacing.sm),
                 Text(
@@ -1653,7 +1660,8 @@ class _SellModalState extends State<_SellModal> {
                   SizedBox(height: Spacing.sm),
                   Text(
                     _selectedAccount!.name,
-                    style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.headline),
+                    style: AppStyles.titleStyle(context)
+                        .copyWith(fontSize: TypeScale.headline),
                   ),
                   SizedBox(height: Spacing.xs),
                   Text(
@@ -1687,7 +1695,8 @@ class _SellModalState extends State<_SellModal> {
         Text(
           'Brokerage fees, taxes, or other charges',
           style: TextStyle(
-              color: AppStyles.getSecondaryTextColor(context), fontSize: TypeScale.footnote),
+              color: AppStyles.getSecondaryTextColor(context),
+              fontSize: TypeScale.footnote),
         ),
         SizedBox(height: Spacing.md),
         CupertinoTextField(
@@ -1738,8 +1747,9 @@ class _SellModalState extends State<_SellModal> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text('Net Proceeds',
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: TypeScale.headline)),
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: TypeScale.headline)),
                   Text(
                     '₹${_netProceeds.toStringAsFixed(2)}',
                     style: const TextStyle(
@@ -1795,8 +1805,9 @@ class _SellModalState extends State<_SellModal> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text('Net Proceeds',
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: TypeScale.headline)),
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: TypeScale.headline)),
                   Text(
                     '₹${_netProceeds.toStringAsFixed(2)}',
                     style: const TextStyle(
@@ -1834,7 +1845,8 @@ class _SellModalState extends State<_SellModal> {
     );
   }
 
-  String _formatDate(DateTime date) {return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
+  String _formatDate(DateTime date) {
+    return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
   }
 }
 
@@ -1896,7 +1908,8 @@ class _SIPModalState extends State<_SIPModal> {
     );
   }
 
-  String _formatDate(DateTime date) {return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
+  String _formatDate(DateTime date) {
+    return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
   }
 
   @override
@@ -2062,7 +2075,8 @@ class _SIPModalState extends State<_SIPModal> {
                                   : _step == 4
                                       ? 'Link Account'
                                       : 'Review & Confirm',
-                  style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title1),
+                  style: AppStyles.titleStyle(context)
+                      .copyWith(fontSize: TypeScale.title1),
                 ),
                 SizedBox(height: Spacing.sm),
                 Text(
@@ -2425,7 +2439,8 @@ class _SIPModalState extends State<_SIPModal> {
                   SizedBox(height: Spacing.sm),
                   Text(
                     _selectedAccount!.name,
-                    style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.headline),
+                    style: AppStyles.titleStyle(context)
+                        .copyWith(fontSize: TypeScale.headline),
                   ),
                   SizedBox(height: Spacing.xs),
                   Text(
@@ -2545,7 +2560,8 @@ class _EditModalState extends State<_EditModal> {
                 SizedBox(height: Spacing.lg),
                 Text(
                   'Edit Investment',
-                  style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title1),
+                  style: AppStyles.titleStyle(context)
+                      .copyWith(fontSize: TypeScale.title1),
                 ),
                 SizedBox(height: Spacing.xxxl),
                 Text('Investment Name',
@@ -2701,7 +2717,8 @@ class _DividendModalState extends State<_DividendModal> {
                 SizedBox(height: Spacing.lg),
                 Text(
                   'Record Dividend',
-                  style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title1),
+                  style: AppStyles.titleStyle(context)
+                      .copyWith(fontSize: TypeScale.title1),
                 ),
                 SizedBox(height: Spacing.sm),
                 Text(
@@ -2970,7 +2987,8 @@ class _DividendModalState extends State<_DividendModal> {
     );
   }
 
-  String _formatDate(DateTime date) {return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
+  String _formatDate(DateTime date) {
+    return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
   }
 }
 
@@ -3010,8 +3028,8 @@ class _AccountSelector extends StatelessWidget {
                     SizedBox(height: Spacing.lg),
                     Text(
                       'Select Account',
-                      style:
-                          AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title1),
+                      style: AppStyles.titleStyle(context)
+                          .copyWith(fontSize: TypeScale.title1),
                     ),
                     SizedBox(height: Spacing.xxxl),
                     if (accounts.isEmpty)

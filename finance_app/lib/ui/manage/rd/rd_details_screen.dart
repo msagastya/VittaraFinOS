@@ -34,172 +34,173 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
       ),
       child: SafeArea(
         child: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Header Card
-            Container(
-              padding: const EdgeInsets.all(Spacing.xl),
-              decoration: BoxDecoration(
-                color: AppStyles.getCardColor(context),
-                border: Border(
-                  bottom: BorderSide(
-                    color: AppStyles.getDividerColor(context),
-                    width: 0.5,
+          child: Column(
+            children: [
+              // Header Card
+              Container(
+                padding: const EdgeInsets.all(Spacing.xl),
+                decoration: BoxDecoration(
+                  color: AppStyles.getCardColor(context),
+                  border: Border(
+                    bottom: BorderSide(
+                      color: AppStyles.getDividerColor(context),
+                      width: 0.5,
+                    ),
                   ),
                 ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // RD Name and Status
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              widget.rd.name,
-                              style: TextStyle(
-                                color: AppStyles.getTextColor(context),
-                                fontSize: TypeScale.title2,
-                                fontWeight: FontWeight.bold,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // RD Name and Status
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.rd.name,
+                                style: TextStyle(
+                                  color: AppStyles.getTextColor(context),
+                                  fontSize: TypeScale.title2,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: Spacing.xs),
-                            Text(
-                              'Linked: ${widget.rd.linkedAccountName}',
-                              style: TextStyle(
-                                color: AppStyles.getSecondaryTextColor(context),
-                                fontSize: TypeScale.subhead,
+                              const SizedBox(height: Spacing.xs),
+                              Text(
+                                'Linked: ${widget.rd.linkedAccountName}',
+                                style: TextStyle(
+                                  color:
+                                      AppStyles.getSecondaryTextColor(context),
+                                  fontSize: TypeScale.subhead,
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _getStatusColor(widget.rd.status)
-                              .withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          widget.rd.getStatusLabel(),
-                          style: TextStyle(
-                            color: _getStatusColor(widget.rd.status),
-                            fontSize: TypeScale.footnote,
-                            fontWeight: FontWeight.w600,
+                            ],
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: Spacing.xl),
-                  // Key Metrics
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildMetric(
-                        context,
-                        'Per Installment',
-                        '₹${widget.rd.monthlyAmount.toStringAsFixed(0)}',
-                        AppStyles.getSecondaryTextColor(context),
-                      ),
-                      _buildMetric(
-                        context,
-                        'Total Invested',
-                        '₹${widget.rd.totalInvestedAmount.toStringAsFixed(0)}',
-                        AppStyles.getPrimaryColor(context),
-                      ),
-                      _buildMetric(
-                        context,
-                        'Est. Maturity',
-                        '₹${widget.rd.maturityValue.toStringAsFixed(0)}',
-                        CupertinoColors.systemGreen,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            // Detailed Information
-            Container(
-              padding: const EdgeInsets.all(Spacing.xl),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Timeline Section
-                  Text(
-                    'Timeline',
-                    style: TextStyle(
-                      color: AppStyles.getTextColor(context),
-                      fontWeight: FontWeight.bold,
-                      fontSize: TypeScale.headline,
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _getStatusColor(widget.rd.status)
+                                .withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            widget.rd.getStatusLabel(),
+                            style: TextStyle(
+                              color: _getStatusColor(widget.rd.status),
+                              fontSize: TypeScale.footnote,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: Spacing.lg),
-                  _buildTimelineItem(
-                    context,
-                    'Started',
-                    _formatDate(widget.rd.startDate),
-                    CupertinoIcons.checkmark_circle,
-                  ),
-                  _buildTimelineItem(
-                    context,
-                    'Maturity',
-                    _formatDate(widget.rd.maturityDate),
-                    widget.rd.daysUntilMaturity <= 0
-                        ? CupertinoIcons.checkmark_circle
-                        : CupertinoIcons.clock,
-                  ),
-                  const SizedBox(height: Spacing.xl),
-                  // Details Grid
-                  Text(
-                    'Details',
-                    style: TextStyle(
-                      color: AppStyles.getTextColor(context),
-                      fontWeight: FontWeight.bold,
-                      fontSize: TypeScale.headline,
+                    const SizedBox(height: Spacing.xl),
+                    // Key Metrics
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildMetric(
+                          context,
+                          'Per Installment',
+                          '₹${widget.rd.monthlyAmount.toStringAsFixed(0)}',
+                          AppStyles.getSecondaryTextColor(context),
+                        ),
+                        _buildMetric(
+                          context,
+                          'Total Invested',
+                          '₹${widget.rd.totalInvestedAmount.toStringAsFixed(0)}',
+                          AppStyles.getPrimaryColor(context),
+                        ),
+                        _buildMetric(
+                          context,
+                          'Est. Maturity',
+                          '₹${widget.rd.maturityValue.toStringAsFixed(0)}',
+                          CupertinoColors.systemGreen,
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: Spacing.lg),
-                  _buildDetailRow('Monthly Amount',
-                      '₹${widget.rd.monthlyAmount.toStringAsFixed(2)}'),
-                  _buildDetailRow(
-                      'Total Installments', '${widget.rd.totalInstallments}'),
-                  _buildDetailRow(
-                      'Completed', '${widget.rd.completedInstallments}'),
-                  _buildDetailRow(
-                      'Pending', '${widget.rd.pendingInstallments}'),
-                  _buildDetailRow(
-                      'Interest Rate', '${widget.rd.interestRate}% p.a.'),
-                  _buildDetailRow(
-                      'Payment Frequency', widget.rd.paymentFrequency.name),
-                  _buildDetailRow(
-                    'Total Interest',
-                    '₹${widget.rd.totalInterestAtMaturity.toStringAsFixed(2)}',
-                    isHighlight: true,
-                  ),
-                  _buildDetailRow(
-                    'Maturity Value',
-                    '₹${widget.rd.maturityValue.toStringAsFixed(2)}',
-                    isHighlight: true,
-                  ),
-                  const SizedBox(height: Spacing.xl),
-                ],
+                  ],
+                ),
               ),
-            ),
-            // Action Buttons
-            _buildActionButtons(context),
-            const SizedBox(height: 30),
-          ],
+              // Detailed Information
+              Container(
+                padding: const EdgeInsets.all(Spacing.xl),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Timeline Section
+                    Text(
+                      'Timeline',
+                      style: TextStyle(
+                        color: AppStyles.getTextColor(context),
+                        fontWeight: FontWeight.bold,
+                        fontSize: TypeScale.headline,
+                      ),
+                    ),
+                    const SizedBox(height: Spacing.lg),
+                    _buildTimelineItem(
+                      context,
+                      'Started',
+                      _formatDate(widget.rd.startDate),
+                      CupertinoIcons.checkmark_circle,
+                    ),
+                    _buildTimelineItem(
+                      context,
+                      'Maturity',
+                      _formatDate(widget.rd.maturityDate),
+                      widget.rd.daysUntilMaturity <= 0
+                          ? CupertinoIcons.checkmark_circle
+                          : CupertinoIcons.clock,
+                    ),
+                    const SizedBox(height: Spacing.xl),
+                    // Details Grid
+                    Text(
+                      'Details',
+                      style: TextStyle(
+                        color: AppStyles.getTextColor(context),
+                        fontWeight: FontWeight.bold,
+                        fontSize: TypeScale.headline,
+                      ),
+                    ),
+                    const SizedBox(height: Spacing.lg),
+                    _buildDetailRow('Monthly Amount',
+                        '₹${widget.rd.monthlyAmount.toStringAsFixed(2)}'),
+                    _buildDetailRow(
+                        'Total Installments', '${widget.rd.totalInstallments}'),
+                    _buildDetailRow(
+                        'Completed', '${widget.rd.completedInstallments}'),
+                    _buildDetailRow(
+                        'Pending', '${widget.rd.pendingInstallments}'),
+                    _buildDetailRow(
+                        'Interest Rate', '${widget.rd.interestRate}% p.a.'),
+                    _buildDetailRow(
+                        'Payment Frequency', widget.rd.paymentFrequency.name),
+                    _buildDetailRow(
+                      'Total Interest',
+                      '₹${widget.rd.totalInterestAtMaturity.toStringAsFixed(2)}',
+                      isHighlight: true,
+                    ),
+                    _buildDetailRow(
+                      'Maturity Value',
+                      '₹${widget.rd.maturityValue.toStringAsFixed(2)}',
+                      isHighlight: true,
+                    ),
+                    const SizedBox(height: Spacing.xl),
+                  ],
+                ),
+              ),
+              // Action Buttons
+              _buildActionButtons(context),
+              const SizedBox(height: 30),
+            ],
+          ),
         ),
-      ),
       ),
     );
   }

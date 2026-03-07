@@ -196,6 +196,7 @@ class GoldInvestmentDateStep extends StatelessWidget {
     );
   }
 
-  String _formatDate(DateTime date) {return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
+  String _formatDate(DateTime date) {
+    return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
   }
 }

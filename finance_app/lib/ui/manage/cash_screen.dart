@@ -545,7 +545,8 @@ class _CashAccountCard extends StatelessWidget {
                 children: [
                   Text(
                     account.name,
-                    style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.headline),
+                    style: AppStyles.titleStyle(context)
+                        .copyWith(fontSize: TypeScale.headline),
                   ),
                   const SizedBox(height: 3),
                   Text(

@@ -330,8 +330,7 @@ class _CryptoDetailsScreenState extends State<CryptoDetailsScreen> {
       BuildContext context, InvestmentsController investmentsCtrl) {
     final priceCtrl =
         TextEditingController(text: crypto.currentPrice.toStringAsFixed(2));
-    final notesCtrl =
-        TextEditingController(text: crypto.notes ?? '');
+    final notesCtrl = TextEditingController(text: crypto.notes ?? '');
 
     showCupertinoModalPopup(
       context: context,
@@ -400,19 +399,15 @@ class _CryptoDetailsScreenState extends State<CryptoDetailsScreen> {
                       Expanded(
                         child: CupertinoButton.filled(
                           onPressed: () async {
-                            final newPrice =
-                                double.tryParse(priceCtrl.text) ??
-                                    crypto.currentPrice;
-                            final newNotes =
-                                notesCtrl.text.trim().isEmpty
-                                    ? null
-                                    : notesCtrl.text.trim();
-                            final updatedCrypto =
-                                crypto.copyWith(
-                                    currentPrice: newPrice, notes: newNotes);
-                            final updatedMeta =
-                                Map<String, dynamic>.from(
-                                    widget.investment.metadata ?? {});
+                            final newPrice = double.tryParse(priceCtrl.text) ??
+                                crypto.currentPrice;
+                            final newNotes = notesCtrl.text.trim().isEmpty
+                                ? null
+                                : notesCtrl.text.trim();
+                            final updatedCrypto = crypto.copyWith(
+                                currentPrice: newPrice, notes: newNotes);
+                            final updatedMeta = Map<String, dynamic>.from(
+                                widget.investment.metadata ?? {});
                             updatedMeta['currentPrice'] = newPrice;
                             updatedMeta['notes'] = newNotes;
                             updatedMeta['lastUpdated'] =
@@ -480,9 +475,8 @@ class _EditField extends StatelessWidget {
           maxLines: maxLines,
           style: TextStyle(color: AppStyles.getTextColor(context)),
           decoration: BoxDecoration(
-            color: isDark
-                ? const Color(0xFF2C2C2E)
-                : CupertinoColors.systemGrey6,
+            color:
+                isDark ? const Color(0xFF2C2C2E) : CupertinoColors.systemGrey6,
             borderRadius: BorderRadius.circular(8),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -515,7 +509,8 @@ class _DetailRow extends StatelessWidget {
   Widget build(BuildContext context) {
     Color valueColor = color ?? AppStyles.getTextColor(context);
     if (isGainLoss) {
-      valueColor = isPositive ? CupertinoColors.systemGreen : CupertinoColors.systemRed;
+      valueColor =
+          isPositive ? CupertinoColors.systemGreen : CupertinoColors.systemRed;
     }
 
     return Row(

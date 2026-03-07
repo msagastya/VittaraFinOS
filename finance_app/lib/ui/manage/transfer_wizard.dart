@@ -741,8 +741,8 @@ class _TransferWizardState extends State<TransferWizard> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text('₹',
-                    style:
-                        AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.display)),
+                    style: AppStyles.titleStyle(context)
+                        .copyWith(fontSize: TypeScale.display)),
                 const SizedBox(width: Spacing.sm),
                 IntrinsicWidth(
                   child: CupertinoTextField(
@@ -759,8 +759,9 @@ class _TransferWizardState extends State<TransferWizard> {
                       color: AppStyles.getCardColor(context),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    style: AppStyles.titleStyle(context)
-                        .copyWith(fontSize: TypeScale.display, fontWeight: FontWeight.bold),
+                    style: AppStyles.titleStyle(context).copyWith(
+                        fontSize: TypeScale.display,
+                        fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
@@ -783,8 +784,8 @@ class _TransferWizardState extends State<TransferWizard> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text('₹',
-                      style:
-                          AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.largeTitle)),
+                      style: AppStyles.titleStyle(context)
+                          .copyWith(fontSize: TypeScale.largeTitle)),
                   const SizedBox(width: Spacing.sm),
                   IntrinsicWidth(
                     child: CupertinoTextField(
@@ -797,8 +798,9 @@ class _TransferWizardState extends State<TransferWizard> {
                         color: AppStyles.getCardColor(context),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      style: AppStyles.titleStyle(context)
-                          .copyWith(fontSize: TypeScale.largeTitle, fontWeight: FontWeight.bold),
+                      style: AppStyles.titleStyle(context).copyWith(
+                          fontSize: TypeScale.largeTitle,
+                          fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
@@ -953,7 +955,8 @@ class _TransferWizardState extends State<TransferWizard> {
                                         Text(
                                           app['name'],
                                           style: AppStyles.titleStyle(context)
-                                              .copyWith(fontSize: TypeScale.headline),
+                                              .copyWith(
+                                                  fontSize: TypeScale.headline),
                                         ),
                                         const SizedBox(height: Spacing.xs),
                                         Text(
@@ -1097,8 +1100,8 @@ class _TransferWizardState extends State<TransferWizard> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text('₹',
-                      style:
-                          AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.largeTitle)),
+                      style: AppStyles.titleStyle(context)
+                          .copyWith(fontSize: TypeScale.largeTitle)),
                   const SizedBox(width: Spacing.sm),
                   IntrinsicWidth(
                     child: CupertinoTextField(
@@ -1113,8 +1116,9 @@ class _TransferWizardState extends State<TransferWizard> {
                         color: AppStyles.getCardColor(context),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      style: AppStyles.titleStyle(context)
-                          .copyWith(fontSize: TypeScale.largeTitle, fontWeight: FontWeight.bold),
+                      style: AppStyles.titleStyle(context).copyWith(
+                          fontSize: TypeScale.largeTitle,
+                          fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
@@ -1178,8 +1182,8 @@ class _TransferWizardState extends State<TransferWizard> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text('₹',
-                    style:
-                        AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.display)),
+                    style: AppStyles.titleStyle(context)
+                        .copyWith(fontSize: TypeScale.display)),
                 const SizedBox(width: Spacing.sm),
                 IntrinsicWidth(
                   child: CupertinoTextField(
@@ -1194,8 +1198,9 @@ class _TransferWizardState extends State<TransferWizard> {
                       color: AppStyles.getCardColor(context),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    style: AppStyles.titleStyle(context)
-                        .copyWith(fontSize: TypeScale.display, fontWeight: FontWeight.bold),
+                    style: AppStyles.titleStyle(context).copyWith(
+                        fontSize: TypeScale.display,
+                        fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
@@ -1526,7 +1531,8 @@ class _TransferWizardState extends State<TransferWizard> {
               child: CupertinoDatePicker(
                 mode: CupertinoDatePickerMode.date,
                 initialDateTime: _selectedTransferDate,
-                minimumDate: DateTime.now().subtract(const Duration(days: 365 * 30)),
+                minimumDate:
+                    DateTime.now().subtract(const Duration(days: 365 * 30)),
                 maximumDate: DateTime.now().add(const Duration(days: 3650)),
                 onDateTimeChanged: (value) {
                   setState(() => _selectedTransferDate = value);
@@ -1778,7 +1784,8 @@ class _PaymentAppSetupWizardState extends State<_PaymentAppSetupWizard> {
           children: [
             Text(
               'Disabled Payment Apps',
-              style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title1),
+              style: AppStyles.titleStyle(context)
+                  .copyWith(fontSize: TypeScale.title1),
             ),
             const SizedBox(height: Spacing.sm),
             Text(
@@ -1833,7 +1840,8 @@ class _PaymentAppSetupWizardState extends State<_PaymentAppSetupWizard> {
           children: [
             Text(
               'Add Payment App',
-              style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title1),
+              style: AppStyles.titleStyle(context)
+                  .copyWith(fontSize: TypeScale.title1),
             ),
             const SizedBox(height: Spacing.lg),
             CupertinoTextField(
@@ -1896,7 +1904,8 @@ class _PaymentAppSetupWizardState extends State<_PaymentAppSetupWizard> {
           children: [
             Text(
               'Add wallet for $appName?',
-              style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title1),
+              style: AppStyles.titleStyle(context)
+                  .copyWith(fontSize: TypeScale.title1),
             ),
             const SizedBox(height: 14),
             Row(

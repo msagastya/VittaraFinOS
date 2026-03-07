@@ -425,9 +425,7 @@ class _LockScreenState extends State<LockScreen> {
         Text(
           _pinError ? 'Incorrect PIN. Try again.' : 'Enter your 6-digit PIN',
           style: TextStyle(
-            color: _pinError
-                ? Colors.red
-                : Colors.white.withValues(alpha: 0.6),
+            color: _pinError ? Colors.red : Colors.white.withValues(alpha: 0.6),
             fontSize: TypeScale.body,
           ),
         ),
@@ -1341,8 +1339,9 @@ class DashboardScreen extends StatelessWidget {
 
             // Determine color based on positive/negative
             final isPositive = totalNetWorth >= 0;
-            final displayColor =
-                isPositive ? AppStyles.getPrimaryColor(context) : CupertinoColors.systemRed;
+            final displayColor = isPositive
+                ? AppStyles.getPrimaryColor(context)
+                : CupertinoColors.systemRed;
 
             return Column(
               mainAxisSize: MainAxisSize.min,
@@ -1516,7 +1515,8 @@ class DashboardScreen extends StatelessWidget {
                   minHeight: 6,
                   backgroundColor:
                       AppStyles.getBackground(context).withValues(alpha: 0.5),
-                  valueColor: const AlwaysStoppedAnimation<Color>(CupertinoColors.activeBlue),
+                  valueColor: const AlwaysStoppedAnimation<Color>(
+                      CupertinoColors.activeBlue),
                 ),
                 SizedBox(height: Spacing.sm),
                 Row(
@@ -1524,7 +1524,9 @@ class DashboardScreen extends StatelessWidget {
                   children: [
                     Text(
                       'Saved ₹${totalSaved.toStringAsFixed(0)}',
-                      style: const TextStyle(fontSize: TypeScale.footnote, color: CupertinoColors.systemGreen),
+                      style: const TextStyle(
+                          fontSize: TypeScale.footnote,
+                          color: CupertinoColors.systemGreen),
                     ),
                     Text(
                       'Goal ₹${totalTarget.toStringAsFixed(0)}',
@@ -1564,8 +1566,8 @@ class DashboardScreen extends StatelessWidget {
                       ),
                     ),
                     if (exceeded.isNotEmpty)
-                      _buildBadge(
-                          context, 'Over', exceeded.length, CupertinoColors.systemRed),
+                      _buildBadge(context, 'Over', exceeded.length,
+                          CupertinoColors.systemRed),
                     if (warning.isNotEmpty) ...[
                       SizedBox(width: Spacing.xs),
                       _buildBadge(context, 'Near', warning.length,
@@ -1577,8 +1579,9 @@ class DashboardScreen extends StatelessWidget {
                   SizedBox(height: Spacing.md),
                   ...alertBudgets.map((b) {
                     final isExceeded = b.status.name == 'exceeded';
-                    final color =
-                        isExceeded ? CupertinoColors.systemRed : CupertinoColors.systemOrange;
+                    final color = isExceeded
+                        ? CupertinoColors.systemRed
+                        : CupertinoColors.systemOrange;
                     final pct = b.usagePercentage.toStringAsFixed(0);
                     return Container(
                       margin: EdgeInsets.only(bottom: Spacing.xs),
@@ -1587,8 +1590,7 @@ class DashboardScreen extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: color.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                            color: color.withValues(alpha: 0.2)),
+                        border: Border.all(color: color.withValues(alpha: 0.2)),
                       ),
                       child: Row(
                         children: [
@@ -1673,7 +1675,8 @@ class DashboardScreen extends StatelessWidget {
                   minHeight: 6,
                   backgroundColor:
                       AppStyles.getBackground(context).withValues(alpha: 0.5),
-                  valueColor: const AlwaysStoppedAnimation<Color>(CupertinoColors.systemGreen),
+                  valueColor: const AlwaysStoppedAnimation<Color>(
+                      CupertinoColors.systemGreen),
                 ),
                 SizedBox(height: Spacing.sm),
                 Row(
@@ -1681,7 +1684,9 @@ class DashboardScreen extends StatelessWidget {
                   children: [
                     Text(
                       'Saved ₹${totalSaved.toStringAsFixed(0)}',
-                      style: const TextStyle(fontSize: TypeScale.footnote, color: CupertinoColors.systemGreen),
+                      style: const TextStyle(
+                          fontSize: TypeScale.footnote,
+                          color: CupertinoColors.systemGreen),
                     ),
                     Text(
                       'Target ₹${totalTarget.toStringAsFixed(0)}',
@@ -1746,7 +1751,9 @@ class DashboardScreen extends StatelessWidget {
                       : 'Budget health looks stable',
                   style: TextStyle(
                     fontSize: TypeScale.caption,
-                    color: budgetWarnings > 0 ? CupertinoColors.systemOrange : CupertinoColors.systemGreen,
+                    color: budgetWarnings > 0
+                        ? CupertinoColors.systemOrange
+                        : CupertinoColors.systemGreen,
                   ),
                 ),
               ],
@@ -1803,7 +1810,9 @@ class DashboardScreen extends StatelessWidget {
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: (isDebit ? CupertinoColors.systemRed : CupertinoColors.systemGreen)
+                            color: (isDebit
+                                    ? CupertinoColors.systemRed
+                                    : CupertinoColors.systemGreen)
                                 .withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -1812,7 +1821,9 @@ class DashboardScreen extends StatelessWidget {
                                 ? CupertinoIcons.arrow_up
                                 : CupertinoIcons.arrow_down,
                             size: 18,
-                            color: isDebit ? CupertinoColors.systemRed : CupertinoColors.systemGreen,
+                            color: isDebit
+                                ? CupertinoColors.systemRed
+                                : CupertinoColors.systemGreen,
                           ),
                         ),
                         SizedBox(width: Spacing.md),
@@ -1847,7 +1858,9 @@ class DashboardScreen extends StatelessWidget {
                           style: TextStyle(
                             fontSize: TypeScale.subhead,
                             fontWeight: FontWeight.bold,
-                            color: isDebit ? CupertinoColors.systemRed : CupertinoColors.systemGreen,
+                            color: isDebit
+                                ? CupertinoColors.systemRed
+                                : CupertinoColors.systemGreen,
                           ),
                         ),
                       ],
@@ -1869,8 +1882,18 @@ class DashboardScreen extends StatelessWidget {
             final now = DateTime.now();
             final monthStart = DateTime(now.year, now.month, 1);
             const monthNames = [
-              'January', 'February', 'March', 'April', 'May', 'June',
-              'July', 'August', 'September', 'October', 'November', 'December'
+              'January',
+              'February',
+              'March',
+              'April',
+              'May',
+              'June',
+              'July',
+              'August',
+              'September',
+              'October',
+              'November',
+              'December'
             ];
             final monthLabel = '${monthNames[now.month - 1]} ${now.year}';
 
@@ -1887,7 +1910,8 @@ class DashboardScreen extends StatelessWidget {
             }
             final net = income - expenses;
             final total = income + expenses;
-            final incomeRatio = total > 0 ? (income / total).clamp(0.0, 1.0) : 0.5;
+            final incomeRatio =
+                total > 0 ? (income / total).clamp(0.0, 1.0) : 0.5;
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -2093,9 +2117,7 @@ class DashboardScreen extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          amt > 0
-                              ? '₹${amt.toStringAsFixed(0)} · $freq'
-                              : freq,
+                          amt > 0 ? '₹${amt.toStringAsFixed(0)} · $freq' : freq,
                           style: TextStyle(
                             fontSize: TypeScale.caption,
                             color: AppStyles.getSecondaryTextColor(context),

@@ -329,7 +329,8 @@ class _AccountDetailsStepState extends State<_AccountDetailsStep> {
           Text('Account Details', style: AppStyles.titleStyle(context)),
           const SizedBox(height: 30),
           Text('Account/Reference Number',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _accountController,
@@ -391,7 +392,8 @@ class _ContributionStepState extends State<_ContributionStep> {
               style: AppStyles.titleStyle(context)),
           const SizedBox(height: 30),
           Text('Total Contributed (₹)',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _principalController,
@@ -413,7 +415,8 @@ class _ContributionStepState extends State<_ContributionStep> {
           ),
           const SizedBox(height: Spacing.xxl),
           Text('Current Value (₹)',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _valueController,
@@ -509,7 +512,8 @@ class _Card extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+        border: Border.all(
+            color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
       ),
       child: Column(
         children: List.generate(
@@ -541,7 +545,8 @@ class _Row extends StatelessWidget {
       children: [
         Text(label,
             style: TextStyle(
-                color: AppStyles.getSecondaryTextColor(context), fontSize: TypeScale.subhead)),
+                color: AppStyles.getSecondaryTextColor(context),
+                fontSize: TypeScale.subhead)),
         Text(value,
             style: TextStyle(
                 fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
@@ -568,12 +573,15 @@ class _Summary extends StatelessWidget {
       children: [
         Text(label,
             style: TextStyle(
-                color: AppStyles.getSecondaryTextColor(context), fontSize: TypeScale.subhead)),
+                color: AppStyles.getSecondaryTextColor(context),
+                fontSize: TypeScale.subhead)),
         Text(value,
             style: TextStyle(
                 fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
                 fontSize: isBold ? 14 : 13,
-                color: isPositive ? CupertinoColors.systemGreen : CupertinoColors.systemRed)),
+                color: isPositive
+                    ? CupertinoColors.systemGreen
+                    : CupertinoColors.systemRed)),
       ],
     );
   }

@@ -11,12 +11,10 @@ class RecurringTemplatesController with ChangeNotifier {
   List<RecurringTemplate> get templates => List.unmodifiable(_templates);
 
   /// Templates with a due date in the next 3 days (or overdue).
-  List<RecurringTemplate> get dueSoon => _templates
-      .where((t) {
+  List<RecurringTemplate> get dueSoon => _templates.where((t) {
         final days = t.daysUntilDue();
         return days != null && days <= 3;
-      })
-      .toList();
+      }).toList();
 
   RecurringTemplatesController() {
     _load();
@@ -28,8 +26,9 @@ class RecurringTemplatesController with ChangeNotifier {
       final raw = prefs.getString(_prefsKey);
       if (raw == null) return;
       final List<dynamic> list = jsonDecode(raw);
-      _templates =
-          list.map((e) => RecurringTemplate.fromMap(e as Map<String, dynamic>)).toList();
+      _templates = list
+          .map((e) => RecurringTemplate.fromMap(e as Map<String, dynamic>))
+          .toList();
       notifyListeners();
     } catch (_) {}
   }

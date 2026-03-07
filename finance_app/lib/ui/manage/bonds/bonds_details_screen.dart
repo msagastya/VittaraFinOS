@@ -99,7 +99,8 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                 decoration: BoxDecoration(
                   color: AppStyles.getCardColor(context),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+                  border: Border.all(
+                      color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -140,7 +141,8 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                 decoration: BoxDecoration(
                   color: AppStyles.getCardColor(context),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+                  border: Border.all(
+                      color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -213,7 +215,9 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                       label: 'Gain/Loss',
                       value:
                           '${isProfit ? '+' : ''}₹${gainLoss.toStringAsFixed(2)}',
-                      color: isProfit ? CupertinoColors.systemGreen : CupertinoColors.systemRed,
+                      color: isProfit
+                          ? CupertinoColors.systemGreen
+                          : CupertinoColors.systemRed,
                       isBold: true,
                     ),
                     const SizedBox(height: Spacing.sm),
@@ -221,7 +225,9 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                       label: 'Return %',
                       value:
                           '${isProfit ? '+' : ''}${gainLossPercent.toStringAsFixed(2)}%',
-                      color: isProfit ? CupertinoColors.systemGreen : CupertinoColors.systemRed,
+                      color: isProfit
+                          ? CupertinoColors.systemGreen
+                          : CupertinoColors.systemRed,
                       isBold: true,
                     ),
                     const SizedBox(height: Spacing.sm),
@@ -242,8 +248,9 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                   decoration: BoxDecoration(
                     color: AppStyles.getCardColor(context),
                     borderRadius: BorderRadius.circular(12),
-                    border:
-                        Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+                    border: Border.all(
+                        color:
+                            CupertinoColors.systemGrey.withValues(alpha: 0.2)),
                   ),
                   child: Column(
                     children: [
@@ -305,7 +312,8 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                           children: [
                             Divider(
                               height: 1,
-                              color: CupertinoColors.systemGrey.withValues(alpha: 0.1),
+                              color: CupertinoColors.systemGrey
+                                  .withValues(alpha: 0.1),
                             ),
                             Padding(
                               padding: const EdgeInsets.all(Spacing.md),
@@ -315,7 +323,8 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                                     flex: 2,
                                     child: Text(
                                       '${cf.date.day}/${cf.date.month}/${cf.date.year}',
-                                      style: const TextStyle(fontSize: TypeScale.footnote),
+                                      style: const TextStyle(
+                                          fontSize: TypeScale.footnote),
                                     ),
                                   ),
                                   Expanded(
@@ -363,8 +372,8 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                     color: AppStyles.getCardColor(context),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                        color: CupertinoColors.systemGrey
-                            .withValues(alpha: 0.2)),
+                        color:
+                            CupertinoColors.systemGrey.withValues(alpha: 0.2)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -508,17 +517,14 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                       Expanded(
                         child: CupertinoButton.filled(
                           onPressed: () async {
-                            final newNotes =
-                                notesCtrl.text.trim().isEmpty
-                                    ? null
-                                    : notesCtrl.text.trim();
-                            final updatedMeta =
-                                Map<String, dynamic>.from(
-                                    widget.investment.metadata ?? {});
+                            final newNotes = notesCtrl.text.trim().isEmpty
+                                ? null
+                                : notesCtrl.text.trim();
+                            final updatedMeta = Map<String, dynamic>.from(
+                                widget.investment.metadata ?? {});
                             updatedMeta['notes'] = newNotes;
-                            final updatedInvestment =
-                                widget.investment.copyWith(
-                                    metadata: updatedMeta);
+                            final updatedInvestment = widget.investment
+                                .copyWith(metadata: updatedMeta);
                             await investmentsCtrl
                                 .updateInvestment(updatedInvestment);
                             if (ctx.mounted) {
@@ -571,9 +577,8 @@ class _EditField extends StatelessWidget {
           maxLines: maxLines,
           style: TextStyle(color: AppStyles.getTextColor(context)),
           decoration: BoxDecoration(
-            color: isDark
-                ? const Color(0xFF2C2C2E)
-                : CupertinoColors.systemGrey6,
+            color:
+                isDark ? const Color(0xFF2C2C2E) : CupertinoColors.systemGrey6,
             borderRadius: BorderRadius.circular(8),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),

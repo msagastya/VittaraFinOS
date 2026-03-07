@@ -115,13 +115,15 @@ class _AnalysisCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+        border: Border.all(
+            color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title,
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.lg),
           ...List.generate(
             children.length,
@@ -157,7 +159,8 @@ class _AnalysisRow extends StatelessWidget {
   Widget build(BuildContext context) {
     Color? color;
     if (label.contains('P&L') || label.contains('Loss')) {
-      color = isProfit ? CupertinoColors.systemGreen : CupertinoColors.systemRed;
+      color =
+          isProfit ? CupertinoColors.systemGreen : CupertinoColors.systemRed;
     }
 
     return Column(

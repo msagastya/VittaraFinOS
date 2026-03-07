@@ -45,7 +45,8 @@ class _NPSValuationStepState extends State<NPSValuationStep> {
                   TextStyle(color: AppStyles.getSecondaryTextColor(context))),
           const SizedBox(height: 30),
           Text('Current Account Value (₹)',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _valueController,
@@ -138,7 +139,8 @@ class _StatRow extends StatelessWidget {
       children: [
         Text(label,
             style: TextStyle(
-                fontSize: TypeScale.subhead, color: AppStyles.getSecondaryTextColor(context))),
+                fontSize: TypeScale.subhead,
+                color: AppStyles.getSecondaryTextColor(context))),
         Text(value,
             style: TextStyle(
                 fontWeight: isBold ? FontWeight.bold : FontWeight.w500,

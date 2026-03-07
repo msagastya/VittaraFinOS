@@ -303,7 +303,8 @@ class _MFWizardContentState extends State<_MFWizardContent> {
                         }
                       : null,
                   child: _isSubmitting
-                      ? const CupertinoActivityIndicator(color: CupertinoColors.white)
+                      ? const CupertinoActivityIndicator(
+                          color: CupertinoColors.white)
                       : Text(
                           controller.currentStep >= 4
                               ? (controller.sipActive

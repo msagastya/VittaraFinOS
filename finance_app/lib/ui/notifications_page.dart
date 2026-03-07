@@ -57,7 +57,8 @@ class NotificationsPage extends StatelessWidget {
                     (a.daysUntilDue() ?? 99).compareTo(b.daysUntilDue() ?? 99));
 
               // Budget alerts
-              final exceededBudgets = budgetsController.getBudgetsExceedingLimit();
+              final exceededBudgets =
+                  budgetsController.getBudgetsExceedingLimit();
               final warningBudgets = budgetsController.getBudgetsInWarning();
 
               // Spending insights: categories that exceed last month by ≥20%
@@ -71,8 +72,8 @@ class NotificationsPage extends StatelessWidget {
                 final map = <String, double>{};
                 for (final tx in txs) {
                   if (tx.type != TransactionType.expense) continue;
-                  final cat =
-                      tx.metadata?['categoryName'] as String? ?? 'Uncategorized';
+                  final cat = tx.metadata?['categoryName'] as String? ??
+                      'Uncategorized';
                   map[cat] = (map[cat] ?? 0) + tx.amount;
                 }
                 return map;
@@ -91,18 +92,19 @@ class NotificationsPage extends StatelessWidget {
                   .toList());
 
               // Only surface if current month is at least half over (day >= 10)
-              final spendingInsights = <({String category, double current, double last})>[];
+              final spendingInsights =
+                  <({String category, double current, double last})>[];
               if (now.day >= 10) {
                 for (final entry in thisMonthSpend.entries) {
                   final current = entry.value;
                   final last = lastMonthSpend[entry.key] ?? 0;
                   if (last > 0 && current >= last * 1.2 && current >= 500) {
-                    spendingInsights
-                        .add((category: entry.key, current: current, last: last));
+                    spendingInsights.add(
+                        (category: entry.key, current: current, last: last));
                   }
                 }
-                spendingInsights.sort(
-                    (a, b) => (b.current - b.last).compareTo(a.current - a.last));
+                spendingInsights.sort((a, b) =>
+                    (b.current - b.last).compareTo(a.current - a.last));
               }
 
               // Find FDs near maturity
@@ -170,8 +172,9 @@ class NotificationsPage extends StatelessWidget {
                             amount: '₹${maturityValue.toStringAsFixed(2)}',
                             timeInfo:
                                 'In $daysUntil day${daysUntil > 1 ? 's' : ''}',
-                            badgeColor:
-                                daysUntil <= 3 ? CupertinoColors.systemRed : CupertinoColors.systemOrange,
+                            badgeColor: daysUntil <= 3
+                                ? CupertinoColors.systemRed
+                                : CupertinoColors.systemOrange,
                             icon: CupertinoIcons.bell_fill,
                             statusWidget: Container(
                               padding: const EdgeInsets.all(10),
@@ -431,12 +434,14 @@ class NotificationsPage extends StatelessWidget {
                           child: NotificationWidget(
                             type: NotificationType.fdPayout,
                             title: t.name,
-                            subtitle: '${t.branch[0].toUpperCase()}${t.branch.substring(1)} • ${t.frequency}',
+                            subtitle:
+                                '${t.branch[0].toUpperCase()}${t.branch.substring(1)} • ${t.frequency}',
                             amount:
                                 '₹${t.amount % 1 == 0 ? t.amount.toStringAsFixed(0) : t.amount.toStringAsFixed(2)}',
                             timeInfo: timeInfo,
-                            badgeColor:
-                                isOverdue || days == 0 ? CupertinoColors.systemRed : color,
+                            badgeColor: isOverdue || days == 0
+                                ? CupertinoColors.systemRed
+                                : color,
                             icon: CupertinoIcons.repeat,
                             statusWidget: Container(
                               padding: const EdgeInsets.symmetric(
@@ -484,7 +489,8 @@ class NotificationsPage extends StatelessWidget {
                         margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
                         child: Row(
                           children: [
-                            const Icon(CupertinoIcons.exclamationmark_circle_fill,
+                            const Icon(
+                                CupertinoIcons.exclamationmark_circle_fill,
                                 size: 14,
                                 color: CupertinoColors.systemRed),
                             const SizedBox(width: Spacing.sm),
@@ -512,8 +518,7 @@ class NotificationsPage extends StatelessWidget {
                         child: Row(
                           children: [
                             const Icon(CupertinoIcons.chart_bar_alt_fill,
-                                size: 14,
-                                color: CupertinoColors.systemOrange),
+                                size: 14, color: CupertinoColors.systemOrange),
                             const SizedBox(width: Spacing.sm),
                             Text(
                               'Spending Insights',
@@ -527,9 +532,10 @@ class NotificationsPage extends StatelessWidget {
                         ),
                       ),
                       ...spendingInsights.take(3).map((insight) {
-                        final pct =
-                            ((insight.current - insight.last) / insight.last * 100)
-                                .round();
+                        final pct = ((insight.current - insight.last) /
+                                insight.last *
+                                100)
+                            .round();
                         return Container(
                           margin: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 6),
@@ -538,8 +544,8 @@ class NotificationsPage extends StatelessWidget {
                             color: AppStyles.getCardColor(context),
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(
-                              color:
-                                  CupertinoColors.systemOrange.withValues(alpha: 0.3),
+                              color: CupertinoColors.systemOrange
+                                  .withValues(alpha: 0.3),
                               width: 1,
                             ),
                           ),
@@ -597,8 +603,8 @@ class NotificationsPage extends StatelessWidget {
                                     'was ${CurrencyFormatter.compact(insight.last)}',
                                     style: TextStyle(
                                       fontSize: TypeScale.caption,
-                                      color:
-                                          AppStyles.getSecondaryTextColor(context),
+                                      color: AppStyles.getSecondaryTextColor(
+                                          context),
                                     ),
                                   ),
                                 ],
@@ -714,7 +720,8 @@ class NotificationsPage extends StatelessWidget {
                   _openInvestmentDetails(context, entry.investment),
               child: const Text(
                 'Edit SIP',
-                style: TextStyle(color: Colors.white, fontSize: TypeScale.footnote),
+                style: TextStyle(
+                    color: Colors.white, fontSize: TypeScale.footnote),
               ),
             ),
           ),
@@ -726,7 +733,8 @@ class NotificationsPage extends StatelessWidget {
               onPressed: () => _showSipExecutionModal(context, entry),
               child: const Text(
                 'Execute SIP',
-                style: TextStyle(color: Colors.white, fontSize: TypeScale.caption),
+                style:
+                    TextStyle(color: Colors.white, fontSize: TypeScale.caption),
               ),
             ),
           ),
@@ -739,7 +747,8 @@ class NotificationsPage extends StatelessWidget {
                   _skipSip(context, entry.investment, entry.dueDate),
               child: const Text(
                 'Skip SIP',
-                style: TextStyle(color: Colors.white, fontSize: TypeScale.footnote),
+                style: TextStyle(
+                    color: Colors.white, fontSize: TypeScale.footnote),
               ),
             ),
           ),
@@ -798,7 +807,8 @@ class NotificationsPage extends StatelessWidget {
               onPressed: () => _showBondPayoutModal(context, entry),
               child: const Text(
                 'Edit Payout',
-                style: TextStyle(color: Colors.white, fontSize: TypeScale.footnote),
+                style: TextStyle(
+                    color: Colors.white, fontSize: TypeScale.footnote),
               ),
             ),
           ),
@@ -810,7 +820,8 @@ class NotificationsPage extends StatelessWidget {
               onPressed: () => _skipBondPayout(context, entry),
               child: const Text(
                 'Skip Payout',
-                style: TextStyle(color: Colors.white, fontSize: TypeScale.footnote),
+                style: TextStyle(
+                    color: Colors.white, fontSize: TypeScale.footnote),
               ),
             ),
           ),
@@ -891,9 +902,8 @@ class NotificationsPage extends StatelessWidget {
   Widget _buildBudgetAlertCard(BuildContext context, Budget budget,
       {required bool exceeded}) {
     final pct = budget.usagePercentage.round();
-    final color = exceeded
-        ? CupertinoColors.systemRed
-        : CupertinoColors.systemOrange;
+    final color =
+        exceeded ? CupertinoColors.systemRed : CupertinoColors.systemOrange;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -1586,6 +1596,7 @@ class _SipExecutionModalState extends State<_SipExecutionModal> {
     return null;
   }
 
-  String _formatDate(DateTime date) {return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
+  String _formatDate(DateTime date) {
+    return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
   }
 }

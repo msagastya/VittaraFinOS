@@ -294,8 +294,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _showPinSetupSheet(
-      BuildContext context, SettingsController settings) {
+  void _showPinSetupSheet(BuildContext context, SettingsController settings) {
     if (settings.isPinEnabled) {
       // Already set — offer to change or clear
       showCupertinoModalPopup(
@@ -343,12 +342,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setS) {
           final isDark = AppStyles.isDarkMode(ctx);
-          final dotColor = error ? CupertinoColors.systemRed : AppStyles.accentBlue;
+          final dotColor =
+              error ? CupertinoColors.systemRed : AppStyles.accentBlue;
           final current = inConfirm ? confirmDigits! : digits;
 
           void onDigit(String d) {
             if (current.length >= 6) return;
-            setS(() { current.add(d); error = false; });
+            setS(() {
+              current.add(d);
+              error = false;
+            });
             if (current.length == 6) {
               if (!isSetup) return; // shouldn't happen
               if (!inConfirm) {
@@ -384,7 +387,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: [
                   const SizedBox(height: 16),
                   Container(
-                    width: 36, height: 5,
+                    width: 36,
+                    height: 5,
                     decoration: BoxDecoration(
                       color: CupertinoColors.systemGrey3,
                       borderRadius: BorderRadius.circular(2.5),
@@ -423,7 +427,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       final filled = i < current.length;
                       return Container(
                         margin: const EdgeInsets.symmetric(horizontal: 8),
-                        width: 16, height: 16,
+                        width: 16,
+                        height: 16,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: filled ? dotColor : Colors.transparent,
@@ -460,7 +465,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     }
                                   },
                                   child: Container(
-                                    width: 72, height: 72,
+                                    width: 72,
+                                    height: 72,
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
                                       color: isDark

@@ -129,8 +129,10 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                         ...TransactionType.values,
                       ].map((type) {
                         final isSelected = tempType == type;
-                        final label =
-                            type == null ? 'All' : type.name[0].toUpperCase() + type.name.substring(1);
+                        final label = type == null
+                            ? 'All'
+                            : type.name[0].toUpperCase() +
+                                type.name.substring(1);
                         return GestureDetector(
                           onTap: () => setSheet(() => tempType = type),
                           child: Container(
@@ -188,8 +190,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                               padding: EdgeInsets.only(left: 12),
                               child: Text('₹'),
                             ),
-                            style: TextStyle(
-                                color: AppStyles.getTextColor(ctx)),
+                            style:
+                                TextStyle(color: AppStyles.getTextColor(ctx)),
                             decoration: BoxDecoration(
                               color: AppStyles.getBackground(ctx),
                               borderRadius: BorderRadius.circular(10),
@@ -207,8 +209,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                               padding: EdgeInsets.only(left: 12),
                               child: Text('₹'),
                             ),
-                            style: TextStyle(
-                                color: AppStyles.getTextColor(ctx)),
+                            style:
+                                TextStyle(color: AppStyles.getTextColor(ctx)),
                             decoration: BoxDecoration(
                               color: AppStyles.getBackground(ctx),
                               borderRadius: BorderRadius.circular(10),
@@ -264,7 +266,6 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
       ),
     );
   }
-
 
   Future<void> _exportCsv(List<Transaction> transactions) async {
     if (_isExportingCsv) return;
@@ -420,7 +421,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                     child: Row(
                       children: [
                         Icon(
-                            CupertinoIcons.line_horizontal_3_decrease_circle_fill,
+                            CupertinoIcons
+                                .line_horizontal_3_decrease_circle_fill,
                             size: 14,
                             color: AppStyles.getPrimaryColor(context)),
                         const SizedBox(width: 4),
@@ -430,8 +432,10 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                               if (_typeFilter != null)
                                 _typeFilter!.name[0].toUpperCase() +
                                     _typeFilter!.name.substring(1),
-                              if (_minAmount != null) '≥₹${_minAmount!.toStringAsFixed(0)}',
-                              if (_maxAmount != null) '≤₹${_maxAmount!.toStringAsFixed(0)}',
+                              if (_minAmount != null)
+                                '≥₹${_minAmount!.toStringAsFixed(0)}',
+                              if (_maxAmount != null)
+                                '≤₹${_maxAmount!.toStringAsFixed(0)}',
                             ].join(' · '),
                             style: TextStyle(
                               fontSize: TypeScale.caption,
@@ -679,8 +683,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                             Navigator.push(
                               context,
                               CupertinoPageRoute(
-                                builder: (_) => TransactionWizard(
-                                    cloneFrom: transaction),
+                                builder: (_) =>
+                                    TransactionWizard(cloneFrom: transaction),
                               ),
                             );
                           },

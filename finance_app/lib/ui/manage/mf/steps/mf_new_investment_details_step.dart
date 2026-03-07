@@ -101,7 +101,8 @@ class _MFNewInvestmentDetailsStepState
           child: CupertinoDatePicker(
             initialDateTime: controller.investmentDate,
             mode: CupertinoDatePickerMode.date,
-            minimumDate: DateTime.now().subtract(const Duration(days: 365 * 30)),
+            minimumDate:
+                DateTime.now().subtract(const Duration(days: 365 * 30)),
             maximumDate: DateTime.now(),
             onDateTimeChanged: (DateTime newDate) {
               controller.updatePurchaseDate(newDate);
@@ -245,7 +246,8 @@ class _MFNewInvestmentDetailsStepState
               decoration: BoxDecoration(
                 color: CupertinoColors.systemRed.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: CupertinoColors.systemRed.withValues(alpha: 0.3)),
+                border: Border.all(
+                    color: CupertinoColors.systemRed.withValues(alpha: 0.3)),
               ),
               child: Text(
                 _navError,
@@ -309,7 +311,8 @@ class _MFNewInvestmentDetailsStepState
                       Container(
                         padding: const EdgeInsets.all(Spacing.lg),
                         decoration: BoxDecoration(
-                          color: CupertinoColors.systemOrange.withValues(alpha: 0.1),
+                          color: CupertinoColors.systemOrange
+                              .withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -513,6 +516,7 @@ class _MFNewInvestmentDetailsStepState
     );
   }
 
-  String _monthName(int month) {return DateFormatter.getMonthName(month);
+  String _monthName(int month) {
+    return DateFormatter.getMonthName(month);
   }
 }

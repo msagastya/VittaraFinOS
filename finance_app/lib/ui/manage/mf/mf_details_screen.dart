@@ -35,8 +35,7 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    final schemeCode =
-        widget.investment.metadata?['schemeCode'] as String?;
+    final schemeCode = widget.investment.metadata?['schemeCode'] as String?;
     if (schemeCode != null) {
       _navHistoryFuture =
           _navService.getHistoricalNAV(schemeCode, lastNDays: 90);
@@ -52,7 +51,8 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
     }
     setState(() => _isRefreshingNAV = true);
     try {
-      final navData = await _navService.getCurrentNAV(schemeCode, forceRefresh: true);
+      final navData =
+          await _navService.getCurrentNAV(schemeCode, forceRefresh: true);
       if (!mounted) return;
       if (navData == null) {
         toast.showError('Could not fetch NAV — try again later');
@@ -66,8 +66,7 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
           widget.investment.copyWith(metadata: updatedMeta);
       await Provider.of<InvestmentsController>(context, listen: false)
           .updateInvestment(updatedInvestment);
-      toast.showSuccess(
-          'NAV updated: ₹${navData.nav.toStringAsFixed(4)}');
+      toast.showSuccess('NAV updated: ₹${navData.nav.toStringAsFixed(4)}');
     } catch (e) {
       if (mounted) toast.showError('Failed to refresh NAV');
     } finally {
@@ -279,14 +278,10 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
                       return const SizedBox.shrink();
                     }
                     final navPoints = snapshot.data!.reversed.toList();
-                    final navValues =
-                        navPoints.map((n) => n.nav).toList();
-                    final minNav = navValues.reduce(
-                        (a, b) => a < b ? a : b);
-                    final maxNav = navValues.reduce(
-                        (a, b) => a > b ? a : b);
-                    final isUp =
-                        navValues.last >= navValues.first;
+                    final navValues = navPoints.map((n) => n.nav).toList();
+                    final minNav = navValues.reduce((a, b) => a < b ? a : b);
+                    final maxNav = navValues.reduce((a, b) => a > b ? a : b);
+                    final isUp = navValues.last >= navValues.first;
                     final lineColor = isUp
                         ? CupertinoColors.systemGreen
                         : CupertinoColors.systemRed;
@@ -299,12 +294,10 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
                             color: AppStyles.getCardColor(context),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                                color: lineColor
-                                    .withValues(alpha: 0.3)),
+                                color: lineColor.withValues(alpha: 0.3)),
                           ),
                           child: Column(
-                            crossAxisAlignment:
-                                CrossAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
                                 mainAxisAlignment:
@@ -315,8 +308,7 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
                                     style: TextStyle(
                                       fontWeight: FontWeight.w600,
                                       fontSize: TypeScale.subhead,
-                                      color: AppStyles.getTextColor(
-                                          context),
+                                      color: AppStyles.getTextColor(context),
                                     ),
                                   ),
                                   Text(
@@ -351,18 +343,16 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
                                     'Low: ₹${minNav.toStringAsFixed(2)}',
                                     style: TextStyle(
                                       fontSize: TypeScale.caption,
-                                      color:
-                                          AppStyles.getSecondaryTextColor(
-                                              context),
+                                      color: AppStyles.getSecondaryTextColor(
+                                          context),
                                     ),
                                   ),
                                   Text(
                                     'High: ₹${maxNav.toStringAsFixed(2)}',
                                     style: TextStyle(
                                       fontSize: TypeScale.caption,
-                                      color:
-                                          AppStyles.getSecondaryTextColor(
-                                              context),
+                                      color: AppStyles.getSecondaryTextColor(
+                                          context),
                                     ),
                                   ),
                                 ],
@@ -532,7 +522,8 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
 
   String _formatDate(String isoDate) {
     try {
-      final date = DateTime.parse(isoDate);return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
+      final date = DateTime.parse(isoDate);
+      return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
     } catch (e) {
       return isoDate;
     }
@@ -885,7 +876,8 @@ class _MFDividendModalState extends State<_MFDividendModal> {
             SizedBox(height: Spacing.lg),
             Text(
               'Dividend',
-              style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title1),
+              style: AppStyles.titleStyle(context)
+                  .copyWith(fontSize: TypeScale.title1),
             ),
             SizedBox(height: Spacing.xxxl),
             _buildField(context, 'Amount', prefix: '₹'),
@@ -1050,7 +1042,8 @@ class _EditMFModalState extends State<_EditMFModal> {
               SizedBox(height: Spacing.lg),
               Text(
                 'Edit Mutual Fund',
-                style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title1),
+                style: AppStyles.titleStyle(context)
+                    .copyWith(fontSize: TypeScale.title1),
               ),
               SizedBox(height: Spacing.xxxl),
               _buildInputField(context, 'Investment Amount', _amountController,
@@ -1145,16 +1138,14 @@ class _SparklinePainter extends CustomPainter {
     final fillPath = Path();
 
     double x0 = 0;
-    double y0 = size.height -
-        ((values[0] - minVal) / range) * size.height;
+    double y0 = size.height - ((values[0] - minVal) / range) * size.height;
     path.moveTo(x0, y0);
     fillPath.moveTo(x0, size.height);
     fillPath.lineTo(x0, y0);
 
     for (int i = 1; i < values.length; i++) {
       final x = (i / (values.length - 1)) * size.width;
-      final y = size.height -
-          ((values[i] - minVal) / range) * size.height;
+      final y = size.height - ((values[i] - minVal) / range) * size.height;
       path.lineTo(x, y);
       fillPath.lineTo(x, y);
     }

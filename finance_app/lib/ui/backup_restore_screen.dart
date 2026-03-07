@@ -402,7 +402,8 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
         children: [
           Text(
             'Current Data Snapshot',
-            style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title3),
+            style: AppStyles.titleStyle(context)
+                .copyWith(fontSize: TypeScale.title3),
           ),
           const SizedBox(height: Spacing.sm),
           Text(
@@ -488,7 +489,8 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
         children: [
           Text(
             'Last Operation Summary',
-            style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.body),
+            style: AppStyles.titleStyle(context)
+                .copyWith(fontSize: TypeScale.body),
           ),
           const SizedBox(height: Spacing.sm),
           Text('Source: ${value('source')}'),

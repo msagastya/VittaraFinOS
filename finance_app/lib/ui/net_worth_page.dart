@@ -50,12 +50,15 @@ class _NetWorthPageState extends State<NetWorthPage> {
         final year = int.tryParse(parts[0]);
         final month = int.tryParse(parts[1]);
         if (year != null && month != null) {
-          snapshots.add(_NetWorthSnapshot(date: DateTime(year, month), value: value));
+          snapshots.add(
+              _NetWorthSnapshot(date: DateTime(year, month), value: value));
         }
       }
     }
     // Keep last 12 months
-    final trimmed = snapshots.length > 12 ? snapshots.sublist(snapshots.length - 12) : snapshots;
+    final trimmed = snapshots.length > 12
+        ? snapshots.sublist(snapshots.length - 12)
+        : snapshots;
     if (mounted) setState(() => _historySnapshots = trimmed);
   }
 
@@ -63,7 +66,8 @@ class _NetWorthPageState extends State<NetWorthPage> {
     if (_snapshotSavedThisSession) return;
     _snapshotSavedThisSession = true;
     final now = DateTime.now();
-    final key = 'nw_history_${now.year}_${now.month.toString().padLeft(2, '0')}';
+    final key =
+        'nw_history_${now.year}_${now.month.toString().padLeft(2, '0')}';
     SharedPreferences.getInstance().then((prefs) {
       prefs.setDouble(key, netWorth);
       _loadNetWorthHistory();
@@ -319,7 +323,8 @@ class _NetWorthPageState extends State<NetWorthPage> {
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.1)),
+              border: Border.all(
+                  color: CupertinoColors.systemGrey.withValues(alpha: 0.1)),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -451,7 +456,8 @@ class _NetWorthPageState extends State<NetWorthPage> {
         decoration: BoxDecoration(
           color: AppStyles.getCardColor(context),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.1)),
+          border: Border.all(
+              color: CupertinoColors.systemGrey.withValues(alpha: 0.1)),
         ),
         child: Center(
           child: Text(
@@ -474,7 +480,8 @@ class _NetWorthPageState extends State<NetWorthPage> {
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.1)),
+        border: Border.all(
+            color: CupertinoColors.systemGrey.withValues(alpha: 0.1)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -610,7 +617,8 @@ class _NetWorthPageState extends State<NetWorthPage> {
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.1)),
+        border: Border.all(
+            color: CupertinoColors.systemGrey.withValues(alpha: 0.1)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -750,7 +758,8 @@ class _NetWorthPageState extends State<NetWorthPage> {
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.1)),
+        border: Border.all(
+            color: CupertinoColors.systemGrey.withValues(alpha: 0.1)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -936,9 +945,12 @@ class _NetWorthPageState extends State<NetWorthPage> {
                       child: LinearProgressIndicator(
                         value: utilization / 100,
                         minHeight: 6,
-                        backgroundColor: CupertinoColors.systemGrey.withValues(alpha: 0.2),
+                        backgroundColor:
+                            CupertinoColors.systemGrey.withValues(alpha: 0.2),
                         valueColor: AlwaysStoppedAnimation<Color>(
-                          utilization > 80 ? CupertinoColors.systemRed : CupertinoColors.systemOrange,
+                          utilization > 80
+                              ? CupertinoColors.systemRed
+                              : CupertinoColors.systemOrange,
                         ),
                       ),
                     ),
@@ -958,8 +970,9 @@ class _NetWorthPageState extends State<NetWorthPage> {
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
-                            color:
-                                utilization > 80 ? CupertinoColors.systemRed : CupertinoColors.systemOrange,
+                            color: utilization > 80
+                                ? CupertinoColors.systemRed
+                                : CupertinoColors.systemOrange,
                           ),
                         ),
                       ],
@@ -989,7 +1002,8 @@ class _NetWorthPageState extends State<NetWorthPage> {
         decoration: BoxDecoration(
           color: AppStyles.getCardColor(context),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.1)),
+          border: Border.all(
+              color: CupertinoColors.systemGrey.withValues(alpha: 0.1)),
         ),
         child: Center(
           child: Text(
@@ -1039,7 +1053,8 @@ class _NetWorthPageState extends State<NetWorthPage> {
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.1)),
+        border: Border.all(
+            color: CupertinoColors.systemGrey.withValues(alpha: 0.1)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -1273,8 +1288,20 @@ class _NetWorthPageState extends State<NetWorthPage> {
     final trendColor =
         isPositive ? CupertinoColors.systemGreen : CupertinoColors.systemRed;
     final monthCount = snapshots.length;
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
 
     return Container(
       padding: EdgeInsets.all(Spacing.lg),
@@ -1500,7 +1527,8 @@ class _NetWorthSparklinePainter extends CustomPainter {
     final dotPaint = Paint()..color = lineColor;
     final dotRadius = snapshots.length <= 6 ? 3.5 : 2.5;
     for (int i = 0; i < snapshots.length; i++) {
-      canvas.drawCircle(Offset(xOf(i), yOf(snapshots[i].value)), dotRadius, dotPaint);
+      canvas.drawCircle(
+          Offset(xOf(i), yOf(snapshots[i].value)), dotRadius, dotPaint);
     }
 
     // Highlight last point

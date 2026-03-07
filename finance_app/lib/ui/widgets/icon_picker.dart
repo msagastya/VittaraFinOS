@@ -409,7 +409,8 @@ class _IconPickerModalState extends State<IconPickerModal> {
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Text(
               'Choose Icon',
-              style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.title2),
+              style: AppStyles.titleStyle(context)
+                  .copyWith(fontSize: TypeScale.title2),
             ),
           ),
           const SizedBox(height: Spacing.lg),

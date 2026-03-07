@@ -42,7 +42,8 @@ class _CommodityPositionStepState extends State<CommodityPositionStep> {
               style: AppStyles.titleStyle(context)),
           const SizedBox(height: 30),
           Text('Current Price Per ${widget.ctrl.unit ?? 'Unit'} (₹)',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _currentPriceController,
@@ -64,13 +65,15 @@ class _CommodityPositionStepState extends State<CommodityPositionStep> {
           ),
           const SizedBox(height: Spacing.xxl),
           Text('Trade Position',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           Container(
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+              border: Border.all(
+                  color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
             ),
             child: Column(
               children: [
@@ -84,7 +87,8 @@ class _CommodityPositionStepState extends State<CommodityPositionStep> {
                           : Colors.transparent,
                       border: Border(
                         bottom: BorderSide(
-                            color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+                            color: CupertinoColors.systemGrey
+                                .withValues(alpha: 0.2)),
                       ),
                     ),
                     child: Row(
@@ -196,13 +200,16 @@ class _CommodityPositionStepState extends State<CommodityPositionStep> {
             Container(
               padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
-                color: (widget.ctrl.gainLoss >= 0 ? CupertinoColors.systemGreen : CupertinoColors.systemRed)
+                color: (widget.ctrl.gainLoss >= 0
+                        ? CupertinoColors.systemGreen
+                        : CupertinoColors.systemRed)
                     .withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                    color:
-                        (widget.ctrl.gainLoss >= 0 ? CupertinoColors.systemGreen : CupertinoColors.systemRed)
-                            .withValues(alpha: 0.3)),
+                    color: (widget.ctrl.gainLoss >= 0
+                            ? CupertinoColors.systemGreen
+                            : CupertinoColors.systemRed)
+                        .withValues(alpha: 0.3)),
               ),
               child: Column(
                 children: [
@@ -245,12 +252,15 @@ class _Summary extends StatelessWidget {
       children: [
         Text(label,
             style: TextStyle(
-                color: AppStyles.getSecondaryTextColor(context), fontSize: TypeScale.subhead)),
+                color: AppStyles.getSecondaryTextColor(context),
+                fontSize: TypeScale.subhead)),
         Text(value,
             style: TextStyle(
                 fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
                 fontSize: isBold ? 14 : 13,
-                color: isPositive ? CupertinoColors.systemGreen : CupertinoColors.systemRed)),
+                color: isPositive
+                    ? CupertinoColors.systemGreen
+                    : CupertinoColors.systemRed)),
       ],
     );
   }
