@@ -2553,24 +2553,60 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
 
   Future<void> _pickCustomDate({required bool isStart}) async {
     final initialDate = isStart ? _startDate : _endDate;
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: initialDate,
-      firstDate: DateTime(2000, 1, 1),
-      lastDate: DateTime(2100, 1, 1),
-    );
-    if (picked == null) return;
+    DateTime tempDate = initialDate;
 
-    setState(() {
-      _datePreset = ReportDatePreset.custom;
-      if (isStart) {
-        _startDate = DateTime(picked.year, picked.month, picked.day);
-        if (_startDate.isAfter(_endDate)) _endDate = _startDate;
-      } else {
-        _endDate = DateTime(picked.year, picked.month, picked.day);
-        if (_endDate.isBefore(_startDate)) _startDate = _endDate;
-      }
-    });
+    await showCupertinoModalPopup<void>(
+      context: context,
+      builder: (ctx) => Container(
+        height: 280,
+        color: CupertinoTheme.of(ctx).scaffoldBackgroundColor,
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                CupertinoButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancel'),
+                ),
+                CupertinoButton(
+                  onPressed: () {
+                    setState(() {
+                      _datePreset = ReportDatePreset.custom;
+                      if (isStart) {
+                        _startDate = DateTime(
+                            tempDate.year, tempDate.month, tempDate.day);
+                        if (_startDate.isAfter(_endDate)) {
+                          _endDate = _startDate;
+                        }
+                      } else {
+                        _endDate = DateTime(
+                            tempDate.year, tempDate.month, tempDate.day);
+                        if (_endDate.isBefore(_startDate)) {
+                          _startDate = _endDate;
+                        }
+                      }
+                    });
+                    Navigator.pop(ctx);
+                  },
+                  child: const Text('Done'),
+                ),
+              ],
+            ),
+            Expanded(
+              child: CupertinoDatePicker(
+                mode: CupertinoDatePickerMode.date,
+                initialDateTime: initialDate,
+                maximumDate: isStart ? null : DateTime.now(),
+                minimumDate: DateTime(2000, 1, 1),
+                onDateTimeChanged: (d) => tempDate = d,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    // No additional setState needed — done inside the button above
   }
 
   Future<void> _pickGroupBy({required bool isPrimary}) async {
