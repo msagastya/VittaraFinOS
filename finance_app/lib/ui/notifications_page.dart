@@ -19,6 +19,8 @@ import 'package:vittara_fin_os/ui/manage/bonds/bond_payout_modal.dart';
 import 'package:vittara_fin_os/ui/manage/bonds/bonds_details_screen.dart';
 import 'package:vittara_fin_os/ui/manage/mf/mf_details_screen.dart';
 import 'package:vittara_fin_os/ui/manage/stocks/stock_details_screen.dart';
+import 'package:vittara_fin_os/logic/budget_model.dart';
+import 'package:vittara_fin_os/logic/budgets_controller.dart';
 import 'package:vittara_fin_os/logic/recurring_templates_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
@@ -42,10 +44,10 @@ class NotificationsPage extends StatelessWidget {
         child: Container(
           color:
               isDark ? Colors.black : CupertinoColors.systemGroupedBackground,
-          child: Consumer3<InvestmentsController, RecurringTemplatesController,
-              TransactionsController>(
+          child: Consumer4<InvestmentsController, RecurringTemplatesController,
+              TransactionsController, BudgetsController>(
             builder: (context, investmentsController, templatesController,
-                txController, child) {
+                txController, budgetsController, child) {
               final investments = investmentsController.investments;
               final dueTemplates = templatesController.templates.where((t) {
                 final days = t.daysUntilDue();
@@ -53,6 +55,10 @@ class NotificationsPage extends StatelessWidget {
               }).toList()
                 ..sort((a, b) =>
                     (a.daysUntilDue() ?? 99).compareTo(b.daysUntilDue() ?? 99));
+
+              // Budget alerts
+              final exceededBudgets = budgetsController.getBudgetsExceedingLimit();
+              final warningBudgets = budgetsController.getBudgetsInWarning();
 
               // Spending insights: categories that exceed last month by ≥20%
               final now = DateTime.now();
@@ -471,6 +477,34 @@ class NotificationsPage extends StatelessWidget {
                       }),
                     ],
 
+                    // Budget Alerts
+                    if (exceededBudgets.isNotEmpty ||
+                        warningBudgets.isNotEmpty) ...[
+                      Container(
+                        margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                        child: Row(
+                          children: [
+                            const Icon(CupertinoIcons.exclamationmark_circle_fill,
+                                size: 14,
+                                color: CupertinoColors.systemRed),
+                            const SizedBox(width: Spacing.sm),
+                            Text(
+                              'Budget Alerts',
+                              style: TextStyle(
+                                fontSize: TypeScale.footnote,
+                                fontWeight: FontWeight.w600,
+                                color: CupertinoColors.systemRed,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      ...exceededBudgets.map((b) =>
+                          _buildBudgetAlertCard(context, b, exceeded: true)),
+                      ...warningBudgets.map((b) =>
+                          _buildBudgetAlertCard(context, b, exceeded: false)),
+                    ],
+
                     // Spending Insights
                     if (spendingInsights.isNotEmpty) ...[
                       Container(
@@ -582,6 +616,8 @@ class NotificationsPage extends StatelessWidget {
                         sipNotifications.isEmpty &&
                         bondNotifications.isEmpty &&
                         dueTemplates.isEmpty &&
+                        exceededBudgets.isEmpty &&
+                        warningBudgets.isEmpty &&
                         spendingInsights.isEmpty)
                       Padding(
                         padding: EdgeInsets.only(top: Spacing.xxxl),
@@ -848,6 +884,88 @@ class NotificationsPage extends StatelessWidget {
       builder: (ctx) => BondPayoutModal(
         bond: entry.investment,
         notification: entry,
+      ),
+    );
+  }
+
+  Widget _buildBudgetAlertCard(BuildContext context, Budget budget,
+      {required bool exceeded}) {
+    final pct = budget.usagePercentage.round();
+    final color = exceeded
+        ? CupertinoColors.systemRed
+        : CupertinoColors.systemOrange;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppStyles.getCardColor(context),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              exceeded
+                  ? CupertinoIcons.xmark_circle_fill
+                  : CupertinoIcons.exclamationmark_triangle_fill,
+              size: 20,
+              color: color,
+            ),
+          ),
+          const SizedBox(width: Spacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  budget.name,
+                  style: TextStyle(
+                    fontSize: TypeScale.subhead,
+                    fontWeight: FontWeight.w600,
+                    color: AppStyles.getTextColor(context),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  exceeded
+                      ? 'Budget exceeded ($pct% used)'
+                      : 'Approaching limit ($pct% used)',
+                  style: TextStyle(
+                    fontSize: TypeScale.footnote,
+                    color: color,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                CurrencyFormatter.compact(budget.spentAmount),
+                style: TextStyle(
+                  fontSize: TypeScale.subhead,
+                  fontWeight: FontWeight.w700,
+                  color: AppStyles.getTextColor(context),
+                ),
+              ),
+              Text(
+                'of ${CurrencyFormatter.compact(budget.limitAmount)}',
+                style: TextStyle(
+                  fontSize: TypeScale.caption,
+                  color: AppStyles.getSecondaryTextColor(context),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
