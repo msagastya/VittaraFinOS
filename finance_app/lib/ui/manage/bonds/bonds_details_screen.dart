@@ -6,6 +6,7 @@ import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class BondsDetailsScreen extends StatefulWidget {
@@ -21,6 +22,15 @@ class BondsDetailsScreen extends StatefulWidget {
 }
 
 class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
+  late String? _bondNotes;
+
+  @override
+  void initState() {
+    super.initState();
+    final meta = widget.investment.metadata ?? {};
+    _bondNotes = meta['notes'] as String?;
+  }
+
   @override
   Widget build(BuildContext context) {
     final investmentsController =
@@ -345,14 +355,47 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                     ],
                   ),
                 ),
+              if (_bondNotes != null && _bondNotes!.isNotEmpty) ...[
+                const SizedBox(height: Spacing.xl),
+                Container(
+                  padding: const EdgeInsets.all(Spacing.lg),
+                  decoration: BoxDecoration(
+                    color: AppStyles.getCardColor(context),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: CupertinoColors.systemGrey
+                            .withValues(alpha: 0.2)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Notes',
+                        style: TextStyle(
+                          color: AppStyles.getTextColor(context),
+                          fontWeight: FontWeight.bold,
+                          fontSize: TypeScale.body,
+                        ),
+                      ),
+                      const SizedBox(height: Spacing.md),
+                      Text(
+                        _bondNotes!,
+                        style: TextStyle(
+                          color: AppStyles.getSecondaryTextColor(context),
+                          fontSize: TypeScale.subhead,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               const SizedBox(height: 30),
               // Action Buttons
               SizedBox(
                 width: double.infinity,
                 child: CupertinoButton.filled(
-                  onPressed: () {
-                    toast.showInfo('Edit functionality coming soon!');
-                  },
+                  onPressed: () =>
+                      _showEditSheet(context, investmentsController),
                   child: const Text('Edit Bond Details'),
                 ),
               ),
@@ -404,6 +447,138 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  void _showEditSheet(
+      BuildContext context, InvestmentsController investmentsCtrl) {
+    final notesCtrl = TextEditingController(text: _bondNotes ?? '');
+
+    showCupertinoModalPopup(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setS) {
+          final isDark = AppStyles.isDarkMode(ctx);
+          return Container(
+            height: MediaQuery.of(ctx).size.height * 0.45,
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1C1C1E) : CupertinoColors.white,
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: SafeArea(
+              child: Column(
+                children: [
+                  const SizedBox(height: 12),
+                  const ModalHandle(),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Edit Bond Details',
+                    style: TextStyle(
+                        color: AppStyles.getTextColor(ctx),
+                        fontSize: TypeScale.title2,
+                        fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 20),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: _EditField(
+                          label: 'Notes',
+                          controller: notesCtrl,
+                          isDark: isDark,
+                          maxLines: 4),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(children: [
+                      Expanded(
+                        child: CupertinoButton(
+                          color: isDark
+                              ? const Color(0xFF3A3A3C)
+                              : CupertinoColors.systemGrey5,
+                          onPressed: () => Navigator.pop(ctx),
+                          child: Text('Cancel',
+                              style: TextStyle(
+                                  color: AppStyles.getTextColor(ctx))),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: CupertinoButton.filled(
+                          onPressed: () async {
+                            final newNotes =
+                                notesCtrl.text.trim().isEmpty
+                                    ? null
+                                    : notesCtrl.text.trim();
+                            final updatedMeta =
+                                Map<String, dynamic>.from(
+                                    widget.investment.metadata ?? {});
+                            updatedMeta['notes'] = newNotes;
+                            final updatedInvestment =
+                                widget.investment.copyWith(
+                                    metadata: updatedMeta);
+                            await investmentsCtrl
+                                .updateInvestment(updatedInvestment);
+                            if (ctx.mounted) {
+                              setState(() => _bondNotes = newNotes);
+                              Navigator.pop(ctx);
+                              toast.showSuccess('Bond updated');
+                            }
+                          },
+                          child: const Text('Save'),
+                        ),
+                      ),
+                    ]),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    ).whenComplete(notesCtrl.dispose);
+  }
+}
+
+class _EditField extends StatelessWidget {
+  final String label;
+  final TextEditingController controller;
+  final bool isDark;
+  final int maxLines;
+
+  const _EditField({
+    required this.label,
+    required this.controller,
+    required this.isDark,
+    this.maxLines = 1,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: TextStyle(
+                color: AppStyles.getSecondaryTextColor(context),
+                fontSize: TypeScale.footnote,
+                fontWeight: FontWeight.w600)),
+        const SizedBox(height: 6),
+        CupertinoTextField(
+          controller: controller,
+          maxLines: maxLines,
+          style: TextStyle(color: AppStyles.getTextColor(context)),
+          decoration: BoxDecoration(
+            color: isDark
+                ? const Color(0xFF2C2C2E)
+                : CupertinoColors.systemGrey6,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        ),
+      ],
     );
   }
 }

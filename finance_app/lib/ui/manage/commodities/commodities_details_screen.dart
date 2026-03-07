@@ -6,6 +6,7 @@ import 'package:vittara_fin_os/logic/commodities_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
+import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 
 class CommoditiesDetailsScreen extends StatefulWidget {
   final Investment investment;
@@ -118,9 +119,8 @@ class _CommoditiesDetailsScreenState extends State<CommoditiesDetailsScreen> {
               SizedBox(
                 width: double.infinity,
                 child: CupertinoButton.filled(
-                  onPressed: () {
-                    toast.showInfo('Edit functionality coming soon!');
-                  },
+                  onPressed: () =>
+                      _showEditSheet(context, investmentsCtrl),
                   child: const Text('Edit Investment'),
                 ),
               ),
@@ -167,6 +167,190 @@ class _CommoditiesDetailsScreenState extends State<CommoditiesDetailsScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  void _showEditSheet(
+      BuildContext context, InvestmentsController investmentsCtrl) {
+    final priceCtrl = TextEditingController(
+        text: commodity.currentPrice.toStringAsFixed(2));
+    final quantityCtrl =
+        TextEditingController(text: commodity.quantity.toStringAsFixed(4));
+    final notesCtrl =
+        TextEditingController(text: commodity.notes ?? '');
+
+    showCupertinoModalPopup(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setS) {
+          final isDark = AppStyles.isDarkMode(ctx);
+          return Container(
+            height: MediaQuery.of(ctx).size.height * 0.7,
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1C1C1E) : CupertinoColors.white,
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: SafeArea(
+              child: Column(
+                children: [
+                  const SizedBox(height: 12),
+                  const ModalHandle(),
+                  const SizedBox(height: 16),
+                  Text('Edit ${commodity.name}',
+                      style: TextStyle(
+                          color: AppStyles.getTextColor(ctx),
+                          fontSize: TypeScale.title2,
+                          fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 20),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _EditField(label: 'Current Price (per unit)',
+                              controller: priceCtrl,
+                              isDark: isDark,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                      decimal: true)),
+                          const SizedBox(height: 12),
+                          _EditField(label: 'Quantity',
+                              controller: quantityCtrl,
+                              isDark: isDark,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                      decimal: true)),
+                          const SizedBox(height: 12),
+                          _EditField(label: 'Notes',
+                              controller: notesCtrl,
+                              isDark: isDark,
+                              maxLines: 3),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(children: [
+                      Expanded(
+                        child: CupertinoButton(
+                          color: isDark
+                              ? const Color(0xFF3A3A3C)
+                              : CupertinoColors.systemGrey5,
+                          onPressed: () => Navigator.pop(ctx),
+                          child: Text('Cancel',
+                              style: TextStyle(
+                                  color: AppStyles.getTextColor(ctx))),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: CupertinoButton.filled(
+                          onPressed: () async {
+                            final newPrice =
+                                double.tryParse(priceCtrl.text) ??
+                                    commodity.currentPrice;
+                            final newQty =
+                                double.tryParse(quantityCtrl.text) ??
+                                    commodity.quantity;
+                            final updatedCommodity = Commodity(
+                              id: commodity.id,
+                              name: commodity.name,
+                              type: commodity.type,
+                              quantity: newQty,
+                              unit: commodity.unit,
+                              buyPrice: commodity.buyPrice,
+                              currentPrice: newPrice,
+                              position: commodity.position,
+                              purchaseDate: commodity.purchaseDate,
+                              exchange: commodity.exchange,
+                              createdDate: commodity.createdDate,
+                              notes: notesCtrl.text.trim().isEmpty
+                                  ? null
+                                  : notesCtrl.text.trim(),
+                            );
+                            final updatedMeta =
+                                Map<String, dynamic>.from(
+                                    widget.investment.metadata ?? {});
+                            updatedMeta['commodityData'] =
+                                updatedCommodity.toMap();
+                            final updatedInvestment =
+                                widget.investment.copyWith(
+                              amount: updatedCommodity.currentValue,
+                              metadata: updatedMeta,
+                            );
+                            await investmentsCtrl
+                                .updateInvestment(updatedInvestment);
+                            if (ctx.mounted) {
+                              setState(
+                                  () => commodity = updatedCommodity);
+                              Navigator.pop(ctx);
+                              toast.showSuccess('Investment updated');
+                            }
+                          },
+                          child: const Text('Save'),
+                        ),
+                      ),
+                    ]),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    ).whenComplete(() {
+      priceCtrl.dispose();
+      quantityCtrl.dispose();
+      notesCtrl.dispose();
+    });
+  }
+}
+
+class _EditField extends StatelessWidget {
+  final String label;
+  final TextEditingController controller;
+  final bool isDark;
+  final TextInputType? keyboardType;
+  final int maxLines;
+
+  const _EditField({
+    required this.label,
+    required this.controller,
+    required this.isDark,
+    this.keyboardType,
+    this.maxLines = 1,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: TextStyle(
+                color: AppStyles.getSecondaryTextColor(context),
+                fontSize: TypeScale.footnote,
+                fontWeight: FontWeight.w600)),
+        const SizedBox(height: 6),
+        CupertinoTextField(
+          controller: controller,
+          keyboardType: keyboardType,
+          maxLines: maxLines,
+          style: TextStyle(color: AppStyles.getTextColor(context)),
+          decoration: BoxDecoration(
+            color: isDark
+                ? const Color(0xFF2C2C2E)
+                : CupertinoColors.systemGrey6,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          padding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        ),
+      ],
     );
   }
 }
