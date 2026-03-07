@@ -400,6 +400,21 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
             CupertinoActionSheetAction(
               onPressed: () {
                 Navigator.pop(context);
+                _showPayoffCalculator(context, record);
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(CupertinoIcons.chart_bar_circle,
+                      color: CupertinoColors.systemPurple),
+                  SizedBox(width: Spacing.sm),
+                  const Text('Payoff Calculator'),
+                ],
+              ),
+            ),
+            CupertinoActionSheetAction(
+              onPressed: () {
+                Navigator.pop(context);
                 _showPartialPaymentModal(context, record, controller);
               },
               child: Row(
@@ -1193,6 +1208,254 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
     final mm = date.minute.toString().padLeft(2, '0');
     return '${_formatDate(date)} $hh:$mm';
   }
+
+  void _showPayoffCalculator(BuildContext context, LendingBorrowing record) {
+    final monthlyController =
+        TextEditingController(text: (record.amount / 12).toStringAsFixed(0));
+    final rateController = TextEditingController(text: '0');
+
+    showCupertinoModalPopup(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setS) {
+          final isDark = AppStyles.isDarkMode(ctx);
+          final monthly = double.tryParse(monthlyController.text) ?? 0;
+          final annualRate = double.tryParse(rateController.text) ?? 0;
+          final outstanding = record.amount;
+
+          int months = 0;
+          double totalInterest = 0;
+          DateTime? payoffDate;
+
+          if (monthly > 0 && outstanding > 0) {
+            if (annualRate <= 0) {
+              months = (outstanding / monthly).ceil();
+            } else {
+              final monthlyRate = annualRate / 100 / 12;
+              if (monthly > outstanding * monthlyRate) {
+                double balance = outstanding;
+                while (balance > 0 && months < 600) {
+                  final interest = balance * monthlyRate;
+                  totalInterest += interest;
+                  balance -= (monthly - interest);
+                  months++;
+                }
+                if (months >= 600) months = 0;
+              }
+            }
+            if (months > 0) {
+              payoffDate = DateTime.now()
+                  .add(Duration(days: (months * 30.44).round()));
+            }
+          }
+
+          Widget resultRow(String label, String value, {Color? valueColor}) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(label,
+                      style: TextStyle(
+                          color: AppStyles.getSecondaryTextColor(ctx),
+                          fontSize: TypeScale.body)),
+                  Text(value,
+                      style: TextStyle(
+                          color: valueColor ?? AppStyles.getTextColor(ctx),
+                          fontSize: TypeScale.body,
+                          fontWeight: FontWeight.w600)),
+                ],
+              ),
+            );
+          }
+
+          return Container(
+            height: MediaQuery.of(ctx).size.height * 0.85,
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1C1C1E) : CupertinoColors.white,
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: SafeArea(
+              child: Column(
+                children: [
+                  const SizedBox(height: 12),
+                  Container(
+                    width: 36,
+                    height: 5,
+                    decoration: BoxDecoration(
+                        color: CupertinoColors.systemGrey3,
+                        borderRadius: BorderRadius.circular(2.5)),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(CupertinoIcons.chart_bar_circle,
+                          color: CupertinoColors.systemPurple, size: 22),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Payoff Calculator',
+                        style: TextStyle(
+                          color: AppStyles.getTextColor(ctx),
+                          fontSize: TypeScale.title2,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    record.personName,
+                    style: TextStyle(
+                      color: AppStyles.getSecondaryTextColor(ctx),
+                      fontSize: TypeScale.body,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppStyles.getCardColor(ctx),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: resultRow(
+                              'Outstanding Balance',
+                              CurrencyFormatter.format(outstanding),
+                              valueColor: CupertinoColors.systemRed,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text('Monthly Payment',
+                              style: TextStyle(
+                                  color:
+                                      AppStyles.getSecondaryTextColor(ctx),
+                                  fontSize: TypeScale.footnote,
+                                  fontWeight: FontWeight.w600)),
+                          const SizedBox(height: 6),
+                          CupertinoTextField(
+                            controller: monthlyController,
+                            keyboardType:
+                                const TextInputType.numberWithOptions(
+                                    decimal: true),
+                            prefix: const Padding(
+                              padding: EdgeInsets.only(left: 12),
+                              child: Text('₹'),
+                            ),
+                            style: TextStyle(
+                                color: AppStyles.getTextColor(ctx)),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? const Color(0xFF2C2C2E)
+                                  : CupertinoColors.systemGrey6,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            onChanged: (_) => setS(() {}),
+                          ),
+                          const SizedBox(height: 12),
+                          Text('Annual Interest Rate (%)',
+                              style: TextStyle(
+                                  color:
+                                      AppStyles.getSecondaryTextColor(ctx),
+                                  fontSize: TypeScale.footnote,
+                                  fontWeight: FontWeight.w600)),
+                          const SizedBox(height: 6),
+                          CupertinoTextField(
+                            controller: rateController,
+                            keyboardType:
+                                const TextInputType.numberWithOptions(
+                                    decimal: true),
+                            suffix: const Padding(
+                              padding: EdgeInsets.only(right: 12),
+                              child: Text('%'),
+                            ),
+                            style: TextStyle(
+                                color: AppStyles.getTextColor(ctx)),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? const Color(0xFF2C2C2E)
+                                  : CupertinoColors.systemGrey6,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            onChanged: (_) => setS(() {}),
+                          ),
+                          const SizedBox(height: 20),
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppStyles.getCardColor(ctx),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: months > 0
+                                ? Column(children: [
+                                    resultRow(
+                                        'Payoff In',
+                                        '$months month${months > 1 ? 's' : ''}',
+                                        valueColor:
+                                            CupertinoColors.systemGreen),
+                                    if (payoffDate != null)
+                                      resultRow('Estimated Date',
+                                          DateFormatter.format(payoffDate)),
+                                    if (totalInterest > 0)
+                                      resultRow(
+                                          'Total Interest',
+                                          CurrencyFormatter.format(
+                                              totalInterest),
+                                          valueColor:
+                                              CupertinoColors.systemOrange),
+                                    resultRow(
+                                        'Total Cost',
+                                        CurrencyFormatter.format(
+                                            outstanding + totalInterest)),
+                                  ])
+                                : Padding(
+                                    padding: const EdgeInsets.all(8),
+                                    child: Text(
+                                      monthly > 0 && annualRate > 0
+                                          ? 'Monthly payment too low to cover interest. Increase it.'
+                                          : 'Enter monthly payment to see payoff schedule.',
+                                      style: TextStyle(
+                                        color: monthly > 0 && annualRate > 0
+                                            ? CupertinoColors.systemOrange
+                                            : AppStyles.getSecondaryTextColor(
+                                                ctx),
+                                        fontSize: TypeScale.body,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: CupertinoButton(
+                        color: CupertinoColors.systemGrey,
+                        onPressed: () => Navigator.pop(ctx),
+                        child: const Text('Done'),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
 }
 
 class _TransactionTypeWizard extends StatelessWidget {
@@ -1408,4 +1671,7 @@ class _TransactionTypeWizard extends StatelessWidget {
       ),
     );
   }
+
+  // Note: _showPayoffCalculator is defined in _LendingBorrowingScreenState
 }
+// end of _TransactionTypeWizard
