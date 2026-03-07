@@ -22,6 +22,7 @@ import 'package:vittara_fin_os/ui/manage/nps/nps_details_screen.dart';
 import 'package:vittara_fin_os/ui/manage/pension/pension_details_screen.dart';
 import 'package:vittara_fin_os/ui/manage/commodities/commodities_details_screen.dart';
 import 'package:vittara_fin_os/ui/manage/fo/fo_details_screen.dart';
+import 'package:vittara_fin_os/ui/manage/investments/simple_investment_details_screen.dart';
 import 'package:vittara_fin_os/ui/manage/simple_investment_entry_wizard.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
@@ -2892,8 +2893,12 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               ),
             );
           } else {
-            toast.showInfo(
-                'Details for ${investment.getTypeLabel()} coming soon!');
+            Navigator.of(context).push(
+              CupertinoPageRoute(
+                builder: (context) =>
+                    SimpleInvestmentDetailsScreen(investment: investment),
+              ),
+            );
           }
         },
         child: Container(
