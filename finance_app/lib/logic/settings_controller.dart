@@ -67,8 +67,9 @@ class SettingsController with ChangeNotifier {
       // Apply Secure Flag based on settings
       _updateSecureFlag();
 
-      if (_isBiometricEnabled) {
-        logger.info('Startup: Biometric enabled, locking app.',
+      if (_isBiometricEnabled || isPinEnabled) {
+        logger.info(
+            'Startup: Security enabled (biometric=$_isBiometricEnabled, pin=$isPinEnabled), locking app.',
             context: 'SettingsController');
         _isLocked = true;
       }
@@ -241,15 +242,33 @@ class SettingsController with ChangeNotifier {
   Future<void> authenticateAndUnlock() async {
     if (kIsWeb) return; // Skip on web
 
+    // PIN-only mode: biometric disabled but PIN is set — go straight to numpad
+    if (!_isBiometricEnabled && isPinEnabled) {
+      showPinEntryFallback();
+      return;
+    }
+
+    // No security configured (shouldn't be locked, but unlock anyway)
+    if (!_isBiometricEnabled && !isPinEnabled) {
+      _isLocked = false;
+      notifyListeners();
+      return;
+    }
+
     try {
       final canBiometric = await auth.canCheckBiometrics;
       if (!canBiometric) {
-        // Biometric not available — show PIN if set
+        // Device doesn't support biometric — fall back to PIN if set
         if (isPinEnabled) showPinEntryFallback();
         return;
       }
+
+      // biometricOnly: true prevents the system from showing its own device-PIN fallback.
+      // The app handles PIN fallback through its own in-app numpad.
       bool authenticated = await auth.authenticate(
         localizedReason: 'Unlock VittaraFinOS',
+        biometricOnly:
+            isPinEnabled, // suppress OS PIN sheet only when we have our own
       );
 
       if (authenticated) {
@@ -257,8 +276,11 @@ class SettingsController with ChangeNotifier {
         _isLocked = false;
         notifyListeners();
       } else if (isPinEnabled) {
-        // Biometric failed — offer PIN fallback
+        // Biometric failed/cancelled — offer in-app PIN
         showPinEntryFallback();
+      } else {
+        // No PIN fallback — re-prompt biometric
+        authenticateAndUnlock();
       }
     } catch (e) {
       logger.error('Unlock Error', error: e, context: 'SettingsController');
