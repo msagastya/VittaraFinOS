@@ -334,7 +334,10 @@ class _BanksScreenState extends State<BanksScreen> {
           },
         );
       },
-    );
+    ).whenComplete(() {
+      nameController.dispose();
+      senderIdController.dispose();
+    });
   }
 
   Widget _buildLabel(BuildContext context, String text) {
