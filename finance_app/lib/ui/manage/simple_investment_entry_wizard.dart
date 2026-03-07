@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
@@ -64,14 +63,43 @@ class _SimpleInvestmentEntryWizardState
   }
 
   Future<void> _pickDate() async {
-    final picked = await showDatePicker(
+    DateTime tempDate = _investmentDate;
+    await showCupertinoModalPopup<void>(
       context: context,
-      initialDate: _investmentDate,
-      firstDate: DateTime(2000, 1, 1),
-      lastDate: DateTime(2100, 1, 1),
+      builder: (ctx) => Container(
+        height: 280,
+        color: CupertinoTheme.of(ctx).scaffoldBackgroundColor,
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                CupertinoButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancel'),
+                ),
+                CupertinoButton(
+                  onPressed: () {
+                    setState(() => _investmentDate = tempDate);
+                    Navigator.pop(ctx);
+                  },
+                  child: const Text('Done'),
+                ),
+              ],
+            ),
+            Expanded(
+              child: CupertinoDatePicker(
+                mode: CupertinoDatePickerMode.date,
+                initialDateTime: _investmentDate,
+                maximumDate: DateTime.now(),
+                minimumDate: DateTime(2000, 1, 1),
+                onDateTimeChanged: (d) => tempDate = d,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
-    if (picked == null || !mounted) return;
-    setState(() => _investmentDate = picked);
   }
 
   Future<void> _pickAccount() async {
@@ -251,7 +279,7 @@ class _SimpleInvestmentEntryWizardState
             CupertinoButton.filled(
               onPressed: _isSaving ? null : _save,
               child: _isSaving
-                  ? const CupertinoActivityIndicator(color: Colors.white)
+                  ? const CupertinoActivityIndicator(color: CupertinoColors.white)
                   : const Text('Save Investment'),
             ),
           ],
