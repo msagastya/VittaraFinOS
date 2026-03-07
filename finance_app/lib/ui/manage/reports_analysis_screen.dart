@@ -711,6 +711,17 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
   }) {
     switch (_workspaceTab) {
       case _ReportWorkspaceTab.overview:
+        if (summary.transactionCount == 0) {
+          return [
+            SizedBox(height: Spacing.xl),
+            EmptyStateView(
+              icon: CupertinoIcons.doc_chart,
+              title: 'No Data for This Period',
+              subtitle:
+                  'Try adjusting your date range or filters to see transactions.',
+            ),
+          ];
+        }
         return [
           SizedBox(height: Spacing.lg),
           _buildOverviewCard(summary, groupedMetrics, strategyEvaluation),

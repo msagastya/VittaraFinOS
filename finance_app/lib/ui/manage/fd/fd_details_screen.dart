@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/fixed_deposit_model.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
@@ -404,7 +403,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
             'Edit Details',
             'Modify auto-link settings',
             CupertinoIcons.pencil,
-            Colors.purple,
+            CupertinoColors.systemPurple,
             () => _showEditModal(context),
           ),
           const SizedBox(height: Spacing.md),
@@ -2030,14 +2029,14 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                   children: [
                     Icon(
                       CupertinoIcons.bell_fill,
-                      color: Colors.white,
+                      color: CupertinoColors.white,
                       size: 12,
                     ),
                     SizedBox(width: Spacing.xs),
                     Text(
                       'FD Maturity',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: CupertinoColors.white,
                         fontSize: TypeScale.caption,
                         fontWeight: FontWeight.w600,
                       ),
@@ -2129,7 +2128,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                   child: const Text(
                     'Renew',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: CupertinoColors.white,
                       fontWeight: FontWeight.w600,
                       fontSize: TypeScale.body,
                     ),
@@ -2181,7 +2180,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                   child: const Text(
                     'Withdraw',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: CupertinoColors.white,
                       fontWeight: FontWeight.w600,
                       fontSize: TypeScale.body,
                     ),
