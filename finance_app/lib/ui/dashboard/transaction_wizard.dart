@@ -17,6 +17,7 @@ import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/logic/recurring_template_model.dart';
 import 'package:vittara_fin_os/logic/recurring_templates_controller.dart';
+import 'package:vittara_fin_os/services/sms_service.dart';
 import 'package:vittara_fin_os/ui/manage/account_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/categories/category_creation_modal.dart';
 import 'package:vittara_fin_os/ui/manage/payment_apps_screen.dart';
@@ -33,8 +34,9 @@ enum TransactionPaymentType { cash, upi, card, bank, wallet }
 
 class TransactionWizard extends StatefulWidget {
   final Transaction? cloneFrom;
+  final SmsParseResult? prefillFromSms;
 
-  const TransactionWizard({super.key, this.cloneFrom});
+  const TransactionWizard({super.key, this.cloneFrom, this.prefillFromSms});
 
   @override
   State<TransactionWizard> createState() => _TransactionWizardState();
@@ -357,6 +359,20 @@ class _TransactionWizardState extends State<TransactionWizard> {
   void initState() {
     super.initState();
     _amountController.addListener(() => setState(() {}));
+    final sms = widget.prefillFromSms;
+    if (sms != null) {
+      _amountController.text = sms.parsed.amount.toStringAsFixed(2);
+      _branch = sms.parsed.type == 'income'
+          ? TransactionWizardBranch.income
+          : TransactionWizardBranch.expense;
+      if (sms.parsed.merchant != null) {
+        _merchantController.text = sms.parsed.merchant!;
+      }
+      if (sms.parsed.upiId != null) {
+        _descriptionController.text = sms.parsed.upiId!;
+      }
+      _selectedDate = sms.parsed.date;
+    }
     final clone = widget.cloneFrom;
     if (clone != null) {
       _amountController.text = clone.amount.toStringAsFixed(2);
@@ -383,6 +399,19 @@ class _TransactionWizardState extends State<TransactionWizard> {
   }
 
   Future<void> _restoreOrCloneCategory() async {
+    // Prefill from SMS: resolve matched account
+    final sms = widget.prefillFromSms;
+    if (sms != null) {
+      if (sms.matchedAccount != null && mounted) {
+        final accts = Provider.of<AccountsController>(context, listen: false);
+        final match = accts.accounts
+            .where((a) => a.id == sms.matchedAccount!.id)
+            .firstOrNull;
+        if (match != null) setState(() => _selectedAccount = match);
+      }
+      await _restoreLastCategory();
+      return;
+    }
     final clone = widget.cloneFrom;
     if (clone != null) {
       final meta = clone.metadata ?? {};

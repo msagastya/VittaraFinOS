@@ -47,6 +47,7 @@ import 'package:vittara_fin_os/ui/manage/budgets/budgets_screen.dart';
 import 'package:vittara_fin_os/ui/manage/savings/savings_planners_screen.dart';
 import 'package:vittara_fin_os/ui/manage/ai_planner/ai_monthly_planner_screen.dart';
 import 'package:vittara_fin_os/ui/app_menu/app_menu_screen.dart';
+import 'package:vittara_fin_os/ui/sms/sms_review_screen.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 
 final AppLogger logger = AppLogger();
@@ -780,36 +781,79 @@ class DashboardScreen extends StatelessWidget {
                     Positioned(
                       bottom: Spacing.lg,
                       right: Spacing.lg,
-                      child: BouncyButton(
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            FadeScalePageRoute(page: const TransactionWizard()),
-                          );
-                        },
-                        child: Container(
-                          width: 60,
-                          height: 60,
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                AppStyles.accentBlue,
-                                AppStyles.accentTeal,
-                              ],
-                            ),
-                            shape: BoxShape.circle,
-                            boxShadow: AppStyles.elevatedShadows(
-                              context,
-                              tint: AppStyles.accentBlue,
-                              strength: 0.85,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          // SMS scan mini button
+                          BouncyButton(
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                CupertinoPageRoute(
+                                  builder: (_) => const SmsReviewScreen(),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              width: 46,
+                              height: 46,
+                              decoration: BoxDecoration(
+                                color: AppStyles.isDarkMode(context)
+                                    ? const Color(0xFF1C2E44)
+                                    : const Color(0xFFE8F0FE),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: AppStyles.accentBlue
+                                      .withValues(alpha: 0.3),
+                                ),
+                                boxShadow: AppStyles.elevatedShadows(
+                                  context,
+                                  tint: AppStyles.accentBlue,
+                                  strength: 0.4,
+                                ),
+                              ),
+                              child: Icon(
+                                CupertinoIcons.chat_bubble_text_fill,
+                                color: AppStyles.accentBlue,
+                                size: 20,
+                              ),
                             ),
                           ),
-                          child: const Icon(
-                            CupertinoIcons.add,
-                            color: Colors.white,
+                          SizedBox(height: Spacing.sm),
+                          // Main + FAB
+                          BouncyButton(
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                FadeScalePageRoute(
+                                    page: const TransactionWizard()),
+                              );
+                            },
+                            child: Container(
+                              width: 60,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    AppStyles.accentBlue,
+                                    AppStyles.accentTeal,
+                                  ],
+                                ),
+                                shape: BoxShape.circle,
+                                boxShadow: AppStyles.elevatedShadows(
+                                  context,
+                                  tint: AppStyles.accentBlue,
+                                  strength: 0.85,
+                                ),
+                              ),
+                              child: const Icon(
+                                CupertinoIcons.add,
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ),
                   ],
