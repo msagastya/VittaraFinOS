@@ -495,19 +495,14 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
         // Cards
         Expanded(
           child: ListView.builder(
-            padding: EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, 120),
+            padding: EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, Spacing.lg),
             itemCount: _results.length,
             itemBuilder: (ctx, i) => _buildResultCard(i, isDark),
           ),
         ),
 
         // Import button
-        Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          child: _buildImportBar(isDark),
-        ),
+        _buildImportBar(isDark),
       ],
     );
   }
