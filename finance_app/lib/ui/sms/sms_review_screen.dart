@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/banks_controller.dart';
+import 'package:vittara_fin_os/logic/transaction_model.dart';
+import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/services/sms_service.dart';
 import 'package:vittara_fin_os/ui/dashboard/transaction_wizard.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -12,6 +14,12 @@ import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
+
+class _DuplicateMatch {
+  final Transaction transaction;
+  final double confidence; // 0.5 or 0.8
+  _DuplicateMatch({required this.transaction, required this.confidence});
+}
 
 class SmsReviewScreen extends StatefulWidget {
   const SmsReviewScreen({super.key});
@@ -28,6 +36,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
   String _scanStatus = '';
   List<SmsParseResult> _results = [];
   final Set<int> _selected = {};
+  final Map<int, _DuplicateMatch> _duplicates = {};
   bool _scanDone = false;
   int _days = 30;
 
@@ -66,12 +75,48 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
     );
 
     if (!mounted) return;
+
+    // Duplicate detection against existing transactions
+    final txCtrl = Provider.of<TransactionsController>(context, listen: false);
+    final txns = txCtrl.transactions;
+    final dupes = <int, _DuplicateMatch>{};
+    for (int i = 0; i < results.length; i++) {
+      final p = results[i].parsed;
+      final matchedAccountId = results[i].matchedAccount?.id;
+      Transaction? best;
+      double bestConf = 0;
+      for (final t in txns) {
+        if ((t.amount - p.amount).abs() > 1.0) continue;
+        // Must be within ±1 day
+        if (t.dateTime.difference(p.date).inDays.abs() > 1) continue;
+        final meta = t.metadata ?? {};
+        final tAccountId = meta['accountId'] as String?;
+        final conf = (matchedAccountId != null &&
+                tAccountId != null &&
+                tAccountId == matchedAccountId)
+            ? 0.8
+            : 0.5;
+        if (conf > bestConf) {
+          bestConf = conf;
+          best = t;
+        }
+      }
+      if (best != null) {
+        dupes[i] = _DuplicateMatch(transaction: best, confidence: bestConf);
+      }
+    }
+
     setState(() {
       _isScanning = false;
       _results = results;
-      // Pre-select all with confidence ≥ 0.8
+      _duplicates
+        ..clear()
+        ..addAll(dupes);
+      // Pre-select only those with parse confidence ≥ 0.8 AND no duplicate
       for (int i = 0; i < results.length; i++) {
-        if (results[i].parsed.confidence >= 0.8) _selected.add(i);
+        if (results[i].parsed.confidence >= 0.8 && !dupes.containsKey(i)) {
+          _selected.add(i);
+        }
       }
       _scanDone = true;
     });
@@ -714,6 +759,12 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
                 ),
               ],
 
+              // Duplicate warning
+              if (_duplicates.containsKey(i)) ...[
+                SizedBox(height: Spacing.sm),
+                _buildDuplicateBanner(_duplicates[i]!, isDark),
+              ],
+
               // Raw SMS preview
               SizedBox(height: Spacing.sm),
               Container(
@@ -776,6 +827,45 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildDuplicateBanner(_DuplicateMatch dupe, bool isDark) {
+    final conf = dupe.confidence;
+    final color = conf >= 0.8
+        ? CupertinoColors.systemOrange
+        : CupertinoColors.systemYellow;
+    final fmt =
+        NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 2);
+    final dateFmt = DateFormat('dd MMM yyyy');
+    return Container(
+      padding:
+          EdgeInsets.symmetric(horizontal: Spacing.sm, vertical: Spacing.xs),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        children: [
+          Icon(CupertinoIcons.exclamationmark_triangle_fill,
+              size: 13, color: color),
+          SizedBox(width: Spacing.xs),
+          Expanded(
+            child: Text(
+              'Possible duplicate · ${fmt.format(dupe.transaction.amount)}'
+              ' on ${dateFmt.format(dupe.transaction.dateTime)}'
+              ' · ${(conf * 100).toInt()}% match',
+              style: TextStyle(
+                fontSize: 10,
+                color: color,
+                fontWeight: FontWeight.w600,
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
