@@ -149,6 +149,18 @@ class SmsService {
     'minimum payment',
     'outstanding balance',
     'minimum of',
+    // Bill / EMI due reminders
+    'is due',
+    'due on',
+    'bill due',
+    'emi due',
+    'emi is',
+    'please pay',
+    'kindly pay',
+    'pay your',
+    'autopay',
+    'auto debit',
+    'repayment',
   ];
   static const _mandateKeywords = [
     'upi-mandate',

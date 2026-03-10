@@ -1,6 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart'
-    show CircularProgressIndicator, AlwaysStoppedAnimation, Colors;
+    show
+        CircularProgressIndicator,
+        AlwaysStoppedAnimation,
+        Colors,
+        Divider,
+        SelectableText;
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
@@ -577,276 +582,522 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
     final p = r.parsed;
     final isExpense = p.type == 'expense';
     final isSelected = _selected.contains(i);
-    final color =
+    final txColor =
         isExpense ? CupertinoColors.systemRed : CupertinoColors.systemGreen;
     final fmt =
         NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 2);
-    final dateFmt = DateFormat('dd MMM, hh:mm a');
+    final dateFmt = DateFormat('dd MMM · hh:mm a');
+    final dupe = _duplicates[i];
+    final acctNum = r.matchedAccount?.creditCardNumber;
+    final acctSuffix = acctNum != null && acctNum.length >= 4
+        ? acctNum.substring(acctNum.length - 4)
+        : null;
 
-    return GestureDetector(
-      onTap: () => _toggleSelect(i),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        margin: EdgeInsets.only(bottom: Spacing.sm),
-        decoration: BoxDecoration(
-          color: isDark ? AppStyles.darkCard : CupertinoColors.systemBackground,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: isSelected
-                ? AppStyles.accentBlue.withValues(alpha: 0.6)
-                : (isDark
-                    ? Colors.white.withValues(alpha: 0.06)
-                    : Colors.black.withValues(alpha: 0.06)),
-            width: isSelected ? 2 : 1,
-          ),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      margin: EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: isDark ? AppStyles.darkCard : CupertinoColors.systemBackground,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isSelected
+              ? AppStyles.accentBlue.withValues(alpha: 0.7)
+              : (isDark
+                  ? Colors.white.withValues(alpha: 0.07)
+                  : Colors.black.withValues(alpha: 0.07)),
+          width: isSelected ? 2 : 1,
         ),
-        child: Padding(
-          padding: EdgeInsets.all(Spacing.md),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Top row: amount + type badge + checkbox
-              Row(
+        boxShadow: isSelected
+            ? [
+                BoxShadow(
+                  color: AppStyles.accentBlue.withValues(alpha: 0.08),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                )
+              ]
+            : null,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Header row ────────────────────────────────────────────────
+          GestureDetector(
+            onTap: () => _toggleSelect(i),
+            behavior: HitTestBehavior.opaque,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Type dot
+                  // Left: colored accent bar
                   Container(
-                    width: 8,
-                    height: 8,
-                    decoration:
-                        BoxDecoration(color: color, shape: BoxShape.circle),
-                  ),
-                  SizedBox(width: Spacing.sm),
-                  // Amount
-                  Text(
-                    fmt.format(p.amount),
-                    style: TextStyle(
-                      fontFamily: 'SpaceGrotesk',
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: color,
-                    ),
-                  ),
-                  SizedBox(width: Spacing.sm),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    width: 4,
+                    height: 48,
                     decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      isExpense ? 'EXPENSE' : 'INCOME',
-                      style: TextStyle(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w700,
-                        color: color,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ),
-                  const Spacer(),
-                  // Checkbox
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 150),
-                    width: 24,
-                    height: 24,
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? AppStyles.accentBlue
-                          : Colors.transparent,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: isSelected
-                            ? AppStyles.accentBlue
-                            : AppStyles.getSecondaryTextColor(context)
-                                .withValues(alpha: 0.4),
-                        width: 2,
-                      ),
-                    ),
-                    child: isSelected
-                        ? const Icon(CupertinoIcons.checkmark,
-                            size: 13, color: Colors.white)
-                        : null,
-                  ),
-                ],
-              ),
-
-              SizedBox(height: Spacing.sm),
-
-              // Meta row: date + account
-              Row(
-                children: [
-                  Icon(CupertinoIcons.calendar,
-                      size: 13,
-                      color: AppStyles.getSecondaryTextColor(context)),
-                  SizedBox(width: 4),
-                  Text(
-                    dateFmt.format(p.date),
-                    style: TextStyle(
-                      fontSize: TypeScale.caption,
-                      color: AppStyles.getSecondaryTextColor(context),
-                    ),
-                  ),
-                  if (p.bankId != null) ...[
-                    SizedBox(width: Spacing.sm),
-                    Container(
-                      width: 3,
-                      height: 3,
-                      decoration: BoxDecoration(
-                        color: AppStyles.getSecondaryTextColor(context),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    SizedBox(width: Spacing.sm),
-                    Text(
-                      p.bankId!.replaceAll('_', ' ').toUpperCase(),
-                      style: TextStyle(
-                        fontSize: TypeScale.caption,
-                        color: AppStyles.accentBlue,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-
-              // Merchant if available
-              if (p.merchant != null) ...[
-                SizedBox(height: Spacing.xs),
-                Row(
-                  children: [
-                    Icon(CupertinoIcons.building_2_fill,
-                        size: 13,
-                        color: AppStyles.getSecondaryTextColor(context)),
-                    SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        p.merchant!,
-                        style: TextStyle(
-                          fontSize: TypeScale.footnote,
-                          fontWeight: FontWeight.w500,
-                          color: AppStyles.getTextColor(context),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-
-              // Matched account
-              if (r.matchedAccount != null) ...[
-                SizedBox(height: Spacing.xs),
-                Row(
-                  children: [
-                    Icon(CupertinoIcons.creditcard,
-                        size: 13,
-                        color: AppStyles.getSecondaryTextColor(context)),
-                    SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        '${r.matchedAccount!.bankName} ··${r.matchedAccount!.creditCardNumber?.substring(
-                              (r.matchedAccount!.creditCardNumber?.length ??
-                                      4) -
-                                  4,
-                            ) ?? ''}',
-                        style: TextStyle(
-                          fontSize: TypeScale.caption,
-                          color: AppStyles.getSecondaryTextColor(context),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    // Confidence pill
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: _confidenceColor(r.accountMatchConfidence)
-                            .withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        '${(r.accountMatchConfidence * 100).toInt()}%',
-                        style: TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w700,
-                          color: _confidenceColor(r.accountMatchConfidence),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-
-              // Duplicate warning
-              if (_duplicates.containsKey(i)) ...[
-                SizedBox(height: Spacing.sm),
-                _buildDuplicateBanner(_duplicates[i]!, isDark),
-              ],
-
-              // Raw SMS preview
-              SizedBox(height: Spacing.sm),
-              Container(
-                padding: EdgeInsets.all(Spacing.sm),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.04)
-                      : Colors.black.withValues(alpha: 0.03),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  p.rawMessage,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: AppStyles.getSecondaryTextColor(context)
-                        .withValues(alpha: 0.8),
-                    height: 1.4,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-
-              // Confidence badge (parse confidence)
-              SizedBox(height: Spacing.sm),
-              Row(
-                children: [
-                  Icon(CupertinoIcons.waveform,
-                      size: 11,
-                      color: AppStyles.getSecondaryTextColor(context)
-                          .withValues(alpha: 0.5)),
-                  SizedBox(width: 4),
-                  Text(
-                    p.parseMethod.split(':').first.replaceAll('_', ' '),
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: AppStyles.getSecondaryTextColor(context)
-                          .withValues(alpha: 0.5),
-                    ),
-                  ),
-                  const Spacer(),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: _confidenceColor(p.confidence)
-                          .withValues(alpha: 0.12),
+                      color: txColor,
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: Text(
-                      'Confidence ${(p.confidence * 100).toInt()}%',
-                      style: TextStyle(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w600,
-                        color: _confidenceColor(p.confidence),
-                      ),
+                  ),
+                  const SizedBox(width: 12),
+                  // Center: amount + meta
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Amount
+                        Text(
+                          fmt.format(p.amount),
+                          style: TextStyle(
+                            fontFamily: 'SpaceGrotesk',
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
+                            color: txColor,
+                            height: 1.1,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        // Date + Bank
+                        Row(
+                          children: [
+                            Text(
+                              dateFmt.format(p.date),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppStyles.getSecondaryTextColor(context),
+                              ),
+                            ),
+                            if (p.bankId != null) ...[
+                              Text(
+                                '  ·  ',
+                                style: TextStyle(
+                                  color:
+                                      AppStyles.getSecondaryTextColor(context),
+                                ),
+                              ),
+                              Text(
+                                p.bankId!
+                                    .replaceAll('_', ' ')
+                                    .split(' ')
+                                    .first
+                                    .toUpperCase(),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppStyles.accentBlue,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ],
                     ),
+                  ),
+                  const SizedBox(width: 8),
+                  // Right: type badge + checkbox
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      // Type badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: txColor.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          isExpense ? 'EXPENSE' : 'INCOME',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w800,
+                            color: txColor,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // Checkbox
+                      GestureDetector(
+                        onTap: () => _toggleSelect(i),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 150),
+                          width: 26,
+                          height: 26,
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? AppStyles.accentBlue
+                                : Colors.transparent,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isSelected
+                                  ? AppStyles.accentBlue
+                                  : AppStyles.getSecondaryTextColor(context)
+                                      .withValues(alpha: 0.35),
+                              width: 2,
+                            ),
+                          ),
+                          child: isSelected
+                              ? const Icon(CupertinoIcons.checkmark,
+                                  size: 14, color: Colors.white)
+                              : null,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
+
+          // ── Divider ───────────────────────────────────────────────────
+          Divider(
+            height: 1,
+            thickness: 1,
+            color:
+                (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+          ),
+
+          // ── Meta chips row ────────────────────────────────────────────
+          GestureDetector(
+            onTap: () => _toggleSelect(i),
+            behavior: HitTestBehavior.opaque,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                children: [
+                  // Merchant
+                  if (p.merchant != null)
+                    _chip(
+                      CupertinoIcons.building_2_fill,
+                      p.merchant!,
+                      isDark,
+                    ),
+                  // Account match
+                  if (r.matchedAccount != null)
+                    _chip(
+                      CupertinoIcons.creditcard,
+                      '${r.matchedAccount!.bankName}'
+                      '${acctSuffix != null ? ' ··$acctSuffix' : ''}'
+                      '  ${(r.accountMatchConfidence * 100).toInt()}%',
+                      isDark,
+                      color: _confidenceColor(r.accountMatchConfidence),
+                    ),
+                  // Duplicate warning
+                  if (dupe != null)
+                    _chip(
+                      CupertinoIcons.exclamationmark_triangle_fill,
+                      'Possible duplicate '
+                      '${(dupe.confidence * 100).toInt()}%',
+                      isDark,
+                      color: dupe.confidence >= 0.8
+                          ? CupertinoColors.systemOrange
+                          : CupertinoColors.systemYellow,
+                    ),
+                ],
+              ),
+            ),
+          ),
+
+          // ── Footer: confidence + View message ─────────────────────────
+          Divider(
+            height: 1,
+            thickness: 1,
+            color:
+                (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+            child: Row(
+              children: [
+                // Confidence indicator
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                  decoration: BoxDecoration(
+                    color:
+                        _confidenceColor(p.confidence).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    '${(p.confidence * 100).toInt()}% confidence',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: _confidenceColor(p.confidence),
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                // View full message button
+                CupertinoButton(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  onPressed: () => _showMessageModal(i, isDark),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        CupertinoIcons.eye,
+                        size: 14,
+                        color: AppStyles.accentBlue,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'View message',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppStyles.accentBlue,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _chip(IconData icon, String label, bool isDark, {Color? color}) {
+    final c =
+        color ?? (isDark ? const Color(0xFF8E8E93) : const Color(0xFF6C6C70));
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: c.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: c.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 11, color: c),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: c,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showMessageModal(int i, bool isDark) {
+    final r = _results[i];
+    final p = r.parsed;
+    final fmt =
+        NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 2);
+    final dateFmt = DateFormat('dd MMMM yyyy · hh:mm a');
+    final dupe = _duplicates[i];
+
+    showCupertinoModalPopup(
+      context: context,
+      builder: (ctx) => Container(
+        height: MediaQuery.of(ctx).size.height * 0.75,
+        decoration: BoxDecoration(
+          color: isDark
+              ? const Color(0xFF1C1C1E)
+              : CupertinoColors.systemBackground,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
+        child: Column(
+          children: [
+            // Handle
+            Center(
+              child: Container(
+                margin: const EdgeInsets.only(top: 12, bottom: 8),
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: (isDark ? Colors.white : Colors.black)
+                      .withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            // Header
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          fmt.format(p.amount),
+                          style: TextStyle(
+                            fontFamily: 'SpaceGrotesk',
+                            fontSize: 26,
+                            fontWeight: FontWeight.w700,
+                            color: p.type == 'expense'
+                                ? CupertinoColors.systemRed
+                                : CupertinoColors.systemGreen,
+                          ),
+                        ),
+                        Text(
+                          dateFmt.format(p.date),
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppStyles.getSecondaryTextColor(context),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: () => Navigator.of(ctx).pop(),
+                    child: Icon(CupertinoIcons.xmark_circle_fill,
+                        color: AppStyles.getSecondaryTextColor(context)
+                            .withValues(alpha: 0.5),
+                        size: 28),
+                  ),
+                ],
+              ),
+            ),
+            Divider(
+                height: 1,
+                color: (isDark ? Colors.white : Colors.black)
+                    .withValues(alpha: 0.08)),
+            // Scrollable content
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.all(20),
+                children: [
+                  // Parsed fields
+                  _modalRow('From', p.sender),
+                  if (p.bankId != null)
+                    _modalRow(
+                        'Bank', p.bankId!.replaceAll('_', ' ').toUpperCase()),
+                  if (p.merchant != null) _modalRow('Merchant', p.merchant!),
+                  if (p.upiId != null) _modalRow('UPI ID', p.upiId!),
+                  if (p.accountLast4 != null)
+                    _modalRow('Account', '····${p.accountLast4}'),
+                  if (p.cardLast4 != null)
+                    _modalRow('Card', '····${p.cardLast4}'),
+                  if (p.balance != null)
+                    _modalRow('Balance after', fmt.format(p.balance!)),
+                  _modalRow('Parsed by', p.parseMethod.replaceAll('_', ' ')),
+                  const SizedBox(height: 20),
+                  // Duplicate warning
+                  if (dupe != null) ...[
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: CupertinoColors.systemOrange
+                            .withValues(alpha: 0.10),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: CupertinoColors.systemOrange
+                              .withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                              CupertinoIcons.exclamationmark_triangle_fill,
+                              size: 16,
+                              color: CupertinoColors.systemOrange),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Possible duplicate: '
+                              '${fmt.format(dupe.transaction.amount)} '
+                              'on ${DateFormat('dd MMM yyyy').format(dupe.transaction.dateTime)} '
+                              '(${(dupe.confidence * 100).toInt()}% match)',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: CupertinoColors.systemOrange,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  // Full SMS message
+                  Text(
+                    'Full Message',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppStyles.getSecondaryTextColor(context),
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: (isDark ? Colors.white : Colors.black)
+                          .withValues(alpha: 0.04),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: (isDark ? Colors.white : Colors.black)
+                            .withValues(alpha: 0.08),
+                      ),
+                    ),
+                    child: SelectableText(
+                      p.rawMessage,
+                      style: TextStyle(
+                        fontSize: 14,
+                        height: 1.6,
+                        color: AppStyles.getTextColor(context),
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _modalRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                color: AppStyles.getSecondaryTextColor(context),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppStyles.getTextColor(context),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
