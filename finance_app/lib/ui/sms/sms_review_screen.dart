@@ -7,6 +7,7 @@ import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/banks_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
+import 'package:vittara_fin_os/services/sms_auto_scan_service.dart';
 import 'package:vittara_fin_os/services/sms_service.dart';
 import 'package:vittara_fin_os/ui/dashboard/transaction_wizard.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -22,7 +23,11 @@ class _DuplicateMatch {
 }
 
 class SmsReviewScreen extends StatefulWidget {
-  const SmsReviewScreen({super.key});
+  /// When provided (e.g. opened from notification), skip scanning
+  /// and show these pre-scanned results directly.
+  final List<SmsParseResult>? preloadedResults;
+
+  const SmsReviewScreen({super.key, this.preloadedResults});
 
   @override
   State<SmsReviewScreen> createState() => _SmsReviewScreenState();
@@ -39,6 +44,58 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
   final Map<int, _DuplicateMatch> _duplicates = {};
   bool _scanDone = false;
   int _days = 30;
+
+  @override
+  void initState() {
+    super.initState();
+    // If opened from notification, load preloaded results immediately
+    final preloaded =
+        widget.preloadedResults ?? SmsAutoScanService.instance.pendingResults;
+    if (preloaded != null && preloaded.isNotEmpty) {
+      _results = List.from(preloaded);
+      _scanDone = true;
+      // Clear pending so re-opening doesn't reuse stale data
+      SmsAutoScanService.instance.pendingResults = null;
+      WidgetsBinding.instance.addPostFrameCallback((_) => _runDupeDetection());
+    }
+  }
+
+  void _runDupeDetection() {
+    if (!mounted) return;
+    final txCtrl = Provider.of<TransactionsController>(context, listen: false);
+    final txns = txCtrl.transactions;
+    final dupes = <int, _DuplicateMatch>{};
+    for (int i = 0; i < _results.length; i++) {
+      final p = _results[i].parsed;
+      final matchedId = _results[i].matchedAccount?.id;
+      Transaction? best;
+      double bestConf = 0;
+      for (final t in txns) {
+        if ((t.amount - p.amount).abs() > 1.0) continue;
+        if (t.dateTime.difference(p.date).inDays.abs() > 1) continue;
+        final tId = (t.metadata ?? {})['accountId'] as String?;
+        final conf = (matchedId != null && tId == matchedId) ? 0.8 : 0.5;
+        if (conf > bestConf) {
+          bestConf = conf;
+          best = t;
+        }
+      }
+      if (best != null) {
+        dupes[i] = _DuplicateMatch(transaction: best, confidence: bestConf);
+      }
+    }
+    setState(() {
+      _duplicates
+        ..clear()
+        ..addAll(dupes);
+      _selected.clear();
+      for (int i = 0; i < _results.length; i++) {
+        if (_results[i].parsed.confidence >= 0.8 && !dupes.containsKey(i)) {
+          _selected.add(i);
+        }
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -76,50 +133,13 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
 
     if (!mounted) return;
 
-    // Duplicate detection against existing transactions
-    final txCtrl = Provider.of<TransactionsController>(context, listen: false);
-    final txns = txCtrl.transactions;
-    final dupes = <int, _DuplicateMatch>{};
-    for (int i = 0; i < results.length; i++) {
-      final p = results[i].parsed;
-      final matchedAccountId = results[i].matchedAccount?.id;
-      Transaction? best;
-      double bestConf = 0;
-      for (final t in txns) {
-        if ((t.amount - p.amount).abs() > 1.0) continue;
-        // Must be within ±1 day
-        if (t.dateTime.difference(p.date).inDays.abs() > 1) continue;
-        final meta = t.metadata ?? {};
-        final tAccountId = meta['accountId'] as String?;
-        final conf = (matchedAccountId != null &&
-                tAccountId != null &&
-                tAccountId == matchedAccountId)
-            ? 0.8
-            : 0.5;
-        if (conf > bestConf) {
-          bestConf = conf;
-          best = t;
-        }
-      }
-      if (best != null) {
-        dupes[i] = _DuplicateMatch(transaction: best, confidence: bestConf);
-      }
-    }
-
     setState(() {
       _isScanning = false;
       _results = results;
-      _duplicates
-        ..clear()
-        ..addAll(dupes);
-      // Pre-select only those with parse confidence ≥ 0.8 AND no duplicate
-      for (int i = 0; i < results.length; i++) {
-        if (results[i].parsed.confidence >= 0.8 && !dupes.containsKey(i)) {
-          _selected.add(i);
-        }
-      }
       _scanDone = true;
     });
+
+    _runDupeDetection();
   }
 
   void _toggleSelect(int i) => setState(

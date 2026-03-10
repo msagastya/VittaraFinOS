@@ -48,6 +48,7 @@ import 'package:vittara_fin_os/ui/manage/savings/savings_planners_screen.dart';
 import 'package:vittara_fin_os/ui/manage/ai_planner/ai_monthly_planner_screen.dart';
 import 'package:vittara_fin_os/ui/app_menu/app_menu_screen.dart';
 import 'package:vittara_fin_os/ui/sms/sms_review_screen.dart';
+import 'package:vittara_fin_os/services/sms_auto_scan_service.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 
 final AppLogger logger = AppLogger();
@@ -166,6 +167,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     );
 
     return MaterialApp(
+      navigatorKey: appNavigatorKey,
       title: 'VittaraFinOS',
       themeMode: settings.themeMode,
       // LIGHT THEME
@@ -549,7 +551,22 @@ class _SplashScreenState extends State<SplashScreen> {
         Navigator.of(context).pushReplacement(FadeScalePageRoute(
           page: const DashboardScreen(),
         ));
+        // Auto-scan SMS in background after app loads
+        _triggerSmsStartupScan();
       }
+    });
+  }
+
+  void _triggerSmsStartupScan() {
+    // Run silently — errors are swallowed so they never crash the app.
+    Future.microtask(() async {
+      try {
+        await SmsAutoScanService.instance.runStartupScan(
+          banksCtrl: Provider.of<BanksController>(context, listen: false),
+          accountsCtrl: Provider.of<AccountsController>(context, listen: false),
+          txCtrl: Provider.of<TransactionsController>(context, listen: false),
+        );
+      } catch (_) {}
     });
   }
 
