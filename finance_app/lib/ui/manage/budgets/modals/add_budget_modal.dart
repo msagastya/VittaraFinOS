@@ -22,6 +22,7 @@ class _AddBudgetModalState extends State<AddBudgetModal> {
   BudgetPeriod _selectedPeriod = BudgetPeriod.monthly;
   Color _selectedColor = SemanticColors.primary;
   Category? _selectedCategory;
+  bool _isSaving = false;
 
   @override
   void dispose() {
@@ -31,6 +32,7 @@ class _AddBudgetModalState extends State<AddBudgetModal> {
   }
 
   void _saveBudget() async {
+    if (_isSaving) return;
     FocusManager.instance.primaryFocus?.unfocus();
     if (_nameController.text.trim().isEmpty) {
       AlertService.showError(context, 'Please enter a budget name');
@@ -74,10 +76,16 @@ class _AddBudgetModalState extends State<AddBudgetModal> {
       color: _selectedColor,
     );
 
-    await Provider.of<BudgetsController>(context, listen: false)
-        .addBudget(budget);
-    Navigator.pop(context);
-    AlertService.showSuccess(context, 'Budget created successfully!');
+    setState(() => _isSaving = true);
+    try {
+      await Provider.of<BudgetsController>(context, listen: false)
+          .addBudget(budget);
+      if (!mounted) return;
+      Navigator.pop(context);
+      AlertService.showSuccess(context, 'Budget created successfully!');
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
   }
 
   @override
@@ -333,7 +341,7 @@ class _AddBudgetModalState extends State<AddBudgetModal> {
                             period: period,
                             startDate: DateTime.now(),
                             endDate: DateTime.now(),
-                            color: CupertinoColors.activeBlue);
+                            color: AppStyles.aetherTeal);
                         final isSelected = _selectedPeriod == period;
                         return GestureDetector(
                           onTap: () => setState(() => _selectedPeriod = period),
@@ -391,9 +399,13 @@ class _AddBudgetModalState extends State<AddBudgetModal> {
                         Expanded(
                             child: CupertinoButton(
                                 color: SemanticColors.primary,
-                                onPressed: _saveBudget,
-                                child: Text('Create Budget',
-                                    style: TextStyle(color: Colors.white)))),
+                                onPressed: _isSaving ? null : _saveBudget,
+                                child: _isSaving
+                                    ? const CupertinoActivityIndicator(
+                                        color: Colors.white)
+                                    : Text('Create Budget',
+                                        style:
+                                            TextStyle(color: Colors.white)))),
                       ],
                     ),
                   ],

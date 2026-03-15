@@ -4,6 +4,7 @@ import 'package:vittara_fin_os/logic/categories_controller.dart';
 import 'package:vittara_fin_os/logic/category_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/icon_picker.dart';
 
 Future<Category?> showCreateCategoryModal(
@@ -101,8 +102,8 @@ Future<Category?> showCreateCategoryModal(
                       CupertinoButton(
                         onPressed: () {
                           Navigator.of(context).push(
-                            CupertinoPageRoute(
-                              builder: (_) => _IconPickerScreen(
+                            FadeScalePageRoute(
+                              page: _IconPickerScreen(
                                 onIconSelected: (icon) {
                                   setModalState(() => selectedIcon = icon);
                                 },

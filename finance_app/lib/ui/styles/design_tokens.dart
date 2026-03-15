@@ -87,59 +87,101 @@ class Radii {
 }
 
 /// Shadow presets for elevation effects
+/// Aether design: emissive glows — elements radiate light, not cast shadows.
 class Shadows {
   Shadows._();
 
   // Light mode shadows
   static List<BoxShadow> cardLight = [
     BoxShadow(
-      color: Colors.black.withValues(alpha: 0.04),
+      color: Colors.black.withValues(alpha: 0.05),
       offset: const Offset(0, 4),
-      blurRadius: 12,
+      blurRadius: 16,
       spreadRadius: 0,
     ),
     BoxShadow(
-      color: Colors.black.withValues(alpha: 0.02),
+      color: Colors.black.withValues(alpha: 0.03),
       offset: const Offset(0, 2),
-      blurRadius: 4,
+      blurRadius: 6,
       spreadRadius: 0,
     ),
   ];
 
-  // Dark mode shadows (subtle glow for AMOLED)
+  // Dark mode — phosphorescent ambient emission
   static List<BoxShadow> cardDark = [
     BoxShadow(
-      color: Colors.white.withValues(alpha: 0.05),
-      blurRadius: 16,
-      offset: const Offset(0, 4),
+      color: const Color(0xFF00D4AA).withValues(alpha: 0.04), // aetherTeal trace
+      blurRadius: 40,
+      spreadRadius: -8,
+      offset: Offset.zero,
+    ),
+    BoxShadow(
+      color: Colors.black.withValues(alpha: 0.65),
+      blurRadius: 18,
+      offset: const Offset(0, 8),
     ),
   ];
 
-  // FAB shadow
+  // FAB emissive glow
   static List<BoxShadow> fab(Color color) => [
         BoxShadow(
-          color: color.withValues(alpha: 0.4),
-          blurRadius: 10,
-          offset: const Offset(0, 4),
+          color: color.withValues(alpha: 0.45),
+          blurRadius: 24,
+          spreadRadius: -4,
+          offset: const Offset(0, 8),
+        ),
+        BoxShadow(
+          color: color.withValues(alpha: 0.20),
+          blurRadius: 48,
+          spreadRadius: -12,
+          offset: Offset.zero,
         ),
       ];
 
   // Elevated shadow for modals/sheets
   static List<BoxShadow> elevated = [
     BoxShadow(
-      color: Colors.black.withValues(alpha: 0.15),
-      offset: const Offset(0, -4),
-      blurRadius: 20,
+      color: Colors.black.withValues(alpha: 0.55),
+      offset: const Offset(0, -2),
+      blurRadius: 24,
       spreadRadius: 0,
     ),
   ];
 
-  // Icon glow effect
+  // Icon emissive glow — tight and vivid
   static List<BoxShadow> iconGlow(Color color) => [
         BoxShadow(
-          color: color.withValues(alpha: 0.2),
-          blurRadius: 10,
+          color: color.withValues(alpha: 0.35),
+          blurRadius: 16,
+          spreadRadius: -2,
           offset: const Offset(0, 4),
+        ),
+        BoxShadow(
+          color: color.withValues(alpha: 0.12),
+          blurRadius: 32,
+          spreadRadius: -8,
+          offset: Offset.zero,
+        ),
+      ];
+
+  // Quantum glow — maximum emissive radius for hero elements
+  static List<BoxShadow> quantumGlow(Color color) => [
+        BoxShadow(
+          color: color.withValues(alpha: 0.22),
+          blurRadius: 56,
+          spreadRadius: -10,
+          offset: Offset.zero,
+        ),
+        BoxShadow(
+          color: color.withValues(alpha: 0.32),
+          blurRadius: 22,
+          spreadRadius: -4,
+          offset: const Offset(0, 8),
+        ),
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.70),
+          blurRadius: 14,
+          offset: const Offset(0, 12),
         ),
       ];
 }
@@ -148,25 +190,25 @@ class Shadows {
 class SemanticColors {
   SemanticColors._();
 
-  // Primary actions
-  static const Color primary = Color(0xFF007AFF);
-  static const Color primaryDark = Color(0xFF0A84FF);
+  // Primary actions — Aether teal (phosphorescent)
+  static const Color primary = Color(0xFF00B890);
+  static const Color primaryDark = Color(0xFF00D4AA);
 
-  // Success states
-  static const Color success = Color(0xFF34C759);
-  static const Color successDark = Color(0xFF30D158);
+  // Success states — bio-green (bioluminescent)
+  static const Color success = Color(0xFF00C876);
+  static const Color successDark = Color(0xFF00E896);
 
   // Warning states
   static const Color warning = Color(0xFFFF9500);
-  static const Color warningDark = Color(0xFFFF9F0A);
+  static const Color warningDark = Color(0xFFFFAA2C);
 
-  // Error/Destructive states
-  static const Color error = Color(0xFFFF3B30);
-  static const Color errorDark = Color(0xFFFF453A);
+  // Error/Destructive states — plasma crimson
+  static const Color error = Color(0xFFE03050);
+  static const Color errorDark = Color(0xFFFF4560);
 
-  // Info states
-  static const Color info = Color(0xFF5856D6);
-  static const Color infoDark = Color(0xFF5E5CE6);
+  // Info states — nova violet
+  static const Color info = Color(0xFF7B5CEF);
+  static const Color infoDark = Color(0xFF9B7FFF);
 
   // Domain-specific colors
   static const Color banks = Color(0xFF007AFF);

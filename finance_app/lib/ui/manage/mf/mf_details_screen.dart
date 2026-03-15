@@ -13,13 +13,15 @@ import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/services/nav_service.dart';
+import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class MFDetailsScreen extends StatefulWidget {
   final Investment investment;
+  final bool autoOpenDividend;
 
-  const MFDetailsScreen({super.key, required this.investment});
+  const MFDetailsScreen({super.key, required this.investment, this.autoOpenDividend = false});
 
   @override
   State<MFDetailsScreen> createState() => _MFDetailsScreenState();
@@ -35,6 +37,11 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
   @override
   void initState() {
     super.initState();
+    if (widget.autoOpenDividend) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _showDividendModal(context);
+      });
+    }
     final schemeCode = widget.investment.metadata?['schemeCode'] as String?;
     if (schemeCode != null) {
       _navHistoryFuture =
@@ -61,7 +68,8 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
       final units = (metadata['units'] as num?)?.toDouble() ?? 0;
       final updatedMeta = Map<String, dynamic>.from(metadata)
         ..['currentNAV'] = navData.nav
-        ..['currentValue'] = navData.nav * units;
+        ..['currentValue'] = navData.nav * units
+        ..['navDate'] = navData.date.toIso8601String();
       final updatedInvestment =
           widget.investment.copyWith(metadata: updatedMeta);
       await Provider.of<InvestmentsController>(context, listen: false)
@@ -97,6 +105,7 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
         ),
         previousPageTitle: 'Back',
         backgroundColor: AppStyles.getBackground(context),
+        border: null,
         trailing: CupertinoButton(
           padding: EdgeInsets.zero,
           onPressed: _isRefreshingNAV ? null : _refreshNAV,
@@ -120,7 +129,7 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
                 padding: const EdgeInsets.all(Spacing.xl),
                 decoration: BoxDecoration(
                   color: AppStyles.getCardColor(context),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(Radii.lg),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.05),
@@ -188,8 +197,8 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
                                 fontWeight: FontWeight.bold,
                                 fontSize: TypeScale.headline,
                                 color: currentValue >= investedAmount
-                                    ? CupertinoColors.systemGreen
-                                    : CupertinoColors.systemRed,
+                                    ? AppStyles.bioGreen
+                                    : AppStyles.plasmaRed,
                               ),
                             ),
                           ],
@@ -206,13 +215,13 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
                 padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color: gainPercent >= 0
-                      ? CupertinoColors.systemGreen.withValues(alpha: 0.1)
-                      : CupertinoColors.systemRed.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+                      ? AppStyles.bioGreen.withValues(alpha: 0.1)
+                      : AppStyles.plasmaRed.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(Radii.md),
                   border: Border.all(
                     color: gainPercent >= 0
-                        ? CupertinoColors.systemGreen.withValues(alpha: 0.3)
-                        : CupertinoColors.systemRed.withValues(alpha: 0.3),
+                        ? AppStyles.bioGreen.withValues(alpha: 0.3)
+                        : AppStyles.plasmaRed.withValues(alpha: 0.3),
                   ),
                 ),
                 child: Row(
@@ -235,8 +244,8 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
                             fontWeight: FontWeight.bold,
                             fontSize: TypeScale.headline,
                             color: gainLoss >= 0
-                                ? CupertinoColors.systemGreen
-                                : CupertinoColors.systemRed,
+                                ? AppStyles.bioGreen
+                                : AppStyles.plasmaRed,
                           ),
                         ),
                       ],
@@ -258,8 +267,8 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
                             fontWeight: FontWeight.bold,
                             fontSize: TypeScale.headline,
                             color: gainPercent >= 0
-                                ? CupertinoColors.systemGreen
-                                : CupertinoColors.systemRed,
+                                ? AppStyles.bioGreen
+                                : AppStyles.plasmaRed,
                           ),
                         ),
                       ],
@@ -283,8 +292,8 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
                     final maxNav = navValues.reduce((a, b) => a > b ? a : b);
                     final isUp = navValues.last >= navValues.first;
                     final lineColor = isUp
-                        ? CupertinoColors.systemGreen
-                        : CupertinoColors.systemRed;
+                        ? AppStyles.bioGreen
+                        : AppStyles.plasmaRed;
 
                     return Column(
                       children: [
@@ -292,7 +301,7 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
                           padding: const EdgeInsets.all(Spacing.lg),
                           decoration: BoxDecoration(
                             color: AppStyles.getCardColor(context),
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(Radii.md),
                             border: Border.all(
                                 color: lineColor.withValues(alpha: 0.3)),
                           ),
@@ -384,6 +393,20 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
                   '₹${(metadata['investmentNAV'] as num?)?.toDouble().toStringAsFixed(2) ?? '-'}'),
               _buildDetailRow('Current NAV',
                   '₹${(metadata['currentNAV'] as num?)?.toDouble().toStringAsFixed(2) ?? '-'}'),
+              if (metadata['navDate'] != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      'NAV as of: ${_formatDate(metadata['navDate'] as String)}',
+                      style: TextStyle(
+                        color: AppStyles.getSecondaryTextColor(context),
+                        fontSize: TypeScale.caption,
+                      ),
+                    ),
+                  ),
+                ),
               _buildDetailRow(
                   'Scheme Type', metadata['schemeType'] as String? ?? '-'),
               _buildDetailRow(
@@ -411,7 +434,7 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
                   padding: const EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
                     color: SemanticColors.investments.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(Radii.md),
                     border: Border.all(
                       color: SemanticColors.investments.withValues(alpha: 0.3),
                     ),
@@ -449,14 +472,14 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
                     context,
                     icon: CupertinoIcons.plus_circle_fill,
                     label: 'Buy More',
-                    color: CupertinoColors.systemGreen,
+                    color: AppStyles.bioGreen,
                     onTap: () => _showBuyMoreWizard(context),
                   ),
                   _buildActionButton(
                     context,
                     icon: CupertinoIcons.minus_circle_fill,
                     label: 'Sell',
-                    color: CupertinoColors.systemRed,
+                    color: AppStyles.plasmaRed,
                     onTap: () => _showSellWizard(context),
                   ),
                   _buildActionButton(
@@ -484,7 +507,7 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
                     context,
                     icon: CupertinoIcons.trash_circle_fill,
                     label: 'Delete',
-                    color: CupertinoColors.systemRed,
+                    color: AppStyles.plasmaRed,
                     onTap: () => _showDeleteConfirmation(context),
                   ),
                 ],
@@ -584,8 +607,8 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
     Account? initialAccount,
   }) async {
     final result = await Navigator.of(context).push<Map<String, dynamic>>(
-      CupertinoPageRoute(
-        builder: (_) => SIPWizard(
+      FadeScalePageRoute(
+        page: SIPWizard(
           initialData: initialData,
           initialAccount: initialAccount,
         ),
@@ -702,7 +725,7 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
     );
 
     await Navigator.of(context).push(
-      CupertinoPageRoute(builder: (_) => MFWizard(intent: intent)),
+      FadeScalePageRoute(page: MFWizard(intent: intent)),
     );
   }
 
@@ -912,7 +935,7 @@ class _MFDividendModalState extends State<_MFDividendModal> {
           padding: const EdgeInsets.all(Spacing.lg),
           decoration: BoxDecoration(
             color: AppStyles.getBackground(context),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(Radii.md),
           ),
           prefix: prefix != null
               ? Padding(
@@ -937,7 +960,7 @@ class _MFDividendModalState extends State<_MFDividendModal> {
             EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
         decoration: BoxDecoration(
           color: AppStyles.getBackground(context),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(Radii.md),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1088,7 +1111,7 @@ class _EditMFModalState extends State<_EditMFModal> {
           padding: const EdgeInsets.all(Spacing.lg),
           decoration: BoxDecoration(
             color: AppStyles.getBackground(context),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(Radii.md),
           ),
           prefix: prefix != null
               ? Padding(

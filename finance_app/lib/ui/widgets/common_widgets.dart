@@ -1,9 +1,108 @@
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/physics.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
+
+// ============================================================
+// APP DIVIDER
+// ============================================================
+
+/// Consistent thin divider line
+class AppDivider extends StatelessWidget {
+  final double? indent;
+  final double? endIndent;
+  const AppDivider({super.key, this.indent, this.endIndent});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Divider(
+      height: 1,
+      thickness: 0.5,
+      indent: indent,
+      endIndent: endIndent,
+      color: isDark ? const Color(0xFF0D1829) : const Color(0xFFCCDDEE),
+    );
+  }
+}
+
+// ============================================================
+// SKELETON ANIMATION PROVIDER
+// ============================================================
+
+/// Holds a single shared [AnimationController] for all [SkeletonLoader]
+/// widgets in its subtree, so every shimmer pulse is in phase.
+///
+/// Usage: wrap any screen that shows multiple skeleton loaders:
+/// ```dart
+/// SkeletonAnimationProvider(child: SkeletonListView())
+/// ```
+/// [SkeletonLoader] automatically uses the nearest provider when present,
+/// falling back to its own controller if no provider is found.
+class SkeletonAnimationProvider extends StatefulWidget {
+  final Widget child;
+  const SkeletonAnimationProvider({super.key, required this.child});
+
+  /// Returns the shared [Animation<double>] from the nearest provider, or
+  /// null if there is no [SkeletonAnimationProvider] in the tree.
+  static Animation<double>? maybeOf(BuildContext context) {
+    return context
+        .dependOnInheritedWidgetOfExactType<_SkeletonAnimationScope>()
+        ?.animation;
+  }
+
+  @override
+  State<SkeletonAnimationProvider> createState() =>
+      _SkeletonAnimationProviderState();
+}
+
+class _SkeletonAnimationProviderState extends State<SkeletonAnimationProvider>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    )..repeat();
+    _animation = Tween<double>(begin: -2.0, end: 2.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _SkeletonAnimationScope(
+      animation: _animation,
+      child: widget.child,
+    );
+  }
+}
+
+class _SkeletonAnimationScope extends InheritedWidget {
+  final Animation<double> animation;
+
+  const _SkeletonAnimationScope({
+    required this.animation,
+    required super.child,
+  });
+
+  @override
+  bool updateShouldNotify(_SkeletonAnimationScope oldWidget) =>
+      animation != oldWidget.animation;
+}
 
 // ============================================================
 // SKELETON LOADER
@@ -11,6 +110,10 @@ import 'package:vittara_fin_os/ui/widgets/animations.dart';
 
 /// A single shimmering placeholder bar.
 /// Uses a pure-Flutter gradient animation — no external package needed.
+///
+/// When a [SkeletonAnimationProvider] is present in the widget tree, all
+/// [SkeletonLoader] instances share its controller so their shimmer is in sync.
+/// When no provider is found, each loader manages its own controller.
 class SkeletonLoader extends StatefulWidget {
   final double width;
   final double height;
@@ -29,52 +132,106 @@ class SkeletonLoader extends StatefulWidget {
 
 class _SkeletonLoaderState extends State<SkeletonLoader>
     with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
+  // Own controller — only used when no SkeletonAnimationProvider is in the tree.
+  AnimationController? _ownController;
   late Animation<double> _animation;
 
+  /// True when this loader is driving its own animation (no provider found).
+  bool _isOwner = false;
+
   @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1400),
-    )..repeat();
-    _animation = Tween<double>(begin: -1.5, end: 1.5).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final shared = SkeletonAnimationProvider.maybeOf(context);
+    if (shared != null) {
+      // Use shared animation; dispose own controller if we previously owned one.
+      if (_isOwner) {
+        _ownController?.dispose();
+        _ownController = null;
+        _isOwner = false;
+      }
+      _animation = shared;
+    } else if (!_isOwner) {
+      // No provider found — create our own controller once.
+      _ownController = AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 1800),
+      )..repeat();
+      _animation = Tween<double>(begin: -2.0, end: 2.0).animate(
+        CurvedAnimation(parent: _ownController!, curve: Curves.easeInOut),
+      );
+      _isOwner = true;
+    }
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _ownController?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = AppStyles.isDarkMode(context);
-    final base = isDark ? const Color(0xFF1C1C1E) : const Color(0xFFE5E5EA);
-    final highlight =
-        isDark ? const Color(0xFF3A3A3C) : const Color(0xFFF2F2F7);
 
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, child) {
-        return Container(
-          width: widget.width,
-          height: widget.height,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(widget.borderRadius),
-            gradient: LinearGradient(
-              begin: Alignment(_animation.value - 1, 0),
-              end: Alignment(_animation.value + 1, 0),
-              colors: [base, highlight, base],
-              stops: const [0.0, 0.5, 1.0],
+    Widget content;
+    if (isDark) {
+      // Signal-scan: narrow luminous teal beam sweeps across void base
+      final base = const Color(0xFF060C16); // void depth
+      const beamColor = Color(0xFF00D4AA); // aetherTeal
+
+      content = AnimatedBuilder(
+        animation: _animation,
+        builder: (context, child) {
+          final x = _animation.value;
+          return Container(
+            width: widget.width,
+            height: widget.height,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(widget.borderRadius),
+              gradient: LinearGradient(
+                begin: Alignment(x - 0.8, 0),
+                end: Alignment(x + 0.8, 0),
+                colors: [
+                  base,
+                  beamColor.withValues(alpha: 0.0),
+                  beamColor.withValues(alpha: 0.18),
+                  beamColor.withValues(alpha: 0.35),
+                  beamColor.withValues(alpha: 0.18),
+                  beamColor.withValues(alpha: 0.0),
+                  base,
+                ],
+                stops: const [0.0, 0.30, 0.44, 0.50, 0.56, 0.70, 1.0],
+              ),
             ),
-          ),
-        );
-      },
-    );
+          );
+        },
+      );
+    } else {
+      // Light mode: standard soft shimmer
+      const base = Color(0xFFE8EEF6);
+      const highlight = Color(0xFFF8FBFF);
+      content = AnimatedBuilder(
+        animation: _animation,
+        builder: (context, child) {
+          return Container(
+            width: widget.width,
+            height: widget.height,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(widget.borderRadius),
+              gradient: LinearGradient(
+                begin: Alignment(_animation.value - 1, 0),
+                end: Alignment(_animation.value + 1, 0),
+                colors: [base, highlight, base],
+                stops: const [0.0, 0.5, 1.0],
+              ),
+            ),
+          );
+        },
+      );
+    }
+
+    return Semantics(label: 'Loading...', child: content);
   }
 }
 
@@ -88,10 +245,7 @@ class SkeletonCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       padding: const EdgeInsets.all(Spacing.lg),
-      decoration: BoxDecoration(
-        color: AppStyles.getCardColor(context),
-        borderRadius: BorderRadius.circular(16),
-      ),
+      decoration: AppStyles.cardDecoration(context),
       child: Row(
         children: [
           SkeletonLoader(width: 48, height: 48, borderRadius: 14),
@@ -122,49 +276,55 @@ class SkeletonCard extends StatelessWidget {
 }
 
 /// A full-screen skeleton list (5 cards) for list screens.
+/// Wraps itself in a [SkeletonAnimationProvider] so all cards pulse in sync.
+/// If a provider already exists in the tree, the inner one is a no-op because
+/// [SkeletonLoader] will use the nearest ancestor's animation.
 class SkeletonListView extends StatelessWidget {
   final int itemCount;
   const SkeletonListView({super.key, this.itemCount = 5});
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      physics: const NeverScrollableScrollPhysics(),
-      shrinkWrap: true,
-      itemCount: itemCount,
-      itemBuilder: (_, __) => const SkeletonCard(),
+    return SkeletonAnimationProvider(
+      child: ListView.builder(
+        physics: const NeverScrollableScrollPhysics(),
+        shrinkWrap: true,
+        itemCount: itemCount,
+        itemBuilder: (_, __) => const SkeletonCard(),
+      ),
     );
   }
 }
 
 /// A large summary card skeleton (used on Net Worth / dashboard cards).
+/// Wraps itself in a [SkeletonAnimationProvider] so all internal loaders
+/// are in phase. If a provider already exists in the tree it is reused.
 class SkeletonSummaryCard extends StatelessWidget {
   const SkeletonSummaryCard({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.all(Spacing.xl),
-      decoration: BoxDecoration(
-        color: AppStyles.getCardColor(context),
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SkeletonLoader(height: 12, width: 100),
-          const SizedBox(height: Spacing.md),
-          SkeletonLoader(height: 32, width: 200),
-          const SizedBox(height: Spacing.lg),
-          Row(
-            children: [
-              Expanded(child: SkeletonLoader(height: 10)),
-              const SizedBox(width: Spacing.md),
-              Expanded(child: SkeletonLoader(height: 10)),
-            ],
-          ),
-        ],
+    return SkeletonAnimationProvider(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.all(Spacing.xl),
+        decoration: AppStyles.cardDecoration(context),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SkeletonLoader(height: 12, width: 100),
+            const SizedBox(height: Spacing.md),
+            SkeletonLoader(height: 32, width: 200),
+            const SizedBox(height: Spacing.lg),
+            Row(
+              children: [
+                Expanded(child: SkeletonLoader(height: 10)),
+                const SizedBox(width: Spacing.md),
+                Expanded(child: SkeletonLoader(height: 10)),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -244,17 +404,38 @@ class EmptyStateView extends StatelessWidget {
   }
 
   Widget _buildIcon(BuildContext context) {
-    final iconWidget = Icon(
-      icon,
-      size: IconSizes.emptyStateIcon,
-      color: AppStyles.getSecondaryTextColor(context)
-          .withValues(alpha: Opacities.disabled),
+    final primary = AppStyles.getPrimaryColor(context);
+    final iconWidget = Container(
+      width: 96,
+      height: 96,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            primary.withValues(alpha: 0.18),
+            primary.withValues(alpha: 0.08),
+          ],
+        ),
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: primary.withValues(alpha: 0.25),
+          width: 1.0,
+        ),
+      ),
+      child: Center(
+        child: Icon(
+          icon,
+          size: IconSizes.emptyStateIcon * 0.70,
+          color: primary.withValues(alpha: 0.60),
+        ),
+      ),
     );
 
     if (showPulse && onAction != null) {
       return PulseAnimation(
-        minScale: 0.95,
-        maxScale: 1.05,
+        minScale: 0.96,
+        maxScale: 1.04,
         child: iconWidget,
       );
     }
@@ -396,12 +577,15 @@ class ModalHandle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      margin: EdgeInsets.only(top: Spacing.md),
+      margin: const EdgeInsets.only(top: Spacing.md),
       width: ComponentSizes.modalHandleWidth,
       height: ComponentSizes.modalHandleHeight,
       decoration: BoxDecoration(
-        color: CupertinoColors.systemGrey3,
+        color: isDark
+            ? const Color(0xFF2A3F5F) // moonlit ridge on void
+            : const Color(0xFFBBCCDD),
         borderRadius:
             BorderRadius.circular(ComponentSizes.modalHandleHeight / 2),
       ),
@@ -428,22 +612,43 @@ class SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppStyles.isDarkMode(context);
     return Padding(
-      padding: EdgeInsets.only(
+      padding: const EdgeInsets.only(
         left: Spacing.sm,
         top: Spacing.lg,
-        bottom: Spacing.md,
+        bottom: Spacing.sm,
         right: Spacing.sm,
       ),
       child: Row(
         children: [
+          // Accent dot
+          Container(
+            width: 3,
+            height: 14,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  AppStyles.accentBlue,
+                  AppStyles.accentTeal,
+                ],
+              ),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
-              count != null ? '$title ($count)' : title,
+              count != null ? '$title  ·  $count' : title,
               style: TextStyle(
-                fontSize: TypeScale.footnote,
-                fontWeight: FontWeight.w600,
-                color: AppStyles.getSecondaryTextColor(context),
+                fontSize: TypeScale.caption,
+                fontWeight: FontWeight.w700,
+                color: isDark
+                    ? const Color(0xFF6E6E80)
+                    : const Color(0xFF4A6080),
+                letterSpacing: 0.6,
               ),
             ),
           ),
@@ -1071,6 +1276,48 @@ class ColorPickerRow extends StatelessWidget {
 // ============================================================
 // LOADING OVERLAY
 // ============================================================
+
+// ============================================================
+// SMOOTH SCROLL PHYSICS
+// ============================================================
+
+/// Drop-in ScrollPhysics for large lists.
+///
+/// On fast flings the ballistic simulation uses low friction → long momentum
+/// glide. On slow flings it switches to higher friction so the list stops
+/// quickly, giving a precise "slow scroll" feel — matching the user's
+/// expectation of "fast = loads fast, slow = stops where I want".
+class SmoothScrollPhysics extends ScrollPhysics {
+  const SmoothScrollPhysics({super.parent});
+
+  @override
+  SmoothScrollPhysics applyTo(ScrollPhysics? ancestor) =>
+      SmoothScrollPhysics(parent: buildParent(ancestor));
+
+  /// Lower threshold makes flings easier to trigger.
+  @override
+  double get minFlingVelocity => 80.0;
+
+  @override
+  Simulation? createBallisticSimulation(
+      ScrollMetrics position, double velocity) {
+    final tolerance = toleranceFor(position);
+    if (velocity.abs() < tolerance.velocity ||
+        (position.pixels <= position.minScrollExtent && velocity < 0) ||
+        (position.pixels >= position.maxScrollExtent && velocity > 0)) {
+      return null;
+    }
+    // Fast fling (> 2000 px/s): low friction → long glide.
+    // Slow fling: higher friction → stops sooner.
+    final friction = velocity.abs() > 2000.0 ? 0.010 : 0.030;
+    return FrictionSimulation(
+      friction,
+      position.pixels,
+      velocity,
+      tolerance: tolerance,
+    );
+  }
+}
 
 /// Full-screen loading overlay
 class LoadingOverlay extends StatelessWidget {

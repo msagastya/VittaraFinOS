@@ -259,7 +259,7 @@ class _MFSearchStepState extends State<MFSearchStep> {
                     'Clear',
                     style: TextStyle(
                       fontSize: TypeScale.footnote,
-                      color: CupertinoColors.systemRed,
+                      color: AppStyles.plasmaRed,
                     ),
                   ),
                 ),
@@ -335,7 +335,7 @@ class _MFSearchStepState extends State<MFSearchStep> {
       return Center(
         child: Text(
           _error,
-          style: const TextStyle(color: CupertinoColors.systemRed),
+          style: const TextStyle(color: AppStyles.plasmaRed),
           textAlign: TextAlign.center,
         ),
       );

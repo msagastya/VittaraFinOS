@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
+import 'package:vittara_fin_os/logic/settings_controller.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
@@ -25,6 +26,10 @@ import 'package:vittara_fin_os/logic/recurring_templates_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/ui/dashboard/transaction_wizard.dart';
+import 'package:vittara_fin_os/logic/categories_controller.dart';
+import 'package:vittara_fin_os/logic/category_model.dart';
+import 'package:vittara_fin_os/services/sms_auto_scan_service.dart';
+import 'package:vittara_fin_os/services/sms_service.dart';
 
 class NotificationsPage extends StatelessWidget {
   const NotificationsPage({super.key});
@@ -173,7 +178,7 @@ class NotificationsPage extends StatelessWidget {
                             timeInfo:
                                 'In $daysUntil day${daysUntil > 1 ? 's' : ''}',
                             badgeColor: daysUntil <= 3
-                                ? CupertinoColors.systemRed
+                                ? AppStyles.plasmaRed
                                 : CupertinoColors.systemOrange,
                             icon: CupertinoIcons.bell_fill,
                             statusWidget: Container(
@@ -278,8 +283,8 @@ class NotificationsPage extends StatelessWidget {
                                               listen: false);
                                       if (!context.mounted) return;
                                       Navigator.of(context).push(
-                                        CupertinoPageRoute(
-                                          builder: (context) => FDRenewalModal(
+                                        FadeScalePageRoute(
+                                          page: FDRenewalModal(
                                             fd: fdObj,
                                             investmentController:
                                                 investmentsController,
@@ -329,9 +334,8 @@ class NotificationsPage extends StatelessWidget {
                                               listen: false);
                                       if (!context.mounted) return;
                                       Navigator.of(context).push(
-                                        CupertinoPageRoute(
-                                          builder: (context) =>
-                                              FDWithdrawalModal(
+                                        FadeScalePageRoute(
+                                          page: FDWithdrawalModal(
                                             fd: fdObj,
                                             investmentController:
                                                 investmentsController,
@@ -421,13 +425,15 @@ class NotificationsPage extends StatelessWidget {
                         final days = t.daysUntilDue()!;
                         final isOverdue = days < 0;
                         final color = t.branch == 'income'
-                            ? CupertinoColors.systemGreen
-                            : CupertinoColors.systemRed;
+                            ? AppStyles.bioGreen
+                            : AppStyles.plasmaRed;
                         final timeInfo = isOverdue
                             ? 'Overdue by ${days.abs()} day${days.abs() > 1 ? 's' : ''}'
                             : days == 0
                                 ? 'Due today'
                                 : 'Due in $days day${days > 1 ? 's' : ''}';
+                        final isPaid =
+                            t.isPaidForMonth(DateTime.now());
                         return Container(
                           margin: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 8),
@@ -438,11 +444,15 @@ class NotificationsPage extends StatelessWidget {
                                 '${t.branch[0].toUpperCase()}${t.branch.substring(1)} • ${t.frequency}',
                             amount:
                                 '₹${t.amount % 1 == 0 ? t.amount.toStringAsFixed(0) : t.amount.toStringAsFixed(2)}',
-                            timeInfo: timeInfo,
-                            badgeColor: isOverdue || days == 0
-                                ? CupertinoColors.systemRed
-                                : color,
-                            icon: CupertinoIcons.repeat,
+                            timeInfo: isPaid ? 'Paid this month' : timeInfo,
+                            badgeColor: isPaid
+                                ? AppStyles.bioGreen
+                                : isOverdue || days == 0
+                                    ? AppStyles.plasmaRed
+                                    : color,
+                            icon: isPaid
+                                ? CupertinoIcons.checkmark_circle_fill
+                                : CupertinoIcons.repeat,
                             statusWidget: Container(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 8),
@@ -453,27 +463,89 @@ class NotificationsPage extends StatelessWidget {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
-                                  CupertinoButton(
-                                    padding: EdgeInsets.zero,
-                                    minimumSize: Size.zero,
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        CupertinoPageRoute(
-                                          builder: (_) =>
-                                              const TransactionWizard(),
+                                  if (!isPaid) ...[
+                                    CupertinoButton(
+                                      padding: EdgeInsets.zero,
+                                      minimumSize: Size.zero,
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          FadeScalePageRoute(
+                                            page: const TransactionWizard(),
+                                          ),
+                                        );
+                                      },
+                                      child: Text(
+                                        'Use Template',
+                                        style: TextStyle(
+                                          fontSize: TypeScale.footnote,
+                                          color: AppStyles.accentBlue,
+                                          fontWeight: FontWeight.w600,
                                         ),
-                                      );
-                                    },
-                                    child: Text(
-                                      'Use Template',
+                                      ),
+                                    ),
+                                    const SizedBox(width: Spacing.md),
+                                    CupertinoButton(
+                                      padding: EdgeInsets.zero,
+                                      minimumSize: Size.zero,
+                                      onPressed: () {
+                                        templatesController
+                                            .markBillAsPaid(t.id);
+                                      },
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            CupertinoIcons
+                                                .checkmark_circle_fill,
+                                            size: 14,
+                                            color: AppStyles.bioGreen,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            'Mark Paid',
+                                            style: TextStyle(
+                                              fontSize: TypeScale.footnote,
+                                              color: AppStyles.bioGreen,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ] else ...[
+                                    Icon(
+                                      CupertinoIcons.checkmark_circle_fill,
+                                      size: 14,
+                                      color: AppStyles.bioGreen,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'Paid this month',
                                       style: TextStyle(
                                         fontSize: TypeScale.footnote,
-                                        color: AppStyles.accentBlue,
+                                        color: AppStyles.bioGreen,
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
-                                  ),
+                                    const SizedBox(width: Spacing.md),
+                                    CupertinoButton(
+                                      padding: EdgeInsets.zero,
+                                      minimumSize: Size.zero,
+                                      onPressed: () {
+                                        templatesController
+                                            .unmarkBillAsPaid(t.id);
+                                      },
+                                      child: Text(
+                                        'Undo',
+                                        style: TextStyle(
+                                          fontSize: TypeScale.caption,
+                                          color: AppStyles
+                                              .getSecondaryTextColor(context),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),
@@ -481,6 +553,9 @@ class NotificationsPage extends StatelessWidget {
                         );
                       }),
                     ],
+
+                    // All Bills — payment tracker
+                    _buildAllBillsSection(context, templatesController),
 
                     // Budget Alerts
                     if (exceededBudgets.isNotEmpty ||
@@ -492,14 +567,14 @@ class NotificationsPage extends StatelessWidget {
                             const Icon(
                                 CupertinoIcons.exclamationmark_circle_fill,
                                 size: 14,
-                                color: CupertinoColors.systemRed),
+                                color: AppStyles.plasmaRed),
                             const SizedBox(width: Spacing.sm),
                             Text(
                               'Budget Alerts',
                               style: TextStyle(
                                 fontSize: TypeScale.footnote,
                                 fontWeight: FontWeight.w600,
-                                color: CupertinoColors.systemRed,
+                                color: AppStyles.plasmaRed,
                               ),
                             ),
                           ],
@@ -615,6 +690,14 @@ class NotificationsPage extends StatelessWidget {
                       }),
                     ],
 
+                    // SMS — Unreviewed Transactions (last 7 days, only if SMS enabled)
+                    Consumer<SettingsController>(
+                      builder: (_, settings, __) {
+                        if (!settings.isSmsEnabled) return const SizedBox.shrink();
+                        return const _SmsSectionWidget();
+                      },
+                    ),
+
                     // Empty State
                     if (fdsNearMaturity.isEmpty &&
                         fdsMatured.isEmpty &&
@@ -624,7 +707,9 @@ class NotificationsPage extends StatelessWidget {
                         dueTemplates.isEmpty &&
                         exceededBudgets.isEmpty &&
                         warningBudgets.isEmpty &&
-                        spendingInsights.isEmpty)
+                        spendingInsights.isEmpty &&
+                        (SmsAutoScanService.instance.pendingResults?.isEmpty ??
+                            true))
                       Padding(
                         padding: EdgeInsets.only(top: Spacing.xxxl),
                         child: FadeInAnimation(
@@ -695,7 +780,7 @@ class NotificationsPage extends StatelessWidget {
         subtitle: entry.frequencyLabel,
         amount: amountText,
         timeInfo: timeInfo,
-        badgeColor: CupertinoColors.activeBlue,
+        badgeColor: AppStyles.aetherTeal,
         icon: CupertinoIcons.repeat,
         statusWidget: Container(
           padding: const EdgeInsets.all(10),
@@ -715,7 +800,7 @@ class NotificationsPage extends StatelessWidget {
           Expanded(
             child: CupertinoButton(
               padding: const EdgeInsets.symmetric(vertical: 8),
-              color: CupertinoColors.activeBlue,
+              color: AppStyles.aetherTeal,
               onPressed: () =>
                   _openInvestmentDetails(context, entry.investment),
               child: const Text(
@@ -729,7 +814,7 @@ class NotificationsPage extends StatelessWidget {
           Expanded(
             child: CupertinoButton(
               padding: const EdgeInsets.symmetric(vertical: 8),
-              color: CupertinoColors.systemGreen,
+              color: AppStyles.bioGreen,
               onPressed: () => _showSipExecutionModal(context, entry),
               child: const Text(
                 'Execute SIP',
@@ -783,7 +868,7 @@ class NotificationsPage extends StatelessWidget {
         subtitle: 'Payout #${entry.schedule.payoutNumber}',
         amount: '₹—',
         timeInfo: timeInfo,
-        badgeColor: Colors.teal,
+        badgeColor: AppStyles.aetherTeal,
         icon: CupertinoIcons.money_dollar,
         statusWidget: Container(
           padding: const EdgeInsets.all(10),
@@ -803,7 +888,7 @@ class NotificationsPage extends StatelessWidget {
           Expanded(
             child: CupertinoButton(
               padding: const EdgeInsets.symmetric(vertical: 8),
-              color: CupertinoColors.activeBlue,
+              color: AppStyles.aetherTeal,
               onPressed: () => _showBondPayoutModal(context, entry),
               child: const Text(
                 'Edit Payout',
@@ -848,7 +933,7 @@ class NotificationsPage extends StatelessWidget {
     final route = destination;
     if (route == null) return;
     Navigator.of(context).push(
-      CupertinoPageRoute(builder: (_) => route),
+      FadeScalePageRoute(page: route),
     );
   }
 
@@ -903,7 +988,7 @@ class NotificationsPage extends StatelessWidget {
       {required bool exceeded}) {
     final pct = budget.usagePercentage.round();
     final color =
-        exceeded ? CupertinoColors.systemRed : CupertinoColors.systemOrange;
+        exceeded ? AppStyles.plasmaRed : CupertinoColors.systemOrange;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -1067,6 +1152,150 @@ class NotificationsPage extends StatelessWidget {
     if (value is DateTime) return value;
     if (value is String) return DateTime.parse(value);
     return DateTime.now();
+  }
+
+  Widget _buildAllBillsSection(
+    BuildContext context,
+    RecurringTemplatesController templatesController,
+  ) {
+    final all = templatesController.templates;
+    if (all.isEmpty) return const SizedBox.shrink();
+    final now = DateTime.now();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          margin: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+          child: Row(
+            children: [
+              const Icon(CupertinoIcons.calendar_badge_plus,
+                  size: 14, color: AppStyles.accentTeal),
+              const SizedBox(width: Spacing.sm),
+              Text(
+                'All Bills — ${_billsMonthYearLabel(now)}',
+                style: const TextStyle(
+                  fontSize: TypeScale.footnote,
+                  fontWeight: FontWeight.w600,
+                  color: AppStyles.accentTeal,
+                ),
+              ),
+            ],
+          ),
+        ),
+        ...all.map((t) {
+          final isPaid = t.isPaidForMonth(now);
+          final amountStr =
+              '₹${t.amount % 1 == 0 ? t.amount.toStringAsFixed(0) : t.amount.toStringAsFixed(2)}';
+          return Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: AppStyles.getCardColor(context),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: isPaid
+                    ? AppStyles.bioGreen.withValues(alpha: 0.4)
+                    : AppStyles.getDividerColor(context),
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: isPaid
+                        ? AppStyles.bioGreen.withValues(alpha: 0.15)
+                        : (t.branch == 'income'
+                                ? AppStyles.bioGreen
+                                : AppStyles.plasmaRed)
+                            .withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  alignment: Alignment.center,
+                  child: Icon(
+                    isPaid
+                        ? CupertinoIcons.checkmark_circle_fill
+                        : CupertinoIcons.repeat,
+                    size: 18,
+                    color: isPaid
+                        ? AppStyles.bioGreen
+                        : (t.branch == 'income'
+                            ? AppStyles.bioGreen
+                            : AppStyles.plasmaRed),
+                  ),
+                ),
+                const SizedBox(width: Spacing.sm),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        t.name,
+                        style: TextStyle(
+                          fontSize: TypeScale.callout,
+                          fontWeight: FontWeight.w600,
+                          color: AppStyles.getTextColor(context),
+                        ),
+                      ),
+                      Text(
+                        '${t.frequency} • $amountStr',
+                        style: TextStyle(
+                          fontSize: TypeScale.caption,
+                          color: AppStyles.getSecondaryTextColor(context),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (isPaid)
+                  CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    minimumSize: Size.zero,
+                    onPressed: () =>
+                        templatesController.unmarkBillAsPaid(t.id),
+                    child: Text(
+                      'Undo',
+                      style: TextStyle(
+                        fontSize: TypeScale.caption,
+                        color: AppStyles.getSecondaryTextColor(context),
+                      ),
+                    ),
+                  )
+                else
+                  CupertinoButton(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 6),
+                    color: AppStyles.bioGreen,
+                    borderRadius: BorderRadius.circular(10),
+                    minimumSize: Size.zero,
+                    onPressed: () =>
+                        templatesController.markBillAsPaid(t.id),
+                    child: const Text(
+                      'Mark Paid',
+                      style: TextStyle(
+                        fontSize: TypeScale.caption,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          );
+        }),
+        const SizedBox(height: Spacing.md),
+      ],
+    );
+  }
+
+  String _billsMonthYearLabel(DateTime d) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
+    return '${months[d.month - 1]} ${d.year}';
   }
 }
 
@@ -1599,4 +1828,885 @@ class _SipExecutionModalState extends State<_SipExecutionModal> {
   String _formatDate(DateTime date) {
     return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
   }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SMS Unreviewed Transactions Section
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _SmsSectionWidget extends StatefulWidget {
+  const _SmsSectionWidget();
+
+  @override
+  State<_SmsSectionWidget> createState() => _SmsSectionWidgetState();
+}
+
+class _SmsSectionWidgetState extends State<_SmsSectionWidget> {
+  final List<SmsParseResult> _items = [];
+
+  @override
+  void initState() {
+    super.initState();
+    final pending = SmsAutoScanService.instance.pendingResults;
+    if (pending != null) _items.addAll(pending);
+  }
+
+  // ── Dismiss handler ────────────────────────────────────────────────────────
+
+  void _dismiss(SmsParseResult item) {
+    final idx = _items.indexOf(item);
+    final fp = SmsAutoScanService.instance.fingerprint(item);
+
+    setState(() => _items.remove(item));
+    SmsAutoScanService.instance.pendingResults?.remove(item);
+    SmsAutoScanService.instance.markSeen(fp);
+
+    toast_lib.toast.showInfo(
+      'Transaction dismissed',
+      actionLabel: 'Undo',
+      onAction: () {
+        if (!mounted) return;
+        setState(() => _items.insert(idx.clamp(0, _items.length), item));
+        SmsAutoScanService.instance.pendingResults
+            ?.insert(idx.clamp(0, SmsAutoScanService.instance.pendingResults!.length), item);
+      },
+    );
+  }
+
+  // ── Open smart SMS review sheet ─────────────────────────────────────────
+
+  void _openSmsReview(SmsParseResult item) {
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (sheetCtx) => _SmsQuickConfirmSheet(
+        item: item,
+        onSaved: () {
+          if (!mounted) return;
+          final fp = SmsAutoScanService.instance.fingerprint(item);
+          setState(() => _items.remove(item));
+          SmsAutoScanService.instance.pendingResults?.remove(item);
+          SmsAutoScanService.instance.markSeen(fp);
+        },
+        onOpenWizard: () {
+          // Open full wizard — item stays in list, mark seen only after save
+          Navigator.of(context).push(
+            FadeScalePageRoute(
+              page: TransactionWizard(prefillFromSms: item),
+            ),
+          ).then((_) {
+            // If the wizard was completed (transaction added), remove from list.
+            // We detect this by checking if the transaction count increased.
+            if (!mounted) return;
+            final fp = SmsAutoScanService.instance.fingerprint(item);
+            setState(() => _items.remove(item));
+            SmsAutoScanService.instance.pendingResults?.remove(item);
+            SmsAutoScanService.instance.markSeen(fp);
+          });
+        },
+      ),
+    );
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+
+  bool _hasDuplicate(SmsParseResult item, List<Transaction> txns) {
+    final p = item.parsed;
+    for (final t in txns) {
+      if ((t.amount - p.amount).abs() > 1.0) continue;
+      if (t.dateTime.difference(p.date).inDays.abs() > 1) continue;
+      return true;
+    }
+    return false;
+  }
+
+  // ── Build ──────────────────────────────────────────────────────────────────
+
+  @override
+  Widget build(BuildContext context) {
+    if (_items.isEmpty) return const SizedBox.shrink();
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final txns = context.watch<TransactionsController>().transactions;
+    final cardBg =
+        isDark ? const Color(0xFF0D1520) : CupertinoColors.systemBackground;
+    final borderColor =
+        isDark ? const Color(0xFF1C2A3A) : const Color(0xFFE5E5EA);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ── Section Header ──────────────────────────────────────────────────
+        Container(
+          margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          child: Row(
+            children: [
+              Container(
+                width: 6,
+                height: 6,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF34C759),
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'SMS Transactions (${_items.length})',
+                style: const TextStyle(
+                  fontSize: TypeScale.footnote,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF34C759),
+                ),
+              ),
+              const Spacer(),
+              CupertinoButton(
+                padding: EdgeInsets.zero,
+                onPressed: () {
+                  for (final item in List.of(_items)) {
+                    SmsAutoScanService.instance
+                        .markSeen(SmsAutoScanService.instance.fingerprint(item));
+                  }
+                  setState(() {
+                    SmsAutoScanService.instance.pendingResults?.clear();
+                    _items.clear();
+                  });
+                  toast_lib.toast.showInfo('All SMS transactions cleared');
+                },
+                child: const Text(
+                  'Clear all',
+                  style: TextStyle(
+                    fontSize: TypeScale.caption,
+                    color: AppStyles.plasmaRed,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // ── Cards ──────────────────────────────────────────────────────────
+        ..._items.map((item) {
+          final p = item.parsed;
+          final isExpense = p.type == 'expense';
+          final accentColor = isExpense
+              ? const Color(0xFFFF3B30)
+              : const Color(0xFF34C759);
+          final hasDup = _hasDuplicate(item, txns);
+
+          return Dismissible(
+            key: ValueKey(SmsAutoScanService.instance.fingerprint(item)),
+            direction: DismissDirection.endToStart,
+            background: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppStyles.plasmaRed.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(Radii.md),
+              ),
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.only(right: 20),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(CupertinoIcons.xmark_circle_fill,
+                      color: AppStyles.plasmaRed, size: 22),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Dismiss',
+                    style: TextStyle(
+                      color: AppStyles.plasmaRed,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            onDismissed: (_) => _dismiss(item),
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => _openSmsReview(item),
+              child: Container(
+                margin:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                decoration: BoxDecoration(
+                  color: cardBg,
+                  borderRadius: BorderRadius.circular(Radii.md),
+                  border: Border.all(color: borderColor, width: 0.5),
+                ),
+                child: Row(
+                  children: [
+                    // Left accent bar
+                    Container(
+                      width: 4,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        color: accentColor,
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(12),
+                          bottomLeft: Radius.circular(12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+
+                    // Amount + date
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  '${isExpense ? '−' : '+'}'
+                                  '${CurrencyFormatter.compact(p.amount)}',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                    color: accentColor,
+                                  ),
+                                ),
+                                if (hasDup) ...[
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: CupertinoColors.systemOrange
+                                          .withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: const Text(
+                                      'Possible duplicate',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: CupertinoColors.systemOrange,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                if (p.merchant != null) ...[
+                                  Text(
+                                    p.merchant!,
+                                    style: TextStyle(
+                                      fontSize: TypeScale.footnote,
+                                      fontWeight: FontWeight.w500,
+                                      color: AppStyles.getTextColor(context),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text('·',
+                                      style: TextStyle(
+                                          color: AppStyles.getSecondaryTextColor(
+                                              context))),
+                                  const SizedBox(width: 6),
+                                ],
+                                Text(
+                                  '${p.date.day} ${DateFormatter.getMonthName(p.date.month)}',
+                                  style: TextStyle(
+                                    fontSize: TypeScale.footnote,
+                                    color: AppStyles.getSecondaryTextColor(
+                                        context),
+                                  ),
+                                ),
+                                if (item.matchedAccount != null) ...[
+                                  const SizedBox(width: 6),
+                                  Text('·',
+                                      style: TextStyle(
+                                          color: AppStyles.getSecondaryTextColor(
+                                              context))),
+                                  const SizedBox(width: 6),
+                                  Flexible(
+                                    child: Text(
+                                      item.matchedAccount!.bankName,
+                                      style: TextStyle(
+                                        fontSize: TypeScale.footnote,
+                                        color: AppStyles.getSecondaryTextColor(
+                                            context),
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // Tap hint
+                    Padding(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: Column(
+                        children: [
+                          Icon(
+                            CupertinoIcons.add_circled,
+                            size: 22,
+                            color: accentColor.withValues(alpha: 0.8),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Add',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: accentColor.withValues(alpha: 0.8),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }),
+
+        // ── Hint row ───────────────────────────────────────────────────────
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 2, 20, 8),
+          child: Text(
+            'Tap to review · Swipe left to dismiss',
+            style: TextStyle(
+              fontSize: TypeScale.caption,
+              color: AppStyles.getSecondaryTextColor(context)
+                  .withValues(alpha: 0.6),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── SMS Quick Confirm Sheet ──────────────────────────────────────────────────
+
+class _SmsQuickConfirmSheet extends StatefulWidget {
+  final SmsParseResult item;
+  final VoidCallback onSaved;
+  final VoidCallback onOpenWizard;
+
+  const _SmsQuickConfirmSheet({
+    required this.item,
+    required this.onSaved,
+    required this.onOpenWizard,
+  });
+
+  @override
+  State<_SmsQuickConfirmSheet> createState() => _SmsQuickConfirmSheetState();
+}
+
+class _SmsQuickConfirmSheetState extends State<_SmsQuickConfirmSheet> {
+  late bool _isExpense; // true = expense/income; false = transfer
+  late bool _isCreditSms; // true if SMS type was 'income'
+  Category? _selectedCategory;
+  Account? _selectedAccount;
+
+  @override
+  void initState() {
+    super.initState();
+    _isCreditSms = widget.item.parsed.type == 'income';
+    _isExpense = true; // default: use SMS-detected type (expense or income)
+    _selectedAccount = widget.item.matchedAccount;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Pre-select the first category if none selected
+    if (_selectedCategory == null && !_isCreditSms) {
+      final cats =
+          context.read<CategoriesController>().categories;
+      if (cats.isNotEmpty) _selectedCategory = cats.first;
+    }
+  }
+
+  void _save() async {
+    if (_isExpense) {
+      final txCtrl = context.read<TransactionsController>();
+      final p = widget.item.parsed;
+      final meta = <String, dynamic>{
+        if (_selectedCategory != null) 'categoryId': _selectedCategory!.id,
+        if (_selectedCategory != null)
+          'categoryName': _selectedCategory!.name,
+        if (p.merchant != null) 'merchant': p.merchant,
+        if (p.upiId != null) 'upiId': p.upiId,
+        'fromSms': true,
+      };
+      if (_selectedAccount != null) {
+        meta['accountId'] = _selectedAccount!.id;
+        meta['accountName'] = _selectedAccount!.name;
+      }
+      final tx = Transaction(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        type: _isCreditSms ? TransactionType.income : TransactionType.expense,
+        description: p.merchant ?? p.upiId ?? 'SMS Transaction',
+        dateTime: p.date,
+        amount: p.amount,
+        metadata: meta,
+      );
+      await txCtrl.addTransaction(tx);
+      if (!mounted) return;
+      // Update account balance if account matched
+      if (_selectedAccount != null) {
+        final acctCtrl = context.read<AccountsController>();
+        final fresh = acctCtrl.accounts
+            .where((a) => a.id == _selectedAccount!.id)
+            .firstOrNull;
+        if (fresh != null) {
+          final delta = _isCreditSms ? p.amount : -p.amount;
+          await acctCtrl.updateAccount(
+              fresh.copyWith(balance: fresh.balance + delta));
+        }
+      }
+      Navigator.pop(context);
+      widget.onSaved();
+      toast_lib.toast.showSuccess(
+        '${_isCreditSms ? 'Income' : 'Expense'} saved — ${CurrencyFormatter.compact(p.amount)}',
+      );
+    } else {
+      // Transfer path — open TransferWizard
+      Navigator.pop(context);
+      widget.onOpenWizard();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = AppStyles.isDarkMode(context);
+    final p = widget.item.parsed;
+    final sheetBg = isDark ? const Color(0xFF0A0A0F) : Colors.white;
+    final accentColor = _isCreditSms
+        ? const Color(0xFF34C759)
+        : const Color(0xFFFF3B30);
+
+    // Type option labels
+    final smsLabel = _isCreditSms ? 'Income' : 'Expense';
+    final smsIcon = _isCreditSms
+        ? CupertinoIcons.arrow_down_circle_fill
+        : CupertinoIcons.arrow_up_circle_fill;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: sheetBg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // ── Handle ──────────────────────────────────────────────────────
+            Container(
+              margin: const EdgeInsets.only(top: 10),
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppStyles.getDividerColor(context),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // ── Amount hero ─────────────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: accentColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                          color: accentColor.withValues(alpha: 0.3),
+                          width: 0.8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: accentColor,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          'SMS',
+                          style: TextStyle(
+                            fontSize: TypeScale.caption,
+                            fontWeight: FontWeight.w700,
+                            color: accentColor,
+                          ),
+                        ),
+                        if (widget.item.matchedAccount != null) ...[
+                          const SizedBox(width: 4),
+                          Text(
+                            '· ${widget.item.matchedAccount!.bankName}',
+                            style: TextStyle(
+                              fontSize: TypeScale.caption,
+                              color: accentColor.withValues(alpha: 0.7),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    '${_isCreditSms ? '+' : '−'}${CurrencyFormatter.compact(p.amount)}',
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w900,
+                      color: accentColor,
+                      letterSpacing: -1.0,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // ── Confirmed details row ────────────────────────────────────────
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              child: Row(
+                children: [
+                  _confirmedChip(
+                    context,
+                    icon: CupertinoIcons.calendar,
+                    label:
+                        '${p.date.day} ${DateFormatter.getMonthName(p.date.month)} ${p.date.year}',
+                  ),
+                  if (p.merchant != null) ...[
+                    const SizedBox(width: 8),
+                    _confirmedChip(
+                      context,
+                      icon: CupertinoIcons.building_2_fill,
+                      label: p.merchant!,
+                    ),
+                  ] else if (p.upiId != null) ...[
+                    const SizedBox(width: 8),
+                    _confirmedChip(
+                      context,
+                      icon: CupertinoIcons.link,
+                      label: p.upiId!.length > 20
+                          ? '${p.upiId!.substring(0, 20)}…'
+                          : p.upiId!,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+
+            // ── Type selector ────────────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'What is this?',
+                    style: TextStyle(
+                      fontSize: TypeScale.caption,
+                      fontWeight: FontWeight.w600,
+                      color: AppStyles.getSecondaryTextColor(context),
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      _typeButton(
+                        context,
+                        label: smsLabel,
+                        icon: smsIcon,
+                        color: accentColor,
+                        selected: _isExpense,
+                        onTap: () => setState(() => _isExpense = true),
+                      ),
+                      const SizedBox(width: 10),
+                      _typeButton(
+                        context,
+                        label: 'Transfer',
+                        icon: CupertinoIcons.arrow_right_arrow_left,
+                        color: AppStyles.accentBlue,
+                        selected: !_isExpense,
+                        onTap: () => setState(() => _isExpense = false),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            // ── Category (only for expense path) ────────────────────────────
+            if (_isExpense && !_isCreditSms) ...[
+              const SizedBox(height: 14),
+              Padding(
+                padding: const EdgeInsets.only(left: 20, right: 20, bottom: 4),
+                child: Row(
+                  children: [
+                    Text(
+                      'Category',
+                      style: TextStyle(
+                        fontSize: TypeScale.caption,
+                        fontWeight: FontWeight.w600,
+                        color: AppStyles.getSecondaryTextColor(context),
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: 42,
+                child: Consumer<CategoriesController>(
+                  builder: (ctx, catCtrl, _) {
+                    final cats = catCtrl.categories;
+                    return ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      itemCount: cats.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 8),
+                      itemBuilder: (ctx, i) {
+                        final cat = cats[i];
+                        final sel = _selectedCategory?.id == cat.id;
+                        return GestureDetector(
+                          onTap: () =>
+                              setState(() => _selectedCategory = cat),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 160),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: sel
+                                  ? cat.color.withValues(alpha: 0.18)
+                                  : AppStyles.getBackground(context),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: sel
+                                    ? cat.color
+                                    : AppStyles.getDividerColor(context),
+                                width: sel ? 1.5 : 0.8,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(cat.icon,
+                                    size: 13,
+                                    color: sel
+                                        ? cat.color
+                                        : AppStyles.getSecondaryTextColor(
+                                            context)),
+                                const SizedBox(width: 5),
+                                Text(
+                                  cat.name,
+                                  style: TextStyle(
+                                    fontSize: TypeScale.caption,
+                                    fontWeight: sel
+                                        ? FontWeight.w700
+                                        : FontWeight.w500,
+                                    color: sel
+                                        ? cat.color
+                                        : AppStyles.getTextColor(context),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+
+            // ── Account row ──────────────────────────────────────────────────
+            if (_selectedAccount != null && _isExpense) ...[
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    Icon(CupertinoIcons.creditcard,
+                        size: 13,
+                        color: AppStyles.getSecondaryTextColor(context)),
+                    const SizedBox(width: 6),
+                    Text(
+                      _selectedAccount!.name,
+                      style: TextStyle(
+                        fontSize: TypeScale.footnote,
+                        color: AppStyles.getSecondaryTextColor(context),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      CupertinoIcons.checkmark_circle_fill,
+                      size: 12,
+                      color: const Color(0xFF34C759),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
+            const SizedBox(height: 20),
+
+            // ── Action buttons ───────────────────────────────────────────────
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  // Full wizard option
+                  Expanded(
+                    flex: 2,
+                    child: CupertinoButton(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      color: AppStyles.getBackground(context),
+                      borderRadius: BorderRadius.circular(Radii.md),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        widget.onOpenWizard();
+                      },
+                      child: Text(
+                        'Customize',
+                        style: TextStyle(
+                          fontSize: TypeScale.footnote,
+                          fontWeight: FontWeight.w600,
+                          color: AppStyles.getSecondaryTextColor(context),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  // Primary save
+                  Expanded(
+                    flex: 3,
+                    child: CupertinoButton(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      color: _isExpense ? accentColor : AppStyles.accentBlue,
+                      borderRadius: BorderRadius.circular(Radii.md),
+                      onPressed: _save,
+                      child: Text(
+                        _isExpense
+                            ? 'Save ${_isCreditSms ? 'Income' : 'Expense'}'
+                            : 'Open Transfer',
+                        style: const TextStyle(
+                          fontSize: TypeScale.callout,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _confirmedChip(BuildContext context,
+      {required IconData icon, required String label}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppStyles.getBackground(context),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: AppStyles.getDividerColor(context),
+          width: 0.8,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon,
+              size: 11,
+              color: AppStyles.getSecondaryTextColor(context)),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: TypeScale.caption,
+              color: AppStyles.getSecondaryTextColor(context),
+            ),
+          ),
+          const SizedBox(width: 4),
+          const Icon(CupertinoIcons.checkmark_alt,
+              size: 10, color: Color(0xFF34C759)),
+        ],
+      ),
+    );
+  }
+
+  Widget _typeButton(
+    BuildContext context, {
+    required String label,
+    required IconData icon,
+    required Color color,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          decoration: BoxDecoration(
+            color: selected
+                ? color.withValues(alpha: 0.15)
+                : AppStyles.getBackground(context),
+            borderRadius: BorderRadius.circular(Radii.md),
+            border: Border.all(
+              color: selected ? color : AppStyles.getDividerColor(context),
+              width: selected ? 1.5 : 0.8,
+            ),
+          ),
+          child: Column(
+            children: [
+              Icon(icon,
+                  size: 22,
+                  color: selected
+                      ? color
+                      : AppStyles.getSecondaryTextColor(context)),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: TypeScale.footnote,
+                  fontWeight:
+                      selected ? FontWeight.w700 : FontWeight.w500,
+                  color: selected
+                      ? color
+                      : AppStyles.getSecondaryTextColor(context),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
 }

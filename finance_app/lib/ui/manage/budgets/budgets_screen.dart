@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/budgets_controller.dart';
@@ -74,6 +75,15 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                     ? _buildEmptyState()
                     : CustomScrollView(
                         slivers: [
+                          // Pull-to-refresh
+                          CupertinoSliverRefreshControl(
+                            onRefresh: () async {
+                              HapticFeedback.mediumImpact();
+                              await Provider.of<BudgetsController>(context,
+                                      listen: false)
+                                  .reloadFromStorage();
+                            },
+                          ),
                           if (exceededBudgets.isNotEmpty)
                             SliverToBoxAdapter(
                               child: Padding(
@@ -122,7 +132,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                                               period: _filterPeriod!,
                                               startDate: DateTime.now(),
                                               endDate: DateTime.now(),
-                                              color: CupertinoColors.activeBlue,
+                                              color: AppStyles.aetherTeal,
                                             ).getPeriodLabel(),
                                             style: TextStyle(
                                                 color:
@@ -311,8 +321,15 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                   Provider.of<BudgetsController>(context, listen: false);
               await ctrl.deleteBudget(budget.id);
               Navigator.pop(dialogCtx);
-              toast_lib.toast.showSuccess('"${budget.name}" deleted');
               Haptics.delete();
+              toast_lib.toast.showSuccess(
+                '"${budget.name}" deleted',
+                actionLabel: 'Undo',
+                onAction: () {
+                  ctrl.addBudget(budget);
+                  toast_lib.toast.showInfo('Budget restored');
+                },
+              );
             },
           ),
         ],
@@ -330,8 +347,8 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
     return BouncyButton(
       onPressed: () {
         Navigator.of(context).push(
-          CupertinoPageRoute(
-              builder: (context) => BudgetDetailsScreen(budgetId: budget.id)),
+          FadeScalePageRoute(
+              page: BudgetDetailsScreen(budgetId: budget.id)),
         );
       },
       child: GlassCard(
@@ -340,14 +357,10 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
           children: [
             Row(
               children: [
-                Container(
-                  padding: EdgeInsets.all(Spacing.md),
-                  decoration: BoxDecoration(
-                    color: budget.color.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(Radii.md),
-                  ),
-                  child: Icon(budget.getPeriodIcon(),
-                      color: budget.color, size: IconSizes.lg),
+                IconBox(
+                  icon: budget.getPeriodIcon(),
+                  color: budget.color,
+                  showGlow: true,
                 ),
                 SizedBox(width: Spacing.md),
                 Expanded(
@@ -550,7 +563,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                 period: period,
                 startDate: DateTime.now(),
                 endDate: DateTime.now(),
-                color: CupertinoColors.activeBlue);
+                color: AppStyles.aetherTeal);
             return CupertinoActionSheetAction(
               onPressed: () {
                 setState(() => _filterPeriod = period);

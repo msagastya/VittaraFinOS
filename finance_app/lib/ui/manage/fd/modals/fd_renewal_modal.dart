@@ -472,6 +472,8 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                                 linkedAccount =
                                     accountsController.accounts.firstWhere(
                                   (a) => a.id == widget.fd.linkedAccountId,
+                                  orElse: () => throw Exception(
+                                      'Linked account not found'),
                                 );
                               } catch (e) {
                                 if (context.mounted) {

@@ -15,8 +15,9 @@ import 'package:vittara_fin_os/utils/logger.dart';
 
 class StockDetailsScreen extends StatefulWidget {
   final Investment investment;
+  final bool autoOpenDividend;
 
-  const StockDetailsScreen({required this.investment, super.key});
+  const StockDetailsScreen({required this.investment, super.key, this.autoOpenDividend = false});
 
   @override
   State<StockDetailsScreen> createState() => _StockDetailsScreenState();
@@ -30,6 +31,11 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
   void initState() {
     super.initState();
     _investment = widget.investment;
+    if (widget.autoOpenDividend) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _showDividendModal();
+      });
+    }
   }
 
   double get _investedAmount => _investment.amount;
@@ -236,9 +242,9 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                       padding: EdgeInsets.all(Spacing.md),
                       decoration: BoxDecoration(
                         color: _isGain
-                            ? CupertinoColors.systemGreen.withValues(alpha: 0.1)
-                            : CupertinoColors.systemRed.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
+                            ? AppStyles.bioGreen.withValues(alpha: 0.1)
+                            : AppStyles.plasmaRed.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(Radii.md),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -248,8 +254,8 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               color: _isGain
-                                  ? CupertinoColors.systemGreen
-                                  : CupertinoColors.systemRed,
+                                  ? AppStyles.bioGreen
+                                  : AppStyles.plasmaRed,
                             ),
                           ),
                           Text(
@@ -257,8 +263,8 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: _isGain
-                                  ? CupertinoColors.systemGreen
-                                  : CupertinoColors.systemRed,
+                                  ? AppStyles.bioGreen
+                                  : AppStyles.plasmaRed,
                             ),
                           ),
                         ],
@@ -306,14 +312,14 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                     context,
                     icon: CupertinoIcons.plus_circle_fill,
                     label: 'Buy More',
-                    color: CupertinoColors.systemGreen,
+                    color: AppStyles.bioGreen,
                     onTap: _showBuyMoreModal,
                   ),
                   _buildActionButton(
                     context,
                     icon: CupertinoIcons.minus_circle_fill,
                     label: 'Sell',
-                    color: CupertinoColors.systemRed,
+                    color: AppStyles.plasmaRed,
                     onTap: _showSellModal,
                   ),
                   _buildActionButton(
@@ -341,7 +347,7 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                     context,
                     icon: CupertinoIcons.trash_circle_fill,
                     label: 'Delete',
-                    color: CupertinoColors.systemRed,
+                    color: AppStyles.plasmaRed,
                     onTap: _showDeleteConfirmation,
                   ),
                 ],
@@ -689,7 +695,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
           padding: EdgeInsets.all(Spacing.lg),
           decoration: BoxDecoration(
             color: AppStyles.getCardColor(context),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(Radii.lg),
             border: Border.all(
               color: SemanticColors.investments.withValues(alpha: 0.2),
               width: 1,
@@ -738,7 +744,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(Radii.lg),
             border: Border.all(
               color: SemanticColors.investments.withValues(alpha: 0.3),
               width: 1.5,
@@ -870,7 +876,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
           decoration: BoxDecoration(
             color: AppStyles.getBackground(context),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(Radii.md),
             border: Border.all(
               color: AppStyles.getSecondaryTextColor(context)
                   .withValues(alpha: 0.2),
@@ -921,7 +927,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
             padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
             decoration: BoxDecoration(
               color: AppStyles.getBackground(context),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
               border: Border.all(
                 color: AppStyles.getSecondaryTextColor(context)
                     .withValues(alpha: 0.2),
@@ -988,7 +994,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
               padding: EdgeInsets.all(Spacing.md),
               decoration: BoxDecoration(
                 color: SemanticColors.investments.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(Radii.md),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1034,7 +1040,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
           padding: EdgeInsets.all(Spacing.lg),
           decoration: BoxDecoration(
             color: AppStyles.getCardColor(context),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(Radii.lg),
             border: Border.all(
               color: SemanticColors.investments.withValues(alpha: 0.2),
               width: 1,
@@ -1076,7 +1082,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                     const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
                 decoration: BoxDecoration(
                   color: AppStyles.getBackground(context),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(Radii.md),
                   border: Border.all(
                     color: AppStyles.getSecondaryTextColor(context)
                         .withValues(alpha: 0.2),
@@ -1108,7 +1114,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(Radii.lg),
             border: Border.all(
               color: SemanticColors.investments.withValues(alpha: 0.3),
               width: 1.5,
@@ -1165,7 +1171,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
           padding: EdgeInsets.all(Spacing.lg),
           decoration: BoxDecoration(
             color: AppStyles.getBackground(context),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(Radii.md),
           ),
           child: Column(
             children: [
@@ -1433,7 +1439,7 @@ class _SellModalState extends State<_SellModal> {
                         margin: EdgeInsets.symmetric(horizontal: 2),
                         decoration: BoxDecoration(
                           color: index <= _step
-                              ? CupertinoColors.systemRed
+                              ? AppStyles.plasmaRed
                               : (Theme.of(context).brightness == Brightness.dark
                                   ? Colors.grey[800]
                                   : Colors.grey[300]),
@@ -1528,7 +1534,7 @@ class _SellModalState extends State<_SellModal> {
           padding: const EdgeInsets.all(Spacing.lg),
           decoration: BoxDecoration(
             color: AppStyles.getBackground(context),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(Radii.md),
           ),
           style: TextStyle(color: AppStyles.getTextColor(context)),
           onChanged: (_) => setState(() {}),
@@ -1546,7 +1552,7 @@ class _SellModalState extends State<_SellModal> {
           padding: const EdgeInsets.all(Spacing.lg),
           decoration: BoxDecoration(
             color: AppStyles.getBackground(context),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(Radii.md),
           ),
           prefix: Padding(
             padding: const EdgeInsets.only(left: 16),
@@ -1568,7 +1574,7 @@ class _SellModalState extends State<_SellModal> {
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getBackground(context),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1587,8 +1593,8 @@ class _SellModalState extends State<_SellModal> {
         Container(
           padding: EdgeInsets.all(Spacing.md),
           decoration: BoxDecoration(
-            color: CupertinoColors.systemGreen.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
+            color: AppStyles.bioGreen.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(Radii.md),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1600,7 +1606,7 @@ class _SellModalState extends State<_SellModal> {
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: TypeScale.headline,
-                  color: CupertinoColors.systemGreen,
+                  color: AppStyles.bioGreen,
                 ),
               ),
             ],
@@ -1645,8 +1651,8 @@ class _SellModalState extends State<_SellModal> {
             Container(
               padding: EdgeInsets.all(Spacing.md),
               decoration: BoxDecoration(
-                color: CupertinoColors.systemGreen.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                color: AppStyles.bioGreen.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(Radii.md),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1706,7 +1712,7 @@ class _SellModalState extends State<_SellModal> {
           padding: const EdgeInsets.all(Spacing.lg),
           decoration: BoxDecoration(
             color: AppStyles.getBackground(context),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(Radii.md),
           ),
           prefix: Padding(
             padding: const EdgeInsets.only(left: 16),
@@ -1721,7 +1727,7 @@ class _SellModalState extends State<_SellModal> {
           padding: EdgeInsets.all(Spacing.md),
           decoration: BoxDecoration(
             color: AppStyles.getBackground(context),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(Radii.md),
           ),
           child: Column(
             children: [
@@ -1755,7 +1761,7 @@ class _SellModalState extends State<_SellModal> {
                     style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: TypeScale.headline,
-                        color: CupertinoColors.systemGreen),
+                        color: AppStyles.bioGreen),
                   ),
                 ],
               ),
@@ -1774,7 +1780,7 @@ class _SellModalState extends State<_SellModal> {
           padding: EdgeInsets.all(Spacing.lg),
           decoration: BoxDecoration(
             color: AppStyles.getBackground(context),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(Radii.md),
           ),
           child: Column(
             children: [
@@ -1813,7 +1819,7 @@ class _SellModalState extends State<_SellModal> {
                     style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: TypeScale.headline,
-                        color: CupertinoColors.systemGreen),
+                        color: AppStyles.bioGreen),
                   ),
                 ],
               ),
@@ -1837,7 +1843,7 @@ class _SellModalState extends State<_SellModal> {
             value,
             style: TextStyle(
               fontWeight: isHighlight ? FontWeight.bold : FontWeight.w500,
-              color: isHighlight ? CupertinoColors.systemGreen : null,
+              color: isHighlight ? AppStyles.bioGreen : null,
             ),
           ),
         ],
@@ -2160,7 +2166,7 @@ class _SIPModalState extends State<_SIPModal> {
             padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
             decoration: BoxDecoration(
               color: AppStyles.getBackground(context),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
               border: Border.all(
                 color: AppStyles.getSecondaryTextColor(context)
                     .withValues(alpha: 0.2),
@@ -2191,7 +2197,7 @@ class _SIPModalState extends State<_SIPModal> {
           padding: EdgeInsets.all(Spacing.md),
           decoration: BoxDecoration(
             color: CupertinoColors.systemBlue.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(Radii.md),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -2252,7 +2258,7 @@ class _SIPModalState extends State<_SIPModal> {
           color: isSelected
               ? SemanticColors.investments.withValues(alpha: 0.1)
               : AppStyles.getBackground(context),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(Radii.md),
           border: Border.all(
             color: isSelected ? SemanticColors.investments : Colors.transparent,
           ),
@@ -2330,7 +2336,7 @@ class _SIPModalState extends State<_SIPModal> {
           padding: const EdgeInsets.all(Spacing.lg),
           decoration: BoxDecoration(
             color: AppStyles.getBackground(context),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(Radii.md),
           ),
           prefix: Padding(
             padding: const EdgeInsets.only(left: 16),
@@ -2425,7 +2431,7 @@ class _SIPModalState extends State<_SIPModal> {
               padding: EdgeInsets.all(Spacing.md),
               decoration: BoxDecoration(
                 color: CupertinoColors.systemBlue.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(Radii.md),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -2467,7 +2473,7 @@ class _SIPModalState extends State<_SIPModal> {
       padding: EdgeInsets.all(Spacing.lg),
       decoration: BoxDecoration(
         color: AppStyles.getBackground(context),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(Radii.md),
       ),
       child: Column(
         children: [
@@ -2575,7 +2581,7 @@ class _EditModalState extends State<_EditModal> {
                   padding: const EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
                     color: AppStyles.getBackground(context),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(Radii.md),
                   ),
                   style: TextStyle(color: AppStyles.getTextColor(context)),
                 ),
@@ -2593,7 +2599,7 @@ class _EditModalState extends State<_EditModal> {
                   padding: const EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
                     color: AppStyles.getBackground(context),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(Radii.md),
                   ),
                   prefix: Padding(
                     padding: const EdgeInsets.only(left: 16),
@@ -2734,7 +2740,7 @@ class _DividendModalState extends State<_DividendModal> {
                   padding: EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
                     color: AppStyles.getCardColor(context),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(Radii.lg),
                     border: Border.all(
                       color: CupertinoColors.systemBrown.withValues(alpha: 0.2),
                       width: 1,
@@ -2769,7 +2775,7 @@ class _DividendModalState extends State<_DividendModal> {
                             vertical: 14, horizontal: 16),
                         decoration: BoxDecoration(
                           color: AppStyles.getBackground(context),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(Radii.md),
                           border: Border.all(
                             color: AppStyles.getSecondaryTextColor(context)
                                 .withValues(alpha: 0.2),
@@ -2812,7 +2818,7 @@ class _DividendModalState extends State<_DividendModal> {
                               vertical: 14, horizontal: 16),
                           decoration: BoxDecoration(
                             color: AppStyles.getBackground(context),
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(Radii.md),
                             border: Border.all(
                               color: AppStyles.getSecondaryTextColor(context)
                                   .withValues(alpha: 0.2),
@@ -2844,7 +2850,7 @@ class _DividendModalState extends State<_DividendModal> {
                   padding: EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
                     color: AppStyles.getCardColor(context),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(Radii.lg),
                     border: Border.all(
                       color: CupertinoColors.systemBrown.withValues(alpha: 0.2),
                       width: 1,
@@ -2874,7 +2880,7 @@ class _DividendModalState extends State<_DividendModal> {
                           Text(
                             'Required',
                             style: TextStyle(
-                              color: CupertinoColors.systemRed,
+                              color: AppStyles.plasmaRed,
                               fontSize: TypeScale.footnote,
                               fontWeight: FontWeight.w600,
                             ),
@@ -2888,7 +2894,7 @@ class _DividendModalState extends State<_DividendModal> {
                           decoration: BoxDecoration(
                             color: CupertinoColors.systemBrown
                                 .withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(Radii.md),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -2915,7 +2921,7 @@ class _DividendModalState extends State<_DividendModal> {
                                 Text(
                                   'After credit: ₹${(_selectedAccount!.balance + amount).toStringAsFixed(2)}',
                                   style: TextStyle(
-                                    color: CupertinoColors.systemGreen,
+                                    color: AppStyles.bioGreen,
                                     fontSize: TypeScale.footnote,
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -3049,7 +3055,7 @@ class _AccountSelector extends StatelessWidget {
                             padding: EdgeInsets.all(Spacing.lg),
                             decoration: BoxDecoration(
                               color: AppStyles.getBackground(context),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(Radii.md),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,

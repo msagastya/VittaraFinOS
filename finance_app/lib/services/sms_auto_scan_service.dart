@@ -129,7 +129,7 @@ class SmsAutoScanService {
     // Tap on notification body / "Review All" → open SMS review screen
     if (pendingResults?.isNotEmpty == true) {
       appNavigatorKey.currentState?.push(
-        CupertinoPageRoute(builder: (_) => const SmsReviewScreen()),
+        FadeScalePageRoute(page: const SmsReviewScreen()),
       );
     }
   }
@@ -299,7 +299,15 @@ class SmsAutoScanService {
     );
   }
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
+  // ── Public helpers ────────────────────────────────────────────────────────
+
+  /// Public fingerprint — also used by _SmsSectionWidget in notifications page.
+  String fingerprint(SmsParseResult r) => _fingerprint(r);
+
+  /// Public mark-seen — called when user dismisses or acts on a card.
+  Future<void> markSeen(String fp) => _markSeen(fp);
+
+  // ── Private helpers ───────────────────────────────────────────────────────
 
   String _fingerprint(SmsParseResult r) {
     final p = r.parsed;

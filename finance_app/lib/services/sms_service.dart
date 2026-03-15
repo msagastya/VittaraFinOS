@@ -3,6 +3,14 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
 import 'package:vittara_fin_os/services/sms_parser.dart';
 
+/// Thrown when SMS permission is denied during scan.
+class SmsPermissionDeniedException implements Exception {
+  const SmsPermissionDeniedException();
+
+  @override
+  String toString() => 'SmsPermissionDeniedException: SMS permission was denied';
+}
+
 /// One fully-processed SMS ready for user review.
 class SmsParseResult {
   final ParsedSms parsed;
@@ -54,7 +62,7 @@ class SmsService {
     }
 
     final hasPermission = await requestPermission();
-    if (!hasPermission) return [];
+    if (!hasPermission) throw const SmsPermissionDeniedException();
 
     onProgress?.call(5, 'Reading SMS inbox...');
 
@@ -73,6 +81,7 @@ class SmsService {
 
     final results = <SmsParseResult>[];
     final total = messages.length;
+    int parseAttempted = 0;
 
     for (int i = 0; i < total; i++) {
       final msg = messages[i];
@@ -93,6 +102,7 @@ class SmsService {
       // Spam / noise filter
       if (_isNoise(sender, msg.body ?? '')) continue;
 
+      parseAttempted++;
       final parsed = await _parser.parse(msg, senderMap);
       if (parsed == null) continue;
 
@@ -107,7 +117,9 @@ class SmsService {
       ));
     }
 
-    onProgress?.call(100, 'Done — ${results.length} transactions found');
+    final failCount = parseAttempted - results.length;
+    onProgress?.call(
+        100, 'Done — ${results.length} found|$failCount unreadable');
     return results;
   }
 
@@ -233,77 +245,159 @@ class SmsService {
   }
 
   // ---------------------------------------------------------------------------
-  // Account auto-match
+  // Account auto-match — scored priority system
   // ---------------------------------------------------------------------------
   _AccountMatch? _findMatchingAccount(
       ParsedSms parsed, List<Account> accounts) {
     if (accounts.isEmpty) return null;
 
-    // 1. Exact account last-4 match within same bank
-    if (parsed.accountLast4 != null) {
-      final byBankAndAc = accounts.where((a) {
-        final acNum = a.creditCardNumber ?? '';
-        return acNum.endsWith(parsed.accountLast4!) &&
-            (parsed.bankId == null ||
-                a.bankName.toLowerCase().contains(
-                    parsed.bankId!.replaceAll('_', ' ').toLowerCase()));
-      }).toList();
-      if (byBankAndAc.isNotEmpty) {
-        return _AccountMatch(
-          account: byBankAndAc.first,
-          confidence: 0.95,
-          reason: 'Matched account ending **${parsed.accountLast4}',
-        );
-      }
+    final bodyLower = parsed.rawMessage.toLowerCase();
 
-      // 2. Exact account last-4 match (any bank)
-      final byAc = accounts
-          .where(
-              (a) => (a.creditCardNumber ?? '').endsWith(parsed.accountLast4!))
-          .toList();
-      if (byAc.isNotEmpty) {
-        return _AccountMatch(
-          account: byAc.first,
-          confidence: 0.85,
-          reason: 'Matched account ending **${parsed.accountLast4}',
-        );
-      }
+    // SMS contains explicit "card" reference → likely a card transaction
+    final smsIsCardTxn = bodyLower.contains('card');
+    // SMS contains UPI/NEFT/IMPS/account → likely a bank account transaction
+    final smsIsBankTxn = bodyLower.contains('upi') ||
+        bodyLower.contains('neft') ||
+        bodyLower.contains('imps') ||
+        bodyLower.contains('rtgs') ||
+        bodyLower.contains(' ac ') ||
+        bodyLower.contains(' a/c ') ||
+        bodyLower.contains('savings') ||
+        bodyLower.contains('current a/c');
+
+    // Helper — extract last 4 digits from any stored number string
+    String last4(String? raw) {
+      if (raw == null || raw.isEmpty) return '';
+      final d = raw.replaceAll(RegExp(r'\D'), '');
+      return d.length >= 4 ? d.substring(d.length - 4) : d;
     }
 
-    // 3. Card last-4 match
-    if (parsed.cardLast4 != null) {
-      final byCard = accounts
-          .where((a) =>
-              a.type == AccountType.credit &&
-              (a.creditCardNumber ?? '').endsWith(parsed.cardLast4!))
-          .toList();
-      if (byCard.isNotEmpty) {
-        return _AccountMatch(
-          account: byCard.first,
-          confidence: 0.90,
-          reason: 'Matched card ending **${parsed.cardLast4}',
-        );
-      }
-    }
-
-    // 4. Bank name match
-    if (parsed.bankId != null) {
-      final bankNameParts = parsed.bankId!
+    // Helper — does this account's bank name match the parsed bankId?
+    bool bankMatches(Account a) {
+      if (parsed.bankId == null) return false;
+      final parts = parsed.bankId!
           .replaceAll('_', ' ')
           .toLowerCase()
           .split(' ')
         ..removeWhere((p) => p.length < 3);
-      final byBank = accounts.where((a) {
-        final bn = a.bankName.toLowerCase();
-        return bankNameParts.any((part) => bn.contains(part));
-      }).toList();
-      if (byBank.isNotEmpty) {
+      final bn = a.bankName.toLowerCase();
+      return parts.any((p) => bn.contains(p));
+    }
+
+    // ── Priority 1: Credit/pay-later card number last-4 ──────────────────────
+    if (parsed.cardLast4 != null) {
+      final hits = accounts.where((a) =>
+          (a.type == AccountType.credit || a.type == AccountType.payLater) &&
+          last4(a.creditCardNumber) == parsed.cardLast4).toList();
+      if (hits.length == 1) {
         return _AccountMatch(
-          account: byBank.first,
-          confidence: 0.65,
-          reason: 'Matched bank: ${byBank.first.bankName}',
-        );
+            account: hits.first,
+            confidence: 0.97,
+            reason: 'Card ••••${parsed.cardLast4}');
       }
+      // Multiple hits — prefer same-bank
+      final sameBankHits = hits.where(bankMatches).toList();
+      if (sameBankHits.isNotEmpty) {
+        return _AccountMatch(
+            account: sameBankHits.first,
+            confidence: 0.96,
+            reason: 'Card ••••${parsed.cardLast4}');
+      }
+      if (hits.isNotEmpty) {
+        return _AccountMatch(
+            account: hits.first,
+            confidence: 0.90,
+            reason: 'Card ••••${parsed.cardLast4}');
+      }
+    }
+
+    // ── Priority 2: accountLast4 — check metadata first, then creditCardNumber
+    if (parsed.accountLast4 != null) {
+      final acLast4 = parsed.accountLast4!;
+
+      // 2a. metadata['accountLast4'] — savings/current accounts
+      final byMetaAcct = accounts.where((a) {
+        final stored = a.metadata?['accountLast4'] as String?;
+        return stored == acLast4;
+      }).toList();
+      if (byMetaAcct.isNotEmpty) {
+        final sameBankHits = byMetaAcct.where(bankMatches).toList();
+        final best = sameBankHits.isNotEmpty ? sameBankHits.first : byMetaAcct.first;
+        return _AccountMatch(
+            account: best,
+            confidence: sameBankHits.isNotEmpty ? 0.97 : 0.88,
+            reason: 'Account ••••$acLast4');
+      }
+
+      // 2b. metadata['debitCardLast4']
+      final byMetaDebit = accounts.where((a) {
+        final stored = a.metadata?['debitCardLast4'] as String?;
+        return stored == acLast4;
+      }).toList();
+      if (byMetaDebit.isNotEmpty) {
+        final sameBankHits = byMetaDebit.where(bankMatches).toList();
+        final best = sameBankHits.isNotEmpty ? sameBankHits.first : byMetaDebit.first;
+        return _AccountMatch(
+            account: best,
+            confidence: sameBankHits.isNotEmpty ? 0.95 : 0.85,
+            reason: 'Debit card ••••$acLast4');
+      }
+
+      // 2c. creditCardNumber field (for credit/payLater)
+      final byCreditNum = accounts.where((a) =>
+          (a.type == AccountType.credit || a.type == AccountType.payLater) &&
+          last4(a.creditCardNumber) == acLast4).toList();
+      if (byCreditNum.isNotEmpty) {
+        final sameBankHits = byCreditNum.where(bankMatches).toList();
+        final best = sameBankHits.isNotEmpty ? sameBankHits.first : byCreditNum.first;
+        return _AccountMatch(
+            account: best,
+            confidence: sameBankHits.isNotEmpty ? 0.92 : 0.82,
+            reason: 'Card ••••$acLast4');
+      }
+    }
+
+    // ── Priority 3: Bank name match with type inference ───────────────────────
+    if (parsed.bankId != null) {
+      final byBank =
+          accounts.where(bankMatches).toList();
+
+      if (byBank.isEmpty) return null;
+
+      if (byBank.length == 1) {
+        return _AccountMatch(
+            account: byBank.first,
+            confidence: 0.65,
+            reason: 'Bank: ${byBank.first.bankName}');
+      }
+
+      // Multiple accounts at same bank — use type inference
+      final cardTypes = {AccountType.credit, AccountType.payLater};
+      final bankTypes = {
+        AccountType.savings,
+        AccountType.current,
+        AccountType.wallet
+      };
+
+      List<Account> preferred;
+      if (smsIsCardTxn && !smsIsBankTxn) {
+        // Card transaction → prefer credit/pay-later
+        preferred = byBank.where((a) => cardTypes.contains(a.type)).toList();
+        if (preferred.isEmpty) preferred = byBank;
+      } else if (smsIsBankTxn && !smsIsCardTxn) {
+        // Bank/UPI transaction → prefer savings/current
+        preferred = byBank.where((a) => bankTypes.contains(a.type)).toList();
+        if (preferred.isEmpty) preferred = byBank;
+      } else {
+        // Ambiguous — prefer savings over credit (most common debit)
+        preferred = byBank.where((a) => bankTypes.contains(a.type)).toList();
+        if (preferred.isEmpty) preferred = byBank;
+      }
+
+      return _AccountMatch(
+          account: preferred.first,
+          confidence: 0.60,
+          reason: 'Bank: ${preferred.first.bankName}');
     }
 
     return null;

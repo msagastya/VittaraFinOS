@@ -161,7 +161,7 @@ class _MFNewInvestmentDetailsStepState
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
             ),
             prefix: Padding(
               padding: const EdgeInsets.only(left: 16),
@@ -190,7 +190,7 @@ class _MFNewInvestmentDetailsStepState
               padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(Radii.md),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -244,15 +244,15 @@ class _MFNewInvestmentDetailsStepState
             Container(
               padding: const EdgeInsets.all(Spacing.md),
               decoration: BoxDecoration(
-                color: CupertinoColors.systemRed.withValues(alpha: 0.1),
+                color: AppStyles.plasmaRed.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                    color: CupertinoColors.systemRed.withValues(alpha: 0.3)),
+                    color: AppStyles.plasmaRed.withValues(alpha: 0.3)),
               ),
               child: Text(
                 _navError,
                 style: const TextStyle(
-                  color: CupertinoColors.systemRed,
+                  color: AppStyles.plasmaRed,
                   fontSize: TypeScale.footnote,
                 ),
               ),
@@ -313,7 +313,7 @@ class _MFNewInvestmentDetailsStepState
                         decoration: BoxDecoration(
                           color: CupertinoColors.systemOrange
                               .withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(Radii.md),
                         ),
                         child: Text(
                           'No bank accounts found',
@@ -356,7 +356,7 @@ class _MFNewInvestmentDetailsStepState
                                         color: SemanticColors.investments,
                                       )
                                     : null,
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(Radii.md),
                               ),
                               child: Row(
                                 children: [
@@ -465,7 +465,7 @@ class _MFNewInvestmentDetailsStepState
               padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: SemanticColors.investments.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(Radii.md),
                 border: Border.all(
                   color: SemanticColors.investments.withValues(alpha: 0.3),
                 ),

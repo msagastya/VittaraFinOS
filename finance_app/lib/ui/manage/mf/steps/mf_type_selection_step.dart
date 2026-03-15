@@ -168,7 +168,7 @@ class MFTypeSelectionStep extends StatelessWidget {
                           width: 60,
                           height: 60,
                           decoration: BoxDecoration(
-                            color: CupertinoColors.activeBlue
+                            color: AppStyles.aetherTeal
                                 .withValues(alpha: 0.15),
                             shape: BoxShape.circle,
                           ),
@@ -176,7 +176,7 @@ class MFTypeSelectionStep extends StatelessWidget {
                             child: Icon(
                               CupertinoIcons.star_circle,
                               size: 28,
-                              color: CupertinoColors.activeBlue,
+                              color: AppStyles.aetherTeal,
                             ),
                           ),
                         ),

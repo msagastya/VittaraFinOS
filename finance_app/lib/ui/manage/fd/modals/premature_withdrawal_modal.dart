@@ -265,7 +265,7 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
                   _buildCalculationRow(
                     'Penalty (${(widget.fd.elapsedMonths < 12 ? 1.0 : 0.5)}%)',
                     '-₹${_penaltyAmount.toStringAsFixed(2)}',
-                    color: CupertinoColors.systemRed,
+                    color: AppStyles.plasmaRed,
                   ),
                   const SizedBox(height: Spacing.md),
                   Container(

@@ -102,7 +102,7 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
                       Text(
                         controller.priceError,
                         style: const TextStyle(
-                          color: CupertinoColors.systemRed,
+                          color: AppStyles.plasmaRed,
                           fontSize: TypeScale.footnote,
                         ),
                       ),
@@ -221,13 +221,13 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
               padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: controller.gainLossPercent >= 0
-                    ? CupertinoColors.systemGreen.withValues(alpha: 0.1)
-                    : CupertinoColors.systemRed.withValues(alpha: 0.1),
+                    ? AppStyles.bioGreen.withValues(alpha: 0.1)
+                    : AppStyles.plasmaRed.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: controller.gainLossPercent >= 0
-                      ? CupertinoColors.systemGreen.withValues(alpha: 0.3)
-                      : CupertinoColors.systemRed.withValues(alpha: 0.3),
+                      ? AppStyles.bioGreen.withValues(alpha: 0.3)
+                      : AppStyles.plasmaRed.withValues(alpha: 0.3),
                 ),
               ),
               child: Column(
@@ -253,8 +253,8 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
                               fontSize: TypeScale.headline,
                               color: controller.currentValue >=
                                       controller.investedAmount
-                                  ? CupertinoColors.systemGreen
-                                  : CupertinoColors.systemRed,
+                                  ? AppStyles.bioGreen
+                                  : AppStyles.plasmaRed,
                             ),
                           ),
                         ],
@@ -268,8 +268,8 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
                               fontWeight: FontWeight.bold,
                               fontSize: TypeScale.headline,
                               color: controller.gainLossPercent >= 0
-                                  ? CupertinoColors.systemGreen
-                                  : CupertinoColors.systemRed,
+                                  ? AppStyles.bioGreen
+                                  : AppStyles.plasmaRed,
                             ),
                           ),
                           const SizedBox(height: Spacing.xs),

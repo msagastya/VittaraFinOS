@@ -16,3 +16,6 @@ export 'toast_notification.dart';
 
 // Icon picker modal
 export 'icon_picker.dart';
+
+// Reusable account selection step for wizards
+export 'account_selection_step.dart';

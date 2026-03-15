@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 
 /// Animated gradient background with smooth color transitions
 class AnimatedGradientBackground extends StatefulWidget {
@@ -165,7 +166,7 @@ class _MeshGradientBackgroundState extends State<MeshGradientBackground>
                     ),
                     radius: 1.5,
                     colors: [
-                      CupertinoColors.activeBlue.withValues(alpha: 0.3),
+                      AppStyles.aetherTeal.withValues(alpha: 0.3),
                       Colors.transparent,
                     ],
                   ),

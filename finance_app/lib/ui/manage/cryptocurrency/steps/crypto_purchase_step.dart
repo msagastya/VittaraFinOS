@@ -129,7 +129,7 @@ class _CryptoPurchaseStepState extends State<CryptoPurchaseStep> {
               padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(Radii.md),
                 border: Border.all(
                   color: CupertinoColors.systemGrey.withValues(alpha: 0.3),
                 ),
@@ -167,7 +167,7 @@ class _CryptoPurchaseStepState extends State<CryptoPurchaseStep> {
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
             ),
             style: TextStyle(color: AppStyles.getTextColor(context)),
             onChanged: (value) {
@@ -195,7 +195,7 @@ class _CryptoPurchaseStepState extends State<CryptoPurchaseStep> {
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
             ),
             prefix: Padding(
               padding: const EdgeInsets.only(left: 16),
@@ -230,7 +230,7 @@ class _CryptoPurchaseStepState extends State<CryptoPurchaseStep> {
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
             ),
             prefix: Padding(
               padding: const EdgeInsets.only(left: 16),
@@ -263,7 +263,7 @@ class _CryptoPurchaseStepState extends State<CryptoPurchaseStep> {
             maxLines: 3,
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
             ),
             style: TextStyle(color: AppStyles.getTextColor(context)),
             onChanged: (value) {
@@ -280,7 +280,7 @@ class _CryptoPurchaseStepState extends State<CryptoPurchaseStep> {
               padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: const Color(0xFFF7931A).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(Radii.md),
                 border: Border.all(
                   color: const Color(0xFFF7931A).withValues(alpha: 0.3),
                 ),

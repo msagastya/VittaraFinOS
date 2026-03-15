@@ -193,7 +193,7 @@ class _MFWizardContentState extends State<_MFWizardContent> {
     final controller = Provider.of<MFWizardController>(context, listen: false);
 
     final result = await Navigator.of(context).push<Map<String, dynamic>>(
-      CupertinoPageRoute(builder: (context) => const SIPWizard()),
+      FadeScalePageRoute(page: const SIPWizard()),
     );
 
     if (result != null && context.mounted) {

@@ -25,6 +25,7 @@ class Account {
   final String? institutionName;
   final DateTime createdDate;
   final Map<String, dynamic>? metadata;
+  final bool isHidden;
 
   static const Object _unset = Object();
 
@@ -41,6 +42,7 @@ class Account {
     String? institutionName,
     DateTime? createdDate,
     this.metadata,
+    this.isHidden = false,
   })  : institutionName = institutionName ?? bankName,
         createdDate = createdDate ?? DateTime.now();
 
@@ -58,6 +60,7 @@ class Account {
       'institutionName': institutionName,
       'createdDate': createdDate.toIso8601String(),
       'metadata': metadata,
+      'isHidden': isHidden,
     };
   }
 
@@ -90,6 +93,7 @@ class Account {
           : rawMetadata is Map
               ? Map<String, dynamic>.from(rawMetadata)
               : null,
+      isHidden: (map['isHidden'] as bool?) ?? false,
     );
   }
 
@@ -106,6 +110,7 @@ class Account {
     String? institutionName,
     DateTime? createdDate,
     Object? metadata = _unset,
+    bool? isHidden,
   }) {
     return Account(
       id: id ?? this.id,
@@ -122,6 +127,7 @@ class Account {
       metadata: identical(metadata, _unset)
           ? this.metadata
           : metadata as Map<String, dynamic>?,
+      isHidden: isHidden ?? this.isHidden,
     );
   }
 }

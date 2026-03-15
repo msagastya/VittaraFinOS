@@ -2,6 +2,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
+import 'package:vittara_fin_os/utils/logger.dart';
+
+final _accountsLogger = AppLogger();
 
 class AccountsController with ChangeNotifier {
   late SharedPreferences _prefs;
@@ -13,6 +16,10 @@ class AccountsController with ChangeNotifier {
   List<Account> get accounts => _accounts;
   bool get isLoaded => _isLoaded;
 
+  /// Returns the account with [id], or null if not found.
+  Account? getAccountById(String id) =>
+      _accounts.where((a) => a.id == id).cast<Account?>().firstOrNull;
+
   AccountsController() {
     _accounts = [];
   }
@@ -21,10 +28,20 @@ class AccountsController with ChangeNotifier {
     _prefs = await SharedPreferences.getInstance();
     final accountsJson = _prefs.getStringList(_storageKey) ?? [];
 
-    _accounts = accountsJson
-        .map(
-            (json) => Account.fromMap(jsonDecode(json) as Map<String, dynamic>))
-        .toList();
+    final loaded = <Account>[];
+    int skipped = 0;
+    for (final json in accountsJson) {
+      try {
+        loaded.add(Account.fromMap(jsonDecode(json) as Map<String, dynamic>));
+      } catch (e) {
+        skipped++;
+        _accountsLogger.warning('Skipped corrupted account record', error: e);
+      }
+    }
+    if (skipped > 0) {
+      _accountsLogger.warning('Skipped $skipped corrupted account(s)');
+    }
+    _accounts = loaded;
 
     _isLoaded = true;
     notifyListeners();
@@ -75,6 +92,24 @@ class AccountsController with ChangeNotifier {
     final accountsJson =
         _accounts.map((account) => jsonEncode(account.toMap())).toList();
     await _prefs.setStringList(_storageKey, accountsJson);
+  }
+
+  Future<void> hideAccount(String id) async {
+    final index = _accounts.indexWhere((a) => a.id == id);
+    if (index >= 0) {
+      _accounts[index] = _accounts[index].copyWith(isHidden: true);
+      await _saveAccounts();
+      notifyListeners();
+    }
+  }
+
+  Future<void> unhideAccount(String id) async {
+    final index = _accounts.indexWhere((a) => a.id == id);
+    if (index >= 0) {
+      _accounts[index] = _accounts[index].copyWith(isHidden: false);
+      await _saveAccounts();
+      notifyListeners();
+    }
   }
 
   void reorderAccounts(int oldIndex, int newIndex) {

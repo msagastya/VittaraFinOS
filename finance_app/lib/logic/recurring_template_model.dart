@@ -15,6 +15,8 @@ class RecurringTemplate {
   final String frequency; // 'daily'/'weekly'/'monthly'/'yearly'
   final DateTime? nextDueDate;
   final DateTime createdAt;
+  // Key: "yyyy-MM" month string, Value: ISO-8601 payment date
+  final Map<String, String> paymentHistory;
 
   const RecurringTemplate({
     required this.id,
@@ -33,6 +35,7 @@ class RecurringTemplate {
     this.frequency = 'monthly',
     this.nextDueDate,
     required this.createdAt,
+    this.paymentHistory = const {},
   });
 
   Map<String, dynamic> toMap() => {
@@ -52,6 +55,7 @@ class RecurringTemplate {
         'frequency': frequency,
         'nextDueDate': nextDueDate?.toIso8601String(),
         'createdAt': createdAt.toIso8601String(),
+        'paymentHistory': paymentHistory,
       };
 
   factory RecurringTemplate.fromMap(Map<String, dynamic> map) =>
@@ -74,12 +78,49 @@ class RecurringTemplate {
             ? DateTime.parse(map['nextDueDate'] as String)
             : null,
         createdAt: DateTime.parse(map['createdAt'] as String),
+        paymentHistory: (map['paymentHistory'] as Map?)
+                ?.map((k, v) => MapEntry(k as String, v as String)) ??
+            {},
       );
 
   /// Returns how many days until nextDueDate (negative = overdue).
   int? daysUntilDue() {
     if (nextDueDate == null) return null;
     return nextDueDate!.difference(DateTime.now()).inDays;
+  }
+
+  /// Returns the month key for a given date (e.g. "2026-03").
+  static String monthKey(DateTime date) =>
+      '${date.year}-${date.month.toString().padLeft(2, '0')}';
+
+  /// Whether this bill has been marked paid for the given month.
+  bool isPaidForMonth(DateTime month) =>
+      paymentHistory.containsKey(monthKey(month));
+
+  /// Returns a copy with today recorded as paid for the current month.
+  RecurringTemplate withPaymentRecorded() {
+    final now = DateTime.now();
+    final updated = Map<String, String>.from(paymentHistory);
+    updated[monthKey(now)] = now.toIso8601String();
+    return RecurringTemplate(
+      id: id,
+      name: name,
+      branch: branch,
+      amount: amount,
+      categoryId: categoryId,
+      categoryName: categoryName,
+      accountId: accountId,
+      accountName: accountName,
+      paymentType: paymentType,
+      paymentApp: paymentApp,
+      merchant: merchant,
+      description: description,
+      tags: tags,
+      frequency: frequency,
+      nextDueDate: nextDueDate,
+      createdAt: createdAt,
+      paymentHistory: updated,
+    );
   }
 
   /// Advance nextDueDate by one period.
@@ -116,6 +157,7 @@ class RecurringTemplate {
       frequency: frequency,
       nextDueDate: next,
       createdAt: createdAt,
+      paymentHistory: paymentHistory,
     );
   }
 }

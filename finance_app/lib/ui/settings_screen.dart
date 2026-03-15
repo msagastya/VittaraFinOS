@@ -48,7 +48,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   icon: CupertinoIcons.viewfinder,
                   title: 'Biometric Auth',
                   value: settings.isBiometricEnabled,
-                  color: CupertinoColors.systemGreen,
+                  color: AppStyles.bioGreen,
                   onChanged: (val) => settings.toggleBiometric(val),
                 ),
                 if (settings.isBiometricEnabled) ...[
@@ -111,6 +111,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   onChanged: (val) => settings.toggleInvestmentTracking(val),
                 ),
                 _buildDivider(context),
+                _buildDivider(context),
                 _buildToggleRow(
                   context,
                   icon: CupertinoIcons.archivebox_fill,
@@ -118,6 +119,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   value: settings.isArchivedTransactionsEnabled,
                   color: CupertinoColors.systemPurple,
                   onChanged: (val) => settings.toggleArchivedTransactions(val),
+                ),
+                _buildDivider(context),
+                _buildToggleRow(
+                  context,
+                  icon: CupertinoIcons.chat_bubble_text_fill,
+                  title: 'SMS Scanning',
+                  value: settings.isSmsEnabled,
+                  color: AppStyles.aetherTeal,
+                  onChanged: (val) => settings.toggleSmsScanning(val),
                 ),
               ]),
 
@@ -343,7 +353,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         builder: (ctx, setS) {
           final isDark = AppStyles.isDarkMode(ctx);
           final dotColor =
-              error ? CupertinoColors.systemRed : AppStyles.accentBlue;
+              error ? AppStyles.plasmaRed : AppStyles.accentBlue;
           final current = inConfirm ? confirmDigits! : digits;
 
           void onDigit(String d) {
@@ -415,7 +425,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             : 'Choose a 6-digit PIN',
                     style: TextStyle(
                       color: error
-                          ? CupertinoColors.systemRed
+                          ? AppStyles.plasmaRed
                           : AppStyles.getSecondaryTextColor(ctx),
                       fontSize: TypeScale.body,
                     ),

@@ -227,14 +227,14 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
                         Icon(
                           CupertinoIcons.check_mark_circled_solid,
                           size: 16,
-                          color: CupertinoColors.systemGreen,
+                          color: AppStyles.bioGreen,
                         ),
                         SizedBox(width: Spacing.sm),
                         Expanded(
                           child: Text(
                             'Maturity value includes principal + interest',
                             style: TextStyle(
-                              color: CupertinoColors.systemGreen,
+                              color: AppStyles.bioGreen,
                               fontSize: TypeScale.footnote,
                             ),
                           ),
@@ -250,7 +250,7 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
               SizedBox(
                 width: double.infinity,
                 child: CupertinoButton(
-                  color: CupertinoColors.systemGreen,
+                  color: AppStyles.bioGreen,
                   onPressed: () async {
                     // If we have the investment controller, persist the withdrawal
                     if (widget.investmentController != null &&
@@ -299,6 +299,8 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
                               final linkedAccount =
                                   accountsController.accounts.firstWhere(
                                 (acc) => acc.id == linkedAccountId,
+                                orElse: () => throw Exception(
+                                    'Linked account not found'),
                               );
                               final updatedAccount = linkedAccount.copyWith(
                                 balance:
@@ -308,7 +310,7 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
                                   .updateAccount(updatedAccount);
                               if (!mounted) return;
                             } catch (e) {
-                              // Account not found
+                              // Account not found — credit skipped
                             }
                           } catch (e) {
                             // Continue even if account credit fails

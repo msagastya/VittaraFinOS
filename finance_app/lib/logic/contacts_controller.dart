@@ -67,11 +67,8 @@ class ContactsController extends ChangeNotifier {
   }
 
   Contact? getContactByName(String name) {
-    try {
-      return _contacts
-          .firstWhere((c) => c.name.toLowerCase() == name.toLowerCase());
-    } catch (e) {
-      return null;
-    }
+    return _contacts
+        .where((c) => c.name.toLowerCase() == name.toLowerCase())
+        .firstOrNull;
   }
 }

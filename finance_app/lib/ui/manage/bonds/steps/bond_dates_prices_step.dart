@@ -104,7 +104,7 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
               padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(Radii.md),
                 border: Border.all(
                     color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
               ),
@@ -176,7 +176,7 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
               padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(Radii.md),
                 border: Border.all(
                     color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
               ),
@@ -204,7 +204,7 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
             ),
             prefix: Padding(
               padding: const EdgeInsets.only(left: 16),
@@ -227,7 +227,7 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
             ),
             prefix: Padding(
               padding: const EdgeInsets.only(left: 16),

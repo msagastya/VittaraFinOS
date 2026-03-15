@@ -2,6 +2,9 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/logic/recurring_template_model.dart';
+import 'package:vittara_fin_os/utils/logger.dart';
+
+final _recurringLogger = AppLogger();
 
 class RecurringTemplatesController with ChangeNotifier {
   static const _prefsKey = 'recurring_templates_v1';
@@ -30,7 +33,9 @@ class RecurringTemplatesController with ChangeNotifier {
           .map((e) => RecurringTemplate.fromMap(e as Map<String, dynamic>))
           .toList();
       notifyListeners();
-    } catch (_) {}
+    } catch (e) {
+      _recurringLogger.warning('Failed to load recurring templates', error: e);
+    }
   }
 
   Future<void> _save() async {
@@ -38,7 +43,9 @@ class RecurringTemplatesController with ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(
           _prefsKey, jsonEncode(_templates.map((t) => t.toMap()).toList()));
-    } catch (_) {}
+    } catch (e) {
+      _recurringLogger.warning('Failed to save recurring templates', error: e);
+    }
   }
 
   void addTemplate(RecurringTemplate template) {
@@ -66,6 +73,45 @@ class RecurringTemplatesController with ChangeNotifier {
     final idx = _templates.indexWhere((t) => t.id == updated.id);
     if (idx < 0) return;
     _templates[idx] = updated;
+    notifyListeners();
+    _save();
+  }
+
+  /// Records today as the payment date for the current month.
+  void markBillAsPaid(String id) {
+    final idx = _templates.indexWhere((t) => t.id == id);
+    if (idx < 0) return;
+    _templates[idx] = _templates[idx].withPaymentRecorded();
+    notifyListeners();
+    _save();
+  }
+
+  /// Removes the payment record for the current month (undo).
+  void unmarkBillAsPaid(String id) {
+    final idx = _templates.indexWhere((t) => t.id == id);
+    if (idx < 0) return;
+    final t = _templates[idx];
+    final key = RecurringTemplate.monthKey(DateTime.now());
+    final updated = Map<String, String>.from(t.paymentHistory)..remove(key);
+    _templates[idx] = RecurringTemplate(
+      id: t.id,
+      name: t.name,
+      branch: t.branch,
+      amount: t.amount,
+      categoryId: t.categoryId,
+      categoryName: t.categoryName,
+      accountId: t.accountId,
+      accountName: t.accountName,
+      paymentType: t.paymentType,
+      paymentApp: t.paymentApp,
+      merchant: t.merchant,
+      description: t.description,
+      tags: t.tags,
+      frequency: t.frequency,
+      nextDueDate: t.nextDueDate,
+      createdAt: t.createdAt,
+      paymentHistory: updated,
+    );
     notifyListeners();
     _save();
   }

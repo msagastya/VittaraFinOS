@@ -131,8 +131,8 @@ class _StatRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = isHighlight
-        ? (isPositive ? CupertinoColors.systemGreen : CupertinoColors.systemRed)
-        : (isPositive ? null : CupertinoColors.systemRed);
+        ? (isPositive ? AppStyles.bioGreen : AppStyles.plasmaRed)
+        : (isPositive ? null : AppStyles.plasmaRed);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,

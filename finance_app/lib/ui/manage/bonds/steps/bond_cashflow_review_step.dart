@@ -120,8 +120,8 @@ class BondCashFlowReviewStep extends StatelessWidget {
                                   fontSize: TypeScale.footnote,
                                   fontWeight: FontWeight.w600,
                                   color: isNegative
-                                      ? CupertinoColors.systemRed
-                                      : CupertinoColors.systemGreen,
+                                      ? AppStyles.plasmaRed
+                                      : AppStyles.bioGreen,
                                 ),
                               ),
                             ),
@@ -154,13 +154,13 @@ class BondCashFlowReviewStep extends StatelessWidget {
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: isProfit
-                  ? CupertinoColors.systemGreen.withValues(alpha: 0.1)
-                  : CupertinoColors.systemRed.withValues(alpha: 0.1),
+                  ? AppStyles.bioGreen.withValues(alpha: 0.1)
+                  : AppStyles.plasmaRed.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: isProfit
-                    ? CupertinoColors.systemGreen.withValues(alpha: 0.3)
-                    : CupertinoColors.systemRed.withValues(alpha: 0.3),
+                    ? AppStyles.bioGreen.withValues(alpha: 0.3)
+                    : AppStyles.plasmaRed.withValues(alpha: 0.3),
               ),
             ),
             child: Column(
@@ -168,13 +168,13 @@ class BondCashFlowReviewStep extends StatelessWidget {
                 _SummaryRow(
                   label: 'Total Invested',
                   value: '₹${ctrl.totalInvested.toStringAsFixed(2)}',
-                  color: CupertinoColors.systemRed,
+                  color: AppStyles.plasmaRed,
                 ),
                 const SizedBox(height: Spacing.md),
                 _SummaryRow(
                   label: 'Total Received',
                   value: '₹${ctrl.totalReceived.toStringAsFixed(2)}',
-                  color: CupertinoColors.systemGreen,
+                  color: AppStyles.bioGreen,
                 ),
                 const SizedBox(height: Spacing.md),
                 Divider(color: AppStyles.getDividerColor(context)),
@@ -184,8 +184,8 @@ class BondCashFlowReviewStep extends StatelessWidget {
                   value:
                       '${isProfit ? '+' : ''}₹${ctrl.gainLoss.toStringAsFixed(2)}',
                   color: isProfit
-                      ? CupertinoColors.systemGreen
-                      : CupertinoColors.systemRed,
+                      ? AppStyles.bioGreen
+                      : AppStyles.plasmaRed,
                   isBold: true,
                 ),
                 const SizedBox(height: Spacing.md),
@@ -194,8 +194,8 @@ class BondCashFlowReviewStep extends StatelessWidget {
                   value:
                       '${isProfit ? '+' : ''}${ctrl.gainLossPercent.toStringAsFixed(2)}%',
                   color: isProfit
-                      ? CupertinoColors.systemGreen
-                      : CupertinoColors.systemRed,
+                      ? AppStyles.bioGreen
+                      : AppStyles.plasmaRed,
                   isBold: true,
                 ),
                 const SizedBox(height: Spacing.md),

@@ -107,7 +107,7 @@ class _SIPStepUpStepState extends State<SIPStepUpStep> {
               padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(Radii.md),
               ),
               suffix: Padding(
                 padding: const EdgeInsets.only(right: 16),
@@ -170,7 +170,7 @@ class _SIPStepUpStepState extends State<SIPStepUpStep> {
               padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(Radii.md),
               ),
               style: TextStyle(color: AppStyles.getTextColor(context)),
               onChanged: (_) => _updateStepUp(),
@@ -182,7 +182,7 @@ class _SIPStepUpStepState extends State<SIPStepUpStep> {
               padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: CupertinoColors.systemBlue.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(Radii.md),
                 border: Border.all(
                   color: CupertinoColors.systemBlue.withValues(alpha: 0.3),
                 ),
@@ -220,7 +220,7 @@ class _SIPStepUpStepState extends State<SIPStepUpStep> {
               padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: CupertinoColors.systemGrey.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(Radii.md),
               ),
               child: Text(
                 'Step Up is disabled. Your SIP amount will remain constant.',

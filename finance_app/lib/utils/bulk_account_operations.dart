@@ -41,6 +41,7 @@ class BulkAccountOperations {
       try {
         final account = controller.accounts.firstWhere(
           (acc) => acc.id == accountId,
+          orElse: () => throw Exception('Account not found: $accountId'),
         );
 
         final updatedAccount = account.copyWith(
@@ -75,6 +76,7 @@ class BulkAccountOperations {
       try {
         final account = controller.accounts.firstWhere(
           (acc) => acc.id == accountId,
+          orElse: () => throw Exception('Account not found: $accountId'),
         );
 
         final metadata = Map<String, dynamic>.from(account.metadata ?? {});
@@ -137,6 +139,7 @@ class BulkAccountOperations {
       try {
         final account = controller.accounts.firstWhere(
           (acc) => acc.id == accountId,
+          orElse: () => throw Exception('Account not found: $accountId'),
         );
 
         final updatedAccount = account.copyWith(
@@ -171,6 +174,7 @@ class BulkAccountOperations {
       try {
         final account = controller.accounts.firstWhere(
           (acc) => acc.id == accountId,
+          orElse: () => throw Exception('Account not found: $accountId'),
         );
 
         final updatedAccount = account.copyWith(type: newType);
@@ -248,6 +252,7 @@ class BulkAccountOperations {
       try {
         final account = controller.accounts.firstWhere(
           (acc) => acc.id == accountId,
+          orElse: () => throw Exception('Account not found: $accountId'),
         );
 
         final existingTags =
@@ -288,6 +293,7 @@ class BulkAccountOperations {
       try {
         final account = controller.accounts.firstWhere(
           (acc) => acc.id == accountId,
+          orElse: () => throw Exception('Account not found: $accountId'),
         );
 
         final existingTags =

@@ -43,7 +43,7 @@ class _ManageScreenState extends State<ManageScreen> {
       'id': 'accounts',
       'title': 'Accounts',
       'icon': CupertinoIcons.creditcard_fill,
-      'color': CupertinoColors.systemGreen
+      'color': AppStyles.bioGreen
     },
     {
       'id': 'cash',
@@ -67,8 +67,7 @@ class _ManageScreenState extends State<ManageScreen> {
       'id': 'debt',
       'title': 'Liabilities',
       'icon': CupertinoIcons.money_dollar_circle_fill,
-      'color': CupertinoColors.systemRed,
-      'comingSoon': true,
+      'color': AppStyles.plasmaRed,
     },
     {
       'id': 'cats',
@@ -145,7 +144,7 @@ class _ManageScreenState extends State<ManageScreen> {
         middle: Text('Manage',
             style: TextStyle(color: AppStyles.getTextColor(context))),
         previousPageTitle: 'Back',
-        backgroundColor: AppStyles.getCardColor(context).withValues(alpha: 0.9),
+        backgroundColor: AppStyles.isDarkMode(context) ? Colors.black : Colors.white.withValues(alpha: 0.95),
         border: null,
       ),
       child: Builder(
@@ -357,6 +356,9 @@ class _ManageScreenState extends State<ManageScreen> {
         break;
       case 'invest':
         page = const InvestmentsScreen();
+        break;
+      case 'debt':
+        page = const LendingBorrowingScreen();
         break;
       case 'cats':
         page = const CategoriesScreen();

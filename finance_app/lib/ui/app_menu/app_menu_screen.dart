@@ -34,7 +34,7 @@ class DashboardAppMenuScreen extends StatelessWidget {
           style: TextStyle(color: AppStyles.getTextColor(context)),
         ),
         previousPageTitle: 'Dashboard',
-        backgroundColor: AppStyles.getCardColor(context).withValues(alpha: 0.9),
+        backgroundColor: AppStyles.isDarkMode(context) ? Colors.black : Colors.white.withValues(alpha: 0.95),
         border: null,
       ),
       child: SafeArea(

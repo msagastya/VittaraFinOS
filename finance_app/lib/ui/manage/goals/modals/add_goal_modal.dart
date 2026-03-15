@@ -22,6 +22,7 @@ class _AddGoalModalState extends State<AddGoalModal> {
   GoalType _selectedType = GoalType.custom;
   Color _selectedColor = SemanticColors.primary;
   DateTime _targetDate = DateTime.now().add(Duration(days: 365));
+  bool _isSaving = false;
 
   @override
   void dispose() {
@@ -32,6 +33,7 @@ class _AddGoalModalState extends State<AddGoalModal> {
   }
 
   void _saveGoal() async {
+    if (_isSaving) return;
     FocusManager.instance.primaryFocus?.unfocus();
     if (_nameController.text.trim().isEmpty) {
       AlertService.showError(context, 'Please enter a goal name');
@@ -58,9 +60,15 @@ class _AddGoalModalState extends State<AddGoalModal> {
           : _notesController.text.trim(),
     );
 
-    await Provider.of<GoalsController>(context, listen: false).addGoal(goal);
-    Navigator.pop(context);
-    AlertService.showSuccess(context, 'Goal created successfully!');
+    setState(() => _isSaving = true);
+    try {
+      await Provider.of<GoalsController>(context, listen: false).addGoal(goal);
+      if (!mounted) return;
+      Navigator.pop(context);
+      AlertService.showSuccess(context, 'Goal created successfully!');
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
   }
 
   @override
@@ -135,7 +143,7 @@ class _AddGoalModalState extends State<AddGoalModal> {
                           currentAmount: 0,
                           createdDate: DateTime.now(),
                           targetDate: DateTime.now(),
-                          color: CupertinoColors.activeBlue,
+                          color: AppStyles.aetherTeal,
                         );
                         final isSelected = _selectedType == type;
                         return GestureDetector(
@@ -341,9 +349,12 @@ class _AddGoalModalState extends State<AddGoalModal> {
                         Expanded(
                           child: CupertinoButton(
                             color: SemanticColors.success,
-                            onPressed: _saveGoal,
-                            child: Text('Create Goal',
-                                style: TextStyle(color: Colors.white)),
+                            onPressed: _isSaving ? null : _saveGoal,
+                            child: _isSaving
+                                ? const CupertinoActivityIndicator(
+                                    color: Colors.white)
+                                : Text('Create Goal',
+                                    style: TextStyle(color: Colors.white)),
                           ),
                         ),
                       ],

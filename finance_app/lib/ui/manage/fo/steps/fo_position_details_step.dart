@@ -49,7 +49,7 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
             ),
             prefix: Padding(
               padding: const EdgeInsets.only(left: 16),
@@ -117,7 +117,7 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
               padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(Radii.md),
                 border: Border.all(
                     color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
               ),
@@ -189,7 +189,7 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
               padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(Radii.md),
                 border: Border.all(
                     color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
               ),
@@ -212,14 +212,14 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
               padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: (widget.ctrl.gainLoss >= 0
-                        ? CupertinoColors.systemGreen
-                        : CupertinoColors.systemRed)
+                        ? AppStyles.bioGreen
+                        : AppStyles.plasmaRed)
                     .withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(Radii.md),
                 border: Border.all(
                     color: (widget.ctrl.gainLoss >= 0
-                            ? CupertinoColors.systemGreen
-                            : CupertinoColors.systemRed)
+                            ? AppStyles.bioGreen
+                            : AppStyles.plasmaRed)
                         .withValues(alpha: 0.3)),
               ),
               child: Column(
@@ -270,8 +270,8 @@ class _Summary extends StatelessWidget {
                 fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
                 fontSize: isBold ? 14 : 13,
                 color: isPositive
-                    ? CupertinoColors.systemGreen
-                    : CupertinoColors.systemRed)),
+                    ? AppStyles.bioGreen
+                    : AppStyles.plasmaRed)),
       ],
     );
   }

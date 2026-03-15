@@ -55,13 +55,13 @@ class ActionsWidget extends BaseDashboardWidget {
         'Send Payment',
         '₹0',
         CupertinoIcons.paperplane_fill,
-        CupertinoColors.activeBlue
+        AppStyles.aetherTeal
       ),
       (
         'Request Money',
         'Quick',
         CupertinoIcons.arrow_down_circle_fill,
-        CupertinoColors.systemGreen
+        AppStyles.bioGreen
       ),
       (
         'View All',

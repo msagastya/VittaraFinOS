@@ -99,7 +99,7 @@ class _CryptoDetailsScreenState extends State<CryptoDetailsScreen> {
                 padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color: AppStyles.getCardColor(context),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(Radii.md),
                   border: Border.all(
                     color: CupertinoColors.systemGrey.withValues(alpha: 0.2),
                   ),
@@ -142,7 +142,7 @@ class _CryptoDetailsScreenState extends State<CryptoDetailsScreen> {
                 padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color: AppStyles.getCardColor(context),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(Radii.md),
                   border: Border.all(
                     color: CupertinoColors.systemGrey.withValues(alpha: 0.2),
                   ),
@@ -194,7 +194,7 @@ class _CryptoDetailsScreenState extends State<CryptoDetailsScreen> {
                 padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color: AppStyles.getCardColor(context),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(Radii.md),
                   border: Border.all(
                     color: CupertinoColors.systemGrey.withValues(alpha: 0.2),
                   ),
@@ -237,7 +237,7 @@ class _CryptoDetailsScreenState extends State<CryptoDetailsScreen> {
                   padding: const EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
                     color: AppStyles.getCardColor(context),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(Radii.md),
                     border: Border.all(
                       color: CupertinoColors.systemGrey.withValues(alpha: 0.2),
                     ),
@@ -279,7 +279,7 @@ class _CryptoDetailsScreenState extends State<CryptoDetailsScreen> {
               SizedBox(
                 width: double.infinity,
                 child: CupertinoButton(
-                  color: CupertinoColors.systemRed.withValues(alpha: 0.1),
+                  color: AppStyles.plasmaRed.withValues(alpha: 0.1),
                   onPressed: () async {
                     showCupertinoDialog(
                       context: context,
@@ -314,7 +314,7 @@ class _CryptoDetailsScreenState extends State<CryptoDetailsScreen> {
                   },
                   child: const Text(
                     'Delete Investment',
-                    style: TextStyle(color: CupertinoColors.systemRed),
+                    style: TextStyle(color: AppStyles.plasmaRed),
                   ),
                 ),
               ),
@@ -510,7 +510,7 @@ class _DetailRow extends StatelessWidget {
     Color valueColor = color ?? AppStyles.getTextColor(context);
     if (isGainLoss) {
       valueColor =
-          isPositive ? CupertinoColors.systemGreen : CupertinoColors.systemRed;
+          isPositive ? AppStyles.bioGreen : AppStyles.plasmaRed;
     }
 
     return Row(

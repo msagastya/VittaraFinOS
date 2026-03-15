@@ -53,7 +53,7 @@ class NotificationWidget extends StatelessWidget {
           '₹${(record.interestAmount + record.principalAmount).toStringAsFixed(2)}',
       timeInfo: 'In $daysUntil day${daysUntil > 1 ? 's' : ''}',
       badgeColor: daysUntil <= 3
-          ? CupertinoColors.systemRed
+          ? AppStyles.plasmaRed
           : CupertinoColors.systemOrange,
       icon: CupertinoIcons.bell_fill,
       statusWidget: fd.autoLinkEnabled
@@ -79,8 +79,8 @@ class NotificationWidget extends StatelessWidget {
       amount: '₹${amount.toStringAsFixed(2)}',
       timeInfo: 'In $daysUntil day${daysUntil > 1 ? 's' : ''}',
       badgeColor: daysUntil <= 3
-          ? CupertinoColors.systemRed
-          : CupertinoColors.activeBlue,
+          ? AppStyles.plasmaRed
+          : AppStyles.aetherTeal,
       icon: CupertinoIcons.money_dollar_circle_fill,
       statusWidget: _buildRDInstallmentInfo(context, accountName),
     );
@@ -224,7 +224,7 @@ class NotificationWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(Spacing.md),
       decoration: BoxDecoration(
-        color: CupertinoColors.systemGreen.withValues(alpha: 0.1),
+        color: AppStyles.bioGreen.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -232,14 +232,14 @@ class NotificationWidget extends StatelessWidget {
           const Icon(
             CupertinoIcons.checkmark_circle_fill,
             size: 16,
-            color: CupertinoColors.systemGreen,
+            color: AppStyles.bioGreen,
           ),
           const SizedBox(width: Spacing.sm),
           Expanded(
             child: Text(
               'Auto-link enabled. Payout will be credited to ${fd.linkedAccountName}',
               style: const TextStyle(
-                color: CupertinoColors.systemGreen,
+                color: AppStyles.bioGreen,
                 fontSize: TypeScale.footnote,
                 fontWeight: FontWeight.w500,
               ),

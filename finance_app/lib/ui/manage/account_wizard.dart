@@ -202,6 +202,25 @@ class _AccountWizardState extends State<AccountWizard> {
         }
       }
 
+      // Build metadata with account/debit card numbers for SMS matching
+      final Map<String, dynamic> acctMeta = {};
+      final rawAcctNum = _accountNumberController.text.trim();
+      if (rawAcctNum.isNotEmpty) {
+        acctMeta['accountNumber'] = rawAcctNum;
+        final digitsOnly = rawAcctNum.replaceAll(RegExp(r'\D'), '');
+        if (digitsOnly.length >= 4) {
+          acctMeta['accountLast4'] = digitsOnly.substring(digitsOnly.length - 4);
+        }
+      }
+      final rawDebitCard = _debitCardNumberController.text.trim();
+      if (rawDebitCard.isNotEmpty) {
+        acctMeta['debitCardNumber'] = rawDebitCard;
+        final digitsOnly = rawDebitCard.replaceAll(RegExp(r'\D'), '');
+        if (digitsOnly.length >= 4) {
+          acctMeta['debitCardLast4'] = digitsOnly.substring(digitsOnly.length - 4);
+        }
+      }
+
       final account = Account(
         id: accountId,
         name: _nameController.text,
@@ -211,7 +230,7 @@ class _AccountWizardState extends State<AccountWizard> {
         type: _selectedAccountType ?? AccountType.savings,
         balance: finalBalance,
         color: _selectedAccountType == AccountType.cash
-            ? CupertinoColors.systemGreen
+            ? AppStyles.bioGreen
             : _selectedColor ?? CupertinoColors.systemBlue,
         creditCardNumber: (_selectedAccountType == AccountType.credit ||
                 _selectedAccountType == AccountType.payLater)
@@ -223,6 +242,7 @@ class _AccountWizardState extends State<AccountWizard> {
                 _selectedAccountType == AccountType.payLater)
             ? (double.tryParse(_creditLimitController.text) ?? 0.0)
             : null,
+        metadata: acctMeta.isNotEmpty ? acctMeta : null,
       );
       Navigator.pop(context, account);
     }
@@ -383,7 +403,7 @@ class _AccountWizardState extends State<AccountWizard> {
                 padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color: AppStyles.getCardColor(context),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(Radii.md),
                 ),
                 style: TextStyle(color: AppStyles.getTextColor(context)),
                 onChanged: (_) => setState(() {}),
@@ -398,7 +418,7 @@ class _AccountWizardState extends State<AccountWizard> {
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     decoration: BoxDecoration(
                       color: CupertinoColors.systemBlue.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(Radii.md),
                       border: Border.all(
                         color: CupertinoColors.systemBlue,
                         width: 1.5,
@@ -499,7 +519,7 @@ class _AccountWizardState extends State<AccountWizard> {
                                 color: CupertinoColors.systemBlue
                                     .withValues(alpha: 0.2),
                               ),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(Radii.md),
                             ),
                             style: TextStyle(
                                 color: AppStyles.getTextColor(context)),
@@ -519,8 +539,8 @@ class _AccountWizardState extends State<AccountWizard> {
                             child: Row(
                               children: [
                                 CupertinoColors.systemBlue,
-                                CupertinoColors.systemGreen,
-                                CupertinoColors.systemRed,
+                                AppStyles.bioGreen,
+                                AppStyles.plasmaRed,
                                 CupertinoColors.systemPurple,
                                 CupertinoColors.systemOrange,
                                 CupertinoColors.systemTeal,
@@ -567,7 +587,7 @@ class _AccountWizardState extends State<AccountWizard> {
                                 border: Border.all(
                                   color: CupertinoColors.systemGrey3,
                                 ),
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(Radii.md),
                               ),
                               child: Center(
                                 child: Text(
@@ -612,7 +632,7 @@ class _AccountWizardState extends State<AccountWizard> {
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               decoration: BoxDecoration(
                                 color: CupertinoColors.systemBlue,
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(Radii.md),
                               ),
                               child: const Center(
                                 child: Text(
@@ -670,7 +690,7 @@ class _AccountWizardState extends State<AccountWizard> {
                         const TextInputType.numberWithOptions(decimal: true),
                     decoration: BoxDecoration(
                       color: AppStyles.getCardColor(context),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(Radii.md),
                     ),
                     style: AppStyles.titleStyle(context).copyWith(
                         fontSize: TypeScale.display,
@@ -710,7 +730,7 @@ class _AccountWizardState extends State<AccountWizard> {
             padding: const EdgeInsets.all(Spacing.xl),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(Radii.lg),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -854,7 +874,7 @@ class _AccountWizardState extends State<AccountWizard> {
                 onPressed: () {
                   setState(() {
                     _selectedBank = _cashBankName;
-                    _selectedColor = CupertinoColors.systemGreen;
+                    _selectedColor = AppStyles.bioGreen;
                   });
                   _nextStep();
                 },
@@ -862,10 +882,10 @@ class _AccountWizardState extends State<AccountWizard> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
-                    color: CupertinoColors.systemGreen.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
+                    color: AppStyles.bioGreen.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(Radii.md),
                     border: Border.all(
-                      color: CupertinoColors.systemGreen.withValues(alpha: 0.5),
+                      color: AppStyles.bioGreen.withValues(alpha: 0.5),
                       width: 1.2,
                     ),
                   ),
@@ -875,14 +895,14 @@ class _AccountWizardState extends State<AccountWizard> {
                         width: 44,
                         height: 44,
                         decoration: BoxDecoration(
-                          color: CupertinoColors.systemGreen
+                          color: AppStyles.bioGreen
                               .withValues(alpha: 0.2),
                           shape: BoxShape.circle,
                         ),
                         child: const Center(
                           child: Icon(
                             CupertinoIcons.money_dollar_circle_fill,
-                            color: CupertinoColors.systemGreen,
+                            color: AppStyles.bioGreen,
                           ),
                         ),
                       ),
@@ -909,7 +929,7 @@ class _AccountWizardState extends State<AccountWizard> {
                       const Icon(
                         CupertinoIcons.chevron_right,
                         size: 16,
-                        color: CupertinoColors.systemGreen,
+                        color: AppStyles.bioGreen,
                       ),
                     ],
                   ),
@@ -943,7 +963,7 @@ class _AccountWizardState extends State<AccountWizard> {
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           decoration: BoxDecoration(
                             color: CupertinoColors.systemBlue,
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(Radii.md),
                           ),
                           child: Center(
                             child: Text(
@@ -1028,7 +1048,7 @@ class _AccountWizardState extends State<AccountWizard> {
                         decoration: BoxDecoration(
                           color:
                               CupertinoColors.systemBlue.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(Radii.md),
                           border: Border.all(
                             color: CupertinoColors.systemBlue,
                             width: 1.5,
@@ -1308,7 +1328,7 @@ class _AccountWizardState extends State<AccountWizard> {
                                 color: CupertinoColors.systemBlue
                                     .withValues(alpha: 0.2),
                               ),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(Radii.md),
                             ),
                             style: TextStyle(
                                 color: AppStyles.getTextColor(context)),
@@ -1328,8 +1348,8 @@ class _AccountWizardState extends State<AccountWizard> {
                             child: Row(
                               children: [
                                 CupertinoColors.systemBlue,
-                                CupertinoColors.systemGreen,
-                                CupertinoColors.systemRed,
+                                AppStyles.bioGreen,
+                                AppStyles.plasmaRed,
                                 CupertinoColors.systemPurple,
                                 CupertinoColors.systemOrange,
                                 CupertinoColors.systemTeal,
@@ -1377,7 +1397,7 @@ class _AccountWizardState extends State<AccountWizard> {
                                 border: Border.all(
                                   color: CupertinoColors.systemGrey3,
                                 ),
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(Radii.md),
                               ),
                               child: Center(
                                 child: Text(
@@ -1433,7 +1453,7 @@ class _AccountWizardState extends State<AccountWizard> {
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               decoration: BoxDecoration(
                                 color: CupertinoColors.systemBlue,
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(Radii.md),
                               ),
                               child: const Center(
                                 child: Text(
@@ -1518,7 +1538,7 @@ class _AccountWizardState extends State<AccountWizard> {
                     _selectedAccountType = selectedType;
                     if (selectedType == AccountType.cash) {
                       _selectedBank = _cashBankName;
-                      _selectedColor = CupertinoColors.systemGreen;
+                      _selectedColor = AppStyles.bioGreen;
                     } else if (_selectedBank == _cashBankName) {
                       _selectedBank = 'Other';
                     }
@@ -1531,7 +1551,7 @@ class _AccountWizardState extends State<AccountWizard> {
                   padding: const EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
                     color: AppStyles.getCardColor(context),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(Radii.md),
                     border: isSelected
                         ? Border.all(
                             color: CupertinoColors.systemBlue, width: 2)
@@ -1591,7 +1611,7 @@ class _AccountWizardState extends State<AccountWizard> {
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
             ),
             style: TextStyle(color: AppStyles.getTextColor(context)),
           ),
@@ -1629,7 +1649,7 @@ class _AccountWizardState extends State<AccountWizard> {
               padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(Radii.md),
               ),
               style: TextStyle(color: AppStyles.getTextColor(context)),
             ),
@@ -1650,7 +1670,7 @@ class _AccountWizardState extends State<AccountWizard> {
               padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(Radii.md),
               ),
               style: TextStyle(color: AppStyles.getTextColor(context)),
             ),
@@ -1673,7 +1693,7 @@ class _AccountWizardState extends State<AccountWizard> {
                           const TextInputType.numberWithOptions(decimal: true),
                       decoration: BoxDecoration(
                         color: AppStyles.getCardColor(context),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(Radii.md),
                       ),
                       style: AppStyles.titleStyle(context).copyWith(
                           fontSize: TypeScale.display,
@@ -1709,7 +1729,7 @@ class _AccountWizardState extends State<AccountWizard> {
                           const TextInputType.numberWithOptions(decimal: true),
                       decoration: BoxDecoration(
                         color: AppStyles.getCardColor(context),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(Radii.md),
                       ),
                       style: AppStyles.titleStyle(context).copyWith(
                           fontSize: TypeScale.display,
@@ -1738,7 +1758,7 @@ class _AccountWizardState extends State<AccountWizard> {
                           const TextInputType.numberWithOptions(decimal: true),
                       decoration: BoxDecoration(
                         color: AppStyles.getCardColor(context),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(Radii.md),
                       ),
                       style: AppStyles.titleStyle(context).copyWith(
                           fontSize: TypeScale.display,
@@ -1771,7 +1791,7 @@ class _AccountWizardState extends State<AccountWizard> {
               padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(Radii.md),
               ),
               style: TextStyle(color: AppStyles.getTextColor(context)),
             ),
@@ -1801,7 +1821,7 @@ class _AccountWizardState extends State<AccountWizard> {
                           const TextInputType.numberWithOptions(decimal: true),
                       decoration: BoxDecoration(
                         color: AppStyles.getCardColor(context),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(Radii.md),
                       ),
                       style: AppStyles.titleStyle(context).copyWith(
                           fontSize: TypeScale.display,
@@ -1850,7 +1870,7 @@ class _AccountWizardState extends State<AccountWizard> {
             padding: const EdgeInsets.all(Spacing.xl),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(Radii.lg),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1974,7 +1994,7 @@ class _AccountWizardState extends State<AccountWizard> {
             padding: const EdgeInsets.symmetric(vertical: 16),
             decoration: BoxDecoration(
               color: CupertinoColors.systemBlue,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(Radii.lg),
             ),
             child: Center(
               child: Text(

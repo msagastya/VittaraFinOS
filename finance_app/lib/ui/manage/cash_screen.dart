@@ -62,11 +62,11 @@ class CashScreen extends StatelessWidget {
                             ),
                             padding: const EdgeInsets.all(Spacing.lg),
                             decoration: BoxDecoration(
-                              color: CupertinoColors.systemGreen
+                              color: AppStyles.bioGreen
                                   .withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(Radii.md),
                               border: Border.all(
-                                color: CupertinoColors.systemGreen
+                                color: AppStyles.bioGreen
                                     .withValues(alpha: 0.35),
                               ),
                             ),
@@ -74,7 +74,7 @@ class CashScreen extends StatelessWidget {
                               children: [
                                 const Icon(
                                   CupertinoIcons.money_dollar_circle_fill,
-                                  color: CupertinoColors.systemGreen,
+                                  color: AppStyles.bioGreen,
                                   size: 24,
                                 ),
                                 const SizedBox(width: 10),
@@ -90,7 +90,7 @@ class CashScreen extends StatelessWidget {
                                 Text(
                                   '₹${totalCash.toStringAsFixed(2)}',
                                   style: TextStyle(
-                                    color: CupertinoColors.systemGreen,
+                                    color: AppStyles.bioGreen,
                                     fontWeight: FontWeight.bold,
                                     fontSize: TypeScale.headline,
                                   ),
@@ -120,7 +120,7 @@ class CashScreen extends StatelessWidget {
                                       decoration: BoxDecoration(
                                         color: CupertinoColors.systemBlue
                                             .withValues(alpha: 0.12),
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(Radii.md),
                                         border: Border.all(
                                           color: CupertinoColors.systemBlue
                                               .withValues(alpha: 0.4),
@@ -181,7 +181,7 @@ class CashScreen extends StatelessWidget {
                 child: FadingFAB(
                   onPressed: () =>
                       _showCreateCashAccountSheet(context, accountsController),
-                  color: CupertinoColors.systemGreen,
+                  color: AppStyles.bioGreen,
                   heroTag: 'cash_fab',
                 ),
               ),
@@ -232,7 +232,7 @@ class CashScreen extends StatelessWidget {
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         color: AppStyles.getBackground(sheetContext),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(Radii.md),
                       ),
                     ),
                     const SizedBox(height: Spacing.md),
@@ -244,7 +244,7 @@ class CashScreen extends StatelessWidget {
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         color: AppStyles.getBackground(sheetContext),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(Radii.md),
                       ),
                     ),
                     const SizedBox(height: Spacing.lg),
@@ -272,7 +272,7 @@ class CashScreen extends StatelessWidget {
                             bankName: 'Cash',
                             type: AccountType.cash,
                             balance: balance,
-                            color: CupertinoColors.systemGreen,
+                            color: AppStyles.bioGreen,
                           );
                           await controller.addAccount(account);
                           if (!context.mounted) return;
@@ -341,7 +341,7 @@ class CashScreen extends StatelessWidget {
                         Container(
                           decoration: BoxDecoration(
                             color: AppStyles.getBackground(context),
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(Radii.md),
                           ),
                           padding: const EdgeInsets.all(Spacing.xs),
                           child: Row(
@@ -356,7 +356,7 @@ class CashScreen extends StatelessWidget {
                                     ),
                                     decoration: BoxDecoration(
                                       color: isAdding
-                                          ? CupertinoColors.systemGreen
+                                          ? AppStyles.bioGreen
                                           : CupertinoColors.transparent,
                                       borderRadius: BorderRadius.circular(10),
                                     ),
@@ -384,7 +384,7 @@ class CashScreen extends StatelessWidget {
                                     ),
                                     decoration: BoxDecoration(
                                       color: !isAdding
-                                          ? CupertinoColors.systemRed
+                                          ? AppStyles.plasmaRed
                                           : CupertinoColors.transparent,
                                       borderRadius: BorderRadius.circular(10),
                                     ),
@@ -414,7 +414,7 @@ class CashScreen extends StatelessWidget {
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
                             color: AppStyles.getBackground(context),
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(Radii.md),
                           ),
                         ),
                         const SizedBox(height: Spacing.lg),
@@ -518,7 +518,7 @@ class _CashAccountCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: Spacing.md),
         decoration: AppStyles.cardDecoration(context).copyWith(
           border: Border.all(
-            color: CupertinoColors.systemGreen.withValues(alpha: 0.2),
+            color: AppStyles.bioGreen.withValues(alpha: 0.2),
             width: 1,
           ),
         ),
@@ -529,12 +529,12 @@ class _CashAccountCard extends StatelessWidget {
               width: 46,
               height: 46,
               decoration: BoxDecoration(
-                color: CupertinoColors.systemGreen.withValues(alpha: 0.15),
+                color: AppStyles.bioGreen.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 CupertinoIcons.money_dollar_circle_fill,
-                color: CupertinoColors.systemGreen,
+                color: AppStyles.bioGreen,
                 size: 24,
               ),
             ),
@@ -562,7 +562,7 @@ class _CashAccountCard extends StatelessWidget {
             Text(
               '₹${account.balance.toStringAsFixed(2)}',
               style: const TextStyle(
-                color: CupertinoColors.systemGreen,
+                color: AppStyles.bioGreen,
                 fontWeight: FontWeight.w700,
               ),
             ),

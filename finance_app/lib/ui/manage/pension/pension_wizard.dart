@@ -238,7 +238,7 @@ class _SchemeSelectionStep extends StatelessWidget {
                           ? const Color(0xFF27AE60)
                           : CupertinoColors.systemGrey.withValues(alpha: 0.2),
                     ),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(Radii.md),
                   ),
                   child: Row(
                     children: [
@@ -338,7 +338,7 @@ class _AccountDetailsStepState extends State<_AccountDetailsStep> {
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
             ),
             onChanged: (v) => widget.ctrl.updateAccountNumber(v),
           ),
@@ -402,7 +402,7 @@ class _ContributionStepState extends State<_ContributionStep> {
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
             ),
             prefix: Padding(
               padding: const EdgeInsets.only(left: 16),
@@ -425,7 +425,7 @@ class _ContributionStepState extends State<_ContributionStep> {
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
             ),
             prefix: Padding(
               padding: const EdgeInsets.only(left: 16),
@@ -443,7 +443,7 @@ class _ContributionStepState extends State<_ContributionStep> {
               padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: const Color(0xFF27AE60).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(Radii.md),
                 border: Border.all(
                     color: const Color(0xFF27AE60).withValues(alpha: 0.3)),
               ),
@@ -511,7 +511,7 @@ class _Card extends StatelessWidget {
       padding: const EdgeInsets.all(Spacing.lg),
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(Radii.md),
         border: Border.all(
             color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
       ),
@@ -580,8 +580,8 @@ class _Summary extends StatelessWidget {
                 fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
                 fontSize: isBold ? 14 : 13,
                 color: isPositive
-                    ? CupertinoColors.systemGreen
-                    : CupertinoColors.systemRed)),
+                    ? AppStyles.bioGreen
+                    : AppStyles.plasmaRed)),
       ],
     );
   }

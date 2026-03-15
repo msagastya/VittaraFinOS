@@ -60,7 +60,7 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
             ),
             prefix: Padding(
               padding: const EdgeInsets.only(left: 16),
@@ -127,7 +127,7 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
               padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(Radii.md),
                 border: Border.all(
                     color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
               ),
@@ -152,7 +152,7 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
               border: Border.all(
                   color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
             ),
@@ -264,7 +264,7 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
               padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: const Color(0xFF8B4513).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(Radii.md),
                 border: Border.all(
                     color: const Color(0xFF8B4513).withValues(alpha: 0.3)),
               ),

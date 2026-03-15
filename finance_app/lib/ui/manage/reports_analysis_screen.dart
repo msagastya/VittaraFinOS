@@ -17,7 +17,9 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
+import 'package:vittara_fin_os/ui/manage/tax_summary_screen.dart';
 import 'package:vittara_fin_os/ui/widgets/floating_particle_background.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 const String _reportAppName = 'VittaraFinOS';
@@ -309,7 +311,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
           style: TextStyle(color: AppStyles.getTextColor(context)),
         ),
         previousPageTitle: 'Menu',
-        backgroundColor: AppStyles.getCardColor(context).withValues(alpha: 0.9),
+        backgroundColor: AppStyles.isDarkMode(context) ? Colors.black : Colors.white.withValues(alpha: 0.95),
         border: null,
       ),
       child: Consumer3<TransactionsController, AccountsController,
@@ -693,9 +695,57 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
               fontSize: TypeScale.caption,
             ),
           ),
+          SizedBox(height: Spacing.md),
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                FadeScalePageRoute(
+                  page: const TaxSummaryScreen(),
+                ),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 14, vertical: 11),
+              decoration: BoxDecoration(
+                color: AppStyles.solarGold.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(Radii.md),
+                border: Border.all(
+                    color: AppStyles.solarGold.withValues(alpha: 0.4)),
+              ),
+              child: Row(
+                children: [
+                  Icon(CupertinoIcons.doc_text_fill,
+                      size: 16, color: AppStyles.solarGold),
+                  SizedBox(width: Spacing.sm),
+                  Expanded(
+                    child: Text(
+                      'Tax Summary FY ${_currentFYLabel()}',
+                      style: TextStyle(
+                        fontSize: TypeScale.footnote,
+                        fontWeight: FontWeight.w600,
+                        color: AppStyles.solarGold,
+                      ),
+                    ),
+                  ),
+                  Icon(CupertinoIcons.chevron_right,
+                      size: 14,
+                      color: AppStyles.solarGold
+                          .withValues(alpha: 0.7)),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
+  }
+
+  String _currentFYLabel() {
+    final now = DateTime.now();
+    final startYear = now.month >= 4 ? now.year : now.year - 1;
+    return '$startYear–${(startYear + 1).toString().substring(2)}';
   }
 
   List<Widget> _buildWorkspaceContent({
@@ -2864,10 +2914,12 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
       final bytes = _MinimalPdfBuilder.build(lines);
       await file.writeAsBytes(bytes, flush: true);
       if (!mounted) return;
-      toast.showSuccess('PDF exported');
-      await _showExportPathDialog('PDF', file.path);
+      await Share.shareXFiles(
+        [XFile(file.path, mimeType: 'application/pdf')],
+        subject: 'VittaraFinOS Analysis Report',
+      );
     } catch (e) {
-      toast.showError('Failed to export PDF: $e');
+      if (mounted) toast.showError('Failed to export PDF: $e');
     } finally {
       if (mounted) setState(() => _isExportingPdf = false);
     }
@@ -2882,10 +2934,12 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
       final content = _buildExcelWorkbook(snapshot);
       await file.writeAsString(content, flush: true);
       if (!mounted) return;
-      toast.showSuccess('Excel export generated');
-      await _showExportPathDialog('Excel', file.path);
+      await Share.shareXFiles(
+        [XFile(file.path, mimeType: 'application/vnd.ms-excel')],
+        subject: 'VittaraFinOS Analysis Export',
+      );
     } catch (e) {
-      toast.showError('Failed to export Excel: $e');
+      if (mounted) toast.showError('Failed to export Excel: $e');
     } finally {
       if (mounted) setState(() => _isExportingExcel = false);
     }
@@ -2898,33 +2952,6 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
       await reportDir.create(recursive: true);
     }
     return reportDir;
-  }
-
-  Future<void> _showExportPathDialog(String format, String path) async {
-    await showCupertinoDialog<void>(
-      context: context,
-      builder: (ctx) => CupertinoAlertDialog(
-        title: Text('$format Export Ready'),
-        content: Text(
-          path,
-          style: const TextStyle(fontSize: TypeScale.footnote),
-        ),
-        actions: [
-          CupertinoDialogAction(
-            onPressed: () async {
-              await Clipboard.setData(ClipboardData(text: path));
-              if (ctx.mounted) Navigator.of(ctx).pop();
-              toast.showInfo('Export path copied');
-            },
-            child: const Text('Copy Path'),
-          ),
-          CupertinoDialogAction(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Done'),
-          ),
-        ],
-      ),
-    );
   }
 
   List<String> _buildPdfLines(_ReportSnapshot snapshot) {

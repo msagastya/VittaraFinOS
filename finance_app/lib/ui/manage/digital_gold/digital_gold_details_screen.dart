@@ -25,6 +25,7 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
   late Investment _investment;
   double? currentGoldPrice;
   bool isFetchingPrice = false;
+  DateTime? _goldPriceLastFetched;
 
   @override
   void initState() {
@@ -41,9 +42,11 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
 
     try {
       final price = await GoldPriceService.fetchCurrentGoldPrice();
+      final lastFetched = await GoldPriceService.getLastFetchedTime();
       if (mounted) {
         setState(() {
           currentGoldPrice = price;
+          _goldPriceLastFetched = lastFetched;
           isFetchingPrice = false;
         });
       }
@@ -56,6 +59,15 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
             context: 'DigitalGoldDetails');
       }
     }
+  }
+
+  String _formatLastUpdated(DateTime? dt) {
+    if (dt == null) return '';
+    final diff = DateTime.now().difference(dt);
+    if (diff.inMinutes < 1) return 'just now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    return '${diff.inDays}d ago';
   }
 
   void _showEditModal() {
@@ -206,8 +218,8 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                                 fontWeight: FontWeight.bold,
                                 fontSize: TypeScale.headline,
                                 color: currentValue >= investedAmount
-                                    ? CupertinoColors.systemGreen
-                                    : CupertinoColors.systemRed,
+                                    ? AppStyles.bioGreen
+                                    : AppStyles.plasmaRed,
                               ),
                             ),
                           ],
@@ -224,13 +236,13 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                 padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color: gainPercent >= 0
-                      ? CupertinoColors.systemGreen.withValues(alpha: 0.1)
-                      : CupertinoColors.systemRed.withValues(alpha: 0.1),
+                      ? AppStyles.bioGreen.withValues(alpha: 0.1)
+                      : AppStyles.plasmaRed.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: gainPercent >= 0
-                        ? CupertinoColors.systemGreen.withValues(alpha: 0.3)
-                        : CupertinoColors.systemRed.withValues(alpha: 0.3),
+                        ? AppStyles.bioGreen.withValues(alpha: 0.3)
+                        : AppStyles.plasmaRed.withValues(alpha: 0.3),
                   ),
                 ),
                 child: Row(
@@ -253,8 +265,8 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                             fontWeight: FontWeight.bold,
                             fontSize: TypeScale.headline,
                             color: gainLoss >= 0
-                                ? CupertinoColors.systemGreen
-                                : CupertinoColors.systemRed,
+                                ? AppStyles.bioGreen
+                                : AppStyles.plasmaRed,
                           ),
                         ),
                       ],
@@ -276,8 +288,8 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                             fontWeight: FontWeight.bold,
                             fontSize: TypeScale.headline,
                             color: gainPercent >= 0
-                                ? CupertinoColors.systemGreen
-                                : CupertinoColors.systemRed,
+                                ? AppStyles.bioGreen
+                                : AppStyles.plasmaRed,
                           ),
                         ),
                       ],
@@ -336,11 +348,26 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                         fontSize: TypeScale.footnote),
                   ),
                 )
-              else
+              else ...[
                 _buildDetailRow(
                   'Current Rate',
                   '₹${currentRate.toStringAsFixed(2)}/g',
                 ),
+                if (_goldPriceLastFetched != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        'Last updated: ${_formatLastUpdated(_goldPriceLastFetched)}',
+                        style: TextStyle(
+                          color: AppStyles.getSecondaryTextColor(context),
+                          fontSize: TypeScale.caption,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
 
               const SizedBox(height: 30),
 
@@ -364,7 +391,7 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                     context,
                     icon: CupertinoIcons.trash_circle_fill,
                     label: 'Delete',
-                    color: CupertinoColors.systemRed,
+                    color: AppStyles.plasmaRed,
                     onTap: _showDeleteConfirmation,
                   ),
                 ],

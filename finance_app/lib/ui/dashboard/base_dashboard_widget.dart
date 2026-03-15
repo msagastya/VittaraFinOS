@@ -57,7 +57,7 @@ abstract class BaseDashboardWidget extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: AppStyles.getCardColor(context),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(Radii.md),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.08),
@@ -67,7 +67,7 @@ abstract class BaseDashboardWidget extends StatelessWidget {
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(Radii.md),
           child: Stack(
             children: [
               // Main content

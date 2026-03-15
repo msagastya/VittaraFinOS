@@ -135,7 +135,7 @@ class _FODetailsScreenState extends State<FODetailsScreen> {
               SizedBox(
                 width: double.infinity,
                 child: CupertinoButton(
-                  color: CupertinoColors.systemRed.withValues(alpha: 0.1),
+                  color: AppStyles.plasmaRed.withValues(alpha: 0.1),
                   onPressed: () {
                     showCupertinoDialog(
                       context: context,
@@ -165,7 +165,7 @@ class _FODetailsScreenState extends State<FODetailsScreen> {
                     );
                   },
                   child: const Text('Delete Investment',
-                      style: TextStyle(color: CupertinoColors.systemRed)),
+                      style: TextStyle(color: AppStyles.plasmaRed)),
                 ),
               ),
               const SizedBox(height: Spacing.xl),
@@ -407,7 +407,7 @@ class _DetailRow extends StatelessWidget {
     Color? color;
     if (isGainLoss) {
       color =
-          isPositive ? CupertinoColors.systemGreen : CupertinoColors.systemRed;
+          isPositive ? AppStyles.bioGreen : AppStyles.plasmaRed;
     }
 
     return Row(

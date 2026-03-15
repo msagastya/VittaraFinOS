@@ -161,11 +161,7 @@ class RecurringDeposit {
 
   /// Get next pending installment
   RDInstallment? get nextInstallment {
-    try {
-      return installments.firstWhere((i) => !i.isPaid);
-    } catch (e) {
-      return null;
-    }
+    return installments.where((i) => !i.isPaid).firstOrNull;
   }
 
   /// Get days until next installment

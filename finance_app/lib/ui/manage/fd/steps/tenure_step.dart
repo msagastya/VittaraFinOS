@@ -106,7 +106,7 @@ class _TenureStepState extends State<TenureStep> {
                       padding: const EdgeInsets.all(Spacing.md),
                       decoration: BoxDecoration(
                         color: AppStyles.getCardColor(context),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(Radii.md),
                       ),
                       style: TextStyle(color: AppStyles.getTextColor(context)),
                       onChanged: (_) => _updateTenure(),
@@ -136,7 +136,7 @@ class _TenureStepState extends State<TenureStep> {
                       padding: const EdgeInsets.all(Spacing.md),
                       decoration: BoxDecoration(
                         color: AppStyles.getCardColor(context),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(Radii.md),
                       ),
                       style: TextStyle(color: AppStyles.getTextColor(context)),
                       onChanged: (_) => _updateTenure(),
@@ -166,7 +166,7 @@ class _TenureStepState extends State<TenureStep> {
                       padding: const EdgeInsets.all(Spacing.md),
                       decoration: BoxDecoration(
                         color: AppStyles.getCardColor(context),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(Radii.md),
                       ),
                       style: TextStyle(color: AppStyles.getTextColor(context)),
                       onChanged: (_) => _updateTenure(),
@@ -201,7 +201,7 @@ class _TenureStepState extends State<TenureStep> {
                 decoration: BoxDecoration(
                   color:
                       AppStyles.getBackground(context).withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(Radii.md),
                   border: Border.all(
                     color: AppStyles.getPrimaryColor(context)
                         .withValues(alpha: 0.3),

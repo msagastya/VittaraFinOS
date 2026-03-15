@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vittara_fin_os/utils/logger.dart';
+
+final _brokersLogger = AppLogger();
 
 class BrokersController with ChangeNotifier {
   static const _prefsKey = 'brokers_state_v1';
@@ -36,7 +39,9 @@ class BrokersController with ChangeNotifier {
         }
       }
       notifyListeners();
-    } catch (_) {}
+    } catch (e) {
+      _brokersLogger.warning('Failed to load brokers from prefs', error: e);
+    }
   }
 
   Future<void> _saveToPrefs() async {
@@ -74,11 +79,7 @@ class BrokersController with ChangeNotifier {
   }
 
   Map<String, dynamic>? getBrokerByName(String name) {
-    try {
-      return _brokers.firstWhere((broker) => broker['name'] == name);
-    } catch (e) {
-      return null;
-    }
+    return _brokers.where((broker) => broker['name'] == name).firstOrNull;
   }
 
   void addBroker(Map<String, dynamic> newBroker) {

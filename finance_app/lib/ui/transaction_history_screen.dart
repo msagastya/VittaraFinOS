@@ -1,7 +1,9 @@
 import 'dart:io';
+import 'dart:math' show min;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show RefreshIndicator;
 import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_feed_builder.dart';
@@ -18,6 +20,7 @@ import 'package:vittara_fin_os/ui/widgets/transaction_details_content.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class TransactionHistoryScreen extends StatefulWidget {
   const TransactionHistoryScreen({super.key});
@@ -35,10 +38,52 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   double? _maxAmount;
   TransactionType? _typeFilter;
   bool _isExportingCsv = false;
+  final ScrollController _scrollController = ScrollController();
+  bool _showScrollToTop = false;
+
+  // Pagination: show at most _visibleCount transactions at a time.
+  int _visibleCount = 50;
+  static const int _pageSize = 50;
+
+  static const _prefKeyTxType = 'tx_filter_type';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFilterPrefs();
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    final show = _scrollController.offset > 400;
+    if (show != _showScrollToTop) {
+      setState(() => _showScrollToTop = show);
+    }
+  }
+
+  Future<void> _loadFilterPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    final typeName = prefs.getString(_prefKeyTxType);
+    if (typeName != null) {
+      final match = TransactionType.values.where((e) => e.name == typeName).firstOrNull;
+      if (match != null) setState(() => _typeFilter = match);
+    }
+  }
+
+  Future<void> _saveFilterPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (_typeFilter != null) {
+      await prefs.setString(_prefKeyTxType, _typeFilter!.name);
+    } else {
+      await prefs.remove(_prefKeyTxType);
+    }
+  }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -234,6 +279,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                                 _maxAmount = null;
                                 _typeFilter = null;
                               });
+                              _saveFilterPrefs();
                               Navigator.pop(ctx);
                             },
                             child: Text('Clear',
@@ -250,6 +296,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                                 _maxAmount = double.tryParse(maxCtrl.text);
                                 _typeFilter = tempType;
                               });
+                              _saveFilterPrefs();
                               Navigator.pop(ctx);
                             },
                             child: const Text('Apply'),
@@ -301,7 +348,10 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
       final file = File('${reportsDir.path}/transactions_$ts.csv');
       await file.writeAsString(buffer.toString());
       if (!mounted) return;
-      toast_lib.toast.showSuccess('CSV saved: ${file.path.split('/').last}');
+      await Share.shareXFiles(
+        [XFile(file.path, mimeType: 'text/csv')],
+        subject: 'Transactions Export',
+      );
     } catch (e) {
       if (mounted) toast_lib.toast.showError('Export failed: $e');
     } finally {
@@ -410,8 +460,14 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                   child: CupertinoSearchTextField(
                     controller: _searchController,
                     placeholder: 'Search transactions',
-                    onChanged: (v) => setState(() => _searchQuery = v),
-                    onSubmitted: (v) => setState(() => _searchQuery = v),
+                    onChanged: (v) => setState(() {
+                      _searchQuery = v;
+                      _visibleCount = _pageSize;
+                    }),
+                    onSubmitted: (v) => setState(() {
+                      _searchQuery = v;
+                      _visibleCount = _pageSize;
+                    }),
                   ),
                 ),
                 if (_hasActiveFilter)
@@ -445,11 +501,14 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                           ),
                         ),
                         GestureDetector(
-                          onTap: () => setState(() {
-                            _minAmount = null;
-                            _maxAmount = null;
-                            _typeFilter = null;
-                          }),
+                          onTap: () {
+                            setState(() {
+                              _minAmount = null;
+                              _maxAmount = null;
+                              _typeFilter = null;
+                            });
+                            _saveFilterPrefs();
+                          },
                           child: Icon(
                             CupertinoIcons.xmark_circle_fill,
                             size: 16,
@@ -461,14 +520,18 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                   ),
                 if (transactions.isEmpty)
                   Expanded(
-                    child: Center(
-                      child: Text(
-                          _hasActiveFilter || _searchQuery.isNotEmpty
-                              ? 'No transactions match the current filter'
-                              : 'No transactions found',
-                          style: TextStyle(
-                              color: AppStyles.getSecondaryTextColor(context))),
-                    ),
+                    child: _searchQuery.isNotEmpty
+                        ? _buildNoSearchResults()
+                        : Center(
+                            child: Text(
+                              _hasActiveFilter
+                                  ? 'No transactions match the current filter'
+                                  : 'No transactions found',
+                              style: TextStyle(
+                                  color: AppStyles.getSecondaryTextColor(
+                                      context)),
+                            ),
+                          ),
                   )
                 else
                   Expanded(
@@ -483,45 +546,141 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     );
   }
 
+  Widget _buildNoSearchResults() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            CupertinoIcons.search,
+            size: 48,
+            color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.4),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No results for "$_searchQuery"',
+            style: AppStyles.titleStyle(context)
+                .copyWith(fontSize: TypeScale.headline),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Try a different search term',
+            style: TextStyle(
+              fontSize: TypeScale.body,
+              color: AppStyles.getSecondaryTextColor(context),
+            ),
+          ),
+          const SizedBox(height: 16),
+          CupertinoButton(
+            onPressed: () => setState(() {
+              _searchController.clear();
+              _searchQuery = '';
+            }),
+            child: const Text('Clear Search'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildGroupedList(
     BuildContext context,
     List<Transaction> transactions,
     TransactionsController controller,
   ) {
+    // Build a flat list of headers + transactions (all items, for grouping).
     final groups = DateFormatter.groupByDate(transactions, (t) => t.dateTime);
-    final listItems = <_TxnListItem>[];
+    final allItems = <_TxnListItem>[];
     for (final entry in groups.entries) {
-      listItems.add(_TxnListItem.header(entry.key));
+      allItems.add(_TxnListItem.header(entry.key));
       for (final t in entry.value) {
-        listItems.add(_TxnListItem.transaction(t));
+        allItems.add(_TxnListItem.transaction(t));
       }
     }
 
-    return RefreshIndicator(
+    // Pagination: show only the first _visibleCount *transaction* rows.
+    // Walk through allItems keeping a transaction counter so headers for
+    // visible transactions are included but we stop after _visibleCount txns.
+    int txnCount = 0;
+    int cutoff = allItems.length;
+    for (int i = 0; i < allItems.length; i++) {
+      if (!allItems[i].isHeader) {
+        txnCount++;
+        if (txnCount == _visibleCount) {
+          cutoff = i + 1;
+          break;
+        }
+      }
+    }
+    final listItems = allItems.sublist(0, cutoff);
+    final hasMore = transactions.length > _visibleCount;
+    final remaining = transactions.length - _visibleCount;
+
+    return Stack(
+      children: [
+        RefreshIndicator(
       onRefresh: () async {
         // Trigger a UI refresh
         if (mounted) setState(() {});
       },
       child: ListView.builder(
-        physics: const AlwaysScrollableScrollPhysics(),
+        controller: _scrollController,
+        physics: const SmoothScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
+        cacheExtent: 600,
         padding: EdgeInsets.fromLTRB(
             Spacing.lg, Spacing.sm, Spacing.lg, Spacing.xxxl),
-        itemCount: listItems.length,
+        itemCount: listItems.length + (hasMore ? 1 : 0),
         itemBuilder: (context, index) {
+          // "Load More" button appended after the last visible item
+          if (hasMore && index == listItems.length) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: CupertinoButton(
+                onPressed: () =>
+                    setState(() => _visibleCount += _pageSize),
+                child: Text(
+                  'Load ${min(_pageSize, remaining)} more',
+                  style: TextStyle(
+                    color: AppStyles.getPrimaryColor(context),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            );
+          }
           final item = listItems[index];
           if (item.isHeader) {
             return Padding(
               key: ValueKey('h_${item.header}'),
               padding: EdgeInsets.only(
                   top: index == 0 ? 0 : Spacing.lg, bottom: Spacing.sm),
-              child: Text(
-                item.header!,
-                style: TextStyle(
-                  fontSize: TypeScale.footnote,
-                  fontWeight: FontWeight.w600,
-                  color: AppStyles.getSecondaryTextColor(context),
-                  letterSpacing: 0.5,
-                ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 3,
+                    height: 13,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [AppStyles.accentBlue, AppStyles.accentTeal],
+                      ),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(width: 7),
+                  Text(
+                    item.header!,
+                    style: TextStyle(
+                      fontSize: TypeScale.caption,
+                      fontWeight: FontWeight.w700,
+                      color: AppStyles.getSecondaryTextColor(context),
+                      letterSpacing: 0.7,
+                    ),
+                  ),
+                ],
               ),
             );
           }
@@ -533,6 +692,39 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           );
         },
       ),
+        ),
+        if (_showScrollToTop)
+          Positioned(
+            bottom: 80,
+            left: 16,
+            child: AnimatedOpacity(
+              opacity: _showScrollToTop ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 200),
+              child: BouncyButton(
+                onPressed: () => _scrollController.animateTo(
+                  0,
+                  duration: const Duration(milliseconds: 400),
+                  curve: Curves.easeOutCubic,
+                ),
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppStyles.aetherTeal.withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                        color: AppStyles.aetherTeal.withValues(alpha: 0.5)),
+                  ),
+                  child: Icon(
+                    CupertinoIcons.arrow_up,
+                    size: 18,
+                    color: AppStyles.aetherTeal,
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -554,82 +746,153 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         ),
       ),
       child: Container(
-        margin: EdgeInsets.only(bottom: Spacing.lg),
-        decoration: AppStyles.cardDecoration(context),
-        child: Padding(
-          padding: EdgeInsets.all(Spacing.lg),
-          child: Row(
-            children: [
-              // Icon
-              Container(
-                padding: const EdgeInsets.all(Spacing.md),
-                decoration: BoxDecoration(
-                  color: typeColor.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  typeIcon,
-                  color: typeColor,
-                  size: 24,
-                ),
-              ),
-              SizedBox(width: Spacing.lg),
-
-              // Transaction info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      transaction.getTypeLabel(),
-                      style: AppStyles.titleStyle(context),
-                    ),
-                    SizedBox(height: Spacing.xs),
-                    Text(
-                      transaction.getSummary(),
-                      style: TextStyle(
-                        fontSize: TypeScale.footnote,
-                        color: AppStyles.getSecondaryTextColor(context),
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    SizedBox(height: Spacing.xs),
-                    Text(
-                      _formatDate(transaction.dateTime),
-                      style: TextStyle(
-                        fontSize: TypeScale.caption,
-                        color: AppStyles.getSecondaryTextColor(context)
-                            .withValues(alpha: 0.7),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Amount
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  AnimatedCounter(
-                    value: transaction.amount,
-                    prefix: '₹',
-                    decimals: 2,
-                    duration: AppDurations.counter,
-                    style: AppStyles.titleStyle(context).copyWith(
-                      color: typeColor,
-                      fontWeight: FontWeight.bold,
+        margin: const EdgeInsets.only(bottom: Spacing.md),
+        decoration: AppStyles.accentCardDecoration(context, typeColor),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(Radii.xxl),
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Left accent bar
+                Container(
+                  width: 3,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [typeColor, typeColor.withValues(alpha: 0.40)],
                     ),
                   ),
-                  SizedBox(height: Spacing.xs),
-                  Icon(
-                    CupertinoIcons.chevron_right,
-                    size: IconSizes.xs,
-                    color: AppStyles.getSecondaryTextColor(context),
+                ),
+                // Content
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: Spacing.md, vertical: Spacing.md),
+                    child: Row(
+                      children: [
+                        // Icon
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration:
+                              AppStyles.iconBoxDecoration(context, typeColor),
+                          child: Icon(typeIcon, color: typeColor, size: 20),
+                        ),
+                        const SizedBox(width: Spacing.md),
+
+                        // Info
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                transaction.getTypeLabel(),
+                                style: TextStyle(
+                                  fontSize: TypeScale.callout,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppStyles.getTextColor(context),
+                                  letterSpacing: -0.2,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                transaction.getSummary(),
+                                style: TextStyle(
+                                  fontSize: TypeScale.footnote,
+                                  color:
+                                      AppStyles.getSecondaryTextColor(context),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              if (transaction.type == TransactionType.transfer &&
+                                  (transaction.metadata?['transferRef'] as String?)?.isNotEmpty == true) ...[
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: AppStyles.aetherTeal
+                                            .withValues(alpha: 0.12),
+                                        borderRadius: BorderRadius.circular(4),
+                                        border: Border.all(
+                                          color: AppStyles.aetherTeal
+                                              .withValues(alpha: 0.35),
+                                          width: 0.5,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            CupertinoIcons.arrow_right_arrow_left,
+                                            size: 9,
+                                            color: AppStyles.aetherTeal,
+                                          ),
+                                          const SizedBox(width: 3),
+                                          Text(
+                                            'Transfer',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w600,
+                                              color: AppStyles.aetherTeal,
+                                              letterSpacing: 0.2,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                              const SizedBox(height: 2),
+                              Text(
+                                _formatDate(transaction.dateTime),
+                                style: TextStyle(
+                                  fontSize: TypeScale.caption,
+                                  color: AppStyles.getSecondaryTextColor(
+                                          context)
+                                      .withValues(alpha: 0.60),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Amount
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              '${transaction.type == TransactionType.expense ? '−' : '+'}${CurrencyFormatter.compact(transaction.amount)}',
+                              style: TextStyle(
+                                fontSize: TypeScale.title3,
+                                fontWeight: FontWeight.w800,
+                                color: typeColor,
+                                letterSpacing: -0.4,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Icon(
+                              CupertinoIcons.chevron_right,
+                              size: 11,
+                              color: AppStyles.getSecondaryTextColor(context)
+                                  .withValues(alpha: 0.50),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -682,9 +945,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                             Navigator.pop(modalContext);
                             Navigator.push(
                               context,
-                              CupertinoPageRoute(
-                                builder: (_) =>
-                                    TransactionWizard(cloneFrom: transaction),
+                              FadeScalePageRoute(
+                                page: TransactionWizard(cloneFrom: transaction),
                               ),
                             );
                           },
@@ -727,7 +989,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: CupertinoColors.systemRed.withValues(alpha: 0.1),
+          color: AppStyles.plasmaRed.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -736,13 +998,13 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
             Icon(
               CupertinoIcons.trash,
               size: 16,
-              color: CupertinoColors.systemRed,
+              color: AppStyles.plasmaRed,
             ),
             const SizedBox(width: 6),
             Text(
               'Delete Transaction',
               style: TextStyle(
-                color: CupertinoColors.systemRed,
+                color: AppStyles.plasmaRed,
                 fontSize: TypeScale.body,
                 fontWeight: FontWeight.w600,
               ),

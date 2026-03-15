@@ -8,6 +8,7 @@ import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/ui/manage/fd/fd_renewal_wizard_screen.dart';
 import 'package:vittara_fin_os/ui/manage/fd/modals/fd_withdrawal_modal.dart';
@@ -138,7 +139,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                           context,
                           'CAGR',
                           '${_calculateCAGR(widget.fd).toStringAsFixed(2)}%',
-                          CupertinoColors.systemGreen,
+                          AppStyles.bioGreen,
                         ),
                       ],
                     ),
@@ -421,7 +422,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
             'Delete',
             'Remove this FD',
             CupertinoIcons.trash,
-            CupertinoColors.systemRed,
+            AppStyles.plasmaRed,
             () => _showDeleteConfirmation(context),
             isDangerous: true,
           ),
@@ -445,7 +446,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
         padding: const EdgeInsets.all(Spacing.lg),
         decoration: BoxDecoration(
           color: AppStyles.getCardColor(context),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(Radii.md),
           border: isDangerous
               ? Border.all(color: color.withValues(alpha: 0.3), width: 1)
               : null,
@@ -555,7 +556,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                       Text(
                         '₹${widget.fd.maturityValue.toStringAsFixed(2)}',
                         style: TextStyle(
-                          color: CupertinoColors.systemGreen,
+                          color: AppStyles.bioGreen,
                           fontSize: TypeScale.title2,
                           fontWeight: FontWeight.bold,
                         ),
@@ -613,7 +614,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
         padding: const EdgeInsets.all(Spacing.lg),
         decoration: BoxDecoration(
           color: AppStyles.getCardColor(context),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(Radii.md),
           border: Border.all(
             color: AppStyles.getPrimaryColor(context).withValues(alpha: 0.2),
             width: 1,
@@ -1276,7 +1277,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                 '₹${(payout.interestAmount + payout.principalAmount).toStringAsFixed(2)}',
                 style: TextStyle(
                   color: isPast
-                      ? CupertinoColors.systemGreen
+                      ? AppStyles.bioGreen
                       : AppStyles.getPrimaryColor(context),
                   fontWeight: FontWeight.bold,
                 ),
@@ -1285,7 +1286,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                 Text(
                   'Credited',
                   style: TextStyle(
-                    color: CupertinoColors.systemGreen,
+                    color: AppStyles.bioGreen,
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
                   ),
@@ -1360,7 +1361,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                         padding: const EdgeInsets.all(Spacing.lg),
                         decoration: BoxDecoration(
                           color: AppStyles.getCardColor(context),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(Radii.md),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1447,7 +1448,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                         padding: const EdgeInsets.all(Spacing.lg),
                         decoration: BoxDecoration(
                           color: AppStyles.getCardColor(context),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(Radii.md),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1767,11 +1768,11 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
   Color _getStatusColor(FDStatus status) {
     switch (status) {
       case FDStatus.active:
-        return CupertinoColors.systemGreen;
+        return AppStyles.bioGreen;
       case FDStatus.mature:
         return CupertinoColors.systemOrange;
       case FDStatus.prematurelyWithdrawn:
-        return CupertinoColors.systemRed;
+        return AppStyles.plasmaRed;
       case FDStatus.completed:
         return CupertinoColors.systemGrey;
     }
@@ -1885,12 +1886,12 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
       decoration: BoxDecoration(
         color: tdsApplicable
             ? CupertinoColors.systemOrange.withValues(alpha: 0.08)
-            : CupertinoColors.systemGreen.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
+            : AppStyles.bioGreen.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(Radii.md),
         border: Border.all(
           color: tdsApplicable
               ? CupertinoColors.systemOrange.withValues(alpha: 0.25)
-              : CupertinoColors.systemGreen.withValues(alpha: 0.25),
+              : AppStyles.bioGreen.withValues(alpha: 0.25),
         ),
       ),
       child: Column(
@@ -1905,7 +1906,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                 size: 16,
                 color: tdsApplicable
                     ? CupertinoColors.systemOrange
-                    : CupertinoColors.systemGreen,
+                    : AppStyles.bioGreen,
               ),
               const SizedBox(width: Spacing.sm),
               Text(
@@ -1915,7 +1916,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                   fontWeight: FontWeight.w700,
                   color: tdsApplicable
                       ? CupertinoColors.systemOrange
-                      : CupertinoColors.systemGreen,
+                      : AppStyles.bioGreen,
                 ),
               ),
             ],
@@ -2007,7 +2008,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
             CupertinoColors.systemOrange.withValues(alpha: 0.05),
           ],
         ),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(Radii.md),
         border: Border.all(
           color: CupertinoColors.systemOrange.withValues(alpha: 0.3),
           width: 1,
@@ -2106,8 +2107,8 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
 
                       Navigator.of(context)
                           .push(
-                        CupertinoPageRoute(
-                          builder: (_) => FDRenewalWizardScreen(
+                        FadeScalePageRoute(
+                          page: FDRenewalWizardScreen(
                             fd: widget.fd,
                             originalInvestment: originalInvestment,
                           ),
@@ -2138,7 +2139,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
               const SizedBox(width: Spacing.md),
               Expanded(
                 child: CupertinoButton(
-                  color: CupertinoColors.systemGreen,
+                  color: AppStyles.bioGreen,
                   onPressed: () {
                     final investmentsController =
                         Provider.of<InvestmentsController>(context,
@@ -2152,8 +2153,8 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
 
                       Navigator.of(context)
                           .push(
-                        CupertinoPageRoute(
-                          builder: (_) => FDWithdrawalModal(
+                        FadeScalePageRoute(
+                          page: FDWithdrawalModal(
                             fd: widget.fd,
                             investmentController: investmentsController,
                             onWithdraw: () {

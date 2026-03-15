@@ -81,7 +81,7 @@ class StockReviewStep extends StatelessWidget {
               'Total Deducted',
               '₹${controller.totalDeduction.toStringAsFixed(2)}',
               isBold: true,
-              color: CupertinoColors.systemRed,
+              color: AppStyles.plasmaRed,
             ),
           ],
         ],

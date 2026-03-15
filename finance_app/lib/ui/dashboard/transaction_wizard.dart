@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_contacts/flutter_contacts.dart' as device_contacts;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
@@ -35,8 +36,9 @@ enum TransactionPaymentType { cash, upi, card, bank, wallet }
 class TransactionWizard extends StatefulWidget {
   final Transaction? cloneFrom;
   final SmsParseResult? prefillFromSms;
+  final TransactionWizardBranch? initialBranch;
 
-  const TransactionWizard({super.key, this.cloneFrom, this.prefillFromSms});
+  const TransactionWizard({super.key, this.cloneFrom, this.prefillFromSms, this.initialBranch});
 
   @override
   State<TransactionWizard> createState() => _TransactionWizardState();
@@ -44,7 +46,7 @@ class TransactionWizard extends StatefulWidget {
 
 class _TransactionWizardState extends State<TransactionWizard> {
   static const int _totalSteps = 12;
-  final PageController _pageController = PageController();
+  late PageController _pageController;
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _cashbackController = TextEditingController();
   final TextEditingController _appWalletAmountController =
@@ -55,6 +57,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _tagController = TextEditingController();
   final List<int> _history = [0];
+  bool _amountError = false;
 
   TransactionWizardBranch? _branch;
   TransactionPaymentType? _paymentType;
@@ -66,6 +69,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
   bool _cashbackToApp = true;
   Category? _selectedCategory;
   final List<String> _selectedTags = [];
+  String? _selectedTaxTag; // e.g. "80C", "80D", "HRA", etc.
 
   @override
   void dispose() {
@@ -83,7 +87,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
   void _selectBranch(TransactionWizardBranch branch) {
     if (branch == TransactionWizardBranch.transfer) {
       Navigator.of(context).pushReplacement(
-        CupertinoPageRoute(builder: (_) => const TransferWizard()),
+        FadeScalePageRoute(page: const TransferWizard()),
       );
       return;
     }
@@ -112,7 +116,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
     });
   }
 
-  int _currentStep = 0;
+  int _currentStep = 0; // overwritten in initState when initialBranch is set
 
   bool get _hasValidAmount =>
       (double.tryParse(_amountController.text) ?? 0) > 0;
@@ -138,9 +142,9 @@ class _TransactionWizardState extends State<TransactionWizard> {
           final btnBg =
               isDark ? const Color(0xFF2C2C2E) : CupertinoColors.systemGrey6;
           final opColor = _branch == TransactionWizardBranch.income
-              ? CupertinoColors.systemGreen
+              ? AppStyles.bioGreen
               : _branch == TransactionWizardBranch.expense
-                  ? CupertinoColors.systemRed
+                  ? AppStyles.plasmaRed
                   : CupertinoColors.systemBlue;
 
           void onDigit(String d) => setS(() {
@@ -217,13 +221,13 @@ class _TransactionWizardState extends State<TransactionWizard> {
                 child: CupertinoButton(
                   padding: EdgeInsets.zero,
                   color: bg ?? btnBg,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(Radii.md),
                   minimumSize: const Size(0, 52),
                   onPressed: onTap ?? () {},
                   child: Text(
                     label,
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: TypeScale.title3,
                       fontWeight: FontWeight.w600,
                       color: fg ?? AppStyles.getTextColor(ctx),
                     ),
@@ -284,9 +288,9 @@ class _TransactionWizardState extends State<TransactionWizard> {
                           Row(children: [
                             btn('C',
                                 onTap: onClear,
-                                bg: CupertinoColors.systemRed
+                                bg: AppStyles.plasmaRed
                                     .withValues(alpha: 0.12),
-                                fg: CupertinoColors.systemRed),
+                                fg: AppStyles.plasmaRed),
                             btn('←', onTap: onBack),
                             btn('÷',
                                 onTap: () => onOp('÷'),
@@ -358,8 +362,32 @@ class _TransactionWizardState extends State<TransactionWizard> {
   @override
   void initState() {
     super.initState();
-    _amountController.addListener(() => setState(() {}));
+    _amountController.addListener(() {
+      setState(() {
+        final text = _amountController.text;
+        if (text.isNotEmpty) {
+          final parsed = double.tryParse(text) ?? 0;
+          _amountError = parsed <= 0;
+        } else {
+          _amountError = false;
+        }
+      });
+    });
     final sms = widget.prefillFromSms;
+    // When a branch is pre-selected (e.g. from Quick Add), skip step 0
+    // entirely — the PageController starts on page 1 so there is no flash.
+    final startStep =
+        (widget.initialBranch != null && sms == null) ? 1 : 0;
+    _currentStep = startStep;
+    _pageController = PageController(initialPage: startStep);
+    if (startStep > 0) {
+      _history
+        ..clear()
+        ..add(startStep);
+    }
+    if (widget.initialBranch != null && sms == null) {
+      _branch = widget.initialBranch;
+    }
     if (sms != null) {
       _amountController.text = sms.parsed.amount.toStringAsFixed(2);
       _branch = sms.parsed.type == 'income'
@@ -384,6 +412,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
       _descriptionController.text = clone.description;
       final tags = meta['tags'];
       if (tags is List) _selectedTags.addAll(tags.cast<String>());
+      _selectedTaxTag = meta['taxTag'] as String?;
       final ptName = meta['paymentType'] as String?;
       if (ptName != null) {
         _paymentType = TransactionPaymentType.values.firstWhere(
@@ -522,7 +551,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
       return;
     }
 
-    // J14: Duplicate transaction detection
+    // J14: Duplicate transaction detection (merchant-based, within 30 min)
     final merchant = _merchantController.text.trim();
     if (merchant.isNotEmpty) {
       final cutoff = DateTime.now().subtract(const Duration(minutes: 30));
@@ -557,6 +586,51 @@ class _TransactionWizardState extends State<TransactionWizard> {
       }
     }
 
+    // Duplicate detection by amount + type + date ±1 day (when no merchant)
+    if (merchant.isEmpty) {
+      final txType = _branch == TransactionWizardBranch.income
+          ? TransactionType.income
+          : TransactionType.expense;
+      final dayStart = DateTime(
+        _selectedDate.year,
+        _selectedDate.month,
+        _selectedDate.day,
+      ).subtract(const Duration(days: 1));
+      final dayEnd = DateTime(
+        _selectedDate.year,
+        _selectedDate.month,
+        _selectedDate.day,
+      ).add(const Duration(days: 2));
+      final dateTypeDuplicate = transactionsController.transactions.where((t) =>
+          t.amount == amount &&
+          t.type == txType &&
+          t.dateTime.isAfter(dayStart) &&
+          t.dateTime.isBefore(dayEnd)).firstOrNull;
+      if (dateTypeDuplicate != null) {
+        if (!mounted) return;
+        final proceed = await showCupertinoDialog<bool>(
+          context: context,
+          builder: (ctx) => CupertinoAlertDialog(
+            title: const Text('Possible Duplicate'),
+            content: const Text(
+                'A similar transaction (same amount, same date) already exists. Add anyway?'),
+            actions: [
+              CupertinoDialogAction(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Cancel'),
+              ),
+              CupertinoDialogAction(
+                isDefaultAction: true,
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('Add Anyway'),
+              ),
+            ],
+          ),
+        );
+        if (proceed != true || !mounted) return;
+      }
+    }
+
     final metadata = <String, dynamic>{
       'paymentType': _paymentType?.name,
       'categoryId': _selectedCategory?.id,
@@ -570,6 +644,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
       'cashbackAmount': double.tryParse(_cashbackController.text) ?? 0,
       'cashbackFlow': _cashbackToApp ? 'paymentApp' : 'bank',
       'appWalletAmount': double.tryParse(_appWalletAmountController.text) ?? 0,
+      if (_selectedTaxTag != null) 'taxTag': _selectedTaxTag,
     };
 
     final accountsController =
@@ -660,6 +735,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
     );
 
     await transactionsController.addTransaction(transaction);
+    HapticFeedback.heavyImpact();
     toast_lib.toast.showSuccess('Transaction logged');
     Navigator.pop(context);
   }
@@ -708,9 +784,9 @@ class _TransactionWizardState extends State<TransactionWizard> {
   Widget _buildProgressBar() {
     final branch = _branch;
     final Color barColor = branch == TransactionWizardBranch.income
-        ? CupertinoColors.systemGreen
+        ? AppStyles.bioGreen
         : branch == TransactionWizardBranch.expense
-            ? CupertinoColors.systemRed
+            ? AppStyles.plasmaRed
             : CupertinoColors.systemBlue;
 
     return Padding(
@@ -876,13 +952,13 @@ class _TransactionWizardState extends State<TransactionWizard> {
           _buildBranchButton(
             label: 'Expense',
             icon: CupertinoIcons.arrow_down_circle_fill,
-            color: CupertinoColors.systemRed,
+            color: AppStyles.plasmaRed,
             onTap: () => _selectBranch(TransactionWizardBranch.expense),
           ),
           _buildBranchButton(
             label: 'Income',
             icon: CupertinoIcons.arrow_up_circle_fill,
-            color: CupertinoColors.systemGreen,
+            color: AppStyles.bioGreen,
             onTap: () => _selectBranch(TransactionWizardBranch.income),
           ),
           _buildBranchButton(
@@ -925,8 +1001,8 @@ class _TransactionWizardState extends State<TransactionWizard> {
                 final daysUntil = t.daysUntilDue();
                 final isDue = daysUntil != null && daysUntil <= 0;
                 final color = t.branch == 'income'
-                    ? CupertinoColors.systemGreen
-                    : CupertinoColors.systemRed;
+                    ? AppStyles.bioGreen
+                    : AppStyles.plasmaRed;
                 return GestureDetector(
                   onTap: () => _applyTemplate(t, templatesController),
                   child: Container(
@@ -1225,8 +1301,8 @@ class _TransactionWizardState extends State<TransactionWizard> {
                   itemBuilder: (_, i) {
                     final t = ctrl.templates[i];
                     final color = t.branch == 'income'
-                        ? CupertinoColors.systemGreen
-                        : CupertinoColors.systemRed;
+                        ? AppStyles.bioGreen
+                        : AppStyles.plasmaRed;
                     return Padding(
                       padding: EdgeInsets.symmetric(
                           horizontal: Spacing.xl, vertical: Spacing.xs),
@@ -1259,7 +1335,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                               Navigator.pop(ctx);
                             },
                             child: Icon(CupertinoIcons.trash,
-                                size: 18, color: CupertinoColors.systemRed),
+                                size: 18, color: AppStyles.plasmaRed),
                           ),
                         ],
                       ),
@@ -1378,12 +1454,15 @@ class _TransactionWizardState extends State<TransactionWizard> {
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: (_branch == TransactionWizardBranch.income
-                        ? CupertinoColors.systemGreen
-                        : _branch == TransactionWizardBranch.expense
-                            ? CupertinoColors.systemRed
-                            : CupertinoColors.systemBlue)
-                    .withValues(alpha: 0.25),
+                color: _amountError
+                    ? AppStyles.plasmaRed
+                    : (_branch == TransactionWizardBranch.income
+                            ? AppStyles.bioGreen
+                            : _branch == TransactionWizardBranch.expense
+                                ? AppStyles.plasmaRed
+                                : CupertinoColors.systemBlue)
+                        .withValues(alpha: 0.25),
+                width: _amountError ? 1.5 : 1.0,
               ),
             ),
             child: Row(
@@ -1400,9 +1479,9 @@ class _TransactionWizardState extends State<TransactionWizard> {
                           fontSize: 36,
                           fontWeight: FontWeight.w800,
                           color: _branch == TransactionWizardBranch.income
-                              ? CupertinoColors.systemGreen
+                              ? AppStyles.bioGreen
                               : _branch == TransactionWizardBranch.expense
-                                  ? CupertinoColors.systemRed
+                                  ? AppStyles.plasmaRed
                                   : CupertinoColors.systemBlue,
                         ),
                       ),
@@ -1446,6 +1525,27 @@ class _TransactionWizardState extends State<TransactionWizard> {
               ],
             ),
           ),
+          if (_amountError) ...[
+            SizedBox(height: Spacing.sm),
+            Row(
+              children: [
+                Icon(
+                  CupertinoIcons.exclamationmark_circle,
+                  size: 14,
+                  color: AppStyles.plasmaRed,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'Amount must be greater than ₹0',
+                  style: TextStyle(
+                    fontSize: TypeScale.footnote,
+                    color: AppStyles.plasmaRed,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ],
           SizedBox(height: Spacing.lg),
           // Quick amount shortcuts
           SingleChildScrollView(
@@ -1487,9 +1587,9 @@ class _TransactionWizardState extends State<TransactionWizard> {
                           fontSize: TypeScale.footnote,
                           fontWeight: FontWeight.w600,
                           color: _branch == TransactionWizardBranch.income
-                              ? CupertinoColors.systemGreen
+                              ? AppStyles.bioGreen
                               : _branch == TransactionWizardBranch.expense
-                                  ? CupertinoColors.systemRed
+                                  ? AppStyles.plasmaRed
                                   : CupertinoColors.systemBlue,
                         ),
                       ),
@@ -1570,9 +1670,9 @@ class _TransactionWizardState extends State<TransactionWizard> {
   }) {
     final branch = _branch;
     final Color btnColor = branch == TransactionWizardBranch.income
-        ? CupertinoColors.systemGreen
+        ? AppStyles.bioGreen
         : branch == TransactionWizardBranch.expense
-            ? CupertinoColors.systemRed
+            ? AppStyles.plasmaRed
             : CupertinoColors.systemBlue;
     final Color activeColor =
         disabled ? AppStyles.getSecondaryTextColor(context) : btnColor;
@@ -1806,7 +1906,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                   )
                 : null,
             color: selected ? null : AppStyles.getCardColor(context),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(Radii.lg),
             border: Border.all(
               color: selected
                   ? CupertinoColors.systemBlue.withValues(alpha: 0.6)
@@ -1909,7 +2009,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                                     ? CupertinoColors.systemBlue
                                         .withValues(alpha: 0.12)
                                     : AppStyles.getCardColor(context),
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(Radii.md),
                                 border: Border.all(
                                   color: isSelected
                                       ? CupertinoColors.systemBlue
@@ -2076,7 +2176,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
         .toSet();
 
     await Navigator.of(context).push(
-      CupertinoPageRoute(builder: (_) => const PaymentAppsScreen()),
+      FadeScalePageRoute(page: const PaymentAppsScreen()),
     );
 
     if (!mounted) return;
@@ -2150,7 +2250,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                                     ? CupertinoColors.systemBlue
                                         .withValues(alpha: 0.12)
                                     : AppStyles.getCardColor(context),
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(Radii.md),
                                 border: Border.all(
                                   color: isSelected
                                       ? CupertinoColors.systemBlue
@@ -2254,7 +2354,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
               padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(Radii.md),
               ),
             ),
             const SizedBox(height: 6),
@@ -2282,7 +2382,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
             padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
             ),
           ),
           const SizedBox(height: Spacing.md),
@@ -2354,7 +2454,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                                 color: selected
                                     ? category.color.withValues(alpha: 0.2)
                                     : AppStyles.getCardColor(context),
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(Radii.md),
                                 border: Border.all(
                                     color: selected
                                         ? category.color
@@ -2466,7 +2566,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                   style: TextStyle(color: AppStyles.getTextColor(context)),
                   decoration: BoxDecoration(
                     color: AppStyles.getCardColor(context),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(Radii.md),
                   ),
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
@@ -2568,13 +2668,13 @@ class _TransactionWizardState extends State<TransactionWizard> {
                               padding: const EdgeInsets.all(14),
                               decoration: BoxDecoration(
                                 color: isSelected
-                                    ? CupertinoColors.systemGreen
+                                    ? AppStyles.bioGreen
                                         .withValues(alpha: 0.12)
                                     : AppStyles.getCardColor(context),
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(Radii.md),
                                 border: Border.all(
                                   color: isSelected
-                                      ? CupertinoColors.systemGreen
+                                      ? AppStyles.bioGreen
                                       : Colors.transparent,
                                 ),
                               ),
@@ -2593,7 +2693,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                                   if (isSelected)
                                     const Icon(
                                       CupertinoIcons.checkmark_alt_circle_fill,
-                                      color: CupertinoColors.systemGreen,
+                                      color: AppStyles.bioGreen,
                                     ),
                                 ],
                               ),
@@ -2672,7 +2772,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                   padding: const EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
                     color: AppStyles.getBackground(ctx),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(Radii.md),
                   ),
                 ),
                 const SizedBox(height: Spacing.md),
@@ -2805,7 +2905,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                   filled: true,
                   fillColor: AppStyles.getCardColor(context),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(Radii.md),
                     borderSide: BorderSide.none,
                   ),
                 ),
@@ -2835,7 +2935,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                             horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
                           color: AppStyles.getCardColor(context),
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(Radii.lg),
                           border: Border.all(
                             color: AppStyles.getSecondaryTextColor(context)
                                 .withValues(alpha: 0.3),
@@ -2866,17 +2966,132 @@ class _TransactionWizardState extends State<TransactionWizard> {
                   }).toList(),
                 ),
               ],
+              _buildTaxTagPicker(),
             ],
           ),
           footer: _buildOptionalFooter(
             onNext: _nextStep,
             onSkip: () {
               _descriptionController.clear();
+              setState(() => _selectedTaxTag = null);
               _nextStep();
             },
           ),
         );
       },
+    );
+  }
+
+  static const List<({String code, String label, String? limit})>
+      _taxSections = [
+    (code: '80C', label: '80C – Investments', limit: '₹1,50,000'),
+    (code: '80D', label: '80D – Health Insurance', limit: '₹25,000'),
+    (code: 'HRA', label: 'HRA – House Rent Allowance', limit: null),
+    (code: '80G', label: '80G – Donations', limit: null),
+    (code: '80E', label: '80E – Education Loan Interest', limit: null),
+    (code: 'NPS', label: 'NPS – Additional ₹50K', limit: '₹50,000'),
+    (code: '24B', label: '24B – Home Loan Interest', limit: '₹2,00,000'),
+  ];
+
+  Widget _buildTaxTagPicker() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: Spacing.lg),
+        Row(
+          children: [
+            Icon(CupertinoIcons.doc_text,
+                size: 13,
+                color: AppStyles.solarGold),
+            const SizedBox(width: 6),
+            Text(
+              'Tax Section (Optional)',
+              style: TextStyle(
+                fontSize: TypeScale.caption,
+                fontWeight: FontWeight.w600,
+                color: AppStyles.solarGold,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: Spacing.sm),
+        Wrap(
+          spacing: 8,
+          runSpacing: 6,
+          children: [
+            GestureDetector(
+              onTap: () => setState(() => _selectedTaxTag = null),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                decoration: BoxDecoration(
+                  color: _selectedTaxTag == null
+                      ? AppStyles.solarGold.withValues(alpha: 0.2)
+                      : AppStyles.getCardColor(context),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: _selectedTaxTag == null
+                        ? AppStyles.solarGold
+                        : Colors.transparent,
+                  ),
+                ),
+                child: Text(
+                  'None',
+                  style: TextStyle(
+                    fontSize: TypeScale.footnote,
+                    color: AppStyles.getTextColor(context),
+                  ),
+                ),
+              ),
+            ),
+            ..._taxSections.map((section) {
+              final isSelected = _selectedTaxTag == section.code;
+              return GestureDetector(
+                onTap: () => setState(() => _selectedTaxTag = section.code),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 7),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? AppStyles.solarGold.withValues(alpha: 0.2)
+                        : AppStyles.getCardColor(context),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isSelected
+                          ? AppStyles.solarGold
+                          : Colors.transparent,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        section.code,
+                        style: TextStyle(
+                          fontSize: TypeScale.footnote,
+                          fontWeight: FontWeight.w700,
+                          color: isSelected
+                              ? AppStyles.solarGold
+                              : AppStyles.getTextColor(context),
+                        ),
+                      ),
+                      if (section.limit != null)
+                        Text(
+                          'Limit: ${section.limit}',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: AppStyles.getSecondaryTextColor(context),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ],
+        ),
+      ],
     );
   }
 
@@ -2910,7 +3125,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                         color: isSelected
                             ? tag.color.withValues(alpha: 0.2)
                             : AppStyles.getCardColor(context),
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(Radii.lg),
                         border: Border.all(
                             color: isSelected ? tag.color : Colors.transparent),
                       ),
@@ -2970,7 +3185,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                     const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
                 decoration: BoxDecoration(
                   color: AppStyles.getCardColor(context),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(Radii.md),
                 ),
               ),
             ],
@@ -3171,7 +3386,7 @@ class _PhoneContactsPickerSheetState extends State<_PhoneContactsPickerSheet> {
                             padding: const EdgeInsets.all(Spacing.md),
                             decoration: BoxDecoration(
                               color: AppStyles.getBackground(context),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(Radii.md),
                             ),
                             child: Row(
                               children: [

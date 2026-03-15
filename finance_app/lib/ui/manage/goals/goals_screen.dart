@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/goals_controller.dart';
@@ -84,6 +85,15 @@ class _GoalsScreenState extends State<GoalsScreen> {
                     ? _buildEmptyState()
                     : CustomScrollView(
                         slivers: [
+                          // Pull-to-refresh
+                          CupertinoSliverRefreshControl(
+                            onRefresh: () async {
+                              HapticFeedback.mediumImpact();
+                              await Provider.of<GoalsController>(context,
+                                      listen: false)
+                                  .reloadFromStorage();
+                            },
+                          ),
                           // Stats Header
                           SliverToBoxAdapter(
                             child: Padding(
@@ -155,7 +165,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                                               currentAmount: 0,
                                               createdDate: DateTime.now(),
                                               targetDate: DateTime.now(),
-                                              color: CupertinoColors.activeBlue,
+                                              color: AppStyles.aetherTeal,
                                             ).getTypeLabel(),
                                             style: TextStyle(
                                               color: SemanticColors.getPrimary(
@@ -462,8 +472,15 @@ class _GoalsScreenState extends State<GoalsScreen> {
               final ctrl = Provider.of<GoalsController>(context, listen: false);
               await ctrl.deleteGoal(goal.id);
               Navigator.pop(dialogCtx);
-              toast_lib.toast.showSuccess('"${goal.name}" deleted');
               Haptics.delete();
+              toast_lib.toast.showSuccess(
+                '"${goal.name}" deleted',
+                actionLabel: 'Undo',
+                onAction: () {
+                  ctrl.addGoal(goal);
+                  toast_lib.toast.showInfo('Goal restored');
+                },
+              );
             },
           ),
         ],
@@ -479,8 +496,8 @@ class _GoalsScreenState extends State<GoalsScreen> {
     return BouncyButton(
       onPressed: () {
         Navigator.of(context).push(
-          CupertinoPageRoute(
-            builder: (context) => GoalDetailsScreen(goalId: goal.id),
+          FadeScalePageRoute(
+            page: GoalDetailsScreen(goalId: goal.id),
           ),
         );
       },
@@ -490,17 +507,10 @@ class _GoalsScreenState extends State<GoalsScreen> {
           children: [
             Row(
               children: [
-                Container(
-                  padding: EdgeInsets.all(Spacing.md),
-                  decoration: BoxDecoration(
-                    color: goal.color.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(Radii.md),
-                  ),
-                  child: Icon(
-                    goal.getTypeIcon(),
-                    color: goal.color,
-                    size: IconSizes.lg,
-                  ),
+                IconBox(
+                  icon: goal.getTypeIcon(),
+                  color: goal.color,
+                  showGlow: true,
                 ),
                 SizedBox(width: Spacing.md),
                 Expanded(
@@ -750,7 +760,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
               currentAmount: 0,
               createdDate: DateTime.now(),
               targetDate: DateTime.now(),
-              color: CupertinoColors.activeBlue,
+              color: AppStyles.aetherTeal,
             );
             return CupertinoActionSheetAction(
               onPressed: () {

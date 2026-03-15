@@ -98,7 +98,7 @@ class _FixedCouponRateInputState extends State<_FixedCouponRateInput> {
           padding: const EdgeInsets.all(Spacing.lg),
           decoration: BoxDecoration(
             color: AppStyles.getCardColor(context),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(Radii.md),
           ),
           suffix: Padding(
             padding: const EdgeInsets.only(right: 16),
@@ -171,7 +171,7 @@ class _ZeroCouponInputState extends State<_ZeroCouponInput> {
           padding: const EdgeInsets.all(Spacing.lg),
           decoration: BoxDecoration(
             color: AppStyles.getCardColor(context),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(Radii.md),
           ),
           prefix: Padding(
             padding: const EdgeInsets.only(left: 16),
@@ -255,7 +255,7 @@ class _AmortizingRateInputState extends State<_AmortizingRateInput> {
           padding: const EdgeInsets.all(Spacing.lg),
           decoration: BoxDecoration(
             color: AppStyles.getCardColor(context),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(Radii.md),
           ),
           suffix: Padding(
             padding: const EdgeInsets.only(right: 16),
@@ -335,7 +335,7 @@ class _FloatingRateInputState extends State<_FloatingRateInput> {
           padding: const EdgeInsets.all(Spacing.lg),
           decoration: BoxDecoration(
             color: AppStyles.getCardColor(context),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(Radii.md),
           ),
           suffix: Padding(
             padding: const EdgeInsets.only(right: 16),
@@ -358,7 +358,7 @@ class _FloatingRateInputState extends State<_FloatingRateInput> {
           padding: const EdgeInsets.all(Spacing.lg),
           decoration: BoxDecoration(
             color: AppStyles.getCardColor(context),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(Radii.md),
           ),
           suffix: Padding(
             padding: const EdgeInsets.only(right: 16),

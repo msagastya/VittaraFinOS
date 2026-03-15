@@ -33,6 +33,7 @@ import 'package:vittara_fin_os/utils/logger.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:vittara_fin_os/services/investment_value_service.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 enum SortBy {
   currentAmount,
@@ -87,10 +88,50 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
   double? _cachedGoldPrice;
   Future<double?>? _goldPriceFuture;
 
+  // Scroll-to-top FAB
+  final ScrollController _scrollController = ScrollController();
+  bool _showScrollToTop = false;
+
+  static const _prefKeySortBy = 'inv_sort';
+  static const _prefKeySortAsc = 'inv_sort_asc';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSortPrefs();
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    final show = _scrollController.offset > 400;
+    if (show != _showScrollToTop) {
+      setState(() => _showScrollToTop = show);
+    }
+  }
+
+  Future<void> _loadSortPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    setState(() {
+      _sortBy = SortBy.values.firstWhere(
+        (e) => e.name == (prefs.getString(_prefKeySortBy) ?? ''),
+        orElse: () => SortBy.currentAmount,
+      );
+      _sortAscending = prefs.getBool(_prefKeySortAsc) ?? false;
+    });
+  }
+
+  Future<void> _saveSortPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_prefKeySortBy, _sortBy.name);
+    await prefs.setBool(_prefKeySortAsc, _sortAscending);
+  }
+
   @override
   void dispose() {
     _categoryPageController.dispose();
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -236,10 +277,12 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             // If within 10 days of maturity or already matured, freeze the value at maturity value
             if (daysUntilMaturity <= 10) {
               if (metadata.containsKey('maturityValue')) {
-                return (metadata['maturityValue'] as num).toDouble();
+                return (metadata['maturityValue'] as num?)?.toDouble() ??
+                    investment.amount;
               }
               if (metadata.containsKey('estimatedAccruedValue')) {
-                return (metadata['estimatedAccruedValue'] as num).toDouble();
+                return (metadata['estimatedAccruedValue'] as num?)?.toDouble() ??
+                    investment.amount;
               }
             }
           } catch (e) {
@@ -303,7 +346,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
 
         // Fallback to estimatedAccruedValue if calculation not possible
         if (metadata.containsKey('estimatedAccruedValue')) {
-          return (metadata['estimatedAccruedValue'] as num).toDouble();
+          return (metadata['estimatedAccruedValue'] as num?)?.toDouble() ??
+              investment.amount;
         }
       }
 
@@ -311,11 +355,13 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       if (!isFdOrRd &&
           metadata.containsKey('currentValue') &&
           metadata['currentValue'] != 0) {
-        return (metadata['currentValue'] as num).toDouble();
+        return (metadata['currentValue'] as num?)?.toDouble() ??
+            investment.amount;
       }
 
       if (metadata.containsKey('estimatedAccruedValue')) {
-        return (metadata['estimatedAccruedValue'] as num).toDouble();
+        return (metadata['estimatedAccruedValue'] as num?)?.toDouble() ??
+            investment.amount;
       }
     }
     return investment.amount;
@@ -346,21 +392,20 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
 
           if (investmentType == InvestmentType.stocks) {
             Navigator.of(context).push(
-              CupertinoPageRoute(builder: (context) => const StocksWizard()),
+              FadeScalePageRoute(page: const StocksWizard()),
             );
           } else if (investmentType == InvestmentType.mutualFund) {
             Navigator.of(context).push(
-              CupertinoPageRoute(builder: (context) => const MFWizard()),
+              FadeScalePageRoute(page: const MFWizard()),
             );
           } else if (investmentType == InvestmentType.digitalGold) {
             Navigator.of(context).push(
-              CupertinoPageRoute(
-                  builder: (context) => const DigitalGoldWizard()),
+              FadeScalePageRoute(page: const DigitalGoldWizard()),
             );
           } else if (investmentType == InvestmentType.nationalSavingsScheme) {
             Navigator.of(context).push(
-              CupertinoPageRoute(
-                builder: (context) => const SimpleInvestmentEntryWizard(
+              FadeScalePageRoute(
+                page: const SimpleInvestmentEntryWizard(
                   type: InvestmentType.nationalSavingsScheme,
                   title: 'Add NPS',
                   subtitle:
@@ -374,8 +419,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             );
           } else if (investmentType == InvestmentType.bonds) {
             Navigator.of(context).push(
-              CupertinoPageRoute(
-                builder: (context) => const SimpleInvestmentEntryWizard(
+              FadeScalePageRoute(
+                page: const SimpleInvestmentEntryWizard(
                   type: InvestmentType.bonds,
                   title: 'Add Bond',
                   subtitle:
@@ -432,7 +477,10 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               type: 'FD',
             ));
           }
-        } catch (_) {}
+        } catch (e) {
+          logger.warning('Failed to parse FD data for maturity calendar',
+              error: e);
+        }
       } else if (inv.type == InvestmentType.recurringDeposit &&
           meta.containsKey('rdData')) {
         try {
@@ -445,7 +493,10 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             maturityValue: rd.maturityValue,
             type: 'RD',
           ));
-        } catch (_) {}
+        } catch (e) {
+          logger.warning('Failed to parse RD data for maturity calendar',
+              error: e);
+        }
       }
     }
     entries.sort((a, b) => a.maturityDate.compareTo(b.maturityDate));
@@ -513,12 +564,12 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                             final isOverdue = daysLeft < 0;
                             final isToday = daysLeft == 0;
                             final statusColor = isOverdue
-                                ? CupertinoColors.systemRed
+                                ? AppStyles.plasmaRed
                                 : isToday
                                     ? CupertinoColors.systemOrange
                                     : daysLeft <= 30
                                         ? CupertinoColors.systemYellow
-                                        : CupertinoColors.systemGreen;
+                                        : AppStyles.bioGreen;
                             final statusText = isOverdue
                                 ? 'Matured ${(-daysLeft)} day${(-daysLeft) == 1 ? '' : 's'} ago'
                                 : isToday
@@ -526,18 +577,41 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                     : 'In $daysLeft day${daysLeft == 1 ? '' : 's'}';
                             return Container(
                               margin: const EdgeInsets.only(bottom: Spacing.md),
-                              padding: const EdgeInsets.all(Spacing.lg),
-                              decoration: AppStyles.cardDecoration(context),
-                              child: Row(
-                                children: [
+                              decoration: AppStyles.accentCardDecoration(
+                                  context, statusColor),
+                              child: ClipRRect(
+                                borderRadius:
+                                    BorderRadius.circular(Radii.xxl),
+                                child: IntrinsicHeight(
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      Container(
+                                        width: 3,
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
+                                            colors: [
+                                              statusColor,
+                                              statusColor.withValues(
+                                                  alpha: 0.35),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Padding(
+                                          padding:
+                                              const EdgeInsets.all(Spacing.lg),
+                                          child: Row(
+                                            children: [
                                   Container(
                                     width: 48,
                                     height: 48,
-                                    decoration: BoxDecoration(
-                                      color:
-                                          statusColor.withValues(alpha: 0.15),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
+                                    decoration: AppStyles.iconBoxDecoration(
+                                        context, statusColor),
                                     child: Center(
                                       child: Text(
                                         e.type,
@@ -598,13 +672,19 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                             e.maturityValue),
                                         style: AppStyles.titleStyle(context)
                                             .copyWith(
-                                          color: CupertinoColors.systemGreen,
+                                          color: AppStyles.bioGreen,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
                                     ],
                                   ),
-                                ],
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
                             );
                           },
@@ -667,6 +747,43 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             color: AppStyles.getSecondaryTextColor(context),
             fontSize: TypeScale.body),
         onChanged: (v) => setState(() => _searchQuery = v),
+      ),
+    );
+  }
+
+  Widget _buildNoSearchResults() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            CupertinoIcons.search,
+            size: 48,
+            color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.4),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No results for "$_searchQuery"',
+            style: AppStyles.titleStyle(context)
+                .copyWith(fontSize: TypeScale.headline),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Try a different search term',
+            style: TextStyle(
+              fontSize: TypeScale.body,
+              color: AppStyles.getSecondaryTextColor(context),
+            ),
+          ),
+          const SizedBox(height: 16),
+          CupertinoButton(
+            onPressed: () => setState(() {
+              _searchController.clear();
+              _searchQuery = '';
+            }),
+            child: const Text('Clear Search'),
+          ),
+        ],
       ),
     );
   }
@@ -851,56 +968,71 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             // Maturity Calendar Icon
-            CupertinoButton(
-              padding: EdgeInsets.symmetric(horizontal: Spacing.sm),
-              onPressed: () => _showMaturityCalendar(
-                  context,
-                  Provider.of<InvestmentsController>(context, listen: false)
-                      .investments),
-              child: Icon(
-                CupertinoIcons.calendar,
-                size: 20,
-                color: SemanticColors.investments,
+            Semantics(
+              label: 'Maturity calendar',
+              child: CupertinoButton(
+                padding: EdgeInsets.symmetric(horizontal: Spacing.sm),
+                onPressed: () => _showMaturityCalendar(
+                    context,
+                    Provider.of<InvestmentsController>(context, listen: false)
+                        .investments),
+                child: Icon(
+                  CupertinoIcons.calendar,
+                  size: 20,
+                  color: SemanticColors.investments,
+                ),
               ),
             ),
             // Sort Icon
-            CupertinoButton(
-              padding: EdgeInsets.symmetric(horizontal: Spacing.sm),
-              onPressed: () => _showSortModal(context),
-              child: Icon(
-                CupertinoIcons.arrow_up_arrow_down,
-                size: 20,
-                color: SemanticColors.investments,
+            Semantics(
+              label: 'Sort investments',
+              child: CupertinoButton(
+                padding: EdgeInsets.symmetric(horizontal: Spacing.sm),
+                onPressed: () => _showSortModal(context),
+                child: Icon(
+                  CupertinoIcons.arrow_up_arrow_down,
+                  size: 20,
+                  color: SemanticColors.investments,
+                ),
               ),
             ),
             // Refresh Icon
-            CupertinoButton(
-              padding: EdgeInsets.symmetric(horizontal: Spacing.md),
-              onPressed: _isRefreshingCurrentValues
-                  ? null
-                  : () => _refreshCurrentValues(context),
-              child: _isRefreshingCurrentValues
-                  ? CupertinoActivityIndicator(
-                      radius: 10, color: SemanticColors.investments)
-                  : Icon(
-                      CupertinoIcons.arrow_clockwise,
-                      size: 20,
-                      color: SemanticColors.investments,
-                    ),
+            Semantics(
+              label: 'Refresh investment values',
+              child: CupertinoButton(
+                padding: EdgeInsets.symmetric(horizontal: Spacing.md),
+                onPressed: _isRefreshingCurrentValues
+                    ? null
+                    : () => _refreshCurrentValues(context),
+                child: _isRefreshingCurrentValues
+                    ? CupertinoActivityIndicator(
+                        radius: 10, color: SemanticColors.investments)
+                    : Icon(
+                        CupertinoIcons.arrow_clockwise,
+                        size: 20,
+                        color: SemanticColors.investments,
+                      ),
+              ),
             ),
             // Ascending/Descending Icon
-            CupertinoButton(
-              padding: EdgeInsets.symmetric(horizontal: Spacing.md),
-              onPressed: () {
-                Haptics.light();
-                setState(() => _sortAscending = !_sortAscending);
-              },
-              child: Icon(
-                _sortAscending
-                    ? CupertinoIcons.arrow_up
-                    : CupertinoIcons.arrow_down,
-                size: 20,
-                color: SemanticColors.investments,
+            Semantics(
+              label: _sortAscending
+                  ? 'Sort descending'
+                  : 'Sort ascending',
+              child: CupertinoButton(
+                padding: EdgeInsets.symmetric(horizontal: Spacing.md),
+                onPressed: () {
+                  Haptics.light();
+                  setState(() => _sortAscending = !_sortAscending);
+                  _saveSortPrefs();
+                },
+                child: Icon(
+                  _sortAscending
+                      ? CupertinoIcons.arrow_up
+                      : CupertinoIcons.arrow_down,
+                  size: 20,
+                  color: SemanticColors.investments,
+                ),
               ),
             ),
           ],
@@ -960,12 +1092,13 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                 _getFilteredSorted(investments, categoryType);
 
                             if (pageInvestments.isEmpty) {
+                              if (_searchQuery.isNotEmpty) {
+                                return _buildNoSearchResults();
+                              }
                               return EmptyStateView(
                                 icon: CupertinoIcons.chart_bar_square,
                                 title: 'No investments yet',
-                                subtitle: _searchQuery.isNotEmpty
-                                    ? 'No results for "$_searchQuery"'
-                                    : 'Add your first ${categoryType?.name ?? ""} investment.',
+                                subtitle: 'Add your first ${categoryType?.name ?? ""} investment.',
                                 showPulse: false,
                               );
                             }
@@ -1015,6 +1148,13 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                               onRefresh: () => _refreshCurrentValues(context),
                               color: SemanticColors.investments,
                               child: ListView.builder(
+                                controller: pageIndex == _selectedCategoryIndex
+                                    ? _scrollController
+                                    : null,
+                                physics: const SmoothScrollPhysics(
+                                  parent: AlwaysScrollableScrollPhysics(),
+                                ),
+                                cacheExtent: 600,
                                 padding: EdgeInsets.fromLTRB(
                                     Spacing.lg, 0, Spacing.lg, 100),
                                 itemCount: pageInvestments.length,
@@ -1047,6 +1187,38 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                   heroTag: 'investments_fab',
                 ),
               ),
+              if (_showScrollToTop)
+                Positioned(
+                  bottom: 80,
+                  left: 16,
+                  child: AnimatedOpacity(
+                    opacity: _showScrollToTop ? 1.0 : 0.0,
+                    duration: const Duration(milliseconds: 200),
+                    child: BouncyButton(
+                      onPressed: () => _scrollController.animateTo(
+                        0,
+                        duration: const Duration(milliseconds: 400),
+                        curve: Curves.easeOutCubic,
+                      ),
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: AppStyles.aetherTeal.withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                              color:
+                                  AppStyles.aetherTeal.withValues(alpha: 0.5)),
+                        ),
+                        child: Icon(
+                          CupertinoIcons.arrow_up,
+                          size: 18,
+                          color: AppStyles.aetherTeal,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
             ],
           );
         },
@@ -1225,7 +1397,10 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
           if (earliestDate == null || d.isBefore(earliestDate)) {
             earliestDate = d;
           }
-        } catch (_) {}
+        } catch (e) {
+          logger.warning('Failed to parse investment date for P&L',
+              error: e);
+        }
       }
     }
     final gainLoss = totalCurrentValue - totalInvested;
@@ -1233,7 +1408,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
         totalInvested > 0 ? (gainLoss / totalInvested) * 100 : 0.0;
     final isGain = gainLoss >= 0;
     final gainColor =
-        isGain ? CupertinoColors.systemGreen : CupertinoColors.systemRed;
+        isGain ? AppStyles.bioGreen : AppStyles.plasmaRed;
     // Portfolio CAGR
     String? cagrText;
     if (earliestDate != null && totalInvested > 0 && totalCurrentValue > 0) {
@@ -1250,7 +1425,15 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     return GestureDetector(
       onTap: () => setState(() => _isPnLExpanded = !_isPnLExpanded),
       child: Container(
-        color: AppStyles.getCardColor(context),
+        decoration: BoxDecoration(
+          color: AppStyles.getCardColor(context),
+          border: Border(
+            bottom: BorderSide(
+              color: AppStyles.getDividerColor(context),
+              width: 0.5,
+            ),
+          ),
+        ),
         padding:
             EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.sm),
         child: Column(
@@ -1312,6 +1495,11 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                         decoration: BoxDecoration(
                           color: AppStyles.getBackground(context),
                           borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: AppStyles.getDividerColor(context)
+                                .withValues(alpha: 0.5),
+                            width: 0.8,
+                          ),
                         ),
                         child: Column(
                           children: [
@@ -1541,7 +1729,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
           color: isSelected
               ? SemanticColors.investments.withValues(alpha: 0.15)
               : AppStyles.getCardColor(context),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(Radii.md),
           border: Border.all(
             color: isSelected
                 ? SemanticColors.investments
@@ -1632,6 +1820,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                           isSelected,
                           () {
                             setState(() => _sortBy = sort);
+                            _saveSortPrefs();
                             Navigator.of(context).pop();
                           },
                         ),
@@ -1663,7 +1852,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
           color: isSelected
               ? SemanticColors.investments.withValues(alpha: 0.15)
               : AppStyles.getCardColor(context),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(Radii.md),
           border: Border.all(
             color: isSelected
                 ? SemanticColors.investments
@@ -2099,7 +2288,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                       horizontal: Spacing.md, vertical: Spacing.xs),
                   decoration: BoxDecoration(
                     color: AppStyles.getCardColor(context),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(Radii.lg),
                     border: Border.all(
                       color: AppStyles.getSecondaryTextColor(context)
                           .withValues(alpha: 0.2),
@@ -2150,7 +2339,10 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       return Padding(
         padding: EdgeInsets.only(right: Spacing.md),
         child: GestureDetector(
-          onTap: () => setState(() => _sortBy = sort),
+          onTap: () {
+            setState(() => _sortBy = sort);
+            _saveSortPrefs();
+          },
           child: Container(
             padding: EdgeInsets.symmetric(
                 horizontal: Spacing.lg, vertical: Spacing.sm),
@@ -2202,7 +2394,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       // Try to get current value from metadata, otherwise use invested amount
       final metadata = inv.metadata;
       if (metadata != null && metadata.containsKey('currentValue')) {
-        return sum + (metadata['currentValue'] as num).toDouble();
+        return sum +
+            ((metadata['currentValue'] as num?)?.toDouble() ?? inv.amount);
       }
       return sum + inv.amount;
     });
@@ -2489,8 +2682,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                 ),
                 decoration: BoxDecoration(
                   color: isPositive
-                      ? CupertinoColors.systemGreen.withValues(alpha: 0.1)
-                      : CupertinoColors.systemRed.withValues(alpha: 0.1),
+                      ? AppStyles.bioGreen.withValues(alpha: 0.1)
+                      : AppStyles.plasmaRed.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Row(
@@ -2515,8 +2708,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                           style: TextStyle(
                             fontSize: TypeScale.subhead,
                             color: isPositive
-                                ? CupertinoColors.systemGreen
-                                : CupertinoColors.systemRed,
+                                ? AppStyles.bioGreen
+                                : AppStyles.plasmaRed,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -2538,8 +2731,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                           style: TextStyle(
                             fontSize: TypeScale.subhead,
                             color: isPositive
-                                ? CupertinoColors.systemGreen
-                                : CupertinoColors.systemRed,
+                                ? AppStyles.bioGreen
+                                : AppStyles.plasmaRed,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -2587,144 +2780,191 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             onPressed: () {
               Haptics.light();
               Navigator.of(context).push(
-                CupertinoPageRoute(
-                  builder: (context) =>
-                      DigitalGoldDetailsScreen(investment: investment),
+                FadeScalePageRoute(
+                  page: DigitalGoldDetailsScreen(investment: investment),
                 ),
               );
             },
             child: Container(
               margin: EdgeInsets.only(bottom: Spacing.lg),
-              decoration: AppStyles.cardDecoration(context),
-              child: Padding(
-                padding: Spacing.cardPadding,
-                child: Row(
-                  children: [
-                    IconBox(
-                      icon: CupertinoIcons.chart_bar_square_fill,
-                      color: investment.color,
-                      showGlow: true,
-                    ),
-                    SizedBox(width: Spacing.lg),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(investment.name,
-                              style: AppStyles.titleStyle(context)),
-                          SizedBox(height: Spacing.xs),
-                          Text(
-                            investment.getTypeLabel(),
-                            style: TextStyle(
-                              fontSize: TypeScale.footnote,
-                              color: AppStyles.getSecondaryTextColor(context),
-                              fontWeight: FontWeight.w500,
-                            ),
+              decoration:
+                  AppStyles.accentCardDecoration(context, investment.color),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(Radii.xxl),
+                child: IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Container(
+                        width: 4,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              investment.color,
+                              investment.color.withValues(alpha: 0.35),
+                            ],
                           ),
-                          SizedBox(height: Spacing.sm),
-                          // Investment metrics
-                          Row(
+                        ),
+                      ),
+                      Expanded(
+                        child: Padding(
+                          padding: Spacing.cardPadding,
+                          child: Row(
                             children: [
+                              IconBox(
+                                icon: CupertinoIcons.chart_bar_square_fill,
+                                color: investment.color,
+                                showGlow: true,
+                              ),
+                              SizedBox(width: Spacing.lg),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
+                                    Text(investment.name,
+                                        style: AppStyles.titleStyle(context)),
+                                    SizedBox(height: Spacing.xs),
                                     Text(
-                                      'Invested',
+                                      investment.getTypeLabel(),
                                       style: TextStyle(
-                                        fontSize: TypeScale.caption,
-                                        color: AppStyles.getSecondaryTextColor(
-                                            context),
+                                        fontSize: TypeScale.footnote,
+                                        color: investment.color
+                                            .withValues(alpha: 0.75),
+                                        fontWeight: FontWeight.w600,
                                       ),
                                     ),
-                                    Text(
-                                      '₹${investedAmount.toStringAsFixed(2)}',
-                                      style: TextStyle(
-                                        fontSize: TypeScale.subhead,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppStyles.getTextColor(context),
-                                      ),
+                                    SizedBox(height: Spacing.sm),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Invested',
+                                                style: TextStyle(
+                                                  fontSize: TypeScale.caption,
+                                                  color: AppStyles
+                                                      .getSecondaryTextColor(
+                                                          context),
+                                                ),
+                                              ),
+                                              Text(
+                                                CurrencyFormatter.compact(
+                                                    investedAmount),
+                                                style: TextStyle(
+                                                  fontSize: TypeScale.subhead,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: AppStyles.getTextColor(
+                                                      context),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        SizedBox(width: Spacing.md),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Current',
+                                                style: TextStyle(
+                                                  fontSize: TypeScale.caption,
+                                                  color: AppStyles
+                                                      .getSecondaryTextColor(
+                                                          context),
+                                                ),
+                                              ),
+                                              if (snapshot.connectionState ==
+                                                  ConnectionState.waiting)
+                                                Text(
+                                                  'Fetching…',
+                                                  style: TextStyle(
+                                                    fontSize: TypeScale.subhead,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: AppStyles
+                                                        .getSecondaryTextColor(
+                                                            context),
+                                                  ),
+                                                )
+                                              else
+                                                Text(
+                                                  CurrencyFormatter.compact(
+                                                      currentValue),
+                                                  style: TextStyle(
+                                                    fontSize: TypeScale.subhead,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: isProfit
+                                                        ? CupertinoColors
+                                                            .systemGreen
+                                                        : CupertinoColors
+                                                            .systemRed,
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
                               ),
-                              SizedBox(width: Spacing.md),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Current',
-                                      style: TextStyle(
-                                        fontSize: TypeScale.caption,
-                                        color: AppStyles.getSecondaryTextColor(
-                                            context),
+                              SizedBox(width: Spacing.sm),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: Spacing.sm,
+                                        vertical: Spacing.xs),
+                                    decoration: BoxDecoration(
+                                      color: isProfit
+                                          ? AppStyles.bioGreen
+                                              .withValues(alpha: 0.15)
+                                          : AppStyles.plasmaRed
+                                              .withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: isProfit
+                                            ? AppStyles.bioGreen
+                                                .withValues(alpha: 0.35)
+                                            : AppStyles.plasmaRed
+                                                .withValues(alpha: 0.35),
+                                        width: 0.8,
                                       ),
                                     ),
-                                    if (snapshot.connectionState ==
-                                        ConnectionState.waiting)
-                                      Text(
-                                        'Fetching...',
-                                        style: TextStyle(
-                                          fontSize: TypeScale.subhead,
-                                          fontWeight: FontWeight.w600,
-                                          color:
-                                              AppStyles.getSecondaryTextColor(
-                                                  context),
-                                        ),
-                                      )
-                                    else
-                                      Text(
-                                        '₹${currentValue.toStringAsFixed(2)}',
-                                        style: TextStyle(
-                                          fontSize: TypeScale.subhead,
-                                          fontWeight: FontWeight.w600,
-                                          color:
-                                              AppStyles.getTextColor(context),
-                                        ),
+                                    child: Text(
+                                      '${isProfit ? '+' : ''}${gainLossPercent.toStringAsFixed(1)}%',
+                                      style: TextStyle(
+                                        fontSize: TypeScale.footnote,
+                                        fontWeight: FontWeight.w800,
+                                        color: isProfit
+                                            ? AppStyles.bioGreen
+                                            : AppStyles.plasmaRed,
                                       ),
-                                  ],
-                                ),
+                                    ),
+                                  ),
+                                  SizedBox(height: Spacing.xs),
+                                  Icon(
+                                    CupertinoIcons.chevron_right,
+                                    size: IconSizes.xs,
+                                    color:
+                                        AppStyles.getSecondaryTextColor(context),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: Spacing.md, vertical: Spacing.xs),
-                          decoration: BoxDecoration(
-                            color: isProfit
-                                ? CupertinoColors.systemGreen
-                                    .withValues(alpha: 0.15)
-                                : CupertinoColors.systemRed
-                                    .withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            '${isProfit ? '+' : ''}${gainLossPercent.toStringAsFixed(2)}%',
-                            style: TextStyle(
-                              fontSize: TypeScale.subhead,
-                              fontWeight: FontWeight.bold,
-                              color: isProfit
-                                  ? CupertinoColors.systemGreen
-                                  : CupertinoColors.systemRed,
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: Spacing.xs),
-                        Icon(
-                          CupertinoIcons.chevron_up,
-                          size: IconSizes.xs,
-                          color: AppStyles.getSecondaryTextColor(context),
-                        ),
-                      ],
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -2780,16 +3020,158 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
         children: [
           SlidableAction(
             onPressed: (_) => _deleteInvestmentWithConfirmation(investment),
-            backgroundColor: CupertinoColors.systemRed,
+            backgroundColor: AppStyles.plasmaRed,
             foregroundColor: Colors.white,
             icon: CupertinoIcons.delete,
             label: 'Delete',
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(Radii.md),
           ),
         ],
       ),
       child: _buildInvestmentCard(investment),
     );
+  }
+
+  // ── Investment quick-action sheet ──────────────────────────────────────────
+
+  void _showInvestmentQuickActions(Investment investment) {
+    final supportsAddSell = investment.type != InvestmentType.fixedDeposit &&
+        investment.type != InvestmentType.recurringDeposit &&
+        investment.type != InvestmentType.pensionSchemes;
+
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (ctx) => CupertinoActionSheet(
+        title: Text(investment.name),
+        message: Text(_investmentTypeLabel(investment.type)),
+        actions: [
+          if (supportsAddSell) ...[
+            CupertinoActionSheetAction(
+              onPressed: () {
+                Navigator.pop(ctx);
+                Navigator.of(context).push(
+                  FadeScalePageRoute(
+                      page: _addWizardFor(investment)),
+                );
+              },
+              child: const Text('Add / Buy More'),
+            ),
+            CupertinoActionSheetAction(
+              isDestructiveAction: true,
+              onPressed: () {
+                Navigator.pop(ctx);
+                _navigateToDetails(investment);
+              },
+              child: const Text('Sell / Redeem'),
+            ),
+          ],
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _navigateToDetails(investment);
+            },
+            child: const Text('View Details'),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(ctx),
+          child: const Text('Cancel'),
+        ),
+      ),
+    );
+  }
+
+  String _investmentTypeLabel(InvestmentType type) {
+    switch (type) {
+      case InvestmentType.stocks: return 'Stocks & ETFs';
+      case InvestmentType.mutualFund: return 'Mutual Fund';
+      case InvestmentType.fixedDeposit: return 'Fixed Deposit';
+      case InvestmentType.recurringDeposit: return 'Recurring Deposit';
+      case InvestmentType.bonds: return 'Bonds';
+      case InvestmentType.nationalSavingsScheme: return 'NPS';
+      case InvestmentType.digitalGold: return 'Digital Gold';
+      case InvestmentType.pensionSchemes: return 'Pension';
+      case InvestmentType.cryptocurrency: return 'Cryptocurrency';
+      case InvestmentType.futuresOptions: return 'Futures & Options';
+      case InvestmentType.forexCurrency: return 'Forex / Currency';
+      case InvestmentType.commodities: return 'Commodities';
+    }
+  }
+
+  Widget _addWizardFor(Investment investment) {
+    switch (investment.type) {
+      case InvestmentType.stocks:
+        return const StocksWizard();
+      case InvestmentType.mutualFund:
+        return const MFWizard();
+      case InvestmentType.digitalGold:
+        return const DigitalGoldWizard();
+      default:
+        return SimpleInvestmentEntryWizard(
+          type: investment.type,
+          title: 'Add ${_investmentTypeLabel(investment.type)}',
+          subtitle: 'Add more to your existing position.',
+          color: _getInvestmentTypeColor(investment.type),
+          defaultName: investment.name,
+        );
+    }
+  }
+
+  void _navigateToDetails(Investment investment) {
+    switch (investment.type) {
+      case InvestmentType.stocks:
+        Navigator.of(context).push(FadeScalePageRoute(
+            page: StockDetailsScreen(investment: investment)));
+      case InvestmentType.mutualFund:
+        Navigator.of(context).push(FadeScalePageRoute(
+            page: MFDetailsScreen(investment: investment)));
+      case InvestmentType.fixedDeposit:
+        if (investment.metadata?.containsKey('fdData') == true) {
+          try {
+            final fd = FixedDeposit.fromMap(
+                Map<String, dynamic>.from(investment.metadata!['fdData'] as Map));
+            Navigator.of(context)
+                .push(FadeScalePageRoute(page: FDDetailsScreen(fd: fd)));
+          } catch (_) {
+            toast.showError('Error loading FD details');
+          }
+        }
+      case InvestmentType.recurringDeposit:
+        if (investment.metadata?.containsKey('rdData') == true) {
+          try {
+            final rd = RecurringDeposit.fromMap(
+                Map<String, dynamic>.from(investment.metadata!['rdData'] as Map));
+            Navigator.of(context)
+                .push(FadeScalePageRoute(page: RDDetailsScreen(rd: rd)));
+          } catch (_) {
+            toast.showError('Error loading RD details');
+          }
+        }
+      case InvestmentType.bonds:
+        Navigator.of(context).push(FadeScalePageRoute(
+            page: BondsDetailsScreen(investment: investment)));
+      case InvestmentType.cryptocurrency:
+        Navigator.of(context).push(FadeScalePageRoute(
+            page: CryptoDetailsScreen(investment: investment)));
+      case InvestmentType.digitalGold:
+        Navigator.of(context).push(FadeScalePageRoute(
+            page: DigitalGoldDetailsScreen(investment: investment)));
+      case InvestmentType.nationalSavingsScheme:
+        Navigator.of(context).push(FadeScalePageRoute(
+            page: NPSDetailsScreen(investment: investment)));
+      case InvestmentType.pensionSchemes:
+        Navigator.of(context).push(FadeScalePageRoute(
+            page: PensionDetailsScreen(investment: investment)));
+      case InvestmentType.commodities:
+        Navigator.of(context).push(FadeScalePageRoute(
+            page: CommoditiesDetailsScreen(investment: investment)));
+      case InvestmentType.futuresOptions:
+        Navigator.of(context).push(FadeScalePageRoute(
+            page: FODetailsScreen(investment: investment)));
+      default:
+        Navigator.of(context).push(FadeScalePageRoute(
+            page: SimpleInvestmentDetailsScreen(investment: investment)));
+    }
   }
 
   Widget _buildInvestmentCard(Investment investment) {
@@ -2811,231 +3193,175 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       child: BouncyButton(
         onPressed: () {
           Haptics.light();
-          // Navigate to details screen based on investment type
-          if (investment.type == InvestmentType.stocks) {
-            Navigator.of(context).push(
-              CupertinoPageRoute(
-                builder: (context) =>
-                    StockDetailsScreen(investment: investment),
-              ),
-            );
-          } else if (investment.type == InvestmentType.mutualFund) {
-            Navigator.of(context).push(
-              CupertinoPageRoute(
-                builder: (context) => MFDetailsScreen(investment: investment),
-              ),
-            );
-          } else if (investment.type == InvestmentType.fixedDeposit) {
-            // Reconstruct FD from investment metadata
-            if (investment.metadata != null &&
-                investment.metadata!.containsKey('fdData')) {
-              try {
-                final fdData =
-                    investment.metadata!['fdData'] as Map<String, dynamic>;
-                final fd = FixedDeposit.fromMap(fdData);
-                Navigator.of(context).push(
-                  CupertinoPageRoute(
-                    builder: (context) => FDDetailsScreen(fd: fd),
-                  ),
-                );
-              } catch (e) {
-                toast.showError('Error loading FD details');
-              }
-            } else {
-              toast.showInfo('FD data not available');
-            }
-          } else if (investment.type == InvestmentType.recurringDeposit) {
-            // Reconstruct RD from investment metadata
-            if (investment.metadata != null &&
-                investment.metadata!.containsKey('rdData')) {
-              try {
-                final rdData =
-                    investment.metadata!['rdData'] as Map<String, dynamic>;
-                final rd = RecurringDeposit.fromMap(rdData);
-                Navigator.of(context).push(
-                  CupertinoPageRoute(
-                    builder: (context) => RDDetailsScreen(rd: rd),
-                  ),
-                );
-              } catch (e) {
-                toast.showError('Error loading RD details');
-              }
-            } else {
-              toast.showInfo('RD data not available');
-            }
-          } else if (investment.type == InvestmentType.bonds) {
-            Navigator.of(context).push(
-              CupertinoPageRoute(
-                builder: (context) =>
-                    BondsDetailsScreen(investment: investment),
-              ),
-            );
-          } else if (investment.type == InvestmentType.cryptocurrency) {
-            Navigator.of(context).push(
-              CupertinoPageRoute(
-                builder: (context) =>
-                    CryptoDetailsScreen(investment: investment),
-              ),
-            );
-          } else if (investment.type == InvestmentType.digitalGold) {
-            Navigator.of(context).push(
-              CupertinoPageRoute(
-                builder: (context) =>
-                    DigitalGoldDetailsScreen(investment: investment),
-              ),
-            );
-          } else if (investment.type == InvestmentType.nationalSavingsScheme) {
-            Navigator.of(context).push(
-              CupertinoPageRoute(
-                builder: (context) => NPSDetailsScreen(investment: investment),
-              ),
-            );
-          } else if (investment.type == InvestmentType.pensionSchemes) {
-            Navigator.of(context).push(
-              CupertinoPageRoute(
-                builder: (context) =>
-                    PensionDetailsScreen(investment: investment),
-              ),
-            );
-          } else if (investment.type == InvestmentType.commodities) {
-            Navigator.of(context).push(
-              CupertinoPageRoute(
-                builder: (context) =>
-                    CommoditiesDetailsScreen(investment: investment),
-              ),
-            );
-          } else if (investment.type == InvestmentType.futuresOptions) {
-            Navigator.of(context).push(
-              CupertinoPageRoute(
-                builder: (context) => FODetailsScreen(investment: investment),
-              ),
-            );
-          } else {
-            Navigator.of(context).push(
-              CupertinoPageRoute(
-                builder: (context) =>
-                    SimpleInvestmentDetailsScreen(investment: investment),
-              ),
-            );
-          }
+          _showInvestmentQuickActions(investment);
         },
         child: Container(
           margin: EdgeInsets.only(bottom: Spacing.lg),
-          decoration: AppStyles.cardDecoration(context),
-          child: Padding(
-            padding: Spacing.cardPadding,
-            child: Row(
-              children: [
-                IconBox(
-                  icon: CupertinoIcons.chart_bar_square_fill,
-                  color: investment.color,
-                  showGlow: true,
-                ),
-                SizedBox(width: Spacing.lg),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(investment.name,
-                          style: AppStyles.titleStyle(context)),
-                      SizedBox(height: Spacing.xs),
-                      Text(
-                        investment.getTypeLabel(),
-                        style: TextStyle(
-                          fontSize: TypeScale.footnote,
-                          color: AppStyles.getSecondaryTextColor(context),
-                          fontWeight: FontWeight.w500,
-                        ),
+          decoration:
+              AppStyles.accentCardDecoration(context, investment.color),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(Radii.xxl),
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Left accent bar
+                  Container(
+                    width: 4,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          investment.color,
+                          investment.color.withValues(alpha: 0.35),
+                        ],
                       ),
-                      SizedBox(height: Spacing.sm),
-                      // Investment metrics
-                      Row(
+                    ),
+                  ),
+                  // Card content
+                  Expanded(
+                    child: Padding(
+                      padding: Spacing.cardPadding,
+                      child: Row(
                         children: [
+                          IconBox(
+                            icon: CupertinoIcons.chart_bar_square_fill,
+                            color: investment.color,
+                            showGlow: true,
+                          ),
+                          SizedBox(width: Spacing.lg),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                Text(investment.name,
+                                    style: AppStyles.titleStyle(context)),
+                                SizedBox(height: Spacing.xs),
                                 Text(
-                                  'Invested',
+                                  investment.getTypeLabel(),
                                   style: TextStyle(
-                                    fontSize: TypeScale.caption,
-                                    color: AppStyles.getSecondaryTextColor(
-                                        context),
+                                    fontSize: TypeScale.footnote,
+                                    color: investment.color
+                                        .withValues(alpha: 0.75),
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                                Text(
-                                  '₹${investedAmount.toStringAsFixed(2)}',
-                                  style: TextStyle(
-                                    fontSize: TypeScale.subhead,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppStyles.getTextColor(context),
-                                  ),
+                                SizedBox(height: Spacing.sm),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Invested',
+                                            style: TextStyle(
+                                              fontSize: TypeScale.caption,
+                                              color: AppStyles
+                                                  .getSecondaryTextColor(
+                                                      context),
+                                            ),
+                                          ),
+                                          Text(
+                                            CurrencyFormatter.compact(
+                                                investedAmount),
+                                            style: TextStyle(
+                                              fontSize: TypeScale.subhead,
+                                              fontWeight: FontWeight.w700,
+                                              color:
+                                                  AppStyles.getTextColor(context),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    SizedBox(width: Spacing.md),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Current',
+                                            style: TextStyle(
+                                              fontSize: TypeScale.caption,
+                                              color: AppStyles
+                                                  .getSecondaryTextColor(
+                                                      context),
+                                            ),
+                                          ),
+                                          Text(
+                                            CurrencyFormatter.compact(
+                                                currentValue),
+                                            style: TextStyle(
+                                              fontSize: TypeScale.subhead,
+                                              fontWeight: FontWeight.w700,
+                                              color: isProfit
+                                                  ? AppStyles.bioGreen
+                                                  : AppStyles.plasmaRed,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
                           ),
-                          SizedBox(width: Spacing.md),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Current',
-                                  style: TextStyle(
-                                    fontSize: TypeScale.caption,
-                                    color: AppStyles.getSecondaryTextColor(
-                                        context),
+                          SizedBox(width: Spacing.sm),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: Spacing.sm,
+                                    vertical: Spacing.xs),
+                                decoration: BoxDecoration(
+                                  color: isProfit
+                                      ? AppStyles.bioGreen
+                                          .withValues(alpha: 0.15)
+                                      : AppStyles.plasmaRed
+                                          .withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: isProfit
+                                        ? AppStyles.bioGreen
+                                            .withValues(alpha: 0.35)
+                                        : AppStyles.plasmaRed
+                                            .withValues(alpha: 0.35),
+                                    width: 0.8,
                                   ),
                                 ),
-                                Text(
-                                  '₹${currentValue.toStringAsFixed(2)}',
+                                child: Text(
+                                  '${isProfit ? '+' : ''}${gainLossPercent.toStringAsFixed(1)}%',
                                   style: TextStyle(
-                                    fontSize: TypeScale.subhead,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppStyles.getTextColor(context),
+                                    fontSize: TypeScale.footnote,
+                                    fontWeight: FontWeight.w800,
+                                    color: isProfit
+                                        ? AppStyles.bioGreen
+                                        : AppStyles.plasmaRed,
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                              SizedBox(height: Spacing.xs),
+                              Icon(
+                                CupertinoIcons.chevron_right,
+                                size: IconSizes.xs,
+                                color:
+                                    AppStyles.getSecondaryTextColor(context),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                          horizontal: Spacing.md, vertical: Spacing.xs),
-                      decoration: BoxDecoration(
-                        color: isProfit
-                            ? CupertinoColors.systemGreen
-                                .withValues(alpha: 0.15)
-                            : CupertinoColors.systemRed.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        '${isProfit ? '+' : ''}${gainLossPercent.toStringAsFixed(2)}%',
-                        style: TextStyle(
-                          fontSize: TypeScale.subhead,
-                          fontWeight: FontWeight.bold,
-                          color: isProfit
-                              ? CupertinoColors.systemGreen
-                              : CupertinoColors.systemRed,
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: Spacing.xs),
-                    Icon(
-                      CupertinoIcons.chevron_up,
-                      size: IconSizes.xs,
-                      color: AppStyles.getSecondaryTextColor(context),
-                    ),
-                  ],
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

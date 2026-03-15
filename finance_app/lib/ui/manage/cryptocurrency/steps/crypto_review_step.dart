@@ -31,7 +31,7 @@ class CryptoReviewStep extends StatelessWidget {
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
               border: Border.all(
                 color: CupertinoColors.systemGrey.withValues(alpha: 0.2),
               ),
@@ -66,7 +66,7 @@ class CryptoReviewStep extends StatelessWidget {
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
               border: Border.all(
                 color: CupertinoColors.systemGrey.withValues(alpha: 0.2),
               ),
@@ -109,7 +109,7 @@ class CryptoReviewStep extends StatelessWidget {
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
               border: Border.all(
                 color: CupertinoColors.systemGrey.withValues(alpha: 0.2),
               ),
@@ -173,7 +173,7 @@ class CryptoReviewStep extends StatelessWidget {
               padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(Radii.md),
                 border: Border.all(
                   color: CupertinoColors.systemGrey.withValues(alpha: 0.2),
                 ),

@@ -74,13 +74,27 @@ class GoldPriceService {
       await prefs.setDouble(_cacheKey, price);
       await prefs.setInt(
           _cacheTimestampKey, DateTime.now().millisecondsSinceEpoch);
-    } catch (_) {}
+    } catch (e) {
+      _logger.w('Failed to cache gold price', error: e);
+    }
   }
 
   /// Get cached gold price synchronously — for quick display without API call.
   /// Returns null if no cached price available.
   static double? getCachedPrice() =>
       null; // legacy stub; use fetchCurrentGoldPrice
+
+  /// Returns the DateTime when the gold price was last cached, or null.
+  static Future<DateTime?> getLastFetchedTime() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final timestamp = prefs.getInt(_cacheTimestampKey);
+      if (timestamp == null) return null;
+      return DateTime.fromMillisecondsSinceEpoch(timestamp);
+    } catch (_) {
+      return null;
+    }
+  }
 
   /// Source 1: goldprice.org - Most reliable, free, no API key
   /// Endpoint: https://data-asg.goldprice.org/dbXRates/INR

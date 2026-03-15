@@ -134,7 +134,7 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
             ),
             style: TextStyle(color: AppStyles.getTextColor(context)),
             onChanged: (_) => _updateController(),
@@ -160,7 +160,7 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
             ),
             prefix: Padding(
               padding: const EdgeInsets.only(left: 16),
@@ -184,7 +184,7 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
               padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(Radii.md),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -211,9 +211,9 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getBackground(context).withValues(alpha: 0.7),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
               border: Border.all(
-                color: CupertinoColors.systemGreen.withValues(alpha: 0.3),
+                color: AppStyles.bioGreen.withValues(alpha: 0.3),
                 width: 1,
               ),
             ),
@@ -244,10 +244,10 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
           Container(
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
-              color: CupertinoColors.systemGreen.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(12),
+              color: AppStyles.bioGreen.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(Radii.md),
               border: Border.all(
-                color: CupertinoColors.systemGreen.withValues(alpha: 0.4),
+                color: AppStyles.bioGreen.withValues(alpha: 0.4),
                 width: 1.5,
               ),
             ),
@@ -271,7 +271,7 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: TypeScale.headline,
-                    color: CupertinoColors.systemGreen,
+                    color: AppStyles.bioGreen,
                   ),
                 ),
               ],
@@ -284,7 +284,7 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
             padding: const EdgeInsets.all(Spacing.xl),
             decoration: BoxDecoration(
               color: SemanticColors.investments.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(Radii.lg),
               border: Border.all(
                   color: SemanticColors.investments.withValues(alpha: 0.3)),
             ),
@@ -323,8 +323,8 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
                           fontSize: TypeScale.headline,
                           color:
                               controller.currentValue >= controller.totalAmount
-                                  ? CupertinoColors.systemGreen
-                                  : CupertinoColors.systemRed,
+                                  ? AppStyles.bioGreen
+                                  : AppStyles.plasmaRed,
                         ),
                       ),
                     ],
@@ -346,8 +346,8 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
                           fontSize: TypeScale.body,
                           color:
                               controller.currentValue >= controller.totalAmount
-                                  ? CupertinoColors.systemGreen
-                                  : CupertinoColors.systemRed,
+                                  ? AppStyles.bioGreen
+                                  : AppStyles.plasmaRed,
                         ),
                       ),
                     ],

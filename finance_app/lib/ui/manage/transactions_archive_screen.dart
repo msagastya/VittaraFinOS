@@ -134,6 +134,8 @@ class _TransactionsArchiveScreenState extends State<TransactionsArchiveScreen> {
 
           return SafeArea(
             child: ListView.builder(
+              physics: const SmoothScrollPhysics(),
+              cacheExtent: 600,
               padding: EdgeInsets.fromLTRB(
                   Spacing.lg, Spacing.lg, Spacing.lg, Spacing.xxxl),
               itemCount: listItems.length,
@@ -296,7 +298,7 @@ class _ArchivedTransactionCard extends StatelessWidget {
           final deleteButton = CupertinoButton(
             onPressed: () => _showPermanentDeleteOptions(context, modalContext),
             child: const Text('Permanently Delete',
-                style: TextStyle(color: CupertinoColors.systemRed)),
+                style: TextStyle(color: AppStyles.plasmaRed)),
           );
 
           return Container(

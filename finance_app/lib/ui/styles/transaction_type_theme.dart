@@ -1,23 +1,24 @@
 import 'package:flutter/cupertino.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
+import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 
 extension TransactionTypeTheme on TransactionType {
   Color get typeColor {
     switch (this) {
       case TransactionType.transfer:
-        return CupertinoColors.systemBlue;
+        return AppStyles.aetherTeal;
       case TransactionType.cashback:
-        return CupertinoColors.systemGreen;
+        return AppStyles.bioGreen;
       case TransactionType.lending:
         return CupertinoColors.systemOrange;
       case TransactionType.borrowing:
         return CupertinoColors.systemPurple;
       case TransactionType.investment:
-        return CupertinoColors.systemRed;
+        return AppStyles.plasmaRed;
       case TransactionType.expense:
-        return CupertinoColors.systemRed;
+        return AppStyles.plasmaRed;
       case TransactionType.income:
-        return CupertinoColors.systemGreen;
+        return AppStyles.bioGreen;
     }
   }
 

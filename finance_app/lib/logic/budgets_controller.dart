@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/logic/budget_model.dart';
+import 'package:vittara_fin_os/logic/notification_helpers.dart';
 
 /// Controller for managing budgets and savings planners
 class BudgetsController extends ChangeNotifier {
@@ -24,6 +25,10 @@ class BudgetsController extends ChangeNotifier {
       await _loadFromStorage();
       _isInitialized = true;
       notifyListeners();
+      // Fire budget threshold notifications on first load.
+      checkAndNotifyBudgetAlerts(_budgets).catchError((e) {
+        debugPrint('Budget notification error: $e');
+      });
     } catch (e) {
       debugPrint('Error loading budgets/planners: $e');
     }
@@ -34,6 +39,10 @@ class BudgetsController extends ChangeNotifier {
       await _loadFromStorage();
       _isInitialized = true;
       notifyListeners();
+      // Fire budget threshold notifications after data is refreshed.
+      checkAndNotifyBudgetAlerts(_budgets).catchError((e) {
+        debugPrint('Budget notification error: $e');
+      });
     } catch (e) {
       debugPrint('Error reloading budgets/planners: $e');
     }

@@ -1,9 +1,12 @@
+import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
@@ -16,6 +19,7 @@ import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
+import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 
 class AccountsScreen extends StatefulWidget {
@@ -31,6 +35,11 @@ class _AccountsScreenState extends State<AccountsScreen> {
   int _selectedCategoryIndex = 0;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
+
+  // Memoized filter+sort cache — avoids redundant work on every build
+  final Map<String, List<Account>> _filterSortCache = {};
+  String _lastCacheKey = '';
+  bool _hiddenSectionExpanded = false;
 
   @override
   void dispose() {
@@ -298,7 +307,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: AppStyles.getCardColor(context),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(Radii.md),
           border: Border.all(
             color: AppStyles.getSecondaryTextColor(context)
                 .withValues(alpha: 0.15),
@@ -306,13 +315,13 @@ class _AccountsScreenState extends State<AccountsScreen> {
         ),
         child: Row(
           children: [
-            _buildSummaryColumn('Assets', assets, CupertinoColors.systemGreen),
+            _buildSummaryColumn('Assets', assets, AppStyles.bioGreen),
             _buildDivider(),
             _buildSummaryColumn(
-                'Liabilities', liabilities, CupertinoColors.systemRed),
+                'Liabilities', liabilities, AppStyles.plasmaRed),
             _buildDivider(),
             _buildSummaryColumn('Net Worth', net,
-                net >= 0 ? AppStyles.accentBlue : CupertinoColors.systemRed),
+                net >= 0 ? AppStyles.accentBlue : AppStyles.plasmaRed),
           ],
         ),
       ),
@@ -381,7 +390,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                 color: isSelected
                     ? _getAccountTypeColor(type).withValues(alpha: 0.16)
                     : AppStyles.getCardColor(context),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(Radii.md),
                 border: Border.all(
                   color: isSelected
                       ? _getAccountTypeColor(type)
@@ -429,10 +438,35 @@ class _AccountsScreenState extends State<AccountsScreen> {
         .toList();
   }
 
+  /// Returns filtered + sorted accounts for the given type.
+  /// Memoized: recomputes only when source list, search query, or type changes.
+  List<Account> _getFilteredSortedAccounts(
+      List<Account> all, AccountType type) {
+    final key = [
+      all.length,
+      all.isEmpty ? '' : all.first.id,
+      all.isEmpty ? '' : all.last.id,
+      type.index,
+      _searchQuery,
+    ].join('|');
+
+    if (_filterSortCache.containsKey(key)) return _filterSortCache[key]!;
+
+    // Evict stale entries when source list changes
+    if (_lastCacheKey != key) {
+      _filterSortCache.clear();
+      _lastCacheKey = key;
+    }
+
+    final sorted = _filterAccountsBySearch(_getAccountsByType(all, type))
+      ..sort((a, b) => b.balance.compareTo(a.balance));
+
+    _filterSortCache[key] = sorted;
+    return sorted;
+  }
+
   Widget _buildCategoryPage(AccountType type, List<Account> allAccounts) {
-    final sectionAccounts =
-        _filterAccountsBySearch(_getAccountsByType(allAccounts, type))
-          ..sort((a, b) => b.balance.compareTo(a.balance));
+    final sectionAccounts = _getFilteredSortedAccounts(allAccounts, type);
     final total = _getTotalByType(allAccounts, type);
     return Column(
       children: [
@@ -441,7 +475,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
             color: _getAccountTypeColor(type).withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(Radii.md),
             border: Border.all(
               color: _getAccountTypeColor(type).withValues(alpha: 0.35),
             ),
@@ -466,24 +500,65 @@ class _AccountsScreenState extends State<AccountsScreen> {
           ),
         ),
         Expanded(
-          child: RefreshIndicator(
-            onRefresh: () => context.read<AccountsController>().loadAccounts(),
-            color: AppStyles.accentBlue,
-            child: ListView.builder(
-              padding: EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, 110),
-              itemCount: sectionAccounts.length,
-              itemBuilder: (context, index) {
-                final account = sectionAccounts[index];
-                return StaggeredItem(
-                  key: ValueKey('${type.name}_${account.id}'),
-                  index: index,
-                  child: _buildSlidableAccountCard(account),
-                );
-              },
-            ),
-          ),
+          child: sectionAccounts.isEmpty && _searchQuery.isNotEmpty
+              ? _buildNoSearchResults()
+              : RefreshIndicator(
+                  onRefresh: () =>
+                      context.read<AccountsController>().loadAccounts(),
+                  color: AppStyles.accentBlue,
+                  child: ListView.builder(
+                    padding:
+                        EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, 110),
+                    itemCount: sectionAccounts.length,
+                    itemBuilder: (context, index) {
+                      final account = sectionAccounts[index];
+                      return StaggeredItem(
+                        key: ValueKey('${type.name}_${account.id}'),
+                        index: index,
+                        child: _buildSlidableAccountCard(account),
+                      );
+                    },
+                  ),
+                ),
         ),
       ],
+    );
+  }
+
+  Widget _buildNoSearchResults() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            CupertinoIcons.search,
+            size: 48,
+            color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.4),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No results for "$_searchQuery"',
+            style: AppStyles.titleStyle(context)
+                .copyWith(fontSize: TypeScale.headline),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Try a different search term',
+            style: TextStyle(
+              fontSize: TypeScale.body,
+              color: AppStyles.getSecondaryTextColor(context),
+            ),
+          ),
+          const SizedBox(height: 16),
+          CupertinoButton(
+            onPressed: () => setState(() {
+              _searchController.clear();
+              _searchQuery = '';
+            }),
+            child: const Text('Clear Search'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -503,12 +578,16 @@ class _AccountsScreenState extends State<AccountsScreen> {
           if (!accountsController.isLoaded) {
             return const SafeArea(child: SkeletonListView(itemCount: 5));
           }
-          final accounts = accountsController.accounts;
-          final types = _orderedAccountTypes(accounts);
+          final allAccounts = accountsController.accounts;
+          final visibleAccounts =
+              allAccounts.where((a) => !a.isHidden).toList();
+          final hiddenAccounts =
+              allAccounts.where((a) => a.isHidden).toList();
+          final types = _orderedAccountTypes(visibleAccounts);
           _syncSelectedCategoryIndex(types);
           return Stack(
             children: [
-              if (accounts.isEmpty)
+              if (allAccounts.isEmpty)
                 EmptyStateView(
                   icon: CupertinoIcons.creditcard,
                   title: 'No Accounts Added',
@@ -536,20 +615,43 @@ class _AccountsScreenState extends State<AccountsScreen> {
                         ),
                       ),
                       SizedBox(height: Spacing.sm),
-                      _buildAllAccountsSummary(accounts),
+                      _buildAllAccountsSummary(visibleAccounts),
                       SizedBox(height: Spacing.sm),
-                      _buildCategoryTabs(types, accounts),
+                      _buildCategoryTabs(types, visibleAccounts),
                       SizedBox(height: Spacing.md),
                       Expanded(
-                        child: PageView.builder(
-                          controller: _categoryPageController,
-                          itemCount: types.length,
-                          onPageChanged: (index) {
-                            setState(() => _selectedCategoryIndex = index);
-                          },
-                          itemBuilder: (context, index) {
-                            return _buildCategoryPage(types[index], accounts);
-                          },
+                        child: CustomScrollView(
+                          slivers: [
+                            SliverFillRemaining(
+                              hasScrollBody: true,
+                              child: Column(
+                                children: [
+                                  Expanded(
+                                    child: types.isEmpty
+                                        ? const SizedBox.shrink()
+                                        : PageView.builder(
+                                            controller:
+                                                _categoryPageController,
+                                            itemCount: types.length,
+                                            onPageChanged: (index) {
+                                              setState(() =>
+                                                  _selectedCategoryIndex =
+                                                      index);
+                                            },
+                                            itemBuilder: (context, index) {
+                                              return _buildCategoryPage(
+                                                  types[index],
+                                                  visibleAccounts);
+                                            },
+                                          ),
+                                  ),
+                                  if (hiddenAccounts.isNotEmpty)
+                                    _buildHiddenAccountsSection(
+                                        hiddenAccounts),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -572,11 +674,11 @@ class _AccountsScreenState extends State<AccountsScreen> {
                       vertical: Spacing.md,
                     ),
                     decoration: BoxDecoration(
-                      color: CupertinoColors.systemGreen,
-                      borderRadius: BorderRadius.circular(12),
+                      color: AppStyles.bioGreen,
+                      borderRadius: BorderRadius.circular(Radii.md),
                       boxShadow: [
                         BoxShadow(
-                          color: CupertinoColors.systemGreen
+                          color: AppStyles.bioGreen
                               .withValues(alpha: 0.4),
                           blurRadius: 12,
                           offset: const Offset(0, 6),
@@ -622,6 +724,26 @@ class _AccountsScreenState extends State<AccountsScreen> {
 
   Widget _buildSlidableAccountCard(Account account) {
     return Slidable(
+      startActionPane: ActionPane(
+        motion: const BehindMotion(),
+        extentRatio: 0.25,
+        children: [
+          SlidableAction(
+            onPressed: (_) {
+              HapticFeedback.mediumImpact();
+              _hideAccount(account);
+            },
+            backgroundColor: CupertinoColors.systemIndigo,
+            foregroundColor: Colors.white,
+            icon: CupertinoIcons.eye_slash_fill,
+            label: 'Hide',
+            borderRadius: const BorderRadius.horizontal(
+              left: Radius.circular(12),
+              right: Radius.circular(12),
+            ),
+          ),
+        ],
+      ),
       endActionPane: ActionPane(
         motion: const BehindMotion(),
         extentRatio: 0.5,
@@ -656,6 +778,118 @@ class _AccountsScreenState extends State<AccountsScreen> {
     );
   }
 
+  Widget _buildSlidableHiddenAccountCard(Account account) {
+    return Slidable(
+      startActionPane: ActionPane(
+        motion: const BehindMotion(),
+        extentRatio: 0.25,
+        children: [
+          SlidableAction(
+            onPressed: (_) {
+              HapticFeedback.mediumImpact();
+              _unhideAccount(account);
+            },
+            backgroundColor: CupertinoColors.systemGreen,
+            foregroundColor: Colors.white,
+            icon: CupertinoIcons.eye_fill,
+            label: 'Unhide',
+            borderRadius: const BorderRadius.horizontal(
+              left: Radius.circular(12),
+              right: Radius.circular(12),
+            ),
+          ),
+        ],
+      ),
+      child: _buildAccountCard(account),
+    );
+  }
+
+  Widget _buildHiddenAccountsSection(List<Account> hiddenAccounts) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GestureDetector(
+          onTap: () {
+            Haptics.light();
+            setState(() => _hiddenSectionExpanded = !_hiddenSectionExpanded);
+          },
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+                horizontal: Spacing.lg, vertical: Spacing.md),
+            child: Row(
+              children: [
+                Icon(
+                  CupertinoIcons.eye_slash,
+                  size: 16,
+                  color: AppStyles.getSecondaryTextColor(context),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Hidden Accounts (${hiddenAccounts.length})',
+                  style: TextStyle(
+                    fontSize: TypeScale.subhead,
+                    fontWeight: FontWeight.w600,
+                    color: AppStyles.getSecondaryTextColor(context),
+                  ),
+                ),
+                const Spacer(),
+                AnimatedRotation(
+                  turns: _hiddenSectionExpanded ? 0.5 : 0.0,
+                  duration: const Duration(milliseconds: 200),
+                  child: Icon(
+                    CupertinoIcons.chevron_down,
+                    size: 14,
+                    color: AppStyles.getSecondaryTextColor(context),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        AnimatedCrossFade(
+          firstChild: const SizedBox.shrink(),
+          secondChild: ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            padding:
+                EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, Spacing.lg),
+            itemCount: hiddenAccounts.length,
+            itemBuilder: (context, index) {
+              return _buildSlidableHiddenAccountCard(hiddenAccounts[index]);
+            },
+          ),
+          crossFadeState: _hiddenSectionExpanded
+              ? CrossFadeState.showSecond
+              : CrossFadeState.showFirst,
+          duration: const Duration(milliseconds: 250),
+        ),
+      ],
+    );
+  }
+
+  void _hideAccount(Account account) {
+    final accountsController =
+        Provider.of<AccountsController>(context, listen: false);
+    accountsController.hideAccount(account.id);
+    Haptics.light();
+    toast.showSuccess(
+      '"${account.name}" hidden',
+      actionLabel: 'Undo',
+      onAction: () {
+        accountsController.unhideAccount(account.id);
+        toast.showInfo('Account restored');
+      },
+    );
+  }
+
+  void _unhideAccount(Account account) {
+    final accountsController =
+        Provider.of<AccountsController>(context, listen: false);
+    accountsController.unhideAccount(account.id);
+    Haptics.light();
+    toast.showSuccess('"${account.name}" is now visible');
+  }
+
   Widget _buildAccountCard(Account account) {
     return Hero(
       tag: 'account_${account.id}',
@@ -663,64 +897,146 @@ class _AccountsScreenState extends State<AccountsScreen> {
         onPressed: () => _showAccountDetailsSheet(account),
         child: Container(
           margin: EdgeInsets.only(bottom: Spacing.lg),
-          decoration: AppStyles.cardDecoration(context),
-          child: Padding(
-            padding: Spacing.cardPadding,
-            child: Row(
-              children: [
-                IconBox(
-                  icon: _getAccountTypeIcon(account.type),
-                  color: account.color,
-                  showGlow: true,
-                ),
-                SizedBox(width: Spacing.lg),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(account.name, style: AppStyles.titleStyle(context)),
-                      SizedBox(height: Spacing.xs),
-                      Text(
-                        '${account.bankName} • ${account.type.name.toUpperCase()}',
-                        style: TextStyle(
-                          fontSize: TypeScale.footnote,
-                          color: AppStyles.getSecondaryTextColor(context),
-                          fontWeight: FontWeight.w500,
-                        ),
+          decoration: AppStyles.accentCardDecoration(context, account.color),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(Radii.xxl),
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Left accent bar
+                  Container(
+                    width: 4,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          account.color,
+                          account.color.withValues(alpha: 0.35),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    SizedBox(
-                      width: 136,
-                      child: Text(
-                        '₹${account.balance.toStringAsFixed(2)}',
-                        textAlign: TextAlign.right,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppStyles.titleStyle(context).copyWith(
-                          color: SemanticColors.getPrimary(context),
-                          fontWeight: FontWeight.bold,
-                        ),
+                  // Card content
+                  Expanded(
+                    child: Padding(
+                      padding: Spacing.cardPadding,
+                      child: Row(
+                        children: [
+                          IconBox(
+                            icon: _getAccountTypeIcon(account.type),
+                            color: account.color,
+                            showGlow: true,
+                          ),
+                          SizedBox(width: Spacing.lg),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(account.name,
+                                    style: AppStyles.titleStyle(context)),
+                                SizedBox(height: Spacing.xs),
+                                Text(
+                                  '${account.bankName} · ${account.type.name.toUpperCase()}',
+                                  style: TextStyle(
+                                    fontSize: TypeScale.footnote,
+                                    color: account.color
+                                        .withValues(alpha: 0.75),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                CurrencyFormatter.compact(account.balance),
+                                style: AppStyles.amountStyle(context,
+                                    color: account.color),
+                              ),
+                              SizedBox(height: Spacing.xs),
+                              Icon(
+                                CupertinoIcons.chevron_right,
+                                size: IconSizes.xs,
+                                color: AppStyles.getSecondaryTextColor(context),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                    SizedBox(height: Spacing.xs),
-                    Icon(
-                      CupertinoIcons.chevron_up,
-                      size: IconSizes.xs,
-                      color: AppStyles.getSecondaryTextColor(context),
-                    ),
-                  ],
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
     );
+  }
+
+  /// Returns all transactions that involve [account] on either side.
+  List<Transaction> _getAccountTransactions(Account account) {
+    final txController = context.read<TransactionsController>();
+    return txController.transactions.where((tx) {
+      final metaId = tx.metadata?['accountId'] as String?;
+      return metaId == account.id ||
+          tx.sourceAccountId == account.id ||
+          tx.destinationAccountId == account.id;
+    }).toList()
+      ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
+  }
+
+  Future<void> _exportAccountCsv(Account account) async {
+    final txList = _getAccountTransactions(account);
+    final buffer = StringBuffer();
+    buffer.writeln(
+        'Date,Type,Summary,Amount,From Account,To Account,Merchant,Description,Category,Tags');
+    for (final t in txList) {
+      final meta = t.metadata ?? {};
+      String _esc(String v) {
+        if (v.contains(',') || v.contains('"') || v.contains('\n')) {
+          return '"${v.replaceAll('"', '""')}"';
+        }
+        return v;
+      }
+
+      final row = [
+        DateFormatter.formatWithTime(t.dateTime),
+        t.getTypeLabel(),
+        _esc(t.getSummary()),
+        t.amount.toStringAsFixed(2),
+        _esc((t.sourceAccountName ?? '').toString()),
+        _esc((meta['destinationAccountName'] ?? '').toString()),
+        _esc((meta['merchant'] ?? '').toString()),
+        _esc((meta['description'] ?? t.description).toString()),
+        _esc((meta['categoryName'] ?? '').toString()),
+        _esc((meta['tags'] as List?)?.join('; ') ?? ''),
+      ].join(',');
+      buffer.writeln(row);
+    }
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final reportsDir = Directory('${dir.path}/reports')
+        ..createSync(recursive: true);
+      final ts = DateTime.now()
+          .toIso8601String()
+          .replaceAll(':', '-')
+          .substring(0, 19);
+      final safeName = account.name.replaceAll(RegExp(r'[^\w]'), '_');
+      final file = File('${reportsDir.path}/${safeName}_$ts.csv');
+      await file.writeAsString(buffer.toString());
+      await Share.shareXFiles(
+        [XFile(file.path, mimeType: 'text/csv')],
+        subject: '${account.name} — Transaction Export',
+      );
+    } catch (e) {
+      if (mounted) toast.showError('Export failed: $e');
+    }
   }
 
   /// Compute 30-day balance history for an account by reversing transactions.
@@ -780,14 +1096,15 @@ class _AccountsScreenState extends State<AccountsScreen> {
 
   void _showAccountDetailsSheet(Account account) {
     final balanceHistory = _computeBalanceHistory(account);
+    final recentTxs = _getAccountTransactions(account).take(5).toList();
     showCupertinoModalPopup(
       context: context,
       builder: (modalContext) {
         return DraggableScrollableSheet(
           expand: false,
-          initialChildSize: 0.6,
+          initialChildSize: 0.75,
           minChildSize: 0.4,
-          maxChildSize: 0.9,
+          maxChildSize: 0.95,
           builder: (dragContext, scrollController) {
             return Container(
               decoration: BoxDecoration(
@@ -870,7 +1187,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                               onLongPress: () {
                                 Clipboard.setData(ClipboardData(
                                     text: account.creditCardNumber!));
-                                Haptics.light();
+                                HapticFeedback.lightImpact();
                                 toast.showSuccess('Card number copied');
                               },
                               child: Row(
@@ -878,19 +1195,27 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                   Text(
                                     account.creditCardNumber!,
                                     style: TextStyle(
-                                      color:
-                                          AppStyles.getTextColor(dragContext),
+                                      color: AppStyles.getTextColor(dragContext),
                                       fontSize: TypeScale.headline,
                                       fontWeight: FontWeight.w600,
                                       letterSpacing: 2,
                                     ),
                                   ),
                                   const SizedBox(width: Spacing.sm),
-                                  Icon(
-                                    CupertinoIcons.doc_on_doc,
-                                    size: 16,
-                                    color: AppStyles.getSecondaryTextColor(
-                                        dragContext),
+                                  CupertinoButton(
+                                    padding: EdgeInsets.zero,
+                                    minSize: 28,
+                                    onPressed: () {
+                                      Clipboard.setData(ClipboardData(
+                                          text: account.creditCardNumber!));
+                                      HapticFeedback.lightImpact();
+                                      toast.showSuccess('Card number copied');
+                                    },
+                                    child: Icon(
+                                      CupertinoIcons.doc_on_doc,
+                                      size: 18,
+                                      color: AppStyles.aetherTeal,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -948,7 +1273,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                       Text(
                                         '₹${((account.creditLimit ?? 0.0) - account.balance).toStringAsFixed(2)}',
                                         style: TextStyle(
-                                          color: CupertinoColors.systemRed,
+                                          color: AppStyles.plasmaRed,
                                           fontSize: TypeScale.headline,
                                           fontWeight: FontWeight.w600,
                                         ),
@@ -976,7 +1301,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                             height: 80,
                             decoration: BoxDecoration(
                               color: AppStyles.getBackground(dragContext),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(Radii.md),
                             ),
                             clipBehavior: Clip.hardEdge,
                             child: CustomPaint(
@@ -990,7 +1315,144 @@ class _AccountsScreenState extends State<AccountsScreen> {
                             ),
                           ),
 
-                          const SizedBox(height: Spacing.xxxl),
+                          // Recent Transactions
+                          const SizedBox(height: Spacing.xl),
+                          Row(
+                            children: [
+                              Text(
+                                'Recent Transactions',
+                                style: TextStyle(
+                                  color: AppStyles.getSecondaryTextColor(
+                                      dragContext),
+                                  fontSize: TypeScale.footnote,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const Spacer(),
+                              if (recentTxs.isNotEmpty)
+                                CupertinoButton(
+                                  padding: EdgeInsets.zero,
+                                  minSize: 0,
+                                  onPressed: () =>
+                                      _exportAccountCsv(account),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        CupertinoIcons.share,
+                                        size: 14,
+                                        color: AppStyles.aetherTeal,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        'Export All',
+                                        style: TextStyle(
+                                          color: AppStyles.aetherTeal,
+                                          fontSize: TypeScale.footnote,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: Spacing.sm),
+                          if (recentTxs.isEmpty)
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 12),
+                              child: Text(
+                                'No transactions yet',
+                                style: TextStyle(
+                                  color: AppStyles.getSecondaryTextColor(
+                                      dragContext),
+                                  fontSize: TypeScale.body,
+                                ),
+                              ),
+                            )
+                          else
+                            ...recentTxs.map((tx) {
+                              final meta = tx.metadata ?? {};
+                              final isSend =
+                                  tx.sourceAccountId == account.id;
+                              final isReceive =
+                                  tx.destinationAccountId == account.id;
+                              final isExpense =
+                                  tx.type == TransactionType.expense ||
+                                      tx.type == TransactionType.investment ||
+                                      tx.type == TransactionType.lending;
+                              Color amtColor;
+                              String prefix;
+                              if (isSend) {
+                                amtColor = AppStyles.plasmaRed;
+                                prefix = '−';
+                              } else if (isReceive) {
+                                amtColor = AppStyles.bioGreen;
+                                prefix = '+';
+                              } else if (isExpense) {
+                                amtColor = AppStyles.plasmaRed;
+                                prefix = '−';
+                              } else {
+                                amtColor = AppStyles.bioGreen;
+                                prefix = '+';
+                              }
+                              final label = (meta['categoryName'] as String?) ??
+                                  tx.getTypeLabel();
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 8),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: AppStyles.getBackground(dragContext),
+                                  borderRadius:
+                                      BorderRadius.circular(Radii.md),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            tx.description,
+                                            style: TextStyle(
+                                              color: AppStyles.getTextColor(
+                                                  dragContext),
+                                              fontSize: TypeScale.body,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            '${DateFormatter.format(tx.dateTime)}  ·  $label',
+                                            style: TextStyle(
+                                              color:
+                                                  AppStyles.getSecondaryTextColor(
+                                                      dragContext),
+                                              fontSize: TypeScale.caption,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Text(
+                                      '$prefix₹${tx.amount.abs().toStringAsFixed(0)}',
+                                      style: TextStyle(
+                                        color: amtColor,
+                                        fontSize: TypeScale.body,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }),
+
+                          const SizedBox(height: Spacing.xl),
                         ],
                       ),
                     ),
@@ -1012,7 +1474,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                     padding: const EdgeInsets.symmetric(
                                         vertical: 12),
                                     decoration: BoxDecoration(
-                                      color: CupertinoColors.systemGreen
+                                      color: AppStyles.bioGreen
                                           .withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
@@ -1023,13 +1485,13 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                         Icon(
                                           CupertinoIcons.arrow_up_down_circle,
                                           size: 16,
-                                          color: CupertinoColors.systemGreen,
+                                          color: AppStyles.bioGreen,
                                         ),
                                         const SizedBox(width: 6),
                                         Text(
                                           'Adjust Balance',
                                           style: TextStyle(
-                                            color: CupertinoColors.systemGreen,
+                                            color: AppStyles.bioGreen,
                                             fontSize: TypeScale.body,
                                             fontWeight: FontWeight.w600,
                                           ),
@@ -1092,7 +1554,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                     padding: const EdgeInsets.symmetric(
                                         vertical: 12),
                                     decoration: BoxDecoration(
-                                      color: CupertinoColors.systemRed
+                                      color: AppStyles.plasmaRed
                                           .withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
@@ -1103,13 +1565,13 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                         Icon(
                                           CupertinoIcons.trash,
                                           size: 16,
-                                          color: CupertinoColors.systemRed,
+                                          color: AppStyles.plasmaRed,
                                         ),
                                         const SizedBox(width: 6),
                                         Text(
                                           'Delete',
                                           style: TextStyle(
-                                            color: CupertinoColors.systemRed,
+                                            color: AppStyles.plasmaRed,
                                             fontSize: TypeScale.body,
                                             fontWeight: FontWeight.w600,
                                           ),
@@ -1188,7 +1650,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                           decoration: BoxDecoration(
                             color: AppStyles.getSecondaryTextColor(context)
                                 .withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(Radii.md),
                           ),
                           padding: const EdgeInsets.all(Spacing.xs),
                           child: Row(
@@ -1204,7 +1666,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                         vertical: 10),
                                     decoration: BoxDecoration(
                                       color: isAdding
-                                          ? CupertinoColors.systemGreen
+                                          ? AppStyles.bioGreen
                                           : Colors.transparent,
                                       borderRadius: BorderRadius.circular(10),
                                     ),
@@ -1248,7 +1710,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                         vertical: 10),
                                     decoration: BoxDecoration(
                                       color: !isAdding
-                                          ? CupertinoColors.systemRed
+                                          ? AppStyles.plasmaRed
                                           : Colors.transparent,
                                       borderRadius: BorderRadius.circular(10),
                                     ),
@@ -1305,7 +1767,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                   autofocus: true,
                                   decoration: BoxDecoration(
                                     color: AppStyles.getCardColor(context),
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(Radii.md),
                                   ),
                                   style: AppStyles.titleStyle(context).copyWith(
                                       fontSize: TypeScale.display,
@@ -1384,7 +1846,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             decoration: BoxDecoration(
                               color: CupertinoColors.systemBlue,
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.circular(Radii.lg),
                             ),
                             child: const Center(
                               child: Text(

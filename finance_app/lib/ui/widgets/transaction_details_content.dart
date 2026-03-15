@@ -153,7 +153,7 @@ class TransactionDetailsContent extends StatelessWidget {
     if (transaction.cashbackAmount != null && transaction.cashbackAmount! > 0) {
       maybeAdd('Cashback Amount',
           '₹${transaction.cashbackAmount!.toStringAsFixed(2)}',
-          forceColor: CupertinoColors.systemGreen);
+          forceColor: AppStyles.bioGreen);
       maybeAdd('Cashback Flow',
           metadata['cashbackFlow'] as String? ?? 'Payment App');
       maybeAdd('Cashback Account', transaction.cashbackAccountName);
@@ -179,7 +179,12 @@ class TransactionDetailsContent extends StatelessWidget {
         transaction.charges != null &&
         transaction.charges! > 0) {
       maybeAdd('Charges', '₹${transaction.charges!.toStringAsFixed(2)}',
-          forceColor: CupertinoColors.systemRed);
+          forceColor: AppStyles.plasmaRed);
+    }
+
+    final transferRef = metadata['transferRef'] as String?;
+    if (transferRef != null && transferRef.isNotEmpty) {
+      maybeAdd('Transfer Ref', transferRef);
     }
 
     return entries;
@@ -242,17 +247,17 @@ class TransactionDetailsContent extends StatelessWidget {
       case TransactionType.transfer:
         return CupertinoColors.systemBlue;
       case TransactionType.cashback:
-        return CupertinoColors.systemGreen;
+        return AppStyles.bioGreen;
       case TransactionType.lending:
         return CupertinoColors.systemOrange;
       case TransactionType.borrowing:
         return CupertinoColors.systemPurple;
       case TransactionType.investment:
-        return CupertinoColors.systemRed;
+        return AppStyles.plasmaRed;
       case TransactionType.expense:
-        return CupertinoColors.systemRed;
+        return AppStyles.plasmaRed;
       case TransactionType.income:
-        return CupertinoColors.systemGreen;
+        return AppStyles.bioGreen;
     }
   }
 

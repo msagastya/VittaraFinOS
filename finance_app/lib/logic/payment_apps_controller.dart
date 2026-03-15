@@ -136,11 +136,7 @@ class PaymentAppsController with ChangeNotifier {
   }
 
   Map<String, dynamic>? getAppByName(String name) {
-    try {
-      return _paymentApps.firstWhere((app) => app['name'] == name);
-    } catch (_) {
-      return null;
-    }
+    return _paymentApps.where((app) => app['name'] == name).firstOrNull;
   }
 
   Future<void> addApp(Map<String, dynamic> newApp) async {

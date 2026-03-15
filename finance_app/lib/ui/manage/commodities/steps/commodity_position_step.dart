@@ -201,14 +201,14 @@ class _CommodityPositionStepState extends State<CommodityPositionStep> {
               padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: (widget.ctrl.gainLoss >= 0
-                        ? CupertinoColors.systemGreen
-                        : CupertinoColors.systemRed)
+                        ? AppStyles.bioGreen
+                        : AppStyles.plasmaRed)
                     .withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                     color: (widget.ctrl.gainLoss >= 0
-                            ? CupertinoColors.systemGreen
-                            : CupertinoColors.systemRed)
+                            ? AppStyles.bioGreen
+                            : AppStyles.plasmaRed)
                         .withValues(alpha: 0.3)),
               ),
               child: Column(
@@ -259,8 +259,8 @@ class _Summary extends StatelessWidget {
                 fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
                 fontSize: isBold ? 14 : 13,
                 color: isPositive
-                    ? CupertinoColors.systemGreen
-                    : CupertinoColors.systemRed)),
+                    ? AppStyles.bioGreen
+                    : AppStyles.plasmaRed)),
       ],
     );
   }

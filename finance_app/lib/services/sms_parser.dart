@@ -291,6 +291,16 @@ class SmsParser {
       'withdrawn',
       'payment of',
       'purchase of',
+      'transfer to',
+      'trf to',
+      'sent to',
+      'payment done',
+      'payment successful',
+      'upi payment',
+      'purchase at',
+      'transaction of',
+      'txn of',
+      'debit',
     ];
     const creditWords = [
       'credited',
@@ -301,6 +311,11 @@ class SmsParser {
       'refund',
       'cashback',
       'reversed',
+      'transfer from',
+      'trf from',
+      'money received',
+      'payment received',
+      'credit',
     ];
     final dIdx = debitWords
         .map((w) => bodyLower.indexOf(w))
@@ -378,30 +393,98 @@ class SmsParser {
     return keys.any((k) => ctx.contains(k));
   }
 
+  // Words that are NOT merchants — filter these out from merchant extraction
+  static const _merchantBlocklist = [
+    'HDFC', 'ICICI', 'SBI', 'AXIS', 'KOTAK', 'PNB', 'BOB', 'CANARA',
+    'UNION', 'INDUS', 'IDBI', 'YES', 'IDFC', 'FEDERAL', 'PAYTM',
+    'AIRTEL', 'GPAY', 'PHONEPE', 'AMAZON',
+    'Bank', 'UPI', 'NEFT', 'IMPS', 'RTGS', 'ATM', 'INB', 'MB',
+    'Ref', 'TXN', 'Txn', 'INFO', 'VPA',
+    'Your', 'The', 'This', 'Avl', 'Available', 'Balance', 'Account',
+  ];
+
   String? _extractMerchant(String body) {
-    final patterns = [
-      RegExp(r'\bat\s+([A-Z][A-Za-z0-9\s&.\-]{2,40})'),
-      RegExp(r'\bto\s+([A-Z][A-Za-z0-9\s&.\-]{2,40})'),
-      RegExp(r'\bfor\s+([A-Z][A-Za-z0-9\s&.\-]{2,40})'),
+    // High-confidence patterns first
+    final highConfidencePatterns = [
+      // "Info: MERCHANT NAME" or "INFO:MERCHANT"
+      RegExp(r'(?:info|merchant|vpa)\s*:\s*([A-Za-z0-9][A-Za-z0-9\s&.\-@]{2,35})',
+          caseSensitive: false),
+      // "at MERCHANT NAME on" (bounded by "on" or end)
+      RegExp(r'\bat\s+([A-Z][A-Za-z0-9\s&.\-]{2,30})(?:\s+on\b|\s+via\b|\s+for\b|\.|\s*$)',
+          caseSensitive: false),
+      // "paid to MERCHANT" or "payment to MERCHANT"
+      RegExp(r'(?:paid|payment)\s+to\s+([A-Za-z][A-Za-z0-9\s&.\-]{2,35})(?:\s+via|\s+ref|\s+on|\.|\s*$)',
+          caseSensitive: false),
+      // "Trf to MERCHANT" / "Transfer to MERCHANT"
+      RegExp(r'(?:trf|transfer)\s+to\s+([A-Za-z][A-Za-z0-9\s&.\-]{2,35})(?:\s+ref|\s+on|\.|\s*$)',
+          caseSensitive: false),
+      // UPI: "to VPA MERCHANT@okaxis"
+      RegExp(r'\bto\s+([A-Za-z][A-Za-z0-9.\-]+@[A-Za-z0-9]+)',
+          caseSensitive: false),
     ];
-    for (final p in patterns) {
+
+    for (final p in highConfidencePatterns) {
       final m = p.firstMatch(body);
-      if (m != null) {
-        final v = m.group(1)?.trim();
-        if (v != null && v.length >= 3) return v;
-      }
+      if (m == null) continue;
+      final raw = m.group(1)?.trim() ?? '';
+      if (raw.length < 2) continue;
+      // Check against blocklist
+      final upper = raw.toUpperCase();
+      final blocked = _merchantBlocklist.any((b) =>
+          upper.startsWith(b.toUpperCase()) || upper == b.toUpperCase());
+      if (!blocked) return _cleanMerchantName(raw);
     }
+
+    // Lower-confidence fallbacks
+    final fallbacks = [
+      RegExp(r'\bfor\s+([A-Z][A-Za-z0-9\s&.\-]{2,30})(?:\s+on\b|\s+via\b|\.|\s*$)',
+          caseSensitive: false),
+    ];
+    for (final p in fallbacks) {
+      final m = p.firstMatch(body);
+      if (m == null) continue;
+      final raw = m.group(1)?.trim() ?? '';
+      if (raw.length < 3) continue;
+      final upper = raw.toUpperCase();
+      final blocked = _merchantBlocklist.any((b) => upper.startsWith(b.toUpperCase()));
+      if (!blocked) return _cleanMerchantName(raw);
+    }
+
     return null;
   }
 
+  String _cleanMerchantName(String raw) {
+    // Remove trailing noise words
+    var cleaned = raw
+        .replaceAll(RegExp(r'\b(ref|txn|id|no|on|via|using|at)\b.*$',
+            caseSensitive: false), '')
+        .trim();
+    // Normalize multiple spaces
+    cleaned = cleaned.replaceAll(RegExp(r'\s{2,}'), ' ').trim();
+    // Cap length
+    if (cleaned.length > 30) cleaned = cleaned.substring(0, 30).trim();
+    return cleaned.isEmpty ? raw : cleaned;
+  }
+
   String? _extractAccountLast4(String body) {
+    // Order matters — more specific first
     final patterns = [
+      // "debited from A/C XXXX1234" / "credited to A/c XX1234"
       RegExp(
-          r'(?:from|to|debited\s+from|credited\s+to)\s+(?:a/?c|account)\s+[xX*]{0,4}(\d{4})\b',
+          r'(?:from|to|debited\s+from|credited\s+to)\s+(?:a/?c|account|acc|acct)\s*(?:no\.?)?\s*[xX*.\s]{0,6}(\d{4})\b',
           caseSensitive: false),
-      RegExp(r'(?:a/?c|account)(?:\s+no\.?)?\s+[xX*]{0,4}(\d{4})\b',
+      // "A/C XXXX1234" anywhere
+      RegExp(r'\b(?:a/?c|account|acc|acct)\s*(?:no\.?)?\s*[xX*.\s]{0,6}(\d{4})\b',
           caseSensitive: false),
+      // "account ending in 1234" / "account ending 1234"
       RegExp(r'account\s+ending\s+(?:in\s+)?(\d{4})\b', caseSensitive: false),
+      // "Ac 1234" (short form used by many Indian banks)
+      RegExp(r'\bac\s+[xX*]{0,4}(\d{4})\b', caseSensitive: false),
+      // "savings a/c 1234" / "current ac 1234"
+      RegExp(r'(?:savings|current|salary)\s+(?:a/?c|account|acc)\s*[xX*.\s]{0,4}(\d{4})\b',
+          caseSensitive: false),
+      // "XXXX1234" standalone — 4+ X/*/. followed by exactly 4 digits
+      RegExp(r'[xX*]{3,}(\d{4})\b'),
     ];
     for (final p in patterns) {
       final m = p.firstMatch(body);
@@ -412,9 +495,16 @@ class SmsParser {
 
   String? _extractCardLast4(String body) {
     final patterns = [
-      RegExp(r'card\s+(?:no\.?\s+)?[xX*]{0,4}(\d{4})\b', caseSensitive: false),
-      RegExp(r'using\s+card\s+[xX*]{0,4}(\d{4})\b', caseSensitive: false),
+      // "card no XXXX1234" / "card XXXX1234"
+      RegExp(r'\b(?:debit\s+card|credit\s+card|card\s+no\.?)\s*[xX*.\s]{0,4}(\d{4})\b',
+          caseSensitive: false),
+      // "using card 1234" / "spent on card 1234"
+      RegExp(r'(?:using|on|via)\s+(?:\w+\s+)?card\s+[xX*]{0,4}(\d{4})\b',
+          caseSensitive: false),
+      // "card ending in 1234"
       RegExp(r'card\s+ending\s+(?:in\s+)?(\d{4})\b', caseSensitive: false),
+      // "card 1234" — generic last resort
+      RegExp(r'\bcard\s+[xX*]{0,4}(\d{4})\b', caseSensitive: false),
     ];
     for (final p in patterns) {
       final m = p.firstMatch(body);
@@ -429,19 +519,29 @@ class SmsParser {
   }
 
   double? _extractBalance(String body) {
+    // Only match AVAILABLE/CURRENT balance — not "due", "outstanding", "minimum"
     final patterns = [
+      // "Avl Bal Rs 5000" / "Avl Bal: Rs5000.00"
       RegExp(
-          r'(?:avail|avl)\s*(?:bal)?\s*(?:is|:)?\s*(?:rs\.?|inr|₹)?\s*([\d,]+(?:\.\d{2})?)',
+          r'avl\s*bal\s*(?:is|:)?\s*(?:rs\.?|inr|₹)?\s*([\d,]+(?:\.\d{2})?)',
           caseSensitive: false),
+      // "Available Bal: 5000"
       RegExp(
-          r'(?:balance|bal)\s*(?:is|:)?\s*(?:rs\.?|inr|₹)?\s*([\d,]+(?:\.\d{2})?)',
+          r'available\s+bal(?:ance)?\s*(?:is|:)?\s*(?:rs\.?|inr|₹)?\s*([\d,]+(?:\.\d{2})?)',
+          caseSensitive: false),
+      // "Bal: Rs 5000" — only if NOT preceded by "outstanding", "due", "total"
+      RegExp(
+          r'(?<![outstanding|due|total|minimum]\s)(?:^|\s)bal(?:ance)?\s*(?:is|:)\s*(?:rs\.?|inr|₹)?\s*([\d,]+(?:\.\d{2})?)',
           caseSensitive: false),
     ];
     for (final p in patterns) {
       final m = p.firstMatch(body);
       if (m != null) {
         final s = m.group(1)?.replaceAll(',', '');
-        if (s != null) return double.tryParse(s);
+        if (s != null) {
+          final v = double.tryParse(s);
+          if (v != null && v > 0) return v;
+        }
       }
     }
     return null;

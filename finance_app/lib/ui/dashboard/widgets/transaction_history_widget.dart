@@ -117,6 +117,22 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
     );
   }
 
+  String _relativeTime(DateTime dt) {
+    final now = DateTime.now();
+    final diff = now.difference(dt);
+    if (diff.inMinutes < 1) return 'Just now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    if (diff.inDays == 1) return 'Yesterday';
+    if (diff.inDays < 7) return '${diff.inDays}d ago';
+    final months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
+    if (dt.year == now.year) return '${months[dt.month - 1]} ${dt.day}';
+    return '${months[dt.month - 1]} ${dt.day}, ${dt.year}';
+  }
+
   Widget _buildTransactionItem(
     BuildContext context,
     Transaction transaction, {
@@ -138,7 +154,7 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
       switch (categoryName.toLowerCase()) {
         case 'groceries':
         case 'food':
-          return CupertinoColors.systemGreen;
+          return AppStyles.bioGreen;
         case 'transport':
         case 'fuel':
           return CupertinoColors.systemOrange;
@@ -147,10 +163,10 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
         case 'shopping':
           return Colors.pink;
         case 'utilities':
-          return CupertinoColors.activeBlue;
+          return AppStyles.aetherTeal;
         case 'salary':
         case 'income':
-          return CupertinoColors.systemGreen;
+          return AppStyles.bioGreen;
         default:
           return CupertinoColors.systemGrey;
       }
@@ -205,7 +221,7 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Just now',
+                  _relativeTime(transaction.dateTime),
                   style: TextStyle(
                     fontSize: 9,
                     color: AppStyles.getSecondaryTextColor(context),
@@ -290,7 +306,7 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
                     ),
                     SizedBox(width: 6),
                     Text(
-                      'Just now',
+                      _relativeTime(transaction.dateTime),
                       style: TextStyle(
                         fontSize: TypeScale.caption,
                         color: AppStyles.getSecondaryTextColor(context),
@@ -319,13 +335,13 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
   Color _getAmountColor(TransactionType type) {
     switch (type) {
       case TransactionType.expense:
-        return CupertinoColors.systemRed;
+        return AppStyles.plasmaRed;
       case TransactionType.income:
-        return CupertinoColors.systemGreen;
+        return AppStyles.bioGreen;
       case TransactionType.transfer:
         return CupertinoColors.systemBlue;
       case TransactionType.cashback:
-        return CupertinoColors.systemGreen;
+        return AppStyles.bioGreen;
       case TransactionType.lending:
         return CupertinoColors.systemOrange;
       case TransactionType.borrowing:

@@ -39,7 +39,7 @@ class _DashboardSettingsModalState extends State<DashboardSettingsModal> {
                 'Done',
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
-                  color: CupertinoColors.activeBlue,
+                  color: AppStyles.aetherTeal,
                 ),
               ),
             );
@@ -117,13 +117,13 @@ class _DashboardSettingsModalState extends State<DashboardSettingsModal> {
                         Icon(
                           CupertinoIcons.refresh,
                           size: 16,
-                          color: CupertinoColors.activeBlue,
+                          color: AppStyles.aetherTeal,
                         ),
                         SizedBox(width: Spacing.sm),
                         Text(
                           'Reset to Default',
                           style: TextStyle(
-                            color: CupertinoColors.activeBlue,
+                            color: AppStyles.aetherTeal,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -151,7 +151,7 @@ class _DashboardSettingsModalState extends State<DashboardSettingsModal> {
       padding: EdgeInsets.all(Spacing.md),
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(Radii.md),
         border: Border.all(
           color: CupertinoColors.systemGrey.withValues(alpha: 0.1),
         ),

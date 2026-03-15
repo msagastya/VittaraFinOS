@@ -90,10 +90,10 @@ class _GoldInvestedAmountStepState extends State<GoldInvestedAmountStep> {
           Container(
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
-              color: CupertinoColors.activeBlue.withValues(alpha: 0.1),
+              color: AppStyles.aetherTeal.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                  color: CupertinoColors.activeBlue.withValues(alpha: 0.3)),
+                  color: AppStyles.aetherTeal.withValues(alpha: 0.3)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

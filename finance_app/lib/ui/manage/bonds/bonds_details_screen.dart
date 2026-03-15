@@ -98,7 +98,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                 padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color: AppStyles.getCardColor(context),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(Radii.md),
                   border: Border.all(
                       color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
                 ),
@@ -140,7 +140,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                 padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color: AppStyles.getCardColor(context),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(Radii.md),
                   border: Border.all(
                       color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
                 ),
@@ -176,13 +176,13 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                 padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color: isProfit
-                      ? CupertinoColors.systemGreen.withValues(alpha: 0.1)
-                      : CupertinoColors.systemRed.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+                      ? AppStyles.bioGreen.withValues(alpha: 0.1)
+                      : AppStyles.plasmaRed.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(Radii.md),
                   border: Border.all(
                     color: isProfit
-                        ? CupertinoColors.systemGreen.withValues(alpha: 0.3)
-                        : CupertinoColors.systemRed.withValues(alpha: 0.3),
+                        ? AppStyles.bioGreen.withValues(alpha: 0.3)
+                        : AppStyles.plasmaRed.withValues(alpha: 0.3),
                   ),
                 ),
                 child: Column(
@@ -200,13 +200,13 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                     _DetailRow(
                       label: 'Total Invested',
                       value: '₹${totalInvested.toStringAsFixed(2)}',
-                      color: CupertinoColors.systemRed,
+                      color: AppStyles.plasmaRed,
                     ),
                     const SizedBox(height: Spacing.md),
                     _DetailRow(
                       label: 'Total to Receive',
                       value: '₹${totalReceived.toStringAsFixed(2)}',
-                      color: CupertinoColors.systemGreen,
+                      color: AppStyles.bioGreen,
                     ),
                     const SizedBox(height: Spacing.md),
                     Divider(color: AppStyles.getDividerColor(context)),
@@ -216,8 +216,8 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                       value:
                           '${isProfit ? '+' : ''}₹${gainLoss.toStringAsFixed(2)}',
                       color: isProfit
-                          ? CupertinoColors.systemGreen
-                          : CupertinoColors.systemRed,
+                          ? AppStyles.bioGreen
+                          : AppStyles.plasmaRed,
                       isBold: true,
                     ),
                     const SizedBox(height: Spacing.sm),
@@ -226,8 +226,8 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                       value:
                           '${isProfit ? '+' : ''}${gainLossPercent.toStringAsFixed(2)}%',
                       color: isProfit
-                          ? CupertinoColors.systemGreen
-                          : CupertinoColors.systemRed,
+                          ? AppStyles.bioGreen
+                          : AppStyles.plasmaRed,
                       isBold: true,
                     ),
                     const SizedBox(height: Spacing.sm),
@@ -247,7 +247,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                 Container(
                   decoration: BoxDecoration(
                     color: AppStyles.getCardColor(context),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(Radii.md),
                     border: Border.all(
                         color:
                             CupertinoColors.systemGrey.withValues(alpha: 0.2)),
@@ -336,8 +336,8 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                                         fontSize: TypeScale.footnote,
                                         fontWeight: FontWeight.w600,
                                         color: isNegative
-                                            ? CupertinoColors.systemRed
-                                            : CupertinoColors.systemGreen,
+                                            ? AppStyles.plasmaRed
+                                            : AppStyles.bioGreen,
                                       ),
                                     ),
                                   ),
@@ -370,7 +370,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                   padding: const EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
                     color: AppStyles.getCardColor(context),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(Radii.md),
                     border: Border.all(
                         color:
                             CupertinoColors.systemGrey.withValues(alpha: 0.2)),
@@ -412,7 +412,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
               SizedBox(
                 width: double.infinity,
                 child: CupertinoButton(
-                  color: CupertinoColors.systemRed.withValues(alpha: 0.1),
+                  color: AppStyles.plasmaRed.withValues(alpha: 0.1),
                   onPressed: () async {
                     showCupertinoDialog(
                       context: context,
@@ -447,7 +447,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                   },
                   child: const Text(
                     'Delete Bond',
-                    style: TextStyle(color: CupertinoColors.systemRed),
+                    style: TextStyle(color: AppStyles.plasmaRed),
                   ),
                 ),
               ),

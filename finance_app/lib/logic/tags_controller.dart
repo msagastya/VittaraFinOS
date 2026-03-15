@@ -1,6 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
 import 'tag_model.dart';
 
 class TagsController extends ChangeNotifier {
@@ -69,19 +69,12 @@ class TagsController extends ChangeNotifier {
   }
 
   Tag? getTagByName(String name) {
-    try {
-      return _tags
-          .firstWhere((t) => t.name.toLowerCase() == name.toLowerCase());
-    } catch (e) {
-      return null;
-    }
+    return _tags
+        .where((t) => t.name.toLowerCase() == name.toLowerCase())
+        .firstOrNull;
   }
 
   Tag? getTagById(String id) {
-    try {
-      return _tags.firstWhere((t) => t.id == id);
-    } catch (e) {
-      return null;
-    }
+    return _tags.where((t) => t.id == id).firstOrNull;
   }
 }

@@ -178,7 +178,7 @@ class BondTypeNameStep extends StatelessWidget {
                           ? const Color(0xFF00A6CC)
                           : CupertinoColors.systemGrey.withValues(alpha: 0.2),
                     ),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(Radii.md),
                   ),
                   child: Row(
                     children: [
@@ -238,7 +238,7 @@ class BondTypeNameStep extends StatelessWidget {
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
             ),
             onChanged: (v) => ctrl.updateBondName(v),
           ),
@@ -260,7 +260,7 @@ class BondTypeNameStep extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
               border: Border.all(
                   color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
             ),
@@ -343,7 +343,7 @@ class BondTypeNameStep extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
               border: Border.all(
                   color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
             ),

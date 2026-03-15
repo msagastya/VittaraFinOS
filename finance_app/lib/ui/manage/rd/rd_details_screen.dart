@@ -121,7 +121,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                           context,
                           'Est. Maturity',
                           '₹${widget.rd.maturityValue.toStringAsFixed(0)}',
-                          CupertinoColors.systemGreen,
+                          AppStyles.bioGreen,
                         ),
                       ],
                     ),
@@ -340,7 +340,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
             'Delete',
             'Remove this RD',
             CupertinoIcons.trash,
-            CupertinoColors.systemRed,
+            AppStyles.plasmaRed,
             () => _showDeleteConfirmation(context),
             isDangerous: true,
           ),
@@ -476,7 +476,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                           'Installment ${index + 1}',
                           '₹${widget.rd.monthlyAmount.toStringAsFixed(2)}',
                           'Completed',
-                          CupertinoColors.systemGreen,
+                          AppStyles.bioGreen,
                         );
                       }),
                       const SizedBox(height: Spacing.xl),
@@ -861,7 +861,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
   Color _getStatusColor(RDStatus status) {
     switch (status) {
       case RDStatus.active:
-        return CupertinoColors.systemGreen;
+        return AppStyles.bioGreen;
       case RDStatus.mature:
         return CupertinoColors.systemOrange;
       case RDStatus.completed:

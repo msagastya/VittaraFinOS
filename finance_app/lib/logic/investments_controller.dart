@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/services/investment_value_service.dart';
+import 'package:vittara_fin_os/utils/logger.dart';
+
+final _investmentsLogger = AppLogger();
 
 class InvestmentsController with ChangeNotifier {
   late SharedPreferences _prefs;
@@ -25,10 +28,22 @@ class InvestmentsController with ChangeNotifier {
     _prefs = await SharedPreferences.getInstance();
     final investmentsJson = _prefs.getStringList(_storageKey) ?? [];
 
-    _investments = investmentsJson
-        .map((json) =>
-            Investment.fromMap(jsonDecode(json) as Map<String, dynamic>))
-        .toList();
+    final loaded = <Investment>[];
+    int skipped = 0;
+    for (final json in investmentsJson) {
+      try {
+        loaded.add(
+            Investment.fromMap(jsonDecode(json) as Map<String, dynamic>));
+      } catch (e) {
+        skipped++;
+        _investmentsLogger.warning(
+            'Skipped corrupted investment record', error: e);
+      }
+    }
+    if (skipped > 0) {
+      _investmentsLogger.warning('Skipped $skipped corrupted investment(s)');
+    }
+    _investments = loaded;
 
     var migrated = false;
     for (var i = 0; i < _investments.length; i++) {

@@ -7,6 +7,7 @@ import 'package:vittara_fin_os/logic/brokers_controller.dart';
 import 'package:vittara_fin_os/logic/payment_apps_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
+import 'package:vittara_fin_os/utils/id_generator.dart';
 import 'package:vittara_fin_os/ui/manage/account_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/payment_apps_screen.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -235,6 +236,7 @@ class _TransferWizardState extends State<TransferWizard> {
         'cashbackFlow': cashbackAmount > 0
             ? (canCreditCashbackToApp ? 'paymentApp' : 'bank')
             : 'bank',
+        'transferRef': IdGenerator.next(prefix: 'tref'),
       },
     );
 
@@ -460,7 +462,7 @@ class _TransferWizardState extends State<TransferWizard> {
                       padding: const EdgeInsets.all(Spacing.lg),
                       decoration: BoxDecoration(
                         color: AppStyles.getCardColor(context),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(Radii.md),
                         border: isSelected
                             ? Border.all(
                                 color: CupertinoColors.systemBlue, width: 2)
@@ -528,7 +530,7 @@ class _TransferWizardState extends State<TransferWizard> {
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
                     color: CupertinoColors.systemBlue.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(Radii.md),
                     border: Border.all(
                       color: CupertinoColors.systemBlue,
                       width: 1.5,
@@ -616,7 +618,7 @@ class _TransferWizardState extends State<TransferWizard> {
                       padding: const EdgeInsets.all(Spacing.lg),
                       decoration: BoxDecoration(
                         color: AppStyles.getCardColor(context),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(Radii.md),
                         border: isSelected
                             ? Border.all(
                                 color: CupertinoColors.systemBlue, width: 2)
@@ -684,7 +686,7 @@ class _TransferWizardState extends State<TransferWizard> {
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
                     color: CupertinoColors.systemBlue.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(Radii.md),
                     border: Border.all(
                       color: CupertinoColors.systemBlue,
                       width: 1.5,
@@ -757,7 +759,7 @@ class _TransferWizardState extends State<TransferWizard> {
                     },
                     decoration: BoxDecoration(
                       color: AppStyles.getCardColor(context),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(Radii.md),
                     ),
                     style: AppStyles.titleStyle(context).copyWith(
                         fontSize: TypeScale.display,
@@ -796,7 +798,7 @@ class _TransferWizardState extends State<TransferWizard> {
                       textInputAction: TextInputAction.next,
                       decoration: BoxDecoration(
                         color: AppStyles.getCardColor(context),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(Radii.md),
                       ),
                       style: AppStyles.titleStyle(context).copyWith(
                           fontSize: TypeScale.largeTitle,
@@ -841,10 +843,10 @@ class _TransferWizardState extends State<TransferWizard> {
                 Container(
                   padding: const EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
-                    color: CupertinoColors.systemGreen.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    color: AppStyles.bioGreen.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(Radii.md),
                     border: Border.all(
-                      color: CupertinoColors.systemGreen,
+                      color: AppStyles.bioGreen,
                       width: 2,
                     ),
                   ),
@@ -852,7 +854,7 @@ class _TransferWizardState extends State<TransferWizard> {
                     children: [
                       Icon(
                         CupertinoIcons.lock_fill,
-                        color: CupertinoColors.systemGreen,
+                        color: AppStyles.bioGreen,
                         size: 24,
                       ),
                       const SizedBox(width: Spacing.md),
@@ -870,7 +872,7 @@ class _TransferWizardState extends State<TransferWizard> {
                               'Auto-selected (Fixed)',
                               style: TextStyle(
                                 fontSize: TypeScale.footnote,
-                                color: CupertinoColors.systemGreen,
+                                color: AppStyles.bioGreen,
                               ),
                             ),
                           ],
@@ -878,7 +880,7 @@ class _TransferWizardState extends State<TransferWizard> {
                       ),
                       const Icon(
                         CupertinoIcons.checkmark_circle_fill,
-                        color: CupertinoColors.systemGreen,
+                        color: AppStyles.bioGreen,
                         size: 24,
                       ),
                     ],
@@ -926,7 +928,7 @@ class _TransferWizardState extends State<TransferWizard> {
                               padding: const EdgeInsets.all(Spacing.lg),
                               decoration: BoxDecoration(
                                 color: AppStyles.getCardColor(context),
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(Radii.md),
                                 border: isSelected
                                     ? Border.all(
                                         color: CupertinoColors.systemBlue,
@@ -990,8 +992,8 @@ class _TransferWizardState extends State<TransferWizard> {
                       onPressed: () async {
                         final result = await Navigator.of(context)
                             .push<_PaymentAppSelectionResult>(
-                          CupertinoPageRoute(
-                            builder: (_) => const _PaymentAppSetupWizard(),
+                          FadeScalePageRoute(
+                            page: const _PaymentAppSetupWizard(),
                           ),
                         );
                         if (!mounted) return;
@@ -1017,7 +1019,7 @@ class _TransferWizardState extends State<TransferWizard> {
                         decoration: BoxDecoration(
                           color:
                               CupertinoColors.systemBlue.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(Radii.md),
                           border: Border.all(
                             color: CupertinoColors.systemBlue,
                             width: 1.5,
@@ -1077,7 +1079,7 @@ class _TransferWizardState extends State<TransferWizard> {
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: CupertinoColors.systemGrey6,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(Radii.md),
               ),
               child: Text(
                 'Wallet not enabled for ${_selectedPaymentApp ?? 'selected app'}.',
@@ -1114,7 +1116,7 @@ class _TransferWizardState extends State<TransferWizard> {
                       onSubmitted: (_) => _nextStep(),
                       decoration: BoxDecoration(
                         color: AppStyles.getCardColor(context),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(Radii.md),
                       ),
                       style: AppStyles.titleStyle(context).copyWith(
                           fontSize: TypeScale.largeTitle,
@@ -1128,7 +1130,7 @@ class _TransferWizardState extends State<TransferWizard> {
             CupertinoButton(
               onPressed: () async {
                 await Navigator.of(context).push(
-                  CupertinoPageRoute(builder: (_) => const PaymentAppsScreen()),
+                  FadeScalePageRoute(page: const PaymentAppsScreen()),
                 );
                 if (!mounted) return;
                 final app = Provider.of<PaymentAppsController>(
@@ -1196,7 +1198,7 @@ class _TransferWizardState extends State<TransferWizard> {
                     onSubmitted: (_) => _nextStep(),
                     decoration: BoxDecoration(
                       color: AppStyles.getCardColor(context),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(Radii.md),
                     ),
                     style: AppStyles.titleStyle(context).copyWith(
                         fontSize: TypeScale.display,
@@ -1224,7 +1226,7 @@ class _TransferWizardState extends State<TransferWizard> {
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: CupertinoColors.systemGrey6,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(Radii.md),
                 ),
                 child: Text(
                   'No eligible cashback destination available.',
@@ -1249,10 +1251,10 @@ class _TransferWizardState extends State<TransferWizard> {
                       padding: const EdgeInsets.all(Spacing.md),
                       decoration: BoxDecoration(
                         color: AppStyles.getCardColor(context),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(Radii.md),
                         border: isSelected
                             ? Border.all(
-                                color: CupertinoColors.systemGreen, width: 2)
+                                color: AppStyles.bioGreen, width: 2)
                             : Border.all(
                                 color: AppStyles.getSecondaryTextColor(context)
                                     .withValues(alpha: 0.1),
@@ -1300,7 +1302,7 @@ class _TransferWizardState extends State<TransferWizard> {
                           if (isSelected)
                             const Icon(
                               CupertinoIcons.checkmark_circle_fill,
-                              color: CupertinoColors.systemGreen,
+                              color: AppStyles.bioGreen,
                               size: 20,
                             ),
                         ],
@@ -1319,10 +1321,10 @@ class _TransferWizardState extends State<TransferWizard> {
                       padding: const EdgeInsets.all(Spacing.md),
                       decoration: BoxDecoration(
                         color: AppStyles.getCardColor(context),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(Radii.md),
                         border: _cashbackToPaymentApp
                             ? Border.all(
-                                color: CupertinoColors.systemGreen, width: 2)
+                                color: AppStyles.bioGreen, width: 2)
                             : Border.all(
                                 color: AppStyles.getSecondaryTextColor(context)
                                     .withValues(alpha: 0.1),
@@ -1369,7 +1371,7 @@ class _TransferWizardState extends State<TransferWizard> {
                           if (_cashbackToPaymentApp)
                             const Icon(
                               CupertinoIcons.checkmark_circle_fill,
-                              color: CupertinoColors.systemGreen,
+                              color: AppStyles.bioGreen,
                               size: 20,
                             ),
                         ],
@@ -1415,7 +1417,7 @@ class _TransferWizardState extends State<TransferWizard> {
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1482,7 +1484,7 @@ class _TransferWizardState extends State<TransferWizard> {
               padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(Radii.md),
                 border: Border.all(
                   color: AppStyles.getSecondaryTextColor(context)
                       .withValues(alpha: 0.15),
@@ -1574,9 +1576,9 @@ class _TransferWizardState extends State<TransferWizard> {
           value,
           style: TextStyle(
             color: isPositive
-                ? CupertinoColors.systemGreen
+                ? AppStyles.bioGreen
                 : isNegative
-                    ? CupertinoColors.systemRed
+                    ? AppStyles.plasmaRed
                     : isAmount
                         ? CupertinoColors.systemBlue
                         : AppStyles.getTextColor(context),
@@ -1600,7 +1602,7 @@ class _TransferWizardState extends State<TransferWizard> {
             padding: const EdgeInsets.symmetric(vertical: 16),
             decoration: BoxDecoration(
               color: CupertinoColors.systemBlue,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(Radii.lg),
             ),
             child: Center(
               child: Text(
@@ -1811,7 +1813,7 @@ class _PaymentAppSetupWizardState extends State<_PaymentAppSetupWizard> {
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     color: AppStyles.getCardColor(context),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(Radii.md),
                   ),
                   child: Row(
                     children: [
@@ -1863,7 +1865,7 @@ class _PaymentAppSetupWizardState extends State<_PaymentAppSetupWizard> {
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(Radii.md),
               ),
             ),
             const SizedBox(height: Spacing.lg),
@@ -1884,7 +1886,7 @@ class _PaymentAppSetupWizardState extends State<_PaymentAppSetupWizard> {
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 decoration: BoxDecoration(
                   color: CupertinoColors.systemBlue,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(Radii.md),
                 ),
                 child: const Center(
                   child: Text(
@@ -1917,7 +1919,7 @@ class _PaymentAppSetupWizardState extends State<_PaymentAppSetupWizard> {
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       decoration: BoxDecoration(
                         color: _hasWallet
-                            ? CupertinoColors.systemGreen
+                            ? AppStyles.bioGreen
                             : CupertinoColors.systemGrey5,
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -1942,7 +1944,7 @@ class _PaymentAppSetupWizardState extends State<_PaymentAppSetupWizard> {
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       decoration: BoxDecoration(
                         color: !_hasWallet
-                            ? CupertinoColors.systemRed
+                            ? AppStyles.plasmaRed
                             : CupertinoColors.systemGrey5,
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -1978,7 +1980,7 @@ class _PaymentAppSetupWizardState extends State<_PaymentAppSetupWizard> {
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: AppStyles.getCardColor(context),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(Radii.md),
                 ),
               ),
             ],
@@ -1990,7 +1992,7 @@ class _PaymentAppSetupWizardState extends State<_PaymentAppSetupWizard> {
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 decoration: BoxDecoration(
                   color: CupertinoColors.systemBlue,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(Radii.md),
                 ),
                 child: const Center(
                   child: Text(

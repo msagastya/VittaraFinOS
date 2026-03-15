@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vittara_fin_os/utils/logger.dart';
+
+final _banksLogger = AppLogger();
 
 class BanksController with ChangeNotifier {
   static const _prefsKey = 'banks_state_v1';
@@ -64,7 +67,9 @@ class BanksController with ChangeNotifier {
       }
 
       notifyListeners();
-    } catch (_) {}
+    } catch (e) {
+      _banksLogger.warning('Failed to load banks from prefs', error: e);
+    }
   }
 
   Future<void> _saveToPrefs() async {
@@ -157,11 +162,7 @@ class BanksController with ChangeNotifier {
   }
 
   Map<String, dynamic>? getBankByName(String name) {
-    try {
-      return _banks.firstWhere((bank) => bank['name'] == name);
-    } catch (e) {
-      return null;
-    }
+    return _banks.where((bank) => bank['name'] == name).firstOrNull;
   }
 
   bool bankNameExists(String name) {

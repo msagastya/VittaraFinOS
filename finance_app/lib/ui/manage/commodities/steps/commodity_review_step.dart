@@ -92,7 +92,7 @@ class _Row extends StatelessWidget {
   Widget build(BuildContext context) {
     Color? color;
     if (label.contains('Return %') || label.contains('Gain/Loss')) {
-      color = isGain ? CupertinoColors.systemGreen : CupertinoColors.systemRed;
+      color = isGain ? AppStyles.bioGreen : AppStyles.plasmaRed;
     }
 
     return Row(

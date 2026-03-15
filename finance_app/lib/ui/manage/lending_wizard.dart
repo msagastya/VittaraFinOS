@@ -45,6 +45,7 @@ class _LendingWizardState extends State<LendingWizard> {
   List<app_contact.Contact> _phoneContacts = [];
   final List<app_contact.Contact> _filteredPhoneContacts = [];
   bool _loadingPhoneContacts = false;
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -98,7 +99,9 @@ class _LendingWizardState extends State<LendingWizard> {
     }
   }
 
-  void _finishWizard() {
+  void _finishWizard() async {
+    if (_isSaving) return;
+    setState(() => _isSaving = true);
     final personName = _selectionMode == 'my-people'
         ? (_selectedPersonName ?? 'Unknown')
         : _selectionMode == 'phone-contacts'
@@ -156,7 +159,7 @@ class _LendingWizardState extends State<LendingWizard> {
   @override
   Widget build(BuildContext context) {
     final isLent = widget.type == LendingType.lent;
-    final color = isLent ? AppStyles.accentBlue : CupertinoColors.systemRed;
+    final color = isLent ? AppStyles.accentBlue : AppStyles.plasmaRed;
 
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
@@ -267,7 +270,7 @@ class _LendingWizardState extends State<LendingWizard> {
                   title: 'Phone Contacts',
                   subtitle: 'Browse device contacts',
                   icon: CupertinoIcons.phone_fill,
-                  color: CupertinoColors.systemGreen,
+                  color: AppStyles.bioGreen,
                   onTap: () => _loadPhoneContactsAndSelect(),
                 ),
                 const SizedBox(height: Spacing.lg),
@@ -311,7 +314,7 @@ class _LendingWizardState extends State<LendingWizard> {
         padding: const EdgeInsets.all(Spacing.xl),
         decoration: BoxDecoration(
           color: AppStyles.getCardColor(context),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(Radii.lg),
           border: Border.all(color: color.withValues(alpha: 0.2), width: 1.5),
         ),
         child: Row(
@@ -438,7 +441,7 @@ class _LendingWizardState extends State<LendingWizard> {
                     margin: const EdgeInsets.only(bottom: 12),
                     decoration: BoxDecoration(
                       color: AppStyles.getCardColor(context),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(Radii.md),
                       border: Border.all(
                         color: isSelected
                             ? AppStyles.accentBlue
@@ -571,7 +574,7 @@ class _LendingWizardState extends State<LendingWizard> {
             padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 12),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
               border: Border.all(
                   color: AppStyles.accentBlue.withValues(alpha: 0.3),
                   width: 1.5),
@@ -645,10 +648,10 @@ class _LendingWizardState extends State<LendingWizard> {
                     margin: const EdgeInsets.only(bottom: 14),
                     decoration: BoxDecoration(
                       color: AppStyles.getCardColor(context),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(Radii.lg),
                       border: Border.all(
                         color: isSelected
-                            ? CupertinoColors.systemGreen
+                            ? AppStyles.bioGreen
                             : CupertinoColors.systemGrey
                                 .withValues(alpha: 0.15),
                         width: isSelected ? 2.5 : 1.5,
@@ -656,7 +659,7 @@ class _LendingWizardState extends State<LendingWizard> {
                       boxShadow: [
                         BoxShadow(
                           color: isSelected
-                              ? CupertinoColors.systemGreen
+                              ? AppStyles.bioGreen
                                   .withValues(alpha: 0.25)
                               : Colors.black.withValues(alpha: 0.08),
                           blurRadius: isSelected ? 12 : 8,
@@ -676,9 +679,9 @@ class _LendingWizardState extends State<LendingWizard> {
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
-                                  CupertinoColors.systemGreen
+                                  AppStyles.bioGreen
                                       .withValues(alpha: 0.2),
-                                  CupertinoColors.systemGreen
+                                  AppStyles.bioGreen
                                       .withValues(alpha: 0.1),
                                 ],
                                 begin: Alignment.topLeft,
@@ -686,7 +689,7 @@ class _LendingWizardState extends State<LendingWizard> {
                               ),
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: CupertinoColors.systemGreen
+                                color: AppStyles.bioGreen
                                     .withValues(alpha: 0.3),
                                 width: 1.5,
                               ),
@@ -695,7 +698,7 @@ class _LendingWizardState extends State<LendingWizard> {
                               child: Text(
                                 firstLetter,
                                 style: const TextStyle(
-                                  color: CupertinoColors.systemGreen,
+                                  color: AppStyles.bioGreen,
                                   fontWeight: FontWeight.w700,
                                   fontSize: TypeScale.title2,
                                 ),
@@ -743,11 +746,11 @@ class _LendingWizardState extends State<LendingWizard> {
                               width: 28,
                               height: 28,
                               decoration: BoxDecoration(
-                                color: CupertinoColors.systemGreen,
+                                color: AppStyles.bioGreen,
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: CupertinoColors.systemGreen
+                                    color: AppStyles.bioGreen
                                         .withValues(alpha: 0.4),
                                     blurRadius: 8,
                                   ),
@@ -903,7 +906,7 @@ class _LendingWizardState extends State<LendingWizard> {
                         const TextInputType.numberWithOptions(decimal: true),
                     decoration: BoxDecoration(
                       color: AppStyles.getCardColor(context),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(Radii.md),
                       border: Border.all(
                         color: AppStyles.accentBlue.withValues(alpha: 0.3),
                         width: 1.5,
@@ -975,7 +978,7 @@ class _LendingWizardState extends State<LendingWizard> {
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: AppStyles.getBackground(context),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(Radii.md),
                   border: Border.all(
                     color: AppStyles.getSecondaryTextColor(context)
                         .withValues(alpha: 0.2),
@@ -1011,7 +1014,7 @@ class _LendingWizardState extends State<LendingWizard> {
                   padding: const EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
                     color: AppStyles.accentBlue.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(Radii.md),
                     border: Border.all(
                       color: AppStyles.accentBlue.withValues(alpha: 0.4),
                       width: 2,
@@ -1057,12 +1060,12 @@ class _LendingWizardState extends State<LendingWizard> {
                   decoration: BoxDecoration(
                     color: (_selectedDueDate == null)
                         ? CupertinoColors.systemGrey.withValues(alpha: 0.1)
-                        : CupertinoColors.systemRed.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
+                        : AppStyles.plasmaRed.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(Radii.md),
                     border: Border.all(
                       color: (_selectedDueDate == null)
                           ? CupertinoColors.systemGrey.withValues(alpha: 0.3)
-                          : CupertinoColors.systemRed.withValues(alpha: 0.4),
+                          : AppStyles.plasmaRed.withValues(alpha: 0.4),
                       width: 2,
                     ),
                   ),
@@ -1076,7 +1079,7 @@ class _LendingWizardState extends State<LendingWizard> {
                           style: TextStyle(
                             color: _selectedDueDate == null
                                 ? AppStyles.getSecondaryTextColor(context)
-                                : CupertinoColors.systemRed,
+                                : AppStyles.plasmaRed,
                             fontSize: _selectedDueDate == null ? 14 : 24,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 0.5,
@@ -1141,7 +1144,7 @@ class _LendingWizardState extends State<LendingWizard> {
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
               border: Border.all(color: color.withValues(alpha: 0.3)),
             ),
             child: Column(
@@ -1217,8 +1220,10 @@ class _LendingWizardState extends State<LendingWizard> {
               color: _canProceed()
                   ? color
                   : CupertinoColors.systemGrey.withValues(alpha: 0.3),
-              onPressed: _canProceed() ? _nextStep : null,
-              child: Text(
+              onPressed: (_canProceed() && !_isSaving) ? _nextStep : null,
+              child: (_isSaving && _currentStep == _totalSteps - 1)
+                  ? const CupertinoActivityIndicator(color: Colors.white)
+                  : Text(
                 _currentStep == _totalSteps - 1 ? 'Save' : 'Next',
                 style: const TextStyle(
                     color: Colors.white, fontWeight: FontWeight.w600),

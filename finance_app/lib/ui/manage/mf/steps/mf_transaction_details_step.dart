@@ -113,7 +113,7 @@ class _MFTransactionDetailsStepState extends State<MFTransactionDetailsStep> {
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
             ),
             prefix: Padding(
               padding: const EdgeInsets.only(left: 16),
@@ -142,7 +142,7 @@ class _MFTransactionDetailsStepState extends State<MFTransactionDetailsStep> {
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
             ),
             prefix: Padding(
               padding: const EdgeInsets.only(left: 16),
@@ -170,7 +170,7 @@ class _MFTransactionDetailsStepState extends State<MFTransactionDetailsStep> {
               padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(Radii.md),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -201,7 +201,7 @@ class _MFTransactionDetailsStepState extends State<MFTransactionDetailsStep> {
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getBackground(context).withValues(alpha: 0.5),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
               border: Border.all(
                 color: CupertinoColors.systemGrey.withValues(alpha: 0.2),
               ),
@@ -232,7 +232,7 @@ class _MFTransactionDetailsStepState extends State<MFTransactionDetailsStep> {
             padding: const EdgeInsets.all(Spacing.xl),
             decoration: BoxDecoration(
               color: SemanticColors.investments.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(Radii.lg),
               border: Border.all(
                 color: SemanticColors.investments.withValues(alpha: 0.3),
               ),

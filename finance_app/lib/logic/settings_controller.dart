@@ -22,6 +22,7 @@ class SettingsController with ChangeNotifier {
   bool _isLocked = false;
   bool _appLoaded = false;
   bool _isArchivedTransactionsEnabled = false;
+  bool _isSmsEnabled = false;
   String? _pinHash; // SHA-256 of the PIN
   bool _showPinFallback = false; // set to true after biometric fails
 
@@ -33,6 +34,7 @@ class SettingsController with ChangeNotifier {
   bool get isLocked => _isLocked;
   bool get appLoaded => _appLoaded;
   bool get isArchivedTransactionsEnabled => _isArchivedTransactionsEnabled;
+  bool get isSmsEnabled => _isSmsEnabled;
   bool get isPinEnabled => _pinHash != null && _pinHash!.isNotEmpty;
   bool get showPinFallback => _showPinFallback;
 
@@ -61,6 +63,7 @@ class SettingsController with ChangeNotifier {
     _pinHash = _prefs.getString('pinHash');
     _isArchivedTransactionsEnabled =
         _prefs.getBool('showArchivedTransactions') ?? false;
+    _isSmsEnabled = _prefs.getBool('isSmsEnabled') ?? false;
 
     // Skip biometric setup on web
     if (!kIsWeb) {
@@ -118,6 +121,12 @@ class SettingsController with ChangeNotifier {
   Future<void> toggleArchivedTransactions(bool value) async {
     _isArchivedTransactionsEnabled = value;
     await _prefs.setBool('showArchivedTransactions', value);
+    notifyListeners();
+  }
+
+  Future<void> toggleSmsScanning(bool value) async {
+    _isSmsEnabled = value;
+    await _prefs.setBool('isSmsEnabled', value);
     notifyListeners();
   }
 

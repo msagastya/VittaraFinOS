@@ -124,7 +124,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                               subtitle:
                                   '₹${controller.getTotalBorrowed().toStringAsFixed(0)}',
                               selected: _selectedTab == 1,
-                              color: CupertinoColors.systemRed,
+                              color: AppStyles.plasmaRed,
                               onTap: () {
                                 HapticFeedback.selectionClick();
                                 setState(() => _selectedTab = 1);
@@ -180,7 +180,15 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                                       : null,
                               showPulse: false,
                             )
-                          : ListView.builder(
+                          : RefreshIndicator(
+                              onRefresh: () async {
+                                HapticFeedback.mediumImpact();
+                                await Provider.of<LendingBorrowingController>(
+                                        context,
+                                        listen: false)
+                                    .loadRecords();
+                              },
+                              child: ListView.builder(
                               padding:
                                   const EdgeInsets.fromLTRB(16, 0, 16, 100),
                               itemCount: displayRecords.length,
@@ -192,6 +200,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                                       record, context, controller),
                                 );
                               },
+                            ),
                             ),
                     ),
                   ],
@@ -327,12 +336,14 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
 
   void _showLendingTypeModal(BuildContext context) {
     Navigator.of(context).push(
-      CupertinoPageRoute(
-        builder: (newContext) => _TransactionTypeWizard(
-          onTypeSelected: (type) {
-            Navigator.pop(newContext);
-            _navigateToLendingWizard(context, type);
-          },
+      FadeScalePageRoute(
+        page: Builder(
+          builder: (newContext) => _TransactionTypeWizard(
+            onTypeSelected: (type) {
+              Navigator.pop(newContext);
+              _navigateToLendingWizard(context, type);
+            },
+          ),
         ),
       ),
     );
@@ -340,8 +351,8 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
 
   void _navigateToLendingWizard(BuildContext context, LendingType type) {
     Navigator.of(context).push(
-      CupertinoPageRoute(
-        builder: (newContext) => LendingWizard(
+      FadeScalePageRoute(
+        page: LendingWizard(
           type: type,
           onSave: (record) {
             Provider.of<LendingBorrowingController>(context, listen: false)
@@ -362,7 +373,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
     LendingBorrowingController controller,
   ) {
     final isLent = record.type == LendingType.lent;
-    final color = isLent ? AppStyles.accentBlue : CupertinoColors.systemRed;
+    final color = isLent ? AppStyles.accentBlue : AppStyles.plasmaRed;
 
     showCupertinoModalPopup(
       context: context,
@@ -716,8 +727,8 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
 
   void _navigateToEditWizard(BuildContext context, LendingBorrowing record) {
     Navigator.of(context).push(
-      CupertinoPageRoute(
-        builder: (newContext) => LendingWizard(
+      FadeScalePageRoute(
+        page: LendingWizard(
           type: record.type,
           existingRecord: record,
           onSave: (updatedRecord) {
@@ -866,7 +877,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                         padding: const EdgeInsets.all(Spacing.md),
                         decoration: BoxDecoration(
                           color: color.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(Radii.md),
                           border:
                               Border.all(color: color.withValues(alpha: 0.22)),
                         ),
@@ -986,7 +997,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
     LendingBorrowingController controller,
   ) {
     final isLent = record.type == LendingType.lent;
-    final color = isLent ? AppStyles.accentBlue : CupertinoColors.systemRed;
+    final color = isLent ? AppStyles.accentBlue : AppStyles.plasmaRed;
     final icon =
         isLent ? CupertinoIcons.arrow_up_right : CupertinoIcons.arrow_down_left;
     final settledOn = DateTime.tryParse(record.settledDate ?? '');
@@ -998,22 +1009,25 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
       },
       child: Container(
         margin: EdgeInsets.only(bottom: Spacing.md),
-        decoration: BoxDecoration(
-          color: AppStyles.getCardColor(context),
-          borderRadius: Radii.cardRadius,
-          border: Border.all(
-            color: color.withValues(alpha: 0.2),
-            width: 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Stack(
+        decoration: AppStyles.accentCardDecoration(context, color),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(Radii.xxl),
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  width: 4,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [color, color.withValues(alpha: 0.35)],
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Stack(
           children: [
             Padding(
               padding: Spacing.cardPadding,
@@ -1182,6 +1196,11 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
               ),
           ],
         ),
+                  ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -1324,12 +1343,12 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color: AppStyles.getCardColor(ctx),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(Radii.md),
                             ),
                             child: resultRow(
                               'Outstanding Balance',
                               CurrencyFormatter.format(outstanding),
-                              valueColor: CupertinoColors.systemRed,
+                              valueColor: AppStyles.plasmaRed,
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -1387,14 +1406,14 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color: AppStyles.getCardColor(ctx),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(Radii.md),
                             ),
                             child: months > 0
                                 ? Column(children: [
                                     resultRow('Payoff In',
                                         '$months month${months > 1 ? 's' : ''}',
                                         valueColor:
-                                            CupertinoColors.systemGreen),
+                                            AppStyles.bioGreen),
                                     if (payoffDate != null)
                                       resultRow('Estimated Date',
                                           DateFormatter.format(payoffDate)),
@@ -1512,7 +1531,7 @@ class _TransactionTypeWizard extends StatelessWidget {
                 title: 'I Borrowed Money',
                 subtitle: 'Money that I received from someone',
                 icon: CupertinoIcons.arrow_down_left,
-                color: CupertinoColors.systemRed,
+                color: AppStyles.plasmaRed,
                 onTap: () => onTypeSelected(LendingType.borrowed),
               ),
               const SizedBox(height: 40),
@@ -1521,7 +1540,7 @@ class _TransactionTypeWizard extends StatelessWidget {
                 padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color: AppStyles.accentBlue.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(Radii.md),
                   border: Border.all(
                     color: AppStyles.accentBlue.withValues(alpha: 0.3),
                     width: 1,
@@ -1593,7 +1612,7 @@ class _TransactionTypeWizard extends StatelessWidget {
         padding: const EdgeInsets.all(Spacing.xl),
         decoration: BoxDecoration(
           color: AppStyles.getCardColor(context),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(Radii.lg),
           border: Border.all(
             color: color.withValues(alpha: 0.2),
             width: 1.5,

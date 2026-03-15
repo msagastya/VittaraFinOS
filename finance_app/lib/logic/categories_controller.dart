@@ -18,6 +18,10 @@ class CategoriesController with ChangeNotifier {
   List<Category> get customCats =>
       _categories.where((cat) => cat.isCustom).toList();
 
+  /// Returns the category with [id], or null if not found.
+  Category? getCategoryById(String id) =>
+      _categories.where((c) => c.id == id).cast<Category?>().firstOrNull;
+
   CategoriesController() {
     _categories = List.from(defaultCategories);
   }
@@ -179,11 +183,7 @@ class CategoriesController with ChangeNotifier {
   }
 
   Category? _getDefaultCategoryById(String id) {
-    try {
-      return defaultCategories.firstWhere((cat) => cat.id == id);
-    } catch (_) {
-      return null;
-    }
+    return defaultCategories.where((cat) => cat.id == id).firstOrNull;
   }
 
   bool _matchesDefaultCategory(Category current, Category originalDefault) {
@@ -203,11 +203,4 @@ class CategoriesController with ChangeNotifier {
     notifyListeners();
   }
 
-  Category? getCategoryById(String categoryId) {
-    try {
-      return _categories.firstWhere((cat) => cat.id == categoryId);
-    } catch (e) {
-      return null;
-    }
-  }
 }

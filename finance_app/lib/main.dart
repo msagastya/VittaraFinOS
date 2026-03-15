@@ -32,7 +32,7 @@ import 'package:vittara_fin_os/ui/settings_screen.dart';
 import 'package:vittara_fin_os/ui/transaction_history_screen.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/logic/notification_helpers.dart';
-import 'package:vittara_fin_os/ui/dashboard/transaction_wizard.dart';
+import 'package:vittara_fin_os/ui/dashboard/dashboard_action_sheet.dart';
 import 'package:vittara_fin_os/ui/notifications_page.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/dashboard/dashboard_settings_modal.dart';
@@ -44,6 +44,7 @@ import 'package:vittara_fin_os/utils/logger.dart';
 import 'package:vittara_fin_os/services/mf_database_service.dart';
 import 'package:vittara_fin_os/ui/manage/goals/goals_screen.dart';
 import 'package:vittara_fin_os/ui/manage/budgets/budgets_screen.dart';
+import 'package:vittara_fin_os/ui/onboarding_screen.dart';
 import 'package:vittara_fin_os/ui/manage/savings/savings_planners_screen.dart';
 import 'package:vittara_fin_os/ui/manage/ai_planner/ai_monthly_planner_screen.dart';
 import 'package:vittara_fin_os/ui/app_menu/app_menu_screen.dart';
@@ -203,13 +204,13 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           ),
         ),
       ),
-      // DARK THEME (AMOLED)
+      // DARK THEME (AMOLED — Aether system)
       darkTheme: ThemeData(
         brightness: Brightness.dark,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF5BB6FF),
-          secondary: AppStyles.accentOrange,
-          tertiary: AppStyles.accentGreen,
+          seedColor: AppStyles.aetherTeal, // phosphorescent primary
+          secondary: AppStyles.novaPurple,
+          tertiary: AppStyles.solarGold,
           brightness: Brightness.dark,
         ),
         scaffoldBackgroundColor: AppStyles.darkBackground,
@@ -221,7 +222,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           displayColor: AppStyles.darkText,
         ),
         cupertinoOverrideTheme: CupertinoThemeData(
-          primaryColor: const Color(0xFF5BB6FF),
+          primaryColor: AppStyles.aetherTeal,
           scaffoldBackgroundColor: AppStyles.darkBackground,
           barBackgroundColor: const Color(0xFF000000),
           textTheme: CupertinoTextThemeData(
@@ -239,23 +240,32 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         ),
       ),
       builder: (context, child) {
-        return ToastOverlay(
-          child: Stack(
-            children: [
-              DefaultTextStyle(
-                style: TextStyle(
-                  fontFamily: GoogleFonts.plusJakartaSans().fontFamily,
-                  decoration: TextDecoration.none,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? AppStyles.darkText
-                      : AppStyles.lightText,
+        final mediaQuery = MediaQuery.of(context);
+        return MediaQuery(
+          data: mediaQuery.copyWith(
+            textScaler: mediaQuery.textScaler.clamp(
+              minScaleFactor: 0.85,
+              maxScaleFactor: 1.3,
+            ),
+          ),
+          child: ToastOverlay(
+            child: Stack(
+              children: [
+                DefaultTextStyle(
+                  style: TextStyle(
+                    fontFamily: GoogleFonts.plusJakartaSans().fontFamily,
+                    decoration: TextDecoration.none,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppStyles.darkText
+                        : AppStyles.lightText,
+                  ),
+                  child: child!,
                 ),
-                child: child!,
-              ),
-              // LOCK SCREEN OVERLAY (disabled on web)
-              if (settings.isLocked && settings.appLoaded && !kIsWeb)
-                const Positioned.fill(child: LockScreen()),
-            ],
+                // LOCK SCREEN OVERLAY (disabled on web)
+                if (settings.isLocked && settings.appLoaded && !kIsWeb)
+                  const Positioned.fill(child: LockScreen()),
+              ],
+            ),
           ),
         );
       },
@@ -542,22 +552,37 @@ class _SplashScreenState extends State<SplashScreen> {
     // Initialize MFDatabaseService in background (non-blocking)
     MFDatabaseService().initialize();
 
-    Timer(const Duration(milliseconds: 3500), () {
-      if (mounted) {
-        logger.info("Navigating from SplashScreen to Dashboard",
-            context: 'SplashScreen');
-        Provider.of<SettingsController>(context, listen: false)
-            .setAppLoaded(); // Enable lock screen
-        Navigator.of(context).pushReplacement(FadeScalePageRoute(
-          page: const DashboardScreen(),
-        ));
-        // Auto-scan SMS in background after app loads
+    Timer(const Duration(milliseconds: 3500), () async {
+      if (!mounted) return;
+      logger.info("Navigating from SplashScreen", context: 'SplashScreen');
+      Provider.of<SettingsController>(context, listen: false).setAppLoaded();
+
+      final done = await hasCompletedOnboarding();
+      if (!mounted) return;
+
+      if (done) {
+        Navigator.of(context).pushReplacement(
+            FadeScalePageRoute(page: const DashboardScreen()));
         _triggerSmsStartupScan();
+      } else {
+        Navigator.of(context).pushReplacement(
+          FadeScalePageRoute(
+            page: OnboardingScreen(
+              onComplete: (ctx) {
+                Navigator.of(ctx).pushReplacement(
+                    FadeScalePageRoute(page: const DashboardScreen()));
+                _triggerSmsStartupScan();
+              },
+            ),
+          ),
+        );
       }
     });
   }
 
   void _triggerSmsStartupScan() {
+    final smsEnabled = Provider.of<SettingsController>(context, listen: false).isSmsEnabled;
+    if (!smsEnabled) return;
     // Run silently — errors are swallowed so they never crash the app.
     Future.microtask(() async {
       try {
@@ -566,26 +591,43 @@ class _SplashScreenState extends State<SplashScreen> {
           accountsCtrl: Provider.of<AccountsController>(context, listen: false),
           txCtrl: Provider.of<TransactionsController>(context, listen: false),
         );
-      } catch (_) {}
+      } catch (e) {
+        logger.error('SMS startup scan failed', error: e);
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppStyles.darkText : AppStyles.lightText;
+    final subColor =
+        isDark ? const Color(0xFF6B8AAD) : Colors.black54;
+
     return Scaffold(
+      backgroundColor:
+          isDark ? AppStyles.darkBackground : AppStyles.lightBackground,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const FintechLoader(size: 200),
             const SizedBox(height: Spacing.xl),
-            const Text(
+            Text(
               'VittaraFinOS',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: textColor,
+              ),
             ),
-            const Text(
+            const SizedBox(height: 6),
+            Text(
               'Track Wealth, Master Life',
-              style: TextStyle(fontSize: TypeScale.headline),
+              style: TextStyle(
+                fontSize: TypeScale.headline,
+                color: subColor,
+              ),
             ),
           ],
         ),
@@ -678,10 +720,13 @@ class DashboardScreen extends StatelessWidget {
                   ),
                 );
               },
-              child: Icon(
-                CupertinoIcons.line_horizontal_3,
-                size: IconSizes.navIcon,
-                color: AppStyles.getTextColor(context),
+              child: Semantics(
+                label: 'Open app menu',
+                child: Icon(
+                  CupertinoIcons.line_horizontal_3,
+                  size: IconSizes.navIcon,
+                  color: AppStyles.getTextColor(context),
+                ),
               ),
             ),
             middle: const Text('VittaraFinOS'),
@@ -689,42 +734,52 @@ class DashboardScreen extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 // Dashboard Settings
-                BouncyButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      FadeScalePageRoute(page: const DashboardSettingsModal()),
-                    );
-                  },
-                  child: Icon(
-                    CupertinoIcons.slider_horizontal_3,
-                    size: IconSizes.navIcon,
-                    color: AppStyles.getTextColor(context),
+                Semantics(
+                  label: 'Dashboard layout settings',
+                  child: BouncyButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        FadeScalePageRoute(
+                            page: const DashboardSettingsModal()),
+                      );
+                    },
+                    child: Icon(
+                      CupertinoIcons.slider_horizontal_3,
+                      size: IconSizes.navIcon,
+                      color: AppStyles.getTextColor(context),
+                    ),
                   ),
                 ),
                 SizedBox(width: Spacing.xl),
                 // Manage button
-                BouncyButton(
-                  onPressed: () {
-                    Navigator.of(context)
-                        .push(FadeScalePageRoute(page: const ManageScreen()));
-                  },
-                  child: Icon(
-                    CupertinoIcons.square_grid_2x2,
-                    size: IconSizes.navIcon,
-                    color: AppStyles.getTextColor(context),
+                Semantics(
+                  label: 'Manage accounts and investments',
+                  child: BouncyButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                          FadeScalePageRoute(page: const ManageScreen()));
+                    },
+                    child: Icon(
+                      CupertinoIcons.square_grid_2x2,
+                      size: IconSizes.navIcon,
+                      color: AppStyles.getTextColor(context),
+                    ),
                   ),
                 ),
                 SizedBox(width: Spacing.xl),
                 // Settings button
-                BouncyButton(
-                  onPressed: () {
-                    Navigator.of(context)
-                        .push(FadeScalePageRoute(page: const SettingsScreen()));
-                  },
-                  child: Icon(
-                    CupertinoIcons.settings,
-                    size: IconSizes.navIcon,
-                    color: AppStyles.getTextColor(context),
+                Semantics(
+                  label: 'Settings',
+                  child: BouncyButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                          FadeScalePageRoute(page: const SettingsScreen()));
+                    },
+                    child: Icon(
+                      CupertinoIcons.settings,
+                      size: IconSizes.navIcon,
+                      color: AppStyles.getTextColor(context),
+                    ),
                   ),
                 ),
               ],
@@ -778,6 +833,16 @@ class DashboardScreen extends StatelessWidget {
                                 ),
                                 SizedBox(height: Spacing.xl),
                                 CupertinoButton.filled(
+                                  onPressed: () {
+                                    Navigator.of(context).push(
+                                      FadeScalePageRoute(
+                                          page: const DashboardSettingsModal()),
+                                    );
+                                  },
+                                  child: const Text('Manage Dashboard'),
+                                ),
+                                SizedBox(height: Spacing.sm),
+                                CupertinoButton(
                                   onPressed: () async {
                                     if (kDebugMode) {
                                       print('Resetting dashboard to default');
@@ -802,48 +867,55 @@ class DashboardScreen extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          // SMS scan mini button
-                          BouncyButton(
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                CupertinoPageRoute(
-                                  builder: (_) => const SmsReviewScreen(),
-                                ),
+                          // SMS scan mini button (only if SMS Scanning enabled)
+                          Consumer<SettingsController>(
+                            builder: (_, settings, __) {
+                              if (!settings.isSmsEnabled) return const SizedBox.shrink();
+                              return Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  BouncyButton(
+                                    onPressed: () {
+                                      Navigator.of(context).push(
+                                        FadeScalePageRoute(
+                                          page: const SmsReviewScreen(),
+                                        ),
+                                      );
+                                    },
+                                    child: Container(
+                                      width: 46,
+                                      height: 46,
+                                      decoration: BoxDecoration(
+                                        color: AppStyles.isDarkMode(context)
+                                            ? const Color(0xFF00D4AA).withValues(alpha: 0.10)
+                                            : const Color(0xFFE0FAF5),
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: AppStyles.aetherTeal
+                                              .withValues(alpha: 0.40),
+                                        ),
+                                        boxShadow: AppStyles.elevatedShadows(
+                                          context,
+                                          tint: AppStyles.aetherTeal,
+                                          strength: 0.35,
+                                        ),
+                                      ),
+                                      child: Icon(
+                                        CupertinoIcons.chat_bubble_text_fill,
+                                        color: AppStyles.aetherTeal,
+                                        size: 20,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(height: Spacing.sm),
+                                ],
                               );
                             },
-                            child: Container(
-                              width: 46,
-                              height: 46,
-                              decoration: BoxDecoration(
-                                color: AppStyles.isDarkMode(context)
-                                    ? const Color(0xFF1C2E44)
-                                    : const Color(0xFFE8F0FE),
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: AppStyles.accentBlue
-                                      .withValues(alpha: 0.3),
-                                ),
-                                boxShadow: AppStyles.elevatedShadows(
-                                  context,
-                                  tint: AppStyles.accentBlue,
-                                  strength: 0.4,
-                                ),
-                              ),
-                              child: Icon(
-                                CupertinoIcons.chat_bubble_text_fill,
-                                color: AppStyles.accentBlue,
-                                size: 20,
-                              ),
-                            ),
                           ),
-                          SizedBox(height: Spacing.sm),
                           // Main + FAB
                           BouncyButton(
                             onPressed: () {
-                              Navigator.of(context).push(
-                                FadeScalePageRoute(
-                                    page: const TransactionWizard()),
-                              );
+                              showDashboardActionSheet(context);
                             },
                             child: Container(
                               width: 60,
@@ -853,15 +925,15 @@ class DashboardScreen extends StatelessWidget {
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                   colors: [
-                                    AppStyles.accentBlue,
-                                    AppStyles.accentTeal,
+                                    AppStyles.aetherTeal,
+                                    AppStyles.novaPurple,
                                   ],
                                 ),
                                 shape: BoxShape.circle,
                                 boxShadow: AppStyles.elevatedShadows(
                                   context,
-                                  tint: AppStyles.accentBlue,
-                                  strength: 0.85,
+                                  tint: AppStyles.aetherTeal,
+                                  strength: 0.90,
                                 ),
                               ),
                               child: const Icon(
@@ -934,113 +1006,148 @@ class DashboardScreen extends StatelessWidget {
   ) {
     final accent = _widgetAccentColor(widgetConfig.type);
 
-    // Check if widget has content
-    final hasContent = _widgetHasContent(context, widgetConfig);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return BouncyButton(
       onPressed: () => _handleWidgetTap(context, widgetConfig),
       child: AnimatedContainer(
         duration: AppDurations.medium,
         curve: MotionCurves.standard,
-        decoration: AppStyles.cardDecoration(context).copyWith(
-          border: Border.all(
-            color: accent.withValues(
-              alpha:
-                  Theme.of(context).brightness == Brightness.dark ? 0.50 : 0.25,
-            ),
-          ),
-          boxShadow: AppStyles.elevatedShadows(
-            context,
-            tint: accent,
-            strength: 0.72,
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header with drag handle
-            Padding(
-              padding: EdgeInsets.all(Spacing.md),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Row(
-                      children: [
-                        // Drag handle icon
-                        Icon(
-                          CupertinoIcons.line_horizontal_3,
-                          size: 18,
-                          color: accent.withValues(alpha: 0.50),
-                        ),
-                        SizedBox(width: Spacing.md),
-                        // Title
-                        Expanded(
-                          child: Text(
-                            widgetConfig.title,
-                            style: AppStyles.titleStyle(context).copyWith(
-                              fontSize: TypeScale.title3,
-                            ),
-                          ),
-                        ),
+        decoration: AppStyles.accentCardDecoration(context, accent),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(Radii.xxl),
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // ── Left accent bar ──────────────────────────────────────
+                Container(
+                  width: 4,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        accent,
+                        accent.withValues(alpha: 0.40),
                       ],
                     ),
                   ),
-                  // Expand arrow
-                  Icon(
-                    CupertinoIcons.chevron_right,
-                    size: 20,
-                    color: accent,
-                  ),
-                ],
-              ),
-            ),
-
-            // Content - minimal padding, shrink to fit
-            if (hasContent)
-              Padding(
-                padding: EdgeInsets.only(
-                  left: Spacing.md,
-                  right: Spacing.md,
-                  bottom: Spacing.sm,
                 ),
-                child: _buildWidgetPreview(context, widgetConfig),
-              )
-            else
-              Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: Spacing.md,
-                    vertical: Spacing.lg,
-                  ),
+
+                // ── Card body ────────────────────────────────────────────
+                Expanded(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        CupertinoIcons.checkmark_circle_fill,
-                        size: 32,
-                        color: SemanticColors.success.withValues(alpha: 0.8),
+                      // Header row
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                            Spacing.md, Spacing.md, Spacing.md, Spacing.xs),
+                        child: Row(
+                          children: [
+                            // Icon badge
+                            Container(
+                              width: 32,
+                              height: 32,
+                              decoration: BoxDecoration(
+                                color: accent.withValues(
+                                    alpha: isDark ? 0.22 : 0.12),
+                                borderRadius: BorderRadius.circular(Radii.sm),
+                                border: Border.all(
+                                  color: accent.withValues(
+                                      alpha: isDark ? 0.45 : 0.28),
+                                  width: 0.8,
+                                ),
+                              ),
+                              child: Icon(
+                                _widgetIcon(widgetConfig.type),
+                                size: 16,
+                                color: accent,
+                              ),
+                            ),
+                            const SizedBox(width: Spacing.sm),
+                            // Title
+                            Expanded(
+                              child: Text(
+                                widgetConfig.title,
+                                style: TextStyle(
+                                  fontSize: TypeScale.headline,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppStyles.getTextColor(context),
+                                  letterSpacing: -0.3,
+                                ),
+                              ),
+                            ),
+                            // Drag handle + arrow
+                            Icon(
+                              CupertinoIcons.line_horizontal_3,
+                              size: 16,
+                              color: accent.withValues(alpha: 0.45),
+                            ),
+                            const SizedBox(width: Spacing.sm),
+                            Icon(
+                              CupertinoIcons.chevron_right,
+                              size: 16,
+                              color: accent.withValues(alpha: 0.70),
+                            ),
+                          ],
+                        ),
                       ),
-                      SizedBox(height: Spacing.md),
-                      Text(
-                        'All caught up!',
-                        style: TextStyle(
-                          fontSize: TypeScale.subhead,
-                          color: AppStyles.getSecondaryTextColor(context),
-                          fontWeight: FontWeight.w600,
+
+                      // Thin divider
+                      Container(
+                        height: 0.5,
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: Spacing.md),
+                        color: accent.withValues(alpha: isDark ? 0.18 : 0.12),
+                      ),
+
+                      // Content — wrapped in RepaintBoundary so that when one
+                      // widget's data source changes only that widget repaints,
+                      // not the entire dashboard list.
+                      RepaintBoundary(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                              Spacing.md, Spacing.sm, Spacing.md, Spacing.md),
+                          child: _buildWidgetPreview(context, widgetConfig),
                         ),
                       ),
                     ],
                   ),
                 ),
-              ),
-          ],
+              ],
+            ),
+          ),
         ),
       ),
     );
+  }
+
+  IconData _widgetIcon(DashboardWidgetType type) {
+    switch (type) {
+      case DashboardWidgetType.netWorth:
+        return CupertinoIcons.chart_pie_fill;
+      case DashboardWidgetType.goalsOverview:
+        return CupertinoIcons.checkmark_seal_fill;
+      case DashboardWidgetType.budgetsOverview:
+        return CupertinoIcons.chart_bar_fill;
+      case DashboardWidgetType.savingsPlanners:
+        return CupertinoIcons.heart_fill;
+      case DashboardWidgetType.aiPlanner:
+        return CupertinoIcons.sparkles;
+      case DashboardWidgetType.transactionHistory:
+        return CupertinoIcons.arrow_right_arrow_left_circle_fill;
+      case DashboardWidgetType.notificationsAndActions:
+        return CupertinoIcons.bell_fill;
+      case DashboardWidgetType.actions:
+        return CupertinoIcons.bolt_fill;
+      case DashboardWidgetType.monthlySummary:
+        return CupertinoIcons.calendar_circle_fill;
+      case DashboardWidgetType.sipTracker:
+        return CupertinoIcons.graph_circle_fill;
+    }
   }
 
   Color _widgetAccentColor(DashboardWidgetType type) {
@@ -1060,35 +1167,11 @@ class DashboardScreen extends StatelessWidget {
       case DashboardWidgetType.notificationsAndActions:
         return SemanticColors.warning;
       case DashboardWidgetType.actions:
-        return SemanticColors.warning;
+        return AppStyles.novaPurple;
       case DashboardWidgetType.monthlySummary:
         return AppStyles.accentGreen;
       case DashboardWidgetType.sipTracker:
         return CupertinoColors.activeBlue;
-    }
-  }
-
-  bool _widgetHasContent(
-    BuildContext context,
-    DashboardWidgetConfig widgetConfig,
-  ) {
-    switch (widgetConfig.type) {
-      case DashboardWidgetType.netWorth:
-      case DashboardWidgetType.goalsOverview:
-      case DashboardWidgetType.budgetsOverview:
-      case DashboardWidgetType.savingsPlanners:
-      case DashboardWidgetType.aiPlanner:
-        return true;
-      case DashboardWidgetType.transactionHistory:
-        // Always render preview; it listens to live transaction updates and
-        // handles its own empty state.
-        return true;
-      case DashboardWidgetType.notificationsAndActions:
-        // Always render preview; it listens to live investment updates and
-        // handles its own empty state.
-        return true;
-      default:
-        return true;
     }
   }
 
@@ -1103,139 +1186,191 @@ class DashboardScreen extends StatelessWidget {
 
     final dateFormatter = _formatHeaderDate(now);
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Padding(
       padding:
-          EdgeInsets.fromLTRB(Spacing.lg, Spacing.lg, Spacing.lg, Spacing.sm),
+          EdgeInsets.fromLTRB(Spacing.lg, Spacing.sm, Spacing.lg, Spacing.sm),
       child: Container(
-        decoration: AppStyles.sectionDecoration(
-          context,
-          tint: AppStyles.accentBlue,
-          radius: 26,
-        ),
+        decoration: AppStyles.heroCardDecoration(context),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(26),
+          borderRadius: BorderRadius.circular(Radii.xxl),
           child: Stack(
             children: [
+              // Ambient orbs for depth
+              // Aether teal emission — top-right
               Positioned(
-                top: -26,
-                right: -12,
+                top: -30,
+                right: -20,
                 child: Container(
-                  width: 120,
-                  height: 120,
+                  width: 160,
+                  height: 160,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: AppStyles.accentTeal.withValues(alpha: 0.14),
+                    gradient: RadialGradient(
+                      colors: [
+                        AppStyles.aetherTeal.withValues(alpha: 0.22),
+                        AppStyles.aetherTeal.withValues(alpha: 0.00),
+                      ],
+                    ),
                   ),
                 ),
               ),
+              // Nova violet emission — bottom-left
               Positioned(
-                bottom: -42,
-                left: -18,
+                bottom: -50,
+                left: -30,
                 child: Container(
-                  width: 140,
-                  height: 140,
+                  width: 180,
+                  height: 180,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: AppStyles.accentBlue.withValues(alpha: 0.12),
+                    gradient: RadialGradient(
+                      colors: [
+                        AppStyles.novaPurple.withValues(alpha: 0.18),
+                        AppStyles.novaPurple.withValues(alpha: 0.00),
+                      ],
+                    ),
                   ),
                 ),
               ),
-              SafeArea(
-                bottom: false,
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: Spacing.lg,
-                    vertical: Spacing.xl,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        greeting,
-                        style: AppStyles.titleStyle(context).copyWith(
-                          fontSize: TypeScale.largeTitle,
-                          fontWeight: FontWeight.w800,
+              // Subtle grid dots overlay
+              Positioned.fill(
+                child: CustomPaint(painter: _DotGridPainter(isDark: isDark)),
+              ),
+              // Content
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                    Spacing.lg, Spacing.xl, Spacing.lg, Spacing.lg),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Greeting + Status badge row
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                greeting,
+                                style: const TextStyle(
+                                  fontSize: TypeScale.title2,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                  letterSpacing: -0.5,
+                                  height: 1.1,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                dateFormatter,
+                                style: TextStyle(
+                                  fontSize: TypeScale.footnote,
+                                  color: Colors.white.withValues(alpha: 0.55),
+                                  fontWeight: FontWeight.w500,
+                                  letterSpacing: 0.2,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Status badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: SemanticColors.success.withValues(alpha: 0.18),
+                            borderRadius: BorderRadius.circular(Radii.full),
+                            border: Border.all(
+                              color: SemanticColors.success
+                                  .withValues(alpha: 0.55),
+                              width: 1.0,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 6,
+                                height: 6,
+                                decoration: const BoxDecoration(
+                                  color: SemanticColors.success,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 5),
+                              const Text(
+                                'Active',
+                                style: TextStyle(
+                                  fontSize: TypeScale.caption,
+                                  color: SemanticColors.success,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: Spacing.lg),
+
+                    // Divider line
+                    Container(
+                      height: 0.6,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.white.withValues(alpha: 0.00),
+                            Colors.white.withValues(alpha: 0.18),
+                            Colors.white.withValues(alpha: 0.00),
+                          ],
                         ),
                       ),
-                      SizedBox(height: Spacing.sm),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              dateFormatter,
-                              style: TextStyle(
-                                fontSize: TypeScale.callout,
-                                color: AppStyles.getSecondaryTextColor(context),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: Spacing.md,
-                              vertical: Spacing.xs,
-                            ),
-                            decoration: AppStyles.tabDecoration(
-                              context,
-                              selected: true,
-                              color: SemanticColors.success,
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  CupertinoIcons.checkmark_circle_fill,
-                                  size: 12,
-                                  color: SemanticColors.success,
-                                ),
-                                SizedBox(width: 6),
-                                Text(
-                                  'All Systems Go',
-                                  style: TextStyle(
-                                    fontSize: TypeScale.footnote,
-                                    color: SemanticColors.success,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: Spacing.lg),
-                      Wrap(
-                        spacing: Spacing.md,
-                        runSpacing: Spacing.md,
+                    ),
+
+                    const SizedBox(height: Spacing.lg),
+
+                    // Quick action pills
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      child: Row(
                         children: [
                           _buildQuickActionPill(
                             context,
                             'Goals',
-                            CupertinoIcons.checkmark_circle,
-                            AppStyles.accentBlue,
+                            CupertinoIcons.checkmark_seal_fill,
+                            AppStyles.aetherTeal,
                           ),
+                          const SizedBox(width: Spacing.sm),
                           _buildQuickActionPill(
                             context,
                             'Budgets',
-                            CupertinoIcons.chart_pie,
+                            CupertinoIcons.chart_pie_fill,
                             AppStyles.accentCoral,
                           ),
+                          const SizedBox(width: Spacing.sm),
                           _buildQuickActionPill(
                             context,
                             'Savings',
-                            CupertinoIcons.heart,
+                            CupertinoIcons.heart_fill,
                             AppStyles.accentGreen,
                           ),
+                          const SizedBox(width: Spacing.sm),
                           _buildQuickActionPill(
                             context,
                             'AI Plan',
-                            CupertinoIcons.lightbulb,
+                            CupertinoIcons.sparkles,
                             AppStyles.accentOrange,
                           ),
                         ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -1254,43 +1389,27 @@ class DashboardScreen extends StatelessWidget {
     return BouncyButton(
       onPressed: () => _handleQuickActionTap(context, label),
       child: Container(
-        constraints: const BoxConstraints(minWidth: 116),
-        padding: EdgeInsets.symmetric(
-          horizontal: Spacing.md,
-          vertical: Spacing.sm,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              color.withValues(alpha: 0.25),
-              color.withValues(alpha: 0.10),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(20),
+          color: color.withValues(alpha: 0.16),
+          borderRadius: BorderRadius.circular(Radii.full),
           border: Border.all(
-            color: color.withValues(alpha: 0.45),
-            width: 1.2,
-          ),
-          boxShadow: AppStyles.elevatedShadows(
-            context,
-            tint: color,
-            strength: 0.52,
+            color: color.withValues(alpha: 0.50),
+            width: 1.1,
           ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 14, color: color),
-            SizedBox(width: Spacing.xs),
+            Icon(icon, size: 13, color: color),
+            const SizedBox(width: 5),
             Text(
               label,
               style: TextStyle(
                 fontSize: TypeScale.footnote,
                 fontWeight: FontWeight.w700,
                 color: color,
+                letterSpacing: 0.1,
               ),
             ),
           ],
@@ -1942,21 +2061,8 @@ class DashboardScreen extends StatelessWidget {
           builder: (context, txController, child) {
             final now = DateTime.now();
             final monthStart = DateTime(now.year, now.month, 1);
-            const monthNames = [
-              'January',
-              'February',
-              'March',
-              'April',
-              'May',
-              'June',
-              'July',
-              'August',
-              'September',
-              'October',
-              'November',
-              'December'
-            ];
-            final monthLabel = '${monthNames[now.month - 1]} ${now.year}';
+            final monthLabel =
+                '${DateFormatter.getMonthName(now.month)} ${now.year}';
 
             double income = 0;
             double expenses = 0;
@@ -2318,51 +2424,6 @@ class DashboardScreen extends StatelessWidget {
     }
   }
 
-  Widget _buildQuickAction(
-    BuildContext context,
-    String label,
-    IconData icon,
-    Color color,
-  ) {
-    return Container(
-      padding: EdgeInsets.all(Spacing.md),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, size: 16, color: color),
-          ),
-          SizedBox(width: Spacing.md),
-          Expanded(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: TypeScale.subhead,
-                fontWeight: FontWeight.w600,
-                color: AppStyles.getTextColor(context),
-              ),
-            ),
-          ),
-          Icon(
-            CupertinoIcons.chevron_right,
-            size: 14,
-            color: color,
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildBadge(
     BuildContext context,
     String label,
@@ -2390,107 +2451,6 @@ class DashboardScreen extends StatelessWidget {
             style: TextStyle(
               fontSize: TypeScale.caption,
               color: AppStyles.getTextColor(context),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNetWorthBreakdownItem(
-    BuildContext context,
-    String label,
-    double amount,
-    int count,
-    IconData icon,
-    Color color,
-    double total,
-  ) {
-    final percentage = total > 0 ? (amount / total * 100) : 0.0;
-
-    return Container(
-      padding: EdgeInsets.all(Spacing.md),
-      decoration: BoxDecoration(
-        color: AppStyles.getCardColor(context),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: color.withValues(alpha: 0.15),
-        ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: EdgeInsets.all(Spacing.sm),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  icon,
-                  size: 16,
-                  color: color,
-                ),
-              ),
-              SizedBox(width: Spacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      label,
-                      style: TextStyle(
-                        fontSize: TypeScale.footnote,
-                        color: AppStyles.getSecondaryTextColor(context),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    Text(
-                      '$count item${count != 1 ? 's' : ''}',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: AppStyles.getSecondaryTextColor(context)
-                            .withValues(alpha: 0.7),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    '₹${amount.toStringAsFixed(0)}',
-                    style: TextStyle(
-                      fontSize: TypeScale.subhead,
-                      fontWeight: FontWeight.bold,
-                      color: AppStyles.getTextColor(context),
-                    ),
-                  ),
-                  Text(
-                    '${percentage.toStringAsFixed(1)}%',
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: color,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          SizedBox(height: Spacing.sm),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: percentage / 100,
-              minHeight: 6,
-              backgroundColor: AppStyles.getBackground(context),
-              valueColor: AlwaysStoppedAnimation<Color>(color),
             ),
           ),
         ],
@@ -2693,4 +2653,28 @@ extension on List<DashboardWidgetConfig> {
       return null;
     }
   }
+}
+
+/// Subtle dot grid overlay — adds premium texture to hero card backgrounds.
+class _DotGridPainter extends CustomPainter {
+  final bool isDark;
+  const _DotGridPainter({required this.isDark});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withValues(alpha: isDark ? 0.035 : 0.12)
+      ..style = PaintingStyle.fill;
+    const spacing = 22.0;
+    const radius = 1.2;
+    for (double x = spacing; x < size.width; x += spacing) {
+      for (double y = spacing; y < size.height; y += spacing) {
+        canvas.drawCircle(Offset(x, y), radius, paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DotGridPainter oldDelegate) =>
+      oldDelegate.isDark != isDark;
 }

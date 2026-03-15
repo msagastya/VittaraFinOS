@@ -64,7 +64,7 @@ class _NPSAccountStepState extends State<NPSAccountStep> {
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
             ),
             onChanged: (v) => ctrl.updatePRN(v),
           ),
@@ -80,7 +80,7 @@ class _NPSAccountStepState extends State<NPSAccountStep> {
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
             ),
             onChanged: (v) => ctrl.updateNRN(v),
           ),
@@ -96,7 +96,7 @@ class _NPSAccountStepState extends State<NPSAccountStep> {
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
             ),
             onChanged: (v) => ctrl.updateName(v),
           ),
@@ -112,7 +112,7 @@ class _NPSAccountStepState extends State<NPSAccountStep> {
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(Radii.md),
             ),
             onChanged: (v) => ctrl.updatePAN(v.toUpperCase()),
           ),

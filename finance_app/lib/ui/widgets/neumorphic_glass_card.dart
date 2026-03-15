@@ -309,7 +309,7 @@ class NeumorphicGlassToggle extends StatelessWidget {
         width: 60,
         height: 32,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(Radii.lg),
           color: value
               ? color.withValues(alpha: 0.3)
               : (isDark ? Colors.grey[800] : Colors.grey[300]),
@@ -334,12 +334,12 @@ class NeumorphicGlassToggle extends StatelessWidget {
           children: [
             // Glass blur effect
             ClipRRect(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(Radii.lg),
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
                 child: Container(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(Radii.lg),
                     border: Border.all(
                       color: isDark
                           ? Colors.white.withValues(alpha: 0.1)
@@ -424,7 +424,7 @@ class NeumorphicGlassSlider extends StatelessWidget {
       child: Container(
         height: 48,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(Radii.xxl),
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -446,7 +446,7 @@ class NeumorphicGlassSlider extends StatelessWidget {
               widthFactor: normalizedValue,
               child: Container(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(Radii.xxl),
                   gradient: LinearGradient(
                     colors: [
                       color.withValues(alpha: 0.3),
@@ -458,12 +458,12 @@ class NeumorphicGlassSlider extends StatelessWidget {
             ),
             // Glass effect
             ClipRRect(
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(Radii.xxl),
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
                 child: Container(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(Radii.xxl),
                     border: Border.all(
                       color: isDark
                           ? Colors.white.withValues(alpha: 0.05)

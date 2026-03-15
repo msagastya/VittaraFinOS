@@ -88,7 +88,7 @@ class _GoldWeightStepState extends State<GoldWeightStep> {
           Container(
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
-              color: CupertinoColors.activeBlue.withValues(alpha: 0.1),
+              color: AppStyles.aetherTeal.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(

@@ -96,7 +96,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         color: AppStyles.getBackground(ctx),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(Radii.md),
                       ),
                     ),
                     const SizedBox(height: Spacing.lg),
@@ -180,7 +180,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                       margin: const EdgeInsets.all(Spacing.lg),
                       decoration: BoxDecoration(
                         color: AppStyles.getCardColor(context),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(Radii.md),
                       ),
                       child: CupertinoSearchTextField(
                         backgroundColor: Colors.transparent,
@@ -338,7 +338,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         color: AppStyles.getBackground(ctx),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(Radii.md),
                       ),
                     ),
                     const SizedBox(height: 14),
@@ -442,7 +442,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                   scale: 0.8,
                   child: CupertinoSwitch(
                     value: app['isEnabled'],
-                    activeTrackColor: CupertinoColors.systemGreen,
+                    activeTrackColor: AppStyles.bioGreen,
                     onChanged: (bool value) async {
                       await appsController.toggleApp(
                         app['id'] as String,
@@ -592,7 +592,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                                 border: Border.all(
                                     color: CupertinoColors.systemBlue
                                         .withValues(alpha: 0.2)),
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(Radii.md),
                               ),
                               style: TextStyle(
                                   color: AppStyles.getTextColor(context)),
@@ -609,7 +609,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                               decoration: BoxDecoration(
                                 color: AppStyles.getSecondaryTextColor(context)
                                     .withValues(alpha: 0.08),
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(Radii.md),
                               ),
                               padding: const EdgeInsets.all(Spacing.xs),
                               child: Row(
@@ -623,7 +623,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                                             vertical: 12),
                                         decoration: BoxDecoration(
                                           color: hasWallet
-                                              ? CupertinoColors.systemGreen
+                                              ? AppStyles.bioGreen
                                               : Colors.transparent,
                                           borderRadius:
                                               BorderRadius.circular(10),
@@ -649,7 +649,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                                             vertical: 12),
                                         decoration: BoxDecoration(
                                           color: !hasWallet
-                                              ? CupertinoColors.systemRed
+                                              ? AppStyles.plasmaRed
                                               : Colors.transparent,
                                           borderRadius:
                                               BorderRadius.circular(10),
@@ -693,7 +693,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                                   border: Border.all(
                                       color: CupertinoColors.systemBlue
                                           .withValues(alpha: 0.2)),
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(Radii.md),
                                 ),
                                 style: TextStyle(
                                     color: AppStyles.getTextColor(context)),
@@ -726,7 +726,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                                     const EdgeInsets.symmetric(vertical: 16),
                                 decoration: BoxDecoration(
                                   color: CupertinoColors.systemBlue,
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(Radii.md),
                                 ),
                                 child: Center(
                                   child: Text('Save',
