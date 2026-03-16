@@ -3,6 +3,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
@@ -12,6 +13,13 @@ class SettingsController with ChangeNotifier {
   final LocalAuthentication auth = LocalAuthentication();
   static const platform = MethodChannel('com.example.finance_app/secure');
   late SharedPreferences _prefs;
+
+  // Secure storage for PIN hash and recovery code (Android Keystore / iOS Keychain)
+  static const _secureStorage = FlutterSecureStorage(
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
+  );
+  static const _keyPinHash = 'vfos_pin_hash';
 
   ThemeMode _themeMode = ThemeMode.system;
   bool _isBiometricEnabled = true;
@@ -60,10 +68,23 @@ class SettingsController with ChangeNotifier {
     _lockTimeoutSeconds = _prefs.getInt('lockTimeoutSeconds') ?? 10;
     _isInvestmentTrackingEnabled =
         _prefs.getBool('isInvestmentTrackingEnabled') ?? false;
-    _pinHash = _prefs.getString('pinHash');
     _isArchivedTransactionsEnabled =
         _prefs.getBool('showArchivedTransactions') ?? false;
     _isSmsEnabled = _prefs.getBool('isSmsEnabled') ?? false;
+
+    // Read PIN hash from secure storage (migrated from SharedPreferences)
+    _pinHash = await _secureStorage.read(key: _keyPinHash);
+    // One-time migration: move old pin hash from SharedPreferences → secure storage
+    if (_pinHash == null) {
+      final legacyHash = _prefs.getString('pinHash');
+      if (legacyHash != null && legacyHash.isNotEmpty) {
+        _pinHash = legacyHash;
+        await _secureStorage.write(key: _keyPinHash, value: legacyHash);
+        await _prefs.remove('pinHash');
+        logger.info('Migrated PIN hash from SharedPreferences → secure storage',
+            context: 'SettingsController');
+      }
+    }
 
     // Skip biometric setup on web
     if (!kIsWeb) {
@@ -217,13 +238,40 @@ class SettingsController with ChangeNotifier {
 
   Future<void> setPin(String pin) async {
     _pinHash = _hashPin(pin);
-    await _prefs.setString('pinHash', _pinHash!);
+    await _secureStorage.write(key: _keyPinHash, value: _pinHash!);
+    await _prefs.remove('pinHash'); // remove any legacy plaintext copy
     notifyListeners();
   }
 
   Future<void> clearPin() async {
     _pinHash = null;
+    await _secureStorage.delete(key: _keyPinHash);
     await _prefs.remove('pinHash');
+    notifyListeners();
+  }
+
+  /// Called by PIN recovery flow after successful code verification.
+  /// Resets PIN to new value without requiring the old PIN.
+  Future<void> resetPinAfterRecovery(String newPin) async {
+    _pinHash = _hashPin(newPin);
+    await _secureStorage.write(key: _keyPinHash, value: _pinHash!);
+    await _prefs.remove('pinHash');
+    notifyListeners();
+  }
+
+  /// Nuclear reset — wipes ALL app data from secure storage.
+  /// Called only from the last-resort reset flow (triple-confirmed by user).
+  Future<void> nuclearReset() async {
+    await _secureStorage.deleteAll();
+    await _prefs.clear();
+    _pinHash = null;
+    _isBiometricEnabled = true;
+    _lockOnMinimize = false;
+    _lockTimeoutSeconds = 10;
+    _isInvestmentTrackingEnabled = false;
+    _isArchivedTransactionsEnabled = false;
+    _isSmsEnabled = false;
+    _isLocked = false;
     notifyListeners();
   }
 

@@ -1188,7 +1188,10 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                 Clipboard.setData(ClipboardData(
                                     text: account.creditCardNumber!));
                                 HapticFeedback.lightImpact();
-                                toast.showSuccess('Card number copied');
+                                toast.showSuccess('Card number copied — clears in 30s');
+                                Future.delayed(const Duration(seconds: 30), () {
+                                  Clipboard.setData(const ClipboardData(text: ''));
+                                });
                               },
                               child: Row(
                                 children: [
@@ -1209,7 +1212,10 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                       Clipboard.setData(ClipboardData(
                                           text: account.creditCardNumber!));
                                       HapticFeedback.lightImpact();
-                                      toast.showSuccess('Card number copied');
+                                      toast.showSuccess('Card number copied — clears in 30s');
+                                      Future.delayed(const Duration(seconds: 30), () {
+                                        Clipboard.setData(const ClipboardData(text: ''));
+                                      });
                                     },
                                     child: Icon(
                                       CupertinoIcons.doc_on_doc,

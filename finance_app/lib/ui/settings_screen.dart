@@ -1,8 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:vittara_fin_os/logic/pin_recovery_controller.dart';
 import 'package:vittara_fin_os/logic/settings_controller.dart';
 import 'package:vittara_fin_os/ui/backup_restore_screen.dart';
+import 'package:vittara_fin_os/ui/recovery_code_save_screen.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
@@ -84,6 +86,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     color: CupertinoColors.systemPurple,
                     onTap: () => _showPinSetupSheet(context, settings),
                   ),
+                  if (settings.isPinEnabled) ...[
+                    _buildDivider(context),
+                    _buildNavRow(
+                      context,
+                      icon: CupertinoIcons.shield_lefthalf_fill,
+                      title: 'Recovery Code',
+                      value: 'View',
+                      color: AppStyles.solarGold,
+                      onTap: () => _showRecoveryCode(context, settings),
+                    ),
+                  ],
                 ],
               ]),
 
@@ -356,7 +369,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               error ? AppStyles.plasmaRed : AppStyles.accentBlue;
           final current = inConfirm ? confirmDigits! : digits;
 
-          void onDigit(String d) {
+          Future<void> onDigit(String d) async {
             if (current.length >= 6) return;
             setS(() {
               current.add(d);
@@ -368,8 +381,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 setS(() => inConfirm = true);
               } else {
                 if (digits.join() == confirmDigits!.join()) {
-                  settings.setPin(digits.join());
+                  await settings.setPin(digits.join());
                   Navigator.pop(ctx);
+                  // Generate recovery code and show save screen
+                  final code = await PinRecoveryController.instance
+                      .generateAndStoreRecoveryCode();
+                  if (context.mounted) {
+                    Navigator.of(context).push(CupertinoPageRoute(
+                      builder: (_) => RecoveryCodeSaveScreen(
+                        recoveryCode: code,
+                        onConfirmed: () => Navigator.of(context).pop(),
+                      ),
+                    ));
+                  }
                 } else {
                   setS(() {
                     error = true;
@@ -509,6 +533,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
         },
       ),
     );
+  }
+
+  Future<void> _showRecoveryCode(
+      BuildContext context, SettingsController settings) async {
+    // Require authentication before revealing recovery code
+    final authed = await settings.authenticateArchivedAccess(
+        reason: 'Authenticate to view your recovery code');
+    if (!authed || !context.mounted) return;
+
+    final hasCode = await PinRecoveryController.instance.hasRecoveryCode();
+    if (!context.mounted) return;
+
+    if (!hasCode) {
+      // No code yet — generate one now
+      final code =
+          await PinRecoveryController.instance.generateAndStoreRecoveryCode();
+      if (!context.mounted) return;
+      Navigator.of(context).push(CupertinoPageRoute(
+        builder: (_) => RecoveryCodeSaveScreen(
+          recoveryCode: code,
+          onConfirmed: () => Navigator.of(context).pop(),
+        ),
+      ));
+    } else {
+      // Already exists — regenerate a fresh one and show it
+      final code =
+          await PinRecoveryController.instance.generateAndStoreRecoveryCode();
+      if (!context.mounted) return;
+      Navigator.of(context).push(CupertinoPageRoute(
+        builder: (_) => RecoveryCodeSaveScreen(
+          recoveryCode: code,
+          onConfirmed: () => Navigator.of(context).pop(),
+        ),
+      ));
+    }
   }
 
   void _showThemeOptions(BuildContext context, SettingsController settings) {

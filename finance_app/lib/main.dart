@@ -51,6 +51,7 @@ import 'package:vittara_fin_os/ui/app_menu/app_menu_screen.dart';
 import 'package:vittara_fin_os/ui/sms/sms_review_screen.dart';
 import 'package:vittara_fin_os/services/sms_auto_scan_service.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
+import 'package:vittara_fin_os/ui/pin_recovery_screen.dart';
 
 final AppLogger logger = AppLogger();
 
@@ -530,6 +531,22 @@ class _LockScreenState extends State<LockScreen> {
             ),
           ),
         ],
+        CupertinoButton(
+          onPressed: () {
+            Navigator.of(context).push(
+              CupertinoPageRoute(
+                builder: (_) => const PinRecoveryScreen(),
+              ),
+            );
+          },
+          child: Text(
+            'Forgot PIN?',
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.4),
+              fontSize: TypeScale.subhead,
+            ),
+          ),
+        ),
         const SizedBox(height: 16),
       ],
     );
