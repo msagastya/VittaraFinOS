@@ -59,11 +59,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
         return BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
           child: Container(
-            decoration: BoxDecoration(
-              color: AppStyles.getCardColor(context),
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(24)),
-            ),
+            decoration: AppStyles.bottomSheetDecoration(context),
             padding: const EdgeInsets.all(Spacing.xxl),
             child: SafeArea(
               child: Column(
@@ -935,7 +931,9 @@ class _AccountsScreenState extends State<AccountsScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(account.name,
-                                    style: AppStyles.titleStyle(context)),
+                                    style: AppStyles.titleStyle(context),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis),
                                 SizedBox(height: Spacing.xs),
                                 Text(
                                   '${account.bankName} · ${account.type.name.toUpperCase()}',
@@ -945,6 +943,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                         .withValues(alpha: 0.75),
                                     fontWeight: FontWeight.w600,
                                   ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ],
                             ),

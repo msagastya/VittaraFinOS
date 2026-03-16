@@ -279,6 +279,34 @@ class AppStyles {
     );
   }
 
+  /// Bottom sheet / modal — same card gradient with top-only rounded corners.
+  /// Use this for ALL showCupertinoModalPopup / showModalBottomSheet containers.
+  static BoxDecoration bottomSheetDecoration(BuildContext context) {
+    final isDark = isDarkMode(context);
+    return BoxDecoration(
+      gradient: isDark
+          ? const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF070D1A), Color(0xFF050B15)],
+            )
+          : const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFFFFFFFF), Color(0xFFF4F9FF)],
+            ),
+      border: Border(
+        top: BorderSide(
+          color: isDark
+              ? const Color(0xFF1A2E4A)
+              : const Color(0xFFBDD4F0),
+          width: 1.0,
+        ),
+      ),
+      borderRadius: Radii.modalRadius,
+    );
+  }
+
   /// Hero card — deep space with aether emissive border glow.
   static BoxDecoration heroCardDecoration(BuildContext context) {
     final isDark = isDarkMode(context);

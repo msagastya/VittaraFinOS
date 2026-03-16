@@ -1367,3 +1367,107 @@ class LoadingOverlay extends StatelessWidget {
     );
   }
 }
+
+// ============================================================
+// JARGON TOOLTIP — AU14-01
+// ============================================================
+// Tap-to-explain info icon for financial jargon terms.
+// Usage: Row(children: [Text('PRAN'), SizedBox(width: 4), JargonTooltip.pran()])
+// ============================================================
+
+class JargonTooltip extends StatelessWidget {
+  final String term;
+  final String definition;
+
+  const JargonTooltip({
+    super.key,
+    required this.term,
+    required this.definition,
+  });
+
+  // ── Named constructors for common terms ──────────────────
+  const JargonTooltip.pran({super.key})
+      : term = 'PRAN',
+        definition =
+            'Permanent Retirement Account Number — your unique 12-digit NPS account ID issued by the Central Recordkeeping Agency (CRA). Required for all NPS transactions.';
+
+  const JargonTooltip.nav({super.key})
+      : term = 'NAV',
+        definition =
+            'Net Asset Value — the per-unit market price of a mutual fund. Calculated daily as (Total Assets − Liabilities) ÷ Total Units. You buy/sell MF units at NAV.';
+
+  const JargonTooltip.cagr({super.key})
+      : term = 'CAGR',
+        definition =
+            'Compound Annual Growth Rate — the steady annual rate at which an investment would have grown from its initial to final value. Formula: (End/Start)^(1/Years) − 1.';
+
+  const JargonTooltip.xirr({super.key})
+      : term = 'XIRR',
+        definition =
+            'Extended Internal Rate of Return — measures actual returns when investments/withdrawals happen at irregular dates (unlike CAGR which assumes lump sum). Higher XIRR = better returns.';
+
+  const JargonTooltip.tds({super.key})
+      : term = 'TDS',
+        definition =
+            'Tax Deducted at Source — the bank deducts 10% tax on FD interest >₹40,000/year (₹50,000 for seniors) before crediting you. Submit Form 15G/H to avoid TDS if your income is below taxable limit.';
+
+  const JargonTooltip.isin({super.key})
+      : term = 'ISIN',
+        definition =
+            'International Securities Identification Number — a 12-character alphanumeric code (e.g. INE009A01021) that uniquely identifies a security across global markets.';
+
+  const JargonTooltip.greeks({super.key})
+      : term = 'Greeks',
+        definition =
+            'Options Greeks measure sensitivity of an option\'s price to various factors:\n• Delta: price change per ₹1 move in underlying\n• Theta: time decay per day\n• Vega: sensitivity to volatility\n• Gamma: rate of Delta change';
+
+  const JargonTooltip.drawdown({super.key})
+      : term = 'Drawdown',
+        definition =
+            'Maximum Drawdown — the peak-to-trough decline before a new peak is reached. E.g. if a fund fell from ₹100 to ₹70 before recovering, the drawdown is 30%.';
+
+  const JargonTooltip.section80c({super.key})
+      : term = '80C',
+        definition =
+            'Section 80C of the Income Tax Act — allows deductions up to ₹1.5L/year for investments in PPF, ELSS, NPS (Tier 1), LIC, NSC, tax-saver FDs, etc. Reduces your taxable income.';
+
+  const JargonTooltip.sipDate({super.key})
+      : term = 'SIP Date',
+        definition =
+            'Systematic Investment Plan Date — the date each month when your SIP amount is auto-debited and invested in the mutual fund. Common SIP dates: 1st, 5th, 10th, 15th, 25th of the month.';
+
+  void _showDefinition(BuildContext context) {
+    showCupertinoDialog<void>(
+      context: context,
+      builder: (ctx) => CupertinoAlertDialog(
+        title: Text(term),
+        content: Padding(
+          padding: const EdgeInsets.only(top: 6),
+          child: Text(definition),
+        ),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Got it'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => _showDefinition(context),
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 2),
+        child: Icon(
+          CupertinoIcons.info_circle,
+          size: 14,
+          color: AppStyles.aetherTeal.withValues(alpha: 0.75),
+        ),
+      ),
+    );
+  }
+}

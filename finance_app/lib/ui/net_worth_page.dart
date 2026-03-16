@@ -186,7 +186,9 @@ class _NetWorthPageState extends State<NetWorthPage> {
                     _buildTotalNetWorthCard(
                         context, accountsController, investmentsController),
                     if (_historySnapshots.length >= 2) ...[
-                      SizedBox(height: Spacing.xl),
+                      SizedBox(height: Spacing.md),
+                      _buildMotivationalBanner(context, totalNetWorth),
+                      SizedBox(height: Spacing.md),
                       _buildNetWorthTrendCard(context),
                     ],
                     SizedBox(height: Spacing.xl),
@@ -247,6 +249,78 @@ class _NetWorthPageState extends State<NetWorthPage> {
             }
           },
         ),
+      ),
+    );
+  }
+
+  Widget _buildMotivationalBanner(BuildContext context, double currentNetWorth) {
+    // Compare current to previous month snapshot
+    // Last snapshot is current month (just saved); use the one before it
+    final prevSnapshot = _historySnapshots.length >= 2
+        ? _historySnapshots[_historySnapshots.length - 2]
+        : null;
+    if (prevSnapshot == null) return const SizedBox.shrink();
+
+    final delta = currentNetWorth - prevSnapshot.value;
+    final absDelta = delta.abs();
+    final pct = prevSnapshot.value != 0
+        ? (delta / prevSnapshot.value.abs()) * 100
+        : 0.0;
+
+    final String message;
+    final Color color;
+    final IconData icon;
+
+    if (delta > 0) {
+      if (pct >= 10) {
+        message =
+            'Up ${CurrencyFormatter.compact(absDelta)} (+${pct.toStringAsFixed(1)}%) — crushing it!';
+      } else if (pct >= 3) {
+        message = 'Up ${CurrencyFormatter.compact(absDelta)} this month. Keep going!';
+      } else {
+        message = 'Up ${CurrencyFormatter.compact(absDelta)} from last month.';
+      }
+      color = AppStyles.bioGreen;
+      icon = CupertinoIcons.arrow_up_right_circle_fill;
+    } else if (delta < 0) {
+      if (pct.abs() >= 10) {
+        message =
+            'Down ${CurrencyFormatter.compact(absDelta)} (${pct.toStringAsFixed(1)}%) — let\'s recover!';
+      } else {
+        message =
+            'Down ${CurrencyFormatter.compact(absDelta)} from last month — let\'s turn it around.';
+      }
+      color = AppStyles.plasmaRed;
+      icon = CupertinoIcons.arrow_down_right_circle_fill;
+    } else {
+      message = 'Net worth unchanged from last month.';
+      color = AppStyles.getSecondaryTextColor(context);
+      icon = CupertinoIcons.minus_circle_fill;
+    }
+
+    return Container(
+      padding: EdgeInsets.symmetric(
+          horizontal: Spacing.lg, vertical: Spacing.md),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(Radii.lg),
+        border: Border.all(color: color.withValues(alpha: 0.20), width: 1),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 18),
+          SizedBox(width: Spacing.md),
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(
+                fontSize: TypeScale.footnote,
+                color: color,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

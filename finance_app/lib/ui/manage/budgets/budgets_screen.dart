@@ -403,10 +403,11 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
               ],
             ),
             SizedBox(height: Spacing.lg),
-            LiquidLinearProgress(
-                progress: (budget.usagePercentage / 100).clamp(0, 1),
-                height: 12,
-                color: statusColor),
+            _ShakingBudgetBar(
+              progress: budget.usagePercentage / 100,
+              color: statusColor,
+              isExceeded: budget.status == BudgetStatus.exceeded,
+            ),
             SizedBox(height: Spacing.md),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -590,6 +591,72 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
         ],
         cancelButton: CupertinoActionSheetAction(
             onPressed: () => Navigator.pop(context), child: Text('Cancel')),
+      ),
+    );
+  }
+}
+
+/// Budget progress bar that shakes when the budget is exceeded.
+class _ShakingBudgetBar extends StatefulWidget {
+  final double progress; // usagePercentage / 100
+  final Color color;
+  final bool isExceeded;
+
+  const _ShakingBudgetBar({
+    required this.progress,
+    required this.color,
+    required this.isExceeded,
+  });
+
+  @override
+  State<_ShakingBudgetBar> createState() => _ShakingBudgetBarState();
+}
+
+class _ShakingBudgetBarState extends State<_ShakingBudgetBar>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _offset;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _offset = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 0.0, end: 6.0), weight: 1),
+      TweenSequenceItem(tween: Tween(begin: 6.0, end: -6.0), weight: 2),
+      TweenSequenceItem(tween: Tween(begin: -6.0, end: 5.0), weight: 2),
+      TweenSequenceItem(tween: Tween(begin: 5.0, end: -5.0), weight: 2),
+      TweenSequenceItem(tween: Tween(begin: -5.0, end: 0.0), weight: 1),
+    ]).animate(CurvedAnimation(parent: _ctrl, curve: Curves.linear));
+
+    if (widget.isExceeded) {
+      Future.delayed(const Duration(milliseconds: 350), () {
+        if (mounted) _ctrl.forward();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _offset,
+      builder: (context, child) => Transform.translate(
+        offset: Offset(_offset.value, 0),
+        child: child,
+      ),
+      child: LiquidLinearProgress(
+        progress: widget.progress.clamp(0.0, 1.0),
+        height: 12,
+        color: widget.color,
       ),
     );
   }

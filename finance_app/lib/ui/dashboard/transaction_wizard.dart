@@ -1537,6 +1537,9 @@ class _TransactionWizardState extends State<TransactionWizard> {
                     keyboardType:
                         const TextInputType.numberWithOptions(decimal: true),
                     textInputAction: TextInputAction.done,
+                    onChanged: (_) {
+                      if (_amountError) setState(() => _amountError = false);
+                    },
                     onSubmitted: (_) => _tryAdvanceFromAmount(),
                     placeholder: '0',
                     placeholderStyle: TextStyle(
@@ -1768,14 +1771,27 @@ class _TransactionWizardState extends State<TransactionWizard> {
       children: [
         _buildFooterButton(label: nextLabel, onPressed: onNext),
         CupertinoButton(
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.symmetric(vertical: 4),
           onPressed: onSkip,
-          child: Text(
-            'Skip',
-            style: TextStyle(
-              fontSize: TypeScale.footnote,
-              color: AppStyles.getSecondaryTextColor(context),
-            ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Skip',
+                style: TextStyle(
+                  fontSize: TypeScale.footnote,
+                  color: AppStyles.getSecondaryTextColor(context),
+                ),
+              ),
+              Text(
+                'Optional — you can add this later',
+                style: TextStyle(
+                  fontSize: 10,
+                  color: AppStyles.getSecondaryTextColor(context)
+                      .withValues(alpha: 0.55),
+                ),
+              ),
+            ],
           ),
         ),
       ],

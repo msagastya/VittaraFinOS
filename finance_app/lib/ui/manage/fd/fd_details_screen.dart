@@ -10,6 +10,7 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
+import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/manage/fd/fd_renewal_wizard_screen.dart';
 import 'package:vittara_fin_os/ui/manage/fd/modals/fd_withdrawal_modal.dart';
 
@@ -1919,6 +1920,8 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                       : AppStyles.bioGreen,
                 ),
               ),
+              const SizedBox(width: 4),
+              const JargonTooltip.tds(),
             ],
           ),
           const SizedBox(height: Spacing.md),

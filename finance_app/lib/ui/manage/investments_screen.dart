@@ -527,11 +527,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
         maxChildSize: 0.9,
         builder: (drag, scrollController) {
           return Container(
-            decoration: BoxDecoration(
-              color: AppStyles.getCardColor(context),
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(24)),
-            ),
+            decoration: AppStyles.bottomSheetDecoration(context),
             child: Column(
               children: [
                 Container(
@@ -1572,13 +1568,16 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                    'Portfolio CAGR  ',
+                                    'Portfolio CAGR',
                                     style: TextStyle(
                                       fontSize: TypeScale.caption,
                                       color: AppStyles.getSecondaryTextColor(
                                           context),
                                     ),
                                   ),
+                                  const SizedBox(width: 3),
+                                  const JargonTooltip.cagr(),
+                                  const SizedBox(width: 6),
                                   Text(
                                     cagrText,
                                     style: TextStyle(
@@ -3253,7 +3252,9 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(investment.name,
-                                    style: AppStyles.titleStyle(context)),
+                                    style: AppStyles.titleStyle(context),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis),
                                 SizedBox(height: Spacing.xs),
                                 Text(
                                   investment.getTypeLabel(),
@@ -3263,6 +3264,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                         .withValues(alpha: 0.75),
                                     fontWeight: FontWeight.w600,
                                   ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                                 SizedBox(height: Spacing.sm),
                                 Row(

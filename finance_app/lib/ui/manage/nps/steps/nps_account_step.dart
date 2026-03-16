@@ -5,6 +5,7 @@ import 'package:vittara_fin_os/logic/nps_model.dart';
 import 'package:vittara_fin_os/ui/manage/nps/nps_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 
 class NPSAccountStep extends StatefulWidget {
   const NPSAccountStep({super.key});
@@ -53,10 +54,14 @@ class _NPSAccountStepState extends State<NPSAccountStep> {
               style:
                   TextStyle(color: AppStyles.getSecondaryTextColor(context))),
           const SizedBox(height: 30),
-          // PRN
-          Text('Permanent Retirement Number (PRN)',
-              style: TextStyle(
-                  fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+          // PRAN
+          Row(children: [
+            Text('Permanent Retirement Number (PRAN)',
+                style: TextStyle(
+                    fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
+            const SizedBox(width: 4),
+            const JargonTooltip.pran(),
+          ]),
           const SizedBox(height: Spacing.md),
           CupertinoTextField(
             controller: _prnController,

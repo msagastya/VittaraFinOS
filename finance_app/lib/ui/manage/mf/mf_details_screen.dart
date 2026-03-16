@@ -392,7 +392,8 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
               _buildDetailRow('NAV @ Purchase',
                   '₹${(metadata['investmentNAV'] as num?)?.toDouble().toStringAsFixed(2) ?? '-'}'),
               _buildDetailRow('Current NAV',
-                  '₹${(metadata['currentNAV'] as num?)?.toDouble().toStringAsFixed(2) ?? '-'}'),
+                  '₹${(metadata['currentNAV'] as num?)?.toDouble().toStringAsFixed(2) ?? '-'}',
+                  labelSuffix: const JargonTooltip.nav()),
               if (metadata['navDate'] != null)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 4),
@@ -521,15 +522,25 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
+  Widget _buildDetailRow(String label, String value,
+      {Widget? labelSuffix}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: const TextStyle(fontSize: TypeScale.subhead),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(fontSize: TypeScale.subhead),
+              ),
+              if (labelSuffix != null) ...[
+                const SizedBox(width: 3),
+                labelSuffix,
+              ],
+            ],
           ),
           Text(
             value,

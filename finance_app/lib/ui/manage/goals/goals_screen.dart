@@ -617,20 +617,9 @@ class _GoalsScreenState extends State<GoalsScreen> {
                     ),
                   ],
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    counter_widgets.AnimatedCounter(
-                      value: goal.progressPercentage,
-                      suffix: '%',
-                      decimalPlaces: 1,
-                      textStyle: TextStyle(
-                        fontSize: TypeScale.title2,
-                        fontWeight: FontWeight.bold,
-                        color: goal.color,
-                      ),
-                    ),
-                  ],
+                _GoalArcProgress(
+                  progress: goal.progressPercentage / 100,
+                  color: goal.color,
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
@@ -793,4 +782,94 @@ class _GoalsScreenState extends State<GoalsScreen> {
       ),
     );
   }
+}
+
+/// Animated circular arc showing goal progress percentage.
+class _GoalArcProgress extends StatelessWidget {
+  final double progress; // 0.0 to 1.0+
+  final Color color;
+
+  const _GoalArcProgress({required this.progress, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final clamped = progress.clamp(0.0, 1.0);
+    final label = '${(progress * 100).toStringAsFixed(0)}%';
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: clamped),
+      duration: const Duration(milliseconds: 900),
+      curve: Curves.easeOutCubic,
+      builder: (context, value, _) {
+        return SizedBox(
+          width: 56,
+          height: 56,
+          child: CustomPaint(
+            painter: _ArcPainter(
+              progress: value,
+              color: color,
+              trackColor: AppStyles.getDividerColor(context),
+            ),
+            child: Center(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  color: progress >= 1.0
+                      ? AppStyles.bioGreen
+                      : color,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _ArcPainter extends CustomPainter {
+  final double progress;
+  final Color color;
+  final Color trackColor;
+
+  const _ArcPainter({
+    required this.progress,
+    required this.color,
+    required this.trackColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const strokeWidth = 5.0;
+    final rect = Rect.fromLTWH(
+        strokeWidth / 2, strokeWidth / 2,
+        size.width - strokeWidth, size.height - strokeWidth);
+
+    // Track
+    canvas.drawArc(
+      rect, -1.5707963, 6.2831853, false,
+      Paint()
+        ..color = trackColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth
+        ..strokeCap = StrokeCap.round,
+    );
+
+    if (progress > 0) {
+      // Progress arc
+      canvas.drawArc(
+        rect, -1.5707963, 6.2831853 * progress, false,
+        Paint()
+          ..color = color
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = strokeWidth
+          ..strokeCap = StrokeCap.round,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_ArcPainter old) =>
+      old.progress != progress || old.color != color;
 }

@@ -422,6 +422,8 @@ class _LockScreenState extends State<LockScreen> {
 
   Widget _buildPinEntry(BuildContext context, SettingsController settings) {
     final dotColor = _pinError ? Colors.red : Colors.white;
+    final btnSize =
+        (MediaQuery.of(context).size.width / 5.5).clamp(56.0, 80.0);
     return Column(
       children: [
         SizedBox(height: Spacing.xxxl),
@@ -481,7 +483,7 @@ class _LockScreenState extends State<LockScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: row.map((label) {
-                      if (label.isEmpty) return const SizedBox(width: 80);
+                      if (label.isEmpty) return SizedBox(width: btnSize, height: btnSize);
                       return GestureDetector(
                         onTap: () {
                           HapticFeedback.lightImpact();
@@ -492,8 +494,8 @@ class _LockScreenState extends State<LockScreen> {
                           }
                         },
                         child: Container(
-                          width: 80,
-                          height: 80,
+                          width: btnSize,
+                          height: btnSize,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: Colors.white.withValues(alpha: 0.1),

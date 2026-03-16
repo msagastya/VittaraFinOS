@@ -126,11 +126,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           return Container(
             padding: EdgeInsets.only(
                 bottom: MediaQuery.of(ctx).viewInsets.bottom + 24),
-            decoration: BoxDecoration(
-              color: AppStyles.getCardColor(ctx),
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(24)),
-            ),
+            decoration: AppStyles.bottomSheetDecoration(ctx),
             child: SafeArea(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
