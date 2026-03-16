@@ -1,3 +1,41 @@
+/// Unified number / percentage formatter.
+/// Use these helpers everywhere — never format inline with .toStringAsFixed().
+class NumberFormatter {
+  NumberFormatter._();
+
+  /// Format as percentage: 5.0 → "5%", 5.234 → "5.23%", -2.5 → "-2.5%"
+  static String percent(double value, {int decimals = 2}) {
+    final sign = value < 0 ? '-' : '';
+    final abs = value.abs();
+    // Trim trailing zeros: 5.00% → 5%, 5.10% → 5.1%
+    final formatted = abs.toStringAsFixed(decimals);
+    final trimmed = formatted.contains('.')
+        ? formatted.replaceAll(RegExp(r'\.?0+$'), '')
+        : formatted;
+    return '$sign$trimmed%';
+  }
+
+  /// Format as signed percentage: 5.0 → "+5%", -2.5 → "-2.5%"
+  static String percentSigned(double value, {int decimals = 2}) {
+    final sign = value >= 0 ? '+' : '';
+    return '$sign${percent(value, decimals: decimals)}';
+  }
+
+  /// Normalize merchant name from ALL-CAPS SMS to Title Case.
+  /// "ZOMATO INDIA" → "Zomato India", "starbucks" → "Starbucks"
+  static String toTitleCase(String s) {
+    if (s.isEmpty) return s;
+    // If already mixed case, leave it alone
+    if (s != s.toUpperCase() && s != s.toLowerCase()) return s;
+    return s
+        .toLowerCase()
+        .split(RegExp(r'\s+'))
+        .map((w) => w.isEmpty ? '' : '${w[0].toUpperCase()}${w.substring(1)}')
+        .join(' ')
+        .trim();
+  }
+}
+
 /// Compact Indian currency formatter.
 /// ₹1,000 → ₹1K  |  ₹1,00,000 → ₹1L  |  ₹1,00,00,000 → ₹1Cr
 class CurrencyFormatter {
@@ -48,6 +86,21 @@ class CurrencyFormatter {
     return '$sign${format(amount, decimals: decimals)}';
   }
 
+  /// Display balance gracefully:
+  /// 0 → "—"  |  positive → compact  |  negative → "-₹X.XX"
+  /// Use this in account/card headings where zero balance is uninformative.
+  static String balance(double amount, {bool compact = false}) {
+    if (amount == 0) return '—';
+    return compact
+        ? CurrencyFormatter.compact(amount)
+        : CurrencyFormatter.format(amount, decimals: 2);
+  }
+
+  /// Display date in canonical "15 Mar 2026" format.
+  /// Alias for [DateFormatter.format] — use this for consistency.
+  /// AU15-02: everywhere dates are displayed to the user, use this.
+  static String display(DateTime date) => DateFormatter.format(date);
+
   static String _indianFormat(double value, int decimals) {
     final parts = value.toStringAsFixed(decimals).split('.');
     final intPart = parts[0];
@@ -67,6 +120,11 @@ class CurrencyFormatter {
 /// Centralized date formatting utility
 /// Eliminates code duplication across 14+ files
 class DateFormatter {
+  /// Canonical display format: "15 Mar 2026".
+  /// AU15-02: use this everywhere a date is shown to the user.
+  /// Identical to [format] — exists as a semantic alias.
+  static String display(DateTime date) => format(date);
+
   /// Format date as "DD MMM YYYY" (e.g., "15 Jan 2024")
   static String format(DateTime date) {
     const months = [

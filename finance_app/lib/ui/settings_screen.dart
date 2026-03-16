@@ -124,7 +124,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   onChanged: (val) => settings.toggleInvestmentTracking(val),
                 ),
                 _buildDivider(context),
-                _buildDivider(context),
                 _buildToggleRow(
                   context,
                   icon: CupertinoIcons.archivebox_fill,

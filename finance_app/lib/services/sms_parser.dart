@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_sms_inbox/flutter_sms_inbox.dart';
 import 'package:google_mlkit_entity_extraction/google_mlkit_entity_extraction.dart';
 import 'package:vittara_fin_os/services/bank_sms_patterns.dart';
+import 'package:vittara_fin_os/utils/date_formatter.dart';
 
 /// Result of parsing one SMS message.
 class ParsedSms {
@@ -463,7 +464,9 @@ class SmsParser {
     cleaned = cleaned.replaceAll(RegExp(r'\s{2,}'), ' ').trim();
     // Cap length
     if (cleaned.length > 30) cleaned = cleaned.substring(0, 30).trim();
-    return cleaned.isEmpty ? raw : cleaned;
+    final result = cleaned.isEmpty ? raw : cleaned;
+    // AU15-06: normalize ALL-CAPS merchant names to Title Case
+    return NumberFormatter.toTitleCase(result);
   }
 
   String? _extractAccountLast4(String body) {

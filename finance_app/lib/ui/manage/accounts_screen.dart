@@ -1921,11 +1921,22 @@ class _AccountsScreenState extends State<AccountsScreen> {
             CupertinoDialogAction(
               isDestructiveAction: true,
               child: const Text('Delete'),
-              onPressed: () {
+              onPressed: () async {
                 Haptics.delete();
                 final accountsController =
                     Provider.of<AccountsController>(context, listen: false);
+                final txController =
+                    Provider.of<TransactionsController>(context, listen: false);
                 final deletedName = account.name;
+                // Mark all linked transactions so they show the deleted account label
+                final linked = txController.getTransactionsByAccount(account.id);
+                for (final tx in linked) {
+                  final updatedMeta = Map<String, dynamic>.from(tx.metadata ?? {});
+                  updatedMeta['deletedAccountName'] = account.name;
+                  updatedMeta['deletedAccountId'] = account.id;
+                  await txController.updateTransaction(
+                    tx.copyWith(metadata: updatedMeta));
+                }
                 accountsController.removeAccount(account.id);
                 Navigator.pop(dialogContext);
                 logger.info('Deleted account: $deletedName',

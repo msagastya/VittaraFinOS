@@ -96,6 +96,21 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
   static const _prefKeySortAsc = 'inv_sort_asc';
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Attach listener once — clear cache whenever InvestmentsController notifies
+    // (handles middle-item edits where first/last IDs don't change)
+    final ctrl =
+        Provider.of<InvestmentsController>(context, listen: false);
+    ctrl.removeListener(_onInvestmentsChanged); // guard against double-attach
+    ctrl.addListener(_onInvestmentsChanged);
+  }
+
+  void _onInvestmentsChanged() {
+    if (mounted) setState(() => _filterSortCache.clear());
+  }
+
+  @override
   void initState() {
     super.initState();
     _loadSortPrefs();
@@ -129,6 +144,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
 
   @override
   void dispose() {
+    final ctrl = Provider.of<InvestmentsController>(context, listen: false);
+    ctrl.removeListener(_onInvestmentsChanged);
     _categoryPageController.dispose();
     _searchController.dispose();
     _scrollController.dispose();

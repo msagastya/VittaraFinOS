@@ -86,7 +86,9 @@ class _TransactionWizardState extends State<TransactionWizard> {
 
   void _selectBranch(TransactionWizardBranch branch) {
     if (branch == TransactionWizardBranch.transfer) {
-      Navigator.of(context).pushReplacement(
+      // Use push (not pushReplacement) so back from TransferWizard
+      // returns to the wizard branch selector, not the previous screen.
+      Navigator.of(context).push(
         FadeScalePageRoute(page: const TransferWizard()),
       );
       return;
@@ -493,7 +495,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
 
   void _previousStep() {
     if (_history.length <= 1) {
-      Navigator.pop(context);
+      if (Navigator.canPop(context)) Navigator.pop(context);
       return;
     }
     _history.removeLast();
@@ -737,7 +739,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
     await transactionsController.addTransaction(transaction);
     HapticFeedback.heavyImpact();
     toast_lib.toast.showSuccess('Transaction logged');
-    Navigator.pop(context);
+    if (mounted && Navigator.canPop(context)) Navigator.pop(context);
   }
 
   Widget _buildStepShell({

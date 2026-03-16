@@ -63,7 +63,7 @@
 
 | ID | P | Status | Task | File / Location |
 |----|---|--------|------|-----------------|
-| AU4-01 | P1 | [ ] | Fix filter/sort cache: invalidate `_cachedSortedList` when `InvestmentsController` notifies | `investments_screen.dart:76–78` |
+| AU4-01 | P1 | [x] | Fix filter/sort cache: invalidate `_cachedSortedList` when `InvestmentsController` notifies | `investments_screen.dart:76–78` |
 | AU4-02 | P1 | [ ] | Remove `SharedPreferences.getInstance()` call from screen init; use controller's cached `_prefs` | `investments_screen.dart:112–128` |
 | AU4-03 | P2 | [ ] | Move gold price future into `InvestmentsController.goldPrice` field so it's shared across screens | `investments_screen.dart:88–89` |
 | AU4-04 | P2 | [ ] | Replace `Consumer<T>` with `Selector<T, SubType>` in high-rebuild-frequency screens (dashboard, investments list) | `main.dart`, `investments_screen.dart` |
@@ -103,7 +103,7 @@
 | ID | P | Status | Task | File / Location |
 |----|---|--------|------|-----------------|
 | AU7-01 | P1 | [ ] | After investment detail edit pop, call `InvestmentsController.load()` to refresh list | All investment detail screens |
-| AU7-02 | P1 | [ ] | Fix `TransferWizard` navigation: use `Navigator.push` not `pushReplacement` so back returns to wizard branch | `transaction_wizard.dart` |
+| AU7-02 | P1 | [x] | Fix `TransferWizard` navigation: use `Navigator.push` not `pushReplacement` so back returns to wizard branch | `transaction_wizard.dart` |
 | AU7-03 | P2 | [ ] | Add `PageStorageKey` to all `ListView.builder` — restore scroll position on back navigate | All major list screens |
 | AU7-04 | P2 | [ ] | Audit all `CupertinoNavigationBar` — ensure `previousPageTitle: 'Back'` set everywhere | All screens |
 | AU7-05 | P2 | [ ] | Add `NavigatorObserver` that checks `isLocked` state on every route push | `main.dart` |
@@ -205,12 +205,12 @@
 
 | ID | P | Status | Task | File / Location |
 |----|---|--------|------|-----------------|
-| AU15-01 | P1 | [ ] | Create `NumberFormatter.percent(double, {int decimals = 2})` and use everywhere percentages show | `lib/utils/number_formatter.dart` (new or extend existing) |
-| AU15-02 | P1 | [ ] | Create `DateFormatter.display(DateTime)` returning "15 Mar 2026" consistently — replace all ad hoc date strings | `lib/utils/date_formatter.dart` |
-| AU15-03 | P1 | [ ] | Standardize negative amounts to always `-₹100` format in `CurrencyFormatter` | `lib/utils/currency_formatter.dart` |
-| AU15-04 | P2 | [ ] | Show "—" or styled "₹0" with sub-label for zero balances instead of "₹0.00" | All balance display widgets |
+| AU15-01 | P1 | [x] | Create `NumberFormatter.percent(double, {int decimals = 2})` and use everywhere percentages show | `lib/utils/number_formatter.dart` (new or extend existing) |
+| AU15-02 | P1 | [x] | Create `DateFormatter.display(DateTime)` returning "15 Mar 2026" consistently — replace all ad hoc date strings | `lib/utils/date_formatter.dart` |
+| AU15-03 | P1 | [x] | Standardize negative amounts to always `-₹100` format in `CurrencyFormatter` | `lib/utils/currency_formatter.dart` |
+| AU15-04 | P2 | [x] | Show "—" or styled "₹0" with sub-label for zero balances instead of "₹0.00" | All balance display widgets |
 | AU15-05 | P2 | [ ] | Always use `CurrencyFormatter.compact()` in card headings; full format only in detail views | All card/list heading amounts |
-| AU15-06 | P3 | [ ] | Normalize ALL-CAPS merchant names from SMS to Title Case on import | `sms_parser.dart` merchant extraction |
+| AU15-06 | P3 | [x] | Normalize ALL-CAPS merchant names from SMS to Title Case on import | `sms_parser.dart` merchant extraction |
 
 ---
 
@@ -232,7 +232,7 @@
 | ID | P | Status | Task | File / Location |
 |----|---|--------|------|-----------------|
 | AU17-01 | P1 | [ ] | Verify every `showCupertinoModalPopup` that edits data calls `setState` or controller refresh after pop | All modal call sites |
-| AU17-02 | P1 | [ ] | Add `Navigator.canPop(context)` guard before every `Navigator.pop(context)` call | All pop call sites |
+| AU17-02 | P1 | [x] | Add `Navigator.canPop(context)` guard before every `Navigator.pop(context)` call | All pop call sites |
 | AU17-03 | P2 | [ ] | After successful SMS import, auto-refresh transaction history and account balances | `sms_review_screen.dart` |
 | AU17-04 | P2 | [ ] | Ensure backup restore flow reloads ALL controllers after import completes | `backup_restore_service.dart` / `backup_restore_screen.dart` |
 | AU17-05 | P3 | [ ] | Add `PopScope` / `WillPopScope` on lock screen to prevent back-gesture bypassing lock | Lock screen widget in `main.dart` |
@@ -255,7 +255,7 @@
 
 | ID | P | Status | Task | File / Location |
 |----|---|--------|------|-----------------|
-| AU19-01 | P1 | [ ] | If account is deleted, mark all linked transactions with `accountDeleted: true` in metadata (not orphan them) | `accounts_controller.dart` delete handler |
+| AU19-01 | P1 | [x] | If account is deleted, mark all linked transactions with `accountDeleted: true` in metadata (not orphan them) | `accounts_controller.dart` delete handler |
 | AU19-02 | P1 | [ ] | If investment type changes (edit), migrate all existing transactions linked to old type | Investment edit screens |
 | AU19-03 | P2 | [ ] | Add data integrity check on app startup: detect orphaned transactions (no valid accountId) | New `lib/services/integrity_check_service.dart` |
 | AU19-04 | P2 | [ ] | Add FD/RD: if linked account is deleted, show warning badge on investment card | FD/RD detail screens |

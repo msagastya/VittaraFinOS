@@ -69,6 +69,14 @@ class TransactionsController with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> updateTransaction(Transaction updated) async {
+    final idx = _transactions.indexWhere((t) => t.id == updated.id);
+    if (idx < 0) return;
+    _transactions[idx] = updated;
+    await _saveTransactions();
+    notifyListeners();
+  }
+
   Future<void> _saveTransactions() async {
     final transactionsJson = _transactions
         .map((transaction) => jsonEncode(transaction.toMap()))
