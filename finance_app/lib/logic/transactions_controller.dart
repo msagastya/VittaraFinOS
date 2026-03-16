@@ -115,6 +115,37 @@ class TransactionsController with ChangeNotifier {
         .fold(0.0, (sum, t) => sum + t.amount);
   }
 
+  /// Returns the number of consecutive days ending today (or yesterday)
+  /// on which at least one transaction was logged.
+  int get loggingStreakDays {
+    if (_transactions.isEmpty) return 0;
+
+    final today = DateTime.now();
+    final todayDate = DateTime(today.year, today.month, today.day);
+
+    // Collect unique calendar dates that have transactions
+    final dates = _transactions
+        .map((t) => DateTime(t.dateTime.year, t.dateTime.month, t.dateTime.day))
+        .toSet();
+
+    // Streak must end today or yesterday; anything older resets to 0
+    DateTime cursor;
+    if (dates.contains(todayDate)) {
+      cursor = todayDate;
+    } else if (dates.contains(todayDate.subtract(const Duration(days: 1)))) {
+      cursor = todayDate.subtract(const Duration(days: 1));
+    } else {
+      return 0;
+    }
+
+    int streak = 0;
+    while (dates.contains(cursor)) {
+      streak++;
+      cursor = cursor.subtract(const Duration(days: 1));
+    }
+    return streak;
+  }
+
   double getTotalCharges() {
     return _transactions
         .where((t) => t.type == TransactionType.transfer && t.charges != null)

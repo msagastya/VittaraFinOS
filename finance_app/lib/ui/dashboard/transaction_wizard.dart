@@ -2601,7 +2601,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                 margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                 child: CupertinoTextField(
                   controller: _merchantController,
-                  placeholder: 'Type merchant name or search people',
+                  placeholder: 'e.g., Zomato, Amazon, Uber',
                   prefix: Padding(
                     padding: const EdgeInsets.only(left: 12),
                     child: Icon(
@@ -2949,7 +2949,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                 onSubmitted: (_) => _nextStep(),
                 onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
-                  hintText: 'Notes for later',
+                  hintText: 'e.g., Lunch with team, Monthly Netflix',
                   filled: true,
                   fillColor: AppStyles.getCardColor(context),
                   border: OutlineInputBorder(
@@ -3188,7 +3188,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
               CupertinoTextField(
                 controller: _tagController,
                 autofocus: _currentStep == 10,
-                placeholder: 'Add new tag',
+                placeholder: 'e.g., food, entertainment',
                 textInputAction: TextInputAction.done,
                 onSubmitted: (_) {
                   if (_tagController.text.isEmpty) {

@@ -2198,6 +2198,46 @@ class DashboardScreen extends StatelessWidget {
                     ],
                   ),
                 ],
+                // AU13-05 — Logging streak counter
+                Builder(builder: (context) {
+                  final streak = txController.loggingStreakDays;
+                  if (streak == 0) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: Spacing.sm),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: CupertinoColors.systemOrange
+                            .withValues(alpha: 0.10),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: CupertinoColors.systemOrange
+                              .withValues(alpha: 0.25),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            CupertinoIcons.flame_fill,
+                            size: 13,
+                            color: CupertinoColors.systemOrange,
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            '$streak-day logging streak',
+                            style: const TextStyle(
+                              fontSize: TypeScale.caption,
+                              fontWeight: FontWeight.w600,
+                              color: CupertinoColors.systemOrange,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
               ],
             );
           },

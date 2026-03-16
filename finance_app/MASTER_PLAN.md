@@ -1,6 +1,6 @@
 # VittaraFinOS — Master Plan (Living Document)
 # NEVER DELETE THIS FILE. Update status inline as tasks complete.
-# Last updated: 2026-03-15
+# Last updated: 2026-03-16
 
 ---
 
@@ -20,11 +20,11 @@
 | AU1-01 | P1 | [ ] | Add step progress bar ("Step 3 of 7") below nav bar in ALL multi-step wizards | `transaction_wizard.dart`, all investment wizards |
 | AU1-02 | P1 | [ ] | After creating investment/account/transaction, scroll parent list to new item on pop | `investments_screen.dart`, `accounts_screen.dart` |
 | AU1-03 | P1 | [ ] | Audit every list screen: ensure there is a "no items" empty state with icon + CTA button | All list screens |
-| AU1-04 | P1 | [ ] | Add `WillPopScope` → "Discard changes?" confirm dialog on back when wizard has data entered | All multi-step wizards |
+| AU1-04 | P1 | [x] | Add `WillPopScope` → "Discard changes?" confirm dialog on back when wizard has data entered | All multi-step wizards |
 | AU1-05 | P2 | [ ] | Persist search query across navigation (investments, accounts, archive) | `investments_screen.dart`, `accounts_screen.dart`, `transactions_archive_screen.dart` |
-| AU1-06 | P2 | [ ] | Auto-focus amount field when entering a wizard step that has an amount input | All amount steps |
+| AU1-06 | P2 | [x] | Auto-focus amount field when entering a wizard step that has an amount input | All amount steps |
 | AU1-07 | P2 | [ ] | After delete/edit operations, show brief "Updated" confirmation toast | All delete/edit handlers |
-| AU1-08 | P3 | [ ] | Add grey sub-text under "Skip" buttons: "Optional — you can add this later" | Merchant/Description/Tags wizard steps |
+| AU1-08 | P3 | [x] | Add grey sub-text under "Skip" buttons: "Optional — you can add this later" | Merchant/Description/Tags wizard steps |
 | AU1-09 | P3 | [ ] | New user first-launch checklist: "Add account → Add first transaction → Set a budget" | Onboarding / dashboard |
 
 ---
@@ -76,10 +76,10 @@
 
 | ID | P | Status | Task | File / Location |
 |----|---|--------|------|-----------------|
-| AU5-01 | **P0** | [ ] | Migrate PIN hash storage from `SharedPreferences` to `flutter_secure_storage` (Android Keystore / iOS Keychain) | `settings_controller.dart:26,63` |
+| AU5-01 | **P0** | [x] | Migrate PIN hash storage from `SharedPreferences` to `flutter_secure_storage` (Android Keystore / iOS Keychain) | `settings_controller.dart:26,63` |
 | AU5-02 | **P0** | [ ] | Migrate backup encryption key from hardcoded bytes to PBKDF2-derived key from user's backup password | `backup_restore_service.dart:99–125` |
-| AU5-03 | P1 | [ ] | Implement full offline PIN recovery system (see Part C of this document) | New `lib/ui/pin_recovery_screen.dart` |
-| AU5-04 | P1 | [ ] | Auto-clear clipboard 30 seconds after card number copy | `accounts_screen.dart` |
+| AU5-03 | P1 | [x] | Implement full offline PIN recovery system (see Part C of this document) | New `lib/ui/pin_recovery_screen.dart` |
+| AU5-04 | P1 | [x] | Auto-clear clipboard 30 seconds after card number copy | `accounts_screen.dart` |
 | AU5-05 | P2 | [ ] | Redact amounts/account numbers before any `logger.info/debug` call in SMS parser | `sms_parser.dart` |
 | AU5-06 | P2 | [ ] | Delete exported file from app storage after `Share.shareXFiles` completes | All export handlers |
 | AU5-07 | P3 | [ ] | Strip all PII fields before log output in production mode (`kReleaseMode` check) | `utils/logger.dart` |
@@ -115,10 +115,10 @@
 
 | ID | P | Status | Task | File / Location |
 |----|---|--------|------|-----------------|
-| AU8-01 | P1 | [ ] | Add `CupertinoActivityIndicator` spinner while wizard computes maturity/interest/TDS | FD/RD/MF/Stock wizards |
-| AU8-02 | P1 | [ ] | Add inline form validation — red border + error text on `onChanged`, not just on submit | All wizard amount/date steps |
-| AU8-03 | P1 | [ ] | Add undo toast (4s) when deleting a transaction (matches goal-delete pattern already done) | `transaction_history_screen.dart`, `transactions_archive_screen.dart` |
-| AU8-04 | P2 | [ ] | Audit every `BouncyButton` — ensure `Haptics.light()` on all interactive elements | All screens |
+| AU8-01 | P1 | [x] | Add `CupertinoActivityIndicator` spinner while wizard computes maturity/interest/TDS | FD/RD/MF/Stock wizards |
+| AU8-02 | P1 | [x] | Add inline form validation — red border + error text on `onChanged`, not just on submit | All wizard amount/date steps |
+| AU8-03 | P1 | [x] | Add undo toast (4s) when deleting a transaction (matches goal-delete pattern already done) | `transaction_history_screen.dart`, `transactions_archive_screen.dart` |
+| AU8-04 | P2 | [x] | Audit every `BouncyButton` — ensure `Haptics.light()` on all interactive elements | All screens |
 | AU8-05 | P2 | [ ] | Add long-press on investment card → "Pin to top / Share P&L" action | `investments_screen.dart` |
 | AU8-06 | P2 | [ ] | Add color picker (8 preset swatches) to tag creation | `category_creation_modal.dart` (or tags modal) |
 | AU8-07 | P3 | [ ] | Add "Not now" / "Remind me later" option to all suggestion prompts | Onboarding, notification prompts |
@@ -129,8 +129,8 @@
 
 | ID | P | Status | Task | File / Location |
 |----|---|--------|------|-----------------|
-| AU9-01 | P1 | [ ] | Enforce `AppStyles.cardDecoration(context)` on ALL bottom sheets — remove raw `Container` styling | All modal/sheet widgets |
-| AU9-02 | P1 | [ ] | Set `border: null` globally in `CupertinoThemeData` nav bar override in `main.dart` | `main.dart` ThemeData |
+| AU9-01 | P1 | [x] | Enforce `AppStyles.cardDecoration(context)` on ALL bottom sheets — remove raw `Container` styling | All modal/sheet widgets |
+| AU9-02 | P1 | [x] | Set `border: null` globally in `CupertinoThemeData` nav bar override in `main.dart` | `main.dart` ThemeData |
 | AU9-03 | P2 | [ ] | Audit all 11 investment detail screens — standardize card padding, section header style, divider placement | All `*_details_screen.dart` files |
 | AU9-04 | P2 | [ ] | Enforce `AppStyles.headerStyle(context)` for all section headers — remove any `Text` with hardcoded style | All screens |
 | AU9-05 | P3 | [ ] | Create 5–6 reusable SVG/Lottie empty-state illustrations (no items, no data, locked, etc.) | New `assets/illustrations/` |
@@ -145,8 +145,8 @@
 | AU10-01 | P1 | [ ] | Replace `Colors.white` with `AppStyles.getTextColor(context)` or `AppStyles.darkText` — ~86 files | Grep: `Colors.white` |
 | AU10-02 | P1 | [ ] | Replace `Colors.black` (backgrounds/text) with theme-aware equivalents | Grep: `Colors.black` |
 | AU10-03 | P1 | [ ] | Verify WCAG AA contrast ratio for light mode: `lightText` (0xFF0C1E3A) on `lightBackground` (0xFFF2F6FF) | `app_styles.dart` |
-| AU10-04 | P2 | [ ] | Add `AppStyles.disabledColor(context)` returning theme-aware grey for all disabled states | `app_styles.dart` |
-| AU10-05 | P2 | [ ] | Add semantic color aliases: `AppStyles.successColor`, `AppStyles.errorColor`, `AppStyles.warningColor`, `AppStyles.primaryAction` | `app_styles.dart` |
+| AU10-04 | P2 | [x] | Add `AppStyles.disabledColor(context)` returning theme-aware grey for all disabled states | `app_styles.dart` |
+| AU10-05 | P2 | [x] | Add semantic color aliases: `AppStyles.successColor`, `AppStyles.errorColor`, `AppStyles.warningColor`, `AppStyles.primaryAction` | `app_styles.dart` |
 | AU10-06 | P3 | [ ] | Audit all hardcoded hex colors inline (e.g., `Color(0xFF1C1C1E)`) — replace with token or AppStyles | Grep: `Color(0xFF` |
 
 ---
@@ -155,8 +155,8 @@
 
 | ID | P | Status | Task | File / Location |
 |----|---|--------|------|-----------------|
-| AU11-01 | P1 | [ ] | Fix PIN numpad: `width: 80, height: 80` → `min(80, MediaQuery.of(context).size.width / 5.5)` | `main.dart:493–495`, lock screen |
-| AU11-02 | P1 | [ ] | Add `overflow: TextOverflow.ellipsis, maxLines: 1` to ALL list item title/subtitle Text widgets | Grep: list item Text widgets |
+| AU11-01 | P1 | [x] | Fix PIN numpad: `width: 80, height: 80` → `min(80, MediaQuery.of(context).size.width / 5.5)` | `main.dart:493–495`, lock screen |
+| AU11-02 | P1 | [x] | Add `overflow: TextOverflow.ellipsis, maxLines: 1` to ALL list item title/subtitle Text widgets | Grep: list item Text widgets |
 | AU11-03 | P2 | [ ] | Wrap bottom sheet modal content in `ConstrainedBox(constraints: BoxConstraints(maxWidth: 600))` + center for tablet landscape | All bottom sheets |
 | AU11-04 | P2 | [ ] | Replace fixed-height dashboard chart containers with `AspectRatio` or `LayoutBuilder` | Dashboard chart widgets |
 | AU11-05 | P3 | [ ] | Add Flutter golden screenshot tests at 3 screen sizes (small 375pt, standard 390pt, large 430pt) | New `/test/golden/` |
@@ -180,9 +180,9 @@
 | ID | P | Status | Task | File / Location |
 |----|---|--------|------|-----------------|
 | AU13-01 | P1 | [ ] | Add colored P&L badge (green/red pill) + 7-day mini sparkline to each investment list card | `investments_screen.dart` investment card builder |
-| AU13-02 | P1 | [ ] | Add dynamic motivational copy to net worth page: "Up ₹12K this month 🔥" / "Down ₹3K — let's recover" | `net_worth_page.dart` |
-| AU13-03 | P2 | [ ] | Add circular arc progress indicator on goals (replace percentage text with animated arc) | `goals_screen.dart` |
-| AU13-04 | P2 | [ ] | Animate budget bar fill on screen load + add shake animation when >100% | `budgets_screen.dart` |
+| AU13-02 | P1 | [x] | Add dynamic motivational copy to net worth page: "Up ₹12K this month 🔥" / "Down ₹3K — let's recover" | `net_worth_page.dart` |
+| AU13-03 | P2 | [x] | Add circular arc progress indicator on goals (replace percentage text with animated arc) | `goals_screen.dart` |
+| AU13-04 | P2 | [x] | Animate budget bar fill on screen load + add shake animation when >100% | `budgets_screen.dart` |
 | AU13-05 | P2 | [ ] | Add "logging streak" counter (consecutive days with transactions) — show on dashboard or profile | New `lib/logic/streak_calculator.dart` |
 | AU13-06 | P3 | [ ] | Add Financial Health Score widget (0–100): savings rate + budget adherence + investment diversity + debt ratio | New dashboard widget `FT1-07` |
 
@@ -192,7 +192,7 @@
 
 | ID | P | Status | Task | File / Location |
 |----|---|--------|------|-----------------|
-| AU14-01 | P1 | [ ] | Add `ⓘ` info icon with tooltip popup for every financial jargon term (PRAN, ISIN, Greeks, PAN, Drawdown, CAGR, XIRR, NAV, TDS, HRA, 80C) | NPS/F&O/Bonds/MF/FD/RD wizards |
+| AU14-01 | P1 | [x] | Add `ⓘ` info icon with tooltip popup for every financial jargon term (PRAN, ISIN, Greeks, PAN, Drawdown, CAGR, XIRR, NAV, TDS, HRA, 80C) | NPS/F&O/Bonds/MF/FD/RD wizards |
 | AU14-02 | P1 | [ ] | Add example hint text to every wizard field: "e.g., ₹10,000 for 1 year at 7.5%" | All wizard text fields |
 | AU14-03 | P2 | [ ] | Create `UserErrorMapper` class — map all exception types to friendly user-facing copy | New `lib/utils/user_error_mapper.dart` |
 | AU14-04 | P2 | [ ] | SMS review screen: show result summary card "Found 12 transactions — 3 unrecognized" after scan | `sms_review_screen.dart` |
@@ -380,11 +380,11 @@ If user used same backup password as PIN (and forgot both), they need Layer 3.
 ### Implementation Priority
 | ID | P | Status | Task |
 |----|---|--------|------|
-| AU5-03a | P0 | [ ] | `PinRecoveryController` — generate/store/verify recovery code using `flutter_secure_storage` |
-| AU5-03b | P0 | [ ] | `RecoveryCodeSaveScreen` — full-screen show-once recovery code display |
-| AU5-03c | P1 | [ ] | `PinRecoveryScreen` — enter recovery code to reset PIN |
-| AU5-03d | P1 | [ ] | Rate limiting on wrong PIN attempts (exponential back-off) |
-| AU5-03e | P1 | [ ] | Layer 3 nuclear reset with triple-confirm and 10s countdown |
+| AU5-03a | P0 | [x] | `PinRecoveryController` — generate/store/verify recovery code using `flutter_secure_storage` |
+| AU5-03b | P0 | [x] | `RecoveryCodeSaveScreen` — full-screen show-once recovery code display |
+| AU5-03c | P1 | [x] | `PinRecoveryScreen` — enter recovery code to reset PIN |
+| AU5-03d | P1 | [x] | Rate limiting on wrong PIN attempts (exponential back-off) |
+| AU5-03e | P1 | [x] | Layer 3 nuclear reset with triple-confirm and 10s countdown |
 | AU5-03f | P2 | [ ] | "View recovery code" in Settings → Security (requires auth) |
 | AU5-03g | P3 | [ ] | Export recovery code as PDF / "Emergency Kit" |
 
@@ -473,6 +473,24 @@ AU3-01, AU3-02, AU16-01, AU16-02, AU16-03, AU16-04
 - [x] All CSV/PDF/Excel exports now share via system share sheet
 - [x] Account details sheet: recent transactions + per-account CSV export
 - [x] Investment item tap → Add/Sell/Details action sheet
+
+
+## Session 9 (2026-03-16):
+- [x] AU8-02: tx wizard amount field onChanged clears error immediately
+- [x] AU1-08: Skip button "Optional — you can add this later" hint text
+- [x] AU11-01: PIN numpad responsive size clamp(56,80)
+- [x] AU8-01: Already done (all wizards had spinners)
+- [x] AU8-04: Already done (BouncyButton has haptics by default)
+- [x] AU9-01: AppStyles.bottomSheetDecoration() added; applied to accounts modal, tx filter sheet, maturity calendar
+- [x] AU9-02: border:null on all 20+ CupertinoNavigationBar instances
+- [x] AU10-04/05: successColor, errorColor, warningColor, primaryAction, disabledColor(context) added to AppStyles
+- [x] AU11-02: maxLines:1 + ellipsis on account/investment list item names
+- [x] AU13-02: Motivational banner on Net Worth page (month-over-month delta)
+- [x] AU13-03: Circular arc progress (CustomPainter + TweenAnimationBuilder) on Goals cards
+- [x] AU13-04: ShakingBudgetBar shakes on load when budget exceeded
+- [x] AU14-01: JargonTooltip widget (PRAN, NAV, CAGR, TDS, XIRR, ISIN, Greeks, Drawdown, 80C, SIP Date) — wired into NPS, FD details, investments, MF details
+- [x] AU1-04: "Discard changes?" dialog in tx wizard on back with unsaved data
+
 
 ---
 
