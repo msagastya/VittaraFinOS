@@ -9,6 +9,7 @@ enum DashboardWidgetType {
   notificationsAndActions,
   monthlySummary,
   sipTracker,
+  healthScore,
 }
 
 class DashboardWidgetConfig {

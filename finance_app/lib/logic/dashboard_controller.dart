@@ -138,6 +138,16 @@ class DashboardController extends ChangeNotifier {
           columnSpan: 3,
           rowSpan: 1,
         ),
+        DashboardWidgetConfig(
+          id: 'health_score',
+          type: DashboardWidgetType.healthScore,
+          title: 'Financial Health Score',
+          isVisible: false,
+          gridRow: 12,
+          gridColumn: 1,
+          columnSpan: 3,
+          rowSpan: 2,
+        ),
       ],
     );
   }
@@ -152,7 +162,8 @@ class DashboardController extends ChangeNotifier {
         w.id == 'savings_planners' ||
         w.id == 'ai_planner' ||
         w.id == 'monthly_summary' ||
-        w.id == 'sip_tracker');
+        w.id == 'sip_tracker' ||
+        w.id == 'health_score');
 
     for (final optional in defaults) {
       if (!existingIds.contains(optional.id)) {

@@ -52,6 +52,7 @@ import 'package:vittara_fin_os/ui/sms/sms_review_screen.dart';
 import 'package:vittara_fin_os/services/sms_auto_scan_service.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/pin_recovery_screen.dart';
+import 'package:vittara_fin_os/ui/dashboard/widgets/health_score_widget.dart';
 
 final AppLogger logger = AppLogger();
 
@@ -1166,6 +1167,8 @@ class DashboardScreen extends StatelessWidget {
         return CupertinoIcons.calendar_circle_fill;
       case DashboardWidgetType.sipTracker:
         return CupertinoIcons.graph_circle_fill;
+      case DashboardWidgetType.healthScore:
+        return CupertinoIcons.heart_fill;
     }
   }
 
@@ -1191,6 +1194,8 @@ class DashboardScreen extends StatelessWidget {
         return AppStyles.accentGreen;
       case DashboardWidgetType.sipTracker:
         return CupertinoColors.activeBlue;
+      case DashboardWidgetType.healthScore:
+        return AppStyles.accentCoral;
     }
   }
 
@@ -2478,6 +2483,8 @@ class DashboardScreen extends StatelessWidget {
             );
           },
         );
+      case DashboardWidgetType.healthScore:
+        return HealthScoreWidget(config: widgetConfig);
       default:
         return const SizedBox.shrink();
     }
@@ -2564,6 +2571,9 @@ class DashboardScreen extends StatelessWidget {
         Navigator.of(context).push(
           FadeScalePageRoute(page: const NotificationsPage()),
         );
+        break;
+      case DashboardWidgetType.healthScore:
+        // No dedicated detail screen — widget is self-contained
         break;
       default:
         break;
