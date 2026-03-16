@@ -225,6 +225,7 @@ class _SimpleInvestmentEntryWizardState
         ),
         previousPageTitle: 'Back',
         backgroundColor: AppStyles.getBackground(context),
+        border: null,
       ),
       child: SafeArea(
         child: ListView(

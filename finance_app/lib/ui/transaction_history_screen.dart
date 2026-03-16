@@ -1056,9 +1056,19 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   ) async {
     await archiveController.addToArchive(transaction);
     await controller.removeTransaction(transaction.id);
-    toast_lib.toast.showSuccess('Transaction archived');
     logger.info('Archived transaction: ${transaction.id}',
         context: 'TransactionHistory');
+    toast_lib.toast.show(toast_lib.ToastData(
+      message: 'Transaction archived',
+      type: toast_lib.ToastType.success,
+      actionLabel: 'Undo',
+      duration: const Duration(seconds: 4),
+      onAction: () async {
+        await archiveController.removeFromArchive(transaction.id);
+        await controller.addTransaction(transaction);
+        toast_lib.toast.showInfo('Restored');
+      },
+    ));
   }
 }
 

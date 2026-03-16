@@ -205,12 +205,6 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
       navigationBar: CupertinoNavigationBar(
         backgroundColor:
             isDark ? const Color(0xFF000000) : CupertinoColors.systemBackground,
-        border: Border(
-          bottom: BorderSide(
-            color:
-                (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
-          ),
-        ),
         leading: CupertinoButton(
           padding: EdgeInsets.zero,
           onPressed: () => Navigator.of(context).pop(),
@@ -227,6 +221,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
           ),
         ),
         trailing: null,
+        border: null,
       ),
       child: SafeArea(
         child: _isScanning

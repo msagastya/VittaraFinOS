@@ -130,6 +130,7 @@ class _PensionWizardContentState extends State<_PensionWizardContent> {
             }
           },
         ),
+        border: null,
       ),
       child: SafeArea(
         child: Column(

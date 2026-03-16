@@ -160,6 +160,7 @@ class _FOWizardContentState extends State<_FOWizardContent> {
             }
           },
         ),
+        border: null,
       ),
       child: SafeArea(
         child: Column(

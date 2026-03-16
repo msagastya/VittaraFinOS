@@ -146,6 +146,7 @@ class _NPSWizardContentState extends State<_NPSWizardContent> {
             }
           },
         ),
+        border: null,
       ),
       child: SafeArea(
         child: Column(

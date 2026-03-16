@@ -87,6 +87,7 @@ class _CryptoDetailsScreenState extends State<CryptoDetailsScreen> {
           child: const Icon(CupertinoIcons.back),
           onPressed: () => Navigator.of(context).pop(),
         ),
+        border: null,
       ),
       child: SafeArea(
         child: SingleChildScrollView(

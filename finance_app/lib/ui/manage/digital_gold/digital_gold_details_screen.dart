@@ -138,6 +138,7 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
         ),
         previousPageTitle: 'Back',
         backgroundColor: AppStyles.getBackground(context),
+        border: null,
       ),
       child: SafeArea(
         child: SingleChildScrollView(

@@ -45,6 +45,7 @@ class _PensionDetailsScreenState extends State<PensionDetailsScreen> {
           child: const Icon(CupertinoIcons.back),
           onPressed: () => Navigator.pop(context),
         ),
+        border: null,
       ),
       child: SafeArea(
         child: SingleChildScrollView(

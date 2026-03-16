@@ -140,6 +140,7 @@ class _CommoditiesWizardContentState extends State<_CommoditiesWizardContent> {
             }
           },
         ),
+        border: null,
       ),
       child: SafeArea(
         child: Column(

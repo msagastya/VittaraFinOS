@@ -86,6 +86,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
           child: const Icon(CupertinoIcons.back),
           onPressed: () => Navigator.of(context).pop(),
         ),
+        border: null,
       ),
       child: SafeArea(
         child: SingleChildScrollView(

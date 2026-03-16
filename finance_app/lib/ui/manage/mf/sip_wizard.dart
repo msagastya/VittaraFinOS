@@ -59,6 +59,7 @@ class _SIPWizardContent extends StatelessWidget {
             }
           },
         ),
+        border: null,
       ),
       child: SafeArea(
         child: Column(

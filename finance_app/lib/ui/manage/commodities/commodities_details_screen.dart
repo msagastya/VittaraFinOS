@@ -46,6 +46,7 @@ class _CommoditiesDetailsScreenState extends State<CommoditiesDetailsScreen> {
           child: const Icon(CupertinoIcons.back),
           onPressed: () => Navigator.pop(context),
         ),
+        border: null,
       ),
       child: SafeArea(
         child: SingleChildScrollView(

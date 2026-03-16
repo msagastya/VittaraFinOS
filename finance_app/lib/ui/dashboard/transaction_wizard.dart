@@ -495,6 +495,36 @@ class _TransactionWizardState extends State<TransactionWizard> {
 
   void _previousStep() {
     if (_history.length <= 1) {
+      // If the user has entered any data, confirm before discarding
+      final hasChanges = _amountController.text.isNotEmpty ||
+          _merchantController.text.isNotEmpty ||
+          _descriptionController.text.isNotEmpty;
+      if (hasChanges) {
+        showCupertinoDialog<bool>(
+          context: context,
+          builder: (ctx) => CupertinoAlertDialog(
+            title: const Text('Discard changes?'),
+            content: const Text(
+                'You have unsaved changes. Discard this transaction?'),
+            actions: [
+              CupertinoDialogAction(
+                child: const Text('Keep editing'),
+                onPressed: () => Navigator.pop(ctx, false),
+              ),
+              CupertinoDialogAction(
+                isDestructiveAction: true,
+                child: const Text('Discard'),
+                onPressed: () => Navigator.pop(ctx, true),
+              ),
+            ],
+          ),
+        ).then((discard) {
+          if (discard == true && mounted && Navigator.canPop(context)) {
+            Navigator.pop(context);
+          }
+        });
+        return;
+      }
       if (Navigator.canPop(context)) Navigator.pop(context);
       return;
     }

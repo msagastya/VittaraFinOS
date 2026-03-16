@@ -45,6 +45,7 @@ class _DashboardSettingsModalState extends State<DashboardSettingsModal> {
             );
           },
         ),
+        border: null,
       ),
       child: SafeArea(
         child: Consumer<DashboardController>(

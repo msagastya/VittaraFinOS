@@ -1750,6 +1750,7 @@ class _PaymentAppSetupWizardState extends State<_PaymentAppSetupWizard> {
                     child: const Text('Add'),
                   )
                 : null,
+            border: null,
           ),
           child: SafeArea(
             child: AnimatedPadding(

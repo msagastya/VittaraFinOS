@@ -78,6 +78,25 @@ class AppStyles {
   static bool isDarkMode(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark;
 
+  // ── Semantic Color Aliases ────────────────────────────────────────────────
+
+  /// Success state — bio-green (gains, confirmations)
+  static const Color successColor = bioGreen;
+
+  /// Error / loss state — plasma crimson
+  static const Color errorColor = plasmaRed;
+
+  /// Warning / caution state — amber
+  static const Color warningColor = accentOrange;
+
+  /// Primary interactive action — phosphorescent teal
+  static const Color primaryAction = aetherTeal;
+
+  /// Disabled / muted state — theme-aware neutral
+  static Color disabledColor(BuildContext context) => isDarkMode(context)
+      ? const Color(0xFF3A4A5C)
+      : const Color(0xFFBBCCDD);
+
   // ── Background Gradients ──────────────────────────────────────────────────
 
   static LinearGradient backgroundGradient(BuildContext context) {

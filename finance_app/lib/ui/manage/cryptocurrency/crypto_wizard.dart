@@ -120,6 +120,7 @@ class _CryptoWizardContent extends StatelessWidget {
             }
           },
         ),
+        border: null,
       ),
       child: SafeArea(
         child: Column(

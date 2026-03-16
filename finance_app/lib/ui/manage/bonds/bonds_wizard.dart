@@ -112,6 +112,7 @@ class _BondsWizardContent extends StatelessWidget {
             }
           },
         ),
+        border: null,
       ),
       child: SafeArea(
         child: Column(

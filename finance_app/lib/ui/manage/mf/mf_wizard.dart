@@ -234,6 +234,7 @@ class _MFWizardContentState extends State<_MFWizardContent> {
             }
           },
         ),
+        border: null,
       ),
       child: SafeArea(
         child: Column(

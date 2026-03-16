@@ -65,6 +65,7 @@ class _SimpleInvestmentDetailsScreenState
           child: const Icon(CupertinoIcons.back),
           onPressed: () => Navigator.pop(context),
         ),
+        border: null,
       ),
       child: SafeArea(
         child: SingleChildScrollView(
