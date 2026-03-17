@@ -1,7 +1,7 @@
 import 'package:logger/logger.dart';
-import '../models/mutual_fund_model.dart';
-import 'database_helper.dart';
-import 'amfi_data_service.dart';
+import 'package:vittara_fin_os/models/mutual_fund_model.dart';
+import 'package:vittara_fin_os/services/database_helper.dart';
+import 'package:vittara_fin_os/services/amfi_data_service.dart';
 
 class MFDatabaseService {
   static final MFDatabaseService _instance = MFDatabaseService._internal();

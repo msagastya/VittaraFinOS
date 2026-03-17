@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/logic/goal_model.dart';
 
 /// Controller for managing financial goals
-class GoalsController extends ChangeNotifier {
+class GoalsController with ChangeNotifier {
   static const String _storageKey = 'goals';
 
   List<Goal> _goals = [];

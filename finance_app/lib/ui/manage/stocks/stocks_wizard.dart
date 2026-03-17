@@ -98,6 +98,7 @@ class _StocksWizardContent extends StatelessWidget {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
       navigationBar: CupertinoNavigationBar(
+        previousPageTitle: 'Back',
         middle: Text('Add Stock Investment',
             style: TextStyle(color: AppStyles.getTextColor(context))),
         backgroundColor: AppStyles.getBackground(context),

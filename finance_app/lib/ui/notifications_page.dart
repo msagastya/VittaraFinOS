@@ -9,6 +9,7 @@ import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/fixed_deposit_model.dart';
 import 'package:vittara_fin_os/logic/notification_helpers.dart';
 import 'package:vittara_fin_os/ui/dashboard/notification_widget.dart';
+import 'package:vittara_fin_os/ui/financial_calendar_screen.dart';
 import 'package:vittara_fin_os/ui/manage/fd/modals/fd_renewal_modal.dart';
 import 'package:vittara_fin_os/ui/manage/fd/modals/fd_withdrawal_modal.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
@@ -153,6 +154,86 @@ class NotificationsPage extends StatelessWidget {
               return SingleChildScrollView(
                 child: Column(
                   children: [
+                    // Financial Calendar shortcut
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                      child: GestureDetector(
+                        onTap: () => Navigator.of(context).push(
+                          CupertinoPageRoute(
+                            builder: (_) => const FinancialCalendarScreen(),
+                          ),
+                        ),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 14),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                AppStyles.aetherTeal.withValues(alpha: 0.18),
+                                AppStyles.novaPurple.withValues(alpha: 0.12),
+                              ],
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                            ),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color:
+                                  AppStyles.aetherTeal.withValues(alpha: 0.3),
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 36,
+                                height: 36,
+                                decoration: BoxDecoration(
+                                  color: AppStyles.aetherTeal
+                                      .withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(
+                                  CupertinoIcons.calendar,
+                                  color: AppStyles.aetherTeal,
+                                  size: 20,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Financial Calendar',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppStyles.aetherTeal,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'FDs, SIPs, bills, goals & budget resets',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: isDark
+                                            ? Colors.white54
+                                            : Colors.black45,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Icon(
+                                CupertinoIcons.chevron_right,
+                                color: AppStyles.aetherTeal,
+                                size: 16,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                     // FD Maturity Notifications (upcoming)
                     if (fdsNearMaturity.isNotEmpty)
                       ...fdsNearMaturity.map((fd) {
@@ -245,14 +326,14 @@ class NotificationsPage extends StatelessWidget {
                                 color: Colors.purple.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: Row(
+                              child: const Row(
                                 children: [
                                   Icon(
                                     CupertinoIcons.exclamationmark_circle,
                                     size: 14,
                                     color: Colors.purple,
                                   ),
-                                  const SizedBox(width: Spacing.sm),
+                                  SizedBox(width: Spacing.sm),
                                   Expanded(
                                     child: Text(
                                       'Confirm renewal or withdraw funds',
@@ -399,7 +480,7 @@ class NotificationsPage extends StatelessWidget {
                       }),
                     if (rdsWithUpcomingInstallments.isNotEmpty &&
                         sipNotifications.isNotEmpty)
-                      SizedBox(height: Spacing.md),
+                      const SizedBox(height: Spacing.md),
 
                     if (sipNotifications.isNotEmpty)
                       ...sipNotifications.map(
@@ -407,7 +488,7 @@ class NotificationsPage extends StatelessWidget {
                       ),
                     if (sipNotifications.isNotEmpty &&
                         bondNotifications.isNotEmpty)
-                      SizedBox(height: Spacing.md),
+                      const SizedBox(height: Spacing.md),
                     if (bondNotifications.isNotEmpty)
                       ...bondNotifications
                           .map((entry) => _buildBondNotificationWidget(
@@ -420,7 +501,7 @@ class NotificationsPage extends StatelessWidget {
                       if (bondNotifications.isNotEmpty ||
                           sipNotifications.isNotEmpty ||
                           rdsWithUpcomingInstallments.isNotEmpty)
-                        SizedBox(height: Spacing.md),
+                        const SizedBox(height: Spacing.md),
                       ...dueTemplates.map((t) {
                         final days = t.daysUntilDue()!;
                         final isOverdue = days < 0;
@@ -475,7 +556,7 @@ class NotificationsPage extends StatelessWidget {
                                           ),
                                         );
                                       },
-                                      child: Text(
+                                      child: const Text(
                                         'Use Template',
                                         style: TextStyle(
                                           fontSize: TypeScale.footnote,
@@ -492,7 +573,7 @@ class NotificationsPage extends StatelessWidget {
                                         templatesController
                                             .markBillAsPaid(t.id);
                                       },
-                                      child: Row(
+                                      child: const Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Icon(
@@ -501,7 +582,7 @@ class NotificationsPage extends StatelessWidget {
                                             size: 14,
                                             color: AppStyles.bioGreen,
                                           ),
-                                          const SizedBox(width: 4),
+                                          SizedBox(width: 4),
                                           Text(
                                             'Mark Paid',
                                             style: TextStyle(
@@ -514,13 +595,13 @@ class NotificationsPage extends StatelessWidget {
                                       ),
                                     ),
                                   ] else ...[
-                                    Icon(
+                                    const Icon(
                                       CupertinoIcons.checkmark_circle_fill,
                                       size: 14,
                                       color: AppStyles.bioGreen,
                                     ),
                                     const SizedBox(width: 6),
-                                    Text(
+                                    const Text(
                                       'Paid this month',
                                       style: TextStyle(
                                         fontSize: TypeScale.footnote,
@@ -562,13 +643,13 @@ class NotificationsPage extends StatelessWidget {
                         warningBudgets.isNotEmpty) ...[
                       Container(
                         margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-                        child: Row(
+                        child: const Row(
                           children: [
-                            const Icon(
+                            Icon(
                                 CupertinoIcons.exclamationmark_circle_fill,
                                 size: 14,
                                 color: AppStyles.plasmaRed),
-                            const SizedBox(width: Spacing.sm),
+                            SizedBox(width: Spacing.sm),
                             Text(
                               'Budget Alerts',
                               style: TextStyle(
@@ -590,11 +671,11 @@ class NotificationsPage extends StatelessWidget {
                     if (spendingInsights.isNotEmpty) ...[
                       Container(
                         margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-                        child: Row(
+                        child: const Row(
                           children: [
-                            const Icon(CupertinoIcons.chart_bar_alt_fill,
+                            Icon(CupertinoIcons.chart_bar_alt_fill,
                                 size: 14, color: CupertinoColors.systemOrange),
-                            const SizedBox(width: Spacing.sm),
+                            SizedBox(width: Spacing.sm),
                             Text(
                               'Spending Insights',
                               style: TextStyle(
@@ -655,7 +736,7 @@ class NotificationsPage extends StatelessWidget {
                                     const SizedBox(height: 2),
                                     Text(
                                       'Up $pct% vs last month',
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         fontSize: TypeScale.footnote,
                                         color: CupertinoColors.systemOrange,
                                       ),
@@ -711,7 +792,7 @@ class NotificationsPage extends StatelessWidget {
                         (SmsAutoScanService.instance.pendingResults?.isEmpty ??
                             true))
                       Padding(
-                        padding: EdgeInsets.only(top: Spacing.xxxl),
+                        padding: const EdgeInsets.only(top: Spacing.xxxl),
                         child: FadeInAnimation(
                           child: Center(
                             child: Column(
@@ -726,7 +807,7 @@ class NotificationsPage extends StatelessWidget {
                                         : CupertinoColors.systemGrey,
                                   ),
                                 ),
-                                SizedBox(height: Spacing.lg),
+                                const SizedBox(height: Spacing.lg),
                                 Text(
                                   'No Notifications',
                                   style: TextStyle(
@@ -737,7 +818,7 @@ class NotificationsPage extends StatelessWidget {
                                         : CupertinoColors.label,
                                   ),
                                 ),
-                                SizedBox(height: Spacing.sm),
+                                const SizedBox(height: Spacing.sm),
                                 Text(
                                   'You\'re all caught up!',
                                   style: TextStyle(
@@ -751,7 +832,7 @@ class NotificationsPage extends StatelessWidget {
                           ),
                         ),
                       ),
-                    SizedBox(height: Spacing.lg),
+                    const SizedBox(height: Spacing.lg),
                   ],
                 ),
               );
@@ -2003,13 +2084,13 @@ class _SmsSectionWidgetState extends State<_SmsSectionWidget> {
               ),
               alignment: Alignment.centerRight,
               padding: const EdgeInsets.only(right: 20),
-              child: Column(
+              child: const Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(CupertinoIcons.xmark_circle_fill,
+                  Icon(CupertinoIcons.xmark_circle_fill,
                       color: AppStyles.plasmaRed, size: 22),
-                  const SizedBox(height: 4),
-                  const Text(
+                  SizedBox(height: 4),
+                  Text(
                     'Dismiss',
                     style: TextStyle(
                       color: AppStyles.plasmaRed,
@@ -2555,10 +2636,10 @@ class _SmsQuickConfirmSheetState extends State<_SmsQuickConfirmSheet> {
                       ),
                     ),
                     const SizedBox(width: 4),
-                    Icon(
+                    const Icon(
                       CupertinoIcons.checkmark_circle_fill,
                       size: 12,
-                      color: const Color(0xFF34C759),
+                      color: Color(0xFF34C759),
                     ),
                   ],
                 ),

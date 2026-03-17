@@ -96,7 +96,7 @@ class CommodityTypeStep extends StatelessWidget {
             }).toList(),
           ),
           const SizedBox(height: Spacing.xl),
-          Text('Custom Commodity Name',
+          const Text('Custom Commodity Name',
               style: TextStyle(
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),

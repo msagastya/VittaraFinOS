@@ -227,14 +227,14 @@ class SmsAutoScanService {
         9001 + i,
         '${isExpense ? 'Spent' : 'Received'} ${fmt.format(p.amount)}',
         '$merchantName$accountTag${hasDuplicate ? ' · Possible duplicate' : ''}',
-        NotificationDetails(
+        const NotificationDetails(
           android: AndroidNotificationDetails(
             _channelId,
             _channelName,
             importance: Importance.high,
             priority: Priority.high,
             groupKey: 'sms_txn_group',
-            actions: const [
+            actions: [
               AndroidNotificationAction(
                 'add',
                 'Add',

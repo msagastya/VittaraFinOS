@@ -96,6 +96,7 @@ class _BondsWizardContent extends StatelessWidget {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
       navigationBar: CupertinoNavigationBar(
+        previousPageTitle: 'Back',
         middle: Text(
           'Add Bond Investment',
           style: TextStyle(color: AppStyles.getTextColor(context)),
@@ -256,9 +257,9 @@ class _BondAmountStep extends StatelessWidget {
               border: Border.all(
                   color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
             ),
-            prefix: Padding(
-              padding: const EdgeInsets.only(left: 16),
-              child: const Text('₹'),
+            prefix: const Padding(
+              padding: EdgeInsets.only(left: 16),
+              child: Text('₹'),
             ),
             onChanged: (v) {
               final amount = double.tryParse(v) ?? 0;
@@ -596,7 +597,7 @@ class _PayoutDatesStep extends StatelessWidget {
           Text('Bond Dates', style: AppStyles.titleStyle(context)),
           const SizedBox(height: Spacing.xl),
           if (!isAtMaturity) ...[
-            Text('First Payout Month & Day',
+            const Text('First Payout Month & Day',
                 style: TextStyle(
                     fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
             const SizedBox(height: Spacing.md),
@@ -643,7 +644,7 @@ class _PayoutDatesStep extends StatelessWidget {
             ),
             const SizedBox(height: Spacing.xxl),
           ],
-          Text('Bond Maturity Date',
+          const Text('Bond Maturity Date',
               style: TextStyle(
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),

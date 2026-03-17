@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-import 'contact_model.dart';
+import 'package:vittara_fin_os/logic/contact_model.dart';
 
-class ContactsController extends ChangeNotifier {
+class ContactsController with ChangeNotifier {
   List<Contact> _contacts = [];
 
   List<Contact> get contacts => _contacts;

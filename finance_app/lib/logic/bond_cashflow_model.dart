@@ -301,8 +301,8 @@ class CashFlowGenerator {
     }
 
     // Get the last day of the target month
-    int lastDayOfMonth = _daysInMonth(newYear, newMonth);
-    int newDay = date.day > lastDayOfMonth ? lastDayOfMonth : date.day;
+    final int lastDayOfMonth = _daysInMonth(newYear, newMonth);
+    final int newDay = date.day > lastDayOfMonth ? lastDayOfMonth : date.day;
 
     return DateTime(newYear, newMonth, newDay);
   }

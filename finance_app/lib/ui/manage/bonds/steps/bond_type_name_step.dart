@@ -229,7 +229,7 @@ class BondTypeNameStep extends StatelessWidget {
             }).toList(),
           ),
           const SizedBox(height: Spacing.xxl),
-          Text('Bond Name',
+          const Text('Bond Name',
               style: TextStyle(
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
@@ -244,7 +244,7 @@ class BondTypeNameStep extends StatelessWidget {
           ),
           const SizedBox(height: Spacing.xxl),
           // Purchase Account Section
-          Text('Purchase Account (Optional)',
+          const Text('Purchase Account (Optional)',
               style: TextStyle(
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.sm),
@@ -327,7 +327,7 @@ class BondTypeNameStep extends StatelessWidget {
             ),
           const SizedBox(height: Spacing.xxl),
           // Payment Account Section
-          Text('Payment Account (Optional)',
+          const Text('Payment Account (Optional)',
               style: TextStyle(
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.sm),

@@ -158,7 +158,7 @@ class _FrostedNavigationButtonState extends State<_FrostedNavigationButton>
         animation: _controller,
         builder: (context, child) {
           return Container(
-            padding: EdgeInsets.symmetric(
+            padding: const EdgeInsets.symmetric(
               horizontal: Spacing.md,
               vertical: Spacing.sm,
             ),
@@ -181,7 +181,7 @@ class _FrostedNavigationButtonState extends State<_FrostedNavigationButton>
                     size: IconSizes.md,
                   ),
                 ),
-                SizedBox(height: Spacing.xs),
+                const SizedBox(height: Spacing.xs),
                 Text(
                   widget.item.label,
                   style: TextStyle(
@@ -398,7 +398,7 @@ class MinimalFrostedNavigationBar extends StatelessWidget {
                   onTap: () => onTap(index),
                   behavior: HitTestBehavior.opaque,
                   child: Container(
-                    padding: EdgeInsets.symmetric(
+                    padding: const EdgeInsets.symmetric(
                       horizontal: Spacing.md,
                       vertical: Spacing.sm,
                     ),
@@ -469,11 +469,11 @@ class FrostedTopNavigationBar extends StatelessWidget {
           child: SafeArea(
             bottom: false,
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: Spacing.md),
+              padding: const EdgeInsets.symmetric(horizontal: Spacing.md),
               child: Row(
                 children: [
                   if (leading != null) leading!,
-                  if (leading != null) SizedBox(width: Spacing.md),
+                  if (leading != null) const SizedBox(width: Spacing.md),
                   if (title != null)
                     Expanded(
                       child: Text(
@@ -487,7 +487,7 @@ class FrostedTopNavigationBar extends StatelessWidget {
                     ),
                   if (trailing != null)
                     ...trailing!.map((widget) => Padding(
-                          padding: EdgeInsets.only(left: Spacing.sm),
+                          padding: const EdgeInsets.only(left: Spacing.sm),
                           child: widget,
                         )),
                 ],

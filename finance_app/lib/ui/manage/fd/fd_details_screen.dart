@@ -556,7 +556,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                       const SizedBox(height: Spacing.sm),
                       Text(
                         '₹${widget.fd.maturityValue.toStringAsFixed(2)}',
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: AppStyles.bioGreen,
                           fontSize: TypeScale.title2,
                           fontWeight: FontWeight.bold,
@@ -753,14 +753,14 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                                   .withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: Row(
+                            child: const Row(
                               children: [
                                 Icon(
                                   CupertinoIcons.exclamationmark_triangle_fill,
                                   color: CupertinoColors.systemOrange,
                                   size: 16,
                                 ),
-                                const SizedBox(width: Spacing.sm),
+                                SizedBox(width: Spacing.sm),
                                 Expanded(
                                   child: Text(
                                     'Early withdrawal may incur penalties and reduced interest.',
@@ -1284,7 +1284,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                 ),
               ),
               if (isPast)
-                Text(
+                const Text(
                   'Credited',
                   style: TextStyle(
                     color: AppStyles.bioGreen,

@@ -55,7 +55,7 @@ class GlassCard extends StatelessWidget {
         child: Container(
           width: width,
           height: height,
-          padding: padding ?? EdgeInsets.all(Spacing.lg),
+          padding: padding ?? const EdgeInsets.all(Spacing.lg),
           decoration: BoxDecoration(
             color: effectiveBackgroundColor,
             borderRadius: BorderRadius.circular(borderRadius),
@@ -205,7 +205,7 @@ class GlassCardGradient extends StatelessWidget {
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
             child: Container(
-              padding: padding ?? EdgeInsets.all(Spacing.lg),
+              padding: padding ?? const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: isDark
                     ? Colors.black.withValues(alpha: 0.4)
@@ -240,7 +240,7 @@ class GlassCardCompact extends StatelessWidget {
   Widget build(BuildContext context) {
     return GlassCard(
       padding: padding ??
-          EdgeInsets.symmetric(
+          const EdgeInsets.symmetric(
             horizontal: Spacing.lg,
             vertical: Spacing.md,
           ),

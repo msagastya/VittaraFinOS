@@ -312,7 +312,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                     else
                       const SizedBox(height: 36),
 
-                    SafeArea(top: false, child: const SizedBox(height: 8)),
+                    const SafeArea(top: false, child: SizedBox(height: 8)),
                   ],
                 ),
               ),

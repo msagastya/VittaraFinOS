@@ -111,29 +111,29 @@ class _BondsDetailsStepState extends State<BondsDetailsStep> {
           const SizedBox(height: Spacing.md),
           CupertinoSegmentedControl<CouponFrequency>(
             children: {
-              CouponFrequency.annual: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+              CouponFrequency.annual: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
                   'Annual',
                   style: TextStyle(fontSize: TypeScale.subhead),
                 ),
               ),
-              CouponFrequency.semiAnnual: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+              CouponFrequency.semiAnnual: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
                   'Semi-Annual',
                   style: TextStyle(fontSize: TypeScale.subhead),
                 ),
               ),
-              CouponFrequency.quarterly: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+              CouponFrequency.quarterly: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
                   'Quarterly',
                   style: TextStyle(fontSize: TypeScale.subhead),
                 ),
               ),
-              CouponFrequency.monthly: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+              CouponFrequency.monthly: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
                   'Monthly',
                   style: TextStyle(fontSize: TypeScale.subhead),

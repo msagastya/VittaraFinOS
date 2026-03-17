@@ -44,7 +44,7 @@ class _NPSValuationStepState extends State<NPSValuationStep> {
               style:
                   TextStyle(color: AppStyles.getSecondaryTextColor(context))),
           const SizedBox(height: 30),
-          Text('Current Account Value (₹)',
+          const Text('Current Account Value (₹)',
               style: TextStyle(
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),

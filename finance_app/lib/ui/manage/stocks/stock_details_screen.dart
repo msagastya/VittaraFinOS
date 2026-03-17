@@ -136,13 +136,13 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
       ),
       child: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(Spacing.lg),
+          padding: const EdgeInsets.all(Spacing.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Stock Header
               Container(
-                padding: EdgeInsets.all(Spacing.lg),
+                padding: const EdgeInsets.all(Spacing.lg),
                 decoration: AppStyles.cardDecoration(context),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -161,7 +161,7 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                             color: _investment.color,
                           ),
                         ),
-                        SizedBox(width: Spacing.lg),
+                        const SizedBox(width: Spacing.lg),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -193,7 +193,7 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                         ),
                       ],
                     ),
-                    SizedBox(height: Spacing.xl),
+                    const SizedBox(height: Spacing.xl),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -207,7 +207,7 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                                 fontSize: TypeScale.footnote,
                               ),
                             ),
-                            SizedBox(height: Spacing.xs),
+                            const SizedBox(height: Spacing.xs),
                             Text(
                               '₹${_investedAmount.toStringAsFixed(2)}',
                               style: AppStyles.titleStyle(context)
@@ -225,7 +225,7 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                                 fontSize: TypeScale.footnote,
                               ),
                             ),
-                            SizedBox(height: Spacing.xs),
+                            const SizedBox(height: Spacing.xs),
                             Text(
                               '₹${_currentValue.toStringAsFixed(2)}',
                               style: AppStyles.titleStyle(context).copyWith(
@@ -237,9 +237,9 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                         ),
                       ],
                     ),
-                    SizedBox(height: Spacing.lg),
+                    const SizedBox(height: Spacing.lg),
                     Container(
-                      padding: EdgeInsets.all(Spacing.md),
+                      padding: const EdgeInsets.all(Spacing.md),
                       decoration: BoxDecoration(
                         color: _isGain
                             ? AppStyles.bioGreen.withValues(alpha: 0.1)
@@ -273,14 +273,14 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                   ],
                 ),
               ),
-              SizedBox(height: Spacing.xl),
+              const SizedBox(height: Spacing.xl),
 
               // Investment Details
               Text(
                 'Details',
                 style: AppStyles.titleStyle(context).copyWith(fontSize: 18),
               ),
-              SizedBox(height: Spacing.lg),
+              const SizedBox(height: Spacing.lg),
               _buildDetailRow(context, 'Quantity', '$_qty shares'),
               _buildDetailRow(context, 'Price per Share',
                   '₹${_pricePerShare.toStringAsFixed(2)}'),
@@ -293,14 +293,14 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                 ),
               if (_investment.broker != null)
                 _buildDetailRow(context, 'Broker', _investment.broker!),
-              SizedBox(height: Spacing.xl),
+              const SizedBox(height: Spacing.xl),
 
               // Action Buttons
               Text(
                 'Actions',
                 style: AppStyles.titleStyle(context).copyWith(fontSize: 18),
               ),
-              SizedBox(height: Spacing.lg),
+              const SizedBox(height: Spacing.lg),
               GridView.count(
                 crossAxisCount: 2,
                 shrinkWrap: true,
@@ -352,7 +352,7 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                   ),
                 ],
               ),
-              SizedBox(height: Spacing.xl),
+              const SizedBox(height: Spacing.xl),
             ],
           ),
         ),
@@ -362,7 +362,7 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
 
   Widget _buildDetailRow(BuildContext context, String label, String value) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: Spacing.md),
+      padding: const EdgeInsets.symmetric(vertical: Spacing.md),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -408,7 +408,7 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
               ),
               child: Icon(icon, size: 32, color: color),
             ),
-            SizedBox(height: Spacing.md),
+            const SizedBox(height: Spacing.md),
             Text(
               label,
               textAlign: TextAlign.center,
@@ -597,14 +597,14 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const ModalHandle(),
-                SizedBox(height: Spacing.lg),
+                const SizedBox(height: Spacing.lg),
                 // Progress
                 Row(
                   children: List.generate(4, (index) {
                     return Expanded(
                       child: Container(
                         height: 4,
-                        margin: EdgeInsets.symmetric(horizontal: 2),
+                        margin: const EdgeInsets.symmetric(horizontal: 2),
                         decoration: BoxDecoration(
                           color: index <= _step
                               ? SemanticColors.investments
@@ -617,7 +617,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                     );
                   }),
                 ),
-                SizedBox(height: Spacing.lg),
+                const SizedBox(height: Spacing.lg),
                 Text(
                   _step == 0
                       ? 'Buy More Shares'
@@ -629,7 +629,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                   style: AppStyles.titleStyle(context)
                       .copyWith(fontSize: TypeScale.title1),
                 ),
-                SizedBox(height: Spacing.sm),
+                const SizedBox(height: Spacing.sm),
                 Text(
                   _step == 0
                       ? 'Enter quantity, price, and date'
@@ -643,7 +643,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                     fontSize: TypeScale.body,
                   ),
                 ),
-                SizedBox(height: Spacing.xxxl),
+                const SizedBox(height: Spacing.xxxl),
                 // Step content
                 if (_step == 0) ...[
                   _buildStepDetails(),
@@ -654,7 +654,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                 ] else ...[
                   _buildStepReview(),
                 ],
-                SizedBox(height: Spacing.xl),
+                const SizedBox(height: Spacing.xl),
                 // Navigation buttons
                 Row(
                   children: [
@@ -665,7 +665,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                           child: const Text('Back'),
                         ),
                       ),
-                    if (_step > 0) SizedBox(width: Spacing.md),
+                    if (_step > 0) const SizedBox(width: Spacing.md),
                     Expanded(
                       child: CupertinoButton.filled(
                         onPressed: _step < 3
@@ -692,7 +692,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
       children: [
         // Transaction Input Card
         Container(
-          padding: EdgeInsets.all(Spacing.lg),
+          padding: const EdgeInsets.all(Spacing.lg),
           decoration: BoxDecoration(
             color: AppStyles.getCardColor(context),
             borderRadius: BorderRadius.circular(Radii.lg),
@@ -709,19 +709,19 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                 label: 'Quantity',
                 controller: _qtyController,
                 placeholder: '0',
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
               ),
-              SizedBox(height: Spacing.lg),
+              const SizedBox(height: Spacing.lg),
               // Price per Share Field
               _buildInputField(
                 icon: CupertinoIcons.money_dollar_circle,
                 label: 'Price per Share',
                 controller: _priceController,
                 placeholder: '0.00',
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 prefix: '₹',
               ),
-              SizedBox(height: Spacing.lg),
+              const SizedBox(height: Spacing.lg),
               // Date Field
               _buildDateField(
                 icon: CupertinoIcons.calendar,
@@ -731,10 +731,10 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
             ],
           ),
         ),
-        SizedBox(height: Spacing.xl),
+        const SizedBox(height: Spacing.xl),
         // Cost Summary Card
         Container(
-          padding: EdgeInsets.all(Spacing.lg),
+          padding: const EdgeInsets.all(Spacing.lg),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
@@ -758,19 +758,19 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                   Row(
                     children: [
                       Container(
-                        padding: EdgeInsets.all(Spacing.sm),
+                        padding: const EdgeInsets.all(Spacing.sm),
                         decoration: BoxDecoration(
                           color:
                               SemanticColors.investments.withValues(alpha: 0.2),
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(
+                        child: const Icon(
                           CupertinoIcons.bag,
                           size: 20,
                           color: SemanticColors.investments,
                         ),
                       ),
-                      SizedBox(width: Spacing.md),
+                      const SizedBox(width: Spacing.md),
                       Text(
                         'Base Cost',
                         style: TextStyle(
@@ -791,31 +791,31 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                   ),
                 ],
               ),
-              SizedBox(height: Spacing.md),
+              const SizedBox(height: Spacing.md),
               Divider(
                 color: SemanticColors.investments.withValues(alpha: 0.2),
                 height: 1,
               ),
-              SizedBox(height: Spacing.md),
+              const SizedBox(height: Spacing.md),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Row(
                     children: [
                       Container(
-                        padding: EdgeInsets.all(Spacing.sm),
+                        padding: const EdgeInsets.all(Spacing.sm),
                         decoration: BoxDecoration(
                           color:
                               SemanticColors.investments.withValues(alpha: 0.2),
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(
+                        child: const Icon(
                           CupertinoIcons.money_yen_circle,
                           size: 20,
                           color: SemanticColors.investments,
                         ),
                       ),
-                      SizedBox(width: Spacing.md),
+                      const SizedBox(width: Spacing.md),
                       Text(
                         'Total Cost',
                         style: TextStyle(
@@ -828,7 +828,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                   ),
                   Text(
                     '₹${(_qty * _price).toStringAsFixed(2)}',
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 18,
                       color: SemanticColors.investments,
@@ -857,7 +857,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
         Row(
           children: [
             Icon(icon, size: 18, color: SemanticColors.investments),
-            SizedBox(width: Spacing.sm),
+            const SizedBox(width: Spacing.sm),
             Text(
               label,
               style: TextStyle(
@@ -868,7 +868,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
             ),
           ],
         ),
-        SizedBox(height: Spacing.md),
+        const SizedBox(height: Spacing.md),
         CupertinoTextField(
           controller: controller,
           keyboardType: keyboardType,
@@ -909,7 +909,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
         Row(
           children: [
             Icon(icon, size: 18, color: SemanticColors.investments),
-            SizedBox(width: Spacing.sm),
+            const SizedBox(width: Spacing.sm),
             Text(
               label,
               style: TextStyle(
@@ -920,7 +920,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
             ),
           ],
         ),
-        SizedBox(height: Spacing.md),
+        const SizedBox(height: Spacing.md),
         GestureDetector(
           onTap: onTap,
           child: Container(
@@ -944,7 +944,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                Icon(
+                const Icon(
                   CupertinoIcons.calendar,
                   color: SemanticColors.investments,
                   size: 18,
@@ -972,7 +972,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                     style: TextStyle(
                         color: AppStyles.getTextColor(context),
                         fontWeight: FontWeight.w600)),
-                SizedBox(height: Spacing.xs),
+                const SizedBox(height: Spacing.xs),
                 Text(
                   'Auto-debit the purchase amount',
                   style: TextStyle(
@@ -987,11 +987,11 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
             ),
           ],
         ),
-        SizedBox(height: Spacing.lg),
+        const SizedBox(height: Spacing.lg),
         if (_linkAccount) ...[
           if (_selectedAccount != null)
             Container(
-              padding: EdgeInsets.all(Spacing.md),
+              padding: const EdgeInsets.all(Spacing.md),
               decoration: BoxDecoration(
                 color: SemanticColors.investments.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(Radii.md),
@@ -1005,13 +1005,13 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                         color: AppStyles.getSecondaryTextColor(context),
                         fontSize: TypeScale.footnote),
                   ),
-                  SizedBox(height: Spacing.sm),
+                  const SizedBox(height: Spacing.sm),
                   Text(
                     _selectedAccount!.name,
                     style: AppStyles.titleStyle(context)
                         .copyWith(fontSize: TypeScale.headline),
                   ),
-                  SizedBox(height: Spacing.xs),
+                  const SizedBox(height: Spacing.xs),
                   Text(
                     'Balance: ₹${_selectedAccount!.balance.toStringAsFixed(2)}',
                     style: TextStyle(
@@ -1020,7 +1020,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                 ],
               ),
             ),
-          SizedBox(height: Spacing.md),
+          const SizedBox(height: Spacing.md),
           CupertinoButton.filled(
             onPressed: _showAccountSelector,
             child: Text(
@@ -1037,7 +1037,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
       children: [
         // Charges Input Card
         Container(
-          padding: EdgeInsets.all(Spacing.lg),
+          padding: const EdgeInsets.all(Spacing.lg),
           decoration: BoxDecoration(
             color: AppStyles.getCardColor(context),
             borderRadius: BorderRadius.circular(Radii.lg),
@@ -1051,9 +1051,9 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
             children: [
               Row(
                 children: [
-                  Icon(CupertinoIcons.plus_circle,
+                  const Icon(CupertinoIcons.plus_circle,
                       size: 18, color: CupertinoColors.systemOrange),
-                  SizedBox(width: Spacing.sm),
+                  const SizedBox(width: Spacing.sm),
                   Text(
                     'Extra Charges (Optional)',
                     style: TextStyle(
@@ -1064,7 +1064,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                   ),
                 ],
               ),
-              SizedBox(height: Spacing.sm),
+              const SizedBox(height: Spacing.sm),
               Text(
                 'Brokerage fees, commissions, or taxes',
                 style: TextStyle(
@@ -1072,7 +1072,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                   fontSize: TypeScale.footnote,
                 ),
               ),
-              SizedBox(height: Spacing.lg),
+              const SizedBox(height: Spacing.lg),
               CupertinoTextField(
                 controller: _chargesController,
                 keyboardType:
@@ -1101,10 +1101,10 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
             ],
           ),
         ),
-        SizedBox(height: Spacing.xl),
+        const SizedBox(height: Spacing.xl),
         // Breakdown Card
         Container(
-          padding: EdgeInsets.all(Spacing.lg),
+          padding: const EdgeInsets.all(Spacing.lg),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
@@ -1130,7 +1130,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                   Text('₹${(_qty * _price).toStringAsFixed(2)}'),
                 ],
               ),
-              SizedBox(height: Spacing.sm),
+              const SizedBox(height: Spacing.sm),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -1139,7 +1139,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                   Text('₹${_charges.toStringAsFixed(2)}'),
                 ],
               ),
-              Divider(height: Spacing.lg),
+              const Divider(height: Spacing.lg),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -1168,7 +1168,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: EdgeInsets.all(Spacing.lg),
+          padding: const EdgeInsets.all(Spacing.lg),
           decoration: BoxDecoration(
             color: AppStyles.getBackground(context),
             borderRadius: BorderRadius.circular(Radii.md),
@@ -1183,9 +1183,9 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                 _reviewRow('Extra Charges', '₹${_charges.toStringAsFixed(2)}'),
               _reviewRow('Date', _dateController.text),
               if (_linkAccount && _selectedAccount != null) ...[
-                SizedBox(height: Spacing.md),
-                Divider(),
-                SizedBox(height: Spacing.md),
+                const SizedBox(height: Spacing.md),
+                const Divider(),
+                const SizedBox(height: Spacing.md),
                 _reviewRow('Linked Account', _selectedAccount!.name),
                 _reviewRow('Account Balance',
                     '₹${_selectedAccount!.balance.toStringAsFixed(2)}'),
@@ -1195,9 +1195,9 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                   isHighlight: true,
                 ),
               ],
-              SizedBox(height: Spacing.md),
-              Divider(),
-              SizedBox(height: Spacing.md),
+              const SizedBox(height: Spacing.md),
+              const Divider(),
+              const SizedBox(height: Spacing.md),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -1223,7 +1223,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
 
   Widget _reviewRow(String label, String value, {bool isHighlight = false}) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: Spacing.sm),
+      padding: const EdgeInsets.symmetric(vertical: Spacing.sm),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -1430,13 +1430,13 @@ class _SellModalState extends State<_SellModal> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const ModalHandle(),
-                SizedBox(height: Spacing.lg),
+                const SizedBox(height: Spacing.lg),
                 Row(
                   children: List.generate(4, (index) {
                     return Expanded(
                       child: Container(
                         height: 4,
-                        margin: EdgeInsets.symmetric(horizontal: 2),
+                        margin: const EdgeInsets.symmetric(horizontal: 2),
                         decoration: BoxDecoration(
                           color: index <= _step
                               ? AppStyles.plasmaRed
@@ -1449,7 +1449,7 @@ class _SellModalState extends State<_SellModal> {
                     );
                   }),
                 ),
-                SizedBox(height: Spacing.lg),
+                const SizedBox(height: Spacing.lg),
                 Text(
                   _step == 0
                       ? 'Sell Shares'
@@ -1461,7 +1461,7 @@ class _SellModalState extends State<_SellModal> {
                   style: AppStyles.titleStyle(context)
                       .copyWith(fontSize: TypeScale.title1),
                 ),
-                SizedBox(height: Spacing.sm),
+                const SizedBox(height: Spacing.sm),
                 Text(
                   _step == 0
                       ? 'Available: ${widget.currentQty} shares'
@@ -1475,7 +1475,7 @@ class _SellModalState extends State<_SellModal> {
                     fontSize: TypeScale.body,
                   ),
                 ),
-                SizedBox(height: Spacing.xxxl),
+                const SizedBox(height: Spacing.xxxl),
                 if (_step == 0) ...[
                   _buildStepDetails(),
                 ] else if (_step == 1) ...[
@@ -1485,7 +1485,7 @@ class _SellModalState extends State<_SellModal> {
                 ] else ...[
                   _buildStepReview(),
                 ],
-                SizedBox(height: Spacing.xl),
+                const SizedBox(height: Spacing.xl),
                 Row(
                   children: [
                     if (_step > 0)
@@ -1495,7 +1495,7 @@ class _SellModalState extends State<_SellModal> {
                           child: const Text('Back'),
                         ),
                       ),
-                    if (_step > 0) SizedBox(width: Spacing.md),
+                    if (_step > 0) const SizedBox(width: Spacing.md),
                     Expanded(
                       child: CupertinoButton.filled(
                         onPressed: _step < 3
@@ -1526,7 +1526,7 @@ class _SellModalState extends State<_SellModal> {
             style: TextStyle(
                 color: AppStyles.getTextColor(context),
                 fontWeight: FontWeight.w600)),
-        SizedBox(height: Spacing.md),
+        const SizedBox(height: Spacing.md),
         CupertinoTextField(
           controller: _qtyController,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -1539,12 +1539,12 @@ class _SellModalState extends State<_SellModal> {
           style: TextStyle(color: AppStyles.getTextColor(context)),
           onChanged: (_) => setState(() {}),
         ),
-        SizedBox(height: Spacing.lg),
+        const SizedBox(height: Spacing.lg),
         Text('Selling Price per Share',
             style: TextStyle(
                 color: AppStyles.getTextColor(context),
                 fontWeight: FontWeight.w600)),
-        SizedBox(height: Spacing.md),
+        const SizedBox(height: Spacing.md),
         CupertinoTextField(
           controller: _priceController,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -1562,12 +1562,12 @@ class _SellModalState extends State<_SellModal> {
           style: TextStyle(color: AppStyles.getTextColor(context)),
           onChanged: (_) => setState(() {}),
         ),
-        SizedBox(height: Spacing.lg),
+        const SizedBox(height: Spacing.lg),
         Text('Date of Sale',
             style: TextStyle(
                 color: AppStyles.getTextColor(context),
                 fontWeight: FontWeight.w600)),
-        SizedBox(height: Spacing.md),
+        const SizedBox(height: Spacing.md),
         GestureDetector(
           onTap: _showDatePicker,
           child: Container(
@@ -1589,9 +1589,9 @@ class _SellModalState extends State<_SellModal> {
             ),
           ),
         ),
-        SizedBox(height: Spacing.lg),
+        const SizedBox(height: Spacing.lg),
         Container(
-          padding: EdgeInsets.all(Spacing.md),
+          padding: const EdgeInsets.all(Spacing.md),
           decoration: BoxDecoration(
             color: AppStyles.bioGreen.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(Radii.md),
@@ -1630,7 +1630,7 @@ class _SellModalState extends State<_SellModal> {
                     style: TextStyle(
                         color: AppStyles.getTextColor(context),
                         fontWeight: FontWeight.w600)),
-                SizedBox(height: Spacing.xs),
+                const SizedBox(height: Spacing.xs),
                 Text(
                   'Auto-credit the sale proceeds',
                   style: TextStyle(
@@ -1645,11 +1645,11 @@ class _SellModalState extends State<_SellModal> {
             ),
           ],
         ),
-        SizedBox(height: Spacing.lg),
+        const SizedBox(height: Spacing.lg),
         if (_linkAccount) ...[
           if (_selectedAccount != null)
             Container(
-              padding: EdgeInsets.all(Spacing.md),
+              padding: const EdgeInsets.all(Spacing.md),
               decoration: BoxDecoration(
                 color: AppStyles.bioGreen.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(Radii.md),
@@ -1663,13 +1663,13 @@ class _SellModalState extends State<_SellModal> {
                         color: AppStyles.getSecondaryTextColor(context),
                         fontSize: TypeScale.footnote),
                   ),
-                  SizedBox(height: Spacing.sm),
+                  const SizedBox(height: Spacing.sm),
                   Text(
                     _selectedAccount!.name,
                     style: AppStyles.titleStyle(context)
                         .copyWith(fontSize: TypeScale.headline),
                   ),
-                  SizedBox(height: Spacing.xs),
+                  const SizedBox(height: Spacing.xs),
                   Text(
                     'Current Balance: ₹${_selectedAccount!.balance.toStringAsFixed(2)}',
                     style: TextStyle(
@@ -1678,7 +1678,7 @@ class _SellModalState extends State<_SellModal> {
                 ],
               ),
             ),
-          SizedBox(height: Spacing.md),
+          const SizedBox(height: Spacing.md),
           CupertinoButton.filled(
             onPressed: _showAccountSelector,
             child: Text(
@@ -1697,14 +1697,14 @@ class _SellModalState extends State<_SellModal> {
             style: TextStyle(
                 color: AppStyles.getTextColor(context),
                 fontWeight: FontWeight.w600)),
-        SizedBox(height: Spacing.sm),
+        const SizedBox(height: Spacing.sm),
         Text(
           'Brokerage fees, taxes, or other charges',
           style: TextStyle(
               color: AppStyles.getSecondaryTextColor(context),
               fontSize: TypeScale.footnote),
         ),
-        SizedBox(height: Spacing.md),
+        const SizedBox(height: Spacing.md),
         CupertinoTextField(
           controller: _chargesController,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -1722,9 +1722,9 @@ class _SellModalState extends State<_SellModal> {
           style: TextStyle(color: AppStyles.getTextColor(context)),
           onChanged: (_) => setState(() {}),
         ),
-        SizedBox(height: Spacing.lg),
+        const SizedBox(height: Spacing.lg),
         Container(
-          padding: EdgeInsets.all(Spacing.md),
+          padding: const EdgeInsets.all(Spacing.md),
           decoration: BoxDecoration(
             color: AppStyles.getBackground(context),
             borderRadius: BorderRadius.circular(Radii.md),
@@ -1739,7 +1739,7 @@ class _SellModalState extends State<_SellModal> {
                   Text('₹${_grossProceeds.toStringAsFixed(2)}'),
                 ],
               ),
-              SizedBox(height: Spacing.sm),
+              const SizedBox(height: Spacing.sm),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -1748,7 +1748,7 @@ class _SellModalState extends State<_SellModal> {
                   Text('- ₹${_charges.toStringAsFixed(2)}'),
                 ],
               ),
-              Divider(height: Spacing.lg),
+              const Divider(height: Spacing.lg),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -1777,7 +1777,7 @@ class _SellModalState extends State<_SellModal> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: EdgeInsets.all(Spacing.lg),
+          padding: const EdgeInsets.all(Spacing.lg),
           decoration: BoxDecoration(
             color: AppStyles.getBackground(context),
             borderRadius: BorderRadius.circular(Radii.md),
@@ -1792,9 +1792,9 @@ class _SellModalState extends State<_SellModal> {
                 _reviewRow('Charges', '- ₹${_charges.toStringAsFixed(2)}'),
               _reviewRow('Date', _dateController.text),
               if (_linkAccount && _selectedAccount != null) ...[
-                SizedBox(height: Spacing.md),
-                Divider(),
-                SizedBox(height: Spacing.md),
+                const SizedBox(height: Spacing.md),
+                const Divider(),
+                const SizedBox(height: Spacing.md),
                 _reviewRow('Credit to Account', _selectedAccount!.name),
                 _reviewRow('Current Balance',
                     '₹${_selectedAccount!.balance.toStringAsFixed(2)}'),
@@ -1804,9 +1804,9 @@ class _SellModalState extends State<_SellModal> {
                   isHighlight: true,
                 ),
               ],
-              SizedBox(height: Spacing.md),
-              Divider(),
-              SizedBox(height: Spacing.md),
+              const SizedBox(height: Spacing.md),
+              const Divider(),
+              const SizedBox(height: Spacing.md),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -1832,7 +1832,7 @@ class _SellModalState extends State<_SellModal> {
 
   Widget _reviewRow(String label, String value, {bool isHighlight = false}) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: Spacing.sm),
+      padding: const EdgeInsets.symmetric(vertical: Spacing.sm),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -2049,13 +2049,13 @@ class _SIPModalState extends State<_SIPModal> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const ModalHandle(),
-                SizedBox(height: Spacing.lg),
+                const SizedBox(height: Spacing.lg),
                 Row(
                   children: List.generate(6, (index) {
                     return Expanded(
                       child: Container(
                         height: 4,
-                        margin: EdgeInsets.symmetric(horizontal: 2),
+                        margin: const EdgeInsets.symmetric(horizontal: 2),
                         decoration: BoxDecoration(
                           color: index <= _step
                               ? CupertinoColors.systemBlue
@@ -2068,7 +2068,7 @@ class _SIPModalState extends State<_SIPModal> {
                     );
                   }),
                 ),
-                SizedBox(height: Spacing.lg),
+                const SizedBox(height: Spacing.lg),
                 Text(
                   _step == 0
                       ? 'Start Date'
@@ -2084,7 +2084,7 @@ class _SIPModalState extends State<_SIPModal> {
                   style: AppStyles.titleStyle(context)
                       .copyWith(fontSize: TypeScale.title1),
                 ),
-                SizedBox(height: Spacing.sm),
+                const SizedBox(height: Spacing.sm),
                 Text(
                   _step == 0
                       ? 'When should your SIP start?'
@@ -2102,7 +2102,7 @@ class _SIPModalState extends State<_SIPModal> {
                     fontSize: TypeScale.body,
                   ),
                 ),
-                SizedBox(height: Spacing.xxxl),
+                const SizedBox(height: Spacing.xxxl),
                 if (_step == 0) ...[
                   _buildStepStartDate(),
                 ] else if (_step == 1) ...[
@@ -2116,7 +2116,7 @@ class _SIPModalState extends State<_SIPModal> {
                 ] else ...[
                   _buildStepReview(),
                 ],
-                SizedBox(height: Spacing.xl),
+                const SizedBox(height: Spacing.xl),
                 Row(
                   children: [
                     if (_step > 0)
@@ -2126,7 +2126,7 @@ class _SIPModalState extends State<_SIPModal> {
                           child: const Text('Back'),
                         ),
                       ),
-                    if (_step > 0) SizedBox(width: Spacing.md),
+                    if (_step > 0) const SizedBox(width: Spacing.md),
                     Expanded(
                       child: CupertinoButton.filled(
                         onPressed: _step < 5
@@ -2159,7 +2159,7 @@ class _SIPModalState extends State<_SIPModal> {
             fontSize: TypeScale.body,
           ),
         ),
-        SizedBox(height: Spacing.md),
+        const SizedBox(height: Spacing.md),
         GestureDetector(
           onTap: _showDatePicker,
           child: Container(
@@ -2183,7 +2183,7 @@ class _SIPModalState extends State<_SIPModal> {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                Icon(
+                const Icon(
                   CupertinoIcons.calendar,
                   color: CupertinoColors.systemBlue,
                   size: 18,
@@ -2192,9 +2192,9 @@ class _SIPModalState extends State<_SIPModal> {
             ),
           ),
         ),
-        SizedBox(height: Spacing.lg),
+        const SizedBox(height: Spacing.lg),
         Container(
-          padding: EdgeInsets.all(Spacing.md),
+          padding: const EdgeInsets.all(Spacing.md),
           decoration: BoxDecoration(
             color: CupertinoColors.systemBlue.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(Radii.md),
@@ -2204,12 +2204,12 @@ class _SIPModalState extends State<_SIPModal> {
             children: [
               Row(
                 children: [
-                  Icon(
+                  const Icon(
                     CupertinoIcons.info,
                     size: 16,
                     color: CupertinoColors.systemBlue,
                   ),
-                  SizedBox(width: Spacing.sm),
+                  const SizedBox(width: Spacing.sm),
                   Expanded(
                     child: Text(
                       'SIP will start on the selected date. First transaction will be processed immediately.',
@@ -2237,7 +2237,7 @@ class _SIPModalState extends State<_SIPModal> {
           _isFixedAmount,
           () => setState(() => _isFixedAmount = true),
         ),
-        SizedBox(height: Spacing.lg),
+        const SizedBox(height: Spacing.lg),
         _buildTypeCard(
           'Fixed Quantity',
           'Buy the same number of shares each time',
@@ -2253,7 +2253,7 @@ class _SIPModalState extends State<_SIPModal> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.all(Spacing.lg),
+        padding: const EdgeInsets.all(Spacing.lg),
         decoration: BoxDecoration(
           color: isSelected
               ? SemanticColors.investments.withValues(alpha: 0.1)
@@ -2289,7 +2289,7 @@ class _SIPModalState extends State<_SIPModal> {
                     )
                   : null,
             ),
-            SizedBox(width: Spacing.lg),
+            const SizedBox(width: Spacing.lg),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -2301,7 +2301,7 @@ class _SIPModalState extends State<_SIPModal> {
                       color: AppStyles.getTextColor(context),
                     ),
                   ),
-                  SizedBox(height: Spacing.xs),
+                  const SizedBox(height: Spacing.xs),
                   Text(
                     subtitle,
                     style: TextStyle(
@@ -2328,7 +2328,7 @@ class _SIPModalState extends State<_SIPModal> {
               color: AppStyles.getTextColor(context),
               fontWeight: FontWeight.w600),
         ),
-        SizedBox(height: Spacing.md),
+        const SizedBox(height: Spacing.md),
         CupertinoTextField(
           controller: _isFixedAmount ? _amountController : _qtyController,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -2358,7 +2358,7 @@ class _SIPModalState extends State<_SIPModal> {
             style: TextStyle(
                 color: AppStyles.getTextColor(context),
                 fontWeight: FontWeight.w600)),
-        SizedBox(height: Spacing.lg),
+        const SizedBox(height: Spacing.lg),
         Wrap(
           spacing: Spacing.md,
           runSpacing: Spacing.md,
@@ -2366,7 +2366,7 @@ class _SIPModalState extends State<_SIPModal> {
             return GestureDetector(
               onTap: () => setState(() => _frequency = freq),
               child: Container(
-                padding: EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                     horizontal: Spacing.lg, vertical: Spacing.md),
                 decoration: BoxDecoration(
                   color: _frequency == freq
@@ -2409,7 +2409,7 @@ class _SIPModalState extends State<_SIPModal> {
                     style: TextStyle(
                         color: AppStyles.getTextColor(context),
                         fontWeight: FontWeight.w600)),
-                SizedBox(height: Spacing.xs),
+                const SizedBox(height: Spacing.xs),
                 Text(
                   'Auto-debit each SIP installment',
                   style: TextStyle(
@@ -2424,11 +2424,11 @@ class _SIPModalState extends State<_SIPModal> {
             ),
           ],
         ),
-        SizedBox(height: Spacing.lg),
+        const SizedBox(height: Spacing.lg),
         if (_linkAccount) ...[
           if (_selectedAccount != null)
             Container(
-              padding: EdgeInsets.all(Spacing.md),
+              padding: const EdgeInsets.all(Spacing.md),
               decoration: BoxDecoration(
                 color: CupertinoColors.systemBlue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(Radii.md),
@@ -2442,13 +2442,13 @@ class _SIPModalState extends State<_SIPModal> {
                         color: AppStyles.getSecondaryTextColor(context),
                         fontSize: TypeScale.footnote),
                   ),
-                  SizedBox(height: Spacing.sm),
+                  const SizedBox(height: Spacing.sm),
                   Text(
                     _selectedAccount!.name,
                     style: AppStyles.titleStyle(context)
                         .copyWith(fontSize: TypeScale.headline),
                   ),
-                  SizedBox(height: Spacing.xs),
+                  const SizedBox(height: Spacing.xs),
                   Text(
                     'Balance: ₹${_selectedAccount!.balance.toStringAsFixed(2)}',
                     style: TextStyle(
@@ -2457,7 +2457,7 @@ class _SIPModalState extends State<_SIPModal> {
                 ],
               ),
             ),
-          SizedBox(height: Spacing.md),
+          const SizedBox(height: Spacing.md),
           CupertinoButton.filled(
             onPressed: _showAccountSelector,
             child: Text(
@@ -2470,7 +2470,7 @@ class _SIPModalState extends State<_SIPModal> {
 
   Widget _buildStepReview() {
     return Container(
-      padding: EdgeInsets.all(Spacing.lg),
+      padding: const EdgeInsets.all(Spacing.lg),
       decoration: BoxDecoration(
         color: AppStyles.getBackground(context),
         borderRadius: BorderRadius.circular(Radii.md),
@@ -2485,9 +2485,9 @@ class _SIPModalState extends State<_SIPModal> {
           ),
           _reviewRow('Frequency', _frequency),
           if (_linkAccount && _selectedAccount != null) ...[
-            SizedBox(height: Spacing.md),
-            Divider(),
-            SizedBox(height: Spacing.md),
+            const SizedBox(height: Spacing.md),
+            const Divider(),
+            const SizedBox(height: Spacing.md),
             _reviewRow('Debit Account', _selectedAccount!.name),
             _reviewRow('Account Balance',
                 '₹${_selectedAccount!.balance.toStringAsFixed(2)}'),
@@ -2499,14 +2499,14 @@ class _SIPModalState extends State<_SIPModal> {
 
   Widget _reviewRow(String label, String value) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: Spacing.sm),
+      padding: const EdgeInsets.symmetric(vertical: Spacing.sm),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label,
               style:
                   TextStyle(color: AppStyles.getSecondaryTextColor(context))),
-          Text(value, style: TextStyle(fontWeight: FontWeight.w600)),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
         ],
       ),
     );
@@ -2563,18 +2563,18 @@ class _EditModalState extends State<_EditModal> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const ModalHandle(),
-                SizedBox(height: Spacing.lg),
+                const SizedBox(height: Spacing.lg),
                 Text(
                   'Edit Investment',
                   style: AppStyles.titleStyle(context)
                       .copyWith(fontSize: TypeScale.title1),
                 ),
-                SizedBox(height: Spacing.xxxl),
+                const SizedBox(height: Spacing.xxxl),
                 Text('Investment Name',
                     style: TextStyle(
                         color: AppStyles.getTextColor(context),
                         fontWeight: FontWeight.w600)),
-                SizedBox(height: Spacing.md),
+                const SizedBox(height: Spacing.md),
                 CupertinoTextField(
                   controller: _nameController,
                   placeholder: 'Stock name',
@@ -2585,12 +2585,12 @@ class _EditModalState extends State<_EditModal> {
                   ),
                   style: TextStyle(color: AppStyles.getTextColor(context)),
                 ),
-                SizedBox(height: Spacing.lg),
+                const SizedBox(height: Spacing.lg),
                 Text('Current Value',
                     style: TextStyle(
                         color: AppStyles.getTextColor(context),
                         fontWeight: FontWeight.w600)),
-                SizedBox(height: Spacing.md),
+                const SizedBox(height: Spacing.md),
                 CupertinoTextField(
                   controller: _currentValueController,
                   keyboardType:
@@ -2609,7 +2609,7 @@ class _EditModalState extends State<_EditModal> {
                   ),
                   style: TextStyle(color: AppStyles.getTextColor(context)),
                 ),
-                SizedBox(height: Spacing.xl),
+                const SizedBox(height: Spacing.xl),
                 SizedBox(
                   width: double.infinity,
                   child: CupertinoButton.filled(
@@ -2720,13 +2720,13 @@ class _DividendModalState extends State<_DividendModal> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const ModalHandle(),
-                SizedBox(height: Spacing.lg),
+                const SizedBox(height: Spacing.lg),
                 Text(
                   'Record Dividend',
                   style: AppStyles.titleStyle(context)
                       .copyWith(fontSize: TypeScale.title1),
                 ),
-                SizedBox(height: Spacing.sm),
+                const SizedBox(height: Spacing.sm),
                 Text(
                   'Total dividend amount received',
                   style: TextStyle(
@@ -2734,10 +2734,10 @@ class _DividendModalState extends State<_DividendModal> {
                     fontSize: TypeScale.body,
                   ),
                 ),
-                SizedBox(height: Spacing.xxxl),
+                const SizedBox(height: Spacing.xxxl),
                 // Input Card
                 Container(
-                  padding: EdgeInsets.all(Spacing.lg),
+                  padding: const EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
                     color: AppStyles.getCardColor(context),
                     borderRadius: BorderRadius.circular(Radii.lg),
@@ -2752,9 +2752,9 @@ class _DividendModalState extends State<_DividendModal> {
                       // Dividend Amount
                       Row(
                         children: [
-                          Icon(CupertinoIcons.money_dollar_circle,
+                          const Icon(CupertinoIcons.money_dollar_circle,
                               size: 18, color: CupertinoColors.systemBrown),
-                          SizedBox(width: Spacing.sm),
+                          const SizedBox(width: Spacing.sm),
                           Text(
                             'Dividend Amount',
                             style: TextStyle(
@@ -2765,7 +2765,7 @@ class _DividendModalState extends State<_DividendModal> {
                           ),
                         ],
                       ),
-                      SizedBox(height: Spacing.md),
+                      const SizedBox(height: Spacing.md),
                       CupertinoTextField(
                         controller: _amountController,
                         keyboardType: const TextInputType.numberWithOptions(
@@ -2793,13 +2793,13 @@ class _DividendModalState extends State<_DividendModal> {
                             TextStyle(color: AppStyles.getTextColor(context)),
                         onChanged: (_) => setState(() {}),
                       ),
-                      SizedBox(height: Spacing.lg),
+                      const SizedBox(height: Spacing.lg),
                       // Dividend Date
                       Row(
                         children: [
-                          Icon(CupertinoIcons.calendar,
+                          const Icon(CupertinoIcons.calendar,
                               size: 18, color: CupertinoColors.systemBrown),
-                          SizedBox(width: Spacing.sm),
+                          const SizedBox(width: Spacing.sm),
                           Text(
                             'Dividend Date',
                             style: TextStyle(
@@ -2810,7 +2810,7 @@ class _DividendModalState extends State<_DividendModal> {
                           ),
                         ],
                       ),
-                      SizedBox(height: Spacing.md),
+                      const SizedBox(height: Spacing.md),
                       GestureDetector(
                         onTap: _showDatePicker,
                         child: Container(
@@ -2835,7 +2835,7 @@ class _DividendModalState extends State<_DividendModal> {
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              Icon(CupertinoIcons.calendar,
+                              const Icon(CupertinoIcons.calendar,
                                   color: CupertinoColors.systemBrown, size: 18),
                             ],
                           ),
@@ -2844,10 +2844,10 @@ class _DividendModalState extends State<_DividendModal> {
                     ],
                   ),
                 ),
-                SizedBox(height: Spacing.xl),
+                const SizedBox(height: Spacing.xl),
                 // Account Selection Card
                 Container(
-                  padding: EdgeInsets.all(Spacing.lg),
+                  padding: const EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
                     color: AppStyles.getCardColor(context),
                     borderRadius: BorderRadius.circular(Radii.lg),
@@ -2864,9 +2864,9 @@ class _DividendModalState extends State<_DividendModal> {
                         children: [
                           Row(
                             children: [
-                              Icon(CupertinoIcons.building_2_fill,
+                              const Icon(CupertinoIcons.building_2_fill,
                                   size: 18, color: CupertinoColors.systemBrown),
-                              SizedBox(width: Spacing.sm),
+                              const SizedBox(width: Spacing.sm),
                               Text(
                                 'Credit to Account',
                                 style: TextStyle(
@@ -2877,7 +2877,7 @@ class _DividendModalState extends State<_DividendModal> {
                               ),
                             ],
                           ),
-                          Text(
+                          const Text(
                             'Required',
                             style: TextStyle(
                               color: AppStyles.plasmaRed,
@@ -2887,10 +2887,10 @@ class _DividendModalState extends State<_DividendModal> {
                           ),
                         ],
                       ),
-                      SizedBox(height: Spacing.lg),
+                      const SizedBox(height: Spacing.lg),
                       if (_selectedAccount != null) ...[
                         Container(
-                          padding: EdgeInsets.all(Spacing.md),
+                          padding: const EdgeInsets.all(Spacing.md),
                           decoration: BoxDecoration(
                             color: CupertinoColors.systemBrown
                                 .withValues(alpha: 0.08),
@@ -2907,7 +2907,7 @@ class _DividendModalState extends State<_DividendModal> {
                                   fontSize: TypeScale.body,
                                 ),
                               ),
-                              SizedBox(height: Spacing.xs),
+                              const SizedBox(height: Spacing.xs),
                               Text(
                                 'Balance: ₹${_selectedAccount!.balance.toStringAsFixed(2)}',
                                 style: TextStyle(
@@ -2917,10 +2917,10 @@ class _DividendModalState extends State<_DividendModal> {
                                 ),
                               ),
                               if (amount > 0) ...[
-                                SizedBox(height: Spacing.xs),
+                                const SizedBox(height: Spacing.xs),
                                 Text(
                                   'After credit: ₹${(_selectedAccount!.balance + amount).toStringAsFixed(2)}',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     color: AppStyles.bioGreen,
                                     fontSize: TypeScale.footnote,
                                     fontWeight: FontWeight.w600,
@@ -2930,7 +2930,7 @@ class _DividendModalState extends State<_DividendModal> {
                             ],
                           ),
                         ),
-                        SizedBox(height: Spacing.md),
+                        const SizedBox(height: Spacing.md),
                       ],
                       SizedBox(
                         width: double.infinity,
@@ -2944,7 +2944,7 @@ class _DividendModalState extends State<_DividendModal> {
                     ],
                   ),
                 ),
-                SizedBox(height: Spacing.xl),
+                const SizedBox(height: Spacing.xl),
                 SizedBox(
                   width: double.infinity,
                   child: CupertinoButton.filled(
@@ -3031,13 +3031,13 @@ class _AccountSelector extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const ModalHandle(),
-                    SizedBox(height: Spacing.lg),
+                    const SizedBox(height: Spacing.lg),
                     Text(
                       'Select Account',
                       style: AppStyles.titleStyle(context)
                           .copyWith(fontSize: TypeScale.title1),
                     ),
-                    SizedBox(height: Spacing.xxxl),
+                    const SizedBox(height: Spacing.xxxl),
                     if (accounts.isEmpty)
                       Center(
                         child: Text(
@@ -3051,8 +3051,8 @@ class _AccountSelector extends StatelessWidget {
                         return GestureDetector(
                           onTap: () => onSelected(account),
                           child: Container(
-                            margin: EdgeInsets.only(bottom: Spacing.lg),
-                            padding: EdgeInsets.all(Spacing.lg),
+                            margin: const EdgeInsets.only(bottom: Spacing.lg),
+                            padding: const EdgeInsets.all(Spacing.lg),
                             decoration: BoxDecoration(
                               color: AppStyles.getBackground(context),
                               borderRadius: BorderRadius.circular(Radii.md),
@@ -3064,7 +3064,7 @@ class _AccountSelector extends StatelessWidget {
                                   account.name,
                                   style: AppStyles.titleStyle(context),
                                 ),
-                                SizedBox(height: Spacing.xs),
+                                const SizedBox(height: Spacing.xs),
                                 Text(
                                   account.bankName,
                                   style: TextStyle(
@@ -3073,7 +3073,7 @@ class _AccountSelector extends StatelessWidget {
                                     fontSize: TypeScale.footnote,
                                   ),
                                 ),
-                                SizedBox(height: Spacing.sm),
+                                const SizedBox(height: Spacing.sm),
                                 Text(
                                   '₹${account.balance.toStringAsFixed(2)}',
                                   style: TextStyle(

@@ -111,7 +111,7 @@ Future<Category?> showCreateCategoryModal(
                             ),
                           );
                         },
-                        child: Text(
+                        child: const Text(
                           'Choose Icon',
                           style: TextStyle(
                             color: AppStyles.accentBlue,
@@ -233,7 +233,7 @@ Future<Category?> showCreateCategoryModal(
                             },
                             child: Text(
                               isEditMode ? 'Save' : 'Create',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w600,
                               ),

@@ -65,7 +65,7 @@ class _RecoveryCodeSaveScreenState extends State<RecoveryCodeSaveScreen> {
                   color: AppStyles.solarGold.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(CupertinoIcons.shield_lefthalf_fill,
+                child: const Icon(CupertinoIcons.shield_lefthalf_fill,
                     color: AppStyles.solarGold, size: 36),
               ),
               const SizedBox(height: Spacing.xl),
@@ -110,7 +110,7 @@ class _RecoveryCodeSaveScreenState extends State<RecoveryCodeSaveScreen> {
                 ),
                 child: Column(
                   children: [
-                    Text(
+                    const Text(
                       'EMERGENCY RECOVERY CODE',
                       style: TextStyle(
                         fontSize: TypeScale.caption,
@@ -263,7 +263,7 @@ class _RecoveryCodeSaveScreenState extends State<RecoveryCodeSaveScreen> {
                   height: 52,
                   decoration: BoxDecoration(
                     gradient: _confirmed
-                        ? LinearGradient(colors: [
+                        ? const LinearGradient(colors: [
                             AppStyles.bioGreen,
                             AppStyles.aetherTeal,
                           ])

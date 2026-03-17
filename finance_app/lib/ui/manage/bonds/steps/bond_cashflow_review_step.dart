@@ -48,7 +48,7 @@ class BondCashFlowReviewStep extends StatelessWidget {
                       topRight: Radius.circular(12),
                     ),
                   ),
-                  child: Row(
+                  child: const Row(
                     children: [
                       Expanded(
                         flex: 2,
@@ -57,7 +57,7 @@ class BondCashFlowReviewStep extends StatelessWidget {
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: TypeScale.footnote,
-                            color: const Color(0xFF00A6CC),
+                            color: Color(0xFF00A6CC),
                           ),
                         ),
                       ),
@@ -69,7 +69,7 @@ class BondCashFlowReviewStep extends StatelessWidget {
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: TypeScale.footnote,
-                            color: const Color(0xFF00A6CC),
+                            color: Color(0xFF00A6CC),
                           ),
                         ),
                       ),
@@ -81,7 +81,7 @@ class BondCashFlowReviewStep extends StatelessWidget {
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: TypeScale.footnote,
-                            color: const Color(0xFF00A6CC),
+                            color: Color(0xFF00A6CC),
                           ),
                         ),
                       ),

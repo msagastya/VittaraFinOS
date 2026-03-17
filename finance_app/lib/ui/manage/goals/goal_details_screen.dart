@@ -37,7 +37,7 @@ class GoalDetailsScreen extends StatelessWidget {
               backgroundColor: AppStyles.getBackground(context),
               border: null,
             ),
-            child: SafeArea(
+            child: const SafeArea(
               child: EmptyStateView(
                 icon: CupertinoIcons.flag_slash,
                 title: 'Goal Not Found',
@@ -60,7 +60,7 @@ class GoalDetailsScreen extends StatelessWidget {
             trailing: CupertinoButton(
               padding: EdgeInsets.zero,
               onPressed: () => _showOptionsSheet(context, goal, controller),
-              child: Icon(
+              child: const Icon(
                 CupertinoIcons.ellipsis_circle,
                 color: AppStyles.accentBlue,
               ),
@@ -72,14 +72,14 @@ class GoalDetailsScreen extends StatelessWidget {
                 // Progress Section
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.all(Spacing.lg),
+                    padding: const EdgeInsets.all(Spacing.lg),
                     child: NeumorphicGlassCard(
                       child: Column(
                         children: [
                           Row(
                             children: [
                               Container(
-                                padding: EdgeInsets.all(Spacing.lg),
+                                padding: const EdgeInsets.all(Spacing.lg),
                                 decoration: BoxDecoration(
                                   color: goal.color.withValues(alpha: 0.15),
                                   borderRadius: BorderRadius.circular(Radii.lg),
@@ -90,7 +90,7 @@ class GoalDetailsScreen extends StatelessWidget {
                                   size: IconSizes.xl,
                                 ),
                               ),
-                              SizedBox(width: Spacing.lg),
+                              const SizedBox(width: Spacing.lg),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -103,7 +103,7 @@ class GoalDetailsScreen extends StatelessWidget {
                                         color: AppStyles.getTextColor(context),
                                       ),
                                     ),
-                                    SizedBox(height: Spacing.xs),
+                                    const SizedBox(height: Spacing.xs),
                                     Text(
                                       goal.getTypeLabel(),
                                       style: TextStyle(
@@ -117,7 +117,7 @@ class GoalDetailsScreen extends StatelessWidget {
                               ),
                             ],
                           ),
-                          SizedBox(height: Spacing.xxl),
+                          const SizedBox(height: Spacing.xxl),
                           LiquidCircularProgress(
                             progress: goal.progressPercentage / 100,
                             size: 180,
@@ -135,7 +135,7 @@ class GoalDetailsScreen extends StatelessWidget {
                                     color: goal.color,
                                   ),
                                 ),
-                                SizedBox(height: Spacing.xs),
+                                const SizedBox(height: Spacing.xs),
                                 Text(
                                   'Complete',
                                   style: TextStyle(
@@ -147,7 +147,7 @@ class GoalDetailsScreen extends StatelessWidget {
                               ],
                             ),
                           ),
-                          SizedBox(height: Spacing.xxl),
+                          const SizedBox(height: Spacing.xxl),
                           Row(
                             children: [
                               Expanded(
@@ -161,7 +161,7 @@ class GoalDetailsScreen extends StatelessWidget {
                                             context),
                                       ),
                                     ),
-                                    SizedBox(height: Spacing.xs),
+                                    const SizedBox(height: Spacing.xs),
                                     counter_widgets.CurrencyCounter(
                                       value: goal.currentAmount,
                                       textStyle: TextStyle(
@@ -191,7 +191,7 @@ class GoalDetailsScreen extends StatelessWidget {
                                             context),
                                       ),
                                     ),
-                                    SizedBox(height: Spacing.xs),
+                                    const SizedBox(height: Spacing.xs),
                                     counter_widgets.CurrencyCounter(
                                       value: goal.targetAmount,
                                       textStyle: TextStyle(
@@ -215,7 +215,7 @@ class GoalDetailsScreen extends StatelessWidget {
                 // Stats Cards
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
+                    padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
                     child: Row(
                       children: [
                         Expanded(
@@ -223,12 +223,12 @@ class GoalDetailsScreen extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(
+                                const Icon(
                                   CupertinoIcons.money_dollar_circle_fill,
                                   color: SemanticColors.success,
                                   size: IconSizes.lg,
                                 ),
-                                SizedBox(height: Spacing.md),
+                                const SizedBox(height: Spacing.md),
                                 Text(
                                   'Remaining',
                                   style: TextStyle(
@@ -237,7 +237,7 @@ class GoalDetailsScreen extends StatelessWidget {
                                         context),
                                   ),
                                 ),
-                                SizedBox(height: Spacing.xs),
+                                const SizedBox(height: Spacing.xs),
                                 counter_widgets.CurrencyCounter(
                                   value: goal.remainingAmount,
                                   textStyle: TextStyle(
@@ -251,18 +251,18 @@ class GoalDetailsScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                        SizedBox(width: Spacing.md),
+                        const SizedBox(width: Spacing.md),
                         Expanded(
                           child: GlassCard(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(
+                                const Icon(
                                   CupertinoIcons.calendar,
                                   color: SemanticColors.info,
                                   size: IconSizes.lg,
                                 ),
-                                SizedBox(height: Spacing.md),
+                                const SizedBox(height: Spacing.md),
                                 Text(
                                   'Days Left',
                                   style: TextStyle(
@@ -271,7 +271,7 @@ class GoalDetailsScreen extends StatelessWidget {
                                         context),
                                   ),
                                 ),
-                                SizedBox(height: Spacing.xs),
+                                const SizedBox(height: Spacing.xs),
                                 counter_widgets.AnimatedCounter(
                                   value: goal.daysRemaining.toDouble(),
                                   textStyle: TextStyle(
@@ -294,12 +294,12 @@ class GoalDetailsScreen extends StatelessWidget {
                   ),
                 ),
 
-                SizedBox(height: Spacing.md).toSliverBox(),
+                const SizedBox(height: Spacing.md).toSliverBox(),
 
                 // Recommendation Card
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
+                    padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
                     child: NeumorphicGlassCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -315,7 +315,7 @@ class GoalDetailsScreen extends StatelessWidget {
                                     : SemanticColors.warning,
                                 size: IconSizes.lg,
                               ),
-                              SizedBox(width: Spacing.md),
+                              const SizedBox(width: Spacing.md),
                               Expanded(
                                 child: Text(
                                   goal.isOnTrack
@@ -330,7 +330,7 @@ class GoalDetailsScreen extends StatelessWidget {
                               ),
                             ],
                           ),
-                          SizedBox(height: Spacing.lg),
+                          const SizedBox(height: Spacing.lg),
                           Text(
                             'Recommended Monthly Savings',
                             style: TextStyle(
@@ -338,7 +338,7 @@ class GoalDetailsScreen extends StatelessWidget {
                               color: AppStyles.getSecondaryTextColor(context),
                             ),
                           ),
-                          SizedBox(height: Spacing.xs),
+                          const SizedBox(height: Spacing.xs),
                           counter_widgets.CurrencyCounter(
                             value: goal.recommendedMonthlySavings,
                             textStyle: TextStyle(
@@ -349,7 +349,7 @@ class GoalDetailsScreen extends StatelessWidget {
                                   : SemanticColors.warning,
                             ),
                           ),
-                          SizedBox(height: Spacing.sm),
+                          const SizedBox(height: Spacing.sm),
                           Text(
                             goal.isOnTrack
                                 ? 'Keep up the great work! You\'re on pace to reach your goal.'
@@ -365,12 +365,12 @@ class GoalDetailsScreen extends StatelessWidget {
                   ),
                 ),
 
-                SizedBox(height: Spacing.xl).toSliverBox(),
+                const SizedBox(height: Spacing.xl).toSliverBox(),
 
                 // Contribution History Header
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
+                    padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -394,7 +394,7 @@ class GoalDetailsScreen extends StatelessWidget {
                   ),
                 ),
 
-                SizedBox(height: Spacing.md).toSliverBox(),
+                const SizedBox(height: Spacing.md).toSliverBox(),
 
                 // Contribution List
                 if (goal.contributions.isEmpty)
@@ -408,7 +408,7 @@ class GoalDetailsScreen extends StatelessWidget {
                             size: IconSizes.huge,
                             color: AppStyles.getSecondaryTextColor(context),
                           ),
-                          SizedBox(height: Spacing.lg),
+                          const SizedBox(height: Spacing.lg),
                           Text(
                             'No contributions yet',
                             style: TextStyle(
@@ -417,7 +417,7 @@ class GoalDetailsScreen extends StatelessWidget {
                               color: AppStyles.getTextColor(context),
                             ),
                           ),
-                          SizedBox(height: Spacing.sm),
+                          const SizedBox(height: Spacing.sm),
                           Text(
                             'Add your first contribution\nto start tracking progress',
                             textAlign: TextAlign.center,
@@ -432,7 +432,7 @@ class GoalDetailsScreen extends StatelessWidget {
                   )
                 else
                   SliverPadding(
-                    padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
+                    padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
                     sliver: SliverList(
                       delegate: SliverChildBuilderDelegate(
                         (context, index) {
@@ -443,13 +443,13 @@ class GoalDetailsScreen extends StatelessWidget {
                           return StaggeredItem(
                             index: index,
                             child: Padding(
-                              padding: EdgeInsets.only(bottom: Spacing.md),
+                              padding: const EdgeInsets.only(bottom: Spacing.md),
                               child: GlassCard(
-                                padding: EdgeInsets.all(Spacing.lg),
+                                padding: const EdgeInsets.all(Spacing.lg),
                                 child: Row(
                                   children: [
                                     Container(
-                                      padding: EdgeInsets.all(Spacing.md),
+                                      padding: const EdgeInsets.all(Spacing.md),
                                       decoration: BoxDecoration(
                                         color:
                                             goal.color.withValues(alpha: 0.15),
@@ -462,7 +462,7 @@ class GoalDetailsScreen extends StatelessWidget {
                                         size: IconSizes.lg,
                                       ),
                                     ),
-                                    SizedBox(width: Spacing.md),
+                                    const SizedBox(width: Spacing.md),
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment:
@@ -478,7 +478,7 @@ class GoalDetailsScreen extends StatelessWidget {
                                             ),
                                             decimalPlaces: 2,
                                           ),
-                                          SizedBox(height: Spacing.xxs),
+                                          const SizedBox(height: Spacing.xxs),
                                           Text(
                                             DateFormat('MMM dd, yyyy')
                                                 .format(contribution.date),
@@ -492,7 +492,7 @@ class GoalDetailsScreen extends StatelessWidget {
                                           if (contribution.notes != null &&
                                               contribution
                                                   .notes!.isNotEmpty) ...[
-                                            SizedBox(height: Spacing.xxs),
+                                            const SizedBox(height: Spacing.xxs),
                                             Text(
                                               contribution.notes!,
                                               style: TextStyle(
@@ -520,7 +520,7 @@ class GoalDetailsScreen extends StatelessWidget {
                     ),
                   ),
 
-                SliverToBoxAdapter(child: SizedBox(height: 100)),
+                const SliverToBoxAdapter(child: SizedBox(height: 100)),
               ],
             ),
           ),
@@ -543,7 +543,7 @@ class GoalDetailsScreen extends StatelessWidget {
                 builder: (context) => AddContributionModal(goal: goal),
               );
             },
-            child: Row(
+            child: const Row(
               children: [
                 Icon(CupertinoIcons.add_circled_solid,
                     color: SemanticColors.success),
@@ -560,7 +560,7 @@ class GoalDetailsScreen extends StatelessWidget {
                 builder: (context) => EditGoalModal(goal: goal),
               );
             },
-            child: Row(
+            child: const Row(
               children: [
                 Icon(CupertinoIcons.pencil),
                 SizedBox(width: Spacing.md),
@@ -596,7 +596,7 @@ class GoalDetailsScreen extends StatelessWidget {
               }
             },
             isDestructiveAction: true,
-            child: Row(
+            child: const Row(
               children: [
                 Icon(CupertinoIcons.trash),
                 SizedBox(width: Spacing.md),
@@ -607,7 +607,7 @@ class GoalDetailsScreen extends StatelessWidget {
         ],
         cancelButton: CupertinoActionSheetAction(
           onPressed: () => Navigator.pop(context),
-          child: Text('Cancel'),
+          child: const Text('Cancel'),
         ),
       ),
     );

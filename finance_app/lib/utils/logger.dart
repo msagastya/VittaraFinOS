@@ -1,5 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
-import 'file_logger.dart';
+import 'package:vittara_fin_os/utils/file_logger.dart';
 
 class AppLogger {
   static final AppLogger _instance = AppLogger._internal();
@@ -32,12 +33,16 @@ class AppLogger {
 
   void debug(dynamic message,
       {String? context, dynamic error, StackTrace? stackTrace}) {
+    // Suppress debug logs in release builds to avoid PII leakage
+    if (kReleaseMode) return;
     _logger.d(_formatContext(context, message.toString()),
         error: error, stackTrace: stackTrace);
   }
 
   void info(dynamic message,
       {String? context, dynamic error, StackTrace? stackTrace}) {
+    // Suppress info logs in release builds to avoid PII leakage
+    if (kReleaseMode) return;
     _logger.i(_formatContext(context, message.toString()),
         error: error, stackTrace: stackTrace);
   }

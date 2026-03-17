@@ -30,16 +30,26 @@ class AccountsScreen extends StatefulWidget {
 }
 
 class _AccountsScreenState extends State<AccountsScreen> {
+  // AU1-05 — persist search across navigation
+  static String _persistedSearchQuery = '';
+
   final AppLogger logger = AppLogger();
   final PageController _categoryPageController = PageController();
   int _selectedCategoryIndex = 0;
   String _searchQuery = '';
-  final TextEditingController _searchController = TextEditingController();
+  late final TextEditingController _searchController;
 
   // Memoized filter+sort cache — avoids redundant work on every build
   final Map<String, List<Account>> _filterSortCache = {};
   String _lastCacheKey = '';
   bool _hiddenSectionExpanded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchQuery = _persistedSearchQuery;
+    _searchController = TextEditingController(text: _persistedSearchQuery);
+  }
 
   @override
   void dispose() {
@@ -298,7 +308,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
         .fold(0.0, (s, a) => s + ((a.creditLimit ?? 0.0) - a.balance));
     final net = assets - liabilities;
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
+      padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
@@ -363,9 +373,9 @@ class _AccountsScreenState extends State<AccountsScreen> {
       height: 88,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
+        padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
         itemCount: types.length,
-        separatorBuilder: (_, __) => SizedBox(width: Spacing.sm),
+        separatorBuilder: (_, __) => const SizedBox(width: Spacing.sm),
         itemBuilder: (context, index) {
           final type = types[index];
           final isSelected = index == _selectedCategoryIndex;
@@ -467,7 +477,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
     return Column(
       children: [
         Container(
-          margin: EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, Spacing.md),
+          margin: const EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, Spacing.md),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
             color: _getAccountTypeColor(type).withValues(alpha: 0.12),
@@ -503,8 +513,9 @@ class _AccountsScreenState extends State<AccountsScreen> {
                       context.read<AccountsController>().loadAccounts(),
                   color: AppStyles.accentBlue,
                   child: ListView.builder(
+                    key: PageStorageKey('accounts_list_${type.name}'),
                     padding:
-                        EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, 110),
+                        const EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, 110),
                     itemCount: sectionAccounts.length,
                     itemBuilder: (context, index) {
                       final account = sectionAccounts[index];
@@ -550,6 +561,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
             onPressed: () => setState(() {
               _searchController.clear();
               _searchQuery = '';
+              _persistedSearchQuery = '';
             }),
             child: const Text('Clear Search'),
           ),
@@ -595,9 +607,9 @@ class _AccountsScreenState extends State<AccountsScreen> {
                 SafeArea(
                   child: Column(
                     children: [
-                      SizedBox(height: Spacing.lg),
+                      const SizedBox(height: Spacing.lg),
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
+                        padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
                         child: CupertinoSearchTextField(
                           controller: _searchController,
                           placeholder: 'Search accounts',
@@ -607,14 +619,14 @@ class _AccountsScreenState extends State<AccountsScreen> {
                           placeholderStyle: TextStyle(
                               color: AppStyles.getSecondaryTextColor(context),
                               fontSize: TypeScale.body),
-                          onChanged: (v) => setState(() => _searchQuery = v),
+                          onChanged: (v) => setState(() { _searchQuery = v; _persistedSearchQuery = v; }),
                         ),
                       ),
-                      SizedBox(height: Spacing.sm),
+                      const SizedBox(height: Spacing.sm),
                       _buildAllAccountsSummary(visibleAccounts),
-                      SizedBox(height: Spacing.sm),
+                      const SizedBox(height: Spacing.sm),
                       _buildCategoryTabs(types, visibleAccounts),
-                      SizedBox(height: Spacing.md),
+                      const SizedBox(height: Spacing.md),
                       Expanded(
                         child: CustomScrollView(
                           slivers: [
@@ -665,7 +677,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                     );
                   },
                   child: Container(
-                    padding: EdgeInsets.symmetric(
+                    padding: const EdgeInsets.symmetric(
                       horizontal: Spacing.lg,
                       vertical: Spacing.md,
                     ),
@@ -681,16 +693,16 @@ class _AccountsScreenState extends State<AccountsScreen> {
                         ),
                       ],
                     ),
-                    child: Row(
+                    child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(
+                        Icon(
                           CupertinoIcons.arrow_right_arrow_left,
                           color: Colors.white,
                           size: 20,
                         ),
                         SizedBox(width: Spacing.sm),
-                        const Text(
+                        Text(
                           'Transfer',
                           style: TextStyle(
                             color: Colors.white,
@@ -810,7 +822,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
             setState(() => _hiddenSectionExpanded = !_hiddenSectionExpanded);
           },
           child: Padding(
-            padding: EdgeInsets.symmetric(
+            padding: const EdgeInsets.symmetric(
                 horizontal: Spacing.lg, vertical: Spacing.md),
             child: Row(
               children: [
@@ -848,7 +860,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             padding:
-                EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, Spacing.lg),
+                const EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, Spacing.lg),
             itemCount: hiddenAccounts.length,
             itemBuilder: (context, index) {
               return _buildSlidableHiddenAccountCard(hiddenAccounts[index]);
@@ -892,7 +904,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
       child: BouncyButton(
         onPressed: () => _showAccountDetailsSheet(account),
         child: Container(
-          margin: EdgeInsets.only(bottom: Spacing.lg),
+          margin: const EdgeInsets.only(bottom: Spacing.lg),
           decoration: AppStyles.accentCardDecoration(context, account.color),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(Radii.xxl),
@@ -925,7 +937,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                             color: account.color,
                             showGlow: true,
                           ),
-                          SizedBox(width: Spacing.lg),
+                          const SizedBox(width: Spacing.lg),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -934,7 +946,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                     style: AppStyles.titleStyle(context),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis),
-                                SizedBox(height: Spacing.xs),
+                                const SizedBox(height: Spacing.xs),
                                 Text(
                                   '${account.bankName} · ${account.type.name.toUpperCase()}',
                                   style: TextStyle(
@@ -958,7 +970,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                 style: AppStyles.amountStyle(context,
                                     color: account.color),
                               ),
-                              SizedBox(height: Spacing.xs),
+                              const SizedBox(height: Spacing.xs),
                               Icon(
                                 CupertinoIcons.chevron_right,
                                 size: IconSizes.xs,
@@ -998,7 +1010,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
         'Date,Type,Summary,Amount,From Account,To Account,Merchant,Description,Category,Tags');
     for (final t in txList) {
       final meta = t.metadata ?? {};
-      String _esc(String v) {
+      String esc(String v) {
         if (v.contains(',') || v.contains('"') || v.contains('\n')) {
           return '"${v.replaceAll('"', '""')}"';
         }
@@ -1008,14 +1020,14 @@ class _AccountsScreenState extends State<AccountsScreen> {
       final row = [
         DateFormatter.formatWithTime(t.dateTime),
         t.getTypeLabel(),
-        _esc(t.getSummary()),
+        esc(t.getSummary()),
         t.amount.toStringAsFixed(2),
-        _esc((t.sourceAccountName ?? '').toString()),
-        _esc((meta['destinationAccountName'] ?? '').toString()),
-        _esc((meta['merchant'] ?? '').toString()),
-        _esc((meta['description'] ?? t.description).toString()),
-        _esc((meta['categoryName'] ?? '').toString()),
-        _esc((meta['tags'] as List?)?.join('; ') ?? ''),
+        esc((t.sourceAccountName ?? '').toString()),
+        esc((meta['destinationAccountName'] ?? '').toString()),
+        esc((meta['merchant'] ?? '').toString()),
+        esc((meta['description'] ?? t.description).toString()),
+        esc((meta['categoryName'] ?? '').toString()),
+        esc((meta['tags'] as List?)?.join('; ') ?? ''),
       ].join(',');
       buffer.writeln(row);
     }
@@ -1034,6 +1046,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
         [XFile(file.path, mimeType: 'text/csv')],
         subject: '${account.name} — Transaction Export',
       );
+      // Clean up temp file after sharing
+      try { await file.delete(); } catch (_) {}
     } catch (e) {
       if (mounted) toast.showError('Export failed: $e');
     }
@@ -1207,7 +1221,6 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                   const SizedBox(width: Spacing.sm),
                                   CupertinoButton(
                                     padding: EdgeInsets.zero,
-                                    minSize: 28,
                                     onPressed: () {
                                       Clipboard.setData(ClipboardData(
                                           text: account.creditCardNumber!));
@@ -1216,8 +1229,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                       Future.delayed(const Duration(seconds: 30), () {
                                         Clipboard.setData(const ClipboardData(text: ''));
                                       });
-                                    },
-                                    child: Icon(
+                                    }, minimumSize: const Size(28, 28),
+                                    child: const Icon(
                                       CupertinoIcons.doc_on_doc,
                                       size: 18,
                                       color: AppStyles.aetherTeal,
@@ -1278,7 +1291,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                       const SizedBox(height: Spacing.xs),
                                       Text(
                                         '₹${((account.creditLimit ?? 0.0) - account.balance).toStringAsFixed(2)}',
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                           color: AppStyles.plasmaRed,
                                           fontSize: TypeScale.headline,
                                           fontWeight: FontWeight.w600,
@@ -1338,10 +1351,9 @@ class _AccountsScreenState extends State<AccountsScreen> {
                               if (recentTxs.isNotEmpty)
                                 CupertinoButton(
                                   padding: EdgeInsets.zero,
-                                  minSize: 0,
                                   onPressed: () =>
-                                      _exportAccountCsv(account),
-                                  child: Row(
+                                      _exportAccountCsv(account), minimumSize: const Size(0, 0),
+                                  child: const Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Icon(
@@ -1349,7 +1361,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                         size: 14,
                                         color: AppStyles.aetherTeal,
                                       ),
-                                      const SizedBox(width: 4),
+                                      SizedBox(width: 4),
                                       Text(
                                         'Export All',
                                         style: TextStyle(
@@ -1484,7 +1496,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                           .withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
-                                    child: Row(
+                                    child: const Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.center,
                                       children: [
@@ -1493,7 +1505,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                           size: 16,
                                           color: AppStyles.bioGreen,
                                         ),
-                                        const SizedBox(width: 6),
+                                        SizedBox(width: 6),
                                         Text(
                                           'Adjust Balance',
                                           style: TextStyle(
@@ -1526,7 +1538,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                           .withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
-                                    child: Row(
+                                    child: const Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.center,
                                       children: [
@@ -1535,7 +1547,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                           size: 16,
                                           color: CupertinoColors.systemBlue,
                                         ),
-                                        const SizedBox(width: 6),
+                                        SizedBox(width: 6),
                                         Text(
                                           'Edit',
                                           style: TextStyle(
@@ -1564,7 +1576,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                           .withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
-                                    child: Row(
+                                    child: const Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.center,
                                       children: [
@@ -1573,7 +1585,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                           size: 16,
                                           color: AppStyles.plasmaRed,
                                         ),
-                                        const SizedBox(width: 6),
+                                        SizedBox(width: 6),
                                         Text(
                                           'Delete',
                                           style: TextStyle(
@@ -1631,13 +1643,13 @@ class _AccountsScreenState extends State<AccountsScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const ModalHandle(),
-                        SizedBox(height: Spacing.lg),
+                        const SizedBox(height: Spacing.lg),
                         Text(
                           'Adjust Balance',
                           style: AppStyles.titleStyle(context)
                               .copyWith(fontSize: TypeScale.title1),
                         ),
-                        SizedBox(height: Spacing.sm),
+                        const SizedBox(height: Spacing.sm),
                         Text(
                           account.type == AccountType.credit ||
                                   account.type == AccountType.payLater
@@ -1649,7 +1661,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                           ),
                           textAlign: TextAlign.center,
                         ),
-                        SizedBox(height: Spacing.xxxl),
+                        const SizedBox(height: Spacing.xxxl),
 
                         // Add/Subtract Toggle
                         Container(
@@ -1752,7 +1764,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                             ],
                           ),
                         ),
-                        SizedBox(height: Spacing.xxxl),
+                        const SizedBox(height: Spacing.xxxl),
 
                         // Amount Input
                         Center(
@@ -1783,7 +1795,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                             ],
                           ),
                         ),
-                        SizedBox(height: Spacing.huge),
+                        const SizedBox(height: Spacing.huge),
 
                         // Confirm Button
                         BouncyButton(

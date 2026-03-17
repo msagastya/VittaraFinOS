@@ -68,7 +68,9 @@ class _TypeInfo {
   final String shortLabel;
   final IconData icon;
   final Color color;
-  const _TypeInfo(this.label, this.shortLabel, this.icon, this.color);
+  final String description;
+  const _TypeInfo(
+      this.label, this.shortLabel, this.icon, this.color, this.description);
 }
 
 // ── Main sheet widget ─────────────────────────────────────────────────────────
@@ -91,18 +93,18 @@ class _DashboardActionSheetState extends State<_DashboardActionSheet> {
 
   // ── Investment type metadata ────────────────────────────────────────────────
   static const Map<InvestmentType, _TypeInfo> _typeInfo = {
-    InvestmentType.stocks: _TypeInfo('Stocks & ETFs', 'Stocks', CupertinoIcons.chart_bar_fill, Color(0xFF00B050)),
-    InvestmentType.mutualFund: _TypeInfo('Mutual Funds', 'MF', CupertinoIcons.chart_pie_fill, Color(0xFF0066CC)),
-    InvestmentType.fixedDeposit: _TypeInfo('Fixed Deposit', 'FD', CupertinoIcons.lock_fill, Color(0xFFFF6B00)),
-    InvestmentType.recurringDeposit: _TypeInfo('Recurring Deposit', 'RD', CupertinoIcons.arrow_clockwise, Color(0xFFD600CC)),
-    InvestmentType.bonds: _TypeInfo('Bonds', 'Bonds', CupertinoIcons.doc_circle_fill, Color(0xFF00A6CC)),
-    InvestmentType.nationalSavingsScheme: _TypeInfo('NPS', 'NPS', CupertinoIcons.flag_circle_fill, Color(0xFFEC6100)),
-    InvestmentType.digitalGold: _TypeInfo('Digital Gold', 'Gold', CupertinoIcons.star_circle_fill, Color(0xFFFFB81C)),
-    InvestmentType.pensionSchemes: _TypeInfo('Pension Schemes', 'Pension', CupertinoIcons.person_2_fill, Color(0xFF9B59B6)),
-    InvestmentType.cryptocurrency: _TypeInfo('Cryptocurrency', 'Crypto', CupertinoIcons.arrow_right_arrow_left_circle_fill, Color(0xFFF7931A)),
-    InvestmentType.futuresOptions: _TypeInfo('Futures & Options', 'F&O', CupertinoIcons.waveform, Color(0xFF1ABC9C)),
-    InvestmentType.forexCurrency: _TypeInfo('Forex / Currency', 'Forex', CupertinoIcons.globe, Color(0xFF34495E)),
-    InvestmentType.commodities: _TypeInfo('Commodities', 'Comm.', CupertinoIcons.cube_box_fill, Color(0xFF8B4513)),
+    InvestmentType.stocks: _TypeInfo('Stocks & ETFs', 'Stocks', CupertinoIcons.chart_bar_fill, Color(0xFF00B050), 'NSE/BSE equities & ETFs'),
+    InvestmentType.mutualFund: _TypeInfo('Mutual Funds', 'MF', CupertinoIcons.chart_pie_fill, Color(0xFF0066CC), 'SIP or lumpsum investments'),
+    InvestmentType.fixedDeposit: _TypeInfo('Fixed Deposit', 'FD', CupertinoIcons.lock_fill, Color(0xFFFF6B00), 'Bank FD, guaranteed returns'),
+    InvestmentType.recurringDeposit: _TypeInfo('Recurring Deposit', 'RD', CupertinoIcons.arrow_clockwise, Color(0xFFD600CC), 'Monthly savings deposit'),
+    InvestmentType.bonds: _TypeInfo('Bonds', 'Bonds', CupertinoIcons.doc_circle_fill, Color(0xFF00A6CC), 'Govt & corporate bonds'),
+    InvestmentType.nationalSavingsScheme: _TypeInfo('NPS', 'NPS', CupertinoIcons.flag_circle_fill, Color(0xFFEC6100), 'National Pension System'),
+    InvestmentType.digitalGold: _TypeInfo('Digital Gold', 'Gold', CupertinoIcons.star_circle_fill, Color(0xFFFFB81C), 'Gold in digital form'),
+    InvestmentType.pensionSchemes: _TypeInfo('Pension Schemes', 'Pension', CupertinoIcons.person_2_fill, Color(0xFF9B59B6), 'EPF, PPF & other schemes'),
+    InvestmentType.cryptocurrency: _TypeInfo('Cryptocurrency', 'Crypto', CupertinoIcons.arrow_right_arrow_left_circle_fill, Color(0xFFF7931A), 'Bitcoin, Ethereum & more'),
+    InvestmentType.futuresOptions: _TypeInfo('Futures & Options', 'F&O', CupertinoIcons.waveform, Color(0xFF1ABC9C), 'Derivatives trading'),
+    InvestmentType.forexCurrency: _TypeInfo('Forex / Currency', 'Forex', CupertinoIcons.globe, Color(0xFF34495E), 'Foreign currency positions'),
+    InvestmentType.commodities: _TypeInfo('Commodities', 'Comm.', CupertinoIcons.cube_box_fill, Color(0xFF8B4513), 'Silver, oil & others'),
   };
 
   // ── Navigation ──────────────────────────────────────────────────────────────
@@ -477,20 +479,20 @@ class _DashboardActionSheetState extends State<_DashboardActionSheet> {
   // ── Page: Investment Type ────────────────────────────────────────────────────
 
   Widget _buildInvestmentType(bool isDark) {
-    final allTypes = InvestmentType.values;
+    const allTypes = InvestmentType.values;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         _sheetHeader('Investment Type', 'Select the type of investment'),
         SizedBox(
-          height: 380,
+          height: 440,
           child: GridView.builder(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 3,
               crossAxisSpacing: 10,
               mainAxisSpacing: 10,
-              childAspectRatio: 0.92,
+              childAspectRatio: 0.78,
             ),
             itemCount: allTypes.length,
             itemBuilder: (ctx, i) {
@@ -537,12 +539,27 @@ class _DashboardActionSheetState extends State<_DashboardActionSheet> {
                         child: Text(
                           info.shortLabel,
                           textAlign: TextAlign.center,
-                          maxLines: 2,
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                             color: AppStyles.getTextColor(context),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: Text(
+                          info.description,
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 8.5,
+                            fontWeight: FontWeight.w400,
+                            color: AppStyles.getSecondaryTextColor(context),
                           ),
                         ),
                       ),
@@ -923,7 +940,7 @@ class _DashboardActionSheetState extends State<_DashboardActionSheet> {
               CupertinoButton(
                 padding: EdgeInsets.zero,
                 onPressed: _goBack,
-                child: Icon(
+                child: const Icon(
                   CupertinoIcons.chevron_left,
                   size: 20,
                   color: AppStyles.accentBlue,

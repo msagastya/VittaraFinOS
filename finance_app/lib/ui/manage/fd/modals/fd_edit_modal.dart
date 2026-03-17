@@ -74,13 +74,13 @@ class _FDEditModalState extends State<FDEditModal> {
           ),
         ),
         body: SingleChildScrollView(
-          padding: EdgeInsets.all(Spacing.lg),
+          padding: const EdgeInsets.all(Spacing.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Info banner
               Container(
-                padding: EdgeInsets.all(Spacing.md),
+                padding: const EdgeInsets.all(Spacing.md),
                 decoration: BoxDecoration(
                   color: SemanticColors.getInfo(context).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
@@ -97,7 +97,7 @@ class _FDEditModalState extends State<FDEditModal> {
                       color: SemanticColors.getInfo(context),
                       size: IconSizes.sm,
                     ),
-                    SizedBox(width: Spacing.sm),
+                    const SizedBox(width: Spacing.sm),
                     Expanded(
                       child: Text(
                         'You can edit basic details. Financial data like principal and interest rate cannot be changed to preserve investment history.',
@@ -110,11 +110,11 @@ class _FDEditModalState extends State<FDEditModal> {
                   ],
                 ),
               ),
-              SizedBox(height: Spacing.xl),
+              const SizedBox(height: Spacing.xl),
 
               // FD Name
               _buildLabel('FD Name'),
-              SizedBox(height: Spacing.sm),
+              const SizedBox(height: Spacing.sm),
               CupertinoTextField(
                 controller: _nameController,
                 placeholder: 'Enter FD name',
@@ -126,13 +126,13 @@ class _FDEditModalState extends State<FDEditModal> {
                     color: AppStyles.getDividerColor(context),
                   ),
                 ),
-                padding: EdgeInsets.all(Spacing.md),
+                padding: const EdgeInsets.all(Spacing.md),
               ),
-              SizedBox(height: Spacing.lg),
+              const SizedBox(height: Spacing.lg),
 
               // Bank Name
               _buildLabel('Bank Name'),
-              SizedBox(height: Spacing.sm),
+              const SizedBox(height: Spacing.sm),
               CupertinoTextField(
                 controller: _bankNameController,
                 placeholder: 'Enter bank name',
@@ -144,13 +144,13 @@ class _FDEditModalState extends State<FDEditModal> {
                     color: AppStyles.getDividerColor(context),
                   ),
                 ),
-                padding: EdgeInsets.all(Spacing.md),
+                padding: const EdgeInsets.all(Spacing.md),
               ),
-              SizedBox(height: Spacing.lg),
+              const SizedBox(height: Spacing.lg),
 
               // Bank Account Number
               _buildLabel('Bank Account Number'),
-              SizedBox(height: Spacing.sm),
+              const SizedBox(height: Spacing.sm),
               CupertinoTextField(
                 controller: _bankAccountController,
                 placeholder: 'Enter account number',
@@ -162,13 +162,13 @@ class _FDEditModalState extends State<FDEditModal> {
                     color: AppStyles.getDividerColor(context),
                   ),
                 ),
-                padding: EdgeInsets.all(Spacing.md),
+                padding: const EdgeInsets.all(Spacing.md),
               ),
-              SizedBox(height: Spacing.lg),
+              const SizedBox(height: Spacing.lg),
 
               // Notes
               _buildLabel('Notes (Optional)'),
-              SizedBox(height: Spacing.sm),
+              const SizedBox(height: Spacing.sm),
               CupertinoTextField(
                 controller: _notesController,
                 placeholder: 'Add notes about this FD',
@@ -181,9 +181,9 @@ class _FDEditModalState extends State<FDEditModal> {
                     color: AppStyles.getDividerColor(context),
                   ),
                 ),
-                padding: EdgeInsets.all(Spacing.md),
+                padding: const EdgeInsets.all(Spacing.md),
               ),
-              SizedBox(height: Spacing.xl),
+              const SizedBox(height: Spacing.xl),
 
               // Read-only information section
               Text(
@@ -194,9 +194,9 @@ class _FDEditModalState extends State<FDEditModal> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              SizedBox(height: Spacing.md),
+              const SizedBox(height: Spacing.md),
               Container(
-                padding: EdgeInsets.all(Spacing.lg),
+                padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color: AppStyles.getCardColor(context).withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(8),
@@ -239,7 +239,7 @@ class _FDEditModalState extends State<FDEditModal> {
 
   Widget _buildReadOnlyRow(String label, String value) {
     return Padding(
-      padding: EdgeInsets.only(bottom: Spacing.sm),
+      padding: const EdgeInsets.only(bottom: Spacing.sm),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [

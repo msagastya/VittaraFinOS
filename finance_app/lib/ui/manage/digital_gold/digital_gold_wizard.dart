@@ -84,6 +84,7 @@ class _DigitalGoldWizardContent extends StatelessWidget {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
       navigationBar: CupertinoNavigationBar(
+        previousPageTitle: 'Back',
         middle: Text(
           'Add Digital Gold',
           style: TextStyle(color: AppStyles.getTextColor(context)),

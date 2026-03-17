@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/fixed_deposit_model.dart';
@@ -53,6 +54,9 @@ class InvestmentsScreen extends StatefulWidget {
 }
 
 class _InvestmentsScreenState extends State<InvestmentsScreen> {
+  // AU1-05 — persist search across navigation
+  static String _persistedSearchQuery = '';
+
   static const List<InvestmentType> _supportedInvestmentTypes = [
     InvestmentType.stocks,
     InvestmentType.mutualFund,
@@ -77,9 +81,9 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
   final Map<String, List<Investment>> _filterSortCache = {};
   String _lastFilterSortKey = '';
 
-  // Search
+  // Search — AU1-05: persisted across navigation via static field
   String _searchQuery = '';
-  final TextEditingController _searchController = TextEditingController();
+  late final TextEditingController _searchController;
 
   final InvestmentValueService _valueService = InvestmentValueService();
   bool _isRefreshingCurrentValues = false;
@@ -94,6 +98,9 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
 
   static const _prefKeySortBy = 'inv_sort';
   static const _prefKeySortAsc = 'inv_sort_asc';
+
+  // AU4-02 — Cached prefs instance; avoids repeated getInstance() calls
+  SharedPreferences? _prefs;
 
   @override
   void didChangeDependencies() {
@@ -113,6 +120,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
   @override
   void initState() {
     super.initState();
+    _searchQuery = _persistedSearchQuery;
+    _searchController = TextEditingController(text: _persistedSearchQuery);
     _loadSortPrefs();
     _scrollController.addListener(_onScroll);
   }
@@ -125,21 +134,21 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
   }
 
   Future<void> _loadSortPrefs() async {
-    final prefs = await SharedPreferences.getInstance();
+    _prefs ??= await SharedPreferences.getInstance();
     if (!mounted) return;
     setState(() {
       _sortBy = SortBy.values.firstWhere(
-        (e) => e.name == (prefs.getString(_prefKeySortBy) ?? ''),
+        (e) => e.name == (_prefs!.getString(_prefKeySortBy) ?? ''),
         orElse: () => SortBy.currentAmount,
       );
-      _sortAscending = prefs.getBool(_prefKeySortAsc) ?? false;
+      _sortAscending = _prefs!.getBool(_prefKeySortAsc) ?? false;
     });
   }
 
   Future<void> _saveSortPrefs() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_prefKeySortBy, _sortBy.name);
-    await prefs.setBool(_prefKeySortAsc, _sortAscending);
+    _prefs ??= await SharedPreferences.getInstance();
+    await _prefs!.setString(_prefKeySortBy, _sortBy.name);
+    await _prefs!.setBool(_prefKeySortAsc, _sortAscending);
   }
 
   @override
@@ -554,7 +563,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                 ),
                 Expanded(
                   child: entries.isEmpty
-                      ? Center(
+                      ? const Center(
                           child: EmptyStateView(
                             icon: CupertinoIcons.calendar_badge_plus,
                             title: 'No FDs or RDs',
@@ -750,7 +759,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
 
   Widget _buildSearchBar(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
+      padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
       child: CupertinoSearchTextField(
         controller: _searchController,
         placeholder: 'Search investments',
@@ -759,7 +768,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
         placeholderStyle: TextStyle(
             color: AppStyles.getSecondaryTextColor(context),
             fontSize: TypeScale.body),
-        onChanged: (v) => setState(() => _searchQuery = v),
+        onChanged: (v) => setState(() { _searchQuery = v; _persistedSearchQuery = v; }),
       ),
     );
   }
@@ -793,6 +802,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             onPressed: () => setState(() {
               _searchController.clear();
               _searchQuery = '';
+              _persistedSearchQuery = '';
             }),
             child: const Text('Clear Search'),
           ),
@@ -834,9 +844,9 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       height: 60,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
+        padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
         itemCount: categories.length,
-        separatorBuilder: (_, __) => SizedBox(width: Spacing.xs),
+        separatorBuilder: (_, __) => const SizedBox(width: Spacing.xs),
         itemBuilder: (context, index) {
           final type = categories[index];
           final isSelected = index == _selectedCategoryIndex;
@@ -909,7 +919,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
   /// A compact chip showing the currently active sort — tappable to change it.
   Widget _buildActiveSortChip(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
+      padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
       child: Row(
         children: [
           GestureDetector(
@@ -926,12 +936,12 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(CupertinoIcons.arrow_up_arrow_down,
+                  const Icon(CupertinoIcons.arrow_up_arrow_down,
                       size: 11, color: SemanticColors.investments),
                   const SizedBox(width: 5),
                   Text(
                     _getSortLabel(_sortBy),
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: TypeScale.caption,
                       fontWeight: FontWeight.w600,
                       color: SemanticColors.investments,
@@ -984,12 +994,12 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             Semantics(
               label: 'Maturity calendar',
               child: CupertinoButton(
-                padding: EdgeInsets.symmetric(horizontal: Spacing.sm),
+                padding: const EdgeInsets.symmetric(horizontal: Spacing.sm),
                 onPressed: () => _showMaturityCalendar(
                     context,
                     Provider.of<InvestmentsController>(context, listen: false)
                         .investments),
-                child: Icon(
+                child: const Icon(
                   CupertinoIcons.calendar,
                   size: 20,
                   color: SemanticColors.investments,
@@ -1000,9 +1010,9 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             Semantics(
               label: 'Sort investments',
               child: CupertinoButton(
-                padding: EdgeInsets.symmetric(horizontal: Spacing.sm),
+                padding: const EdgeInsets.symmetric(horizontal: Spacing.sm),
                 onPressed: () => _showSortModal(context),
-                child: Icon(
+                child: const Icon(
                   CupertinoIcons.arrow_up_arrow_down,
                   size: 20,
                   color: SemanticColors.investments,
@@ -1013,14 +1023,14 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             Semantics(
               label: 'Refresh investment values',
               child: CupertinoButton(
-                padding: EdgeInsets.symmetric(horizontal: Spacing.md),
+                padding: const EdgeInsets.symmetric(horizontal: Spacing.md),
                 onPressed: _isRefreshingCurrentValues
                     ? null
                     : () => _refreshCurrentValues(context),
                 child: _isRefreshingCurrentValues
-                    ? CupertinoActivityIndicator(
+                    ? const CupertinoActivityIndicator(
                         radius: 10, color: SemanticColors.investments)
-                    : Icon(
+                    : const Icon(
                         CupertinoIcons.arrow_clockwise,
                         size: 20,
                         color: SemanticColors.investments,
@@ -1033,7 +1043,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                   ? 'Sort descending'
                   : 'Sort ascending',
               child: CupertinoButton(
-                padding: EdgeInsets.symmetric(horizontal: Spacing.md),
+                padding: const EdgeInsets.symmetric(horizontal: Spacing.md),
                 onPressed: () {
                   Haptics.light();
                   setState(() => _sortAscending = !_sortAscending);
@@ -1081,13 +1091,13 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                       // Asset Allocation Donut Chart
                       _buildAllocationChart(context, investments),
                       _buildCategoryTabs(context, investments, categories),
-                      SizedBox(height: Spacing.xs),
+                      const SizedBox(height: Spacing.xs),
                       // Search bar
                       _buildSearchBar(context),
-                      SizedBox(height: Spacing.xs),
+                      const SizedBox(height: Spacing.xs),
                       // Active sort indicator chip
                       _buildActiveSortChip(context),
-                      SizedBox(height: Spacing.sm),
+                      const SizedBox(height: Spacing.sm),
                       // Investments List with Staggered Animation
                       Expanded(
                         child: PageView.builder(
@@ -1121,7 +1131,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
 
                             if (canReorder) {
                               return ReorderableListView.builder(
-                                padding: EdgeInsets.fromLTRB(
+                                padding: const EdgeInsets.fromLTRB(
                                     Spacing.lg, 0, Spacing.lg, 100),
                                 itemCount: pageInvestments.length,
                                 onReorder: (oldIndex, newIndex) {
@@ -1148,7 +1158,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                     key: ValueKey(pageInvestments[index].id),
                                     index: index,
                                     child: Container(
-                                      margin: EdgeInsets.only(top: Spacing.lg),
+                                      margin: const EdgeInsets.only(top: Spacing.lg),
                                       child: _buildSlidableInvestmentCard(
                                           pageInvestments[index]),
                                     ),
@@ -1161,6 +1171,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                               onRefresh: () => _refreshCurrentValues(context),
                               color: SemanticColors.investments,
                               child: ListView.builder(
+                                key: PageStorageKey(
+                                    'investments_list_$pageIndex'),
                                 controller: pageIndex == _selectedCategoryIndex
                                     ? _scrollController
                                     : null,
@@ -1168,7 +1180,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                   parent: AlwaysScrollableScrollPhysics(),
                                 ),
                                 cacheExtent: 600,
-                                padding: EdgeInsets.fromLTRB(
+                                padding: const EdgeInsets.fromLTRB(
                                     Spacing.lg, 0, Spacing.lg, 100),
                                 itemCount: pageInvestments.length,
                                 itemBuilder: (context, index) {
@@ -1177,7 +1189,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                         '${categoryType?.name ?? 'all'}_${pageInvestments[index].id}'),
                                     index: index,
                                     child: Container(
-                                      margin: EdgeInsets.only(top: Spacing.lg),
+                                      margin: const EdgeInsets.only(top: Spacing.lg),
                                       child: _buildSlidableInvestmentCard(
                                           pageInvestments[index]),
                                     ),
@@ -1223,7 +1235,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                               color:
                                   AppStyles.aetherTeal.withValues(alpha: 0.5)),
                         ),
-                        child: Icon(
+                        child: const Icon(
                           CupertinoIcons.arrow_up,
                           size: 18,
                           color: AppStyles.aetherTeal,
@@ -1256,7 +1268,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
 
     return Padding(
       padding:
-          EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.xs),
+          const EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.xs),
       child: Container(
         decoration: AppStyles.cardDecoration(context),
         child: Column(
@@ -1266,11 +1278,11 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               onTap: () => setState(
                   () => _isAllocationExpanded = !_isAllocationExpanded),
               child: Padding(
-                padding: EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                     horizontal: Spacing.lg, vertical: Spacing.md),
                 child: Row(
                   children: [
-                    Icon(CupertinoIcons.chart_pie_fill,
+                    const Icon(CupertinoIcons.chart_pie_fill,
                         size: 13, color: SemanticColors.investments),
                     const SizedBox(width: 6),
                     Expanded(
@@ -1299,7 +1311,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               curve: Curves.easeInOut,
               child: _isAllocationExpanded
                   ? Padding(
-                      padding: EdgeInsets.only(
+                      padding: const EdgeInsets.only(
                           left: Spacing.lg,
                           right: Spacing.lg,
                           bottom: Spacing.lg),
@@ -1321,14 +1333,14 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                               ),
                             ),
                           ),
-                          SizedBox(width: Spacing.lg),
+                          const SizedBox(width: Spacing.lg),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: entries.take(5).map((e) {
                                 final pct = (e.value / total * 100);
                                 return Padding(
-                                  padding: EdgeInsets.only(bottom: Spacing.xs),
+                                  padding: const EdgeInsets.only(bottom: Spacing.xs),
                                   child: Row(
                                     children: [
                                       Container(
@@ -1448,7 +1460,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
           ),
         ),
         padding:
-            EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.sm),
+            const EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.sm),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1466,10 +1478,10 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                           color: AppStyles.getTextColor(context),
                         ),
                       ),
-                      SizedBox(width: Spacing.md),
+                      const SizedBox(width: Spacing.md),
                       // Compact gain pill
                       Container(
-                        padding: EdgeInsets.symmetric(
+                        padding: const EdgeInsets.symmetric(
                             horizontal: Spacing.sm, vertical: 2),
                         decoration: BoxDecoration(
                           color: gainColor.withValues(alpha: 0.12),
@@ -1502,9 +1514,9 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               curve: Curves.easeInOut,
               child: _isPnLExpanded
                   ? Padding(
-                      padding: EdgeInsets.only(top: Spacing.sm),
+                      padding: const EdgeInsets.only(top: Spacing.sm),
                       child: Container(
-                        padding: EdgeInsets.all(Spacing.md),
+                        padding: const EdgeInsets.all(Spacing.md),
                         decoration: BoxDecoration(
                           color: AppStyles.getBackground(context),
                           borderRadius: BorderRadius.circular(10),
@@ -1557,13 +1569,13 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                               ],
                             ),
                             if (cagrText != null) ...[
-                              SizedBox(height: Spacing.sm),
+                              const SizedBox(height: Spacing.sm),
                               Container(
                                 height: 1,
                                 color: AppStyles.getSecondaryTextColor(context)
                                     .withValues(alpha: 0.12),
                               ),
-                              SizedBox(height: Spacing.sm),
+                              const SizedBox(height: Spacing.sm),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
@@ -1647,10 +1659,10 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             // Top padding to avoid notification panel
-            SizedBox(height: Spacing.xxxl + Spacing.xxl),
+            const SizedBox(height: Spacing.xxxl + Spacing.xxl),
             // Header
             Container(
-              padding: EdgeInsets.all(Spacing.lg),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 border: Border(
@@ -1684,7 +1696,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             // Filter Options
             Expanded(
               child: SingleChildScrollView(
-                padding: EdgeInsets.all(Spacing.lg),
+                padding: const EdgeInsets.all(Spacing.lg),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -1698,16 +1710,16 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                         Navigator.of(context).pop();
                       },
                     ),
-                    SizedBox(height: Spacing.md),
+                    const SizedBox(height: Spacing.md),
                     // Type options
                     ..._availableSupportedTypes(investments).map((type) {
                       final count =
                           investments.where((inv) => inv.type == type).length;
-                      if (count == 0) return SizedBox.shrink();
+                      if (count == 0) return const SizedBox.shrink();
 
                       final isSelected = _selectedFilter == type;
                       return Padding(
-                        padding: EdgeInsets.only(bottom: Spacing.md),
+                        padding: const EdgeInsets.only(bottom: Spacing.md),
                         child: _buildFilterOptionCard(
                           context,
                           '${_getInvestmentTypeLabel(type)} ($count)',
@@ -1724,7 +1736,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               ),
             ),
             // Bottom padding for safe area
-            SizedBox(height: Spacing.lg),
+            const SizedBox(height: Spacing.lg),
           ],
         ),
       ),
@@ -1740,7 +1752,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.all(Spacing.lg),
+        padding: const EdgeInsets.all(Spacing.lg),
         decoration: BoxDecoration(
           color: isSelected
               ? SemanticColors.investments.withValues(alpha: 0.15)
@@ -1765,7 +1777,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               ),
             ),
             if (isSelected)
-              Icon(
+              const Icon(
                 CupertinoIcons.check_mark,
                 color: SemanticColors.investments,
                 size: 20,
@@ -1785,10 +1797,10 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             // Top padding to avoid notification panel
-            SizedBox(height: Spacing.xxxl + Spacing.xxl),
+            const SizedBox(height: Spacing.xxxl + Spacing.xxl),
             // Header
             Container(
-              padding: EdgeInsets.all(Spacing.lg),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 border: Border(
@@ -1822,14 +1834,14 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             // Sort Options
             Expanded(
               child: SingleChildScrollView(
-                padding: EdgeInsets.all(Spacing.lg),
+                padding: const EdgeInsets.all(Spacing.lg),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     ...SortBy.values.map((sort) {
                       final isSelected = _sortBy == sort;
                       return Padding(
-                        padding: EdgeInsets.only(bottom: Spacing.md),
+                        padding: const EdgeInsets.only(bottom: Spacing.md),
                         child: _buildSortOptionCard(
                           context,
                           _getSortLabel(sort),
@@ -1847,7 +1859,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               ),
             ),
             // Bottom padding for safe area
-            SizedBox(height: Spacing.lg),
+            const SizedBox(height: Spacing.lg),
           ],
         ),
       ),
@@ -1863,7 +1875,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.all(Spacing.lg),
+        padding: const EdgeInsets.all(Spacing.lg),
         decoration: BoxDecoration(
           color: isSelected
               ? SemanticColors.investments.withValues(alpha: 0.15)
@@ -1888,7 +1900,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               ),
             ),
             if (isSelected)
-              Icon(
+              const Icon(
                 CupertinoIcons.check_mark,
                 color: SemanticColors.investments,
                 size: 20,
@@ -1903,7 +1915,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       List<Investment> investments, List<Investment> sortedInvestments) {
     return Container(
       color: AppStyles.getCardColor(context),
-      padding: EdgeInsets.all(Spacing.lg),
+      padding: const EdgeInsets.all(Spacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1922,7 +1934,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                       color: AppStyles.getTextColor(context),
                     ),
                   ),
-                  SizedBox(height: Spacing.xs),
+                  const SizedBox(height: Spacing.xs),
                   Text(
                     '${_getDistinctTypesCount(investments)} categories',
                     style: TextStyle(
@@ -1940,7 +1952,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                 },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  padding: EdgeInsets.symmetric(
+                  padding: const EdgeInsets.symmetric(
                       horizontal: Spacing.md, vertical: Spacing.sm),
                   decoration: BoxDecoration(
                     color: AppStyles.getBackground(context),
@@ -1959,10 +1971,10 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                         size: 14,
                         color: SemanticColors.investments,
                       ),
-                      SizedBox(width: Spacing.xs),
+                      const SizedBox(width: Spacing.xs),
                       Text(
                         _sortAscending ? 'Ascending' : 'Descending',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: TypeScale.footnote,
                           fontWeight: FontWeight.bold,
                           color: SemanticColors.investments,
@@ -1974,7 +1986,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               ),
             ],
           ),
-          SizedBox(height: Spacing.lg),
+          const SizedBox(height: Spacing.lg),
           // Filter Chips
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1988,7 +2000,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                   letterSpacing: 0.5,
                 ),
               ),
-              SizedBox(height: Spacing.sm),
+              const SizedBox(height: Spacing.sm),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 padding: EdgeInsets.zero,
@@ -2001,9 +2013,9 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                         setState(() => _selectedFilter = null);
                       },
                       child: Container(
-                        padding: EdgeInsets.symmetric(
+                        padding: const EdgeInsets.symmetric(
                             horizontal: Spacing.md, vertical: Spacing.sm),
-                        margin: EdgeInsets.only(right: Spacing.md),
+                        margin: const EdgeInsets.only(right: Spacing.md),
                         decoration: BoxDecoration(
                           color: _selectedFilter == null
                               ? SemanticColors.investments
@@ -2033,7 +2045,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                     ..._availableSupportedTypes(investments).map((type) {
                       final count =
                           investments.where((inv) => inv.type == type).length;
-                      if (count == 0) return SizedBox.shrink();
+                      if (count == 0) return const SizedBox.shrink();
 
                       final isSelected = _selectedFilter == type;
                       return GestureDetector(
@@ -2042,9 +2054,9 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                           setState(() => _selectedFilter = type);
                         },
                         child: Container(
-                          padding: EdgeInsets.symmetric(
+                          padding: const EdgeInsets.symmetric(
                               horizontal: Spacing.md, vertical: Spacing.sm),
-                          margin: EdgeInsets.only(right: Spacing.md),
+                          margin: const EdgeInsets.only(right: Spacing.md),
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? SemanticColors.investments
@@ -2070,7 +2082,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                       : AppStyles.getTextColor(context),
                                 ),
                               ),
-                              SizedBox(width: Spacing.xs),
+                              const SizedBox(width: Spacing.xs),
                               Text(
                                 '($count)',
                                 style: TextStyle(
@@ -2092,7 +2104,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               ),
             ],
           ),
-          SizedBox(height: Spacing.lg),
+          const SizedBox(height: Spacing.lg),
           // Sort Options
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -2106,7 +2118,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                   letterSpacing: 0.5,
                 ),
               ),
-              SizedBox(height: Spacing.sm),
+              const SizedBox(height: Spacing.sm),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 padding: EdgeInsets.zero,
@@ -2120,9 +2132,9 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                           setState(() => _sortBy = sort);
                         },
                         child: Container(
-                          padding: EdgeInsets.symmetric(
+                          padding: const EdgeInsets.symmetric(
                               horizontal: Spacing.md, vertical: Spacing.sm),
-                          margin: EdgeInsets.only(right: Spacing.md),
+                          margin: const EdgeInsets.only(right: Spacing.md),
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? SemanticColors.investments
@@ -2162,13 +2174,13 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
 
   Widget _buildFilterBar(BuildContext context, List<Investment> investments) {
     // Get all unique types present in investments
-    final investmentTypes = InvestmentType.values;
+    const investmentTypes = InvestmentType.values;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(
+          padding: const EdgeInsets.symmetric(
               horizontal: Spacing.lg, vertical: Spacing.md),
           child: Text(
             'Filter by Type',
@@ -2181,14 +2193,14 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
         ),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
+          padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
           child: Row(
             children: [
               // "All" option
               GestureDetector(
                 onTap: () => setState(() => _selectedFilter = null),
                 child: Container(
-                  padding: EdgeInsets.symmetric(
+                  padding: const EdgeInsets.symmetric(
                       horizontal: Spacing.lg, vertical: Spacing.sm),
                   decoration: BoxDecoration(
                     color: _selectedFilter == null
@@ -2215,7 +2227,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                   ),
                 ),
               ),
-              SizedBox(width: Spacing.md),
+              const SizedBox(width: Spacing.md),
               // Investment type filters
               ...investmentTypes.map((type) {
                 final count =
@@ -2223,11 +2235,11 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                 final isSelected = _selectedFilter == type;
 
                 return Padding(
-                  padding: EdgeInsets.only(right: Spacing.md),
+                  padding: const EdgeInsets.only(right: Spacing.md),
                   child: GestureDetector(
                     onTap: () => setState(() => _selectedFilter = type),
                     child: Container(
-                      padding: EdgeInsets.symmetric(
+                      padding: const EdgeInsets.symmetric(
                           horizontal: Spacing.lg, vertical: Spacing.sm),
                       decoration: BoxDecoration(
                         color: isSelected
@@ -2284,7 +2296,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(
+          padding: const EdgeInsets.symmetric(
               horizontal: Spacing.lg, vertical: Spacing.md),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -2300,7 +2312,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               GestureDetector(
                 onTap: () => setState(() => _sortAscending = !_sortAscending),
                 child: Container(
-                  padding: EdgeInsets.symmetric(
+                  padding: const EdgeInsets.symmetric(
                       horizontal: Spacing.md, vertical: Spacing.xs),
                   decoration: BoxDecoration(
                     color: AppStyles.getCardColor(context),
@@ -2320,7 +2332,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                         size: 14,
                         color: AppStyles.getSecondaryTextColor(context),
                       ),
-                      SizedBox(width: Spacing.xs),
+                      const SizedBox(width: Spacing.xs),
                       Text(
                         _sortAscending ? 'Ascending' : 'Descending',
                         style: TextStyle(
@@ -2338,7 +2350,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
         ),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
+          padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
           child: Row(
             children: [
               ..._buildSortOptions(context),
@@ -2353,14 +2365,14 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     return SortBy.values.map((sort) {
       final isSelected = _sortBy == sort;
       return Padding(
-        padding: EdgeInsets.only(right: Spacing.md),
+        padding: const EdgeInsets.only(right: Spacing.md),
         child: GestureDetector(
           onTap: () {
             setState(() => _sortBy = sort);
             _saveSortPrefs();
           },
           child: Container(
-            padding: EdgeInsets.symmetric(
+            padding: const EdgeInsets.symmetric(
                 horizontal: Spacing.lg, vertical: Spacing.sm),
             decoration: BoxDecoration(
               color: isSelected
@@ -2501,7 +2513,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
         .toList();
 
     if (availableTypes.isEmpty) {
-      return SizedBox.shrink();
+      return const SizedBox.shrink();
     }
 
     return AnimatedSize(
@@ -2509,12 +2521,12 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       curve: Curves.easeInOut,
       child: Container(
         decoration: AppStyles.cardDecoration(context),
-        margin: EdgeInsets.symmetric(horizontal: Spacing.lg),
+        margin: const EdgeInsets.symmetric(horizontal: Spacing.lg),
         child: Column(
           children: [
             // Header with expand/collapse button
             Padding(
-              padding: EdgeInsets.all(Spacing.lg),
+              padding: const EdgeInsets.all(Spacing.lg),
               child: GestureDetector(
                 onTap: () {
                   setState(() {
@@ -2531,7 +2543,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                             'Investment Summary',
                             style: AppStyles.titleStyle(context),
                           ),
-                          SizedBox(height: Spacing.xs),
+                          const SizedBox(height: Spacing.xs),
                           Text(
                             '${investments.length} investments across ${_getDistinctTypesCount(investments)} categories',
                             style: TextStyle(
@@ -2556,10 +2568,10 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             // Expandable content
             if (_isSummaryExpanded)
               Padding(
-                padding: EdgeInsets.only(bottom: Spacing.lg),
+                padding: const EdgeInsets.only(bottom: Spacing.lg),
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
-                  padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
+                  padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
                   child: Row(
                     children: [
                       for (int i = 0; i < availableTypes.length; i++) ...[
@@ -2569,7 +2581,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                           investments,
                         ),
                         if (i < availableTypes.length - 1)
-                          SizedBox(width: Spacing.lg),
+                          const SizedBox(width: Spacing.lg),
                       ],
                     ],
                   ),
@@ -2600,7 +2612,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       width: 240,
       decoration: AppStyles.cardDecoration(context),
       child: Padding(
-        padding: EdgeInsets.all(Spacing.lg),
+        padding: const EdgeInsets.all(Spacing.lg),
         child: FadeInAnimation(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -2644,7 +2656,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                   ),
                 ],
               ),
-              SizedBox(height: Spacing.lg),
+              const SizedBox(height: Spacing.lg),
 
               // Invested Amount
               Text(
@@ -2666,7 +2678,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              SizedBox(height: Spacing.md),
+              const SizedBox(height: Spacing.md),
 
               // Current Value
               Text(
@@ -2688,11 +2700,11 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              SizedBox(height: Spacing.md),
+              const SizedBox(height: Spacing.md),
 
               // Gain/Loss
               Container(
-                padding: EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                   horizontal: Spacing.md,
                   vertical: Spacing.sm,
                 ),
@@ -2802,7 +2814,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               );
             },
             child: Container(
-              margin: EdgeInsets.only(bottom: Spacing.lg),
+              margin: const EdgeInsets.only(bottom: Spacing.lg),
               decoration:
                   AppStyles.accentCardDecoration(context, investment.color),
               child: ClipRRect(
@@ -2834,14 +2846,14 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                 color: investment.color,
                                 showGlow: true,
                               ),
-                              SizedBox(width: Spacing.lg),
+                              const SizedBox(width: Spacing.lg),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(investment.name,
                                         style: AppStyles.titleStyle(context)),
-                                    SizedBox(height: Spacing.xs),
+                                    const SizedBox(height: Spacing.xs),
                                     Text(
                                       investment.getTypeLabel(),
                                       style: TextStyle(
@@ -2851,7 +2863,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
-                                    SizedBox(height: Spacing.sm),
+                                    const SizedBox(height: Spacing.sm),
                                     Row(
                                       children: [
                                         Expanded(
@@ -2881,7 +2893,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                             ],
                                           ),
                                         ),
-                                        SizedBox(width: Spacing.md),
+                                        const SizedBox(width: Spacing.md),
                                         Expanded(
                                           child: Column(
                                             crossAxisAlignment:
@@ -2930,13 +2942,13 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                   ],
                                 ),
                               ),
-                              SizedBox(width: Spacing.sm),
+                              const SizedBox(width: Spacing.sm),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Container(
-                                    padding: EdgeInsets.symmetric(
+                                    padding: const EdgeInsets.symmetric(
                                         horizontal: Spacing.sm,
                                         vertical: Spacing.xs),
                                     decoration: BoxDecoration(
@@ -2966,7 +2978,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                       ),
                                     ),
                                   ),
-                                  SizedBox(height: Spacing.xs),
+                                  const SizedBox(height: Spacing.xs),
                                   Icon(
                                     CupertinoIcons.chevron_right,
                                     size: IconSizes.xs,
@@ -3204,7 +3216,15 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
         investedAmount > 0 ? (gainLoss / investedAmount) * 100 : 0;
     final isProfit = gainLoss >= 0;
 
-    return Hero(
+    return GestureDetector(
+      // AU8-05 — Long-press copies current value to clipboard
+      onLongPress: () {
+        Haptics.medium();
+        final amount = _calculateCurrentValue(investment);
+        Clipboard.setData(ClipboardData(text: amount.toStringAsFixed(2)));
+        ToastController().showSuccess('Amount ₹${amount.toStringAsFixed(2)} copied');
+      },
+      child: Hero(
       tag: 'investment_${investment.id}',
       child: BouncyButton(
         onPressed: () {
@@ -3212,7 +3232,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
           _showInvestmentQuickActions(investment);
         },
         child: Container(
-          margin: EdgeInsets.only(bottom: Spacing.lg),
+          margin: const EdgeInsets.only(bottom: Spacing.lg),
           decoration:
               AppStyles.accentCardDecoration(context, investment.color),
           child: ClipRRect(
@@ -3246,7 +3266,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                             color: investment.color,
                             showGlow: true,
                           ),
-                          SizedBox(width: Spacing.lg),
+                          const SizedBox(width: Spacing.lg),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -3255,7 +3275,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                     style: AppStyles.titleStyle(context),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis),
-                                SizedBox(height: Spacing.xs),
+                                const SizedBox(height: Spacing.xs),
                                 Text(
                                   investment.getTypeLabel(),
                                   style: TextStyle(
@@ -3267,7 +3287,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                                SizedBox(height: Spacing.sm),
+                                const SizedBox(height: Spacing.sm),
                                 Row(
                                   children: [
                                     Expanded(
@@ -3297,7 +3317,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                         ],
                                       ),
                                     ),
-                                    SizedBox(width: Spacing.md),
+                                    const SizedBox(width: Spacing.md),
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment:
@@ -3331,13 +3351,14 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                               ],
                             ),
                           ),
-                          SizedBox(width: Spacing.sm),
+                          const SizedBox(width: Spacing.sm),
+                          // AU13-01 — P&L badge: coloured pill with % + absolute amount
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Container(
-                                padding: EdgeInsets.symmetric(
+                                padding: const EdgeInsets.symmetric(
                                     horizontal: Spacing.sm,
                                     vertical: Spacing.xs),
                                 decoration: BoxDecoration(
@@ -3356,18 +3377,36 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                     width: 0.8,
                                   ),
                                 ),
-                                child: Text(
-                                  '${isProfit ? '+' : ''}${gainLossPercent.toStringAsFixed(1)}%',
-                                  style: TextStyle(
-                                    fontSize: TypeScale.footnote,
-                                    fontWeight: FontWeight.w800,
-                                    color: isProfit
-                                        ? AppStyles.bioGreen
-                                        : AppStyles.plasmaRed,
-                                  ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      '${isProfit ? '+' : ''}${gainLossPercent.toStringAsFixed(1)}%',
+                                      style: TextStyle(
+                                        fontSize: TypeScale.footnote,
+                                        fontWeight: FontWeight.w800,
+                                        color: isProfit
+                                            ? AppStyles.bioGreen
+                                            : AppStyles.plasmaRed,
+                                      ),
+                                    ),
+                                    Text(
+                                      '${isProfit ? '+' : '-'}${CurrencyFormatter.compact(gainLoss.abs())}',
+                                      style: TextStyle(
+                                        fontSize: 9.0,
+                                        fontWeight: FontWeight.w600,
+                                        color: isProfit
+                                            ? AppStyles.bioGreen
+                                                .withValues(alpha: 0.75)
+                                            : AppStyles.plasmaRed
+                                                .withValues(alpha: 0.75),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              SizedBox(height: Spacing.xs),
+                              const SizedBox(height: Spacing.xs),
                               Icon(
                                 CupertinoIcons.chevron_right,
                                 size: IconSizes.xs,
@@ -3386,7 +3425,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
           ),
         ),
       ),
-    );
+      ), // Hero
+    ); // GestureDetector
   }
 }
 

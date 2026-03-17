@@ -615,7 +615,7 @@ class FDCalculator {
     required FixedDeposit fd,
   }) {
     // Sum of all processed payouts
-    double processedPayouts = fd.pastPayouts
+    final double processedPayouts = fd.pastPayouts
         .where((p) => p.isProcessed)
         .fold(0.0, (sum, p) => sum + p.interestAmount + p.principalAmount);
 

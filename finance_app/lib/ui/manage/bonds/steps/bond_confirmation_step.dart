@@ -101,7 +101,7 @@ class BondConfirmationStep extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Link to NPS Scheme (Optional)',
+                const Text('Link to NPS Scheme (Optional)',
                     style: TextStyle(
                         fontWeight: FontWeight.bold, fontSize: TypeScale.body)),
                 const SizedBox(height: Spacing.lg),
@@ -116,7 +116,7 @@ class BondConfirmationStep extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Link to NPS?',
+                    const Text('Link to NPS?',
                         style: TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: TypeScale.body)),
@@ -138,7 +138,7 @@ class BondConfirmationStep extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Link to Existing NPS Scheme',
+                        const Text('Link to Existing NPS Scheme',
                             style: TextStyle(
                                 fontWeight: FontWeight.w600,
                                 fontSize: TypeScale.subhead)),
@@ -177,7 +177,7 @@ class BondConfirmationStep extends StatelessWidget {
                                     Expanded(
                                       child: Text(
                                         nps.name,
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                           fontSize: TypeScale.footnote,
                                           fontWeight: FontWeight.w600,
                                         ),
@@ -208,7 +208,7 @@ class BondConfirmationStep extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('Create New NPS Entry',
+                            const Text('Create New NPS Entry',
                                 style: TextStyle(
                                     fontWeight: FontWeight.w600,
                                     fontSize: TypeScale.subhead)),
@@ -268,7 +268,7 @@ class _ConfirmationCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title,
-              style: TextStyle(
+              style: const TextStyle(
                   fontWeight: FontWeight.bold, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.lg),
           ...List.generate(

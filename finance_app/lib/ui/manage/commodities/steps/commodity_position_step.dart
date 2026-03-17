@@ -42,7 +42,7 @@ class _CommodityPositionStepState extends State<CommodityPositionStep> {
               style: AppStyles.titleStyle(context)),
           const SizedBox(height: 30),
           Text('Current Price Per ${widget.ctrl.unit ?? 'Unit'} (₹)',
-              style: TextStyle(
+              style: const TextStyle(
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           CupertinoTextField(
@@ -54,9 +54,9 @@ class _CommodityPositionStepState extends State<CommodityPositionStep> {
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
             ),
-            prefix: Padding(
-              padding: const EdgeInsets.only(left: 16),
-              child: const Text('₹'),
+            prefix: const Padding(
+              padding: EdgeInsets.only(left: 16),
+              child: Text('₹'),
             ),
             onChanged: (v) {
               final price = double.tryParse(v) ?? 0;
@@ -64,7 +64,7 @@ class _CommodityPositionStepState extends State<CommodityPositionStep> {
             },
           ),
           const SizedBox(height: Spacing.xxl),
-          Text('Trade Position',
+          const Text('Trade Position',
               style: TextStyle(
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
@@ -122,8 +122,8 @@ class _CommodityPositionStepState extends State<CommodityPositionStep> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Long Position',
-                                  style: const TextStyle(
+                              const Text('Long Position',
+                                  style: TextStyle(
                                       fontWeight: FontWeight.bold)),
                               Text('Profit if price increases',
                                   style: TextStyle(
@@ -175,8 +175,8 @@ class _CommodityPositionStepState extends State<CommodityPositionStep> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Short Position',
-                                  style: const TextStyle(
+                              const Text('Short Position',
+                                  style: TextStyle(
                                       fontWeight: FontWeight.bold)),
                               Text('Profit if price decreases',
                                   style: TextStyle(

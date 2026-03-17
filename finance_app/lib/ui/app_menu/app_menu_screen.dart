@@ -7,6 +7,7 @@ import 'package:vittara_fin_os/logic/categories_controller.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/tags_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
+import 'package:vittara_fin_os/ui/financial_calendar_screen.dart';
 import 'package:vittara_fin_os/ui/manage/reports_analysis_screen.dart';
 import 'package:vittara_fin_os/ui/manage_screen.dart';
 import 'package:vittara_fin_os/ui/settings_screen.dart';
@@ -45,10 +46,10 @@ class DashboardAppMenuScreen extends StatelessWidget {
               gradient: AppStyles.backgroundGradient(context),
             ),
             child: ListView(
-              padding: EdgeInsets.all(Spacing.lg),
+              padding: const EdgeInsets.all(Spacing.lg),
               children: [
                 _BrandHeader(),
-                SizedBox(height: Spacing.lg),
+                const SizedBox(height: Spacing.lg),
                 _MenuSectionCard(
                   title: 'Product',
                   items: [
@@ -81,7 +82,7 @@ class DashboardAppMenuScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                SizedBox(height: Spacing.lg),
+                const SizedBox(height: Spacing.lg),
                 _MenuSectionCard(
                   title: 'Help',
                   items: [
@@ -114,7 +115,7 @@ class DashboardAppMenuScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                SizedBox(height: Spacing.lg),
+                const SizedBox(height: Spacing.lg),
                 _MenuSectionCard(
                   title: 'Policies',
                   items: [
@@ -150,10 +151,21 @@ class DashboardAppMenuScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                SizedBox(height: Spacing.lg),
+                const SizedBox(height: Spacing.lg),
                 _MenuSectionCard(
                   title: 'Utilities',
                   items: [
+                    _MenuItem(
+                      title: 'Financial Calendar',
+                      subtitle:
+                          'FD maturities, SIPs, bills, goals & budget resets',
+                      icon: CupertinoIcons.calendar_badge_plus,
+                      color: AppStyles.aetherTeal,
+                      onTap: () => Navigator.of(context).push(
+                        FadeScalePageRoute(
+                            page: const FinancialCalendarScreen()),
+                      ),
+                    ),
                     _MenuItem(
                       title: 'Reports & Analysis',
                       subtitle:
@@ -184,7 +196,7 @@ class DashboardAppMenuScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                SizedBox(height: Spacing.xxl),
+                const SizedBox(height: Spacing.xxl),
               ],
             ),
           ),
@@ -238,7 +250,7 @@ class _BrandHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(Spacing.xl),
+      padding: const EdgeInsets.all(Spacing.xl),
       decoration: AppStyles.sectionDecoration(
         context,
         tint: SemanticColors.primary,
@@ -266,7 +278,7 @@ class _BrandHeader extends StatelessWidget {
               ),
             ),
           ),
-          SizedBox(width: Spacing.lg),
+          const SizedBox(width: Spacing.lg),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -278,7 +290,7 @@ class _BrandHeader extends StatelessWidget {
                     fontWeight: FontWeight.w800,
                   ),
                 ),
-                SizedBox(height: Spacing.xs),
+                const SizedBox(height: Spacing.xs),
                 Text(
                   _appTagline,
                   style: TextStyle(
@@ -316,7 +328,7 @@ class _MenuSectionCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: EdgeInsets.fromLTRB(
+            padding: const EdgeInsets.fromLTRB(
               Spacing.lg,
               Spacing.lg,
               Spacing.lg,
@@ -357,7 +369,7 @@ class _MenuRow extends StatelessWidget {
     return BouncyButton(
       onPressed: item.onTap,
       child: Container(
-        padding: EdgeInsets.symmetric(
+        padding: const EdgeInsets.symmetric(
           horizontal: Spacing.lg,
           vertical: Spacing.md,
         ),
@@ -380,7 +392,7 @@ class _MenuRow extends StatelessWidget {
               alignment: Alignment.center,
               child: Icon(item.icon, color: item.color, size: IconSizes.md),
             ),
-            SizedBox(width: Spacing.md),
+            const SizedBox(width: Spacing.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -393,7 +405,7 @@ class _MenuRow extends StatelessWidget {
                       fontSize: TypeScale.callout,
                     ),
                   ),
-                  SizedBox(height: Spacing.xs),
+                  const SizedBox(height: Spacing.xs),
                   Text(
                     item.subtitle,
                     style: TextStyle(
@@ -448,27 +460,27 @@ class AboutAppScreen extends StatelessWidget {
       ),
       child: SafeArea(
         child: ListView(
-          padding: EdgeInsets.all(Spacing.lg),
+          padding: const EdgeInsets.all(Spacing.lg),
           children: [
-            _InfoPanel(
+            const _InfoPanel(
               title: _appName,
               subtitle: _appTagline,
               icon: CupertinoIcons.graph_square_fill,
               color: SemanticColors.primary,
             ),
-            SizedBox(height: Spacing.lg),
-            _RichContentCard(
+            const SizedBox(height: Spacing.lg),
+            const _RichContentCard(
               title: 'What We Solve',
-              points: const [
+              points: [
                 'Unified tracking for banks, wallets, cash, transfers, and investments.',
                 'Actionable guidance through AI planning and budget health context.',
                 'Operational control through categories, tags, contacts, and app-level management.',
               ],
             ),
-            SizedBox(height: Spacing.lg),
-            _RichContentCard(
+            const SizedBox(height: Spacing.lg),
+            const _RichContentCard(
               title: 'Core Product Principles',
-              points: const [
+              points: [
                 'Clarity first: every financial action should have a clear trace.',
                 'Control first: users can customize categories, flows, and structures.',
                 'Continuity first: data is persisted for long-term trend analysis.',
@@ -530,11 +542,11 @@ class FAQsScreen extends StatelessWidget {
       ),
       child: SafeArea(
         child: ListView.separated(
-          padding: EdgeInsets.all(Spacing.lg),
+          padding: const EdgeInsets.all(Spacing.lg),
           itemBuilder: (context, index) {
             final faq = faqs[index];
             return Container(
-              padding: EdgeInsets.all(Spacing.lg),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: AppStyles.sectionDecoration(
                 context,
                 tint: SemanticColors.warning.withValues(alpha: 0.8),
@@ -551,7 +563,7 @@ class FAQsScreen extends StatelessWidget {
                       fontSize: TypeScale.callout,
                     ),
                   ),
-                  SizedBox(height: Spacing.sm),
+                  const SizedBox(height: Spacing.sm),
                   Text(
                     faq.answer,
                     style: TextStyle(
@@ -564,7 +576,7 @@ class FAQsScreen extends StatelessWidget {
               ),
             );
           },
-          separatorBuilder: (_, __) => SizedBox(height: Spacing.md),
+          separatorBuilder: (_, __) => const SizedBox(height: Spacing.md),
           itemCount: faqs.length,
         ),
       ),
@@ -601,11 +613,11 @@ class AppInformationScreen extends StatelessWidget {
           ),
           child: SafeArea(
             child: ListView(
-              padding: EdgeInsets.all(Spacing.lg),
+              padding: const EdgeInsets.all(Spacing.lg),
               children: [
-                _InfoStatRow(label: 'App Name', value: _appName),
-                _InfoStatRow(label: 'Tagline', value: _appTagline),
-                _InfoStatRow(label: 'Version', value: _appVersion),
+                const _InfoStatRow(label: 'App Name', value: _appName),
+                const _InfoStatRow(label: 'Tagline', value: _appTagline),
+                const _InfoStatRow(label: 'Version', value: _appVersion),
                 const _InfoStatRow(label: 'Platform', value: 'Flutter'),
                 const _InfoStatRow(
                   label: 'Data Model',
@@ -672,20 +684,20 @@ class WhatsNewScreen extends StatelessWidget {
       ),
       child: SafeArea(
         child: ListView(
-          padding: EdgeInsets.all(Spacing.lg),
+          padding: const EdgeInsets.all(Spacing.lg),
           children: [
-            _InfoPanel(
+            const _InfoPanel(
               title: 'Version $_appVersion',
               subtitle: 'Latest product upgrades and stability improvements',
               icon: CupertinoIcons.sparkles,
               color: SemanticColors.success,
             ),
-            SizedBox(height: Spacing.lg),
+            const SizedBox(height: Spacing.lg),
             ...changes.map(
               (change) => Padding(
-                padding: EdgeInsets.only(bottom: Spacing.md),
+                padding: const EdgeInsets.only(bottom: Spacing.md),
                 child: Container(
-                  padding: EdgeInsets.all(Spacing.md),
+                  padding: const EdgeInsets.all(Spacing.md),
                   decoration: AppStyles.sectionDecoration(
                     context,
                     tint: SemanticColors.success.withValues(alpha: 0.75),
@@ -694,12 +706,12 @@ class WhatsNewScreen extends StatelessWidget {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
+                      const Icon(
                         CupertinoIcons.checkmark_seal_fill,
                         color: SemanticColors.success,
                         size: IconSizes.sm,
                       ),
-                      SizedBox(width: Spacing.sm),
+                      const SizedBox(width: Spacing.sm),
                       Expanded(
                         child: Text(
                           change,
@@ -746,10 +758,10 @@ class LegalDocumentScreen extends StatelessWidget {
       ),
       child: SafeArea(
         child: ListView(
-          padding: EdgeInsets.all(Spacing.lg),
+          padding: const EdgeInsets.all(Spacing.lg),
           children: [
             Container(
-              padding: EdgeInsets.all(Spacing.md),
+              padding: const EdgeInsets.all(Spacing.md),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(Radii.md),
@@ -762,12 +774,12 @@ class LegalDocumentScreen extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(height: Spacing.lg),
+            const SizedBox(height: Spacing.lg),
             ...sections.map(
               (section) => Padding(
-                padding: EdgeInsets.only(bottom: Spacing.lg),
+                padding: const EdgeInsets.only(bottom: Spacing.lg),
                 child: Container(
-                  padding: EdgeInsets.all(Spacing.lg),
+                  padding: const EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
                     color: AppStyles.getCardColor(context),
                     borderRadius: BorderRadius.circular(Radii.lg),
@@ -787,7 +799,7 @@ class LegalDocumentScreen extends StatelessWidget {
                           fontSize: TypeScale.callout,
                         ),
                       ),
-                      SizedBox(height: Spacing.sm),
+                      const SizedBox(height: Spacing.sm),
                       Text(
                         section.content,
                         style: TextStyle(
@@ -824,7 +836,7 @@ class _InfoPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(Spacing.lg),
+      padding: const EdgeInsets.all(Spacing.lg),
       decoration: AppStyles.sectionDecoration(
         context,
         tint: color,
@@ -842,7 +854,7 @@ class _InfoPanel extends StatelessWidget {
             alignment: Alignment.center,
             child: Icon(icon, color: color, size: IconSizes.md),
           ),
-          SizedBox(width: Spacing.md),
+          const SizedBox(width: Spacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -855,7 +867,7 @@ class _InfoPanel extends StatelessWidget {
                     fontSize: TypeScale.title3,
                   ),
                 ),
-                SizedBox(height: Spacing.xs),
+                const SizedBox(height: Spacing.xs),
                 Text(
                   subtitle,
                   style: TextStyle(
@@ -884,7 +896,7 @@ class _RichContentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(Spacing.lg),
+      padding: const EdgeInsets.all(Spacing.lg),
       decoration: AppStyles.sectionDecoration(
         context,
         tint: AppStyles.accentTeal.withValues(alpha: 0.75),
@@ -901,10 +913,10 @@ class _RichContentCard extends StatelessWidget {
               fontSize: TypeScale.callout,
             ),
           ),
-          SizedBox(height: Spacing.md),
+          const SizedBox(height: Spacing.md),
           ...points.map(
             (point) => Padding(
-              padding: EdgeInsets.only(bottom: Spacing.sm),
+              padding: const EdgeInsets.only(bottom: Spacing.sm),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -947,8 +959,8 @@ class _InfoStatRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(bottom: Spacing.md),
-      padding: EdgeInsets.all(Spacing.lg),
+      margin: const EdgeInsets.only(bottom: Spacing.md),
+      padding: const EdgeInsets.all(Spacing.lg),
       decoration: AppStyles.sectionDecoration(
         context,
         tint: AppStyles.accentBlue.withValues(alpha: 0.72),
@@ -965,7 +977,7 @@ class _InfoStatRow extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
-          SizedBox(height: Spacing.xs),
+          const SizedBox(height: Spacing.xs),
           Text(
             value,
             style: TextStyle(

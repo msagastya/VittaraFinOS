@@ -80,7 +80,7 @@ class NeumorphicGlassCard extends StatelessWidget {
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
             child: Container(
-              padding: padding ?? EdgeInsets.all(Spacing.lg),
+              padding: padding ?? const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: glassColor,
                 borderRadius: BorderRadius.circular(Radii.xxl),
@@ -154,7 +154,7 @@ class NeumorphicGlassCardElevated extends StatelessWidget {
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
             child: Container(
-              padding: padding ?? EdgeInsets.all(Spacing.xl),
+              padding: padding ?? const EdgeInsets.all(Spacing.xl),
               decoration: BoxDecoration(
                 color: glassColor,
                 borderRadius: BorderRadius.circular(Radii.xxl),
@@ -209,7 +209,7 @@ class _NeumorphicGlassButtonState extends State<NeumorphicGlassButton> {
       onTapCancel: () => setState(() => _isPressed = false),
       child: NeumorphicGlassCard(
         padding: widget.padding ??
-            EdgeInsets.symmetric(
+            const EdgeInsets.symmetric(
               horizontal: Spacing.xl,
               vertical: Spacing.md,
             ),
@@ -261,7 +261,7 @@ class NeumorphicGlassConcave extends StatelessWidget {
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
           child: Container(
-            padding: padding ?? EdgeInsets.all(Spacing.lg),
+            padding: padding ?? const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               // Simulated inset effect with gradient
               gradient: LinearGradient(

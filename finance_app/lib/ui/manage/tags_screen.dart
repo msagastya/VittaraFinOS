@@ -50,7 +50,7 @@ class _TagsScreenState extends State<TagsScreen> {
         builder: (context, tagsController, child) {
           final tags = tagsController.tags;
           final q = _searchQuery.toLowerCase();
-          var filteredTags = q.isEmpty
+          final filteredTags = q.isEmpty
               ? tags.toList()
               : tags.where((t) => t.name.toLowerCase().contains(q)).toList();
           if (_sortAlpha) {
@@ -118,7 +118,7 @@ class _TagsScreenState extends State<TagsScreen> {
                                       .withValues(alpha: 0.15),
                                   shape: BoxShape.circle,
                                 ),
-                                child: Center(
+                                child: const Center(
                                   child: Icon(CupertinoIcons.tag,
                                       size: 32, color: AppStyles.accentBlue),
                                 ),
@@ -172,13 +172,13 @@ class _TagsScreenState extends State<TagsScreen> {
                               ),
                               child: Row(
                                 children: [
-                                  Icon(CupertinoIcons.info_circle,
+                                  const Icon(CupertinoIcons.info_circle,
                                       size: 20, color: AppStyles.accentBlue),
                                   const SizedBox(width: Spacing.md),
                                   Expanded(
                                     child: Text(
                                       '${filteredTags.length} of ${tags.length} tag${tags.length > 1 ? 's' : ''}',
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         fontSize: TypeScale.subhead,
                                         fontWeight: FontWeight.w600,
                                         color: AppStyles.accentBlue,
@@ -233,7 +233,7 @@ class _TagsScreenState extends State<TagsScreen> {
           _showTagDetailsSheet(context, tag, controller);
         },
         child: Container(
-          padding: EdgeInsets.symmetric(
+          padding: const EdgeInsets.symmetric(
               horizontal: Spacing.lg, vertical: Spacing.md),
           decoration: BoxDecoration(
             color: tag.color.withValues(alpha: 0.12),
@@ -252,7 +252,7 @@ class _TagsScreenState extends State<TagsScreen> {
                   shape: BoxShape.circle,
                 ),
               ),
-              SizedBox(width: Spacing.sm),
+              const SizedBox(width: Spacing.sm),
               Text(
                 tag.name,
                 style: TextStyle(
@@ -415,7 +415,7 @@ class _TagsScreenState extends State<TagsScreen> {
                   controller.addTag(tag);
                   Navigator.pop(context);
                 },
-                child: Text(
+                child: const Text(
                   'Create Tag',
                   style: TextStyle(
                     fontWeight: FontWeight.w600,

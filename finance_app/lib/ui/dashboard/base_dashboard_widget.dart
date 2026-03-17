@@ -85,13 +85,13 @@ abstract class BaseDashboardWidget extends StatelessWidget {
                     // Content — show skeleton while loading
                     Expanded(
                       child: isLoading
-                          ? Column(
+                          ? const Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 SkeletonLoader(height: 28, width: 140),
-                                const SizedBox(height: 10),
+                                SizedBox(height: 10),
                                 SkeletonLoader(height: 12, width: 100),
-                                const SizedBox(height: 10),
+                                SizedBox(height: 10),
                                 SkeletonLoader(
                                     height: 12, width: double.infinity),
                               ],

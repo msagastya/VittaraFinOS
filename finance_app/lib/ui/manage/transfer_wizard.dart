@@ -536,13 +536,13 @@ class _TransferWizardState extends State<TransferWizard> {
                       width: 1.5,
                     ),
                   ),
-                  child: Center(
+                  child: const Center(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(CupertinoIcons.add,
+                        Icon(CupertinoIcons.add,
                             color: CupertinoColors.systemBlue),
-                        const SizedBox(width: Spacing.sm),
+                        SizedBox(width: Spacing.sm),
                         Text(
                           'Add Account',
                           style: TextStyle(
@@ -692,13 +692,13 @@ class _TransferWizardState extends State<TransferWizard> {
                       width: 1.5,
                     ),
                   ),
-                  child: Center(
+                  child: const Center(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(CupertinoIcons.add,
+                        Icon(CupertinoIcons.add,
                             color: CupertinoColors.systemBlue),
-                        const SizedBox(width: Spacing.sm),
+                        SizedBox(width: Spacing.sm),
                         Text(
                           'Add Account',
                           style: TextStyle(
@@ -852,7 +852,7 @@ class _TransferWizardState extends State<TransferWizard> {
                   ),
                   child: Row(
                     children: [
-                      Icon(
+                      const Icon(
                         CupertinoIcons.lock_fill,
                         color: AppStyles.bioGreen,
                         size: 24,
@@ -868,7 +868,7 @@ class _TransferWizardState extends State<TransferWizard> {
                                   .copyWith(fontSize: TypeScale.headline),
                             ),
                             const SizedBox(height: Spacing.xs),
-                            Text(
+                            const Text(
                               'Auto-selected (Fixed)',
                               style: TextStyle(
                                 fontSize: TypeScale.footnote,
@@ -942,7 +942,7 @@ class _TransferWizardState extends State<TransferWizard> {
                               ),
                               child: Row(
                                 children: [
-                                  Icon(
+                                  const Icon(
                                     CupertinoIcons
                                         .square_stack_3d_down_right_fill,
                                     color: CupertinoColors.systemBlue,
@@ -1025,13 +1025,13 @@ class _TransferWizardState extends State<TransferWizard> {
                             width: 1.5,
                           ),
                         ),
-                        child: Center(
+                        child: const Center(
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(CupertinoIcons.add,
+                              Icon(CupertinoIcons.add,
                                   color: CupertinoColors.systemBlue),
-                              const SizedBox(width: Spacing.sm),
+                              SizedBox(width: Spacing.sm),
                               Text(
                                 'Select New App',
                                 style: TextStyle(
@@ -1505,7 +1505,7 @@ class _TransferWizardState extends State<TransferWizard> {
                           AppStyles.titleStyle(context).copyWith(fontSize: 18),
                     ),
                   ),
-                  Text(
+                  const Text(
                     'Change',
                     style: TextStyle(
                       color: CupertinoColors.systemBlue,

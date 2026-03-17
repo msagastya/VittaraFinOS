@@ -88,7 +88,7 @@ class BondPayoutGenerator {
 
       // Find the first payout date
       // Use current year to start, unless it's before today
-      int year = DateTime.now().year;
+      final int year = DateTime.now().year;
       DateTime firstPayout = DateTime(year, firstPayoutMonth, 1);
 
       // Adjust day to be valid for the month
@@ -162,8 +162,8 @@ class BondPayoutGenerator {
     }
 
     // Get the last day of the target month
-    int lastDayOfMonth = _daysInMonth(newYear, newMonth);
-    int newDay = date.day > lastDayOfMonth ? lastDayOfMonth : date.day;
+    final int lastDayOfMonth = _daysInMonth(newYear, newMonth);
+    final int newDay = date.day > lastDayOfMonth ? lastDayOfMonth : date.day;
 
     return DateTime(newYear, newMonth, newDay);
   }

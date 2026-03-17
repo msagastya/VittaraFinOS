@@ -780,7 +780,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
   }) {
     return SafeArea(
       child: Padding(
-        padding: EdgeInsets.only(
+        padding: const EdgeInsets.only(
           left: Spacing.lg,
           right: Spacing.lg,
           top: Spacing.lg,
@@ -804,7 +804,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                 if (trailing != null) trailing,
               ],
             ),
-            SizedBox(height: Spacing.lg),
+            const SizedBox(height: Spacing.lg),
             Expanded(child: child),
             if (footer != null) footer,
           ],
@@ -855,7 +855,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
               ),
             ],
           ),
-          SizedBox(height: Spacing.md),
+          const SizedBox(height: Spacing.md),
           // Elevated segmented capsule progress
           Row(
             children: List.generate(_totalSteps, (i) {
@@ -1000,7 +1000,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
             onTap: () => _selectBranch(TransactionWizardBranch.transfer),
           ),
           if (templates.isNotEmpty) ...[
-            SizedBox(height: Spacing.xl),
+            const SizedBox(height: Spacing.xl),
             Row(
               children: [
                 Text(
@@ -1012,7 +1012,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                     letterSpacing: 0.5,
                   ),
                 ),
-                Spacer(),
+                const Spacer(),
                 GestureDetector(
                   onTap: () => _showManageTemplatesSheet(templatesController),
                   child: Text(
@@ -1025,7 +1025,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                 ),
               ],
             ),
-            SizedBox(height: Spacing.sm),
+            const SizedBox(height: Spacing.sm),
             Wrap(
               spacing: Spacing.sm,
               runSpacing: Spacing.sm,
@@ -1038,7 +1038,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                 return GestureDetector(
                   onTap: () => _applyTemplate(t, templatesController),
                   child: Container(
-                    padding: EdgeInsets.symmetric(
+                    padding: const EdgeInsets.symmetric(
                         horizontal: Spacing.md, vertical: Spacing.sm),
                     decoration: BoxDecoration(
                       color: color.withValues(alpha: 0.10),
@@ -1060,7 +1060,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                           size: 12,
                           color: color,
                         ),
-                        SizedBox(width: 5),
+                        const SizedBox(width: 5),
                         Text(
                           t.name,
                           style: TextStyle(
@@ -1069,7 +1069,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                             color: color,
                           ),
                         ),
-                        SizedBox(width: 4),
+                        const SizedBox(width: 4),
                         Text(
                           '₹${t.amount % 1 == 0 ? t.amount.toStringAsFixed(0) : t.amount.toStringAsFixed(2)}',
                           style: TextStyle(
@@ -1148,7 +1148,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
           ),
           decoration: BoxDecoration(
             color: AppStyles.getCardColor(ctx),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           ),
           child: SafeArea(
             child: Column(
@@ -1165,31 +1165,31 @@ class _TransactionWizardState extends State<TransactionWizard> {
                     ),
                   ),
                 ),
-                SizedBox(height: Spacing.xl),
+                const SizedBox(height: Spacing.xl),
                 Text('Save Recurring Template',
                     style: AppStyles.titleStyle(ctx)),
-                SizedBox(height: Spacing.lg),
+                const SizedBox(height: Spacing.lg),
                 Text('Template name',
                     style: TextStyle(
                         color: AppStyles.getSecondaryTextColor(ctx),
                         fontSize: TypeScale.footnote)),
-                SizedBox(height: Spacing.xs),
+                const SizedBox(height: Spacing.xs),
                 CupertinoTextField(
                   controller: nameController,
                   placeholder: 'e.g. Netflix, Rent, Salary…',
-                  padding: EdgeInsets.all(Spacing.md),
+                  padding: const EdgeInsets.all(Spacing.md),
                   decoration: BoxDecoration(
                     color: AppStyles.getBackground(ctx),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   style: TextStyle(color: AppStyles.getTextColor(ctx)),
                 ),
-                SizedBox(height: Spacing.lg),
+                const SizedBox(height: Spacing.lg),
                 Text('Frequency',
                     style: TextStyle(
                         color: AppStyles.getSecondaryTextColor(ctx),
                         fontSize: TypeScale.footnote)),
-                SizedBox(height: Spacing.xs),
+                const SizedBox(height: Spacing.xs),
                 Row(
                   children: [
                     for (final f in ['daily', 'weekly', 'monthly', 'yearly'])
@@ -1199,7 +1199,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                           child: Container(
                             margin:
                                 EdgeInsets.only(right: f == 'yearly' ? 0 : 6),
-                            padding: EdgeInsets.symmetric(vertical: 8),
+                            padding: const EdgeInsets.symmetric(vertical: 8),
                             decoration: BoxDecoration(
                               color: frequency == f
                                   ? AppStyles.getPrimaryColor(ctx)
@@ -1231,7 +1231,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                       ),
                   ],
                 ),
-                SizedBox(height: Spacing.xl),
+                const SizedBox(height: Spacing.xl),
                 SizedBox(
                   width: double.infinity,
                   child: CupertinoButton.filled(
@@ -1286,7 +1286,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                       Navigator.pop(ctx);
                       toast_lib.toast.showSuccess('Template "$name" saved');
                     },
-                    child: Text('Save Template'),
+                    child: const Text('Save Template'),
                   ),
                 ),
               ],
@@ -1303,13 +1303,13 @@ class _TransactionWizardState extends State<TransactionWizard> {
       builder: (ctx) => Container(
         decoration: BoxDecoration(
           color: AppStyles.getCardColor(ctx),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              SizedBox(height: Spacing.lg),
+              const SizedBox(height: Spacing.lg),
               Container(
                 width: 40,
                 height: 5,
@@ -1318,15 +1318,15 @@ class _TransactionWizardState extends State<TransactionWizard> {
                   borderRadius: BorderRadius.circular(2.5),
                 ),
               ),
-              SizedBox(height: Spacing.lg),
+              const SizedBox(height: Spacing.lg),
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: Spacing.xl),
+                padding: const EdgeInsets.symmetric(horizontal: Spacing.xl),
                 child: Text('Recurring Templates',
                     style: AppStyles.titleStyle(ctx)),
               ),
-              SizedBox(height: Spacing.md),
+              const SizedBox(height: Spacing.md),
               ConstrainedBox(
-                constraints: BoxConstraints(maxHeight: 320),
+                constraints: const BoxConstraints(maxHeight: 320),
                 child: ListView.builder(
                   shrinkWrap: true,
                   itemCount: ctrl.templates.length,
@@ -1336,12 +1336,12 @@ class _TransactionWizardState extends State<TransactionWizard> {
                         ? AppStyles.bioGreen
                         : AppStyles.plasmaRed;
                     return Padding(
-                      padding: EdgeInsets.symmetric(
+                      padding: const EdgeInsets.symmetric(
                           horizontal: Spacing.xl, vertical: Spacing.xs),
                       child: Row(
                         children: [
                           Icon(CupertinoIcons.repeat, size: 16, color: color),
-                          SizedBox(width: Spacing.sm),
+                          const SizedBox(width: Spacing.sm),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1366,7 +1366,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                               ctrl.deleteTemplate(t.id);
                               Navigator.pop(ctx);
                             },
-                            child: Icon(CupertinoIcons.trash,
+                            child: const Icon(CupertinoIcons.trash,
                                 size: 18, color: AppStyles.plasmaRed),
                           ),
                         ],
@@ -1375,7 +1375,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                   },
                 ),
               ),
-              SizedBox(height: Spacing.lg),
+              const SizedBox(height: Spacing.lg),
             ],
           ),
         ),
@@ -1428,7 +1428,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                 ),
                 child: Icon(icon, color: color, size: 28),
               ),
-              SizedBox(width: Spacing.lg),
+              const SizedBox(width: Spacing.lg),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1441,7 +1441,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                         color: AppStyles.getTextColor(context),
                       ),
                     ),
-                    SizedBox(height: Spacing.xxs),
+                    const SizedBox(height: Spacing.xxs),
                     Text(
                       label == 'Expense'
                           ? 'Track money going out'
@@ -1478,9 +1478,9 @@ class _TransactionWizardState extends State<TransactionWizard> {
               fontSize: TypeScale.subhead,
             ),
           ),
-          SizedBox(height: Spacing.xxl),
+          const SizedBox(height: Spacing.xxl),
           Container(
-            padding: EdgeInsets.symmetric(
+            padding: const EdgeInsets.symmetric(
                 horizontal: Spacing.xl, vertical: Spacing.xl),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
@@ -1529,7 +1529,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                     ],
                   ),
                 ),
-                SizedBox(width: Spacing.sm),
+                const SizedBox(width: Spacing.sm),
                 Expanded(
                   child: CupertinoTextField(
                     controller: _amountController,
@@ -1561,15 +1561,15 @@ class _TransactionWizardState extends State<TransactionWizard> {
             ),
           ),
           if (_amountError) ...[
-            SizedBox(height: Spacing.sm),
-            Row(
+            const SizedBox(height: Spacing.sm),
+            const Row(
               children: [
                 Icon(
                   CupertinoIcons.exclamationmark_circle,
                   size: 14,
                   color: AppStyles.plasmaRed,
                 ),
-                const SizedBox(width: 6),
+                SizedBox(width: 6),
                 Text(
                   'Amount must be greater than ₹0',
                   style: TextStyle(
@@ -1581,7 +1581,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
               ],
             ),
           ],
-          SizedBox(height: Spacing.lg),
+          const SizedBox(height: Spacing.lg),
           // Quick amount shortcuts
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -1983,7 +1983,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                   size: 22,
                 ),
               ),
-              SizedBox(width: Spacing.md),
+              const SizedBox(width: Spacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -2002,7 +2002,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                 ),
               ),
               if (selected)
-                Icon(CupertinoIcons.checkmark_circle_fill,
+                const Icon(CupertinoIcons.checkmark_circle_fill,
                     color: CupertinoColors.systemBlue, size: 22)
               else
                 Icon(CupertinoIcons.circle,
@@ -2325,7 +2325,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(app['name'],
-                                            style: TextStyle(
+                                            style: const TextStyle(
                                                 fontWeight: FontWeight.w600)),
                                         Text(
                                           (app['hasWallet'] ?? false)
@@ -2437,12 +2437,12 @@ class _TransactionWizardState extends State<TransactionWizard> {
           CupertinoSegmentedControl<bool>(
             groupValue: _cashbackToApp,
             children: {
-              true: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
+              true: const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
                 child: Text('Add to App wallet'),
               ),
-              false: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
+              false: const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
                 child: Text('Add to bank account'),
               ),
             },
@@ -2662,7 +2662,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(
+                              const Icon(
                                 CupertinoIcons.clock,
                                 size: 11,
                                 color: CupertinoColors.systemOrange,
@@ -3046,12 +3046,12 @@ class _TransactionWizardState extends State<TransactionWizard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: Spacing.lg),
-        Row(
+        const Row(
           children: [
             Icon(CupertinoIcons.doc_text,
                 size: 13,
                 color: AppStyles.solarGold),
-            const SizedBox(width: 6),
+            SizedBox(width: 6),
             Text(
               'Tax Section (Optional)',
               style: TextStyle(
@@ -3286,7 +3286,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
           const Spacer(),
           // Save as recurring template option
           Padding(
-            padding: EdgeInsets.only(bottom: Spacing.sm),
+            padding: const EdgeInsets.only(bottom: Spacing.sm),
             child: GestureDetector(
               onTap: _showSaveTemplateSheet,
               child: Row(
@@ -3295,7 +3295,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                   Icon(CupertinoIcons.repeat,
                       size: 13,
                       color: AppStyles.getSecondaryTextColor(context)),
-                  SizedBox(width: 5),
+                  const SizedBox(width: 5),
                   Text(
                     'Save as Recurring Template',
                     style: TextStyle(

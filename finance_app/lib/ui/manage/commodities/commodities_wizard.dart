@@ -126,6 +126,7 @@ class _CommoditiesWizardContentState extends State<_CommoditiesWizardContent> {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
       navigationBar: CupertinoNavigationBar(
+        previousPageTitle: 'Back',
         middle: Text('Add Commodity',
             style: TextStyle(color: AppStyles.getTextColor(context))),
         backgroundColor: AppStyles.getBackground(context),

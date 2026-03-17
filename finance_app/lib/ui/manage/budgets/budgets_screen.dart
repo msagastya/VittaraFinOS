@@ -55,7 +55,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
         trailing: CupertinoButton(
           padding: EdgeInsets.zero,
           onPressed: () => _showPeriodFilter(),
-          child: Icon(CupertinoIcons.line_horizontal_3_decrease,
+          child: const Icon(CupertinoIcons.line_horizontal_3_decrease,
               color: AppStyles.accentBlue),
         ),
       ),
@@ -87,7 +87,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                           if (exceededBudgets.isNotEmpty)
                             SliverToBoxAdapter(
                               child: Padding(
-                                padding: EdgeInsets.all(Spacing.lg),
+                                padding: const EdgeInsets.all(Spacing.lg),
                                 child: _buildWarningBanner(
                                     exceededBudgets.length, true),
                               ),
@@ -96,7 +96,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                               exceededBudgets.isEmpty)
                             SliverToBoxAdapter(
                               child: Padding(
-                                padding: EdgeInsets.all(Spacing.lg),
+                                padding: const EdgeInsets.all(Spacing.lg),
                                 child: _buildWarningBanner(
                                     warningBudgets.length, false),
                               ),
@@ -104,13 +104,13 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                           if (_filterPeriod != null)
                             SliverToBoxAdapter(
                               child: Padding(
-                                padding: EdgeInsets.symmetric(
+                                padding: const EdgeInsets.symmetric(
                                     horizontal: Spacing.lg,
                                     vertical: Spacing.sm),
                                 child: Row(
                                   children: [
                                     Container(
-                                      padding: EdgeInsets.symmetric(
+                                      padding: const EdgeInsets.symmetric(
                                           horizontal: Spacing.md,
                                           vertical: Spacing.sm),
                                       decoration: BoxDecoration(
@@ -141,7 +141,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                                                 fontSize: TypeScale.footnote,
                                                 fontWeight: FontWeight.w600),
                                           ),
-                                          SizedBox(width: Spacing.sm),
+                                          const SizedBox(width: Spacing.sm),
                                           GestureDetector(
                                             onTap: () => setState(
                                                 () => _filterPeriod = null),
@@ -170,14 +170,14 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                                         size: IconSizes.emptyStateIcon,
                                         color: AppStyles.getSecondaryTextColor(
                                             context)),
-                                    SizedBox(height: Spacing.lg),
+                                    const SizedBox(height: Spacing.lg),
                                     Text('No budgets found',
                                         style: TextStyle(
                                             fontSize: TypeScale.title3,
                                             fontWeight: FontWeight.w600,
                                             color: AppStyles.getTextColor(
                                                 context))),
-                                    SizedBox(height: Spacing.sm),
+                                    const SizedBox(height: Spacing.sm),
                                     Text('Try adjusting your filter',
                                         style: TextStyle(
                                             fontSize: TypeScale.body,
@@ -190,7 +190,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                             )
                           else
                             SliverPadding(
-                              padding: EdgeInsets.all(Spacing.lg),
+                              padding: const EdgeInsets.all(Spacing.lg),
                               sliver: SliverList(
                                 delegate: SliverChildBuilderDelegate(
                                   (context, index) {
@@ -199,7 +199,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                                       index: index,
                                       child: Padding(
                                         padding:
-                                            EdgeInsets.only(bottom: Spacing.lg),
+                                            const EdgeInsets.only(bottom: Spacing.lg),
                                         child: _buildSlidableBudgetCard(budget),
                                       ),
                                     );
@@ -208,7 +208,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                                 ),
                               ),
                             ),
-                          SliverToBoxAdapter(child: SizedBox(height: 80)),
+                          const SliverToBoxAdapter(child: SizedBox(height: 80)),
                         ],
                       ),
               ),
@@ -237,7 +237,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
       child: Row(
         children: [
           Container(
-            padding: EdgeInsets.all(Spacing.md),
+            padding: const EdgeInsets.all(Spacing.md),
             decoration: BoxDecoration(
               color:
                   (isExceeded ? SemanticColors.error : SemanticColors.warning)
@@ -252,7 +252,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
               size: IconSizes.lg,
             ),
           ),
-          SizedBox(width: Spacing.md),
+          const SizedBox(width: Spacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -266,7 +266,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                       fontWeight: FontWeight.w600,
                       color: AppStyles.getTextColor(context)),
                 ),
-                SizedBox(height: Spacing.xxs),
+                const SizedBox(height: Spacing.xxs),
                 Text(
                   isExceeded ? 'Review your spending' : 'Monitor your expenses',
                   style: TextStyle(
@@ -362,7 +362,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                   color: budget.color,
                   showGlow: true,
                 ),
-                SizedBox(width: Spacing.md),
+                const SizedBox(width: Spacing.md),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -374,7 +374,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                               color: AppStyles.getTextColor(context)),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis),
-                      SizedBox(height: Spacing.xxs),
+                      const SizedBox(height: Spacing.xxs),
                       Text(budget.getPeriodLabel(),
                           style: TextStyle(
                               fontSize: TypeScale.footnote,
@@ -384,7 +384,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                 ),
                 if (budget.status != BudgetStatus.onTrack)
                   Container(
-                    padding: EdgeInsets.symmetric(
+                    padding: const EdgeInsets.symmetric(
                         horizontal: Spacing.sm, vertical: Spacing.xxs),
                     decoration: BoxDecoration(
                       color: statusColor.withValues(alpha: 0.1),
@@ -402,13 +402,13 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                   ),
               ],
             ),
-            SizedBox(height: Spacing.lg),
+            const SizedBox(height: Spacing.lg),
             _ShakingBudgetBar(
               progress: budget.usagePercentage / 100,
               color: statusColor,
               isExceeded: budget.status == BudgetStatus.exceeded,
             ),
-            SizedBox(height: Spacing.md),
+            const SizedBox(height: Spacing.md),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -419,7 +419,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                         style: TextStyle(
                             fontSize: TypeScale.footnote,
                             color: AppStyles.getSecondaryTextColor(context))),
-                    SizedBox(height: Spacing.xxs),
+                    const SizedBox(height: Spacing.xxs),
                     counter_widgets.CurrencyCounter(
                         value: budget.spentAmount,
                         textStyle: TextStyle(
@@ -448,7 +448,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                         style: TextStyle(
                             fontSize: TypeScale.footnote,
                             color: AppStyles.getSecondaryTextColor(context))),
-                    SizedBox(height: Spacing.xxs),
+                    const SizedBox(height: Spacing.xxs),
                     counter_widgets.CurrencyCounter(
                         value: budget.limitAmount,
                         textStyle: TextStyle(
@@ -461,13 +461,13 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
               ],
             ),
             if (budget.daysRemaining > 0) ...[
-              SizedBox(height: Spacing.md),
+              const SizedBox(height: Spacing.md),
               Row(
                 children: [
                   Icon(CupertinoIcons.time,
                       size: IconSizes.sm,
                       color: AppStyles.getSecondaryTextColor(context)),
-                  SizedBox(width: Spacing.xs),
+                  const SizedBox(width: Spacing.xs),
                   Text('${budget.daysRemaining} days remaining',
                       style: TextStyle(
                           fontSize: TypeScale.footnote,
@@ -484,36 +484,36 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
   Widget _buildEmptyState() {
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(Spacing.xxxl),
+        padding: const EdgeInsets.all(Spacing.xxxl),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: EdgeInsets.all(Spacing.xxxl),
+              padding: const EdgeInsets.all(Spacing.xxxl),
               decoration: BoxDecoration(
                   color: SemanticColors.primary.withValues(alpha: 0.1),
                   shape: BoxShape.circle),
-              child: Icon(CupertinoIcons.chart_pie_fill,
+              child: const Icon(CupertinoIcons.chart_pie_fill,
                   size: IconSizes.emptyStateIcon,
                   color: SemanticColors.primary),
             ),
-            SizedBox(height: Spacing.xxl),
+            const SizedBox(height: Spacing.xxl),
             Text('No Budgets Yet',
                 style: TextStyle(
                     fontSize: TypeScale.largeTitle,
                     fontWeight: FontWeight.bold,
                     color: AppStyles.getTextColor(context))),
-            SizedBox(height: Spacing.md),
+            const SizedBox(height: Spacing.md),
             Text('Start tracking your spending by\ncreating your first budget',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     fontSize: TypeScale.callout,
                     color: AppStyles.getSecondaryTextColor(context))),
-            SizedBox(height: Spacing.xxxl),
+            const SizedBox(height: Spacing.xxxl),
             BouncyButton(
               onPressed: _showAddBudgetModal,
               child: Container(
-                padding: EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                     horizontal: Spacing.xxl, vertical: Spacing.lg),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(colors: [
@@ -525,10 +525,10 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                     BoxShadow(
                         color: SemanticColors.primary.withValues(alpha: 0.4),
                         blurRadius: 20,
-                        offset: Offset(0, 8))
+                        offset: const Offset(0, 8))
                   ],
                 ),
-                child: Row(
+                child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(CupertinoIcons.add,
@@ -553,7 +553,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
     showCupertinoModalPopup(
       context: context,
       builder: (context) => CupertinoActionSheet(
-        title: Text('Filter by Period'),
+        title: const Text('Filter by Period'),
         actions: [
           ...BudgetPeriod.values.map((period) {
             final dummyBudget = Budget(
@@ -573,7 +573,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
               child: Row(
                 children: [
                   Icon(dummyBudget.getPeriodIcon(), size: IconSizes.md),
-                  SizedBox(width: Spacing.md),
+                  const SizedBox(width: Spacing.md),
                   Text(dummyBudget.getPeriodLabel()),
                 ],
               ),
@@ -586,11 +586,11 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                 Navigator.pop(context);
               },
               isDestructiveAction: true,
-              child: Text('Clear Filter'),
+              child: const Text('Clear Filter'),
             ),
         ],
         cancelButton: CupertinoActionSheetAction(
-            onPressed: () => Navigator.pop(context), child: Text('Cancel')),
+            onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
       ),
     );
   }

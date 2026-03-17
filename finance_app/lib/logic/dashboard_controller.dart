@@ -3,20 +3,30 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/logic/dashboard_widget_model.dart';
 import 'dart:convert';
 
-class DashboardController extends ChangeNotifier {
+class DashboardController with ChangeNotifier {
   late DashboardConfig _config;
   late SharedPreferences _prefs;
   bool _isInitialized = false;
+
+  // AU6-02 — Cached visible widgets list; invalidated on config change
+  List<DashboardWidgetConfig>? _cachedVisibleWidgets;
 
   static const int gridColumns = 3;
 
   DashboardConfig get config => _config;
   bool get isInitialized => _isInitialized;
 
+  /// Returns visible widgets sorted by position. Result is cached and
+  /// invalidated automatically whenever the config changes.
+  List<DashboardWidgetConfig> get visibleWidgets {
+    return _cachedVisibleWidgets ??= _config.getVisibleWidgets();
+  }
+
   Future<void> initialize() async {
     _prefs = await SharedPreferences.getInstance();
     await _loadConfig();
     _isInitialized = true;
+    _cachedVisibleWidgets = null; // invalidate after load
     notifyListeners();
   }
 
@@ -180,6 +190,7 @@ class DashboardController extends ChangeNotifier {
 
   Future<void> saveConfig() async {
     _config = _config.copyWith(lastModified: DateTime.now());
+    _cachedVisibleWidgets = null; // invalidate cache
     final configJson = jsonEncode(_config.toMap());
     await _prefs.setString('dashboard_config', configJson);
     notifyListeners();
@@ -191,6 +202,7 @@ class DashboardController extends ChangeNotifier {
       final updatedWidgets = [..._config.widgets];
       updatedWidgets[index] = widget;
       _config = _config.copyWith(widgets: updatedWidgets);
+      _cachedVisibleWidgets = null; // invalidate cache
       notifyListeners();
     }
   }
@@ -231,8 +243,8 @@ class DashboardController extends ChangeNotifier {
     );
 
     // Clamp spans
-    int clampedColSpan = newColumnSpan.clamp(1, gridColumns);
-    int clampedRowSpan = newRowSpan.clamp(1, 10);
+    final int clampedColSpan = newColumnSpan.clamp(1, gridColumns);
+    final int clampedRowSpan = newRowSpan.clamp(1, 10);
 
     // Adjust position if widget would go off-grid
     int newCol = widget.gridColumn;
@@ -285,7 +297,7 @@ class DashboardController extends ChangeNotifier {
     int rowSpan, {
     String? excludeWidgetId,
   }) {
-    List<(int, int)> occupied = [];
+    final List<(int, int)> occupied = [];
     for (var widget in _config.widgets) {
       if (!widget.isVisible || widget.id == excludeWidgetId) continue;
 

@@ -22,6 +22,7 @@ class AppStyles {
   // Elevated void surface — dark enough to feel deep, bright enough to contrast
   static const Color darkCard = Color(0xFF0D1829);
 
+  // AU10-03 — WCAG AA verified: lightText #0C1E3A on lightBackground #F2F6FF ~10:1 contrast ratio
   static const Color lightText = Color(0xFF0C1E3A);
   // Starlight white — slight blue cast like light filtered through deep space
   static const Color darkText = Color(0xFFEDF2FF);

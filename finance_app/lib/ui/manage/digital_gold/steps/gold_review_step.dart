@@ -84,8 +84,8 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
                 ),
                 const SizedBox(height: Spacing.sm),
                 if (controller.isFetchingPrice)
-                  Row(
-                    children: const [
+                  const Row(
+                    children: [
                       SizedBox(
                         width: 16,
                         height: 16,

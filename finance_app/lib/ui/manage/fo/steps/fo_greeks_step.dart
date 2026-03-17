@@ -74,7 +74,7 @@ class _FOGreeksStepState extends State<FOGreeksStep> {
         children: [
           Text('Greeks & Volatility', style: AppStyles.titleStyle(context)),
           const SizedBox(height: 30),
-          Text('Strike Price (₹)',
+          const Text('Strike Price (₹)',
               style: TextStyle(
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
@@ -87,9 +87,9 @@ class _FOGreeksStepState extends State<FOGreeksStep> {
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(Radii.md),
             ),
-            prefix: Padding(
-              padding: const EdgeInsets.only(left: 16),
-              child: const Text('₹'),
+            prefix: const Padding(
+              padding: EdgeInsets.only(left: 16),
+              child: Text('₹'),
             ),
             onChanged: (v) {
               final price = double.tryParse(v) ?? 0;
@@ -97,7 +97,7 @@ class _FOGreeksStepState extends State<FOGreeksStep> {
             },
           ),
           const SizedBox(height: Spacing.xxl),
-          Text('Volatility (% p.a.)',
+          const Text('Volatility (% p.a.)',
               style: TextStyle(
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
@@ -110,9 +110,9 @@ class _FOGreeksStepState extends State<FOGreeksStep> {
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(Radii.md),
             ),
-            suffix: Padding(
-              padding: const EdgeInsets.only(right: 16),
-              child: const Text('%'),
+            suffix: const Padding(
+              padding: EdgeInsets.only(right: 16),
+              child: Text('%'),
             ),
             onChanged: (v) {
               final vol = double.tryParse(v) ?? 20;
@@ -120,7 +120,7 @@ class _FOGreeksStepState extends State<FOGreeksStep> {
             },
           ),
           const SizedBox(height: Spacing.xxl),
-          Text('Risk-Free Rate (% p.a.)',
+          const Text('Risk-Free Rate (% p.a.)',
               style: TextStyle(
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
@@ -133,9 +133,9 @@ class _FOGreeksStepState extends State<FOGreeksStep> {
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(Radii.md),
             ),
-            suffix: Padding(
-              padding: const EdgeInsets.only(right: 16),
-              child: const Text('%'),
+            suffix: const Padding(
+              padding: EdgeInsets.only(right: 16),
+              child: Text('%'),
             ),
             onChanged: (v) {
               final rate = double.tryParse(v) ?? 6;
@@ -144,7 +144,7 @@ class _FOGreeksStepState extends State<FOGreeksStep> {
           ),
           if (widget.ctrl.greeks != null) ...[
             const SizedBox(height: 30),
-            Text('Calculated Greeks',
+            const Text('Calculated Greeks',
                 style: TextStyle(
                     fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
             const SizedBox(height: Spacing.md),
@@ -162,20 +162,20 @@ class _FOGreeksStepState extends State<FOGreeksStep> {
                       'Delta',
                       widget.ctrl.greeks!.delta.toStringAsFixed(4),
                       'Sensitivity to underlying price'),
-                  _Divider(),
+                  const _Divider(),
                   _GreekRow(
                       'Gamma',
                       widget.ctrl.greeks!.gamma.toStringAsFixed(6),
                       'Rate of change of Delta'),
-                  _Divider(),
+                  const _Divider(),
                   _GreekRow(
                       'Theta',
                       widget.ctrl.greeks!.theta.toStringAsFixed(4),
                       'Time decay per day'),
-                  _Divider(),
+                  const _Divider(),
                   _GreekRow('Vega', widget.ctrl.greeks!.vega.toStringAsFixed(4),
                       'Sensitivity to volatility (per 1%)'),
-                  _Divider(),
+                  const _Divider(),
                   _GreekRow('Rho', widget.ctrl.greeks!.rho.toStringAsFixed(4),
                       'Sensitivity to interest rates (per 1%)',
                       isLast: true),

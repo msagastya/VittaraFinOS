@@ -278,10 +278,10 @@ class _FDWizardScreenState extends State<FDWizardScreen> {
                                     : () => controller.nextStep(),
                             color: AppStyles.getPrimaryColor(context),
                             child: _isSubmitting
-                                ? SizedBox(
+                                ? const SizedBox(
                                     height: 20,
                                     width: 20,
-                                    child: const CupertinoActivityIndicator(
+                                    child: CupertinoActivityIndicator(
                                       color: CupertinoColors.white,
                                     ),
                                   )

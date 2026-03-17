@@ -1,0 +1,7 @@
+{
+  "enable_receipt_ocr": false,
+  "enable_family_mode": false,
+  "enable_ai_insights": false,
+  "enable_crypto_tracking": true,
+  "enable_fo_tracking": true
+}

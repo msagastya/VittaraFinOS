@@ -226,14 +226,14 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
                         width: 1,
                       ),
                     ),
-                    child: Row(
+                    child: const Row(
                       children: [
                         Icon(
                           CupertinoIcons.exclamationmark_triangle_fill,
                           color: CupertinoColors.systemOrange,
                           size: 16,
                         ),
-                        const SizedBox(width: Spacing.sm),
+                        SizedBox(width: Spacing.sm),
                         Expanded(
                           child: Text(
                             'Early withdrawal may incur penalties and reduced interest.',

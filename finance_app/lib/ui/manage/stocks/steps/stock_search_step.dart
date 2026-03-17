@@ -91,7 +91,7 @@ class _StockSearchStepState extends State<StockSearchStep> {
                       style:
                           const TextStyle(color: AppStyles.plasmaRed))))
         else if (_results.isEmpty && _searchController.text.isNotEmpty)
-          Expanded(
+          const Expanded(
             child: EmptyStateView(
               icon: CupertinoIcons.search,
               title: 'No stocks found',
@@ -143,7 +143,7 @@ class _StockSearchStepState extends State<StockSearchStep> {
                           child: Center(
                             child: Text(
                               stock.symbol.substring(0, 1),
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: SemanticColors.investments,
                               ),

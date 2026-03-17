@@ -388,7 +388,7 @@ class _LendingWizardState extends State<LendingWizard> {
             children: [
               GestureDetector(
                 onTap: () => setState(() => _selectionMode = 'none'),
-                child: Icon(CupertinoIcons.back, color: AppStyles.accentBlue),
+                child: const Icon(CupertinoIcons.back, color: AppStyles.accentBlue),
               ),
               const SizedBox(width: Spacing.md),
               Expanded(
@@ -536,7 +536,7 @@ class _LendingWizardState extends State<LendingWizard> {
                   setState(() => _selectionMode = 'none');
                   _searchController.clear();
                 },
-                child: Icon(CupertinoIcons.back, color: AppStyles.accentBlue),
+                child: const Icon(CupertinoIcons.back, color: AppStyles.accentBlue),
               ),
               const SizedBox(width: Spacing.md),
               Expanded(
@@ -557,8 +557,8 @@ class _LendingWizardState extends State<LendingWizard> {
           CupertinoTextField(
             controller: _searchController,
             placeholder: 'Search contacts...',
-            prefix: Padding(
-              padding: const EdgeInsets.only(left: 12),
+            prefix: const Padding(
+              padding: EdgeInsets.only(left: 12),
               child: Icon(CupertinoIcons.search,
                   color: AppStyles.accentBlue, size: 20),
             ),
@@ -587,9 +587,9 @@ class _LendingWizardState extends State<LendingWizard> {
           ),
           const SizedBox(height: Spacing.xxl),
           if (_loadingPhoneContacts)
-            Center(
+            const Center(
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 48),
+                padding: EdgeInsets.symmetric(vertical: 48),
                 child: CupertinoActivityIndicator(),
               ),
             )
@@ -783,7 +783,7 @@ class _LendingWizardState extends State<LendingWizard> {
             children: [
               GestureDetector(
                 onTap: () => setState(() => _selectionMode = 'none'),
-                child: Icon(CupertinoIcons.back, color: AppStyles.accentBlue),
+                child: const Icon(CupertinoIcons.back, color: AppStyles.accentBlue),
               ),
               const SizedBox(width: Spacing.md),
               Expanded(
@@ -1023,7 +1023,7 @@ class _LendingWizardState extends State<LendingWizard> {
                   child: Center(
                     child: Text(
                       _formatDate(_selectedDate),
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: AppStyles.accentBlue,
                         fontSize: 24,
                         fontWeight: FontWeight.w800,

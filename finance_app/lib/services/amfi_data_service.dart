@@ -1,6 +1,6 @@
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
-import '../models/mutual_fund_model.dart';
+import 'package:vittara_fin_os/models/mutual_fund_model.dart';
 
 class AMFIDataService {
   static const String amfiUrl = 'https://www.amfiindia.com/spages/NAVAll.txt';

@@ -16,6 +16,10 @@ class InvestmentsController with ChangeNotifier {
   bool _isLoaded = false;
   DateTime? _lastRefreshedAt;
 
+  // AU6-01 — Memoized total investment amount
+  double? _cachedTotalAmount;
+  bool _totalAmountDirty = true;
+
   List<Investment> get investments => _investments;
   bool get isLoaded => _isLoaded;
   DateTime? get lastRefreshedAt => _lastRefreshedAt;
@@ -58,6 +62,7 @@ class InvestmentsController with ChangeNotifier {
     }
 
     _isLoaded = true;
+    _invalidateCache();
     notifyListeners();
   }
 
@@ -65,12 +70,14 @@ class InvestmentsController with ChangeNotifier {
     final normalized = _ensureCreateActivityLog(investment);
     _investments.add(normalized);
     await _saveInvestments();
+    _invalidateCache();
     notifyListeners();
   }
 
   Future<void> removeInvestment(String investmentId) async {
     _investments.removeWhere((inv) => inv.id == investmentId);
     await _saveInvestments();
+    _invalidateCache();
     notifyListeners();
   }
 
@@ -91,6 +98,7 @@ class InvestmentsController with ChangeNotifier {
           : _ensureCreateActivityLog(investment);
       _investments[index] = normalized;
       await _saveInvestments();
+      _invalidateCache();
       notifyListeners();
     }
   }
@@ -127,6 +135,7 @@ class InvestmentsController with ChangeNotifier {
 
     _investments[index] = current.copyWith(metadata: metadata);
     await _saveInvestments();
+    _invalidateCache();
     notifyListeners();
   }
 
@@ -137,6 +146,13 @@ class InvestmentsController with ChangeNotifier {
     await _prefs.setStringList(_storageKey, investmentsJson);
   }
 
+  // Invalidates memoized caches when the investments list changes.
+  // Called before every notifyListeners() that mutates the list.
+  void _invalidateCache() {
+    _totalAmountDirty = true;
+    _cachedTotalAmount = null;
+  }
+
   void reorderInvestments(int oldIndex, int newIndex) {
     if (oldIndex < newIndex) {
       newIndex -= 1;
@@ -144,11 +160,19 @@ class InvestmentsController with ChangeNotifier {
     final investment = _investments.removeAt(oldIndex);
     _investments.insert(newIndex, investment);
     _saveInvestments();
+    _invalidateCache();
     notifyListeners();
   }
 
+  // AU6-01 — Memoized: recomputes only when list mutates
   double getTotalInvestmentAmount() {
-    return _investments.fold(0, (sum, inv) => sum + inv.amount);
+    if (!_totalAmountDirty && _cachedTotalAmount != null) {
+      return _cachedTotalAmount!;
+    }
+    _cachedTotalAmount =
+        _investments.fold<double>(0.0, (sum, inv) => sum + inv.amount);
+    _totalAmountDirty = false;
+    return _cachedTotalAmount!;
   }
 
   double getInvestmentAmountByType(InvestmentType type) {
@@ -197,6 +221,7 @@ class InvestmentsController with ChangeNotifier {
     _lastRefreshedAt = DateTime.now();
     if (updated) {
       await _saveInvestments();
+      _invalidateCache();
     }
     notifyListeners();
 

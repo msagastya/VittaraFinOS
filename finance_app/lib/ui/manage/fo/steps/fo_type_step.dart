@@ -102,7 +102,7 @@ class FOTypeStep extends StatelessWidget {
             }).toList(),
           ),
           const SizedBox(height: Spacing.xxl),
-          Text('Symbol',
+          const Text('Symbol',
               style: TextStyle(
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
@@ -116,7 +116,7 @@ class FOTypeStep extends StatelessWidget {
             onChanged: (v) => ctrl.updateSymbol(v),
           ),
           const SizedBox(height: Spacing.xl),
-          Text('Contract Name',
+          const Text('Contract Name',
               style: TextStyle(
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),

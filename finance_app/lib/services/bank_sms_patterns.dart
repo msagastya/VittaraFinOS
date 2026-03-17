@@ -2,6 +2,7 @@
 /// Each BankPattern maps a bank's senderIds to debit/credit regex patterns.
 /// The bank's senderIds here are defaults — the user can override them
 /// in Manage → Banks → Edit Sender IDs.
+library;
 
 class BankSmsPatterns {
   BankSmsPatterns._();

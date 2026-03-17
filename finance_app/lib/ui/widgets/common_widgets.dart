@@ -130,60 +130,41 @@ class SkeletonLoader extends StatefulWidget {
   State<SkeletonLoader> createState() => _SkeletonLoaderState();
 }
 
-class _SkeletonLoaderState extends State<SkeletonLoader>
-    with SingleTickerProviderStateMixin {
-  // Own controller — only used when no SkeletonAnimationProvider is in the tree.
-  AnimationController? _ownController;
-  late Animation<double> _animation;
-
-  /// True when this loader is driving its own animation (no provider found).
-  bool _isOwner = false;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final shared = SkeletonAnimationProvider.maybeOf(context);
-    if (shared != null) {
-      // Use shared animation; dispose own controller if we previously owned one.
-      if (_isOwner) {
-        _ownController?.dispose();
-        _ownController = null;
-        _isOwner = false;
-      }
-      _animation = shared;
-    } else if (!_isOwner) {
-      // No provider found — create our own controller once.
-      _ownController = AnimationController(
-        vsync: this,
-        duration: const Duration(milliseconds: 1800),
-      )..repeat();
-      _animation = Tween<double>(begin: -2.0, end: 2.0).animate(
-        CurvedAnimation(parent: _ownController!, curve: Curves.easeInOut),
-      );
-      _isOwner = true;
-    }
-  }
-
-  @override
-  void dispose() {
-    _ownController?.dispose();
-    super.dispose();
-  }
-
+class _SkeletonLoaderState extends State<SkeletonLoader> {
   @override
   Widget build(BuildContext context) {
+    final shared = SkeletonAnimationProvider.maybeOf(context);
     final isDark = AppStyles.isDarkMode(context);
 
-    Widget content;
-    if (isDark) {
-      // Signal-scan: narrow luminous teal beam sweeps across void base
-      final base = const Color(0xFF060C16); // void depth
-      const beamColor = Color(0xFF00D4AA); // aetherTeal
+    if (shared != null) {
+      return Semantics(
+        label: 'Loading...',
+        child: _buildContent(context, shared, isDark),
+      );
+    }
 
-      content = AnimatedBuilder(
-        animation: _animation,
-        builder: (context, child) {
-          final x = _animation.value;
+    // No provider — use TweenAnimationBuilder for a self-contained shimmer
+    // that does not require managing an AnimationController.
+    return Semantics(
+      label: 'Loading...',
+      child: _SkeletonShimmer(
+        width: widget.width,
+        height: widget.height,
+        borderRadius: widget.borderRadius,
+        isDark: isDark,
+      ),
+    );
+  }
+
+  Widget _buildContent(
+      BuildContext context, Animation<double> animation, bool isDark) {
+    if (isDark) {
+      const base = Color(0xFF060C16);
+      const beamColor = Color(0xFF00D4AA);
+      return AnimatedBuilder(
+        animation: animation,
+        builder: (context, _) {
+          final x = animation.value;
           return Container(
             width: widget.width,
             height: widget.height,
@@ -208,20 +189,19 @@ class _SkeletonLoaderState extends State<SkeletonLoader>
         },
       );
     } else {
-      // Light mode: standard soft shimmer
       const base = Color(0xFFE8EEF6);
       const highlight = Color(0xFFF8FBFF);
-      content = AnimatedBuilder(
-        animation: _animation,
-        builder: (context, child) {
+      return AnimatedBuilder(
+        animation: animation,
+        builder: (context, _) {
           return Container(
             width: widget.width,
             height: widget.height,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(widget.borderRadius),
               gradient: LinearGradient(
-                begin: Alignment(_animation.value - 1, 0),
-                end: Alignment(_animation.value + 1, 0),
+                begin: Alignment(animation.value - 1, 0),
+                end: Alignment(animation.value + 1, 0),
                 colors: [base, highlight, base],
                 stops: const [0.0, 0.5, 1.0],
               ),
@@ -230,8 +210,85 @@ class _SkeletonLoaderState extends State<SkeletonLoader>
         },
       );
     }
+  }
+}
 
-    return Semantics(label: 'Loading...', child: content);
+/// Self-contained shimmer widget that uses [TweenAnimationBuilder] to loop
+/// without requiring an explicit [AnimationController].  Used as fallback
+/// when no [SkeletonAnimationProvider] is found in the widget tree.
+class _SkeletonShimmer extends StatefulWidget {
+  final double width;
+  final double height;
+  final double borderRadius;
+  final bool isDark;
+
+  const _SkeletonShimmer({
+    required this.width,
+    required this.height,
+    required this.borderRadius,
+    required this.isDark,
+  });
+
+  @override
+  State<_SkeletonShimmer> createState() => _SkeletonShimmerState();
+}
+
+class _SkeletonShimmerState extends State<_SkeletonShimmer> {
+  double _target = 2.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: -2.0, end: _target),
+      duration: const Duration(milliseconds: 1800),
+      curve: Curves.easeInOut,
+      onEnd: () {
+        if (mounted) setState(() => _target = _target > 0 ? -2.0 : 2.0);
+      },
+      builder: (context, value, _) {
+        if (widget.isDark) {
+          const base = Color(0xFF060C16);
+          const beamColor = Color(0xFF00D4AA);
+          return Container(
+            width: widget.width,
+            height: widget.height,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(widget.borderRadius),
+              gradient: LinearGradient(
+                begin: Alignment(value - 0.8, 0),
+                end: Alignment(value + 0.8, 0),
+                colors: [
+                  base,
+                  beamColor.withValues(alpha: 0.0),
+                  beamColor.withValues(alpha: 0.18),
+                  beamColor.withValues(alpha: 0.35),
+                  beamColor.withValues(alpha: 0.18),
+                  beamColor.withValues(alpha: 0.0),
+                  base,
+                ],
+                stops: const [0.0, 0.30, 0.44, 0.50, 0.56, 0.70, 1.0],
+              ),
+            ),
+          );
+        } else {
+          const base = Color(0xFFE8EEF6);
+          const highlight = Color(0xFFF8FBFF);
+          return Container(
+            width: widget.width,
+            height: widget.height,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(widget.borderRadius),
+              gradient: LinearGradient(
+                begin: Alignment(value - 1, 0),
+                end: Alignment(value + 1, 0),
+                colors: [base, highlight, base],
+                stops: const [0.0, 0.5, 1.0],
+              ),
+            ),
+          );
+        }
+      },
+    );
   }
 }
 
@@ -246,26 +303,26 @@ class SkeletonCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       padding: const EdgeInsets.all(Spacing.lg),
       decoration: AppStyles.cardDecoration(context),
-      child: Row(
+      child: const Row(
         children: [
           SkeletonLoader(width: 48, height: 48, borderRadius: 14),
-          const SizedBox(width: 14),
+          SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SkeletonLoader(height: 14, width: double.infinity),
-                const SizedBox(height: Spacing.sm),
+                SizedBox(height: Spacing.sm),
                 SkeletonLoader(height: 11, width: 120, borderRadius: 6),
               ],
             ),
           ),
-          const SizedBox(width: 14),
+          SizedBox(width: 14),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               SkeletonLoader(height: 14, width: 72),
-              const SizedBox(height: Spacing.sm),
+              SizedBox(height: Spacing.sm),
               SkeletonLoader(height: 11, width: 48, borderRadius: 6),
             ],
           ),
@@ -309,17 +366,17 @@ class SkeletonSummaryCard extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         padding: const EdgeInsets.all(Spacing.xl),
         decoration: AppStyles.cardDecoration(context),
-        child: Column(
+        child: const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SkeletonLoader(height: 12, width: 100),
-            const SizedBox(height: Spacing.md),
+            SizedBox(height: Spacing.md),
             SkeletonLoader(height: 32, width: 200),
-            const SizedBox(height: Spacing.lg),
+            SizedBox(height: Spacing.lg),
             Row(
               children: [
                 Expanded(child: SkeletonLoader(height: 10)),
-                const SizedBox(width: Spacing.md),
+                SizedBox(width: Spacing.md),
                 Expanded(child: SkeletonLoader(height: 10)),
               ],
             ),
@@ -370,7 +427,7 @@ class EmptyStateView extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _buildIcon(context),
-              SizedBox(height: Spacing.lg),
+              const SizedBox(height: Spacing.lg),
               Text(
                 title,
                 style: TextStyle(
@@ -381,7 +438,7 @@ class EmptyStateView extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               if (subtitle != null) ...[
-                SizedBox(height: Spacing.sm),
+                const SizedBox(height: Spacing.sm),
                 Text(
                   subtitle!,
                   style: TextStyle(
@@ -393,7 +450,7 @@ class EmptyStateView extends StatelessWidget {
                 ),
               ],
               if (actionLabel != null && onAction != null) ...[
-                SizedBox(height: Spacing.xxl),
+                const SizedBox(height: Spacing.xxl),
                 _buildActionButton(context),
               ],
             ],
@@ -446,7 +503,7 @@ class EmptyStateView extends StatelessWidget {
     return BouncyButton(
       onPressed: onAction!,
       child: Container(
-        padding: EdgeInsets.symmetric(
+        padding: const EdgeInsets.symmetric(
           horizontal: Spacing.xxl,
           vertical: Spacing.md,
         ),
@@ -627,7 +684,7 @@ class SectionHeader extends StatelessWidget {
             width: 3,
             height: 14,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
+              gradient: const LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
@@ -740,7 +797,7 @@ class ActionButtonRow extends StatelessWidget {
               child: BouncyButton(
                 onPressed: onSecondaryPressed!,
                 child: Container(
-                  padding: EdgeInsets.symmetric(vertical: Spacing.md),
+                  padding: const EdgeInsets.symmetric(vertical: Spacing.md),
                   decoration: AppStyles.tabDecoration(
                     context,
                     selected: false,
@@ -759,13 +816,13 @@ class ActionButtonRow extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(width: Spacing.md),
+            const SizedBox(width: Spacing.md),
           ],
           Expanded(
             child: BouncyButton(
               onPressed: isLoading ? () {} : onPrimaryPressed,
               child: Container(
-                padding: EdgeInsets.symmetric(vertical: Spacing.md),
+                padding: const EdgeInsets.symmetric(vertical: Spacing.md),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
@@ -791,7 +848,7 @@ class ActionButtonRow extends StatelessWidget {
                 ),
                 child: Center(
                   child: isLoading
-                      ? SizedBox(
+                      ? const SizedBox(
                           width: 20,
                           height: 20,
                           child: CupertinoActivityIndicator(
@@ -840,7 +897,7 @@ class SmallActionButton extends StatelessWidget {
     return BouncyButton(
       onPressed: onPressed,
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: Spacing.md),
+        padding: const EdgeInsets.symmetric(vertical: Spacing.md),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -857,7 +914,7 @@ class SmallActionButton extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, size: IconSizes.sm, color: color),
-            SizedBox(width: Spacing.xs + 2),
+            const SizedBox(width: Spacing.xs + 2),
             Text(
               label,
               style: TextStyle(
@@ -893,7 +950,7 @@ class AppSearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.all(Spacing.lg),
+      margin: const EdgeInsets.all(Spacing.lg),
       decoration: AppStyles.sectionDecoration(
         context,
         tint: AppStyles.accentBlue.withValues(alpha: 0.72),
@@ -967,7 +1024,7 @@ class SummaryCard extends StatelessWidget {
               if (trailing != null) trailing!,
             ],
           ),
-          SizedBox(height: Spacing.sm),
+          const SizedBox(height: Spacing.sm),
           useAnimatedCounter
               ? AnimatedCounter(
                   value: value,
@@ -989,7 +1046,7 @@ class SummaryCard extends StatelessWidget {
                   ),
                 ),
           if (subtitle != null) ...[
-            SizedBox(height: Spacing.md),
+            const SizedBox(height: Spacing.md),
             Text(
               subtitle!,
               style: TextStyle(
@@ -1043,7 +1100,7 @@ class ListCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final card = Container(
-      margin: EdgeInsets.only(bottom: Spacing.lg),
+      margin: const EdgeInsets.only(bottom: Spacing.lg),
       decoration: AppStyles.cardDecoration(context),
       child: Padding(
         padding: padding ?? Spacing.cardPadding,
@@ -1051,7 +1108,7 @@ class ListCard extends StatelessWidget {
           children: [
             if (leading != null) ...[
               leading!,
-              SizedBox(width: Spacing.lg),
+              const SizedBox(width: Spacing.lg),
             ],
             Expanded(
               child: Column(
@@ -1059,7 +1116,7 @@ class ListCard extends StatelessWidget {
                 children: [
                   Text(title, style: AppStyles.titleStyle(context)),
                   if (subtitle != null) ...[
-                    SizedBox(height: Spacing.xs),
+                    const SizedBox(height: Spacing.xs),
                     Text(
                       subtitle!,
                       style: TextStyle(
@@ -1131,14 +1188,14 @@ class OptionCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: EdgeInsets.all(Spacing.lg),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, size: IconSizes.cardIcon, color: color),
             ),
-            SizedBox(height: Spacing.lg),
+            const SizedBox(height: Spacing.lg),
             Text(
               title,
               textAlign: TextAlign.center,
@@ -1181,18 +1238,18 @@ class SettingsRow extends StatelessWidget {
     final content = Container(
       decoration: AppStyles.cardDecoration(context),
       child: Padding(
-        padding: EdgeInsets.all(Spacing.lg),
+        padding: const EdgeInsets.all(Spacing.lg),
         child: Row(
           children: [
             IconBox(icon: icon, color: iconColor),
-            SizedBox(width: Spacing.lg),
+            const SizedBox(width: Spacing.lg),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(title, style: AppStyles.titleStyle(context)),
                   if (subtitle != null) ...[
-                    SizedBox(height: Spacing.xxs),
+                    const SizedBox(height: Spacing.xxs),
                     Text(
                       subtitle!,
                       style: TextStyle(
@@ -1245,7 +1302,7 @@ class ColorPickerRow extends StatelessWidget {
         children: colorList.map((color) {
           final isSelected = selectedColor == color;
           return Padding(
-            padding: EdgeInsets.symmetric(horizontal: Spacing.sm),
+            padding: const EdgeInsets.symmetric(horizontal: Spacing.sm),
             child: GestureDetector(
               onTap: () {
                 Haptics.selection();
@@ -1349,7 +1406,7 @@ class LoadingOverlay extends StatelessWidget {
                   children: [
                     const CupertinoActivityIndicator(radius: 16),
                     if (message != null) ...[
-                      SizedBox(height: Spacing.lg),
+                      const SizedBox(height: Spacing.lg),
                       Text(
                         message!,
                         style: TextStyle(

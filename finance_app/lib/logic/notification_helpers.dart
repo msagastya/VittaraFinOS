@@ -68,11 +68,11 @@ Future<void> checkAndNotifyBudgetAlerts(List<Budget> budgets) async {
   await _ensureAlertNotifInitialized();
   final prefs = await SharedPreferences.getInstance();
 
-  int _budgetWarningNotifId(String budgetId) {
+  int budgetWarningNotifId(String budgetId) {
     return 7000 + (budgetId.hashCode.abs() % 500);
   }
 
-  int _budgetExceededNotifId(String budgetId) {
+  int budgetExceededNotifId(String budgetId) {
     // Use second half of range for exceeded so warning and exceeded can
     // coexist simultaneously for different budgets.
     return 7250 + (budgetId.hashCode.abs() % 250);
@@ -91,7 +91,7 @@ Future<void> checkAndNotifyBudgetAlerts(List<Budget> budgets) async {
     if (ratio >= 0.80 && ratio < 1.0 && !alreadyWarnedAt80) {
       final pct = (ratio * 100).toStringAsFixed(0);
       await _notifPlugin.show(
-        _budgetWarningNotifId(budget.id),
+        budgetWarningNotifId(budget.id),
         'Budget Warning: ${budget.name}',
         '${budget.name} is $pct% used (₹${budget.spentAmount.toStringAsFixed(0)} / ₹${budget.limitAmount.toStringAsFixed(0)})',
         const NotificationDetails(
@@ -115,7 +115,7 @@ Future<void> checkAndNotifyBudgetAlerts(List<Budget> budgets) async {
 
     if (ratio >= 1.0 && !alreadyNotifiedExceeded) {
       await _notifPlugin.show(
-        _budgetExceededNotifId(budget.id),
+        budgetExceededNotifId(budget.id),
         'Budget Exceeded: ${budget.name}',
         '${budget.name} is over limit — ₹${budget.spentAmount.toStringAsFixed(0)} spent of ₹${budget.limitAmount.toStringAsFixed(0)}',
         const NotificationDetails(
@@ -155,7 +155,7 @@ Future<void> checkAndNotifyMaturityAlerts(
     InvestmentType.recurringDeposit,
   };
 
-  int _maturityNotifId(String investmentId) {
+  int maturityNotifId(String investmentId) {
     return 7500 + (investmentId.hashCode.abs() % 500);
   }
 
@@ -184,7 +184,7 @@ Future<void> checkAndNotifyMaturityAlerts(
             : 'on ${dateFmt.format(maturityDate)}';
 
     await _notifPlugin.show(
-      _maturityNotifId(inv.id),
+      maturityNotifId(inv.id),
       '$typeLabel Maturing Soon: ${inv.name}',
       '${inv.name} matures $dueDateLabel (${dateFmt.format(maturityDate)})',
       const NotificationDetails(
@@ -216,7 +216,7 @@ Future<void> checkAndNotifyRecurringBillAlerts(
   final today = DateTime.now();
   final dateFmt = DateFormat('d MMM');
 
-  int _recurringNotifId(String templateId) {
+  int recurringNotifId(String templateId) {
     return 8000 + (templateId.hashCode.abs() % 500);
   }
 
@@ -242,7 +242,7 @@ Future<void> checkAndNotifyRecurringBillAlerts(
         '₹${tmpl.amount % 1 == 0 ? tmpl.amount.toStringAsFixed(0) : tmpl.amount.toStringAsFixed(2)}';
 
     await _notifPlugin.show(
-      _recurringNotifId(tmpl.id),
+      recurringNotifId(tmpl.id),
       'Bill Due ${daysUntil == 0 ? 'Today' : daysUntil == 1 ? 'Tomorrow' : 'Soon'}: ${tmpl.name}',
       '${tmpl.name} ($amountStr) is due $dueDateLabel',
       const NotificationDetails(
@@ -388,7 +388,7 @@ DateTime? _nextSipDateFromMF(Map<String, dynamic> metadata) {
   if (sipData == null) return null;
   final frequency = (sipData['frequency'] as String?) ?? 'monthly';
   final lastExecution = metadata['sipLastExecutionDate'] as String?;
-  DateTime base = lastExecution != null
+  final DateTime base = lastExecution != null
       ? (DateTime.tryParse(lastExecution) ?? DateTime.now())
       : DateTime.now();
   final monthDay = sipData['monthDay'] as int?;
@@ -446,7 +446,7 @@ DateTime _nextWeeklyDate(DateTime base, int? weekday) {
 
 DateTime _addMonths(DateTime date, int months) {
   var newMonth = date.month + months;
-  var newYear = date.year + (newMonth - 1) ~/ 12;
+  final newYear = date.year + (newMonth - 1) ~/ 12;
   newMonth = ((newMonth - 1) % 12) + 1;
   final day = date.day;
   final lastDayOfMonth = _daysInMonth(newYear, newMonth);

@@ -83,13 +83,13 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
           border: null,
         ),
         body: SingleChildScrollView(
-          padding: EdgeInsets.all(Spacing.lg),
+          padding: const EdgeInsets.all(Spacing.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // FD Details Summary
               Container(
-                padding: EdgeInsets.all(Spacing.lg),
+                padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color: AppStyles.getCardColor(context),
                   borderRadius: BorderRadius.circular(12),
@@ -109,7 +109,7 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: Spacing.md),
+                    const SizedBox(height: Spacing.md),
                     _buildDetailRow(context, 'Principal',
                         '₹${widget.fd.principal.toStringAsFixed(2)}'),
                     _buildDetailRow(context, 'Maturity Date',
@@ -119,7 +119,7 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                   ],
                 ),
               ),
-              SizedBox(height: Spacing.lg),
+              const SizedBox(height: Spacing.lg),
 
               // Withdrawal Date Selection
               Text(
@@ -130,11 +130,11 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                   fontSize: TypeScale.body,
                 ),
               ),
-              SizedBox(height: Spacing.sm),
+              const SizedBox(height: Spacing.sm),
               GestureDetector(
                 onTap: () => _showDatePicker(context),
                 child: Container(
-                  padding: EdgeInsets.all(Spacing.md),
+                  padding: const EdgeInsets.all(Spacing.md),
                   decoration: BoxDecoration(
                     color: AppStyles.getCardColor(context),
                     borderRadius: BorderRadius.circular(8),
@@ -162,11 +162,11 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                   ),
                 ),
               ),
-              SizedBox(height: Spacing.lg),
+              const SizedBox(height: Spacing.lg),
 
               // Withdrawal Value Info
               Container(
-                padding: EdgeInsets.all(Spacing.lg),
+                padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color:
                       AppStyles.getPrimaryColor(context).withValues(alpha: 0.1),
@@ -187,7 +187,7 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                         fontSize: TypeScale.footnote,
                       ),
                     ),
-                    SizedBox(height: Spacing.sm),
+                    const SizedBox(height: Spacing.sm),
                     Row(
                       children: [
                         Expanded(
@@ -195,7 +195,7 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                             controller: _withdrawalAmountController,
                             placeholder: '0.00',
                             prefix: Padding(
-                              padding: EdgeInsets.only(left: Spacing.md),
+                              padding: const EdgeInsets.only(left: Spacing.md),
                               child: Text(
                                 '₹',
                                 style: TextStyle(
@@ -218,7 +218,7 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                               ),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                               horizontal: Spacing.md,
                               vertical: Spacing.md,
                             ),
@@ -232,7 +232,7 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                         ),
                       ],
                     ),
-                    SizedBox(height: Spacing.md),
+                    const SizedBox(height: Spacing.md),
                     if (_withdrawalDate.isBefore(widget.fd.maturityDate))
                       Row(
                         children: [
@@ -241,7 +241,7 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                             size: 16,
                             color: AppStyles.getSecondaryTextColor(context),
                           ),
-                          SizedBox(width: Spacing.sm),
+                          const SizedBox(width: Spacing.sm),
                           Expanded(
                             child: Text(
                               'Early withdrawal: Pro-rata interest calculated',
@@ -254,7 +254,7 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                         ],
                       )
                     else
-                      Row(
+                      const Row(
                         children: [
                           Icon(
                             CupertinoIcons.check_mark_circled_solid,
@@ -276,7 +276,7 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                   ],
                 ),
               ),
-              SizedBox(height: Spacing.xxl),
+              const SizedBox(height: Spacing.xxl),
 
               // Confirm Withdrawal Button
               SizedBox(
@@ -426,7 +426,7 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                   ),
                 ),
               ),
-              SizedBox(height: Spacing.lg),
+              const SizedBox(height: Spacing.lg),
             ],
           ),
         ),
@@ -472,7 +472,7 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
 
   Widget _buildDetailRow(BuildContext context, String label, String value) {
     return Padding(
-      padding: EdgeInsets.only(bottom: Spacing.sm),
+      padding: const EdgeInsets.only(bottom: Spacing.sm),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [

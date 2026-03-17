@@ -26,6 +26,8 @@ import 'package:vittara_fin_os/logic/goals_controller.dart';
 import 'package:vittara_fin_os/logic/budgets_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_archive_controller.dart';
 import 'package:vittara_fin_os/logic/recurring_templates_controller.dart';
+import 'package:vittara_fin_os/logic/loan_controller.dart';
+import 'package:vittara_fin_os/logic/insurance_controller.dart';
 import 'package:vittara_fin_os/ui/fintech_loader.dart';
 import 'package:vittara_fin_os/ui/manage_screen.dart';
 import 'package:vittara_fin_os/ui/settings_screen.dart';
@@ -119,6 +121,12 @@ void main() {
           ),
           ChangeNotifierProvider(
             create: (_) => RecurringTemplatesController(),
+          ),
+          ChangeNotifierProvider(
+            create: (_) => LoanController()..load(),
+          ),
+          ChangeNotifierProvider(
+            create: (_) => InsuranceController()..load(),
           ),
         ],
         child: const MyApp(),
@@ -330,12 +338,15 @@ class _LockScreenState extends State<LockScreen> {
     return Consumer<SettingsController>(
       builder: (context, settings, _) {
         final showPin = settings.showPinFallback;
-        return Scaffold(
-          backgroundColor: Colors.black,
-          body: SafeArea(
-            child: showPin
-                ? _buildPinEntry(context, settings)
-                : _buildBiometricWaiting(context, settings),
+        return PopScope(
+          canPop: false, // Prevent back gesture from bypassing the lock screen
+          child: Scaffold(
+            backgroundColor: Colors.black,
+            body: SafeArea(
+              child: showPin
+                  ? _buildPinEntry(context, settings)
+                  : _buildBiometricWaiting(context, settings),
+            ),
           ),
         );
       },
@@ -376,8 +387,8 @@ class _LockScreenState extends State<LockScreen> {
                 color: Colors.white,
               ),
             ),
-            SizedBox(height: Spacing.xxxl),
-            Text(
+            const SizedBox(height: Spacing.xxxl),
+            const Text(
               'VittaraFinOS Locked',
               style: TextStyle(
                 color: Colors.white,
@@ -385,7 +396,7 @@ class _LockScreenState extends State<LockScreen> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: Spacing.sm),
+            const SizedBox(height: Spacing.sm),
             Text(
               'Authenticating...',
               style: TextStyle(
@@ -393,7 +404,7 @@ class _LockScreenState extends State<LockScreen> {
                 fontSize: TypeScale.body,
               ),
             ),
-            SizedBox(height: Spacing.huge),
+            const SizedBox(height: Spacing.huge),
             const SizedBox(
               width: 40,
               height: 40,
@@ -403,7 +414,7 @@ class _LockScreenState extends State<LockScreen> {
               ),
             ),
             if (settings.isPinEnabled) ...[
-              SizedBox(height: Spacing.xxxl),
+              const SizedBox(height: Spacing.xxxl),
               CupertinoButton(
                 onPressed: settings.showPinEntryFallback,
                 child: Text(
@@ -427,10 +438,10 @@ class _LockScreenState extends State<LockScreen> {
         (MediaQuery.of(context).size.width / 5.5).clamp(56.0, 80.0);
     return Column(
       children: [
-        SizedBox(height: Spacing.xxxl),
+        const SizedBox(height: Spacing.xxxl),
         const Icon(CupertinoIcons.lock_fill, color: Colors.white, size: 40),
-        SizedBox(height: Spacing.lg),
-        Text(
+        const SizedBox(height: Spacing.lg),
+        const Text(
           'Enter PIN',
           style: TextStyle(
             color: Colors.white,
@@ -438,7 +449,7 @@ class _LockScreenState extends State<LockScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        SizedBox(height: Spacing.sm),
+        const SizedBox(height: Spacing.sm),
         Text(
           _pinError ? 'Incorrect PIN. Try again.' : 'Enter your 6-digit PIN',
           style: TextStyle(
@@ -446,7 +457,7 @@ class _LockScreenState extends State<LockScreen> {
             fontSize: TypeScale.body,
           ),
         ),
-        SizedBox(height: Spacing.xxxl),
+        const SizedBox(height: Spacing.xxxl),
         // PIN dots
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -677,7 +688,7 @@ class DashboardScreen extends StatelessWidget {
                       width: 250,
                       child: FintechLoader(size: 220),
                     ),
-                    SizedBox(height: Spacing.md),
+                    const SizedBox(height: Spacing.md),
                     Text(
                       'Preparing your financial command center...',
                       style: TextStyle(
@@ -693,7 +704,8 @@ class DashboardScreen extends StatelessWidget {
           );
         }
 
-        final visibleWidgets = dashboardController.config.getVisibleWidgets();
+        // AU6-02 — Use cached getter instead of recomputing on every build
+        final visibleWidgets = dashboardController.visibleWidgets;
 
         // Debug: Print visible widgets count
         if (kDebugMode) {
@@ -770,7 +782,7 @@ class DashboardScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                SizedBox(width: Spacing.xl),
+                const SizedBox(width: Spacing.xl),
                 // Manage button
                 Semantics(
                   label: 'Manage accounts and investments',
@@ -786,7 +798,7 @@ class DashboardScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                SizedBox(width: Spacing.xl),
+                const SizedBox(width: Spacing.xl),
                 // Settings button
                 Semantics(
                   label: 'Settings',
@@ -835,14 +847,14 @@ class DashboardScreen extends StatelessWidget {
                                     color: AppStyles.getPrimaryColor(context),
                                   ),
                                 ),
-                                SizedBox(height: Spacing.lg),
+                                const SizedBox(height: Spacing.lg),
                                 Text(
                                   'No widgets enabled',
                                   style: AppStyles.titleStyle(context).copyWith(
                                     fontSize: TypeScale.title2,
                                   ),
                                 ),
-                                SizedBox(height: Spacing.sm),
+                                const SizedBox(height: Spacing.sm),
                                 Text(
                                   'All dashboard widgets are hidden',
                                   style: TextStyle(
@@ -851,7 +863,7 @@ class DashboardScreen extends StatelessWidget {
                                         context),
                                   ),
                                 ),
-                                SizedBox(height: Spacing.xl),
+                                const SizedBox(height: Spacing.xl),
                                 CupertinoButton.filled(
                                   onPressed: () {
                                     Navigator.of(context).push(
@@ -861,7 +873,7 @@ class DashboardScreen extends StatelessWidget {
                                   },
                                   child: const Text('Manage Dashboard'),
                                 ),
-                                SizedBox(height: Spacing.sm),
+                                const SizedBox(height: Spacing.sm),
                                 CupertinoButton(
                                   onPressed: () async {
                                     if (kDebugMode) {
@@ -920,14 +932,14 @@ class DashboardScreen extends StatelessWidget {
                                           strength: 0.35,
                                         ),
                                       ),
-                                      child: Icon(
+                                      child: const Icon(
                                         CupertinoIcons.chat_bubble_text_fill,
                                         color: AppStyles.aetherTeal,
                                         size: 20,
                                       ),
                                     ),
                                   ),
-                                  SizedBox(height: Spacing.sm),
+                                  const SizedBox(height: Spacing.sm),
                                 ],
                               );
                             },
@@ -988,7 +1000,7 @@ class DashboardScreen extends StatelessWidget {
         // REORDERABLE DASHBOARD WIDGETS
         Expanded(
           child: ReorderableListView(
-            padding: EdgeInsets.all(Spacing.lg),
+            padding: const EdgeInsets.all(Spacing.lg),
             onReorder: (oldIndex, newIndex) {
               // Reorder in the visible widgets list
               final newVisibleWidgets = [...visibleWidgets];
@@ -1010,7 +1022,7 @@ class DashboardScreen extends StatelessWidget {
               final widget = entry.value;
               return Container(
                 key: Key(widget.id),
-                margin: EdgeInsets.only(bottom: Spacing.md),
+                margin: const EdgeInsets.only(bottom: Spacing.md),
                 child: _buildDashboardWidgetCard(context, widget),
               );
             }).toList(),
@@ -1214,7 +1226,7 @@ class DashboardScreen extends StatelessWidget {
 
     return Padding(
       padding:
-          EdgeInsets.fromLTRB(Spacing.lg, Spacing.sm, Spacing.lg, Spacing.sm),
+          const EdgeInsets.fromLTRB(Spacing.lg, Spacing.sm, Spacing.lg, Spacing.sm),
       child: Container(
         decoration: AppStyles.heroCardDecoration(context),
         child: ClipRRect(
@@ -1552,7 +1564,7 @@ class DashboardScreen extends StatelessWidget {
               children: [
                 // Main Net Worth Card
                 Container(
-                  padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
+                  padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
@@ -1578,7 +1590,7 @@ class DashboardScreen extends StatelessWidget {
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      SizedBox(height: Spacing.xxs),
+                      const SizedBox(height: Spacing.xxs),
                       Text(
                         '₹${totalNetWorth.toStringAsFixed(0)}',
                         style: TextStyle(
@@ -1587,10 +1599,10 @@ class DashboardScreen extends StatelessWidget {
                           color: displayColor,
                         ),
                       ),
-                      SizedBox(height: 6),
+                      const SizedBox(height: 6),
                       Container(
                         padding:
-                            EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
                           color: displayColor.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(8),
@@ -1611,7 +1623,7 @@ class DashboardScreen extends StatelessWidget {
                                 ),
                                 Text(
                                   '₹${totalSavings.toStringAsFixed(0)}',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontSize: TypeScale.caption,
                                     fontWeight: FontWeight.w600,
                                     color: CupertinoColors.systemGreen,
@@ -1620,7 +1632,7 @@ class DashboardScreen extends StatelessWidget {
                               ],
                             ),
                             if (totalInvestments > 0) ...[
-                              SizedBox(height: 3),
+                              const SizedBox(height: 3),
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
@@ -1635,7 +1647,7 @@ class DashboardScreen extends StatelessWidget {
                                   ),
                                   Text(
                                     '₹${totalInvestments.toStringAsFixed(0)}',
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontSize: TypeScale.caption,
                                       fontWeight: FontWeight.w600,
                                       color: CupertinoColors.activeBlue,
@@ -1645,7 +1657,7 @@ class DashboardScreen extends StatelessWidget {
                               ),
                             ],
                             if (totalCreditUsed > 0) ...[
-                              SizedBox(height: 3),
+                              const SizedBox(height: 3),
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
@@ -1660,7 +1672,7 @@ class DashboardScreen extends StatelessWidget {
                                   ),
                                   Text(
                                     '₹${totalCreditUsed.toStringAsFixed(0)}',
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontSize: TypeScale.caption,
                                       fontWeight: FontWeight.w600,
                                       color: CupertinoColors.systemRed,
@@ -1713,7 +1725,7 @@ class DashboardScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                SizedBox(height: Spacing.md),
+                const SizedBox(height: Spacing.md),
                 LinearProgressIndicator(
                   value: progress,
                   minHeight: 6,
@@ -1722,7 +1734,7 @@ class DashboardScreen extends StatelessWidget {
                   valueColor: const AlwaysStoppedAnimation<Color>(
                       CupertinoColors.activeBlue),
                 ),
-                SizedBox(height: Spacing.sm),
+                const SizedBox(height: Spacing.sm),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -1773,14 +1785,14 @@ class DashboardScreen extends StatelessWidget {
                       _buildBadge(context, 'Over', exceeded.length,
                           CupertinoColors.systemRed),
                     if (warning.isNotEmpty) ...[
-                      SizedBox(width: Spacing.xs),
+                      const SizedBox(width: Spacing.xs),
                       _buildBadge(context, 'Near', warning.length,
                           CupertinoColors.systemOrange),
                     ],
                   ],
                 ),
                 if (alertBudgets.isNotEmpty) ...[
-                  SizedBox(height: Spacing.md),
+                  const SizedBox(height: Spacing.md),
                   ...alertBudgets.map((b) {
                     final isExceeded = b.status.name == 'exceeded';
                     final color = isExceeded
@@ -1788,8 +1800,8 @@ class DashboardScreen extends StatelessWidget {
                         : CupertinoColors.systemOrange;
                     final pct = b.usagePercentage.toStringAsFixed(0);
                     return Container(
-                      margin: EdgeInsets.only(bottom: Spacing.xs),
-                      padding: EdgeInsets.symmetric(
+                      margin: const EdgeInsets.only(bottom: Spacing.xs),
+                      padding: const EdgeInsets.symmetric(
                           horizontal: Spacing.sm, vertical: 6),
                       decoration: BoxDecoration(
                         color: color.withValues(alpha: 0.08),
@@ -1805,7 +1817,7 @@ class DashboardScreen extends StatelessWidget {
                             size: 12,
                             color: color,
                           ),
-                          SizedBox(width: Spacing.xs),
+                          const SizedBox(width: Spacing.xs),
                           Expanded(
                             child: Text(
                               b.name,
@@ -1831,8 +1843,8 @@ class DashboardScreen extends StatelessWidget {
                     );
                   }),
                 ] else if (activeCount > 0) ...[
-                  SizedBox(height: Spacing.md),
-                  Row(
+                  const SizedBox(height: Spacing.md),
+                  const Row(
                     children: [
                       Icon(CupertinoIcons.checkmark_seal_fill,
                           size: 13, color: AppStyles.accentGreen),
@@ -1873,7 +1885,7 @@ class DashboardScreen extends StatelessWidget {
                     color: AppStyles.getTextColor(context),
                   ),
                 ),
-                SizedBox(height: Spacing.md),
+                const SizedBox(height: Spacing.md),
                 LinearProgressIndicator(
                   value: ratio,
                   minHeight: 6,
@@ -1882,7 +1894,7 @@ class DashboardScreen extends StatelessWidget {
                   valueColor: const AlwaysStoppedAnimation<Color>(
                       CupertinoColors.systemGreen),
                 ),
-                SizedBox(height: Spacing.sm),
+                const SizedBox(height: Spacing.sm),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -1926,12 +1938,12 @@ class DashboardScreen extends StatelessWidget {
                     color: AppStyles.getTextColor(context),
                   ),
                 ),
-                SizedBox(height: Spacing.md),
+                const SizedBox(height: Spacing.md),
                 Row(
                   children: [
-                    Icon(CupertinoIcons.lightbulb,
+                    const Icon(CupertinoIcons.lightbulb,
                         size: 16, color: Colors.purple),
-                    SizedBox(width: Spacing.sm),
+                    const SizedBox(width: Spacing.sm),
                     Text(
                       '${progress.toStringAsFixed(0)}% Financial Health',
                       style: TextStyle(
@@ -1941,7 +1953,7 @@ class DashboardScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                SizedBox(height: Spacing.sm),
+                const SizedBox(height: Spacing.sm),
                 Text(
                   'Recommended monthly savings: ₹${recommendedSavings.toStringAsFixed(0)}',
                   style: TextStyle(
@@ -1983,7 +1995,7 @@ class DashboardScreen extends StatelessWidget {
                       size: 32,
                       color: AppStyles.getSecondaryTextColor(context),
                     ),
-                    SizedBox(height: Spacing.sm),
+                    const SizedBox(height: Spacing.sm),
                     Text(
                       'No transactions yet',
                       style: TextStyle(
@@ -2030,7 +2042,7 @@ class DashboardScreen extends StatelessWidget {
                                 : CupertinoColors.systemGreen,
                           ),
                         ),
-                        SizedBox(width: Spacing.md),
+                        const SizedBox(width: Spacing.md),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -2070,7 +2082,7 @@ class DashboardScreen extends StatelessWidget {
                       ],
                     ),
                     if (!isLast)
-                      Padding(
+                      const Padding(
                         padding: EdgeInsets.symmetric(vertical: Spacing.md),
                         child: Divider(height: 1),
                       ),
@@ -2116,7 +2128,7 @@ class DashboardScreen extends StatelessWidget {
                     letterSpacing: 0.5,
                   ),
                 ),
-                SizedBox(height: Spacing.md),
+                const SizedBox(height: Spacing.md),
                 Row(
                   children: [
                     Expanded(
@@ -2128,7 +2140,7 @@ class DashboardScreen extends StatelessWidget {
                         icon: CupertinoIcons.arrow_down_circle_fill,
                       ),
                     ),
-                    SizedBox(width: Spacing.md),
+                    const SizedBox(width: Spacing.md),
                     Expanded(
                       child: _buildMonthlyStat(
                         context,
@@ -2138,7 +2150,7 @@ class DashboardScreen extends StatelessWidget {
                         icon: CupertinoIcons.arrow_up_circle_fill,
                       ),
                     ),
-                    SizedBox(width: Spacing.md),
+                    const SizedBox(width: Spacing.md),
                     Expanded(
                       child: _buildMonthlyStat(
                         context,
@@ -2154,7 +2166,7 @@ class DashboardScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                SizedBox(height: Spacing.md),
+                const SizedBox(height: Spacing.md),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(4),
                   child: Row(
@@ -2178,7 +2190,7 @@ class DashboardScreen extends StatelessWidget {
                 ),
                 // F30 — Savings rate
                 if (income > 0) ...[
-                  SizedBox(height: Spacing.sm),
+                  const SizedBox(height: Spacing.sm),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
@@ -2189,7 +2201,7 @@ class DashboardScreen extends StatelessWidget {
                             ? AppStyles.accentTeal
                             : CupertinoColors.systemOrange,
                       ),
-                      SizedBox(width: 3),
+                      const SizedBox(width: 3),
                       Text(
                         'Savings rate: ${((net / income) * 100).clamp(0.0, 100.0).toStringAsFixed(1)}%',
                         style: TextStyle(
@@ -2224,7 +2236,7 @@ class DashboardScreen extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
+                          const Icon(
                             CupertinoIcons.flame_fill,
                             size: 13,
                             color: CupertinoColors.systemOrange,
@@ -2263,7 +2275,7 @@ class DashboardScreen extends StatelessWidget {
                         size: 28,
                         color: AppStyles.getSecondaryTextColor(context)
                             .withValues(alpha: 0.4)),
-                    SizedBox(height: Spacing.sm),
+                    const SizedBox(height: Spacing.sm),
                     Text(
                       'No active SIPs',
                       style: TextStyle(
@@ -2309,7 +2321,7 @@ class DashboardScreen extends StatelessWidget {
                     ),
                     Text(
                       '~₹${totalMonthly.toStringAsFixed(0)}/mo',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: TypeScale.footnote,
                         fontWeight: FontWeight.w700,
                         color: CupertinoColors.activeBlue,
@@ -2317,7 +2329,7 @@ class DashboardScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                SizedBox(height: Spacing.sm),
+                const SizedBox(height: Spacing.sm),
                 ...activeSips.take(4).map((inv) {
                   final meta = inv.metadata ?? {};
                   final sipData = meta['sipData'] as Map<String, dynamic>?;
@@ -2335,7 +2347,7 @@ class DashboardScreen extends StatelessWidget {
                             size: 12,
                             color: CupertinoColors.activeBlue
                                 .withValues(alpha: 0.7)),
-                        SizedBox(width: 6),
+                        const SizedBox(width: 6),
                         Expanded(
                           child: Text(
                             inv.name,
@@ -2417,7 +2429,7 @@ class DashboardScreen extends StatelessWidget {
                       size: 30,
                       color: AppStyles.getSecondaryTextColor(context),
                     ),
-                    SizedBox(height: Spacing.sm),
+                    const SizedBox(height: Spacing.sm),
                     Text(
                       'No active notifications',
                       style: TextStyle(
@@ -2466,7 +2478,7 @@ class DashboardScreen extends StatelessWidget {
                 ...previewAlerts,
                 if (hiddenCount > 0)
                   Padding(
-                    padding: EdgeInsets.only(
+                    padding: const EdgeInsets.only(
                       top: Spacing.xs,
                       left: Spacing.xs,
                     ),
@@ -2498,7 +2510,7 @@ class DashboardScreen extends StatelessWidget {
   ) {
     return Container(
       padding:
-          EdgeInsets.symmetric(horizontal: Spacing.sm, vertical: Spacing.xs),
+          const EdgeInsets.symmetric(horizontal: Spacing.sm, vertical: Spacing.xs),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
@@ -2511,7 +2523,7 @@ class DashboardScreen extends StatelessWidget {
             size: 8,
             color: color,
           ),
-          SizedBox(width: Spacing.xs),
+          const SizedBox(width: Spacing.xs),
           Text(
             '$label $value',
             style: TextStyle(
@@ -2606,8 +2618,8 @@ class DashboardScreen extends StatelessWidget {
     required String subtitle,
   }) {
     return Container(
-      margin: EdgeInsets.only(bottom: Spacing.sm),
-      padding: EdgeInsets.all(Spacing.sm),
+      margin: const EdgeInsets.only(bottom: Spacing.sm),
+      padding: const EdgeInsets.all(Spacing.sm),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(10),
@@ -2624,7 +2636,7 @@ class DashboardScreen extends StatelessWidget {
             ),
             child: Icon(icon, size: 14, color: color),
           ),
-          SizedBox(width: Spacing.sm),
+          const SizedBox(width: Spacing.sm),
           Expanded(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -2640,7 +2652,7 @@ class DashboardScreen extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(height: Spacing.xxs),
+                const SizedBox(height: Spacing.xxs),
                 Text(
                   subtitle,
                   style: TextStyle(

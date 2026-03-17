@@ -428,7 +428,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  Icon(CupertinoIcons.number_square_fill,
+                  const Icon(CupertinoIcons.number_square_fill,
                       size: 36, color: CupertinoColors.systemPurple),
                   const SizedBox(height: 12),
                   Text(

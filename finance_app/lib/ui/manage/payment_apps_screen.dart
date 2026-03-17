@@ -248,14 +248,14 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                           ),
                         ],
                       ),
-                      child: Row(
+                      child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(CupertinoIcons.add,
+                          Icon(CupertinoIcons.add,
                               color: Colors.white, size: 20),
-                          const SizedBox(width: Spacing.sm),
+                          SizedBox(width: Spacing.sm),
                           Text('Add App',
-                              style: const TextStyle(
+                              style: TextStyle(
                                   color: Colors.white,
                                   fontSize: TypeScale.headline,
                                   fontWeight: FontWeight.w600)),
@@ -728,7 +728,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                                   color: CupertinoColors.systemBlue,
                                   borderRadius: BorderRadius.circular(Radii.md),
                                 ),
-                                child: Center(
+                                child: const Center(
                                   child: Text('Save',
                                       style: TextStyle(
                                           color: Colors.white,

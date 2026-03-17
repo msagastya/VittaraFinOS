@@ -34,7 +34,7 @@ class BudgetDetailsScreen extends StatelessWidget {
               backgroundColor: AppStyles.getBackground(context),
               border: null,
             ),
-            child: SafeArea(
+            child: const SafeArea(
               child: EmptyStateView(
                 icon: CupertinoIcons.graph_circle,
                 title: 'Budget Not Found',
@@ -65,14 +65,14 @@ class BudgetDetailsScreen extends StatelessWidget {
               slivers: [
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.all(Spacing.lg),
+                    padding: const EdgeInsets.all(Spacing.lg),
                     child: NeumorphicGlassCard(
                       child: Column(
                         children: [
                           Row(
                             children: [
                               Container(
-                                padding: EdgeInsets.all(Spacing.lg),
+                                padding: const EdgeInsets.all(Spacing.lg),
                                 decoration: BoxDecoration(
                                     color: budget.color.withValues(alpha: 0.15),
                                     borderRadius:
@@ -80,7 +80,7 @@ class BudgetDetailsScreen extends StatelessWidget {
                                 child: Icon(budget.getPeriodIcon(),
                                     color: budget.color, size: IconSizes.xl),
                               ),
-                              SizedBox(width: Spacing.lg),
+                              const SizedBox(width: Spacing.lg),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -91,7 +91,7 @@ class BudgetDetailsScreen extends StatelessWidget {
                                             fontWeight: FontWeight.bold,
                                             color: AppStyles.getTextColor(
                                                 context))),
-                                    SizedBox(height: Spacing.xs),
+                                    const SizedBox(height: Spacing.xs),
                                     Text(budget.getPeriodLabel(),
                                         style: TextStyle(
                                             fontSize: TypeScale.subhead,
@@ -103,7 +103,7 @@ class BudgetDetailsScreen extends StatelessWidget {
                               ),
                             ],
                           ),
-                          SizedBox(height: Spacing.xxl),
+                          const SizedBox(height: Spacing.xxl),
                           LiquidCircularProgress(
                             progress:
                                 (budget.usagePercentage / 100).clamp(0, 1),
@@ -120,7 +120,7 @@ class BudgetDetailsScreen extends StatelessWidget {
                                         fontSize: TypeScale.hero,
                                         fontWeight: FontWeight.bold,
                                         color: statusColor)),
-                                SizedBox(height: Spacing.xs),
+                                const SizedBox(height: Spacing.xs),
                                 Text('Used',
                                     style: TextStyle(
                                         fontSize: TypeScale.footnote,
@@ -129,7 +129,7 @@ class BudgetDetailsScreen extends StatelessWidget {
                               ],
                             ),
                           ),
-                          SizedBox(height: Spacing.xxl),
+                          const SizedBox(height: Spacing.xxl),
                           Row(
                             children: [
                               Expanded(
@@ -139,7 +139,7 @@ class BudgetDetailsScreen extends StatelessWidget {
                                         fontSize: TypeScale.footnote,
                                         color: AppStyles.getSecondaryTextColor(
                                             context))),
-                                SizedBox(height: Spacing.xs),
+                                const SizedBox(height: Spacing.xs),
                                 CurrencyCounter(
                                     value: budget.spentAmount,
                                     textStyle: TextStyle(
@@ -161,7 +161,7 @@ class BudgetDetailsScreen extends StatelessWidget {
                                         fontSize: TypeScale.footnote,
                                         color: AppStyles.getSecondaryTextColor(
                                             context))),
-                                SizedBox(height: Spacing.xs),
+                                const SizedBox(height: Spacing.xs),
                                 CurrencyCounter(
                                     value: budget.remainingAmount,
                                     textStyle: TextStyle(
@@ -179,7 +179,7 @@ class BudgetDetailsScreen extends StatelessWidget {
                 ),
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
+                    padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
                     child: Row(
                       children: [
                         Expanded(
@@ -187,16 +187,16 @@ class BudgetDetailsScreen extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(CupertinoIcons.money_dollar_circle_fill,
+                                const Icon(CupertinoIcons.money_dollar_circle_fill,
                                     color: SemanticColors.info,
                                     size: IconSizes.lg),
-                                SizedBox(height: Spacing.md),
+                                const SizedBox(height: Spacing.md),
                                 Text('Daily Budget',
                                     style: TextStyle(
                                         fontSize: TypeScale.footnote,
                                         color: AppStyles.getSecondaryTextColor(
                                             context))),
-                                SizedBox(height: Spacing.xs),
+                                const SizedBox(height: Spacing.xs),
                                 CurrencyCounter(
                                     value: budget.dailyBudgetRemaining,
                                     textStyle: TextStyle(
@@ -208,22 +208,22 @@ class BudgetDetailsScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                        SizedBox(width: Spacing.md),
+                        const SizedBox(width: Spacing.md),
                         Expanded(
                           child: GlassCard(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(CupertinoIcons.calendar,
+                                const Icon(CupertinoIcons.calendar,
                                     color: SemanticColors.warning,
                                     size: IconSizes.lg),
-                                SizedBox(height: Spacing.md),
+                                const SizedBox(height: Spacing.md),
                                 Text('Days Left',
                                     style: TextStyle(
                                         fontSize: TypeScale.footnote,
                                         color: AppStyles.getSecondaryTextColor(
                                             context))),
-                                SizedBox(height: Spacing.xs),
+                                const SizedBox(height: Spacing.xs),
                                 AnimatedCounter(
                                     value: budget.daysRemaining.toDouble(),
                                     textStyle: TextStyle(
@@ -239,10 +239,10 @@ class BudgetDetailsScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                SliverToBoxAdapter(child: SizedBox(height: Spacing.lg)),
+                const SliverToBoxAdapter(child: SizedBox(height: Spacing.lg)),
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
+                    padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
                     child: NeumorphicGlassCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -251,7 +251,7 @@ class BudgetDetailsScreen extends StatelessWidget {
                             children: [
                               Icon(CupertinoIcons.info_circle_fill,
                                   color: statusColor, size: IconSizes.lg),
-                              SizedBox(width: Spacing.md),
+                              const SizedBox(width: Spacing.md),
                               Expanded(
                                   child: Text(
                                       budget.status == BudgetStatus.onTrack
@@ -267,7 +267,7 @@ class BudgetDetailsScreen extends StatelessWidget {
                                               context)))),
                             ],
                           ),
-                          SizedBox(height: Spacing.lg),
+                          const SizedBox(height: Spacing.lg),
                           Text(
                               'Period: ${DateFormat('MMM dd').format(budget.startDate)} - ${DateFormat('MMM dd, yyyy').format(budget.endDate)}',
                               style: TextStyle(
@@ -279,9 +279,9 @@ class BudgetDetailsScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                SliverToBoxAdapter(child: SizedBox(height: Spacing.lg)),
+                const SliverToBoxAdapter(child: SizedBox(height: Spacing.lg)),
                 _buildCategoryBreakdown(context, budget),
-                SliverToBoxAdapter(child: SizedBox(height: 100)),
+                const SliverToBoxAdapter(child: SizedBox(height: 100)),
               ],
             ),
           ),
@@ -316,7 +316,7 @@ class BudgetDetailsScreen extends StatelessWidget {
           final total = sorted.fold(0.0, (s, e) => s + e.value);
 
           return Padding(
-            padding: EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, Spacing.md),
+            padding: const EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, Spacing.md),
             child: NeumorphicGlassCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -325,7 +325,7 @@ class BudgetDetailsScreen extends StatelessWidget {
                     children: [
                       Icon(CupertinoIcons.chart_bar_square,
                           color: budget.color, size: IconSizes.lg),
-                      SizedBox(width: Spacing.md),
+                      const SizedBox(width: Spacing.md),
                       Text(
                         'Spending Breakdown',
                         style: TextStyle(
@@ -336,7 +336,7 @@ class BudgetDetailsScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  SizedBox(height: Spacing.xl),
+                  const SizedBox(height: Spacing.xl),
                   ...sorted.map((entry) {
                     final pct = total > 0 ? entry.value / total : 0.0;
                     return Padding(
@@ -364,7 +364,7 @@ class BudgetDetailsScreen extends StatelessWidget {
                                   color: AppStyles.getTextColor(context),
                                 ),
                               ),
-                              SizedBox(width: Spacing.sm),
+                              const SizedBox(width: Spacing.sm),
                               Text(
                                 '${(pct * 100).toStringAsFixed(0)}%',
                                 style: TextStyle(
@@ -375,7 +375,7 @@ class BudgetDetailsScreen extends StatelessWidget {
                               ),
                             ],
                           ),
-                          SizedBox(height: Spacing.xs),
+                          const SizedBox(height: Spacing.xs),
                           Container(
                             height: 6,
                             decoration: BoxDecoration(

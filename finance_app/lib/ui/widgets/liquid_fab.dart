@@ -274,7 +274,7 @@ class _LiquidExtendedFABState extends State<LiquidExtendedFAB>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(widget.icon, color: iconColor, size: IconSizes.md),
-                  SizedBox(width: Spacing.sm),
+                  const SizedBox(width: Spacing.sm),
                   Text(
                     widget.label,
                     style: TextStyle(
@@ -473,12 +473,12 @@ class _MorphingFABState extends State<MorphingFAB>
                   size: IconSizes.fabIcon,
                 ),
                 if (_controller.value > 0.3 && widget.label != null) ...[
-                  SizedBox(width: Spacing.sm),
+                  const SizedBox(width: Spacing.sm),
                   Opacity(
                     opacity: (_controller.value - 0.3) / 0.7,
                     child: Text(
                       widget.label!,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: TypeScale.callout,
                         fontWeight: FontWeight.w600,

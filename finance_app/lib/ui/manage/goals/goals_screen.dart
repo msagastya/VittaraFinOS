@@ -58,7 +58,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
         trailing: CupertinoButton(
           padding: EdgeInsets.zero,
           onPressed: () => _showFilterSheet(),
-          child: Icon(
+          child: const Icon(
             CupertinoIcons.line_horizontal_3_decrease,
             color: AppStyles.accentBlue,
           ),
@@ -84,6 +84,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                         _filterType == null
                     ? _buildEmptyState()
                     : CustomScrollView(
+                        key: const PageStorageKey('goals_list'),
                         slivers: [
                           // Pull-to-refresh
                           CupertinoSliverRefreshControl(
@@ -97,7 +98,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                           // Stats Header
                           SliverToBoxAdapter(
                             child: Padding(
-                              padding: EdgeInsets.all(Spacing.lg),
+                              padding: const EdgeInsets.all(Spacing.lg),
                               child: _buildStatsSection(controller),
                             ),
                           ),
@@ -106,7 +107,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                           SliverToBoxAdapter(
                             child: Padding(
                               padding:
-                                  EdgeInsets.symmetric(horizontal: Spacing.lg),
+                                  const EdgeInsets.symmetric(horizontal: Spacing.lg),
                               child: GlassCard(
                                 padding: EdgeInsets.zero,
                                 child: CupertinoSearchTextField(
@@ -128,7 +129,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                           if (expiringGoals.isNotEmpty)
                             SliverToBoxAdapter(
                               child: Padding(
-                                padding: EdgeInsets.all(Spacing.lg),
+                                padding: const EdgeInsets.all(Spacing.lg),
                                 child: _buildExpiringSoonBanner(expiringGoals),
                               ),
                             ),
@@ -137,13 +138,13 @@ class _GoalsScreenState extends State<GoalsScreen> {
                           if (_filterType != null)
                             SliverToBoxAdapter(
                               child: Padding(
-                                padding: EdgeInsets.symmetric(
+                                padding: const EdgeInsets.symmetric(
                                     horizontal: Spacing.lg,
                                     vertical: Spacing.sm),
                                 child: Row(
                                   children: [
                                     Container(
-                                      padding: EdgeInsets.symmetric(
+                                      padding: const EdgeInsets.symmetric(
                                           horizontal: Spacing.md,
                                           vertical: Spacing.sm),
                                       decoration: BoxDecoration(
@@ -174,7 +175,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                                               fontWeight: FontWeight.w600,
                                             ),
                                           ),
-                                          SizedBox(width: Spacing.sm),
+                                          const SizedBox(width: Spacing.sm),
                                           GestureDetector(
                                             onTap: () => setState(
                                                 () => _filterType = null),
@@ -206,7 +207,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                                       color: AppStyles.getSecondaryTextColor(
                                           context),
                                     ),
-                                    SizedBox(height: Spacing.lg),
+                                    const SizedBox(height: Spacing.lg),
                                     Text(
                                       'No goals found',
                                       style: TextStyle(
@@ -215,7 +216,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                                         color: AppStyles.getTextColor(context),
                                       ),
                                     ),
-                                    SizedBox(height: Spacing.sm),
+                                    const SizedBox(height: Spacing.sm),
                                     Text(
                                       'Try adjusting your search or filter',
                                       style: TextStyle(
@@ -230,7 +231,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                             )
                           else
                             SliverPadding(
-                              padding: EdgeInsets.all(Spacing.lg),
+                              padding: const EdgeInsets.all(Spacing.lg),
                               sliver: SliverList(
                                 delegate: SliverChildBuilderDelegate(
                                   (context, index) {
@@ -239,7 +240,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                                       index: index,
                                       child: Padding(
                                         padding:
-                                            EdgeInsets.only(bottom: Spacing.lg),
+                                            const EdgeInsets.only(bottom: Spacing.lg),
                                         child: _buildSlidableGoalCard(goal),
                                       ),
                                     );
@@ -249,7 +250,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                               ),
                             ),
 
-                          SliverToBoxAdapter(child: SizedBox(height: 80)),
+                          const SliverToBoxAdapter(child: SizedBox(height: 80)),
                         ],
                       ),
               ),
@@ -276,12 +277,12 @@ class _GoalsScreenState extends State<GoalsScreen> {
         children: [
           Row(
             children: [
-              Icon(
+              const Icon(
                 CupertinoIcons.flag_fill,
                 color: SemanticColors.success,
                 size: IconSizes.lg,
               ),
-              SizedBox(width: Spacing.md),
+              const SizedBox(width: Spacing.md),
               Text(
                 'Overall Progress',
                 style: TextStyle(
@@ -292,7 +293,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
               ),
             ],
           ),
-          SizedBox(height: Spacing.lg),
+          const SizedBox(height: Spacing.lg),
           Row(
             children: [
               Expanded(
@@ -306,7 +307,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                         color: AppStyles.getSecondaryTextColor(context),
                       ),
                     ),
-                    SizedBox(height: Spacing.xs),
+                    const SizedBox(height: Spacing.xs),
                     counter_widgets.CurrencyCounter(
                       value: controller.totalTargetAmount,
                       textStyle: TextStyle(
@@ -330,10 +331,10 @@ class _GoalsScreenState extends State<GoalsScreen> {
                         color: AppStyles.getSecondaryTextColor(context),
                       ),
                     ),
-                    SizedBox(height: Spacing.xs),
+                    const SizedBox(height: Spacing.xs),
                     counter_widgets.CurrencyCounter(
                       value: controller.totalSavedAmount,
-                      textStyle: TextStyle(
+                      textStyle: const TextStyle(
                         fontSize: TypeScale.title2,
                         fontWeight: FontWeight.bold,
                         color: SemanticColors.success,
@@ -345,13 +346,13 @@ class _GoalsScreenState extends State<GoalsScreen> {
               ),
             ],
           ),
-          SizedBox(height: Spacing.lg),
+          const SizedBox(height: Spacing.lg),
           LiquidLinearProgress(
             progress: controller.overallProgress / 100,
             height: 16,
             color: SemanticColors.success,
           ),
-          SizedBox(height: Spacing.sm),
+          const SizedBox(height: Spacing.sm),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -366,7 +367,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                 value: controller.overallProgress,
                 suffix: '%',
                 decimalPlaces: 1,
-                textStyle: TextStyle(
+                textStyle: const TextStyle(
                   fontSize: TypeScale.footnote,
                   fontWeight: FontWeight.w600,
                   color: SemanticColors.success,
@@ -387,18 +388,18 @@ class _GoalsScreenState extends State<GoalsScreen> {
         child: Row(
           children: [
             Container(
-              padding: EdgeInsets.all(Spacing.md),
+              padding: const EdgeInsets.all(Spacing.md),
               decoration: BoxDecoration(
                 color: SemanticColors.warning.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(Radii.md),
               ),
-              child: Icon(
+              child: const Icon(
                 CupertinoIcons.time,
                 color: SemanticColors.warning,
                 size: IconSizes.lg,
               ),
             ),
-            SizedBox(width: Spacing.md),
+            const SizedBox(width: Spacing.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -411,7 +412,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                       color: AppStyles.getTextColor(context),
                     ),
                   ),
-                  SizedBox(height: Spacing.xxs),
+                  const SizedBox(height: Spacing.xxs),
                   Text(
                     'Within next 30 days',
                     style: TextStyle(
@@ -512,7 +513,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                   color: goal.color,
                   showGlow: true,
                 ),
-                SizedBox(width: Spacing.md),
+                const SizedBox(width: Spacing.md),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -527,7 +528,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      SizedBox(height: Spacing.xxs),
+                      const SizedBox(height: Spacing.xxs),
                       Text(
                         goal.getTypeLabel(),
                         style: TextStyle(
@@ -540,13 +541,13 @@ class _GoalsScreenState extends State<GoalsScreen> {
                 ),
                 if (isOverdue)
                   Container(
-                    padding: EdgeInsets.symmetric(
+                    padding: const EdgeInsets.symmetric(
                         horizontal: Spacing.sm, vertical: Spacing.xxs),
                     decoration: BoxDecoration(
                       color: SemanticColors.error.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(Radii.xs),
                     ),
-                    child: Text(
+                    child: const Text(
                       'OVERDUE',
                       style: TextStyle(
                         fontSize: TypeScale.caption,
@@ -557,7 +558,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                   )
                 else if (isExpiringSoon)
                   Container(
-                    padding: EdgeInsets.symmetric(
+                    padding: const EdgeInsets.symmetric(
                         horizontal: Spacing.sm, vertical: Spacing.xxs),
                     decoration: BoxDecoration(
                       color: SemanticColors.warning.withValues(alpha: 0.1),
@@ -566,15 +567,15 @@ class _GoalsScreenState extends State<GoalsScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
+                        const Icon(
                           CupertinoIcons.time,
                           size: IconSizes.xs,
                           color: SemanticColors.warning,
                         ),
-                        SizedBox(width: Spacing.xxs),
+                        const SizedBox(width: Spacing.xxs),
                         Text(
                           '${daysRemaining}d',
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: TypeScale.caption,
                             fontWeight: FontWeight.w700,
                             color: SemanticColors.warning,
@@ -585,13 +586,13 @@ class _GoalsScreenState extends State<GoalsScreen> {
                   ),
               ],
             ),
-            SizedBox(height: Spacing.lg),
+            const SizedBox(height: Spacing.lg),
             LiquidLinearProgress(
               progress: goal.progressPercentage / 100,
               height: 12,
               color: goal.color,
             ),
-            SizedBox(height: Spacing.md),
+            const SizedBox(height: Spacing.md),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -605,7 +606,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                         color: AppStyles.getSecondaryTextColor(context),
                       ),
                     ),
-                    SizedBox(height: Spacing.xxs),
+                    const SizedBox(height: Spacing.xxs),
                     counter_widgets.CurrencyCounter(
                       value: goal.currentAmount,
                       textStyle: TextStyle(
@@ -631,7 +632,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                         color: AppStyles.getSecondaryTextColor(context),
                       ),
                     ),
-                    SizedBox(height: Spacing.xxs),
+                    const SizedBox(height: Spacing.xxs),
                     counter_widgets.CurrencyCounter(
                       value: goal.targetAmount,
                       textStyle: TextStyle(
@@ -654,23 +655,23 @@ class _GoalsScreenState extends State<GoalsScreen> {
   Widget _buildEmptyState() {
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(Spacing.xxxl),
+        padding: const EdgeInsets.all(Spacing.xxxl),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: EdgeInsets.all(Spacing.xxxl),
+              padding: const EdgeInsets.all(Spacing.xxxl),
               decoration: BoxDecoration(
                 color: SemanticColors.success.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
+              child: const Icon(
                 CupertinoIcons.flag_fill,
                 size: IconSizes.emptyStateIcon,
                 color: SemanticColors.success,
               ),
             ),
-            SizedBox(height: Spacing.xxl),
+            const SizedBox(height: Spacing.xxl),
             Text(
               'No Goals Yet',
               style: TextStyle(
@@ -679,7 +680,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                 color: AppStyles.getTextColor(context),
               ),
             ),
-            SizedBox(height: Spacing.md),
+            const SizedBox(height: Spacing.md),
             Text(
               'Start planning your financial future by\nsetting your first goal',
               textAlign: TextAlign.center,
@@ -688,11 +689,11 @@ class _GoalsScreenState extends State<GoalsScreen> {
                 color: AppStyles.getSecondaryTextColor(context),
               ),
             ),
-            SizedBox(height: Spacing.xxxl),
+            const SizedBox(height: Spacing.xxxl),
             BouncyButton(
               onPressed: _showAddGoalModal,
               child: Container(
-                padding: EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                     horizontal: Spacing.xxl, vertical: Spacing.lg),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -706,11 +707,11 @@ class _GoalsScreenState extends State<GoalsScreen> {
                     BoxShadow(
                       color: SemanticColors.success.withValues(alpha: 0.4),
                       blurRadius: 20,
-                      offset: Offset(0, 8),
+                      offset: const Offset(0, 8),
                     ),
                   ],
                 ),
-                child: Row(
+                child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(CupertinoIcons.add,
@@ -738,7 +739,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
     showCupertinoModalPopup(
       context: context,
       builder: (context) => CupertinoActionSheet(
-        title: Text('Filter by Goal Type'),
+        title: const Text('Filter by Goal Type'),
         actions: [
           ...GoalType.values.map((type) {
             final dummyGoal = Goal(
@@ -759,7 +760,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
               child: Row(
                 children: [
                   Icon(dummyGoal.getTypeIcon(), size: IconSizes.md),
-                  SizedBox(width: Spacing.md),
+                  const SizedBox(width: Spacing.md),
                   Text(dummyGoal.getTypeLabel()),
                 ],
               ),
@@ -772,12 +773,12 @@ class _GoalsScreenState extends State<GoalsScreen> {
                 Navigator.pop(context);
               },
               isDestructiveAction: true,
-              child: Text('Clear Filter'),
+              child: const Text('Clear Filter'),
             ),
         ],
         cancelButton: CupertinoActionSheetAction(
           onPressed: () => Navigator.pop(context),
-          child: Text('Cancel'),
+          child: const Text('Cancel'),
         ),
       ),
     );

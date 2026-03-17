@@ -424,13 +424,13 @@ class _AccountWizardState extends State<AccountWizard> {
                         width: 1.5,
                       ),
                     ),
-                    child: Center(
+                    child: const Center(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(CupertinoIcons.add,
                               color: CupertinoColors.systemBlue),
-                          const SizedBox(width: Spacing.sm),
+                          SizedBox(width: Spacing.sm),
                           Text(
                             'Add Broker',
                             style: TextStyle(
@@ -965,10 +965,10 @@ class _AccountWizardState extends State<AccountWizard> {
                             color: CupertinoColors.systemBlue,
                             borderRadius: BorderRadius.circular(Radii.md),
                           ),
-                          child: Center(
+                          child: const Center(
                             child: Text(
                               'Add Bank',
-                              style: const TextStyle(
+                              style: TextStyle(
                                   color: Colors.white,
                                   fontSize: TypeScale.headline,
                                   fontWeight: FontWeight.bold),
@@ -1054,13 +1054,13 @@ class _AccountWizardState extends State<AccountWizard> {
                             width: 1.5,
                           ),
                         ),
-                        child: Center(
+                        child: const Center(
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(CupertinoIcons.add,
                                   color: CupertinoColors.systemBlue),
-                              const SizedBox(width: Spacing.sm),
+                              SizedBox(width: Spacing.sm),
                               Text(
                                 'Add Bank',
                                 style: TextStyle(
@@ -1125,7 +1125,7 @@ class _AccountWizardState extends State<AccountWizard> {
                           padding: EdgeInsets.zero,
                           onPressed: () =>
                               _showAddCustomBankSheet(context, banksController),
-                          minimumSize: Size(40, 40),
+                          minimumSize: const Size(40, 40),
                           child: Container(
                             width: 32,
                             height: 32,

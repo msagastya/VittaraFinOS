@@ -122,7 +122,7 @@ class _AnalysisCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title,
-              style: TextStyle(
+              style: const TextStyle(
                   fontWeight: FontWeight.bold, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.lg),
           ...List.generate(

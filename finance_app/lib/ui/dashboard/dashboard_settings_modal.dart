@@ -51,7 +51,7 @@ class _DashboardSettingsModalState extends State<DashboardSettingsModal> {
         child: Consumer<DashboardController>(
           builder: (context, dashboardController, child) {
             return SingleChildScrollView(
-              padding: EdgeInsets.all(Spacing.lg),
+              padding: const EdgeInsets.all(Spacing.lg),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -64,7 +64,7 @@ class _DashboardSettingsModalState extends State<DashboardSettingsModal> {
                       color: AppStyles.getTextColor(context),
                     ),
                   ),
-                  SizedBox(height: Spacing.sm),
+                  const SizedBox(height: Spacing.sm),
                   Text(
                     'Show or hide widgets on your dashboard',
                     style: TextStyle(
@@ -72,7 +72,7 @@ class _DashboardSettingsModalState extends State<DashboardSettingsModal> {
                       color: AppStyles.getSecondaryTextColor(context),
                     ),
                   ),
-                  SizedBox(height: Spacing.lg),
+                  const SizedBox(height: Spacing.lg),
 
                   // Widget toggles
                   ...dashboardController.config.widgets.map((widget) {
@@ -80,7 +80,7 @@ class _DashboardSettingsModalState extends State<DashboardSettingsModal> {
                         context, dashboardController, widget);
                   }),
 
-                  SizedBox(height: Spacing.xl),
+                  const SizedBox(height: Spacing.xl),
 
                   // Reset button
                   CupertinoButton(
@@ -112,7 +112,7 @@ class _DashboardSettingsModalState extends State<DashboardSettingsModal> {
                         ),
                       );
                     },
-                    child: Row(
+                    child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
@@ -148,8 +148,8 @@ class _DashboardSettingsModalState extends State<DashboardSettingsModal> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      margin: EdgeInsets.only(bottom: Spacing.md),
-      padding: EdgeInsets.all(Spacing.md),
+      margin: const EdgeInsets.only(bottom: Spacing.md),
+      padding: const EdgeInsets.all(Spacing.md),
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(Radii.md),
@@ -173,7 +173,7 @@ class _DashboardSettingsModalState extends State<DashboardSettingsModal> {
                     color: AppStyles.getTextColor(context),
                   ),
                 ),
-                SizedBox(height: Spacing.xs),
+                const SizedBox(height: Spacing.xs),
                 Text(
                   _getWidgetDescription(widget.type),
                   style: TextStyle(
@@ -184,7 +184,7 @@ class _DashboardSettingsModalState extends State<DashboardSettingsModal> {
               ],
             ),
           ),
-          SizedBox(width: Spacing.md),
+          const SizedBox(width: Spacing.md),
           CupertinoSwitch(
             value: widget.isVisible,
             onChanged: (value) {

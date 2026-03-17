@@ -183,8 +183,8 @@ class FDRenewalWizardController extends ChangeNotifier {
           newYear++;
         }
 
-        var maxDayInMonth = DateTime(newYear, newMonth + 1, 0).day;
-        var day = result.day > maxDayInMonth ? maxDayInMonth : result.day;
+        final maxDayInMonth = DateTime(newYear, newMonth + 1, 0).day;
+        final day = result.day > maxDayInMonth ? maxDayInMonth : result.day;
 
         result = DateTime(newYear, newMonth, day);
       }
@@ -211,8 +211,8 @@ class FDRenewalWizardController extends ChangeNotifier {
             newYear++;
           }
 
-          var maxDayInMonth = DateTime(newYear, newMonth + 1, 0).day;
-          var day = result.day > maxDayInMonth ? maxDayInMonth : result.day;
+          final maxDayInMonth = DateTime(newYear, newMonth + 1, 0).day;
+          final day = result.day > maxDayInMonth ? maxDayInMonth : result.day;
 
           maturityDate = DateTime(newYear, newMonth, day);
           break;
@@ -265,8 +265,8 @@ class FDRenewalWizardController extends ChangeNotifier {
     required double years,
     required FDCompoundingFrequency compoundingFrequency,
   }) {
-    int n = _getCompoundingPeriods(compoundingFrequency);
-    double r = annualRate / 100;
+    final int n = _getCompoundingPeriods(compoundingFrequency);
+    final double r = annualRate / 100;
     return principal * pow(1 + (r / n), n * years).toDouble();
   }
 
@@ -276,7 +276,7 @@ class FDRenewalWizardController extends ChangeNotifier {
     required double years,
     required FDPayoutFrequency payoutFrequency,
   }) {
-    double r = annualRate / 100;
+    final double r = annualRate / 100;
     return principal * (1 + (r * years));
   }
 

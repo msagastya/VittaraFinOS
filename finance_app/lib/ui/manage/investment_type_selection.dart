@@ -115,7 +115,7 @@ class _InvestmentTypeSelectionModalState
                     if (_showAll)
                       CupertinoButton(
                         padding: EdgeInsets.zero,
-                        child: Icon(
+                        child: const Icon(
                           CupertinoIcons.settings,
                           color: AppStyles.accentBlue,
                           size: 24,
@@ -232,7 +232,7 @@ class _InvestmentTypeSelectionModalState
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
+                        const Icon(
                           CupertinoIcons.chevron_down_circle,
                           size: 18,
                           color: AppStyles.accentBlue,
@@ -240,7 +240,7 @@ class _InvestmentTypeSelectionModalState
                         const SizedBox(width: Spacing.sm),
                         Text(
                           'Show More (${prefsController.hiddenTypes.length})',
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: AppStyles.accentBlue,
                             fontWeight: FontWeight.w600,
                           ),
@@ -257,7 +257,7 @@ class _InvestmentTypeSelectionModalState
                         vertical: 12, horizontal: 24),
                     color: AppStyles.accentBlue.withValues(alpha: 0.1),
                     onPressed: () => setState(() => _showAll = false),
-                    child: Row(
+                    child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
@@ -265,7 +265,7 @@ class _InvestmentTypeSelectionModalState
                           size: 18,
                           color: AppStyles.accentBlue,
                         ),
-                        const SizedBox(width: Spacing.sm),
+                        SizedBox(width: Spacing.sm),
                         Text(
                           'Show Less',
                           style: TextStyle(
@@ -392,7 +392,7 @@ class _InvestmentTypePreferencesModalState
                     if (widget.prefsController.getRemainingSlots() > 0)
                       Text(
                         '${widget.prefsController.getRemainingSlots()} slot${widget.prefsController.getRemainingSlots() > 1 ? 's' : ''} left',
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: AppStyles.accentBlue,
                           fontSize: TypeScale.footnote,
                           fontWeight: FontWeight.w600,

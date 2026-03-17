@@ -216,7 +216,7 @@ class SmsParser {
         parseMethod: 'mlkit',
       );
     } catch (e) {
-      debugPrint('MLKit parse error: $e');
+      debugPrint('MLKit parse error: [REDACTED]');
       return null;
     }
   }
@@ -358,7 +358,7 @@ class SmsParser {
       'cr.'
     ];
 
-    List<({double amount, int score})> scored = [];
+    final List<({double amount, int score})> scored = [];
     for (final a in amounts) {
       int score = 0;
       final start = (a.pos - 70).clamp(0, bodyLower.length);

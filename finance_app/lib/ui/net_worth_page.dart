@@ -114,14 +114,14 @@ class _NetWorthPageState extends State<NetWorthPage> {
             // Show skeleton while data is loading from storage
             if (!accountsController.isLoaded ||
                 !investmentsController.isLoaded) {
-              return SkeletonAnimationProvider(
+              return const SkeletonAnimationProvider(
                 child: SingleChildScrollView(
                   padding: EdgeInsets.all(Spacing.lg),
                   child: Column(
                     children: [
-                      const SkeletonSummaryCard(),
+                      SkeletonSummaryCard(),
                       SizedBox(height: Spacing.xl),
-                      const SkeletonListView(itemCount: 4),
+                      SkeletonListView(itemCount: 4),
                     ],
                   ),
                 ),
@@ -133,7 +133,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                 investmentsController.investments.isEmpty) {
               return Center(
                 child: Padding(
-                  padding: EdgeInsets.all(Spacing.xxl),
+                  padding: const EdgeInsets.all(Spacing.xxl),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -142,7 +142,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                         size: 72,
                         color: SemanticColors.primary.withValues(alpha: 0.3),
                       ),
-                      SizedBox(height: Spacing.xl),
+                      const SizedBox(height: Spacing.xl),
                       Text(
                         'Your Net Worth Awaits',
                         style: TextStyle(
@@ -152,7 +152,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      SizedBox(height: Spacing.md),
+                      const SizedBox(height: Spacing.md),
                       Text(
                         'Add your first account or investment to see your net worth here.',
                         style: TextStyle(
@@ -161,7 +161,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      SizedBox(height: Spacing.xxl),
+                      const SizedBox(height: Spacing.xxl),
                       CupertinoButton.filled(
                         onPressed: () => Navigator.of(context).pop(),
                         child: const Text('Go to Manage'),
@@ -180,18 +180,18 @@ class _NetWorthPageState extends State<NetWorthPage> {
               });
 
               return SingleChildScrollView(
-                padding: EdgeInsets.all(Spacing.lg),
+                padding: const EdgeInsets.all(Spacing.lg),
                 child: Column(
                   children: [
                     _buildTotalNetWorthCard(
                         context, accountsController, investmentsController),
                     if (_historySnapshots.length >= 2) ...[
-                      SizedBox(height: Spacing.md),
+                      const SizedBox(height: Spacing.md),
                       _buildMotivationalBanner(context, totalNetWorth),
-                      SizedBox(height: Spacing.md),
+                      const SizedBox(height: Spacing.md),
                       _buildNetWorthTrendCard(context),
                     ],
-                    SizedBox(height: Spacing.xl),
+                    const SizedBox(height: Spacing.xl),
                     Consumer<TransactionsController>(
                       builder: (context, txCtrl, _) => _buildForecastCard(
                         context,
@@ -199,15 +199,15 @@ class _NetWorthPageState extends State<NetWorthPage> {
                         totalNetWorth,
                       ),
                     ),
-                    SizedBox(height: Spacing.xl),
+                    const SizedBox(height: Spacing.xl),
                     _buildBankAccountsSection(context, accountsController),
-                    SizedBox(height: Spacing.lg),
+                    const SizedBox(height: Spacing.lg),
                     _buildDematAccountsSection(context, accountsController),
-                    SizedBox(height: Spacing.lg),
+                    const SizedBox(height: Spacing.lg),
                     _buildCreditLiabilitiesSection(context, accountsController),
-                    SizedBox(height: Spacing.lg),
+                    const SizedBox(height: Spacing.lg),
                     _buildInvestmentsSection(context, investmentsController),
-                    SizedBox(height: Spacing.xl),
+                    const SizedBox(height: Spacing.xl),
                   ],
                 ),
               );
@@ -225,7 +225,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                       size: 50,
                       color: AppStyles.plasmaRed.withValues(alpha: 0.7),
                     ),
-                    SizedBox(height: Spacing.lg),
+                    const SizedBox(height: Spacing.lg),
                     Text(
                       'Error Loading Net Worth',
                       style: TextStyle(
@@ -234,7 +234,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                         color: AppStyles.getTextColor(context),
                       ),
                     ),
-                    SizedBox(height: Spacing.md),
+                    const SizedBox(height: Spacing.md),
                     Text(
                       e.toString(),
                       style: TextStyle(
@@ -299,7 +299,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
     }
 
     return Container(
-      padding: EdgeInsets.symmetric(
+      padding: const EdgeInsets.symmetric(
           horizontal: Spacing.lg, vertical: Spacing.md),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.08),
@@ -309,7 +309,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
       child: Row(
         children: [
           Icon(icon, color: color, size: 18),
-          SizedBox(width: Spacing.md),
+          const SizedBox(width: Spacing.md),
           Expanded(
             child: Text(
               message,
@@ -584,7 +584,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
 
     if (bankAccounts.isEmpty) {
       return Container(
-        padding: EdgeInsets.all(Spacing.lg),
+        padding: const EdgeInsets.all(Spacing.lg),
         decoration: BoxDecoration(
           color: AppStyles.getCardColor(context),
           borderRadius: BorderRadius.circular(16),
@@ -662,9 +662,9 @@ class _NetWorthPageState extends State<NetWorthPage> {
               ],
             ),
           ),
-          Divider(height: 1),
+          const Divider(height: 1),
           Padding(
-            padding: EdgeInsets.all(Spacing.lg),
+            padding: const EdgeInsets.all(Spacing.lg),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: bankAccounts.asMap().entries.map((entry) {
@@ -710,7 +710,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                       ],
                     ),
                     if (!isLast)
-                      Padding(
+                      const Padding(
                         padding: EdgeInsets.symmetric(vertical: Spacing.md),
                         child: Divider(height: 1),
                       ),
@@ -734,7 +734,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
         .toList();
 
     if (dematAccounts.isEmpty) {
-      return SizedBox.shrink();
+      return const SizedBox.shrink();
     }
 
     double total = 0;
@@ -748,7 +748,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
-            padding: EdgeInsets.all(Spacing.lg),
+            padding: const EdgeInsets.all(Spacing.lg),
             child: Row(
               children: [
                 Container(
@@ -788,9 +788,9 @@ class _NetWorthPageState extends State<NetWorthPage> {
               ],
             ),
           ),
-          Divider(height: 1),
+          const Divider(height: 1),
           Padding(
-            padding: EdgeInsets.all(Spacing.lg),
+            padding: const EdgeInsets.all(Spacing.lg),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: dematAccounts.asMap().entries.map((entry) {
@@ -836,7 +836,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                       ],
                     ),
                     if (!isLast)
-                      Padding(
+                      const Padding(
                         padding: EdgeInsets.symmetric(vertical: Spacing.md),
                         child: Divider(height: 1),
                       ),
@@ -861,7 +861,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
         .toList();
 
     if (creditAccounts.isEmpty) {
-      return SizedBox.shrink();
+      return const SizedBox.shrink();
     }
 
     double totalCreditLimit = 0;
@@ -878,19 +878,19 @@ class _NetWorthPageState extends State<NetWorthPage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
-            padding: EdgeInsets.all(Spacing.lg),
+            padding: const EdgeInsets.all(Spacing.lg),
             child: Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     color: AppStyles.plasmaRed.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(CupertinoIcons.creditcard_fill,
+                  child: const Icon(CupertinoIcons.creditcard_fill,
                       size: 20, color: AppStyles.plasmaRed),
                 ),
-                SizedBox(width: Spacing.md),
+                const SizedBox(width: Spacing.md),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -915,7 +915,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                 ),
                 Text(
                   '₹${totalUsed.toStringAsFixed(0)}',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: TypeScale.callout,
                     fontWeight: FontWeight.bold,
                     color: AppStyles.plasmaRed,
@@ -924,9 +924,9 @@ class _NetWorthPageState extends State<NetWorthPage> {
               ],
             ),
           ),
-          Divider(height: 1),
+          const Divider(height: 1),
           Padding(
-            padding: EdgeInsets.all(Spacing.lg),
+            padding: const EdgeInsets.all(Spacing.lg),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: creditAccounts.asMap().entries.map((entry) {
@@ -969,7 +969,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                         ),
                       ],
                     ),
-                    SizedBox(height: Spacing.md),
+                    const SizedBox(height: Spacing.md),
                     // Credit details row
                     Row(
                       children: [
@@ -987,7 +987,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              SizedBox(height: Spacing.xs),
+                              const SizedBox(height: Spacing.xs),
                               Text(
                                 '₹${(account.creditLimit ?? 0.0).toStringAsFixed(0)}',
                                 style: TextStyle(
@@ -1004,7 +1004,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(
+                              const Text(
                                 'Used',
                                 style: TextStyle(
                                   fontSize: TypeScale.caption,
@@ -1012,10 +1012,10 @@ class _NetWorthPageState extends State<NetWorthPage> {
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              SizedBox(height: Spacing.xs),
+                              const SizedBox(height: Spacing.xs),
                               Text(
                                 '₹${used.toStringAsFixed(0)}',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: TypeScale.subhead,
                                   fontWeight: FontWeight.bold,
                                   color: AppStyles.plasmaRed,
@@ -1029,7 +1029,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(
+                              const Text(
                                 'Available',
                                 style: TextStyle(
                                   fontSize: TypeScale.caption,
@@ -1037,10 +1037,10 @@ class _NetWorthPageState extends State<NetWorthPage> {
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              SizedBox(height: Spacing.xs),
+                              const SizedBox(height: Spacing.xs),
                               Text(
                                 '₹${available.toStringAsFixed(0)}',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: TypeScale.subhead,
                                   fontWeight: FontWeight.bold,
                                   color: AppStyles.bioGreen,
@@ -1051,7 +1051,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                         ),
                       ],
                     ),
-                    SizedBox(height: Spacing.md),
+                    const SizedBox(height: Spacing.md),
                     // Utilization progress bar
                     ClipRRect(
                       borderRadius: BorderRadius.circular(4),
@@ -1067,7 +1067,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                         ),
                       ),
                     ),
-                    SizedBox(height: Spacing.xs),
+                    const SizedBox(height: Spacing.xs),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -1091,7 +1091,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                       ],
                     ),
                     if (!isLast)
-                      Padding(
+                      const Padding(
                         padding: EdgeInsets.symmetric(vertical: Spacing.md),
                         child: Divider(height: 1),
                       ),
@@ -1111,7 +1111,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
   ) {
     if (investmentsController.investments.isEmpty) {
       return Container(
-        padding: EdgeInsets.all(Spacing.lg),
+        padding: const EdgeInsets.all(Spacing.lg),
         decoration: BoxDecoration(
           color: AppStyles.getCardColor(context),
           borderRadius: BorderRadius.circular(16),
@@ -1168,19 +1168,19 @@ class _NetWorthPageState extends State<NetWorthPage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
-            padding: EdgeInsets.all(Spacing.lg),
+            padding: const EdgeInsets.all(Spacing.lg),
             child: Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     color: AppStyles.bioGreen.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(CupertinoIcons.chart_bar_fill,
+                  child: const Icon(CupertinoIcons.chart_bar_fill,
                       size: 20, color: AppStyles.bioGreen),
                 ),
-                SizedBox(width: Spacing.md),
+                const SizedBox(width: Spacing.md),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1226,9 +1226,9 @@ class _NetWorthPageState extends State<NetWorthPage> {
               ],
             ),
           ),
-          Divider(height: 1),
+          const Divider(height: 1),
           Padding(
-            padding: EdgeInsets.all(Spacing.lg),
+            padding: const EdgeInsets.all(Spacing.lg),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -1296,7 +1296,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                               ),
                               Text(
                                 '${percentage.toStringAsFixed(1)}%',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: TypeScale.caption,
                                   color: AppStyles.bioGreen,
                                   fontWeight: FontWeight.w600,
@@ -1307,7 +1307,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                         ],
                       ),
                       if (!isLast)
-                        Padding(
+                        const Padding(
                           padding: EdgeInsets.symmetric(vertical: Spacing.md),
                           child: Divider(height: 1),
                         ),
@@ -1316,7 +1316,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                 }),
                 if (hasMore)
                   Padding(
-                    padding: EdgeInsets.only(top: Spacing.md),
+                    padding: const EdgeInsets.only(top: Spacing.md),
                     child: CupertinoButton(
                       padding: EdgeInsets.zero,
                       onPressed: () {
@@ -1329,13 +1329,13 @@ class _NetWorthPageState extends State<NetWorthPage> {
                         children: [
                           Text(
                             _expandInvestments ? 'Show Less' : 'Show All',
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: TypeScale.subhead,
                               fontWeight: FontWeight.w600,
                               color: AppStyles.bioGreen,
                             ),
                           ),
-                          SizedBox(width: Spacing.xs),
+                          const SizedBox(width: Spacing.xs),
                           Icon(
                             _expandInvestments
                                 ? CupertinoIcons.chevron_up
@@ -1697,7 +1697,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
     ];
 
     return Container(
-      padding: EdgeInsets.all(Spacing.lg),
+      padding: const EdgeInsets.all(Spacing.lg),
       decoration: AppStyles.cardDecoration(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1745,7 +1745,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
               ),
             ],
           ),
-          SizedBox(height: Spacing.xs),
+          const SizedBox(height: Spacing.xs),
           Text(
             'Last $monthCount month${monthCount == 1 ? '' : 's'}',
             style: TextStyle(
@@ -1753,7 +1753,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
               color: AppStyles.getSecondaryTextColor(context),
             ),
           ),
-          SizedBox(height: Spacing.lg),
+          const SizedBox(height: Spacing.lg),
           // Sparkline chart
           SizedBox(
             height: 120,
@@ -1766,7 +1766,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
               size: Size.infinite,
             ),
           ),
-          SizedBox(height: Spacing.sm),
+          const SizedBox(height: Spacing.sm),
           // X-axis month labels
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,

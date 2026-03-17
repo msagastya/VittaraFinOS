@@ -400,7 +400,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
                   onRefresh: () => transactionsController.loadTransactions(),
                   color: AppStyles.accentBlue,
                   child: ListView(
-                    padding: EdgeInsets.fromLTRB(
+                    padding: const EdgeInsets.fromLTRB(
                       Spacing.lg,
                       Spacing.lg,
                       Spacing.lg,
@@ -408,11 +408,11 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
                     ),
                     children: [
                       _buildSummaryHeader(summary, filteredTransactions.length),
-                      SizedBox(height: Spacing.sm),
+                      const SizedBox(height: Spacing.sm),
                       _buildActiveFiltersBar(
                           transactionsController.transactions.length,
                           filteredTransactions.length),
-                      SizedBox(height: Spacing.sm),
+                      const SizedBox(height: Spacing.sm),
                       _buildWorkspaceNavigator(
                         filteredCount: filteredTransactions.length,
                         totalCount: transactionsController.transactions.length,
@@ -485,14 +485,14 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
             ),
             child: Row(
               children: [
-                Icon(CupertinoIcons.line_horizontal_3_decrease,
+                const Icon(CupertinoIcons.line_horizontal_3_decrease,
                     size: 13, color: SemanticColors.warning),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     '$_activeFilterCount filter${_activeFilterCount == 1 ? '' : 's'} active'
                     '${hidden > 0 ? ' · $hidden txns hidden' : ''}',
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: TypeScale.footnote,
                       fontWeight: FontWeight.w600,
                       color: SemanticColors.warning,
@@ -508,7 +508,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
                       color: SemanticColors.warning.withValues(alpha: 0.18),
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: Text(
+                    child: const Text(
                       'Clear All',
                       style: TextStyle(
                         fontSize: TypeScale.caption,
@@ -528,7 +528,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
 
   Widget _buildSummaryHeader(_ReportSummary summary, int count) {
     return Container(
-      padding: EdgeInsets.all(Spacing.lg),
+      padding: const EdgeInsets.all(Spacing.lg),
       decoration: AppStyles.sectionDecoration(
         context,
         tint: SemanticColors.primary,
@@ -553,7 +553,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
                   size: IconSizes.md,
                 ),
               ),
-              SizedBox(width: Spacing.md),
+              const SizedBox(width: Spacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -565,7 +565,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
                         fontWeight: FontWeight.w800,
                       ),
                     ),
-                    SizedBox(height: Spacing.xs),
+                    const SizedBox(height: Spacing.xs),
                     Text(
                       '${_datePreset.label} • ${_formatDate(_startDate)} to ${_formatDate(_endDate)}',
                       style: TextStyle(
@@ -578,7 +578,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
               ),
             ],
           ),
-          SizedBox(height: Spacing.lg),
+          const SizedBox(height: Spacing.lg),
           Wrap(
             spacing: Spacing.md,
             runSpacing: Spacing.md,
@@ -624,7 +624,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
   }) {
     return Container(
       padding:
-          EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
+          const EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
       decoration: AppStyles.tabDecoration(
         context,
         selected: true,
@@ -641,7 +641,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
               fontWeight: FontWeight.w600,
             ),
           ),
-          SizedBox(height: Spacing.xxs),
+          const SizedBox(height: Spacing.xxs),
           Text(
             value,
             style: TextStyle(
@@ -660,7 +660,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
     required int totalCount,
   }) {
     return Container(
-      padding: EdgeInsets.all(Spacing.lg),
+      padding: const EdgeInsets.all(Spacing.lg),
       decoration: AppStyles.sectionDecoration(
         context,
         tint: SemanticColors.primary.withValues(alpha: 0.78),
@@ -674,7 +674,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
             title: 'Analysis Workspace',
             subtitle: 'Use guided sections instead of one long dense report',
           ),
-          SizedBox(height: Spacing.md),
+          const SizedBox(height: Spacing.md),
           Wrap(
             spacing: Spacing.sm,
             runSpacing: Spacing.sm,
@@ -687,7 +687,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
               );
             }).toList(),
           ),
-          SizedBox(height: Spacing.sm),
+          const SizedBox(height: Spacing.sm),
           Text(
             'Showing $filteredCount of $totalCount transactions for ${_datePreset.label}.',
             style: TextStyle(
@@ -695,7 +695,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
               fontSize: TypeScale.caption,
             ),
           ),
-          SizedBox(height: Spacing.md),
+          const SizedBox(height: Spacing.md),
           GestureDetector(
             onTap: () {
               Navigator.push(
@@ -716,13 +716,13 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
               ),
               child: Row(
                 children: [
-                  Icon(CupertinoIcons.doc_text_fill,
+                  const Icon(CupertinoIcons.doc_text_fill,
                       size: 16, color: AppStyles.solarGold),
-                  SizedBox(width: Spacing.sm),
+                  const SizedBox(width: Spacing.sm),
                   Expanded(
                     child: Text(
                       'Tax Summary FY ${_currentFYLabel()}',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: TypeScale.footnote,
                         fontWeight: FontWeight.w600,
                         color: AppStyles.solarGold,
@@ -763,8 +763,8 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
       case _ReportWorkspaceTab.overview:
         if (summary.transactionCount == 0) {
           return [
-            SizedBox(height: Spacing.xl),
-            EmptyStateView(
+            const SizedBox(height: Spacing.xl),
+            const EmptyStateView(
               icon: CupertinoIcons.doc_chart,
               title: 'No Data for This Period',
               subtitle:
@@ -773,9 +773,9 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
           ];
         }
         return [
-          SizedBox(height: Spacing.lg),
+          const SizedBox(height: Spacing.lg),
           _buildOverviewCard(summary, groupedMetrics, strategyEvaluation),
-          SizedBox(height: Spacing.lg),
+          const SizedBox(height: Spacing.lg),
           _buildBreakdownTable(
             groupedMetrics,
             maxGroups: 8,
@@ -786,7 +786,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
         ];
       case _ReportWorkspaceTab.filters:
         return [
-          SizedBox(height: Spacing.lg),
+          const SizedBox(height: Spacing.lg),
           _buildFiltersCard(
             categories: categories,
             accounts: accounts,
@@ -796,23 +796,23 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
         ];
       case _ReportWorkspaceTab.strategy:
         return [
-          SizedBox(height: Spacing.lg),
+          const SizedBox(height: Spacing.lg),
           _buildStrategyCard(strategyEvaluation),
         ];
       case _ReportWorkspaceTab.charts:
         return [
-          SizedBox(height: Spacing.lg),
+          const SizedBox(height: Spacing.lg),
           _buildMonthlyComparisonCard(),
-          SizedBox(height: Spacing.lg),
+          const SizedBox(height: Spacing.lg),
           _buildCategoryTrendCard(),
-          SizedBox(height: Spacing.lg),
+          const SizedBox(height: Spacing.lg),
           _buildChartsCard(groupedMetrics, trendPoints),
-          SizedBox(height: Spacing.lg),
+          const SizedBox(height: Spacing.lg),
           _buildBreakdownTable(groupedMetrics),
         ];
       case _ReportWorkspaceTab.export:
         return [
-          SizedBox(height: Spacing.lg),
+          const SizedBox(height: Spacing.lg),
           _buildExportCard(snapshot),
         ];
     }
@@ -826,7 +826,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
     final topGroups = groupedMetrics.take(3).toList();
     final recommendations = strategyEvaluation.recommendations.take(3).toList();
     return Container(
-      padding: EdgeInsets.all(Spacing.lg),
+      padding: const EdgeInsets.all(Spacing.lg),
       decoration: AppStyles.sectionDecoration(
         context,
         tint: SemanticColors.info.withValues(alpha: 0.78),
@@ -840,7 +840,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
             title: 'What Matters Now',
             subtitle: 'Quick insights without deep filter controls',
           ),
-          SizedBox(height: Spacing.md),
+          const SizedBox(height: Spacing.md),
           Text(
             'Savings gap: ₹${strategyEvaluation.savingsGap.toStringAsFixed(0)} • Net: ₹${summary.net.toStringAsFixed(0)}',
             style: TextStyle(
@@ -852,7 +852,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
             ),
           ),
           if (topGroups.isNotEmpty) ...[
-            SizedBox(height: Spacing.md),
+            const SizedBox(height: Spacing.md),
             Text(
               'Top Drivers',
               style: TextStyle(
@@ -861,10 +861,10 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
                 fontWeight: FontWeight.w700,
               ),
             ),
-            SizedBox(height: Spacing.xs),
+            const SizedBox(height: Spacing.xs),
             ...topGroups.map(
               (group) => Padding(
-                padding: EdgeInsets.only(bottom: Spacing.xs),
+                padding: const EdgeInsets.only(bottom: Spacing.xs),
                 child: Text(
                   '• ${group.label}: Net ₹${group.net.toStringAsFixed(0)} (${group.transactionCount} txns)',
                   style: TextStyle(
@@ -876,7 +876,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
             ),
           ],
           if (recommendations.isNotEmpty) ...[
-            SizedBox(height: Spacing.sm),
+            const SizedBox(height: Spacing.sm),
             Text(
               'Recommended Actions',
               style: TextStyle(
@@ -885,10 +885,10 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
                 fontWeight: FontWeight.w700,
               ),
             ),
-            SizedBox(height: Spacing.xs),
+            const SizedBox(height: Spacing.xs),
             ...recommendations.map(
               (line) => Padding(
-                padding: EdgeInsets.only(bottom: Spacing.xs),
+                padding: const EdgeInsets.only(bottom: Spacing.xs),
                 child: Text(
                   '• $line',
                   style: TextStyle(
@@ -899,7 +899,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
               ),
             ),
           ],
-          SizedBox(height: Spacing.sm),
+          const SizedBox(height: Spacing.sm),
           Wrap(
             spacing: Spacing.sm,
             runSpacing: Spacing.sm,
@@ -940,7 +940,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
     required List<String> availableApps,
   }) {
     return Container(
-      padding: EdgeInsets.all(Spacing.lg),
+      padding: const EdgeInsets.all(Spacing.lg),
       decoration: AppStyles.sectionDecoration(
         context,
         tint: SemanticColors.primary.withValues(alpha: 0.82),
@@ -954,7 +954,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
             title: 'Analysis Filters',
             subtitle: 'Customize by date, account, category, type, and tags',
           ),
-          SizedBox(height: Spacing.md),
+          const SizedBox(height: Spacing.md),
           Wrap(
             spacing: Spacing.sm,
             runSpacing: Spacing.sm,
@@ -969,7 +969,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
             }).toList(),
           ),
           if (_datePreset == ReportDatePreset.custom) ...[
-            SizedBox(height: Spacing.md),
+            const SizedBox(height: Spacing.md),
             Row(
               children: [
                 Expanded(
@@ -979,7 +979,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
                     onTap: () => _pickCustomDate(isStart: true),
                   ),
                 ),
-                SizedBox(width: Spacing.sm),
+                const SizedBox(width: Spacing.sm),
                 Expanded(
                   child: _buildDateButton(
                     label: 'End',
@@ -990,7 +990,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
               ],
             ),
           ],
-          SizedBox(height: Spacing.md),
+          const SizedBox(height: Spacing.md),
           Wrap(
             spacing: Spacing.sm,
             runSpacing: Spacing.sm,
@@ -1012,7 +1012,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
               );
             }).toList(),
           ),
-          SizedBox(height: Spacing.md),
+          const SizedBox(height: Spacing.md),
           _buildSwitchRow(
             label: 'Include transfers in analysis',
             value: _includeTransfers,
@@ -1028,7 +1028,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
             value: _includeCashbackFlows,
             onChanged: (value) => setState(() => _includeCashbackFlows = value),
           ),
-          SizedBox(height: Spacing.md),
+          const SizedBox(height: Spacing.md),
           Row(
             children: [
               Expanded(
@@ -1038,7 +1038,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
                   onTap: () => _pickGroupBy(isPrimary: true),
                 ),
               ),
-              SizedBox(width: Spacing.sm),
+              const SizedBox(width: Spacing.sm),
               Expanded(
                 child: _buildPickerButton(
                   label: 'Secondary Group',
@@ -1048,7 +1048,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
               ),
             ],
           ),
-          SizedBox(height: Spacing.sm),
+          const SizedBox(height: Spacing.sm),
           Row(
             children: [
               Expanded(
@@ -1058,7 +1058,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
                   onTap: _pickSortMetric,
                 ),
               ),
-              SizedBox(width: Spacing.sm),
+              const SizedBox(width: Spacing.sm),
               Expanded(
                 child: _buildPickerButton(
                   label: 'Order',
@@ -1069,7 +1069,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
               ),
             ],
           ),
-          SizedBox(height: Spacing.md),
+          const SizedBox(height: Spacing.md),
           Wrap(
             spacing: Spacing.sm,
             runSpacing: Spacing.sm,
@@ -1181,7 +1181,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
       onPressed: onTap,
       child: Container(
         padding:
-            EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
+            const EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
         decoration: AppStyles.tabDecoration(
           context,
           selected: true,
@@ -1197,7 +1197,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
                 fontSize: TypeScale.caption,
               ),
             ),
-            SizedBox(height: Spacing.xxs),
+            const SizedBox(height: Spacing.xxs),
             Text(
               value,
               style: TextStyle(
@@ -1221,7 +1221,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
       onPressed: onTap,
       child: Container(
         padding:
-            EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
+            const EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
         decoration: AppStyles.tabDecoration(
           context,
           selected: true,
@@ -1237,7 +1237,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
                 fontSize: TypeScale.caption,
               ),
             ),
-            SizedBox(height: Spacing.xxs),
+            const SizedBox(height: Spacing.xxs),
             Text(
               value,
               style: TextStyle(
@@ -1258,7 +1258,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
     required ValueChanged<bool> onChanged,
   }) {
     return Padding(
-      padding: EdgeInsets.only(bottom: Spacing.xs),
+      padding: const EdgeInsets.only(bottom: Spacing.xs),
       child: Row(
         children: [
           Expanded(
@@ -1286,7 +1286,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
       onPressed: onTap,
       child: Container(
         padding:
-            EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
+            const EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
         decoration: AppStyles.tabDecoration(
           context,
           selected: count > 0 || label == 'Reset Filters',
@@ -1307,7 +1307,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
   Widget _buildStrategyCard(_StrategyEvaluation evaluation) {
     final profile = _effectiveStrategyProfile();
     return Container(
-      padding: EdgeInsets.all(Spacing.lg),
+      padding: const EdgeInsets.all(Spacing.lg),
       decoration: AppStyles.sectionDecoration(
         context,
         tint: SemanticColors.lending.withValues(alpha: 0.85),
@@ -1321,7 +1321,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
             title: 'Predefined Strategies + Custom',
             subtitle: 'Pick a strategy or tune rates as per your requirement',
           ),
-          SizedBox(height: Spacing.md),
+          const SizedBox(height: Spacing.md),
           Wrap(
             spacing: Spacing.sm,
             runSpacing: Spacing.sm,
@@ -1336,7 +1336,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
             }).toList(),
           ),
           if (_strategyPreset == ReportStrategyPreset.custom) ...[
-            SizedBox(height: Spacing.md),
+            const SizedBox(height: Spacing.md),
             _buildSlider(
               label: 'Savings Target',
               value: _customSavingsTargetRate,
@@ -1377,9 +1377,9 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
               onChanged: (value) => setState(() => _customDebtRate = value),
             ),
           ],
-          SizedBox(height: Spacing.md),
+          const SizedBox(height: Spacing.md),
           Container(
-            padding: EdgeInsets.all(Spacing.md),
+            padding: const EdgeInsets.all(Spacing.md),
             decoration: AppStyles.sectionDecoration(
               context,
               tint: SemanticColors.lending.withValues(alpha: 0.62),
@@ -1397,7 +1397,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
                     fontSize: TypeScale.callout,
                   ),
                 ),
-                SizedBox(height: Spacing.sm),
+                const SizedBox(height: Spacing.sm),
                 Text(
                   'Income: ₹${evaluation.income.toStringAsFixed(0)} • Outflow: ₹${evaluation.outflow.toStringAsFixed(0)} • Savings: ₹${evaluation.actualSavings.toStringAsFixed(0)}',
                   style: TextStyle(
@@ -1405,7 +1405,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
                     fontSize: TypeScale.footnote,
                   ),
                 ),
-                SizedBox(height: Spacing.xs),
+                const SizedBox(height: Spacing.xs),
                 Text(
                   'Target savings (${(profile.savingsTargetRate * 100).toStringAsFixed(0)}%): ₹${evaluation.targetSavings.toStringAsFixed(0)} • Gap: ₹${evaluation.savingsGap.toStringAsFixed(0)}',
                   style: TextStyle(
@@ -1416,10 +1416,10 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                SizedBox(height: Spacing.sm),
+                const SizedBox(height: Spacing.sm),
                 ...evaluation.recommendations.map(
                   (rec) => Padding(
-                    padding: EdgeInsets.only(bottom: Spacing.xs),
+                    padding: const EdgeInsets.only(bottom: Spacing.xs),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -1453,7 +1453,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
     required ValueChanged<double> onChanged,
   }) {
     return Padding(
-      padding: EdgeInsets.only(bottom: Spacing.sm),
+      padding: const EdgeInsets.only(bottom: Spacing.sm),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1534,7 +1534,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
     ];
 
     return Container(
-      padding: EdgeInsets.all(Spacing.lg),
+      padding: const EdgeInsets.all(Spacing.lg),
       decoration: AppStyles.sectionDecoration(
         context,
         tint: SemanticColors.info.withValues(alpha: 0.5),
@@ -1548,7 +1548,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
             title: 'Category Spending Trends',
             subtitle: 'Top categories over the last 6 months',
           ),
-          SizedBox(height: Spacing.lg),
+          const SizedBox(height: Spacing.lg),
           // Legend
           Wrap(
             spacing: Spacing.md,
@@ -1565,7 +1565,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
                       shape: BoxShape.circle,
                     ),
                   ),
-                  SizedBox(width: 4),
+                  const SizedBox(width: 4),
                   Text(
                     top[i].key,
                     style: TextStyle(
@@ -1577,7 +1577,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
               );
             }),
           ),
-          SizedBox(height: Spacing.md),
+          const SizedBox(height: Spacing.md),
           SizedBox(
             height: 160,
             child: CustomPaint(
@@ -1644,7 +1644,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
     ];
 
     return Container(
-      padding: EdgeInsets.all(Spacing.lg),
+      padding: const EdgeInsets.all(Spacing.lg),
       decoration: AppStyles.sectionDecoration(
         context,
         tint: SemanticColors.error.withValues(alpha: 0.6),
@@ -1658,7 +1658,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
             title: 'Month-over-Month Spending',
             subtitle: 'Expense totals for the last 6 months',
           ),
-          SizedBox(height: Spacing.lg),
+          const SizedBox(height: Spacing.lg),
           SizedBox(
             height: 180,
             child: Row(
@@ -1684,7 +1684,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
                             ),
                             textAlign: TextAlign.center,
                           ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         AnimatedContainer(
                           duration: const Duration(milliseconds: 400),
                           height: barHeight.clamp(4.0, 140.0),
@@ -1692,12 +1692,12 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
                             color: isCurrentMonth
                                 ? SemanticColors.error
                                 : SemanticColors.error.withValues(alpha: 0.5),
-                            borderRadius: BorderRadius.vertical(
+                            borderRadius: const BorderRadius.vertical(
                               top: Radius.circular(4),
                             ),
                           ),
                         ),
-                        SizedBox(height: 6),
+                        const SizedBox(height: 6),
                         Text(
                           label,
                           style: TextStyle(
@@ -1728,7 +1728,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
   ) {
     final topBars = groupedMetrics.take(8).toList();
     return Container(
-      padding: EdgeInsets.all(Spacing.lg),
+      padding: const EdgeInsets.all(Spacing.lg),
       decoration: AppStyles.sectionDecoration(
         context,
         tint: SemanticColors.info.withValues(alpha: 0.86),
@@ -1742,7 +1742,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
             title: 'Charts & Visual Analysis',
             subtitle: 'Primary distribution and net trend movement',
           ),
-          SizedBox(height: Spacing.md),
+          const SizedBox(height: Spacing.md),
           Text(
             'Primary Group Distribution (${_primaryGroupBy.label})',
             style: TextStyle(
@@ -1751,10 +1751,10 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
               fontWeight: FontWeight.w600,
             ),
           ),
-          SizedBox(height: Spacing.sm),
+          const SizedBox(height: Spacing.sm),
           Container(
             height: 230,
-            padding: EdgeInsets.all(Spacing.sm),
+            padding: const EdgeInsets.all(Spacing.sm),
             decoration: AppStyles.sectionDecoration(
               context,
               tint: SemanticColors.info.withValues(alpha: 0.65),
@@ -1773,7 +1773,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
                     child: const SizedBox.expand(),
                   ),
           ),
-          SizedBox(height: Spacing.md),
+          const SizedBox(height: Spacing.md),
           Text(
             'Net Trend',
             style: TextStyle(
@@ -1782,10 +1782,10 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
               fontWeight: FontWeight.w600,
             ),
           ),
-          SizedBox(height: Spacing.sm),
+          const SizedBox(height: Spacing.sm),
           Container(
             height: 190,
-            padding: EdgeInsets.all(Spacing.sm),
+            padding: const EdgeInsets.all(Spacing.sm),
             decoration: AppStyles.sectionDecoration(
               context,
               tint: SemanticColors.primary.withValues(alpha: 0.62),
@@ -1830,7 +1830,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
   }) {
     final groups = groupedMetrics.take(maxGroups).toList();
     return Container(
-      padding: EdgeInsets.all(Spacing.lg),
+      padding: const EdgeInsets.all(Spacing.lg),
       decoration: AppStyles.sectionDecoration(
         context,
         tint: SemanticColors.categories.withValues(alpha: 0.8),
@@ -1845,16 +1845,16 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
             subtitle: subtitle ??
                 'Primary: ${_primaryGroupBy.label} • Secondary: ${_secondaryGroupBy.label}',
           ),
-          SizedBox(height: Spacing.md),
+          const SizedBox(height: Spacing.md),
           if (groups.isEmpty)
-            EmptyStateView(
+            const EmptyStateView(
               icon: CupertinoIcons.search,
               title: 'No results found',
               subtitle: 'Try adjusting your date range or filters.',
             ),
           ...groups.map((group) => _buildGroupCard(group)),
           if (groupedMetrics.length > groups.length) ...[
-            SizedBox(height: Spacing.sm),
+            const SizedBox(height: Spacing.sm),
             Text(
               'Showing top ${groups.length} of ${groupedMetrics.length} groups. Refine filters for focused results.',
               style: TextStyle(
@@ -1870,8 +1870,8 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
 
   Widget _buildGroupCard(_GroupedMetric group) {
     return Container(
-      margin: EdgeInsets.only(bottom: Spacing.sm),
-      padding: EdgeInsets.all(Spacing.md),
+      margin: const EdgeInsets.only(bottom: Spacing.sm),
+      padding: const EdgeInsets.all(Spacing.md),
       decoration: AppStyles.sectionDecoration(
         context,
         tint: group.net >= 0 ? SemanticColors.success : SemanticColors.error,
@@ -1889,7 +1889,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
               fontSize: TypeScale.callout,
             ),
           ),
-          SizedBox(height: Spacing.xs),
+          const SizedBox(height: Spacing.xs),
           Text(
             '${group.transactionCount} txns • In ₹${group.inflow.toStringAsFixed(0)} • Out ₹${group.outflow.toStringAsFixed(0)} • Net ₹${group.net.toStringAsFixed(0)}',
             style: TextStyle(
@@ -1898,10 +1898,10 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
             ),
           ),
           if (group.secondaryBreakdown.isNotEmpty) ...[
-            SizedBox(height: Spacing.sm),
+            const SizedBox(height: Spacing.sm),
             ...group.secondaryBreakdown.take(5).map(
                   (subGroup) => Padding(
-                    padding: EdgeInsets.only(bottom: Spacing.xxs),
+                    padding: const EdgeInsets.only(bottom: Spacing.xxs),
                     child: Row(
                       children: [
                         Expanded(
@@ -1935,7 +1935,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
 
   Widget _buildExportCard(_ReportSnapshot snapshot) {
     return Container(
-      padding: EdgeInsets.all(Spacing.lg),
+      padding: const EdgeInsets.all(Spacing.lg),
       decoration: AppStyles.sectionDecoration(
         context,
         tint: SemanticColors.success.withValues(alpha: 0.86),
@@ -1950,7 +1950,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
             subtitle:
                 'Professional export with app branding, strategy, and analytics',
           ),
-          SizedBox(height: Spacing.md),
+          const SizedBox(height: Spacing.md),
           Row(
             children: [
               Expanded(
@@ -1962,7 +1962,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
                       : const Text('Export PDF'),
                 ),
               ),
-              SizedBox(width: Spacing.sm),
+              const SizedBox(width: Spacing.sm),
               Expanded(
                 child: CupertinoButton(
                   color: SemanticColors.info,
@@ -1975,7 +1975,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
               ),
             ],
           ),
-          SizedBox(height: Spacing.sm),
+          const SizedBox(height: Spacing.sm),
           Text(
             'PDF includes logo-style header, app name, tagline, deep analytics, grouped breakdown, and strategy results. Excel export is compatible with spreadsheet tools.',
             style: TextStyle(
@@ -2006,7 +2006,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
           alignment: Alignment.center,
           child: Icon(icon, color: SemanticColors.primary, size: IconSizes.sm),
         ),
-        SizedBox(width: Spacing.sm),
+        const SizedBox(width: Spacing.sm),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -2019,7 +2019,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
                   fontSize: TypeScale.callout,
                 ),
               ),
-              SizedBox(height: Spacing.xxs),
+              const SizedBox(height: Spacing.xxs),
               Text(
                 subtitle,
                 style: TextStyle(
@@ -2044,7 +2044,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
       onPressed: onTap,
       child: Container(
         padding:
-            EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
+            const EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
         decoration: AppStyles.tabDecoration(
           context,
           selected: selected,
@@ -2776,7 +2776,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
               top: false,
               child: Column(
                 children: [
-                  SizedBox(height: Spacing.md),
+                  const SizedBox(height: Spacing.md),
                   Container(
                     width: 40,
                     height: 5,
@@ -2786,9 +2786,9 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
                       borderRadius: BorderRadius.circular(3),
                     ),
                   ),
-                  SizedBox(height: Spacing.md),
+                  const SizedBox(height: Spacing.md),
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
+                    padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
                     child: Row(
                       children: [
                         Expanded(
@@ -2804,7 +2804,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
                           },
                           child: const Text('Clear'),
                         ),
-                        SizedBox(width: Spacing.sm),
+                        const SizedBox(width: Spacing.sm),
                         CupertinoButton.filled(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 6),
@@ -2817,7 +2817,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
                       ],
                     ),
                   ),
-                  SizedBox(height: Spacing.sm),
+                  const SizedBox(height: Spacing.sm),
                   Expanded(
                     child: ListView.builder(
                       itemCount: sortedOptions.length,
@@ -2835,7 +2835,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
                             });
                           },
                           child: Container(
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                               horizontal: Spacing.lg,
                               vertical: Spacing.md,
                             ),
@@ -2918,6 +2918,8 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
         [XFile(file.path, mimeType: 'application/pdf')],
         subject: 'VittaraFinOS Analysis Report',
       );
+      // Clean up temp file after sharing
+      try { await file.delete(); } catch (_) {}
     } catch (e) {
       if (mounted) toast.showError('Failed to export PDF: $e');
     } finally {
@@ -2938,6 +2940,8 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
         [XFile(file.path, mimeType: 'application/vnd.ms-excel')],
         subject: 'VittaraFinOS Analysis Export',
       );
+      // Clean up temp file after sharing
+      try { await file.delete(); } catch (_) {}
     } catch (e) {
       if (mounted) toast.showError('Failed to export Excel: $e');
     } finally {
@@ -3427,10 +3431,10 @@ class _BarDistributionPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (groups.isEmpty) return;
 
-    final topPadding = 12.0;
-    final bottomPadding = 48.0;
-    final leftPadding = 12.0;
-    final rightPadding = 10.0;
+    const topPadding = 12.0;
+    const bottomPadding = 48.0;
+    const leftPadding = 12.0;
+    const rightPadding = 10.0;
     final chartHeight = size.height - topPadding - bottomPadding;
     final chartWidth = size.width - leftPadding - rightPadding;
 
@@ -3439,7 +3443,7 @@ class _BarDistributionPainter extends CustomPainter {
         .fold<double>(0.0, (max, value) => value > max ? value : max);
     if (maxValue <= 0) return;
 
-    final barGap = 8.0;
+    const barGap = 8.0;
     final barWidth =
         (chartWidth - (barGap * (groups.length - 1))) / groups.length;
     final palette = <Color>[
@@ -3521,10 +3525,10 @@ class _TrendPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (points.length < 2) return;
 
-    final leftPadding = 10.0;
-    final rightPadding = 10.0;
-    final topPadding = 12.0;
-    final bottomPadding = 12.0;
+    const leftPadding = 10.0;
+    const rightPadding = 10.0;
+    const topPadding = 12.0;
+    const bottomPadding = 12.0;
     final width = size.width - leftPadding - rightPadding;
     final height = size.height - topPadding - bottomPadding;
     final minNet = points.map((p) => p.net).fold<double>(

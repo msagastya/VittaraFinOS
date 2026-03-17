@@ -10,6 +10,8 @@ import 'package:vittara_fin_os/ui/manage/payment_apps_screen.dart';
 import 'package:vittara_fin_os/ui/manage/investments_screen.dart';
 import 'package:vittara_fin_os/ui/manage/categories_screen.dart';
 import 'package:vittara_fin_os/ui/manage/lending_borrowing_screen.dart';
+import 'package:vittara_fin_os/ui/manage/loans/loan_tracker_screen.dart';
+import 'package:vittara_fin_os/ui/manage/insurance/insurance_screen.dart';
 import 'package:vittara_fin_os/ui/manage/contacts_screen.dart';
 import 'package:vittara_fin_os/ui/manage/tags_screen.dart';
 import 'package:vittara_fin_os/ui/manage/transactions_archive_screen.dart';
@@ -65,9 +67,15 @@ class _ManageScreenState extends State<ManageScreen> {
     },
     {
       'id': 'debt',
-      'title': 'Liabilities',
-      'icon': CupertinoIcons.money_dollar_circle_fill,
+      'title': 'Loan / EMI Tracker',
+      'icon': CupertinoIcons.doc_chart_fill,
       'color': AppStyles.plasmaRed,
+    },
+    {
+      'id': 'insurance',
+      'title': 'Insurance Tracker',
+      'icon': CupertinoIcons.shield_fill,
+      'color': AppStyles.accentBlue,
     },
     {
       'id': 'cats',
@@ -170,12 +178,12 @@ class _ManageScreenState extends State<ManageScreen> {
                     gradient: AppStyles.backgroundGradient(context),
                   ),
                   child: ReorderableListView.builder(
-                    padding: EdgeInsets.symmetric(
+                    padding: const EdgeInsets.symmetric(
                       horizontal: Spacing.lg,
                       vertical: Spacing.xl,
                     ),
                     header: Padding(
-                      padding: EdgeInsets.only(bottom: Spacing.lg),
+                      padding: const EdgeInsets.only(bottom: Spacing.lg),
                       child: _buildManageHeader(context),
                     ),
                     itemCount: filteredItems.length,
@@ -230,7 +238,7 @@ class _ManageScreenState extends State<ManageScreen> {
 
   Widget _buildManageHeader(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(bottom: Spacing.sm),
+      padding: const EdgeInsets.only(bottom: Spacing.sm),
       child: Text(
         'Hold & drag to reorder',
         style: TextStyle(
@@ -246,7 +254,7 @@ class _ManageScreenState extends State<ManageScreen> {
   Widget _build3DCard(Map<String, dynamic> item, int index) {
     return Padding(
       key: ValueKey(item['id']),
-      padding: EdgeInsets.only(bottom: Spacing.lg),
+      padding: const EdgeInsets.only(bottom: Spacing.lg),
       child: Hero(
         tag: 'manage_${item['id']}',
         child: BouncyButton(
@@ -265,7 +273,7 @@ class _ManageScreenState extends State<ManageScreen> {
                   color: item['color'],
                   showGlow: true,
                 ),
-                SizedBox(width: Spacing.lg),
+                const SizedBox(width: Spacing.lg),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -275,9 +283,9 @@ class _ManageScreenState extends State<ManageScreen> {
                         style: AppStyles.titleStyle(context),
                       ),
                       if (item['comingSoon'] == true) ...[
-                        SizedBox(height: Spacing.xxs),
+                        const SizedBox(height: Spacing.xxs),
                         Container(
-                          padding: EdgeInsets.symmetric(
+                          padding: const EdgeInsets.symmetric(
                               horizontal: Spacing.sm, vertical: 2),
                           decoration: BoxDecoration(
                             color: CupertinoColors.systemOrange
@@ -308,7 +316,7 @@ class _ManageScreenState extends State<ManageScreen> {
                           : item['color'],
                       size: IconSizes.md,
                     ),
-                    SizedBox(height: Spacing.xs),
+                    const SizedBox(height: Spacing.xs),
                     Icon(
                       CupertinoIcons.line_horizontal_3,
                       color: AppStyles.getSecondaryTextColor(context),
@@ -358,7 +366,10 @@ class _ManageScreenState extends State<ManageScreen> {
         page = const InvestmentsScreen();
         break;
       case 'debt':
-        page = const LendingBorrowingScreen();
+        page = const LoanTrackerScreen();
+        break;
+      case 'insurance':
+        page = const InsuranceScreen();
         break;
       case 'cats':
         page = const CategoriesScreen();

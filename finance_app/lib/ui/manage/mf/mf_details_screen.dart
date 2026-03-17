@@ -111,7 +111,7 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
           onPressed: _isRefreshingNAV ? null : _refreshNAV,
           child: _isRefreshingNAV
               ? const CupertinoActivityIndicator()
-              : Icon(
+              : const Icon(
                   CupertinoIcons.arrow_clockwise,
                   color: AppStyles.accentBlue,
                   size: 20,
@@ -907,17 +907,17 @@ class _MFDividendModalState extends State<_MFDividendModal> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const ModalHandle(),
-            SizedBox(height: Spacing.lg),
+            const SizedBox(height: Spacing.lg),
             Text(
               'Dividend',
               style: AppStyles.titleStyle(context)
                   .copyWith(fontSize: TypeScale.title1),
             ),
-            SizedBox(height: Spacing.xxxl),
+            const SizedBox(height: Spacing.xxxl),
             _buildField(context, 'Amount', prefix: '₹'),
-            SizedBox(height: Spacing.lg),
+            const SizedBox(height: Spacing.lg),
             _buildDateField(context),
-            SizedBox(height: Spacing.xl),
+            const SizedBox(height: Spacing.xl),
             SizedBox(
               width: double.infinity,
               child: CupertinoButton.filled(
@@ -939,7 +939,7 @@ class _MFDividendModalState extends State<_MFDividendModal> {
             style: TextStyle(
                 color: AppStyles.getTextColor(context),
                 fontWeight: FontWeight.w600)),
-        SizedBox(height: Spacing.xs),
+        const SizedBox(height: Spacing.xs),
         CupertinoTextField(
           controller: _amountController,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -968,7 +968,7 @@ class _MFDividendModalState extends State<_MFDividendModal> {
       onTap: _pickDate,
       child: Container(
         padding:
-            EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
+            const EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
         decoration: BoxDecoration(
           color: AppStyles.getBackground(context),
           borderRadius: BorderRadius.circular(Radii.md),
@@ -1073,20 +1073,20 @@ class _EditMFModalState extends State<_EditMFModal> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const ModalHandle(),
-              SizedBox(height: Spacing.lg),
+              const SizedBox(height: Spacing.lg),
               Text(
                 'Edit Mutual Fund',
                 style: AppStyles.titleStyle(context)
                     .copyWith(fontSize: TypeScale.title1),
               ),
-              SizedBox(height: Spacing.xxxl),
+              const SizedBox(height: Spacing.xxxl),
               _buildInputField(context, 'Investment Amount', _amountController,
                   prefix: '₹'),
-              SizedBox(height: Spacing.lg),
+              const SizedBox(height: Spacing.lg),
               _buildInputField(context, 'Average NAV', _navController),
-              SizedBox(height: Spacing.lg),
+              const SizedBox(height: Spacing.lg),
               _buildInputField(context, 'Units', _unitsController),
-              SizedBox(height: Spacing.xl),
+              const SizedBox(height: Spacing.xl),
               SizedBox(
                 width: double.infinity,
                 child: CupertinoButton.filled(
@@ -1171,8 +1171,8 @@ class _SparklinePainter extends CustomPainter {
     final path = Path();
     final fillPath = Path();
 
-    double x0 = 0;
-    double y0 = size.height - ((values[0] - minVal) / range) * size.height;
+    const double x0 = 0;
+    final double y0 = size.height - ((values[0] - minVal) / range) * size.height;
     path.moveTo(x0, y0);
     fillPath.moveTo(x0, size.height);
     fillPath.lineTo(x0, y0);

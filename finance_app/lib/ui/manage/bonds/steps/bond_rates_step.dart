@@ -87,7 +87,7 @@ class _FixedCouponRateInputState extends State<_FixedCouponRateInput> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Annual Coupon Rate (%)',
+        const Text('Annual Coupon Rate (%)',
             style: TextStyle(
                 fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
         const SizedBox(height: Spacing.md),
@@ -100,9 +100,9 @@ class _FixedCouponRateInputState extends State<_FixedCouponRateInput> {
             color: AppStyles.getCardColor(context),
             borderRadius: BorderRadius.circular(Radii.md),
           ),
-          suffix: Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: const Text('%'),
+          suffix: const Padding(
+            padding: EdgeInsets.only(right: 16),
+            child: Text('%'),
           ),
           onChanged: (v) {
             final rate = double.tryParse(v) ?? 0;
@@ -160,7 +160,7 @@ class _ZeroCouponInputState extends State<_ZeroCouponInput> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Maturity Value (₹)',
+        const Text('Maturity Value (₹)',
             style: TextStyle(
                 fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
         const SizedBox(height: Spacing.md),
@@ -173,9 +173,9 @@ class _ZeroCouponInputState extends State<_ZeroCouponInput> {
             color: AppStyles.getCardColor(context),
             borderRadius: BorderRadius.circular(Radii.md),
           ),
-          prefix: Padding(
-            padding: const EdgeInsets.only(left: 16),
-            child: const Text('₹'),
+          prefix: const Padding(
+            padding: EdgeInsets.only(left: 16),
+            child: Text('₹'),
           ),
           onChanged: (v) {
             final value = double.tryParse(v) ?? 0;
@@ -244,7 +244,7 @@ class _AmortizingRateInputState extends State<_AmortizingRateInput> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Annual Interest Rate (%)',
+        const Text('Annual Interest Rate (%)',
             style: TextStyle(
                 fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
         const SizedBox(height: Spacing.md),
@@ -257,9 +257,9 @@ class _AmortizingRateInputState extends State<_AmortizingRateInput> {
             color: AppStyles.getCardColor(context),
             borderRadius: BorderRadius.circular(Radii.md),
           ),
-          suffix: Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: const Text('%'),
+          suffix: const Padding(
+            padding: EdgeInsets.only(right: 16),
+            child: Text('%'),
           ),
           onChanged: (v) {
             final rate = double.tryParse(v) ?? 0;
@@ -324,7 +324,7 @@ class _FloatingRateInputState extends State<_FloatingRateInput> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Reference Rate (%) - Current',
+        const Text('Reference Rate (%) - Current',
             style: TextStyle(
                 fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
         const SizedBox(height: Spacing.md),
@@ -337,9 +337,9 @@ class _FloatingRateInputState extends State<_FloatingRateInput> {
             color: AppStyles.getCardColor(context),
             borderRadius: BorderRadius.circular(Radii.md),
           ),
-          suffix: Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: const Text('%'),
+          suffix: const Padding(
+            padding: EdgeInsets.only(right: 16),
+            child: Text('%'),
           ),
           onChanged: (v) {
             final rate = double.tryParse(v) ?? 0;
@@ -347,7 +347,7 @@ class _FloatingRateInputState extends State<_FloatingRateInput> {
           },
         ),
         const SizedBox(height: Spacing.xxl),
-        Text('Spread (%) - Fixed',
+        const Text('Spread (%) - Fixed',
             style: TextStyle(
                 fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
         const SizedBox(height: Spacing.md),
@@ -360,9 +360,9 @@ class _FloatingRateInputState extends State<_FloatingRateInput> {
             color: AppStyles.getCardColor(context),
             borderRadius: BorderRadius.circular(Radii.md),
           ),
-          suffix: Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: const Text('%'),
+          suffix: const Padding(
+            padding: EdgeInsets.only(right: 16),
+            child: Text('%'),
           ),
           onChanged: (v) {
             final spread = double.tryParse(v) ?? 0;
@@ -389,10 +389,10 @@ class _FloatingRateInputState extends State<_FloatingRateInput> {
               const SizedBox(height: Spacing.sm),
               Text(
                 'Current Rate: ${currentRate.toStringAsFixed(2)}%',
-                style: TextStyle(
+                style: const TextStyle(
                     fontSize: TypeScale.subhead,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF00A6CC)),
+                    color: Color(0xFF00A6CC)),
               ),
               const SizedBox(height: Spacing.sm),
               Text(

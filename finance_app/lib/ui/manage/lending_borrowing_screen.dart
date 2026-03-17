@@ -380,7 +380,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
       builder: (BuildContext context) => CupertinoActionSheet(
         title: Text(
           record.personName,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: TypeScale.title3,
             fontWeight: FontWeight.w700,
           ),
@@ -399,12 +399,12 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
               Navigator.pop(context);
               _showHistoryModal(context, record);
             },
-            child: Row(
+            child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(CupertinoIcons.clock, color: SemanticColors.info),
                 SizedBox(width: Spacing.sm),
-                const Text('View History'),
+                Text('View History'),
               ],
             ),
           ),
@@ -414,13 +414,13 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                 Navigator.pop(context);
                 _showPayoffCalculator(context, record);
               },
-              child: Row(
+              child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(CupertinoIcons.chart_bar_circle,
                       color: CupertinoColors.systemPurple),
                   SizedBox(width: Spacing.sm),
-                  const Text('Payoff Calculator'),
+                  Text('Payoff Calculator'),
                 ],
               ),
             ),
@@ -429,13 +429,13 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                 Navigator.pop(context);
                 _showPartialPaymentModal(context, record, controller);
               },
-              child: Row(
+              child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(CupertinoIcons.arrow_up_down_circle,
                       color: SemanticColors.info),
                   SizedBox(width: Spacing.sm),
-                  const Text('Add/Reduce Amount'),
+                  Text('Add/Reduce Amount'),
                 ],
               ),
             ),
@@ -449,7 +449,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                 children: [
                   Icon(CupertinoIcons.pencil,
                       color: SemanticColors.getPrimary(context)),
-                  SizedBox(width: Spacing.sm),
+                  const SizedBox(width: Spacing.sm),
                   const Text('Edit Details'),
                 ],
               ),
@@ -459,13 +459,13 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                 Navigator.pop(context);
                 _settleRecord(record, controller);
               },
-              child: Row(
+              child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(CupertinoIcons.checkmark_circle,
                       color: SemanticColors.success),
                   SizedBox(width: Spacing.sm),
-                  const Text('Mark as Settled'),
+                  Text('Mark as Settled'),
                 ],
               ),
             ),
@@ -475,13 +475,13 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                 Navigator.pop(context);
                 _reopenRecord(record, controller);
               },
-              child: Row(
+              child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(CupertinoIcons.arrow_counterclockwise,
                       color: SemanticColors.warning),
                   SizedBox(width: Spacing.sm),
-                  const Text('Reopen Record'),
+                  Text('Reopen Record'),
                 ],
               ),
             ),
@@ -492,12 +492,12 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
               Navigator.pop(context);
               _deleteRecord(context, record, controller);
             },
-            child: Row(
+            child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(CupertinoIcons.trash, color: SemanticColors.error),
                 SizedBox(width: Spacing.sm),
-                const Text('Delete'),
+                Text('Delete'),
               ],
             ),
           ),
@@ -529,8 +529,8 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
             child: SafeArea(
               child: Column(
                 children: [
-                  ModalHandle(),
-                  SizedBox(height: Spacing.md),
+                  const ModalHandle(),
+                  const SizedBox(height: Spacing.md),
                   Text(
                     'Adjust Amount',
                     style: AppStyles.titleStyle(context).copyWith(
@@ -538,7 +538,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: Spacing.sm),
+                  const SizedBox(height: Spacing.sm),
                   Text(
                     'Current: ₹${record.amount.toStringAsFixed(0)}',
                     style: TextStyle(
@@ -546,7 +546,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                       fontSize: TypeScale.body,
                     ),
                   ),
-                  SizedBox(height: Spacing.xxl),
+                  const SizedBox(height: Spacing.xxl),
                   // Add/Subtract Toggle
                   Padding(
                     padding: Spacing.screenPadding,
@@ -560,7 +560,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                             },
                             child: Container(
                               padding:
-                                  EdgeInsets.symmetric(vertical: Spacing.md),
+                                  const EdgeInsets.symmetric(vertical: Spacing.md),
                               decoration: BoxDecoration(
                                 color: isAdding
                                     ? SemanticColors.success
@@ -585,7 +585,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                                         : AppStyles.getSecondaryTextColor(
                                             context),
                                   ),
-                                  SizedBox(width: Spacing.xs),
+                                  const SizedBox(width: Spacing.xs),
                                   Text(
                                     'Add',
                                     style: TextStyle(
@@ -601,7 +601,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                             ),
                           ),
                         ),
-                        SizedBox(width: Spacing.md),
+                        const SizedBox(width: Spacing.md),
                         Expanded(
                           child: BouncyButton(
                             onPressed: () {
@@ -610,7 +610,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                             },
                             child: Container(
                               padding:
-                                  EdgeInsets.symmetric(vertical: Spacing.md),
+                                  const EdgeInsets.symmetric(vertical: Spacing.md),
                               decoration: BoxDecoration(
                                 color: !isAdding
                                     ? SemanticColors.warning
@@ -635,7 +635,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                                         : AppStyles.getSecondaryTextColor(
                                             context),
                                   ),
-                                  SizedBox(width: Spacing.xs),
+                                  const SizedBox(width: Spacing.xs),
                                   Text(
                                     'Reduce',
                                     style: TextStyle(
@@ -654,7 +654,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                       ],
                     ),
                   ),
-                  SizedBox(height: Spacing.lg),
+                  const SizedBox(height: Spacing.lg),
                   // Amount Input
                   Padding(
                     padding: Spacing.screenPadding,
@@ -664,7 +664,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                       keyboardType:
                           const TextInputType.numberWithOptions(decimal: true),
                       prefix: Padding(
-                        padding: EdgeInsets.only(left: Spacing.md),
+                        padding: const EdgeInsets.only(left: Spacing.md),
                         child: Text(
                           '₹',
                           style: TextStyle(
@@ -715,7 +715,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                     secondaryLabel: 'Cancel',
                     onSecondaryPressed: () => Navigator.pop(modalContext),
                   ),
-                  SizedBox(height: Spacing.lg),
+                  const SizedBox(height: Spacing.lg),
                 ],
               ),
             ),
@@ -1008,7 +1008,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
         _showRecordActions(context, record, controller);
       },
       child: Container(
-        margin: EdgeInsets.only(bottom: Spacing.md),
+        margin: const EdgeInsets.only(bottom: Spacing.md),
         decoration: AppStyles.accentCardDecoration(context, color),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(Radii.xxl),
@@ -1043,7 +1043,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                         color: color,
                         size: 48,
                       ),
-                      SizedBox(width: Spacing.lg),
+                      const SizedBox(width: Spacing.lg),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1061,7 +1061,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                                 color: AppStyles.getTextColor(context),
                               ),
                             ),
-                            SizedBox(height: Spacing.xs),
+                            const SizedBox(height: Spacing.xs),
                             Text(
                               '${_formatDate(record.date)} • ${isLent ? "Lent" : "Borrowed"}',
                               style: TextStyle(
@@ -1073,9 +1073,9 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                           ],
                         ),
                       ),
-                      SizedBox(width: Spacing.md),
+                      const SizedBox(width: Spacing.md),
                       Container(
-                        padding: EdgeInsets.symmetric(
+                        padding: const EdgeInsets.symmetric(
                           horizontal: Spacing.md,
                           vertical: Spacing.sm,
                         ),
@@ -1098,7 +1098,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                     ],
                   ),
                   if (record.history.isNotEmpty) ...[
-                    SizedBox(height: Spacing.sm),
+                    const SizedBox(height: Spacing.sm),
                     Row(
                       children: [
                         Icon(
@@ -1106,7 +1106,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                           size: IconSizes.xs,
                           color: AppStyles.getSecondaryTextColor(context),
                         ),
-                        SizedBox(width: Spacing.xs),
+                        const SizedBox(width: Spacing.xs),
                         Text(
                           '${record.history.length} updates',
                           style: TextStyle(
@@ -1118,7 +1118,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                     ),
                   ],
                   if (record.description != null) ...[
-                    SizedBox(height: Spacing.md),
+                    const SizedBox(height: Spacing.md),
                     Text(
                       record.description!,
                       style: TextStyle(
@@ -1128,7 +1128,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                     ),
                   ],
                   if (record.dueDate != null) ...[
-                    SizedBox(height: Spacing.sm),
+                    const SizedBox(height: Spacing.sm),
                     Row(
                       children: [
                         Icon(
@@ -1136,7 +1136,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                           size: IconSizes.xs,
                           color: AppStyles.getSecondaryTextColor(context),
                         ),
-                        SizedBox(width: Spacing.xs),
+                        const SizedBox(width: Spacing.xs),
                         Text(
                           'Due: ${_formatDate(record.dueDate!)}',
                           style: TextStyle(
@@ -1148,18 +1148,18 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                     ),
                   ],
                   if (record.isSettled && settledOn != null) ...[
-                    SizedBox(height: Spacing.sm),
+                    const SizedBox(height: Spacing.sm),
                     Row(
                       children: [
-                        Icon(
+                        const Icon(
                           CupertinoIcons.checkmark_circle_fill,
                           size: IconSizes.xs,
                           color: SemanticColors.success,
                         ),
-                        SizedBox(width: Spacing.xs),
+                        const SizedBox(width: Spacing.xs),
                         Text(
                           'Settled: ${_formatDate(settledOn)}',
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: TypeScale.caption,
                             color: SemanticColors.success,
                             fontWeight: FontWeight.w600,
@@ -1176,7 +1176,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                 right: Spacing.sm,
                 top: Spacing.sm,
                 child: Container(
-                  padding: EdgeInsets.symmetric(
+                  padding: const EdgeInsets.symmetric(
                     horizontal: Spacing.md,
                     vertical: Spacing.xs,
                   ),
@@ -1184,7 +1184,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                     color: SemanticColors.success,
                     borderRadius: Radii.chipRadius,
                   ),
-                  child: Text(
+                  child: const Text(
                     'Settled ✓',
                     style: TextStyle(
                       color: Colors.white,
@@ -1555,7 +1555,7 @@ class _TransactionTypeWizard extends StatelessWidget {
                         color: AppStyles.accentBlue.withValues(alpha: 0.15),
                         shape: BoxShape.circle,
                       ),
-                      child: Center(
+                      child: const Center(
                         child: Icon(
                           CupertinoIcons.info,
                           size: 18,

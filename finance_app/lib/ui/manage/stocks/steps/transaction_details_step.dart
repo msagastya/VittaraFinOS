@@ -268,7 +268,7 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
                 ),
                 Text(
                   '₹${(controller.qty * _currentMarketPrice).toStringAsFixed(2)}',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: TypeScale.headline,
                     color: AppStyles.bioGreen,
@@ -299,7 +299,7 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
                     ),
                     Text(
                       '₹${controller.totalAmount.toStringAsFixed(2)}',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: TypeScale.headline,
                         color: SemanticColors.investments,

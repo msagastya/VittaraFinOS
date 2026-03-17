@@ -54,7 +54,7 @@ class _CommodityQuantityStepState extends State<CommodityQuantityStep> {
         children: [
           Text('Quantity & Unit', style: AppStyles.titleStyle(context)),
           const SizedBox(height: 30),
-          Text('Quantity',
+          const Text('Quantity',
               style: TextStyle(
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
@@ -73,7 +73,7 @@ class _CommodityQuantityStepState extends State<CommodityQuantityStep> {
             },
           ),
           const SizedBox(height: Spacing.xxl),
-          Text('Unit of Measurement',
+          const Text('Unit of Measurement',
               style: TextStyle(
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),

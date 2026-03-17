@@ -153,7 +153,7 @@ class _InteractiveCardState extends State<InteractiveCard>
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(Radii.xxl),
                   child: Padding(
-                    padding: widget.padding ?? EdgeInsets.all(Spacing.lg),
+                    padding: widget.padding ?? const EdgeInsets.all(Spacing.lg),
                     child: widget.child,
                   ),
                 ),
@@ -238,7 +238,7 @@ class _PressableCardState extends State<PressableCard>
               opacity: _opacityAnimation.value,
               child: Container(
                 margin: widget.margin,
-                padding: widget.padding ?? EdgeInsets.all(Spacing.lg),
+                padding: widget.padding ?? const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color: backgroundColor,
                   borderRadius: BorderRadius.circular(Radii.xxl),
@@ -327,7 +327,7 @@ class _ShimmerCardState extends State<ShimmerCard>
           children: [
             Container(
               margin: widget.margin,
-              padding: widget.padding ?? EdgeInsets.all(Spacing.lg),
+              padding: widget.padding ?? const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: isDark ? Colors.grey[900]! : Colors.white,
                 borderRadius: BorderRadius.circular(Radii.xxl),
@@ -485,7 +485,7 @@ class _GlowCardState extends State<GlowCard>
                 ],
               ),
               child: Container(
-                padding: widget.padding ?? EdgeInsets.all(Spacing.lg),
+                padding: widget.padding ?? const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color: isDark ? Colors.grey[900]! : Colors.white,
                   borderRadius: BorderRadius.circular(Radii.xxl),

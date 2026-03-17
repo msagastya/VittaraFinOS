@@ -52,7 +52,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
                 context,
                 context.read<ContactsController>(),
               ),
-              child: Icon(
+              child: const Icon(
                 CupertinoIcons.plus_circle_fill,
                 color: AppStyles.accentBlue,
                 size: 24,
@@ -68,7 +68,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
         builder: (context, contactsController, child) {
           final contacts = contactsController.contacts;
           final q = _searchQuery.toLowerCase();
-          var filtered = q.isEmpty
+          final filtered = q.isEmpty
               ? contacts.toList()
               : contacts.where((c) {
                   return c.name.toLowerCase().contains(q) ||
@@ -93,7 +93,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
                     : Column(
                         children: [
                           Container(
-                            margin: EdgeInsets.fromLTRB(
+                            margin: const EdgeInsets.fromLTRB(
                                 Spacing.lg, Spacing.md, Spacing.lg, Spacing.sm),
                             decoration: BoxDecoration(
                               color: AppStyles.getCardColor(context),
@@ -116,7 +116,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
                                         'No contacts match "$_searchQuery"',
                                   )
                                 : ListView.builder(
-                                    padding: EdgeInsets.fromLTRB(Spacing.lg,
+                                    padding: const EdgeInsets.fromLTRB(Spacing.lg,
                                         Spacing.sm, Spacing.lg, 100),
                                     itemCount: filtered.length,
                                     itemBuilder: (context, index) {
@@ -165,7 +165,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
         _showContactOptions(context, contact, controller);
       },
       child: Container(
-        margin: EdgeInsets.only(bottom: Spacing.md),
+        margin: const EdgeInsets.only(bottom: Spacing.md),
         decoration: AppStyles.cardDecoration(context).copyWith(
           border: Border.all(
             color: SemanticColors.contacts
@@ -174,7 +174,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
           ),
         ),
         padding:
-            EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.md),
+            const EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.md),
         child: Row(
           children: [
             Container(
@@ -188,7 +188,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
               child: Center(
                 child: Text(
                   firstLetter,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: SemanticColors.contacts,
                     fontWeight: FontWeight.w600,
                     fontSize: TypeScale.title3,
@@ -196,7 +196,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
                 ),
               ),
             ),
-            SizedBox(width: Spacing.md),
+            const SizedBox(width: Spacing.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

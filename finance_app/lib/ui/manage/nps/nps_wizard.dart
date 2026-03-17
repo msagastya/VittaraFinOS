@@ -132,6 +132,7 @@ class _NPSWizardContentState extends State<_NPSWizardContent> {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
       navigationBar: CupertinoNavigationBar(
+        previousPageTitle: 'Back',
         middle: Text('Add NPS Account',
             style: TextStyle(color: AppStyles.getTextColor(context))),
         backgroundColor: AppStyles.getBackground(context),

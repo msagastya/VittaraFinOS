@@ -348,6 +348,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         [XFile(file.path, mimeType: 'text/csv')],
         subject: 'Transactions Export',
       );
+      // Clean up temp file after sharing
+      try { await file.delete(); } catch (_) {}
     } catch (e) {
       if (mounted) toast_lib.toast.showError('Export failed: $e');
     } finally {
@@ -439,7 +441,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           final transactions = _filterBySearch(allTransactions);
 
           if (allTransactions.isEmpty) {
-            return EmptyStateView(
+            return const EmptyStateView(
               icon: CupertinoIcons.doc_text,
               title: 'No Transactions Yet',
               subtitle: 'Transfers and other transactions will appear here',
@@ -451,7 +453,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
             child: Column(
               children: [
                 Padding(
-                  padding: EdgeInsets.fromLTRB(
+                  padding: const EdgeInsets.fromLTRB(
                       Spacing.lg, Spacing.lg, Spacing.lg, Spacing.sm),
                   child: CupertinoSearchTextField(
                     controller: _searchController,
@@ -468,7 +470,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                 ),
                 if (_hasActiveFilter)
                   Padding(
-                    padding: EdgeInsets.fromLTRB(
+                    padding: const EdgeInsets.fromLTRB(
                         Spacing.lg, 0, Spacing.lg, Spacing.sm),
                     child: Row(
                       children: [
@@ -625,7 +627,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           parent: AlwaysScrollableScrollPhysics(),
         ),
         cacheExtent: 600,
-        padding: EdgeInsets.fromLTRB(
+        padding: const EdgeInsets.fromLTRB(
             Spacing.lg, Spacing.sm, Spacing.lg, Spacing.xxxl),
         itemCount: listItems.length + (hasMore ? 1 : 0),
         itemBuilder: (context, index) {
@@ -711,7 +713,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                     border: Border.all(
                         color: AppStyles.aetherTeal.withValues(alpha: 0.5)),
                   ),
-                  child: Icon(
+                  child: const Icon(
                     CupertinoIcons.arrow_up,
                     size: 18,
                     color: AppStyles.aetherTeal,
@@ -822,7 +824,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                                           width: 0.5,
                                         ),
                                       ),
-                                      child: Row(
+                                      child: const Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Icon(
@@ -830,7 +832,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                                             size: 9,
                                             color: AppStyles.aetherTeal,
                                           ),
-                                          const SizedBox(width: 3),
+                                          SizedBox(width: 3),
                                           Text(
                                             'Transfer',
                                             style: TextStyle(
@@ -988,7 +990,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           color: AppStyles.plasmaRed.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Row(
+        child: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
@@ -996,7 +998,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
               size: 16,
               color: AppStyles.plasmaRed,
             ),
-            const SizedBox(width: 6),
+            SizedBox(width: 6),
             Text(
               'Delete Transaction',
               style: TextStyle(

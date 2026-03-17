@@ -218,6 +218,7 @@ class _MFWizardContentState extends State<_MFWizardContent> {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
       navigationBar: CupertinoNavigationBar(
+        previousPageTitle: 'Back',
         middle: Text(
           'Add Mutual Fund',
           style: TextStyle(color: AppStyles.getTextColor(context)),

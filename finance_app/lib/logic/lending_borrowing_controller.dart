@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-import 'lending_borrowing_model.dart';
+import 'package:vittara_fin_os/logic/lending_borrowing_model.dart';
 
-class LendingBorrowingController extends ChangeNotifier {
+class LendingBorrowingController with ChangeNotifier {
   List<LendingBorrowing> _records = [];
 
   List<LendingBorrowing> get records => _records;

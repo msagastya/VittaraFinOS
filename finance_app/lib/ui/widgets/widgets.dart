@@ -19,3 +19,6 @@ export 'icon_picker.dart';
 
 // Reusable account selection step for wizards
 export 'account_selection_step.dart';
+
+// AU9-06 — Unified AppButton component
+export 'app_button.dart';

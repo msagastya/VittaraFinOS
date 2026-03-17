@@ -78,7 +78,7 @@ class _EditGoalModalState extends State<EditGoalModal> {
     return Container(
       decoration: BoxDecoration(
           color: AppStyles.getCardColor(context),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(Radii.xxl))),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(Radii.xxl))),
       child: SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.only(
@@ -87,54 +87,54 @@ class _EditGoalModalState extends State<EditGoalModal> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                  margin: EdgeInsets.only(top: Spacing.md),
+                  margin: const EdgeInsets.only(top: Spacing.md),
                   width: 40,
                   height: 5,
                   decoration: BoxDecoration(
                       color: CupertinoColors.systemGrey3,
                       borderRadius: BorderRadius.circular(2.5))),
-              SizedBox(height: Spacing.xl),
+              const SizedBox(height: Spacing.xl),
               Text('Edit Goal',
                   style: TextStyle(
                       fontSize: TypeScale.title2,
                       fontWeight: FontWeight.bold,
                       color: AppStyles.getTextColor(context))),
-              SizedBox(height: Spacing.xxl),
+              const SizedBox(height: Spacing.xxl),
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: Spacing.xxl),
+                padding: const EdgeInsets.symmetric(horizontal: Spacing.xxl),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Goal Name',
+                    const Text('Goal Name',
                         style: TextStyle(
                             fontSize: TypeScale.subhead,
                             fontWeight: FontWeight.w600)),
-                    SizedBox(height: Spacing.sm),
+                    const SizedBox(height: Spacing.sm),
                     CupertinoTextField(
                         controller: _nameController,
-                        padding: EdgeInsets.all(Spacing.lg),
+                        padding: const EdgeInsets.all(Spacing.lg),
                         decoration: BoxDecoration(
                             color: AppStyles.getBackground(context),
                             borderRadius: BorderRadius.circular(Radii.md))),
-                    SizedBox(height: Spacing.xl),
-                    Text('Target Amount',
+                    const SizedBox(height: Spacing.xl),
+                    const Text('Target Amount',
                         style: TextStyle(
                             fontSize: TypeScale.subhead,
                             fontWeight: FontWeight.w600)),
-                    SizedBox(height: Spacing.sm),
+                    const SizedBox(height: Spacing.sm),
                     CupertinoTextField(
                       controller: _targetAmountController,
                       keyboardType:
-                          TextInputType.numberWithOptions(decimal: true),
-                      prefix: Padding(
+                          const TextInputType.numberWithOptions(decimal: true),
+                      prefix: const Padding(
                           padding: EdgeInsets.only(left: Spacing.lg),
                           child: Text('₹')),
-                      padding: EdgeInsets.all(Spacing.lg),
+                      padding: const EdgeInsets.all(Spacing.lg),
                       decoration: BoxDecoration(
                           color: AppStyles.getBackground(context),
                           borderRadius: BorderRadius.circular(Radii.md)),
                     ),
-                    SizedBox(height: Spacing.xxxl),
+                    const SizedBox(height: Spacing.xxxl),
                     Row(
                       children: [
                         Expanded(
@@ -145,12 +145,12 @@ class _EditGoalModalState extends State<EditGoalModal> {
                                     style: TextStyle(
                                         color:
                                             AppStyles.getTextColor(context))))),
-                        SizedBox(width: Spacing.md),
+                        const SizedBox(width: Spacing.md),
                         Expanded(
                             child: CupertinoButton(
                                 color: SemanticColors.primary,
                                 onPressed: _updateGoal,
-                                child: Text('Update',
+                                child: const Text('Update',
                                     style: TextStyle(color: Colors.white)))),
                       ],
                     ),

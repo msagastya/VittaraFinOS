@@ -104,6 +104,7 @@ class _CryptoWizardContent extends StatelessWidget {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
       navigationBar: CupertinoNavigationBar(
+        previousPageTitle: 'Back',
         middle: Text(
           'Add Cryptocurrency',
           style: TextStyle(color: AppStyles.getTextColor(context)),

@@ -32,6 +32,22 @@ class BackupRestoreService {
   BackupRestoreService._();
 
   static const int currentSchemaVersion = 4;
+
+  // AU3-02 — DB migration skeleton
+  // When bumping currentSchemaVersion to 5, implement _migrateV4toV5() and call
+  // it inside the restore path when schemaVersion == 4.
+  //
+  // Schema v5 changes (planned):
+  //   - transactions: add `derived_metadata` TEXT column (JSON blob for AI features)
+  //   - categories: add `parent_category_id` TEXT column for hierarchy
+  //   - investments: add `valuation_snapshots` TEXT column (JSON array)
+  //
+  // static void _migrateV4toV5(Map<String, dynamic> payload) {
+  //   // 1. Add derived_metadata to each transaction if missing
+  //   // 2. Add parent_category_id to each category if missing
+  //   // 3. bump payload['schemaVersion'] = 5
+  // }
+
   static const String backupFormat = 'vittara_backup';
   static const String _backupAppId = 'vittara_fin_os';
   static const String backupFolderName = 'backups';
@@ -1327,7 +1343,7 @@ class BackupRestoreService {
   }
 
   static Map<String, String> _encryptPayload(String payloadJson) {
-    final keyVersion = _encryptionKeyVersion;
+    const keyVersion = _encryptionKeyVersion;
     final nonce = _randomBytes(16);
     final salt = _randomBytes(16);
     final encryptionKey = _deriveEncryptionKey(

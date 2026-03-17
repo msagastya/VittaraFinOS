@@ -19,7 +19,7 @@ class ActionsWidget extends BaseDashboardWidget {
           size: compact ? 16 : 18,
           color: AppStyles.getPrimaryColor(context),
         ),
-        SizedBox(width: Spacing.sm),
+        const SizedBox(width: Spacing.sm),
         Expanded(
           child: Text(
             config.title,
@@ -103,7 +103,7 @@ class ActionsWidget extends BaseDashboardWidget {
     if (compact) {
       // Vertical layout for compact - Enhanced with better styling
       return Container(
-        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         decoration: BoxDecoration(
           color: AppStyles.getCardColor(context),
           borderRadius: BorderRadius.circular(10),
@@ -131,7 +131,7 @@ class ActionsWidget extends BaseDashboardWidget {
               ),
               child: Icon(icon, size: 18, color: color),
             ),
-            SizedBox(height: Spacing.sm),
+            const SizedBox(height: Spacing.sm),
             Text(
               title,
               style: TextStyle(
@@ -143,7 +143,7 @@ class ActionsWidget extends BaseDashboardWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-            SizedBox(height: 3),
+            const SizedBox(height: 3),
             Text(
               subtitle,
               style: TextStyle(
@@ -160,7 +160,7 @@ class ActionsWidget extends BaseDashboardWidget {
 
     // Horizontal layout for medium/full - Enhanced
     return Container(
-      padding: EdgeInsets.all(Spacing.md),
+      padding: const EdgeInsets.all(Spacing.md),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -203,7 +203,7 @@ class ActionsWidget extends BaseDashboardWidget {
             ),
             child: Icon(icon, size: 20, color: color),
           ),
-          SizedBox(width: Spacing.md),
+          const SizedBox(width: Spacing.md),
 
           // Title and subtitle
           Expanded(
@@ -221,9 +221,9 @@ class ActionsWidget extends BaseDashboardWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(height: Spacing.xxs),
+                const SizedBox(height: Spacing.xxs),
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(4),

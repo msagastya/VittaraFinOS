@@ -25,7 +25,7 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
           size: compact ? 16 : 18,
           color: AppStyles.getPrimaryColor(context),
         ),
-        SizedBox(width: Spacing.sm),
+        const SizedBox(width: Spacing.sm),
         Expanded(
           child: Text(
             config.title,
@@ -83,7 +83,7 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
                   size: columnSpan == 1 ? 28 : 40,
                   color: AppStyles.getSecondaryTextColor(context),
                 ),
-                SizedBox(height: Spacing.sm),
+                const SizedBox(height: Spacing.sm),
                 Text(
                   'No transactions',
                   style: TextStyle(
@@ -108,7 +108,7 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
                   entry.value,
                   compact: columnSpan == 1,
                 ),
-                if (!isLast) Divider(height: 12),
+                if (!isLast) const Divider(height: 12),
               ],
             );
           }).toList(),
@@ -177,7 +177,7 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
     if (compact) {
       // Vertical compact layout
       return Container(
-        padding: EdgeInsets.all(Spacing.sm),
+        padding: const EdgeInsets.all(Spacing.sm),
         decoration: BoxDecoration(
           color: AppStyles.getCardColor(context),
           borderRadius: BorderRadius.circular(8),
@@ -201,7 +201,7 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
                     color: categoryColor,
                   ),
                 ),
-                SizedBox(width: 6),
+                const SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     description,
@@ -216,7 +216,7 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
                 ),
               ],
             ),
-            SizedBox(height: Spacing.xs),
+            const SizedBox(height: Spacing.xs),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -244,7 +244,7 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
 
     // Horizontal layout - Enhanced
     return Container(
-      padding: EdgeInsets.all(Spacing.md),
+      padding: const EdgeInsets.all(Spacing.md),
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: BorderRadius.circular(10),
@@ -268,7 +268,7 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
               color: categoryColor,
             ),
           ),
-          SizedBox(width: Spacing.md),
+          const SizedBox(width: Spacing.md),
 
           // Description and Category
           Expanded(
@@ -286,11 +286,11 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(height: Spacing.xxs),
+                const SizedBox(height: Spacing.xxs),
                 Row(
                   children: [
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: categoryColor.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(4),
@@ -304,7 +304,7 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
                         ),
                       ),
                     ),
-                    SizedBox(width: 6),
+                    const SizedBox(width: 6),
                     Text(
                       _relativeTime(transaction.dateTime),
                       style: TextStyle(

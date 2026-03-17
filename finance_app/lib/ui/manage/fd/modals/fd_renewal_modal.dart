@@ -97,7 +97,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
             border: null,
           ),
           body: SingleChildScrollView(
-            padding: EdgeInsets.all(Spacing.lg),
+            padding: const EdgeInsets.all(Spacing.lg),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -110,13 +110,13 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                     fontSize: TypeScale.body,
                   ),
                 ),
-                SizedBox(height: Spacing.sm),
+                const SizedBox(height: Spacing.sm),
                 CupertinoTextField(
                   controller: _principalController,
                   placeholder: 'Principal Amount',
                   placeholderStyle: TextStyle(
                       color: AppStyles.getSecondaryTextColor(context)),
-                  padding: EdgeInsets.all(Spacing.md),
+                  padding: const EdgeInsets.all(Spacing.md),
                   decoration: BoxDecoration(
                     color: AppStyles.getCardColor(context),
                     borderRadius: BorderRadius.circular(8),
@@ -129,7 +129,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                         double.tryParse(value) ?? widget.fd.maturityValue);
                   },
                 ),
-                SizedBox(height: Spacing.lg),
+                const SizedBox(height: Spacing.lg),
 
                 // Investment Start Date (Editable - for date adjustments)
                 Text(
@@ -140,7 +140,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                     fontSize: TypeScale.body,
                   ),
                 ),
-                SizedBox(height: Spacing.sm),
+                const SizedBox(height: Spacing.sm),
                 GestureDetector(
                   onTap: () => _showDatePicker(
                     context,
@@ -152,7 +152,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                     },
                   ),
                   child: Container(
-                    padding: EdgeInsets.all(Spacing.md),
+                    padding: const EdgeInsets.all(Spacing.md),
                     decoration: BoxDecoration(
                       color: AppStyles.getCardColor(context),
                       borderRadius: BorderRadius.circular(8),
@@ -180,7 +180,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                     ),
                   ),
                 ),
-                SizedBox(height: Spacing.lg),
+                const SizedBox(height: Spacing.lg),
 
                 // Interest Rate (Editable)
                 Text(
@@ -191,13 +191,13 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                     fontSize: TypeScale.body,
                   ),
                 ),
-                SizedBox(height: Spacing.sm),
+                const SizedBox(height: Spacing.sm),
                 CupertinoTextField(
                   controller: _interestRateController,
                   placeholder: 'Annual Interest Rate (%)',
                   placeholderStyle: TextStyle(
                       color: AppStyles.getSecondaryTextColor(context)),
-                  padding: EdgeInsets.all(Spacing.md),
+                  padding: const EdgeInsets.all(Spacing.md),
                   decoration: BoxDecoration(
                     color: AppStyles.getCardColor(context),
                     borderRadius: BorderRadius.circular(8),
@@ -210,7 +210,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                         double.tryParse(value) ?? widget.fd.interestRate);
                   },
                 ),
-                SizedBox(height: Spacing.lg),
+                const SizedBox(height: Spacing.lg),
 
                 // Tenure (Flexible - Days/Months/Years)
                 Text(
@@ -221,7 +221,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                     fontSize: TypeScale.body,
                   ),
                 ),
-                SizedBox(height: Spacing.sm),
+                const SizedBox(height: Spacing.sm),
                 Row(
                   children: [
                     Expanded(
@@ -230,7 +230,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                         placeholder: 'Enter duration',
                         placeholderStyle: TextStyle(
                             color: AppStyles.getSecondaryTextColor(context)),
-                        padding: EdgeInsets.all(Spacing.md),
+                        padding: const EdgeInsets.all(Spacing.md),
                         decoration: BoxDecoration(
                           color: AppStyles.getCardColor(context),
                           borderRadius: BorderRadius.circular(8),
@@ -246,10 +246,10 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                         },
                       ),
                     ),
-                    SizedBox(width: Spacing.md),
+                    const SizedBox(width: Spacing.md),
                     // Unit selector dropdown
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: Spacing.md),
+                      padding: const EdgeInsets.symmetric(horizontal: Spacing.md),
                       decoration: BoxDecoration(
                         color: AppStyles.getCardColor(context),
                         borderRadius: BorderRadius.circular(8),
@@ -271,7 +271,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            SizedBox(width: Spacing.sm),
+                            const SizedBox(width: Spacing.sm),
                             Icon(
                               CupertinoIcons.chevron_down,
                               size: 16,
@@ -283,7 +283,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                     ),
                   ],
                 ),
-                SizedBox(height: Spacing.lg),
+                const SizedBox(height: Spacing.lg),
 
                 // FD Type
                 Text(
@@ -294,7 +294,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                     fontSize: TypeScale.body,
                   ),
                 ),
-                SizedBox(height: Spacing.sm),
+                const SizedBox(height: Spacing.sm),
                 Consumer<FDWizardController>(
                   builder: (context, controller, child) {
                     return Row(
@@ -307,7 +307,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                             () => controller.updateFDType(true),
                           ),
                         ),
-                        SizedBox(width: Spacing.md),
+                        const SizedBox(width: Spacing.md),
                         Expanded(
                           child: _buildTypeOption(
                             context,
@@ -320,13 +320,13 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                     );
                   },
                 ),
-                SizedBox(height: Spacing.lg),
+                const SizedBox(height: Spacing.lg),
 
                 // Maturity Value Display
                 Consumer<FDWizardController>(
                   builder: (context, controller, child) {
                     return Container(
-                      padding: EdgeInsets.all(Spacing.lg),
+                      padding: const EdgeInsets.all(Spacing.lg),
                       decoration: BoxDecoration(
                         color: AppStyles.getCardColor(context),
                         borderRadius: BorderRadius.circular(12),
@@ -346,7 +346,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                               fontSize: TypeScale.footnote,
                             ),
                           ),
-                          SizedBox(height: Spacing.sm),
+                          const SizedBox(height: Spacing.sm),
                           Text(
                             '₹${controller.maturityValue.toStringAsFixed(2)}',
                             style: TextStyle(
@@ -355,7 +355,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          SizedBox(height: Spacing.sm),
+                          const SizedBox(height: Spacing.sm),
                           Text(
                             'Interest: ₹${controller.totalInterestAtMaturity.toStringAsFixed(2)}',
                             style: TextStyle(
@@ -368,11 +368,11 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                     );
                   },
                 ),
-                SizedBox(height: Spacing.lg),
+                const SizedBox(height: Spacing.lg),
 
                 // Estimated Maturity Date
                 Container(
-                  padding: EdgeInsets.all(Spacing.lg),
+                  padding: const EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
                     color: AppStyles.getPrimaryColor(context)
                         .withValues(alpha: 0.1),
@@ -393,7 +393,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                           fontSize: TypeScale.footnote,
                         ),
                       ),
-                      SizedBox(height: Spacing.sm),
+                      const SizedBox(height: Spacing.sm),
                       Text(
                         _formatDate(_calculateMaturityDate()),
                         style: TextStyle(
@@ -402,7 +402,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(height: Spacing.sm),
+                      const SizedBox(height: Spacing.sm),
                       Text(
                         'Based on ${_controller.tenureMonths} months from ${_formatDate(_controller.investmentDate)}',
                         style: TextStyle(
@@ -413,7 +413,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                     ],
                   ),
                 ),
-                SizedBox(height: Spacing.lg),
+                const SizedBox(height: Spacing.lg),
 
                 // FD Name
                 Text(
@@ -424,11 +424,11 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                     fontSize: TypeScale.body,
                   ),
                 ),
-                SizedBox(height: Spacing.sm),
+                const SizedBox(height: Spacing.sm),
                 CupertinoTextField(
                   controller: _fdNameController,
                   placeholder: 'e.g., My FD Renewal',
-                  padding: EdgeInsets.all(Spacing.md),
+                  padding: const EdgeInsets.all(Spacing.md),
                   decoration: BoxDecoration(
                     color: AppStyles.getCardColor(context),
                     borderRadius: BorderRadius.circular(8),
@@ -436,7 +436,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                   style: TextStyle(color: AppStyles.getTextColor(context)),
                   onChanged: (value) => _controller.updateFDName(value),
                 ),
-                SizedBox(height: Spacing.xxl),
+                const SizedBox(height: Spacing.xxl),
 
                 // Confirm Button
                 SizedBox(
@@ -594,7 +594,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                     ),
                   ),
                 ),
-                SizedBox(height: Spacing.lg),
+                const SizedBox(height: Spacing.lg),
               ],
             ),
           ),
@@ -654,7 +654,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
 
   DateTime _calculateMaturityDate() {
     // Use proper date arithmetic (handles leap years and varying month lengths)
-    DateTime result = _controller.investmentDate;
+    final DateTime result = _controller.investmentDate;
 
     switch (_selectedUnit) {
       case TenureUnit.days:
@@ -672,8 +672,8 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
         }
 
         // Handle day overflow for months with fewer days
-        var maxDayInMonth = DateTime(newYear, newMonth + 1, 0).day;
-        var day = result.day > maxDayInMonth ? maxDayInMonth : result.day;
+        final maxDayInMonth = DateTime(newYear, newMonth + 1, 0).day;
+        final day = result.day > maxDayInMonth ? maxDayInMonth : result.day;
 
         return DateTime(newYear, newMonth, day);
 
@@ -701,7 +701,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
   }
 
   void _updateTenureInController() {
-    int tenureInMonths = _convertToMonths(_tenureDuration, _selectedUnit);
+    final int tenureInMonths = _convertToMonths(_tenureDuration, _selectedUnit);
     _controller.updateTenure(tenureInMonths);
   }
 
@@ -738,7 +738,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: EdgeInsets.symmetric(
+              padding: const EdgeInsets.symmetric(
                   horizontal: Spacing.lg, vertical: Spacing.md),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
@@ -769,7 +769,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
             ...TenureUnit.values.map((unit) {
               final isSelected = _selectedUnit == unit;
               return CupertinoButton(
-                padding: EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                     horizontal: Spacing.lg, vertical: Spacing.md),
                 onPressed: () {
                   setState(() {
@@ -780,7 +780,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                 },
                 child: Container(
                   width: double.infinity,
-                  padding: EdgeInsets.all(Spacing.md),
+                  padding: const EdgeInsets.all(Spacing.md),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? AppStyles.getPrimaryColor(context)
@@ -807,7 +807,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                 ),
               );
             }),
-            SizedBox(height: Spacing.lg),
+            const SizedBox(height: Spacing.lg),
           ],
         ),
       ),
@@ -823,7 +823,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.all(Spacing.md),
+        padding: const EdgeInsets.all(Spacing.md),
         decoration: BoxDecoration(
           color: isSelected
               ? AppStyles.getPrimaryColor(context).withValues(alpha: 0.15)

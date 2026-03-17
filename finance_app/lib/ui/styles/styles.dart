@@ -10,3 +10,6 @@ export 'app_styles.dart';
 
 // Design tokens (spacing, durations, colors, etc.)
 export 'design_tokens.dart';
+
+// Animation curve tokens
+export 'app_curves.dart';

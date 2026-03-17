@@ -205,11 +205,12 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
       navigationBar: CupertinoNavigationBar(
         backgroundColor:
             isDark ? const Color(0xFF000000) : CupertinoColors.systemBackground,
+        previousPageTitle: 'Back',
         leading: CupertinoButton(
           padding: EdgeInsets.zero,
           onPressed: () => Navigator.of(context).pop(),
           child:
-              Icon(CupertinoIcons.xmark, size: 20, color: AppStyles.accentBlue),
+              const Icon(CupertinoIcons.xmark, size: 20, color: AppStyles.accentBlue),
         ),
         middle: Text(
           'Import from SMS',
@@ -245,7 +246,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
         Expanded(
           child: Center(
             child: Padding(
-              padding: EdgeInsets.all(Spacing.xl),
+              padding: const EdgeInsets.all(Spacing.xl),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -256,13 +257,13 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
                       color: AppStyles.plasmaRed.withValues(alpha: 0.12),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(
+                    child: const Icon(
                       CupertinoIcons.lock_shield,
                       size: 40,
                       color: AppStyles.plasmaRed,
                     ),
                   ),
-                  SizedBox(height: Spacing.lg),
+                  const SizedBox(height: Spacing.lg),
                   Text(
                     'SMS Permission Required',
                     style: TextStyle(
@@ -273,7 +274,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  SizedBox(height: Spacing.sm),
+                  const SizedBox(height: Spacing.sm),
                   Text(
                     'VittaraFinOS needs SMS access to auto-detect bank transactions.\n\nPlease grant the permission in Settings.',
                     style: TextStyle(
@@ -283,7 +284,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  SizedBox(height: Spacing.xl),
+                  const SizedBox(height: Spacing.xl),
                   CupertinoButton.filled(
                     onPressed: () => openAppSettings(),
                     child: const Text(
@@ -293,12 +294,12 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
                       ),
                     ),
                   ),
-                  SizedBox(height: Spacing.sm),
+                  const SizedBox(height: Spacing.sm),
                   CupertinoButton(
                     onPressed: () => setState(() {
                       _permissionDenied = false;
                     }),
-                    child: Text(
+                    child: const Text(
                       'Try Again',
                       style: TextStyle(
                         color: AppStyles.accentBlue,
@@ -323,12 +324,12 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
       children: [
         Expanded(
           child: SingleChildScrollView(
-            padding: EdgeInsets.all(Spacing.lg),
+            padding: const EdgeInsets.all(Spacing.lg),
             child: Column(
               children: [
-                SizedBox(height: Spacing.xl),
+                const SizedBox(height: Spacing.xl),
                 _buildIllustration(),
-                SizedBox(height: Spacing.xl),
+                const SizedBox(height: Spacing.xl),
                 Text(
                   'Scan Your Bank SMS',
                   style: TextStyle(
@@ -339,7 +340,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(height: Spacing.sm),
+                const SizedBox(height: Spacing.sm),
                 Text(
                   'VittaraFinOS reads your SMS inbox to auto-detect bank\ntransactions. Nothing leaves your device.',
                   style: TextStyle(
@@ -349,9 +350,9 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(height: Spacing.xl),
+                const SizedBox(height: Spacing.xl),
                 _buildDaySelector(isDark),
-                SizedBox(height: Spacing.xl),
+                const SizedBox(height: Spacing.xl),
                 _buildPrivacyNote(isDark),
               ],
             ),
@@ -377,7 +378,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
         ),
         shape: BoxShape.circle,
       ),
-      child: Icon(
+      child: const Icon(
         CupertinoIcons.chat_bubble_text_fill,
         size: 48,
         color: AppStyles.accentBlue,
@@ -391,7 +392,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
         color: isDark ? AppStyles.darkCard : CupertinoColors.systemBackground,
         borderRadius: BorderRadius.circular(14),
       ),
-      padding: EdgeInsets.all(Spacing.md),
+      padding: const EdgeInsets.all(Spacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -403,7 +404,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
               color: AppStyles.getSecondaryTextColor(context),
             ),
           ),
-          SizedBox(height: Spacing.sm),
+          const SizedBox(height: Spacing.sm),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [7, 15, 30, 60, 90].map((d) {
@@ -412,7 +413,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
                 onTap: () => setState(() => _days = d),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? AppStyles.accentBlue
@@ -449,8 +450,8 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
           color: AppStyles.accentBlue.withValues(alpha: 0.15),
         ),
       ),
-      padding: EdgeInsets.all(Spacing.md),
-      child: Row(
+      padding: const EdgeInsets.all(Spacing.md),
+      child: const Row(
         children: [
           Icon(CupertinoIcons.lock_shield_fill,
               size: 20, color: AppStyles.accentBlue),
@@ -472,7 +473,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
 
   Widget _buildScanButton() {
     return Padding(
-      padding: EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, Spacing.lg),
+      padding: const EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, Spacing.lg),
       child: BouncyButton(
         onPressed: _startScan,
         child: Container(
@@ -509,7 +510,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
   Widget _buildScanningState() {
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(Spacing.xl),
+        padding: const EdgeInsets.all(Spacing.xl),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -525,7 +526,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
                     backgroundColor: AppStyles.getSecondaryTextColor(context)
                         .withValues(alpha: 0.15),
                     valueColor:
-                        AlwaysStoppedAnimation<Color>(AppStyles.accentBlue),
+                        const AlwaysStoppedAnimation<Color>(AppStyles.accentBlue),
                   ),
                 ),
                 Text(
@@ -539,7 +540,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
                 ),
               ],
             ),
-            SizedBox(height: Spacing.xl),
+            const SizedBox(height: Spacing.xl),
             Text(
               _scanStatus,
               style: TextStyle(
@@ -548,7 +549,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: Spacing.sm),
+            const SizedBox(height: Spacing.sm),
             Text(
               'This may take a few seconds.',
               style: TextStyle(
@@ -577,13 +578,13 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
           ),
         ),
         Padding(
-          padding: EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, Spacing.lg),
+          padding: const EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, Spacing.lg),
           child: CupertinoButton(
             onPressed: () => setState(() {
               _scanDone = false;
               _results = [];
             }),
-            child: Text(
+            child: const Text(
               'Try Again',
               style: TextStyle(
                   color: AppStyles.accentBlue, fontWeight: FontWeight.w600),
@@ -602,7 +603,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
       children: [
         // Summary bar
         Container(
-          padding: EdgeInsets.symmetric(
+          padding: const EdgeInsets.symmetric(
               horizontal: Spacing.lg, vertical: Spacing.sm),
           child: Row(
             children: [
@@ -634,7 +635,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
                   _scanDone = false;
                   _results = [];
                 }),
-                child: Text(
+                child: const Text(
                   'Re-scan',
                   style: TextStyle(
                     fontSize: TypeScale.footnote,
@@ -650,7 +651,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
         // Cards
         Expanded(
           child: ListView.builder(
-            padding: EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, Spacing.lg),
+            padding: const EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, Spacing.lg),
             itemCount: _results.length,
             itemBuilder: (ctx, i) => _buildResultCard(i, isDark),
           ),
@@ -680,7 +681,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
       duration: const Duration(milliseconds: 180),
-      margin: EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: isDark ? AppStyles.darkCard : CupertinoColors.systemBackground,
         borderRadius: BorderRadius.circular(Radii.lg),
@@ -751,7 +752,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
                                   .split(' ')
                                   .first
                                   .toUpperCase(),
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
                                 color: AppStyles.accentBlue,
@@ -881,7 +882,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                   onPressed: () => _showMessageModal(i, isDark),
-                  child: Row(
+                  child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
@@ -889,7 +890,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
                         size: 14,
                         color: AppStyles.accentBlue,
                       ),
-                      const SizedBox(width: 4),
+                      SizedBox(width: 4),
                       Text(
                         'View message',
                         style: TextStyle(
@@ -1033,7 +1034,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
                   if (p.cardLast4 != null)
                     _modalRow('Card', '····${p.cardLast4}'),
                   if (p.balance != null)
-                    _modalRow('Balance after', fmt.format(p.balance!)),
+                    _modalRow('Balance after', fmt.format(p.balance)),
                   _modalRow('Parsed by', p.parseMethod.replaceAll('_', ' ')),
                   const SizedBox(height: 20),
                   // Duplicate warning

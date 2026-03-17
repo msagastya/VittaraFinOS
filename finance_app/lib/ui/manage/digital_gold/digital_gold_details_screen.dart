@@ -325,10 +325,10 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                 _formatDate(metadata['investmentDate'] as String?),
               ),
               if (isFetchingPrice)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
                   child: Row(
-                    children: const [
+                    children: [
                       SizedBox(
                         width: 16,
                         height: 16,

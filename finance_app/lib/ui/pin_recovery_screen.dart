@@ -246,7 +246,7 @@ class _PinRecoveryScreenState extends State<PinRecoveryScreen> {
                   color: AppStyles.aetherTeal.withValues(alpha: 0.10),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(CupertinoIcons.lock_open_fill,
+                child: const Icon(CupertinoIcons.lock_open_fill,
                     color: AppStyles.aetherTeal, size: 30),
               ),
               const SizedBox(height: Spacing.xl),
@@ -296,7 +296,7 @@ class _PinRecoveryScreenState extends State<PinRecoveryScreen> {
                 if (_errorText != null) ...[
                   const SizedBox(height: Spacing.sm),
                   Text(_errorText!,
-                      style: TextStyle(
+                      style: const TextStyle(
                           color: AppStyles.plasmaRed,
                           fontSize: TypeScale.caption)),
                 ],
@@ -358,7 +358,7 @@ class _PinRecoveryScreenState extends State<PinRecoveryScreen> {
                     border: Border.all(
                         color: AppStyles.plasmaRed.withValues(alpha: 0.3)),
                   ),
-                  child: Text('Erase All Data & Start Fresh',
+                  child: const Text('Erase All Data & Start Fresh',
                       style: TextStyle(
                           color: AppStyles.plasmaRed,
                           fontSize: TypeScale.subhead,
@@ -393,10 +393,10 @@ class _PinRecoveryScreenState extends State<PinRecoveryScreen> {
           ),
           child: Column(
             children: [
-              Icon(CupertinoIcons.lock_fill,
+              const Icon(CupertinoIcons.lock_fill,
                   color: AppStyles.plasmaRed, size: 28),
               const SizedBox(height: Spacing.sm),
-              Text('Too many wrong attempts',
+              const Text('Too many wrong attempts',
                   style: TextStyle(
                       color: AppStyles.plasmaRed,
                       fontWeight: FontWeight.w700,
@@ -435,7 +435,7 @@ class _PinRecoveryScreenState extends State<PinRecoveryScreen> {
         child: Column(
           children: [
             const Spacer(),
-            Icon(CupertinoIcons.number_square_fill,
+            const Icon(CupertinoIcons.number_square_fill,
                 size: 40, color: AppStyles.aetherTeal),
             const SizedBox(height: Spacing.md),
             Text(
@@ -556,7 +556,7 @@ class _PinRecoveryScreenState extends State<PinRecoveryScreen> {
             _nuclearController.clear();
             _countdownTimer?.cancel();
           }),
-          child: Text('Cancel',
+          child: const Text('Cancel',
               style: TextStyle(color: AppStyles.aetherTeal)),
         ),
         backgroundColor: bg.withValues(alpha: 0.85),
@@ -576,7 +576,7 @@ class _PinRecoveryScreenState extends State<PinRecoveryScreen> {
                   color: AppStyles.plasmaRed.withValues(alpha: 0.10),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(CupertinoIcons.exclamationmark_triangle_fill,
+                child: const Icon(CupertinoIcons.exclamationmark_triangle_fill,
                     color: AppStyles.plasmaRed, size: 36),
               ),
               const SizedBox(height: Spacing.xl),
@@ -611,7 +611,7 @@ class _PinRecoveryScreenState extends State<PinRecoveryScreen> {
                       border: Border.all(
                           color: AppStyles.plasmaRed.withValues(alpha: 0.4)),
                     ),
-                    child: Center(
+                    child: const Center(
                       child: Text('I Understand — Continue',
                           style: TextStyle(
                               color: AppStyles.plasmaRed,
@@ -695,7 +695,7 @@ class _PinRecoveryScreenState extends State<PinRecoveryScreen> {
                 const SizedBox(height: Spacing.xxl),
                 Text(
                   '$_countdown',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontFamily: 'SpaceGrotesk',
                     fontSize: 80,
                     fontWeight: FontWeight.w700,

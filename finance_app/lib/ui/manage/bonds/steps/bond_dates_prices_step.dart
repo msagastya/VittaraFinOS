@@ -46,7 +46,7 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
         children: [
           Text('Bond Dates & Prices', style: AppStyles.titleStyle(context)),
           const SizedBox(height: 30),
-          Text('Purchase Date',
+          const Text('Purchase Date',
               style: TextStyle(
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
@@ -72,8 +72,8 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('Select Date',
-                                style: const TextStyle(
+                            const Text('Select Date',
+                                style: TextStyle(
                                     fontSize: TypeScale.headline,
                                     fontWeight: FontWeight.bold)),
                             GestureDetector(
@@ -121,7 +121,7 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
             ),
           ),
           const SizedBox(height: Spacing.xxl),
-          Text('Maturity Date',
+          const Text('Maturity Date',
               style: TextStyle(
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
@@ -147,8 +147,8 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('Select Date',
-                                style: const TextStyle(
+                            const Text('Select Date',
+                                style: TextStyle(
                                     fontSize: TypeScale.headline,
                                     fontWeight: FontWeight.bold)),
                             GestureDetector(
@@ -193,7 +193,7 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
             ),
           ),
           const SizedBox(height: Spacing.xxl),
-          Text('Purchase Price (₹)',
+          const Text('Purchase Price (₹)',
               style: TextStyle(
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
@@ -206,9 +206,9 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(Radii.md),
             ),
-            prefix: Padding(
-              padding: const EdgeInsets.only(left: 16),
-              child: const Text('₹'),
+            prefix: const Padding(
+              padding: EdgeInsets.only(left: 16),
+              child: Text('₹'),
             ),
             onChanged: (v) {
               final price = double.tryParse(v) ?? 0;
@@ -216,7 +216,7 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
             },
           ),
           const SizedBox(height: Spacing.xxl),
-          Text('Face Value (₹)',
+          const Text('Face Value (₹)',
               style: TextStyle(
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
@@ -229,9 +229,9 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(Radii.md),
             ),
-            prefix: Padding(
-              padding: const EdgeInsets.only(left: 16),
-              child: const Text('₹'),
+            prefix: const Padding(
+              padding: EdgeInsets.only(left: 16),
+              child: Text('₹'),
             ),
             onChanged: (v) {
               final value = double.tryParse(v) ?? 1000;
@@ -239,7 +239,7 @@ class _BondDatesPricesStepState extends State<BondDatesPricesStep> {
             },
           ),
           const SizedBox(height: Spacing.xxl),
-          Text('Payment Frequency',
+          const Text('Payment Frequency',
               style: TextStyle(
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),

@@ -246,8 +246,8 @@ class FDWizardController extends ChangeNotifier {
         }
 
         // Handle day overflow for months with fewer days
-        var maxDayInMonth = DateTime(newYear, newMonth + 1, 0).day;
-        var day = result.day > maxDayInMonth ? maxDayInMonth : result.day;
+        final maxDayInMonth = DateTime(newYear, newMonth + 1, 0).day;
+        final day = result.day > maxDayInMonth ? maxDayInMonth : result.day;
 
         result = DateTime(newYear, newMonth, day);
       }
@@ -276,8 +276,8 @@ class FDWizardController extends ChangeNotifier {
           }
 
           // Handle day overflow
-          var maxDayInMonth = DateTime(newYear, newMonth + 1, 0).day;
-          var day = result.day > maxDayInMonth ? maxDayInMonth : result.day;
+          final maxDayInMonth = DateTime(newYear, newMonth + 1, 0).day;
+          final day = result.day > maxDayInMonth ? maxDayInMonth : result.day;
 
           maturityDate = DateTime(newYear, newMonth, day);
           break;

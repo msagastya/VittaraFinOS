@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'tag_model.dart';
+import 'package:vittara_fin_os/logic/tag_model.dart';
 
-class TagsController extends ChangeNotifier {
+class TagsController with ChangeNotifier {
   List<Tag> _tags = [];
 
   List<Tag> get tags => _tags;

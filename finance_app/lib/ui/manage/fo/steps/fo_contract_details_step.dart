@@ -43,7 +43,7 @@ class _FOContractDetailsStepState extends State<FOContractDetailsStep> {
         children: [
           Text('Contract Details', style: AppStyles.titleStyle(context)),
           const SizedBox(height: 30),
-          Text('Entry Price (₹)',
+          const Text('Entry Price (₹)',
               style: TextStyle(
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
@@ -56,9 +56,9 @@ class _FOContractDetailsStepState extends State<FOContractDetailsStep> {
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(12),
             ),
-            prefix: Padding(
-              padding: const EdgeInsets.only(left: 16),
-              child: const Text('₹'),
+            prefix: const Padding(
+              padding: EdgeInsets.only(left: 16),
+              child: Text('₹'),
             ),
             onChanged: (v) {
               final price = double.tryParse(v) ?? 0;
@@ -66,7 +66,7 @@ class _FOContractDetailsStepState extends State<FOContractDetailsStep> {
             },
           ),
           const SizedBox(height: Spacing.xxl),
-          Text('Quantity / Lot Size',
+          const Text('Quantity / Lot Size',
               style: TextStyle(
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),

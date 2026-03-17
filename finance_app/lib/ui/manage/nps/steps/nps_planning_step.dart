@@ -23,7 +23,7 @@ class NPSPlanningStep extends StatelessWidget {
               style:
                   TextStyle(color: AppStyles.getSecondaryTextColor(context))),
           const SizedBox(height: 30),
-          Text('Planned Retirement Date',
+          const Text('Planned Retirement Date',
               style: TextStyle(
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
@@ -90,7 +90,7 @@ class NPSPlanningStep extends StatelessWidget {
             ),
           ),
           const SizedBox(height: Spacing.xxl),
-          Text('Withdrawal Strategy',
+          const Text('Withdrawal Strategy',
               style: TextStyle(
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),

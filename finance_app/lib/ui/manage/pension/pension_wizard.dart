@@ -116,6 +116,7 @@ class _PensionWizardContentState extends State<_PensionWizardContent> {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
       navigationBar: CupertinoNavigationBar(
+        previousPageTitle: 'Back',
         middle: Text('Add Pension Scheme',
             style: TextStyle(color: AppStyles.getTextColor(context))),
         backgroundColor: AppStyles.getBackground(context),
@@ -329,7 +330,7 @@ class _AccountDetailsStepState extends State<_AccountDetailsStep> {
         children: [
           Text('Account Details', style: AppStyles.titleStyle(context)),
           const SizedBox(height: 30),
-          Text('Account/Reference Number',
+          const Text('Account/Reference Number',
               style: TextStyle(
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
@@ -392,7 +393,7 @@ class _ContributionStepState extends State<_ContributionStep> {
           Text('Contributions & Valuation',
               style: AppStyles.titleStyle(context)),
           const SizedBox(height: 30),
-          Text('Total Contributed (₹)',
+          const Text('Total Contributed (₹)',
               style: TextStyle(
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
@@ -405,9 +406,9 @@ class _ContributionStepState extends State<_ContributionStep> {
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(Radii.md),
             ),
-            prefix: Padding(
-              padding: const EdgeInsets.only(left: 16),
-              child: const Text('₹'),
+            prefix: const Padding(
+              padding: EdgeInsets.only(left: 16),
+              child: Text('₹'),
             ),
             onChanged: (v) {
               final amt = double.tryParse(v) ?? 0;
@@ -415,7 +416,7 @@ class _ContributionStepState extends State<_ContributionStep> {
             },
           ),
           const SizedBox(height: Spacing.xxl),
-          Text('Current Value (₹)',
+          const Text('Current Value (₹)',
               style: TextStyle(
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
@@ -428,9 +429,9 @@ class _ContributionStepState extends State<_ContributionStep> {
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(Radii.md),
             ),
-            prefix: Padding(
-              padding: const EdgeInsets.only(left: 16),
-              child: const Text('₹'),
+            prefix: const Padding(
+              padding: EdgeInsets.only(left: 16),
+              child: Text('₹'),
             ),
             onChanged: (v) {
               final val = double.tryParse(v) ?? 0;

@@ -248,7 +248,7 @@ class _MFTransactionDetailsStepState extends State<MFTransactionDetailsStep> {
                     ),
                     Text(
                       '₹${controller.totalAmount.toStringAsFixed(2)}',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: TypeScale.headline,
                         color: SemanticColors.investments,

@@ -255,7 +255,7 @@ class _MFSearchStepState extends State<MFSearchStep> {
                 CupertinoButton(
                   padding: EdgeInsets.zero,
                   onPressed: _clearRecentSearches,
-                  child: Text(
+                  child: const Text(
                     'Clear',
                     style: TextStyle(
                       fontSize: TypeScale.footnote,
@@ -289,7 +289,7 @@ class _MFSearchStepState extends State<MFSearchStep> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
+                        const Icon(
                           CupertinoIcons.clock,
                           size: 12,
                           color: SemanticColors.investments,
@@ -297,7 +297,7 @@ class _MFSearchStepState extends State<MFSearchStep> {
                         const SizedBox(width: Spacing.xs),
                         Text(
                           query,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: TypeScale.footnote,
                             color: SemanticColors.investments,
                             fontWeight: FontWeight.w500,
@@ -396,7 +396,7 @@ class _MFSearchStepState extends State<MFSearchStep> {
                             mf.schemeName.isNotEmpty
                                 ? mf.schemeName.substring(0, 1).toUpperCase()
                                 : 'M',
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               color: SemanticColors.investments,
                             ),

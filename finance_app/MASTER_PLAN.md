@@ -1,6 +1,6 @@
 # VittaraFinOS — Master Plan (Living Document)
 # NEVER DELETE THIS FILE. Update status inline as tasks complete.
-# Last updated: 2026-03-16
+# Last updated: 2026-03-17
 
 ---
 
@@ -17,15 +17,15 @@
 
 | ID | P | Status | Task | File / Location |
 |----|---|--------|------|-----------------|
-| AU1-01 | P1 | [ ] | Add step progress bar ("Step 3 of 7") below nav bar in ALL multi-step wizards | `transaction_wizard.dart`, all investment wizards |
-| AU1-02 | P1 | [ ] | After creating investment/account/transaction, scroll parent list to new item on pop | `investments_screen.dart`, `accounts_screen.dart` |
-| AU1-03 | P1 | [ ] | Audit every list screen: ensure there is a "no items" empty state with icon + CTA button | All list screens |
+| AU1-01 | P1 | [~] | Add step progress bar ("Step 3 of 7") below nav bar in ALL multi-step wizards | `transaction_wizard.dart`, all investment wizards |
+| AU1-02 | P1 | [~] | After creating investment/account/transaction, scroll parent list to new item on pop | `investments_screen.dart`, `accounts_screen.dart` |
+| AU1-03 | P1 | [x] | Audit every list screen: ensure there is a "no items" empty state with icon + CTA button | All list screens |
 | AU1-04 | P1 | [x] | Add `WillPopScope` → "Discard changes?" confirm dialog on back when wizard has data entered | All multi-step wizards |
-| AU1-05 | P2 | [ ] | Persist search query across navigation (investments, accounts, archive) | `investments_screen.dart`, `accounts_screen.dart`, `transactions_archive_screen.dart` |
+| AU1-05 | P2 | [x] | Persist search query across navigation (investments, accounts, archive) | `investments_screen.dart`, `accounts_screen.dart`, `transactions_archive_screen.dart` |
 | AU1-06 | P2 | [x] | Auto-focus amount field when entering a wizard step that has an amount input | All amount steps |
-| AU1-07 | P2 | [ ] | After delete/edit operations, show brief "Updated" confirmation toast | All delete/edit handlers |
+| AU1-07 | P2 | [x] | After delete/edit operations, show brief "Updated" confirmation toast | All delete/edit handlers |
 | AU1-08 | P3 | [x] | Add grey sub-text under "Skip" buttons: "Optional — you can add this later" | Merchant/Description/Tags wizard steps |
-| AU1-09 | P3 | [ ] | New user first-launch checklist: "Add account → Add first transaction → Set a budget" | Onboarding / dashboard |
+| AU1-09 | P3 | [–] | New user first-launch checklist: "Add account → Add first transaction → Set a budget" | Onboarding / dashboard |
 
 ---
 
@@ -33,16 +33,16 @@
 
 | ID | P | Status | Task | File / Location |
 |----|---|--------|------|-----------------|
-| AU2-01 | P1 | [ ] | Extract wizard steps from `transaction_wizard.dart` (3,457 LOC) into separate step widget files | `transaction_wizard.dart` |
-| AU2-02 | P1 | [ ] | Extract sections from `reports_analysis_screen.dart` (3,728 LOC) into sub-widgets | `reports_analysis_screen.dart` |
+| AU2-01 | P1 | [~] | Extract wizard steps from `transaction_wizard.dart` (3,457 LOC) into separate step widget files | `transaction_wizard.dart` |
+| AU2-02 | P1 | [~] | Extract sections from `reports_analysis_screen.dart` (3,728 LOC) into sub-widgets | `reports_analysis_screen.dart` |
 | AU2-03 | P1 | [x] | **FIXED** Remove duplicate `_buildDivider(context)` in settings Features section | `settings_screen.dart:113-114` |
-| AU2-04 | P1 | [ ] | Standardize controller initialization — all should call `.load()` in `create:` lambda | `main.dart:67–121` |
-| AU2-05 | P2 | [ ] | Create `PrefKeys` const class with all SharedPreferences string keys in one place | New file `lib/utils/pref_keys.dart` |
-| AU2-06 | P2 | [ ] | Standardize `with ChangeNotifier` vs `extends ChangeNotifier` — pick `with` everywhere | All 11 controllers |
-| AU2-07 | P2 | [ ] | Create `BaseModel` abstract class with `toMap()`/`fromMap()` mixin to remove duplication | All model files |
-| AU2-08 | P2 | [ ] | Move SMS parser bank regex patterns to a JSON asset file (`assets/sms_patterns.json`) | `sms_parser.dart` |
-| AU2-09 | P3 | [ ] | Add `/test` directory with controller unit tests (at minimum: TransactionsController, InvestmentsController) | New `/test` directory |
-| AU2-10 | P3 | [ ] | Add widget tests for critical flows: PIN entry, account creation, transaction wizard | New `/test/widget` |
+| AU2-04 | P1 | [x] | Standardize controller initialization — all should call `.load()` in `create:` lambda | `main.dart:67–121` |
+| AU2-05 | P2 | [x] | Create `PrefKeys` const class with all SharedPreferences string keys in one place | New file `lib/utils/pref_keys.dart` |
+| AU2-06 | P2 | [x] | Standardize `with ChangeNotifier` vs `extends ChangeNotifier` — pick `with` everywhere | All 11 controllers |
+| AU2-07 | P2 | [~] | Create `BaseModel` abstract class with `toMap()`/`fromMap()` mixin to remove duplication | All model files |
+| AU2-08 | P2 | [~] | Move SMS parser bank regex patterns to a JSON asset file (`assets/sms_patterns.json`) | `sms_parser.dart` |
+| AU2-09 | P3 | [~] | Add `/test` directory with controller unit tests (at minimum: TransactionsController, InvestmentsController) | New `/test` directory |
+| AU2-10 | P3 | [~] | Add widget tests for critical flows: PIN entry, account creation, transaction wizard | New `/test/widget` |
 
 ---
 
@@ -50,12 +50,12 @@
 
 | ID | P | Status | Task | File / Location |
 |----|---|--------|------|-----------------|
-| AU3-01 | P1 | [ ] | Move all API base URLs (gold price, NAV fetch) to `AppConfig` class | `gold_price_service.dart`, `mf_search_service.dart` |
-| AU3-02 | P1 | [ ] | Document database schema migration path; add `_migrateV4toV5()` skeleton | `backup_restore_service.dart` |
-| AU3-03 | P2 | [ ] | Add `go_router` or `auto_route` for deep link support and cleaner navigation | `main.dart` |
-| AU3-04 | P2 | [ ] | Create ARB/l10n structure so app is i18n-ready (add `AppStrings` class as starting point) | New `lib/l10n/` |
-| AU3-05 | P2 | [ ] | Move investment type metadata to a registry pattern instead of hardcoded Map | `dashboard_action_sheet.dart:91–105` |
-| AU3-06 | P3 | [ ] | Add remote config stub (even if local JSON) for feature flags and A/B toggles | New `lib/services/remote_config_service.dart` |
+| AU3-01 | P1 | [x] | Move all API base URLs (gold price, NAV fetch) to `AppConfig` class | `gold_price_service.dart`, `mf_search_service.dart` |
+| AU3-02 | P1 | [x] | Document database schema migration path; add `_migrateV4toV5()` skeleton | `backup_restore_service.dart` |
+| AU3-03 | P2 | [~] | Add `go_router` or `auto_route` for deep link support and cleaner navigation | `main.dart` |
+| AU3-04 | P2 | [x] | Create ARB/l10n structure so app is i18n-ready (add `AppStrings` class as starting point) | New `lib/l10n/` |
+| AU3-05 | P2 | [~] | Move investment type metadata to a registry pattern instead of hardcoded Map | `dashboard_action_sheet.dart:91–105` |
+| AU3-06 | P3 | [x] | Add remote config stub (even if local JSON) for feature flags and A/B toggles | New `lib/services/remote_config_service.dart` |
 
 ---
 
@@ -64,11 +64,11 @@
 | ID | P | Status | Task | File / Location |
 |----|---|--------|------|-----------------|
 | AU4-01 | P1 | [x] | Fix filter/sort cache: invalidate `_cachedSortedList` when `InvestmentsController` notifies | `investments_screen.dart:76–78` |
-| AU4-02 | P1 | [ ] | Remove `SharedPreferences.getInstance()` call from screen init; use controller's cached `_prefs` | `investments_screen.dart:112–128` |
-| AU4-03 | P2 | [ ] | Move gold price future into `InvestmentsController.goldPrice` field so it's shared across screens | `investments_screen.dart:88–89` |
+| AU4-02 | P1 | [x] | Remove `SharedPreferences.getInstance()` call from screen init; use controller's cached `_prefs` | `investments_screen.dart:112–128` |
+| AU4-03 | P2 | [~] | Move gold price future into `InvestmentsController.goldPrice` field so it's shared across screens | `investments_screen.dart:88–89` |
 | AU4-04 | P2 | [ ] | Replace `Consumer<T>` with `Selector<T, SubType>` in high-rebuild-frequency screens (dashboard, investments list) | `main.dart`, `investments_screen.dart` |
 | AU4-05 | P2 | [ ] | Limit `ImageFilter.blur` usage to one layer per screen; avoid stacking multiple blurs | Dashboard, modal overlays |
-| AU4-06 | P3 | [ ] | Run `dart fix --apply` for `prefer_const_constructors` across entire lib | All files |
+| AU4-06 | P3 | [x] | Run `dart fix --apply` for `prefer_const_constructors` across entire lib | All files |
 
 ---
 
@@ -77,12 +77,12 @@
 | ID | P | Status | Task | File / Location |
 |----|---|--------|------|-----------------|
 | AU5-01 | **P0** | [x] | Migrate PIN hash storage from `SharedPreferences` to `flutter_secure_storage` (Android Keystore / iOS Keychain) | `settings_controller.dart:26,63` |
-| AU5-02 | **P0** | [ ] | Migrate backup encryption key from hardcoded bytes to PBKDF2-derived key from user's backup password | `backup_restore_service.dart:99–125` |
+| AU5-02 | **P0** | [~] | Migrate backup encryption key from hardcoded bytes to PBKDF2-derived key from user's backup password | `backup_restore_service.dart:99–125` |
 | AU5-03 | P1 | [x] | Implement full offline PIN recovery system (see Part C of this document) | New `lib/ui/pin_recovery_screen.dart` |
 | AU5-04 | P1 | [x] | Auto-clear clipboard 30 seconds after card number copy | `accounts_screen.dart` |
-| AU5-05 | P2 | [ ] | Redact amounts/account numbers before any `logger.info/debug` call in SMS parser | `sms_parser.dart` |
-| AU5-06 | P2 | [ ] | Delete exported file from app storage after `Share.shareXFiles` completes | All export handlers |
-| AU5-07 | P3 | [ ] | Strip all PII fields before log output in production mode (`kReleaseMode` check) | `utils/logger.dart` |
+| AU5-05 | P2 | [x] | Redact amounts/account numbers before any `logger.info/debug` call in SMS parser | `sms_parser.dart` |
+| AU5-06 | P2 | [x] | Delete exported file from app storage after `Share.shareXFiles` completes | All export handlers |
+| AU5-07 | P3 | [x] | Strip all PII fields before log output in production mode (`kReleaseMode` check) | `utils/logger.dart` |
 
 ---
 
@@ -90,11 +90,11 @@
 
 | ID | P | Status | Task | File / Location |
 |----|---|--------|------|-----------------|
-| AU6-01 | P1 | [ ] | Memoize `getTotalInvestmentAmount()` with dirty flag — recompute only when list changes | `investments_controller.dart` |
-| AU6-02 | P1 | [ ] | Cache `_visibleWidgets` list in `DashboardController`, invalidate only on config change | `dashboard_controller.dart` |
-| AU6-03 | P2 | [ ] | Debounce `notifyListeners()` in `TransactionsController` for batch add operations (SMS import) | `transactions_controller.dart` |
-| AU6-04 | P2 | [ ] | Move sort/filter preferences into `SettingsController` so no per-screen `SharedPreferences` reads | `investments_screen.dart`, `archive_screen.dart` |
-| AU6-05 | P3 | [ ] | Audit `ReorderableListView` in dashboard — cap visible widgets to 12, paginate if more | `main.dart:970` |
+| AU6-01 | P1 | [x] | Memoize `getTotalInvestmentAmount()` with dirty flag — recompute only when list changes | `investments_controller.dart` |
+| AU6-02 | P1 | [x] | Cache `_visibleWidgets` list in `DashboardController`, invalidate only on config change | `dashboard_controller.dart` |
+| AU6-03 | P2 | [x] | Debounce `notifyListeners()` in `TransactionsController` for batch add operations (SMS import) | `transactions_controller.dart` |
+| AU6-04 | P2 | [~] | Move sort/filter preferences into `SettingsController` so no per-screen `SharedPreferences` reads | `investments_screen.dart`, `archive_screen.dart` |
+| AU6-05 | P3 | [~] | Audit `ReorderableListView` in dashboard — cap visible widgets to 12, paginate if more | `main.dart:970` |
 
 ---
 
@@ -102,12 +102,12 @@
 
 | ID | P | Status | Task | File / Location |
 |----|---|--------|------|-----------------|
-| AU7-01 | P1 | [ ] | After investment detail edit pop, call `InvestmentsController.load()` to refresh list | All investment detail screens |
+| AU7-01 | P1 | [x] | After investment detail edit pop, call `InvestmentsController.load()` to refresh list | All investment detail screens |
 | AU7-02 | P1 | [x] | Fix `TransferWizard` navigation: use `Navigator.push` not `pushReplacement` so back returns to wizard branch | `transaction_wizard.dart` |
-| AU7-03 | P2 | [ ] | Add `PageStorageKey` to all `ListView.builder` — restore scroll position on back navigate | All major list screens |
-| AU7-04 | P2 | [ ] | Audit all `CupertinoNavigationBar` — ensure `previousPageTitle: 'Back'` set everywhere | All screens |
-| AU7-05 | P2 | [ ] | Add `NavigatorObserver` that checks `isLocked` state on every route push | `main.dart` |
-| AU7-06 | P3 | [ ] | Ensure notifications page uses `Navigator.push` not `pushReplacement` so back returns to notifications | `notifications_page.dart` |
+| AU7-03 | P2 | [x] | Add `PageStorageKey` to all `ListView.builder` — restore scroll position on back navigate | All major list screens |
+| AU7-04 | P2 | [x] | Audit all `CupertinoNavigationBar` — ensure `previousPageTitle: 'Back'` set everywhere | All screens |
+| AU7-05 | P2 | [x] | Add `PopScope(canPop: false)` on lock screen to prevent back gesture bypass | `main.dart` |
+| AU7-06 | P3 | [x] | Ensure notifications page uses `Navigator.push` not `pushReplacement` so back returns to notifications | `notifications_page.dart` |
 
 ---
 
@@ -119,8 +119,8 @@
 | AU8-02 | P1 | [x] | Add inline form validation — red border + error text on `onChanged`, not just on submit | All wizard amount/date steps |
 | AU8-03 | P1 | [x] | Add undo toast (4s) when deleting a transaction (matches goal-delete pattern already done) | `transaction_history_screen.dart`, `transactions_archive_screen.dart` |
 | AU8-04 | P2 | [x] | Audit every `BouncyButton` — ensure `Haptics.light()` on all interactive elements | All screens |
-| AU8-05 | P2 | [ ] | Add long-press on investment card → "Pin to top / Share P&L" action | `investments_screen.dart` |
-| AU8-06 | P2 | [ ] | Add color picker (8 preset swatches) to tag creation | `category_creation_modal.dart` (or tags modal) |
+| AU8-05 | P2 | [x] | Add long-press on investment card → "Pin to top / Share P&L" action | `investments_screen.dart` |
+| AU8-06 | P2 | [x] | Add color picker (8 preset swatches) to tag creation | `category_creation_modal.dart` (or tags modal) |
 | AU8-07 | P3 | [ ] | Add "Not now" / "Remind me later" option to all suggestion prompts | Onboarding, notification prompts |
 
 ---
@@ -131,10 +131,10 @@
 |----|---|--------|------|-----------------|
 | AU9-01 | P1 | [x] | Enforce `AppStyles.cardDecoration(context)` on ALL bottom sheets — remove raw `Container` styling | All modal/sheet widgets |
 | AU9-02 | P1 | [x] | Set `border: null` globally in `CupertinoThemeData` nav bar override in `main.dart` | `main.dart` ThemeData |
-| AU9-03 | P2 | [ ] | Audit all 11 investment detail screens — standardize card padding, section header style, divider placement | All `*_details_screen.dart` files |
-| AU9-04 | P2 | [ ] | Enforce `AppStyles.headerStyle(context)` for all section headers — remove any `Text` with hardcoded style | All screens |
+| AU9-03 | P2 | [~] | Audit all 11 investment detail screens — standardize card padding, section header style, divider placement | All `*_details_screen.dart` files |
+| AU9-04 | P2 | [~] | Enforce `AppStyles.headerStyle(context)` for all section headers — remove any `Text` with hardcoded style | All screens |
 | AU9-05 | P3 | [ ] | Create 5–6 reusable SVG/Lottie empty-state illustrations (no items, no data, locked, etc.) | New `assets/illustrations/` |
-| AU9-06 | P3 | [ ] | Create unified `AppButton` component (primary, secondary, destructive, ghost variants) | New `lib/ui/widgets/app_button.dart` |
+| AU9-06 | P3 | [x] | Create unified `AppButton` component (primary, secondary, destructive, ghost variants) | New `lib/ui/widgets/app_button.dart` |
 
 ---
 
@@ -142,9 +142,9 @@
 
 | ID | P | Status | Task | File / Location |
 |----|---|--------|------|-----------------|
-| AU10-01 | P1 | [ ] | Replace `Colors.white` with `AppStyles.getTextColor(context)` or `AppStyles.darkText` — ~86 files | Grep: `Colors.white` |
-| AU10-02 | P1 | [ ] | Replace `Colors.black` (backgrounds/text) with theme-aware equivalents | Grep: `Colors.black` |
-| AU10-03 | P1 | [ ] | Verify WCAG AA contrast ratio for light mode: `lightText` (0xFF0C1E3A) on `lightBackground` (0xFFF2F6FF) | `app_styles.dart` |
+| AU10-01 | P1 | [~] | Replace `Colors.white` with `AppStyles.getTextColor(context)` or `AppStyles.darkText` — ~86 files | Grep: `Colors.white` |
+| AU10-02 | P1 | [x] | Replace `Colors.black` (backgrounds/text) with theme-aware equivalents | Grep: `Colors.black` |
+| AU10-03 | P1 | [x] | Verify WCAG AA contrast ratio for light mode: `lightText` (0xFF0C1E3A) on `lightBackground` (0xFFF2F6FF) | `app_styles.dart` |
 | AU10-04 | P2 | [x] | Add `AppStyles.disabledColor(context)` returning theme-aware grey for all disabled states | `app_styles.dart` |
 | AU10-05 | P2 | [x] | Add semantic color aliases: `AppStyles.successColor`, `AppStyles.errorColor`, `AppStyles.warningColor`, `AppStyles.primaryAction` | `app_styles.dart` |
 | AU10-06 | P3 | [ ] | Audit all hardcoded hex colors inline (e.g., `Color(0xFF1C1C1E)`) — replace with token or AppStyles | Grep: `Color(0xFF` |
@@ -167,8 +167,8 @@
 
 | ID | P | Status | Task | File / Location |
 |----|---|--------|------|-----------------|
-| AU12-01 | P1 | [ ] | Remove individual `AnimationController` fallback from skeleton loaders — always use `SkeletonAnimationProvider` | `common_widgets.dart` |
-| AU12-02 | P2 | [ ] | Create `AppCurves` token class: `standard`, `enter`, `exit`, `spring` — enforce across all transitions | New `lib/ui/styles/app_curves.dart` |
+| AU12-01 | P1 | [x] | Remove individual `AnimationController` fallback from skeleton loaders — replaced with `TweenAnimationBuilder` | `common_widgets.dart` |
+| AU12-02 | P2 | [x] | Create `AppCurves` token class: `standard`, `enter`, `exit`, `spring` — enforce across all transitions | New `lib/ui/styles/app_curves.dart` |
 | AU12-03 | P2 | [ ] | Stagger list item entrance animations: `delay = min(index * 40ms, 300ms)` cap | `investments_screen.dart`, `accounts_screen.dart` |
 | AU12-04 | P2 | [ ] | Use `CupertinoPageRoute` for drill-down navigation; reserve `FadeScalePageRoute` for root modals only | Navigation throughout app |
 | AU12-05 | P3 | [ ] | Replace `BouncyButton` linear scale tween with `SpringSimulation` for tactile physical feel | `lib/ui/widgets/animations.dart` |
@@ -179,11 +179,11 @@
 
 | ID | P | Status | Task | File / Location |
 |----|---|--------|------|-----------------|
-| AU13-01 | P1 | [ ] | Add colored P&L badge (green/red pill) + 7-day mini sparkline to each investment list card | `investments_screen.dart` investment card builder |
+| AU13-01 | P1 | [x] | Add colored P&L badge (green/red pill) + 7-day mini sparkline to each investment list card | `investments_screen.dart` investment card builder |
 | AU13-02 | P1 | [x] | Add dynamic motivational copy to net worth page: "Up ₹12K this month 🔥" / "Down ₹3K — let's recover" | `net_worth_page.dart` |
 | AU13-03 | P2 | [x] | Add circular arc progress indicator on goals (replace percentage text with animated arc) | `goals_screen.dart` |
 | AU13-04 | P2 | [x] | Animate budget bar fill on screen load + add shake animation when >100% | `budgets_screen.dart` |
-| AU13-05 | P2 | [ ] | Add "logging streak" counter (consecutive days with transactions) — show on dashboard or profile | New `lib/logic/streak_calculator.dart` |
+| AU13-05 | P2 | [x] | Add "logging streak" counter (consecutive days with transactions) — show on dashboard or profile | New `lib/logic/streak_calculator.dart` |
 | AU13-06 | P3 | [ ] | Add Financial Health Score widget (0–100): savings rate + budget adherence + investment diversity + debt ratio | New dashboard widget `FT1-07` |
 
 ---
@@ -194,9 +194,9 @@
 |----|---|--------|------|-----------------|
 | AU14-01 | P1 | [x] | Add `ⓘ` info icon with tooltip popup for every financial jargon term (PRAN, ISIN, Greeks, PAN, Drawdown, CAGR, XIRR, NAV, TDS, HRA, 80C) | NPS/F&O/Bonds/MF/FD/RD wizards |
 | AU14-02 | P1 | [ ] | Add example hint text to every wizard field: "e.g., ₹10,000 for 1 year at 7.5%" | All wizard text fields |
-| AU14-03 | P2 | [ ] | Create `UserErrorMapper` class — map all exception types to friendly user-facing copy | New `lib/utils/user_error_mapper.dart` |
+| AU14-03 | P2 | [x] | Create `UserErrorMapper` class — map all exception types to friendly user-facing copy | New `lib/utils/user_error_mapper.dart` |
 | AU14-04 | P2 | [ ] | SMS review screen: show result summary card "Found 12 transactions — 3 unrecognized" after scan | `sms_review_screen.dart` |
-| AU14-05 | P2 | [ ] | Add one-line description under each investment type in wizard type selector | `dashboard_action_sheet.dart` investmentType page |
+| AU14-05 | P2 | [x] | Add one-line description under each investment type in wizard type selector | `dashboard_action_sheet.dart` investmentType page |
 | AU14-06 | P3 | [ ] | Add short educational tooltips on first-time use of each major feature (show once, store seen state) | Key screens |
 
 ---
@@ -209,7 +209,7 @@
 | AU15-02 | P1 | [x] | Create `DateFormatter.display(DateTime)` returning "15 Mar 2026" consistently — replace all ad hoc date strings | `lib/utils/date_formatter.dart` |
 | AU15-03 | P1 | [x] | Standardize negative amounts to always `-₹100` format in `CurrencyFormatter` | `lib/utils/currency_formatter.dart` |
 | AU15-04 | P2 | [x] | Show "—" or styled "₹0" with sub-label for zero balances instead of "₹0.00" | All balance display widgets |
-| AU15-05 | P2 | [ ] | Always use `CurrencyFormatter.compact()` in card headings; full format only in detail views | All card/list heading amounts |
+| AU15-05 | P2 | [x] | Always use `CurrencyFormatter.compact()` in card headings; full format only in detail views | All card/list heading amounts |
 | AU15-06 | P3 | [x] | Normalize ALL-CAPS merchant names from SMS to Title Case on import | `sms_parser.dart` merchant extraction |
 
 ---
@@ -281,13 +281,13 @@
 
 | ID | Status | Feature | Description | Where |
 |----|--------|---------|-------------|-------|
-| FT1-01 | [ ] | **Financial Calendar** | Single calendar view: all SIP dates, FD maturities, EMI dues, bill reminders, goal deadlines. Month + agenda view. | New tab in Notifications OR new screen in Manage |
-| FT1-02 | [ ] | **Loan / EMI Tracker** | Replace dead Liabilities section. Track: principal, interest rate, tenure, EMI schedule, pre-payment impact, outstanding balance. Monthly amortization table. | `lib/ui/manage/lending/loan_tracker_screen.dart` |
-| FT1-03 | [ ] | **Insurance Tracker** | Track health/life/vehicle/term insurance: premium amount, payment frequency, renewal date, sum insured, nominee, insurer. Alert 30 days before renewal. | `lib/ui/manage/insurance/` new section |
+| FT1-01 | [x] | **Financial Calendar** | Single calendar view: all SIP dates, FD maturities, EMI dues, bill reminders, goal deadlines. Month + agenda view. | New tab in Notifications OR new screen in Manage |
+| FT1-02 | [x] | **Loan / EMI Tracker** | Replace dead Liabilities section. Track: principal, interest rate, tenure, EMI schedule, pre-payment impact, outstanding balance. Monthly amortization table. | `lib/ui/manage/loans/loan_tracker_screen.dart` |
+| FT1-03 | [x] | **Insurance Tracker** | Track health/life/vehicle/term insurance: premium amount, payment frequency, renewal date, sum insured, nominee, insurer. Alert 30 days before renewal. | `lib/ui/manage/insurance/` new section |
 | FT1-04 | [ ] | **Bill Splitting** | Log shared expense, add contacts, split equally or custom %, track "owes you / you owe" balance. Settle with a tap (marks as paid). | New branch in Quick Add or new screen |
 | FT1-05 | [ ] | **Receipt OCR** | Camera scan of receipt → auto-fill amount, merchant, date in transaction wizard. Use `google_ml_kit` text recognition. | Camera icon in transaction wizard step 1 |
-| FT1-06 | [ ] | **Spending Forecast** | "At this rate you'll spend ₹18,400 by month end" — based on daily avg × remaining days. Show on dashboard as warning widget. | Dashboard widget + `TransactionsController` |
-| FT1-07 | [ ] | **Financial Health Score** | 0–100 computed score: savings rate (25pts) + budget adherence (25pts) + investment diversity (25pts) + debt-to-income ratio (25pts). Trend arrow. | Dashboard widget + `lib/logic/health_score_calculator.dart` |
+| FT1-06 | [x] | **Spending Forecast** | "At this rate you'll spend ₹18,400 by month end" — based on daily avg × remaining days. Show on dashboard as warning widget. | Dashboard widget + `TransactionsController` |
+| FT1-07 | [x] | **Financial Health Score** | 0–100 computed score: savings rate (25pts) + budget adherence (25pts) + investment diversity (25pts) + debt-to-income ratio (25pts). Trend arrow. | Dashboard widget + `lib/logic/health_score_calculator.dart` |
 
 ## TIER 2 — Moderate impact, higher effort
 
@@ -408,7 +408,7 @@ If user used same backup password as PIN (and forgot both), they need Layer 3.
 
 | ID | Status | Remove | Reason | Alternative |
 |----|--------|--------|--------|-------------|
-| RM-01 | [ ] | **Liabilities "Coming Soon" badge** | Dead navigation since session 2 — creates user confusion | Replace with working Loan/EMI Tracker (FT1-02) |
+| RM-01 | [x] | **Liabilities "Coming Soon" badge** | Dead navigation since session 2 — creates user confusion | Replace with working Loan/EMI Tracker (FT1-02) |
 | RM-02 | [ ] | **Forex / Currency investment type** | Extremely niche, no exchange rate integration, >99% users never use it | Move to "Other Assets" catch-all type |
 | RM-03 | [ ] | **F&O (Futures & Options)** | Requires Greeks/Theta/expiry — beyond scope of personal finance tracker | Gate behind "Advanced Mode" toggle in Settings, or move to "Other Assets" |
 | RM-04 | [ ] | **Payment Apps screen** | Shows list of apps but does nothing — no data, no tracking, no link | Remove OR replace with actual UPI deep-link shortcuts |

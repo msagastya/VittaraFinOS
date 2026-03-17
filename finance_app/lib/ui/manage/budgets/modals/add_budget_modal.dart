@@ -49,17 +49,17 @@ class _AddBudgetModalState extends State<AddBudgetModal> {
     DateTime endDate;
     switch (_selectedPeriod) {
       case BudgetPeriod.daily:
-        endDate = DateTime(now.year, now.month, now.day).add(Duration(days: 1));
+        endDate = DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
         break;
       case BudgetPeriod.weekly:
-        endDate = now.add(Duration(days: 7));
+        endDate = now.add(const Duration(days: 7));
         break;
       case BudgetPeriod.monthly:
         endDate =
-            DateTime(now.year, now.month + 1, 1).subtract(Duration(days: 1));
+            DateTime(now.year, now.month + 1, 1).subtract(const Duration(days: 1));
         break;
       case BudgetPeriod.yearly:
-        endDate = DateTime(now.year + 1, 1, 1).subtract(Duration(days: 1));
+        endDate = DateTime(now.year + 1, 1, 1).subtract(const Duration(days: 1));
         break;
     }
 
@@ -93,7 +93,7 @@ class _AddBudgetModalState extends State<AddBudgetModal> {
     return Container(
       decoration: BoxDecoration(
           color: AppStyles.getCardColor(context),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(Radii.xxl))),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(Radii.xxl))),
       child: SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.only(
@@ -102,42 +102,42 @@ class _AddBudgetModalState extends State<AddBudgetModal> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                  margin: EdgeInsets.only(top: Spacing.md),
+                  margin: const EdgeInsets.only(top: Spacing.md),
                   width: 40,
                   height: 5,
                   decoration: BoxDecoration(
                       color: CupertinoColors.systemGrey3,
                       borderRadius: BorderRadius.circular(2.5))),
-              SizedBox(height: Spacing.xl),
+              const SizedBox(height: Spacing.xl),
               Text('Create New Budget',
                   style: TextStyle(
                       fontSize: TypeScale.title2,
                       fontWeight: FontWeight.bold,
                       color: AppStyles.getTextColor(context))),
-              SizedBox(height: Spacing.xxl),
+              const SizedBox(height: Spacing.xxl),
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: Spacing.xxl),
+                padding: const EdgeInsets.symmetric(horizontal: Spacing.xxl),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Budget Name',
+                    const Text('Budget Name',
                         style: TextStyle(
                             fontSize: TypeScale.subhead,
                             fontWeight: FontWeight.w600)),
-                    SizedBox(height: Spacing.sm),
+                    const SizedBox(height: Spacing.sm),
                     CupertinoTextField(
                         controller: _nameController,
                         placeholder: 'Enter budget name',
-                        padding: EdgeInsets.all(Spacing.lg),
+                        padding: const EdgeInsets.all(Spacing.lg),
                         decoration: BoxDecoration(
                             color: AppStyles.getBackground(context),
                             borderRadius: BorderRadius.circular(Radii.md))),
-                    SizedBox(height: Spacing.xl),
-                    Text('Category (optional)',
+                    const SizedBox(height: Spacing.xl),
+                    const Text('Category (optional)',
                         style: TextStyle(
                             fontSize: TypeScale.subhead,
                             fontWeight: FontWeight.w600)),
-                    SizedBox(height: Spacing.sm),
+                    const SizedBox(height: Spacing.sm),
                     GestureDetector(
                       onTap: () async {
                         final categories = Provider.of<CategoriesController>(
@@ -150,14 +150,14 @@ class _AddBudgetModalState extends State<AddBudgetModal> {
                             height: 420,
                             decoration: BoxDecoration(
                               color: AppStyles.getCardColor(ctx),
-                              borderRadius: BorderRadius.vertical(
+                              borderRadius: const BorderRadius.vertical(
                                   top: Radius.circular(Radii.xxl)),
                             ),
                             child: SafeArea(
                               top: false,
                               child: Column(
                                 children: [
-                                  SizedBox(height: Spacing.md),
+                                  const SizedBox(height: Spacing.md),
                                   Container(
                                     width: 40,
                                     height: 5,
@@ -166,7 +166,7 @@ class _AddBudgetModalState extends State<AddBudgetModal> {
                                       borderRadius: BorderRadius.circular(2.5),
                                     ),
                                   ),
-                                  SizedBox(height: Spacing.lg),
+                                  const SizedBox(height: Spacing.lg),
                                   Text(
                                     'Select Category',
                                     style: TextStyle(
@@ -175,14 +175,14 @@ class _AddBudgetModalState extends State<AddBudgetModal> {
                                       color: AppStyles.getTextColor(ctx),
                                     ),
                                   ),
-                                  SizedBox(height: Spacing.md),
+                                  const SizedBox(height: Spacing.md),
                                   Expanded(
                                     child: ListView.builder(
                                       itemCount: categories.length + 1,
                                       itemBuilder: (itemCtx, index) {
                                         if (index == 0) {
                                           return CupertinoButton(
-                                            padding: EdgeInsets.symmetric(
+                                            padding: const EdgeInsets.symmetric(
                                                 horizontal: Spacing.lg,
                                                 vertical: Spacing.md),
                                             onPressed: () {
@@ -198,7 +198,7 @@ class _AddBudgetModalState extends State<AddBudgetModal> {
                                                       .getSecondaryTextColor(
                                                           ctx),
                                                 ),
-                                                SizedBox(width: Spacing.md),
+                                                const SizedBox(width: Spacing.md),
                                                 Text(
                                                   'No category',
                                                   style: TextStyle(
@@ -215,7 +215,7 @@ class _AddBudgetModalState extends State<AddBudgetModal> {
                                             _selectedCategory?.id ==
                                                 category.id;
                                         return CupertinoButton(
-                                          padding: EdgeInsets.symmetric(
+                                          padding: const EdgeInsets.symmetric(
                                               horizontal: Spacing.lg,
                                               vertical: Spacing.md),
                                           onPressed: () {
@@ -245,7 +245,7 @@ class _AddBudgetModalState extends State<AddBudgetModal> {
                                                     size: 16,
                                                     color: category.color),
                                               ),
-                                              SizedBox(width: Spacing.md),
+                                              const SizedBox(width: Spacing.md),
                                               Expanded(
                                                 child: Text(
                                                   category.name,
@@ -255,7 +255,7 @@ class _AddBudgetModalState extends State<AddBudgetModal> {
                                                 ),
                                               ),
                                               if (isSelected)
-                                                Icon(
+                                                const Icon(
                                                   CupertinoIcons
                                                       .check_mark_circled_solid,
                                                   color: SemanticColors.primary,
@@ -274,7 +274,7 @@ class _AddBudgetModalState extends State<AddBudgetModal> {
                       },
                       child: Container(
                         width: double.infinity,
-                        padding: EdgeInsets.all(Spacing.lg),
+                        padding: const EdgeInsets.all(Spacing.lg),
                         decoration: BoxDecoration(
                           color: AppStyles.getBackground(context),
                           borderRadius: BorderRadius.circular(Radii.md),
@@ -284,7 +284,7 @@ class _AddBudgetModalState extends State<AddBudgetModal> {
                             if (_selectedCategory != null) ...[
                               Icon(_selectedCategory!.icon,
                                   color: _selectedCategory!.color),
-                              SizedBox(width: Spacing.sm),
+                              const SizedBox(width: Spacing.sm),
                             ],
                             Expanded(
                               child: Text(
@@ -304,31 +304,31 @@ class _AddBudgetModalState extends State<AddBudgetModal> {
                         ),
                       ),
                     ),
-                    SizedBox(height: Spacing.xl),
-                    Text('Limit Amount',
+                    const SizedBox(height: Spacing.xl),
+                    const Text('Limit Amount',
                         style: TextStyle(
                             fontSize: TypeScale.subhead,
                             fontWeight: FontWeight.w600)),
-                    SizedBox(height: Spacing.sm),
+                    const SizedBox(height: Spacing.sm),
                     CupertinoTextField(
                         controller: _limitController,
                         placeholder: '10000',
                         keyboardType:
-                            TextInputType.numberWithOptions(decimal: true),
-                        prefix: Padding(
+                            const TextInputType.numberWithOptions(decimal: true),
+                        prefix: const Padding(
                             padding: EdgeInsets.only(left: Spacing.lg),
                             child: Text('₹',
                                 style: TextStyle(fontSize: TypeScale.callout))),
-                        padding: EdgeInsets.all(Spacing.lg),
+                        padding: const EdgeInsets.all(Spacing.lg),
                         decoration: BoxDecoration(
                             color: AppStyles.getBackground(context),
                             borderRadius: BorderRadius.circular(Radii.md))),
-                    SizedBox(height: Spacing.xl),
-                    Text('Period',
+                    const SizedBox(height: Spacing.xl),
+                    const Text('Period',
                         style: TextStyle(
                             fontSize: TypeScale.subhead,
                             fontWeight: FontWeight.w600)),
-                    SizedBox(height: Spacing.md),
+                    const SizedBox(height: Spacing.md),
                     Wrap(
                       spacing: Spacing.sm,
                       runSpacing: Spacing.sm,
@@ -346,7 +346,7 @@ class _AddBudgetModalState extends State<AddBudgetModal> {
                         return GestureDetector(
                           onTap: () => setState(() => _selectedPeriod = period),
                           child: Container(
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                                 horizontal: Spacing.lg, vertical: Spacing.md),
                             decoration: BoxDecoration(
                                 color: isSelected
@@ -368,7 +368,7 @@ class _AddBudgetModalState extends State<AddBudgetModal> {
                                         ? SemanticColors.primary
                                         : AppStyles.getSecondaryTextColor(
                                             context)),
-                                SizedBox(width: Spacing.xs),
+                                const SizedBox(width: Spacing.xs),
                                 Text(dummyBudget.getPeriodLabel(),
                                     style: TextStyle(
                                         fontSize: TypeScale.footnote,
@@ -384,7 +384,7 @@ class _AddBudgetModalState extends State<AddBudgetModal> {
                         );
                       }).toList(),
                     ),
-                    SizedBox(height: Spacing.xxxl),
+                    const SizedBox(height: Spacing.xxxl),
                     Row(
                       children: [
                         Expanded(
@@ -395,7 +395,7 @@ class _AddBudgetModalState extends State<AddBudgetModal> {
                                     style: TextStyle(
                                         color:
                                             AppStyles.getTextColor(context))))),
-                        SizedBox(width: Spacing.md),
+                        const SizedBox(width: Spacing.md),
                         Expanded(
                             child: CupertinoButton(
                                 color: SemanticColors.primary,
@@ -403,7 +403,7 @@ class _AddBudgetModalState extends State<AddBudgetModal> {
                                 child: _isSaving
                                     ? const CupertinoActivityIndicator(
                                         color: Colors.white)
-                                    : Text('Create Budget',
+                                    : const Text('Create Budget',
                                         style:
                                             TextStyle(color: Colors.white)))),
                       ],

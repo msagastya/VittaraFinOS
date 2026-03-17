@@ -38,7 +38,7 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
         children: [
           Text('Position Details', style: AppStyles.titleStyle(context)),
           const SizedBox(height: 30),
-          Text('Current Price (₹)',
+          const Text('Current Price (₹)',
               style: TextStyle(
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
@@ -51,9 +51,9 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(Radii.md),
             ),
-            prefix: Padding(
-              padding: const EdgeInsets.only(left: 16),
-              child: const Text('₹'),
+            prefix: const Padding(
+              padding: EdgeInsets.only(left: 16),
+              child: Text('₹'),
             ),
             onChanged: (v) {
               final price = double.tryParse(v) ?? 0;
@@ -61,7 +61,7 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
             },
           ),
           const SizedBox(height: Spacing.xxl),
-          Text('Entry Date',
+          const Text('Entry Date',
               style: TextStyle(
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
@@ -87,8 +87,8 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('Select Date',
-                                style: const TextStyle(
+                            const Text('Select Date',
+                                style: TextStyle(
                                     fontSize: TypeScale.headline,
                                     fontWeight: FontWeight.bold)),
                             GestureDetector(
@@ -134,7 +134,7 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
             ),
           ),
           const SizedBox(height: Spacing.xxl),
-          Text('Expiry Date',
+          const Text('Expiry Date',
               style: TextStyle(
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
@@ -160,8 +160,8 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('Select Date',
-                                style: const TextStyle(
+                            const Text('Select Date',
+                                style: TextStyle(
                                     fontSize: TypeScale.headline,
                                     fontWeight: FontWeight.bold)),
                             GestureDetector(

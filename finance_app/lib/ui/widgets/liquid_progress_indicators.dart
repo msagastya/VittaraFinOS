@@ -105,7 +105,7 @@ class LiquidCircularPainter extends CustomPainter {
     final fillHeight = size.height * (1 - progress);
 
     final path = Path();
-    final waveHeight = 8.0;
+    const waveHeight = 8.0;
 
     // Start from left edge
     path.moveTo(0, fillHeight);
@@ -471,7 +471,7 @@ class SpinningArcPainter extends CustomPainter {
 
     // Draw rotating arc
     final startAngle = progress * math.pi * 2;
-    final sweepAngle = math.pi * 1.5;
+    const sweepAngle = math.pi * 1.5;
 
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: radius),

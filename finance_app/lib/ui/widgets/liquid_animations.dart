@@ -306,7 +306,7 @@ class WavePainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     final path = Path();
-    final waveHeight = 10.0;
+    const waveHeight = 10.0;
     final progressHeight = size.height * (1 - progress);
 
     path.moveTo(0, progressHeight);

@@ -77,7 +77,7 @@ class _BanksScreenState extends State<BanksScreen> {
     final nameController =
         TextEditingController(text: existingBank?['name'] ?? '');
     final senderIdController = TextEditingController();
-    List<String> tempSenderIds =
+    final List<String> tempSenderIds =
         List<String>.from(existingBank?['senderIds'] ?? []);
     final isEditMode = existingBank != null;
 

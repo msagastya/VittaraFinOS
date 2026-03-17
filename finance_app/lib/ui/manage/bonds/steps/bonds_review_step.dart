@@ -190,9 +190,9 @@ class BondsReviewStep extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     CupertinoIcons.checkmark_circle_fill,
-                    color: const Color(0xFF007AFF),
+                    color: Color(0xFF007AFF),
                   ),
                   const SizedBox(width: Spacing.md),
                   Expanded(

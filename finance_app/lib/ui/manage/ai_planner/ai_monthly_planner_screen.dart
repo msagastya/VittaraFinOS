@@ -140,7 +140,7 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(ctx),
               borderRadius:
-                  BorderRadius.vertical(top: Radius.circular(Radii.xxl)),
+                  const BorderRadius.vertical(top: Radius.circular(Radii.xxl)),
             ),
             child: SafeArea(
               top: false,
@@ -165,7 +165,7 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
                         ),
                       ),
                     ),
-                    SizedBox(height: Spacing.xl),
+                    const SizedBox(height: Spacing.xl),
                     Text(
                       isEditing ? 'Edit Planner Inputs' : 'Planner Inputs',
                       style: TextStyle(
@@ -174,7 +174,7 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
                         color: AppStyles.getTextColor(ctx),
                       ),
                     ),
-                    SizedBox(height: Spacing.sm),
+                    const SizedBox(height: Spacing.sm),
                     Text(
                       'These values are saved and reused for future analysis.',
                       style: TextStyle(
@@ -182,55 +182,55 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
                         color: AppStyles.getSecondaryTextColor(ctx),
                       ),
                     ),
-                    SizedBox(height: Spacing.lg),
-                    Text(
+                    const SizedBox(height: Spacing.lg),
+                    const Text(
                       'Monthly Income',
                       style: TextStyle(
                         fontSize: TypeScale.subhead,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    SizedBox(height: Spacing.sm),
+                    const SizedBox(height: Spacing.sm),
                     CupertinoTextField(
                       controller: incomeController,
                       keyboardType:
                           const TextInputType.numberWithOptions(decimal: true),
-                      prefix: Padding(
+                      prefix: const Padding(
                         padding: EdgeInsets.only(left: Spacing.md),
                         child: Text('₹',
                             style: TextStyle(fontSize: TypeScale.callout)),
                       ),
-                      padding: EdgeInsets.all(Spacing.lg),
+                      padding: const EdgeInsets.all(Spacing.lg),
                       decoration: BoxDecoration(
                         color: AppStyles.getBackground(ctx),
                         borderRadius: BorderRadius.circular(Radii.md),
                       ),
                     ),
-                    SizedBox(height: Spacing.lg),
-                    Text(
+                    const SizedBox(height: Spacing.lg),
+                    const Text(
                       'Must-Save This Month (optional)',
                       style: TextStyle(
                         fontSize: TypeScale.subhead,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    SizedBox(height: Spacing.sm),
+                    const SizedBox(height: Spacing.sm),
                     CupertinoTextField(
                       controller: saveController,
                       keyboardType:
                           const TextInputType.numberWithOptions(decimal: true),
-                      prefix: Padding(
+                      prefix: const Padding(
                         padding: EdgeInsets.only(left: Spacing.md),
                         child: Text('₹',
                             style: TextStyle(fontSize: TypeScale.callout)),
                       ),
-                      padding: EdgeInsets.all(Spacing.lg),
+                      padding: const EdgeInsets.all(Spacing.lg),
                       decoration: BoxDecoration(
                         color: AppStyles.getBackground(ctx),
                         borderRadius: BorderRadius.circular(Radii.md),
                       ),
                     ),
-                    SizedBox(height: Spacing.xl),
+                    const SizedBox(height: Spacing.xl),
                     Row(
                       children: [
                         Expanded(
@@ -242,7 +242,7 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
                                     color: AppStyles.getTextColor(ctx))),
                           ),
                         ),
-                        SizedBox(width: Spacing.md),
+                        const SizedBox(width: Spacing.md),
                         Expanded(
                           child: CupertinoButton(
                             color: SemanticColors.info,
@@ -448,7 +448,7 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const CupertinoActivityIndicator(radius: 16),
-          SizedBox(height: Spacing.lg),
+          const SizedBox(height: Spacing.lg),
           Text(
             'Loading planner profile...',
             style: TextStyle(
@@ -906,9 +906,9 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          SpinningArcProgress(
+          const SpinningArcProgress(
               size: 80, color: SemanticColors.info, strokeWidth: 6),
-          SizedBox(height: Spacing.xxl),
+          const SizedBox(height: Spacing.xxl),
           Text(
             'Analyzing Your Finances...',
             style: TextStyle(
@@ -916,7 +916,7 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
                 fontWeight: FontWeight.bold,
                 color: AppStyles.getTextColor(context)),
           ),
-          SizedBox(height: Spacing.md),
+          const SizedBox(height: Spacing.md),
           Text(
             'Generating personalized recommendations',
             style: TextStyle(
@@ -932,19 +932,19 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
       double budgetLimit, double goalTarget, double spent) {
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(Spacing.xxxl),
+        padding: const EdgeInsets.all(Spacing.xxxl),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: EdgeInsets.all(Spacing.xxxl),
+              padding: const EdgeInsets.all(Spacing.xxxl),
               decoration: BoxDecoration(
                   color: SemanticColors.info.withValues(alpha: 0.1),
                   shape: BoxShape.circle),
-              child: Icon(CupertinoIcons.sparkles,
+              child: const Icon(CupertinoIcons.sparkles,
                   size: IconSizes.emptyStateIcon, color: SemanticColors.info),
             ),
-            SizedBox(height: Spacing.xxl),
+            const SizedBox(height: Spacing.xxl),
             Text(
               'AI Financial Planner',
               style: TextStyle(
@@ -952,7 +952,7 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
                   fontWeight: FontWeight.bold,
                   color: AppStyles.getTextColor(context)),
             ),
-            SizedBox(height: Spacing.md),
+            const SizedBox(height: Spacing.md),
             Text(
               'Uses your real budgets, categories, and transactions.\nNo preset templates.',
               textAlign: TextAlign.center,
@@ -960,18 +960,18 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
                   fontSize: TypeScale.callout,
                   color: AppStyles.getSecondaryTextColor(context)),
             ),
-            SizedBox(height: Spacing.lg),
+            const SizedBox(height: Spacing.lg),
             Text(
               'Spent this month: ₹${spent.toStringAsFixed(0)}',
               style: TextStyle(
                   fontSize: TypeScale.subhead,
                   color: AppStyles.getSecondaryTextColor(context)),
             ),
-            SizedBox(height: Spacing.xxxl),
+            const SizedBox(height: Spacing.xxxl),
             BouncyButton(
               onPressed: () => _generateRecommendations(forceEditInputs: true),
               child: Container(
-                padding: EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                     horizontal: Spacing.xxl, vertical: Spacing.lg),
                 decoration: BoxDecoration(
                   gradient: GradientSchemes.cosmicViolet,
@@ -984,7 +984,7 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
                     ),
                   ],
                 ),
-                child: Row(
+                child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(CupertinoIcons.sparkles,
@@ -1019,15 +1019,15 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
       slivers: [
         SliverToBoxAdapter(
           child: Padding(
-            padding: EdgeInsets.all(Spacing.lg),
+            padding: const EdgeInsets.all(Spacing.lg),
             child: NeumorphicGlassCard(
               child: Column(
                 children: [
                   Row(
                     children: [
-                      Icon(CupertinoIcons.sparkles,
+                      const Icon(CupertinoIcons.sparkles,
                           color: SemanticColors.info, size: IconSizes.lg),
-                      SizedBox(width: Spacing.md),
+                      const SizedBox(width: Spacing.md),
                       Expanded(
                         child: Text(
                           'Monthly Financial Plan',
@@ -1050,10 +1050,10 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
                       ),
                     ],
                   ),
-                  SizedBox(height: Spacing.lg),
+                  const SizedBox(height: Spacing.lg),
                   Container(
                     width: double.infinity,
-                    padding: EdgeInsets.all(Spacing.md),
+                    padding: const EdgeInsets.all(Spacing.md),
                     decoration: BoxDecoration(
                       color: SemanticColors.info.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(Radii.md),
@@ -1069,7 +1069,7 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
                             color: AppStyles.getSecondaryTextColor(context),
                           ),
                         ),
-                        SizedBox(height: Spacing.xs),
+                        const SizedBox(height: Spacing.xs),
                         Text(
                           'Income: ₹${(_monthlyIncome ?? 0).toStringAsFixed(0)}',
                           style: TextStyle(
@@ -1089,7 +1089,7 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
                       ],
                     ),
                   ),
-                  SizedBox(height: Spacing.xxl),
+                  const SizedBox(height: Spacing.xxl),
                   LiquidCircularProgress(
                     progress: (healthScore / 100).clamp(0, 1),
                     size: 160,
@@ -1106,7 +1106,7 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
                                 fontSize: TypeScale.hero,
                                 fontWeight: FontWeight.bold,
                                 color: AppStyles.getTextColor(context))),
-                        SizedBox(height: Spacing.xs),
+                        const SizedBox(height: Spacing.xs),
                         Text('Health Score',
                             style: TextStyle(
                                 fontSize: TypeScale.footnote,
@@ -1115,9 +1115,9 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
                       ],
                     ),
                   ),
-                  SizedBox(height: Spacing.xxl),
+                  const SizedBox(height: Spacing.xxl),
                   Container(
-                    padding: EdgeInsets.all(Spacing.lg),
+                    padding: const EdgeInsets.all(Spacing.lg),
                     decoration: BoxDecoration(
                         color: SemanticColors.success.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(Radii.md)),
@@ -1131,7 +1131,7 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
                                     fontSize: TypeScale.footnote,
                                     color: AppStyles.getSecondaryTextColor(
                                         context))),
-                            SizedBox(height: Spacing.xs),
+                            const SizedBox(height: Spacing.xs),
                             counter_widgets.CurrencyCounter(
                                 value: projectedSavings,
                                 textStyle: TextStyle(
@@ -1155,7 +1155,7 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
                                     fontSize: TypeScale.footnote,
                                     color: AppStyles.getSecondaryTextColor(
                                         context))),
-                            SizedBox(height: Spacing.xs),
+                            const SizedBox(height: Spacing.xs),
                             counter_widgets.CurrencyCounter(
                                 value: goalTarget,
                                 textStyle: TextStyle(
@@ -1168,7 +1168,7 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
                       ],
                     ),
                   ),
-                  SizedBox(height: Spacing.lg),
+                  const SizedBox(height: Spacing.lg),
                   GlassCard(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1181,7 +1181,7 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
                             color: AppStyles.getTextColor(context),
                           ),
                         ),
-                        SizedBox(height: Spacing.md),
+                        const SizedBox(height: Spacing.md),
                         _buildBreakdownRow(
                           label: 'Logged Expenses',
                           value: breakdown.totalSpent,
@@ -1227,7 +1227,7 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
         ),
         SliverToBoxAdapter(
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
+            padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
             child: Text('Recommendations',
                 style: TextStyle(
                     fontSize: TypeScale.title3,
@@ -1236,13 +1236,13 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
           ),
         ),
         SliverPadding(
-          padding: EdgeInsets.all(Spacing.lg),
+          padding: const EdgeInsets.all(Spacing.lg),
           sliver: SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, index) {
                 final item = recommendations[index];
                 return Padding(
-                  padding: EdgeInsets.only(bottom: Spacing.md),
+                  padding: const EdgeInsets.only(bottom: Spacing.md),
                   child: _buildRecommendationCard(item, index),
                 );
               },
@@ -1250,10 +1250,10 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
             ),
           ),
         ),
-        SliverToBoxAdapter(child: SizedBox(height: Spacing.lg)),
+        const SliverToBoxAdapter(child: SizedBox(height: Spacing.lg)),
         SliverToBoxAdapter(
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: Spacing.lg),
+            padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
             child: Text('Category Breakdown',
                 style: TextStyle(
                     fontSize: TypeScale.title3,
@@ -1262,13 +1262,13 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
           ),
         ),
         SliverPadding(
-          padding: EdgeInsets.all(Spacing.lg),
+          padding: const EdgeInsets.all(Spacing.lg),
           sliver: SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, index) {
                 final insight = categoryInsights[index];
                 return Padding(
-                  padding: EdgeInsets.only(bottom: Spacing.md),
+                  padding: const EdgeInsets.only(bottom: Spacing.md),
                   child: _buildCategoryCard(insight),
                 );
               },
@@ -1276,7 +1276,7 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
             ),
           ),
         ),
-        SliverToBoxAdapter(child: SizedBox(height: 80)),
+        const SliverToBoxAdapter(child: SizedBox(height: 80)),
       ],
     );
   }
@@ -1288,7 +1288,7 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
     bool bold = false,
   }) {
     return Padding(
-      padding: EdgeInsets.only(bottom: Spacing.sm),
+      padding: const EdgeInsets.only(bottom: Spacing.sm),
       child: Row(
         children: [
           Expanded(
@@ -1321,13 +1321,13 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
         child: Row(
           children: [
             Container(
-              padding: EdgeInsets.all(Spacing.md),
+              padding: const EdgeInsets.all(Spacing.md),
               decoration: BoxDecoration(
                   color: item.color.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(Radii.md)),
               child: Icon(item.icon, color: item.color, size: IconSizes.lg),
             ),
-            SizedBox(width: Spacing.md),
+            const SizedBox(width: Spacing.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1337,7 +1337,7 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
                           fontSize: TypeScale.callout,
                           fontWeight: FontWeight.w600,
                           color: AppStyles.getTextColor(context))),
-                  SizedBox(height: Spacing.xxs),
+                  const SizedBox(height: Spacing.xxs),
                   Text(item.description,
                       style: TextStyle(
                           fontSize: TypeScale.footnote,
@@ -1389,11 +1389,11 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
                 ),
             ],
           ),
-          SizedBox(height: Spacing.md),
+          const SizedBox(height: Spacing.md),
           if (insight.budget > 0)
             LiquidLinearProgress(
                 progress: progress.clamp(0.0, 1.0), height: 8, color: color),
-          if (insight.budget > 0) SizedBox(height: Spacing.md),
+          if (insight.budget > 0) const SizedBox(height: Spacing.md),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [

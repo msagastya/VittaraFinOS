@@ -121,7 +121,7 @@ class SettingsController with ChangeNotifier {
     if (kIsWeb) return; // Skip on web
 
     if (value) {
-      bool authenticated = await _authenticate(
+      final bool authenticated = await _authenticate(
         reason: 'Please authenticate to enable biometric security',
       );
       if (authenticated) {
@@ -238,7 +238,7 @@ class SettingsController with ChangeNotifier {
 
   Future<void> setPin(String pin) async {
     _pinHash = _hashPin(pin);
-    await _secureStorage.write(key: _keyPinHash, value: _pinHash!);
+    await _secureStorage.write(key: _keyPinHash, value: _pinHash);
     await _prefs.remove('pinHash'); // remove any legacy plaintext copy
     notifyListeners();
   }
@@ -254,7 +254,7 @@ class SettingsController with ChangeNotifier {
   /// Resets PIN to new value without requiring the old PIN.
   Future<void> resetPinAfterRecovery(String newPin) async {
     _pinHash = _hashPin(newPin);
-    await _secureStorage.write(key: _keyPinHash, value: _pinHash!);
+    await _secureStorage.write(key: _keyPinHash, value: _pinHash);
     await _prefs.remove('pinHash');
     notifyListeners();
   }
@@ -322,7 +322,7 @@ class SettingsController with ChangeNotifier {
 
       // biometricOnly: true prevents the system from showing its own device-PIN fallback.
       // The app handles PIN fallback through its own in-app numpad.
-      bool authenticated = await auth.authenticate(
+      final bool authenticated = await auth.authenticate(
         localizedReason: 'Unlock VittaraFinOS',
         biometricOnly:
             isPinEnabled, // suppress OS PIN sheet only when we have our own

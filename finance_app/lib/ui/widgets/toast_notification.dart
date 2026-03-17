@@ -295,7 +295,7 @@ class _ToastWidgetState extends State<_ToastWidget>
             }
           },
           child: Container(
-            padding: EdgeInsets.symmetric(
+            padding: const EdgeInsets.symmetric(
               horizontal: Spacing.lg,
               vertical: Spacing.md,
             ),
@@ -313,7 +313,7 @@ class _ToastWidgetState extends State<_ToastWidget>
             child: Row(
               children: [
                 Icon(icon, color: textColor, size: IconSizes.md),
-                SizedBox(width: Spacing.md),
+                const SizedBox(width: Spacing.md),
                 Expanded(
                   child: Text(
                     widget.data.message,
@@ -326,14 +326,14 @@ class _ToastWidgetState extends State<_ToastWidget>
                 ),
                 if (widget.data.actionLabel != null &&
                     widget.data.onAction != null) ...[
-                  SizedBox(width: Spacing.md),
+                  const SizedBox(width: Spacing.md),
                   GestureDetector(
                     onTap: () {
                       widget.data.onAction!();
                       widget.onDismiss();
                     },
                     child: Container(
-                      padding: EdgeInsets.symmetric(
+                      padding: const EdgeInsets.symmetric(
                         horizontal: Spacing.md,
                         vertical: Spacing.xs,
                       ),

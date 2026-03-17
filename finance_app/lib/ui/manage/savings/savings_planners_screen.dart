@@ -43,7 +43,7 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
           decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
               borderRadius:
-                  BorderRadius.vertical(top: Radius.circular(Radii.xxl))),
+                  const BorderRadius.vertical(top: Radius.circular(Radii.xxl))),
           child: SingleChildScrollView(
             child: Padding(
               padding: EdgeInsets.only(
@@ -53,43 +53,43 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                      margin: EdgeInsets.only(top: Spacing.md),
+                      margin: const EdgeInsets.only(top: Spacing.md),
                       width: 40,
                       height: 5,
                       decoration: BoxDecoration(
                           color: CupertinoColors.systemGrey3,
                           borderRadius: BorderRadius.circular(2.5))),
-                  SizedBox(height: Spacing.xl),
+                  const SizedBox(height: Spacing.xl),
                   Text('Create Savings Planner',
                       style: TextStyle(
                           fontSize: TypeScale.title2,
                           fontWeight: FontWeight.bold,
                           color: AppStyles.getTextColor(context))),
-                  SizedBox(height: Spacing.xxl),
+                  const SizedBox(height: Spacing.xxl),
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: Spacing.xxl),
+                    padding: const EdgeInsets.symmetric(horizontal: Spacing.xxl),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Planner Name',
+                        const Text('Planner Name',
                             style: TextStyle(
                                 fontSize: TypeScale.subhead,
                                 fontWeight: FontWeight.w600)),
-                        SizedBox(height: Spacing.sm),
+                        const SizedBox(height: Spacing.sm),
                         CupertinoTextField(
                           controller: nameController,
                           placeholder: 'Enter planner name',
-                          padding: EdgeInsets.all(Spacing.lg),
+                          padding: const EdgeInsets.all(Spacing.lg),
                           decoration: BoxDecoration(
                               color: AppStyles.getBackground(context),
                               borderRadius: BorderRadius.circular(Radii.md)),
                         ),
-                        SizedBox(height: Spacing.xl),
-                        Text('Category Focus (optional)',
+                        const SizedBox(height: Spacing.xl),
+                        const Text('Category Focus (optional)',
                             style: TextStyle(
                                 fontSize: TypeScale.subhead,
                                 fontWeight: FontWeight.w600)),
-                        SizedBox(height: Spacing.sm),
+                        const SizedBox(height: Spacing.sm),
                         GestureDetector(
                           onTap: () async {
                             final categories =
@@ -102,13 +102,13 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
                                 height: 420,
                                 decoration: BoxDecoration(
                                     color: AppStyles.getCardColor(ctx),
-                                    borderRadius: BorderRadius.vertical(
+                                    borderRadius: const BorderRadius.vertical(
                                         top: Radius.circular(Radii.xxl))),
                                 child: SafeArea(
                                   top: false,
                                   child: Column(
                                     children: [
-                                      SizedBox(height: Spacing.md),
+                                      const SizedBox(height: Spacing.md),
                                       Container(
                                           width: 40,
                                           height: 5,
@@ -117,14 +117,14 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
                                                   CupertinoColors.systemGrey3,
                                               borderRadius:
                                                   BorderRadius.circular(2.5))),
-                                      SizedBox(height: Spacing.lg),
+                                      const SizedBox(height: Spacing.lg),
                                       Text('Select Category',
                                           style: TextStyle(
                                               fontSize: TypeScale.title3,
                                               fontWeight: FontWeight.bold,
                                               color:
                                                   AppStyles.getTextColor(ctx))),
-                                      SizedBox(height: Spacing.md),
+                                      const SizedBox(height: Spacing.md),
                                       Expanded(
                                         child: ListView.builder(
                                           itemCount: categories.length + 1,
@@ -144,7 +144,7 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
                                                         color: AppStyles
                                                             .getSecondaryTextColor(
                                                                 ctx)),
-                                                    SizedBox(width: Spacing.md),
+                                                    const SizedBox(width: Spacing.md),
                                                     Text('No category',
                                                         style: TextStyle(
                                                             color: AppStyles
@@ -186,7 +186,7 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
                                                         size: 16,
                                                         color: category.color),
                                                   ),
-                                                  SizedBox(width: Spacing.md),
+                                                  const SizedBox(width: Spacing.md),
                                                   Expanded(
                                                       child: Text(category.name,
                                                           style: TextStyle(
@@ -194,7 +194,7 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
                                                                   .getTextColor(
                                                                       ctx)))),
                                                   if (isSelected)
-                                                    Icon(
+                                                    const Icon(
                                                         CupertinoIcons
                                                             .check_mark_circled_solid,
                                                         color: SemanticColors
@@ -213,7 +213,7 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
                           },
                           child: Container(
                             width: double.infinity,
-                            padding: EdgeInsets.all(Spacing.lg),
+                            padding: const EdgeInsets.all(Spacing.lg),
                             decoration: BoxDecoration(
                                 color: AppStyles.getBackground(context),
                                 borderRadius: BorderRadius.circular(Radii.md)),
@@ -222,7 +222,7 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
                                 if (selectedCategory != null) ...[
                                   Icon(selectedCategory!.icon,
                                       color: selectedCategory!.color),
-                                  SizedBox(width: Spacing.sm),
+                                  const SizedBox(width: Spacing.sm),
                                 ],
                                 Expanded(
                                   child: Text(
@@ -242,25 +242,25 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
                             ),
                           ),
                         ),
-                        SizedBox(height: Spacing.xl),
-                        Text('Monthly Target',
+                        const SizedBox(height: Spacing.xl),
+                        const Text('Monthly Target',
                             style: TextStyle(
                                 fontSize: TypeScale.subhead,
                                 fontWeight: FontWeight.w600)),
-                        SizedBox(height: Spacing.sm),
+                        const SizedBox(height: Spacing.sm),
                         CupertinoTextField(
                             controller: targetController,
                             placeholder: '5000',
                             keyboardType:
-                                TextInputType.numberWithOptions(decimal: true),
-                            prefix: Padding(
+                                const TextInputType.numberWithOptions(decimal: true),
+                            prefix: const Padding(
                                 padding: EdgeInsets.only(left: Spacing.lg),
                                 child: Text('₹')),
-                            padding: EdgeInsets.all(Spacing.lg),
+                            padding: const EdgeInsets.all(Spacing.lg),
                             decoration: BoxDecoration(
                                 color: AppStyles.getBackground(context),
                                 borderRadius: BorderRadius.circular(Radii.md))),
-                        SizedBox(height: Spacing.xxxl),
+                        const SizedBox(height: Spacing.xxxl),
                         Row(
                           children: [
                             Expanded(
@@ -271,7 +271,7 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
                                         style: TextStyle(
                                             color: AppStyles.getTextColor(
                                                 context))))),
-                            SizedBox(width: Spacing.md),
+                            const SizedBox(width: Spacing.md),
                             Expanded(
                               child: CupertinoButton(
                                 color: SemanticColors.success,
@@ -301,7 +301,7 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
                                   AlertService.showSuccess(
                                       context, 'Planner created!');
                                 },
-                                child: Text('Create',
+                                child: const Text('Create',
                                     style: TextStyle(color: Colors.white)),
                               ),
                             ),
@@ -346,18 +346,18 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
                         slivers: [
                           SliverToBoxAdapter(
                             child: Padding(
-                              padding: EdgeInsets.all(Spacing.lg),
+                              padding: const EdgeInsets.all(Spacing.lg),
                               child: GlassCard(
                                 child: Column(
                                   children: [
                                     Row(
                                       children: [
-                                        Icon(
+                                        const Icon(
                                             CupertinoIcons
                                                 .money_dollar_circle_fill,
                                             color: SemanticColors.success,
                                             size: IconSizes.lg),
-                                        SizedBox(width: Spacing.md),
+                                        const SizedBox(width: Spacing.md),
                                         Text('Total Monthly Target',
                                             style: TextStyle(
                                                 fontSize: TypeScale.title3,
@@ -366,16 +366,16 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
                                                     context))),
                                       ],
                                     ),
-                                    SizedBox(height: Spacing.lg),
+                                    const SizedBox(height: Spacing.lg),
                                     counter_widgets.CurrencyCounter(
                                         value: controller
                                             .totalMonthlySavingsTarget,
-                                        textStyle: TextStyle(
+                                        textStyle: const TextStyle(
                                             fontSize: TypeScale.largeTitle,
                                             fontWeight: FontWeight.bold,
                                             color: SemanticColors.success),
                                         decimalPlaces: 0),
-                                    SizedBox(height: Spacing.sm),
+                                    const SizedBox(height: Spacing.sm),
                                     Text(
                                         '${planners.length} active planner${planners.length > 1 ? 's' : ''}',
                                         style: TextStyle(
@@ -389,7 +389,7 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
                             ),
                           ),
                           SliverPadding(
-                            padding: EdgeInsets.all(Spacing.lg),
+                            padding: const EdgeInsets.all(Spacing.lg),
                             sliver: SliverList(
                               delegate: SliverChildBuilderDelegate(
                                 (context, index) {
@@ -398,7 +398,7 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
                                     index: index,
                                     child: Padding(
                                       padding:
-                                          EdgeInsets.only(bottom: Spacing.lg),
+                                          const EdgeInsets.only(bottom: Spacing.lg),
                                       child: GlassCard(
                                         child: Column(
                                           crossAxisAlignment:
@@ -422,7 +422,7 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
                                                 if (planner.autoSave)
                                                   Container(
                                                     padding:
-                                                        EdgeInsets.symmetric(
+                                                        const EdgeInsets.symmetric(
                                                             horizontal:
                                                                 Spacing.sm,
                                                             vertical:
@@ -436,7 +436,7 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
                                                             BorderRadius
                                                                 .circular(
                                                                     Radii.xs)),
-                                                    child: Row(
+                                                    child: const Row(
                                                       mainAxisSize:
                                                           MainAxisSize.min,
                                                       children: [
@@ -464,7 +464,7 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
                                                   ),
                                               ],
                                             ),
-                                            SizedBox(height: Spacing.lg),
+                                            const SizedBox(height: Spacing.lg),
                                             LiquidCircularProgress(
                                                 progress:
                                                     planner.currentMonthPercentage /
@@ -477,7 +477,7 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
                                                             .currentMonthPercentage,
                                                         suffix: '%',
                                                         decimalPlaces: 1,
-                                                        textStyle: TextStyle(
+                                                        textStyle: const TextStyle(
                                                             fontSize: TypeScale
                                                                 .title3,
                                                             fontWeight:
@@ -485,7 +485,7 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
                                                             color:
                                                                 SemanticColors
                                                                     .success))),
-                                            SizedBox(height: Spacing.lg),
+                                            const SizedBox(height: Spacing.lg),
                                             Row(
                                               mainAxisAlignment:
                                                   MainAxisAlignment
@@ -502,12 +502,12 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
                                                             color: AppStyles
                                                                 .getSecondaryTextColor(
                                                                     context))),
-                                                    SizedBox(
+                                                    const SizedBox(
                                                         height: Spacing.xxs),
                                                     counter_widgets.CurrencyCounter(
                                                         value: planner
                                                             .currentMonthSaved,
-                                                        textStyle: TextStyle(
+                                                        textStyle: const TextStyle(
                                                             fontSize: TypeScale
                                                                 .callout,
                                                             fontWeight:
@@ -529,7 +529,7 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
                                                             color: AppStyles
                                                                 .getSecondaryTextColor(
                                                                     context))),
-                                                    SizedBox(
+                                                    const SizedBox(
                                                         height: Spacing.xxs),
                                                     counter_widgets.CurrencyCounter(
                                                         value: planner
@@ -557,7 +557,7 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
                               ),
                             ),
                           ),
-                          SliverToBoxAdapter(child: SizedBox(height: 80)),
+                          const SliverToBoxAdapter(child: SizedBox(height: 80)),
                         ],
                       ),
               ),
@@ -580,36 +580,36 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
   Widget _buildEmptyState() {
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(Spacing.xxxl),
+        padding: const EdgeInsets.all(Spacing.xxxl),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: EdgeInsets.all(Spacing.xxxl),
+              padding: const EdgeInsets.all(Spacing.xxxl),
               decoration: BoxDecoration(
                   color: SemanticColors.success.withValues(alpha: 0.1),
                   shape: BoxShape.circle),
-              child: Icon(CupertinoIcons.money_dollar_circle_fill,
+              child: const Icon(CupertinoIcons.money_dollar_circle_fill,
                   size: IconSizes.emptyStateIcon,
                   color: SemanticColors.success),
             ),
-            SizedBox(height: Spacing.xxl),
+            const SizedBox(height: Spacing.xxl),
             Text('No Savings Planners',
                 style: TextStyle(
                     fontSize: TypeScale.largeTitle,
                     fontWeight: FontWeight.bold,
                     color: AppStyles.getTextColor(context))),
-            SizedBox(height: Spacing.md),
+            const SizedBox(height: Spacing.md),
             Text('Create a planner to track your\nmonthly savings progress',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     fontSize: TypeScale.callout,
                     color: AppStyles.getSecondaryTextColor(context))),
-            SizedBox(height: Spacing.xxxl),
+            const SizedBox(height: Spacing.xxxl),
             BouncyButton(
               onPressed: _showAddPlannerModal,
               child: Container(
-                padding: EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                     horizontal: Spacing.xxl, vertical: Spacing.lg),
                 decoration: BoxDecoration(
                     gradient: LinearGradient(colors: [
@@ -621,9 +621,9 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
                       BoxShadow(
                           color: SemanticColors.success.withValues(alpha: 0.4),
                           blurRadius: 20,
-                          offset: Offset(0, 8))
+                          offset: const Offset(0, 8))
                     ]),
-                child: Row(
+                child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(CupertinoIcons.add,

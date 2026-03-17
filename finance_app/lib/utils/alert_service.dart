@@ -189,7 +189,7 @@ class AlertService {
         canPop: false,
         child: Center(
           child: Container(
-            padding: EdgeInsets.all(Spacing.xxl),
+            padding: const EdgeInsets.all(Spacing.xxl),
             decoration: BoxDecoration(
               color: Theme.of(context).brightness == Brightness.dark
                   ? const Color(0xFF2C2C2E)
@@ -200,7 +200,7 @@ class AlertService {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const CupertinoActivityIndicator(radius: 20),
-                SizedBox(height: Spacing.lg),
+                const SizedBox(height: Spacing.lg),
                 Text(
                   message,
                   style: const TextStyle(fontSize: TypeScale.headline),
@@ -449,7 +449,7 @@ class _ToastNotificationState extends State<_ToastNotification>
           child: Material(
             color: Colors.transparent,
             child: Container(
-              padding: EdgeInsets.all(Spacing.lg),
+              padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: _getBackgroundColor(context),
                 borderRadius: BorderRadius.circular(Radii.lg),
@@ -468,7 +468,7 @@ class _ToastNotificationState extends State<_ToastNotification>
                     color: Colors.white,
                     size: IconSizes.lg,
                   ),
-                  SizedBox(width: Spacing.md),
+                  const SizedBox(width: Spacing.md),
                   Expanded(
                     child: Text(
                       widget.message,
@@ -480,7 +480,7 @@ class _ToastNotificationState extends State<_ToastNotification>
                     ),
                   ),
                   if (widget.actionLabel != null) ...[
-                    SizedBox(width: Spacing.md),
+                    const SizedBox(width: Spacing.md),
                     GestureDetector(
                       onTap: () {
                         widget.onAction?.call();
@@ -496,7 +496,7 @@ class _ToastNotificationState extends State<_ToastNotification>
                       ),
                     ),
                   ],
-                  SizedBox(width: Spacing.sm),
+                  const SizedBox(width: Spacing.sm),
                   GestureDetector(
                     onTap: () {
                       _controller.reverse().then((_) => widget.onDismiss());

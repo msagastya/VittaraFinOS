@@ -2,6 +2,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vittara_fin_os/utils/app_config.dart';
 
 class GoldPriceService {
   static final Logger _logger = Logger();
@@ -102,7 +103,7 @@ class GoldPriceService {
   static Future<double?> _fetchFromGoldPriceOrg() async {
     try {
       final response = await http.get(
-        Uri.parse('https://data-asg.goldprice.org/dbXRates/INR'),
+        Uri.parse(AppConfig.goldPriceInrUrl),
         headers: {
           'User-Agent': 'VittaraFinOS/1.0 (Android)',
           'Accept': 'application/json',
@@ -157,7 +158,7 @@ class GoldPriceService {
     try {
       // Fetch USD gold price per troy ounce
       final response = await http.get(
-        Uri.parse('https://data-asg.goldprice.org/dbXRates/USD'),
+        Uri.parse(AppConfig.goldPriceUsdUrl),
         headers: {
           'User-Agent': 'VittaraFinOS/1.0 (Android)',
           'Accept': 'application/json',
@@ -213,7 +214,7 @@ class GoldPriceService {
     try {
       // Primary forex source
       final response = await http.get(
-        Uri.parse('https://api.exchangerate-api.com/v4/latest/USD'),
+        Uri.parse(AppConfig.exchangeRateBaseUrl),
         headers: {
           'User-Agent': 'VittaraFinOS/1.0 (Android)',
         },
@@ -236,7 +237,7 @@ class GoldPriceService {
     // Fallback forex source
     try {
       final response = await http.get(
-        Uri.parse('https://open.er-api.com/v6/latest/USD'),
+        Uri.parse(AppConfig.exchangeRateFallbackUrl),
         headers: {
           'User-Agent': 'VittaraFinOS/1.0 (Android)',
         },

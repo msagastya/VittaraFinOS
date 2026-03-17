@@ -92,7 +92,7 @@ class _TransactionsArchiveScreenState extends State<TransactionsArchiveScreen> {
           final archived = archiveController.archived;
 
           if (archived.isEmpty) {
-            return Center(
+            return const Center(
               child: EmptyStateView(
                 icon: CupertinoIcons.archivebox_fill,
                 title: 'No Archived Transactions',
@@ -136,7 +136,7 @@ class _TransactionsArchiveScreenState extends State<TransactionsArchiveScreen> {
             child: ListView.builder(
               physics: const SmoothScrollPhysics(),
               cacheExtent: 600,
-              padding: EdgeInsets.fromLTRB(
+              padding: const EdgeInsets.fromLTRB(
                   Spacing.lg, Spacing.lg, Spacing.lg, Spacing.xxxl),
               itemCount: listItems.length,
               itemBuilder: (context, index) {
@@ -212,10 +212,10 @@ class _ArchivedTransactionCard extends StatelessWidget {
     return BouncyButton(
       onPressed: () => _showDetailSheet(context),
       child: Container(
-        margin: EdgeInsets.only(bottom: Spacing.lg),
+        margin: const EdgeInsets.only(bottom: Spacing.lg),
         decoration: AppStyles.cardDecoration(context),
         child: Padding(
-          padding: EdgeInsets.all(Spacing.lg),
+          padding: const EdgeInsets.all(Spacing.lg),
           child: Row(
             children: [
               Container(
@@ -235,7 +235,7 @@ class _ArchivedTransactionCard extends StatelessWidget {
                       transaction.getTypeLabel(),
                       style: AppStyles.titleStyle(context),
                     ),
-                    SizedBox(height: Spacing.xs),
+                    const SizedBox(height: Spacing.xs),
                     Text(
                       _formatDate(transaction.dateTime),
                       style: TextStyle(
@@ -243,7 +243,7 @@ class _ArchivedTransactionCard extends StatelessWidget {
                         fontSize: TypeScale.caption,
                       ),
                     ),
-                    SizedBox(height: Spacing.xs),
+                    const SizedBox(height: Spacing.xs),
                     Text(
                       transaction.getSummary(),
                       style: TextStyle(

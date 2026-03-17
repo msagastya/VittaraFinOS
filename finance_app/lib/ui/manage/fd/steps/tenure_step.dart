@@ -114,7 +114,7 @@ class _TenureStepState extends State<TenureStep> {
                   ],
                 ),
               ),
-              SizedBox(width: Spacing.md),
+              const SizedBox(width: Spacing.md),
               // Months field
               Expanded(
                 child: Column(
@@ -144,7 +144,7 @@ class _TenureStepState extends State<TenureStep> {
                   ],
                 ),
               ),
-              SizedBox(width: Spacing.md),
+              const SizedBox(width: Spacing.md),
               // Days field
               Expanded(
                 child: Column(
@@ -186,14 +186,14 @@ class _TenureStepState extends State<TenureStep> {
               final totalMonths = controller.tenureMonths;
 
               // Build duration breakdown string
-              List<String> parts = [];
+              final List<String> parts = [];
               if (years > 0) parts.add('$years year${years > 1 ? 's' : ''}');
               if (months > 0) {
                 parts.add('$months month${months > 1 ? 's' : ''}');
               }
               if (days > 0) parts.add('$days day${days > 1 ? 's' : ''}');
 
-              String durationText =
+              final String durationText =
                   parts.isNotEmpty ? parts.join(', ') : 'No tenure entered';
 
               return Container(

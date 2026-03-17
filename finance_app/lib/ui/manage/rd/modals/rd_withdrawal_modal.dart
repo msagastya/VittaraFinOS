@@ -72,13 +72,13 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
           border: null,
         ),
         body: SingleChildScrollView(
-          padding: EdgeInsets.all(Spacing.lg),
+          padding: const EdgeInsets.all(Spacing.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // RD Details Summary
               Container(
-                padding: EdgeInsets.all(Spacing.lg),
+                padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color: AppStyles.getCardColor(context),
                   borderRadius: BorderRadius.circular(12),
@@ -98,7 +98,7 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: Spacing.md),
+                    const SizedBox(height: Spacing.md),
                     _buildDetailRow(context, 'Total Invested',
                         '₹${widget.rd.amountInvestedSoFar.toStringAsFixed(2)}'),
                     _buildDetailRow(context, 'Maturity Date',
@@ -108,7 +108,7 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
                   ],
                 ),
               ),
-              SizedBox(height: Spacing.lg),
+              const SizedBox(height: Spacing.lg),
 
               // Withdrawal Date Selection
               Text(
@@ -119,11 +119,11 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
                   fontSize: TypeScale.body,
                 ),
               ),
-              SizedBox(height: Spacing.sm),
+              const SizedBox(height: Spacing.sm),
               GestureDetector(
                 onTap: () => _showDatePicker(context),
                 child: Container(
-                  padding: EdgeInsets.all(Spacing.md),
+                  padding: const EdgeInsets.all(Spacing.md),
                   decoration: BoxDecoration(
                     color: AppStyles.getCardColor(context),
                     borderRadius: BorderRadius.circular(8),
@@ -151,11 +151,11 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
                   ),
                 ),
               ),
-              SizedBox(height: Spacing.lg),
+              const SizedBox(height: Spacing.lg),
 
               // Withdrawal Value Info
               Container(
-                padding: EdgeInsets.all(Spacing.lg),
+                padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color:
                       AppStyles.getPrimaryColor(context).withValues(alpha: 0.1),
@@ -176,7 +176,7 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
                         fontSize: TypeScale.footnote,
                       ),
                     ),
-                    SizedBox(height: Spacing.sm),
+                    const SizedBox(height: Spacing.sm),
                     Row(
                       children: [
                         Expanded(
@@ -184,7 +184,7 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
                             controller: _withdrawalAmountController,
                             placeholder: '0.00',
                             prefix: Padding(
-                              padding: EdgeInsets.only(left: Spacing.md),
+                              padding: const EdgeInsets.only(left: Spacing.md),
                               child: Text(
                                 '₹',
                                 style: TextStyle(
@@ -207,7 +207,7 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
                               ),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                               horizontal: Spacing.md,
                               vertical: Spacing.md,
                             ),
@@ -221,8 +221,8 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
                         ),
                       ],
                     ),
-                    SizedBox(height: Spacing.md),
-                    Row(
+                    const SizedBox(height: Spacing.md),
+                    const Row(
                       children: [
                         Icon(
                           CupertinoIcons.check_mark_circled_solid,
@@ -244,7 +244,7 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
                   ],
                 ),
               ),
-              SizedBox(height: Spacing.xxl),
+              const SizedBox(height: Spacing.xxl),
 
               // Confirm Withdrawal Button
               SizedBox(
@@ -345,7 +345,7 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
                   ),
                 ),
               ),
-              SizedBox(height: Spacing.lg),
+              const SizedBox(height: Spacing.lg),
             ],
           ),
         ),
@@ -391,7 +391,7 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
 
   Widget _buildDetailRow(BuildContext context, String label, String value) {
     return Padding(
-      padding: EdgeInsets.only(bottom: Spacing.sm),
+      padding: const EdgeInsets.only(bottom: Spacing.sm),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [

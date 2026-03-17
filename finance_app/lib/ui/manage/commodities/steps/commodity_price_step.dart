@@ -50,7 +50,7 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
               style: AppStyles.titleStyle(context)),
           const SizedBox(height: 30),
           Text('Price Per ${widget.ctrl.unit ?? 'Unit'} (₹)',
-              style: TextStyle(
+              style: const TextStyle(
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           CupertinoTextField(
@@ -62,9 +62,9 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
               color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(Radii.md),
             ),
-            prefix: Padding(
-              padding: const EdgeInsets.only(left: 16),
-              child: const Text('₹'),
+            prefix: const Padding(
+              padding: EdgeInsets.only(left: 16),
+              child: Text('₹'),
             ),
             onChanged: (v) {
               final price = double.tryParse(v) ?? 0;
@@ -72,7 +72,7 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
             },
           ),
           const SizedBox(height: Spacing.xxl),
-          Text('Purchase Date',
+          const Text('Purchase Date',
               style: TextStyle(
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
@@ -98,8 +98,8 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('Select Date',
-                                style: const TextStyle(
+                            const Text('Select Date',
+                                style: TextStyle(
                                     fontSize: TypeScale.headline,
                                     fontWeight: FontWeight.bold)),
                             GestureDetector(
@@ -144,7 +144,7 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
             ),
           ),
           const SizedBox(height: Spacing.xxl),
-          Text('Exchange',
+          const Text('Exchange',
               style: TextStyle(
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),

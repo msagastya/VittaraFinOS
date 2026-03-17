@@ -38,7 +38,7 @@ class MFReviewStep extends StatelessWidget {
                   mf.schemeName.isNotEmpty
                       ? mf.schemeName.substring(0, 1).toUpperCase()
                       : 'M',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: TypeScale.display,
                     fontWeight: FontWeight.bold,
                     color: SemanticColors.investments,
@@ -100,7 +100,7 @@ class MFReviewStep extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'Investment Summary',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,

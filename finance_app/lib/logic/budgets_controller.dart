@@ -5,7 +5,7 @@ import 'package:vittara_fin_os/logic/budget_model.dart';
 import 'package:vittara_fin_os/logic/notification_helpers.dart';
 
 /// Controller for managing budgets and savings planners
-class BudgetsController extends ChangeNotifier {
+class BudgetsController with ChangeNotifier {
   static const String _budgetsKey = 'budgets';
   static const String _plannersKey = 'savings_planners';
 

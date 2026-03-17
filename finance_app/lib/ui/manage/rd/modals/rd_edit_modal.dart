@@ -76,13 +76,13 @@ class _RDEditModalState extends State<RDEditModal> {
           ),
         ),
         body: SingleChildScrollView(
-          padding: EdgeInsets.all(Spacing.lg),
+          padding: const EdgeInsets.all(Spacing.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Info banner
               Container(
-                padding: EdgeInsets.all(Spacing.md),
+                padding: const EdgeInsets.all(Spacing.md),
                 decoration: BoxDecoration(
                   color: SemanticColors.getInfo(context).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
@@ -99,7 +99,7 @@ class _RDEditModalState extends State<RDEditModal> {
                       color: SemanticColors.getInfo(context),
                       size: IconSizes.sm,
                     ),
-                    SizedBox(width: Spacing.sm),
+                    const SizedBox(width: Spacing.sm),
                     Expanded(
                       child: Text(
                         'You can edit basic details and settings. Financial data like installment amount and interest rate cannot be changed.',
@@ -112,11 +112,11 @@ class _RDEditModalState extends State<RDEditModal> {
                   ],
                 ),
               ),
-              SizedBox(height: Spacing.xl),
+              const SizedBox(height: Spacing.xl),
 
               // RD Name
               _buildLabel('RD Name'),
-              SizedBox(height: Spacing.sm),
+              const SizedBox(height: Spacing.sm),
               CupertinoTextField(
                 controller: _nameController,
                 placeholder: 'Enter RD name',
@@ -128,13 +128,13 @@ class _RDEditModalState extends State<RDEditModal> {
                     color: AppStyles.getDividerColor(context),
                   ),
                 ),
-                padding: EdgeInsets.all(Spacing.md),
+                padding: const EdgeInsets.all(Spacing.md),
               ),
-              SizedBox(height: Spacing.lg),
+              const SizedBox(height: Spacing.lg),
 
               // Auto-Payment Toggle
               Container(
-                padding: EdgeInsets.all(Spacing.lg),
+                padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color: AppStyles.getCardColor(context),
                   borderRadius: BorderRadius.circular(8),
@@ -157,7 +157,7 @@ class _RDEditModalState extends State<RDEditModal> {
                               fontSize: TypeScale.body,
                             ),
                           ),
-                          SizedBox(height: Spacing.xxs),
+                          const SizedBox(height: Spacing.xxs),
                           Text(
                             'Auto-debit future installments',
                             style: TextStyle(
@@ -179,11 +179,11 @@ class _RDEditModalState extends State<RDEditModal> {
                   ],
                 ),
               ),
-              SizedBox(height: Spacing.lg),
+              const SizedBox(height: Spacing.lg),
 
               // Bank Name
               _buildLabel('Bank Name'),
-              SizedBox(height: Spacing.sm),
+              const SizedBox(height: Spacing.sm),
               CupertinoTextField(
                 controller: _bankNameController,
                 placeholder: 'Enter bank name',
@@ -195,13 +195,13 @@ class _RDEditModalState extends State<RDEditModal> {
                     color: AppStyles.getDividerColor(context),
                   ),
                 ),
-                padding: EdgeInsets.all(Spacing.md),
+                padding: const EdgeInsets.all(Spacing.md),
               ),
-              SizedBox(height: Spacing.lg),
+              const SizedBox(height: Spacing.lg),
 
               // Bank Account Number
               _buildLabel('Bank Account Number'),
-              SizedBox(height: Spacing.sm),
+              const SizedBox(height: Spacing.sm),
               CupertinoTextField(
                 controller: _bankAccountController,
                 placeholder: 'Enter account number',
@@ -213,13 +213,13 @@ class _RDEditModalState extends State<RDEditModal> {
                     color: AppStyles.getDividerColor(context),
                   ),
                 ),
-                padding: EdgeInsets.all(Spacing.md),
+                padding: const EdgeInsets.all(Spacing.md),
               ),
-              SizedBox(height: Spacing.lg),
+              const SizedBox(height: Spacing.lg),
 
               // Notes
               _buildLabel('Notes (Optional)'),
-              SizedBox(height: Spacing.sm),
+              const SizedBox(height: Spacing.sm),
               CupertinoTextField(
                 controller: _notesController,
                 placeholder: 'Add notes about this RD',
@@ -232,9 +232,9 @@ class _RDEditModalState extends State<RDEditModal> {
                     color: AppStyles.getDividerColor(context),
                   ),
                 ),
-                padding: EdgeInsets.all(Spacing.md),
+                padding: const EdgeInsets.all(Spacing.md),
               ),
-              SizedBox(height: Spacing.xl),
+              const SizedBox(height: Spacing.xl),
 
               // Read-only information section
               Text(
@@ -245,9 +245,9 @@ class _RDEditModalState extends State<RDEditModal> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              SizedBox(height: Spacing.md),
+              const SizedBox(height: Spacing.md),
               Container(
-                padding: EdgeInsets.all(Spacing.lg),
+                padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color: AppStyles.getCardColor(context).withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(8),
@@ -290,7 +290,7 @@ class _RDEditModalState extends State<RDEditModal> {
 
   Widget _buildReadOnlyRow(String label, String value) {
     return Padding(
-      padding: EdgeInsets.only(bottom: Spacing.sm),
+      padding: const EdgeInsets.only(bottom: Spacing.sm),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [

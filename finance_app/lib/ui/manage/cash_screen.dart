@@ -89,7 +89,7 @@ class CashScreen extends StatelessWidget {
                                 ),
                                 Text(
                                   '₹${totalCash.toStringAsFixed(2)}',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     color: AppStyles.bioGreen,
                                     fontWeight: FontWeight.bold,
                                     fontSize: TypeScale.headline,

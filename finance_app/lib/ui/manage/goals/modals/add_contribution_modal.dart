@@ -104,7 +104,7 @@ class _AddContributionModalState extends State<AddContributionModal> {
     return Container(
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(Radii.xxl)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(Radii.xxl)),
       ),
       child: SingleChildScrollView(
         child: Padding(
@@ -114,61 +114,61 @@ class _AddContributionModalState extends State<AddContributionModal> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                margin: EdgeInsets.only(top: Spacing.md),
+                margin: const EdgeInsets.only(top: Spacing.md),
                 width: 40,
                 height: 5,
                 decoration: BoxDecoration(
                     color: CupertinoColors.systemGrey3,
                     borderRadius: BorderRadius.circular(2.5)),
               ),
-              SizedBox(height: Spacing.xl),
+              const SizedBox(height: Spacing.xl),
               Text('Add Contribution',
                   style: TextStyle(
                       fontSize: TypeScale.title2,
                       fontWeight: FontWeight.bold,
                       color: AppStyles.getTextColor(context))),
-              SizedBox(height: Spacing.xxl),
+              const SizedBox(height: Spacing.xxl),
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: Spacing.xxl),
+                padding: const EdgeInsets.symmetric(horizontal: Spacing.xxl),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Amount',
+                    const Text('Amount',
                         style: TextStyle(
                             fontSize: TypeScale.subhead,
                             fontWeight: FontWeight.w600)),
-                    SizedBox(height: Spacing.sm),
+                    const SizedBox(height: Spacing.sm),
                     CupertinoTextField(
                       controller: _amountController,
                       placeholder: '0.00',
                       keyboardType:
-                          TextInputType.numberWithOptions(decimal: true),
-                      prefix: Padding(
+                          const TextInputType.numberWithOptions(decimal: true),
+                      prefix: const Padding(
                           padding: EdgeInsets.only(left: Spacing.lg),
                           child: Text('₹',
                               style: TextStyle(fontSize: TypeScale.callout))),
-                      padding: EdgeInsets.all(Spacing.lg),
+                      padding: const EdgeInsets.all(Spacing.lg),
                       decoration: BoxDecoration(
                           color: AppStyles.getBackground(context),
                           borderRadius: BorderRadius.circular(Radii.md)),
                       autofocus: true,
                     ),
-                    SizedBox(height: Spacing.xl),
-                    Text('Notes (Optional)',
+                    const SizedBox(height: Spacing.xl),
+                    const Text('Notes (Optional)',
                         style: TextStyle(
                             fontSize: TypeScale.subhead,
                             fontWeight: FontWeight.w600)),
-                    SizedBox(height: Spacing.sm),
+                    const SizedBox(height: Spacing.sm),
                     CupertinoTextField(
                       controller: _notesController,
                       placeholder: 'Add a note',
                       maxLines: 3,
-                      padding: EdgeInsets.all(Spacing.lg),
+                      padding: const EdgeInsets.all(Spacing.lg),
                       decoration: BoxDecoration(
                           color: AppStyles.getBackground(context),
                           borderRadius: BorderRadius.circular(Radii.md)),
                     ),
-                    SizedBox(height: Spacing.xxxl),
+                    const SizedBox(height: Spacing.xxxl),
                     Row(
                       children: [
                         Expanded(
@@ -179,12 +179,12 @@ class _AddContributionModalState extends State<AddContributionModal> {
                                     style: TextStyle(
                                         color:
                                             AppStyles.getTextColor(context))))),
-                        SizedBox(width: Spacing.md),
+                        const SizedBox(width: Spacing.md),
                         Expanded(
                             child: CupertinoButton(
                                 color: widget.goal.color,
                                 onPressed: _saveContribution,
-                                child: Text('Add',
+                                child: const Text('Add',
                                     style: TextStyle(color: Colors.white)))),
                       ],
                     ),

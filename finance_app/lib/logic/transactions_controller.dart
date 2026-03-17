@@ -77,6 +77,23 @@ class TransactionsController with ChangeNotifier {
     notifyListeners();
   }
 
+  /// Adds multiple transactions at once and calls [notifyListeners] only once
+  /// at the end, avoiding redundant rebuilds during SMS batch imports.
+  Future<void> addTransactionsBatch(List<Transaction> transactions) async {
+    for (final transaction in transactions) {
+      var normalized = transaction;
+      final id = transaction.id.trim();
+      if (id.isEmpty || _transactions.any((item) => item.id == id)) {
+        normalized = transaction.copyWith(id: IdGenerator.next(prefix: 'txn'));
+      }
+      _transactions.insert(0, normalized);
+    }
+    // Sort by date descending after bulk insert
+    _transactions.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+    await _saveTransactions();
+    notifyListeners(); // Single notify for entire batch
+  }
+
   Future<void> _saveTransactions() async {
     final transactionsJson = _transactions
         .map((transaction) => jsonEncode(transaction.toMap()))

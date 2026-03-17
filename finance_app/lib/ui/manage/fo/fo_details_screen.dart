@@ -36,6 +36,7 @@ class _FODetailsScreenState extends State<FODetailsScreen> {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
       navigationBar: CupertinoNavigationBar(
+        previousPageTitle: 'Investments',
         middle: Text(fo.name,
             style: TextStyle(color: AppStyles.getTextColor(context))),
         backgroundColor: AppStyles.getBackground(context),
@@ -370,7 +371,7 @@ class _DetailCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title,
-              style: TextStyle(
+              style: const TextStyle(
                   fontWeight: FontWeight.bold, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.lg),
           ...List.generate(

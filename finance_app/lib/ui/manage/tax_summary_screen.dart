@@ -58,7 +58,7 @@ class _TaxSummaryScreenState extends State<TaxSummaryScreen> {
     }).toList();
   }
 
-  String _fYLabel() => 'FY ${_fyStartYear}–${(_fyStartYear + 1).toString().substring(2)}';
+  String _fYLabel() => 'FY $_fyStartYear–${(_fyStartYear + 1).toString().substring(2)}';
 
   @override
   Widget build(BuildContext context) {
@@ -151,7 +151,7 @@ class _TaxSummaryScreenState extends State<TaxSummaryScreen> {
                                     BorderRadius.circular(Radii.md),
                               ),
                               alignment: Alignment.center,
-                              child: Icon(
+                              child: const Icon(
                                 CupertinoIcons.doc_text_fill,
                                 color: AppStyles.solarGold,
                                 size: IconSizes.sm,
@@ -290,7 +290,7 @@ class _TaxSummaryScreenState extends State<TaxSummaryScreen> {
                                   ),
                                   child: Text(
                                     section.code,
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontSize: TypeScale.footnote,
                                       fontWeight: FontWeight.w800,
                                       color: AppStyles.solarGold,
@@ -356,7 +356,7 @@ class _TaxSummaryScreenState extends State<TaxSummaryScreen> {
                               const SizedBox(height: Spacing.xs),
                               Text(
                                 isOver
-                                    ? 'Exceeds limit by ${_fmt(total - limit!)}'
+                                    ? 'Exceeds limit by ${_fmt(total - limit)}'
                                     : '${_fmt(limit! - total)} remaining',
                                 style: TextStyle(
                                   fontSize: TypeScale.caption,
@@ -435,7 +435,7 @@ class _TaxSummaryScreenState extends State<TaxSummaryScreen> {
       children: [
         Text(
           value,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: TypeScale.title3,
             fontWeight: FontWeight.w700,
             color: AppStyles.solarGold,

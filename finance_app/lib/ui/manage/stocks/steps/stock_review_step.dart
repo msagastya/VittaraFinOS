@@ -32,7 +32,7 @@ class StockReviewStep extends StatelessWidget {
               child: Center(
                 child: Text(
                   stock.symbol.substring(0, 1),
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: TypeScale.display,
                     fontWeight: FontWeight.bold,
                     color: SemanticColors.investments,

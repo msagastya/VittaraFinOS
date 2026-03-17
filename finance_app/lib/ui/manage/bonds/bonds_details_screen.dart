@@ -76,6 +76,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
       navigationBar: CupertinoNavigationBar(
+        previousPageTitle: 'Investments',
         middle: Text(
           bondName,
           style: TextStyle(color: AppStyles.getTextColor(context)),
@@ -265,7 +266,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                             topRight: Radius.circular(12),
                           ),
                         ),
-                        child: Row(
+                        child: const Row(
                           children: [
                             Expanded(
                               flex: 2,
@@ -274,7 +275,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: TypeScale.footnote,
-                                  color: const Color(0xFF00A6CC),
+                                  color: Color(0xFF00A6CC),
                                 ),
                               ),
                             ),
@@ -286,7 +287,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: TypeScale.footnote,
-                                  color: const Color(0xFF00A6CC),
+                                  color: Color(0xFF00A6CC),
                                 ),
                               ),
                             ),
@@ -298,7 +299,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: TypeScale.footnote,
-                                  color: const Color(0xFF00A6CC),
+                                  color: Color(0xFF00A6CC),
                                 ),
                               ),
                             ),

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vittara_fin_os/utils/app_config.dart';
 
 /// Service for fetching NAV (Net Asset Value) data for Mutual Funds
 class NAVService {
@@ -33,7 +34,7 @@ class NAVService {
 
   Future<NAVData?> _fetchLatestOrFallbackNAV(String schemeCode) async {
     // Primary endpoint
-    final latestUrl = Uri.parse('https://api.mfapi.in/mf/$schemeCode/latest');
+    final latestUrl = Uri.parse('${AppConfig.mfSchemeLatestUrl}/$schemeCode/latest');
     final latestResponse =
         await http.get(latestUrl).timeout(const Duration(seconds: 10));
     if (latestResponse.statusCode == 200) {
@@ -45,7 +46,7 @@ class NAVService {
     }
 
     // Fallback endpoint: historical feed, take first record
-    final fallbackUrl = Uri.parse('https://api.mfapi.in/mf/$schemeCode');
+    final fallbackUrl = Uri.parse('${AppConfig.mfSchemeLatestUrl}/$schemeCode');
     final fallbackResponse =
         await http.get(fallbackUrl).timeout(const Duration(seconds: 12));
     if (fallbackResponse.statusCode != 200) return null;
@@ -97,7 +98,7 @@ class NAVService {
     int? lastNDays,
   }) async {
     try {
-      final url = Uri.parse('https://api.mfapi.in/mf/$schemeCode');
+      final url = Uri.parse('${AppConfig.mfSchemeLatestUrl}/$schemeCode');
       final response = await http.get(url).timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {

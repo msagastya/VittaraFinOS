@@ -49,7 +49,7 @@ class _NPSContributionStepState extends State<NPSContributionStep> {
                   TextStyle(color: AppStyles.getSecondaryTextColor(context))),
           const SizedBox(height: 30),
           // Total Contributed
-          Text('Total Contributed (₹)',
+          const Text('Total Contributed (₹)',
               style: TextStyle(
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
@@ -74,7 +74,7 @@ class _NPSContributionStepState extends State<NPSContributionStep> {
           ),
           const SizedBox(height: Spacing.xxl),
           // Scheme Type
-          Text('Investment Scheme',
+          const Text('Investment Scheme',
               style: TextStyle(
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
@@ -118,7 +118,7 @@ class _NPSContributionStepState extends State<NPSContributionStep> {
           ),
           const SizedBox(height: Spacing.xxl),
           // NPS Manager
-          Text('NPS Manager',
+          const Text('NPS Manager',
               style: TextStyle(
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
@@ -214,13 +214,13 @@ class _NPSContributionStepState extends State<NPSContributionStep> {
                             .withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Row(
+                      child: const Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(CupertinoIcons.exclamationmark_circle,
+                          Icon(CupertinoIcons.exclamationmark_circle,
                               size: 16, color: CupertinoColors.systemOrange),
-                          const SizedBox(width: 8),
-                          const Expanded(
+                          SizedBox(width: 8),
+                          Expanded(
                             child: Text(
                               'Contribution exceeds ₹2L limit. Amounts above ₹2,00,000 (₹1.5L 80C + ₹50K 80CCD) do not attract additional tax deduction.',
                               style: TextStyle(

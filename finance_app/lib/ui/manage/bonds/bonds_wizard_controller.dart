@@ -108,7 +108,7 @@ class BondsWizardController extends ChangeNotifier {
     }
 
     final now = DateTime.now();
-    final yearsToMaturity =
+    const yearsToMaturity =
         5.0; // Placeholder, should be calculated from maturity date
     final annualCoupon = (couponRate! / 100) * faceValue!;
 
