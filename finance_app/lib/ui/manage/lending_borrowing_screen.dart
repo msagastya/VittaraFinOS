@@ -12,6 +12,7 @@ import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
+import 'package:vittara_fin_os/ui/manage/lending/bill_split_screen.dart';
 
 class LendingBorrowingScreen extends StatefulWidget {
   const LendingBorrowingScreen({super.key});
@@ -44,14 +45,28 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
         previousPageTitle: 'Manage',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
-        trailing: CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: () => _showSortSheet(),
-          child: Icon(
-            CupertinoIcons.arrow_up_arrow_down,
-            color: AppStyles.getPrimaryColor(context),
-            size: 20,
-          ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: () => _navigateToBillSplit(context),
+              child: const Icon(
+                CupertinoIcons.person_2_square_stack,
+                color: SemanticColors.lending,
+                size: 22,
+              ),
+            ),
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: () => _showSortSheet(),
+              child: Icon(
+                CupertinoIcons.arrow_up_arrow_down,
+                color: AppStyles.getPrimaryColor(context),
+                size: 20,
+              ),
+            ),
+          ],
         ),
       ),
       child: Consumer<LendingBorrowingController>(
@@ -364,6 +379,12 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
           },
         ),
       ),
+    );
+  }
+
+  void _navigateToBillSplit(BuildContext context) {
+    Navigator.of(context).push(
+      FadeScalePageRoute(page: const BillSplitScreen()),
     );
   }
 

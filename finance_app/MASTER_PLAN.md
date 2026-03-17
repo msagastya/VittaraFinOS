@@ -121,7 +121,7 @@
 | AU8-04 | P2 | [x] | Audit every `BouncyButton` — ensure `Haptics.light()` on all interactive elements | All screens |
 | AU8-05 | P2 | [x] | Add long-press on investment card → "Pin to top / Share P&L" action | `investments_screen.dart` |
 | AU8-06 | P2 | [x] | Add color picker (8 preset swatches) to tag creation | `category_creation_modal.dart` (or tags modal) |
-| AU8-07 | P3 | [ ] | Add "Not now" / "Remind me later" option to all suggestion prompts | Onboarding, notification prompts |
+| AU8-07 | P3 | [~] | Add "Not now" / "Remind me later" option to all suggestion prompts | Onboarding, notification prompts |
 | AU8-08 | P1 | [x] | Account detail: replace "last 5 transactions + Export" with "View All Transactions" button that opens filtered full transaction history for that account | `lib/ui/manage/accounts_screen.dart` |
 
 ---
@@ -134,7 +134,7 @@
 | AU9-02 | P1 | [x] | Set `border: null` globally in `CupertinoThemeData` nav bar override in `main.dart` | `main.dart` ThemeData |
 | AU9-03 | P2 | [~] | Audit all 11 investment detail screens — standardize card padding, section header style, divider placement | All `*_details_screen.dart` files |
 | AU9-04 | P2 | [~] | Enforce `AppStyles.headerStyle(context)` for all section headers — remove any `Text` with hardcoded style | All screens |
-| AU9-05 | P3 | [ ] | Create 5–6 reusable SVG/Lottie empty-state illustrations (no items, no data, locked, etc.) | New `assets/illustrations/` |
+| AU9-05 | P3 | [~] | Create 5–6 reusable SVG/Lottie empty-state illustrations (no items, no data, locked, etc.) | New `assets/illustrations/` |
 | AU9-06 | P3 | [x] | Create unified `AppButton` component (primary, secondary, destructive, ghost variants) | New `lib/ui/widgets/app_button.dart` |
 
 ---
@@ -160,7 +160,7 @@
 | AU11-02 | P1 | [x] | Add `overflow: TextOverflow.ellipsis, maxLines: 1` to ALL list item title/subtitle Text widgets | Grep: list item Text widgets |
 | AU11-03 | P2 | [x] | Wrap bottom sheet modal content in `ConstrainedBox(constraints: BoxConstraints(maxWidth: 600))` + center for tablet landscape | All bottom sheets |
 | AU11-04 | P2 | [x] | Replace fixed-height dashboard chart containers with `AspectRatio` or `LayoutBuilder` | Dashboard chart widgets |
-| AU11-05 | P3 | [ ] | Add Flutter golden screenshot tests at 3 screen sizes (small 375pt, standard 390pt, large 430pt) | New `/test/golden/` |
+| AU11-05 | P3 | [~] | Add Flutter golden screenshot tests at 3 screen sizes (small 375pt, standard 390pt, large 430pt) | New `/test/golden/` |
 
 ---
 
@@ -257,7 +257,7 @@
 | ID | P | Status | Task | File / Location |
 |----|---|--------|------|-----------------|
 | AU19-01 | P1 | [x] | If account is deleted, mark all linked transactions with `accountDeleted: true` in metadata (not orphan them) | `accounts_controller.dart` delete handler |
-| AU19-02 | P1 | [ ] | If investment type changes (edit), migrate all existing transactions linked to old type | Investment edit screens |
+| AU19-02 | P1 | [~] | If investment type changes (edit), migrate all existing transactions linked to old type | Investment edit screens |
 | AU19-03 | P2 | [x] | Add data integrity check on app startup: detect orphaned transactions (no valid accountId) | New `lib/services/integrity_check_service.dart` |
 | AU19-04 | P2 | [~] | Add FD/RD: if linked account is deleted, show warning badge on investment card | FD/RD detail screens |
 | AU19-05 | P3 | [~] | Periodic "your data health" notification: "3 transactions have unlinked accounts" | `alert_service.dart` |
@@ -285,8 +285,8 @@
 | FT1-01 | [x] | **Financial Calendar** | Single calendar view: all SIP dates, FD maturities, EMI dues, bill reminders, goal deadlines. Month + agenda view. | New tab in Notifications OR new screen in Manage |
 | FT1-02 | [x] | **Loan / EMI Tracker** | Replace dead Liabilities section. Track: principal, interest rate, tenure, EMI schedule, pre-payment impact, outstanding balance. Monthly amortization table. | `lib/ui/manage/loans/loan_tracker_screen.dart` |
 | FT1-03 | [x] | **Insurance Tracker** | Track health/life/vehicle/term insurance: premium amount, payment frequency, renewal date, sum insured, nominee, insurer. Alert 30 days before renewal. | `lib/ui/manage/insurance/` new section |
-| FT1-04 | [ ] | **Bill Splitting** | Log shared expense, add contacts, split equally or custom %, track "owes you / you owe" balance. Settle with a tap (marks as paid). | New branch in Quick Add or new screen |
-| FT1-05 | [ ] | **Receipt OCR** | Camera scan of receipt → auto-fill amount, merchant, date in transaction wizard. Use `google_ml_kit` text recognition. | Camera icon in transaction wizard step 1 |
+| FT1-04 | [x] | **Bill Splitting** | Log shared expense, add contacts, split equally or custom %, track "owes you / you owe" balance. Settle with a tap (marks as paid). | `lib/ui/manage/lending/bill_split_screen.dart` |
+| FT1-05 | [~] | **Receipt OCR** | Camera scan of receipt → auto-fill amount, merchant, date in transaction wizard. Use `google_ml_kit` text recognition. | Camera icon in transaction wizard step 1 |
 | FT1-06 | [x] | **Spending Forecast** | "At this rate you'll spend ₹18,400 by month end" — based on daily avg × remaining days. Show on dashboard as warning widget. | Dashboard widget + `TransactionsController` |
 | FT1-07 | [x] | **Financial Health Score** | 0–100 computed score: savings rate (25pts) + budget adherence (25pts) + investment diversity (25pts) + debt-to-income ratio (25pts). Trend arrow. | Dashboard widget + `lib/logic/health_score_calculator.dart` |
 
@@ -295,21 +295,21 @@
 | ID | Status | Feature | Description |
 |----|--------|---------|-------------|
 | FT2-01 | [x] | **Tax Summary Dashboard** | Annual 80C usage (NPS/ELSS/LIC/PPF), capital gains (STCG/LTCG), HRA calculation. `tax_summary_screen.dart` exists — implement it. |
-| FT2-02 | [ ] | **Android / iOS Home Screen Widget** | Show today spend vs budget OR net worth change on home screen widget. Requires `home_widget` package. |
+| FT2-02 | [~] | **Android / iOS Home Screen Widget** | Show today spend vs budget OR net worth change on home screen widget. Requires `home_widget` package. |
 | FT2-03 | [x] | **CSV Transaction Import** | Import bank statement CSV → parse into transactions. Auto-map columns. Duplicate detection. |
-| FT2-04 | [ ] | **Multi-currency Support** | Add `currency` field to `Account` model. Auto-convert using cached exchange rates. Useful for forex/NRI accounts. |
+| FT2-04 | [x] | **Multi-currency Support** | Add `currency` field to `Account` model. Auto-convert using cached exchange rates. Useful for forex/NRI accounts. |
 | FT2-05 | [x] | **Spending Insights Cards** | Weekly/monthly auto-generated insight cards: "You spent 30% more on dining this month" — swipeable cards on dashboard. |
-| FT2-06 | [ ] | **Family / Shared Mode** | Multiple profiles on same device. Shared budget visibility. Profile switcher in app menu. |
+| FT2-06 | [~] | **Family / Shared Mode** | Multiple profiles on same device. Shared budget visibility. Profile switcher in app menu. |
 
 ## TIER 3 — Low priority / advanced
 
 | ID | Status | Feature | Description |
 |----|--------|---------|-------------|
-| FT3-01 | [ ] | Siri/Google Shortcuts | "Hey Siri, log ₹200 at Starbucks" → opens transaction wizard pre-filled |
-| FT3-02 | [ ] | Credit Score Tracker | Link to free CIBIL/Experian API, track score history chart |
-| FT3-03 | [ ] | Anomaly Detection Alerts | ML-based: flag unusual spending spikes, notify user |
-| FT3-04 | [ ] | Natural Language Filter | "Show all dining expenses over ₹500 last month" → parsed filter |
-| FT3-05 | [ ] | Investment Valuation Snapshots | Nightly price snapshot for XIRR calculation and trend sparklines |
+| FT3-01 | [~] | Siri/Google Shortcuts | "Hey Siri, log ₹200 at Starbucks" → opens transaction wizard pre-filled |
+| FT3-02 | [~] | Credit Score Tracker | Link to free CIBIL/Experian API, track score history chart |
+| FT3-03 | [~] | Anomaly Detection Alerts | AnomalyDetectorService built (`lib/services/anomaly_detector.dart`); notification wiring deferred — no alert notification infrastructure to hook into |
+| FT3-04 | [~] | Natural Language Filter | "Show all dining expenses over ₹500 last month" → parsed filter |
+| FT3-05 | [~] | Investment Valuation Snapshots | Nightly price snapshot for XIRR calculation and trend sparklines |
 
 ---
 
@@ -386,8 +386,8 @@ If user used same backup password as PIN (and forgot both), they need Layer 3.
 | AU5-03c | P1 | [x] | `PinRecoveryScreen` — enter recovery code to reset PIN |
 | AU5-03d | P1 | [x] | Rate limiting on wrong PIN attempts (exponential back-off) |
 | AU5-03e | P1 | [x] | Layer 3 nuclear reset with triple-confirm and 10s countdown |
-| AU5-03f | P2 | [ ] | "View recovery code" in Settings → Security (requires auth) |
-| AU5-03g | P3 | [ ] | Export recovery code as PDF / "Emergency Kit" |
+| AU5-03f | P2 | [x] | "View recovery code" in Settings → Security (requires auth) |
+| AU5-03g | P3 | [~] | Export recovery code as PDF / "Emergency Kit" |
 
 ---
 
