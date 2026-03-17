@@ -282,6 +282,11 @@ class AppStyles {
 
   /// Bottom sheet / modal — same card gradient with top-only rounded corners.
   /// Use this for ALL showCupertinoModalPopup / showModalBottomSheet containers.
+  ///
+  /// AU11-03 — Tablet responsiveness: callers should wrap sheet content with:
+  ///   `ConstrainedBox(constraints: BoxConstraints(maxWidth: 600), child: ...)`
+  /// and center it for landscape tablet layouts. This ensures sheets don't
+  /// stretch to the full screen width on iPad or large-screen Android devices.
   static BoxDecoration bottomSheetDecoration(BuildContext context) {
     final isDark = isDarkMode(context);
     return BoxDecoration(

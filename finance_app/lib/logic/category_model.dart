@@ -7,6 +7,8 @@ class Category {
   final IconData icon;
   final bool isCustom;
   final String? description;
+  // AU16-02 — Optional parent for hierarchical categories (e.g. Food > Groceries)
+  final String? parentCategoryId;
 
   Category({
     required this.id,
@@ -15,6 +17,7 @@ class Category {
     required this.icon,
     this.isCustom = false,
     this.description,
+    this.parentCategoryId,
   });
 
   Map<String, dynamic> toMap() {
@@ -27,6 +30,7 @@ class Category {
       'iconFontPackage': icon.fontPackage,
       'isCustom': isCustom,
       'description': description,
+      'parentCategoryId': parentCategoryId,
     };
   }
 
@@ -48,6 +52,27 @@ class Category {
       icon: icon,
       isCustom: map['isCustom'] ?? false,
       description: map['description'],
+      parentCategoryId: map['parentCategoryId'] as String?,
+    );
+  }
+
+  Category copyWith({
+    String? id,
+    String? name,
+    Color? color,
+    IconData? icon,
+    bool? isCustom,
+    String? description,
+    String? parentCategoryId,
+  }) {
+    return Category(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      color: color ?? this.color,
+      icon: icon ?? this.icon,
+      isCustom: isCustom ?? this.isCustom,
+      description: description ?? this.description,
+      parentCategoryId: parentCategoryId ?? this.parentCategoryId,
     );
   }
 

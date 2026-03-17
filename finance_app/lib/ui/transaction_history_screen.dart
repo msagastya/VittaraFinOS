@@ -23,7 +23,16 @@ import 'package:vittara_fin_os/utils/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class TransactionHistoryScreen extends StatefulWidget {
-  const TransactionHistoryScreen({super.key});
+  /// When [filterAccountId] is provided, only transactions linked to that
+  /// account are shown and the title is set to [filterAccountName].
+  const TransactionHistoryScreen({
+    super.key,
+    this.filterAccountId,
+    this.filterAccountName,
+  });
+
+  final String? filterAccountId;
+  final String? filterAccountName;
 
   @override
   State<TransactionHistoryScreen> createState() =>
@@ -92,6 +101,16 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
 
   List<Transaction> _filterBySearch(List<Transaction> txns) {
     var result = txns;
+    // Account-scoped view: keep only transactions linked to this account.
+    if (widget.filterAccountId != null) {
+      final id = widget.filterAccountId!;
+      result = result.where((t) {
+        final metaId = t.metadata?['accountId'] as String?;
+        return metaId == id ||
+            t.sourceAccountId == id ||
+            t.destinationAccountId == id;
+      }).toList();
+    }
     if (_searchQuery.isNotEmpty) {
       final q = _searchQuery.toLowerCase();
       result = result.where((t) {
@@ -384,9 +403,11 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
       navigationBar: CupertinoNavigationBar(
-        middle: Text('Transaction History',
+        middle: Text(
+            widget.filterAccountName ?? 'Transaction History',
             style: TextStyle(color: AppStyles.getTextColor(context))),
-        previousPageTitle: 'Dashboard',
+        previousPageTitle:
+            widget.filterAccountId != null ? 'Back' : 'Dashboard',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
         trailing: Row(

@@ -1206,10 +1206,14 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               Positioned(
                 right: Spacing.lg,
                 bottom: Spacing.xxxl,
-                child: FadingFAB(
-                  onPressed: () => _showInvestmentTypeSelection(context),
-                  color: SemanticColors.investments,
-                  heroTag: 'investments_fab',
+                child: Semantics(
+                  label: 'Add investment',
+                  button: true,
+                  child: FadingFAB(
+                    onPressed: () => _showInvestmentTypeSelection(context),
+                    color: SemanticColors.investments,
+                    heroTag: 'investments_fab',
+                  ),
                 ),
               ),
               if (_showScrollToTop)
@@ -1219,26 +1223,30 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                   child: AnimatedOpacity(
                     opacity: _showScrollToTop ? 1.0 : 0.0,
                     duration: const Duration(milliseconds: 200),
-                    child: BouncyButton(
-                      onPressed: () => _scrollController.animateTo(
-                        0,
-                        duration: const Duration(milliseconds: 400),
-                        curve: Curves.easeOutCubic,
-                      ),
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: AppStyles.aetherTeal.withValues(alpha: 0.15),
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                              color:
-                                  AppStyles.aetherTeal.withValues(alpha: 0.5)),
+                    child: Semantics(
+                      label: 'Scroll to top',
+                      button: true,
+                      child: BouncyButton(
+                        onPressed: () => _scrollController.animateTo(
+                          0,
+                          duration: const Duration(milliseconds: 400),
+                          curve: Curves.easeOutCubic,
                         ),
-                        child: const Icon(
-                          CupertinoIcons.arrow_up,
-                          size: 18,
-                          color: AppStyles.aetherTeal,
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: AppStyles.aetherTeal.withValues(alpha: 0.15),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                                color: AppStyles.aetherTeal
+                                    .withValues(alpha: 0.5)),
+                          ),
+                          child: const Icon(
+                            CupertinoIcons.arrow_up,
+                            size: 18,
+                            color: AppStyles.aetherTeal,
+                          ),
                         ),
                       ),
                     ),

@@ -20,6 +20,7 @@ import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
+import 'package:vittara_fin_os/ui/transaction_history_screen.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 
 class AccountsScreen extends StatefulWidget {
@@ -718,9 +719,13 @@ class _AccountsScreenState extends State<AccountsScreen> {
               Positioned(
                 right: Spacing.lg,
                 bottom: Spacing.xxxl,
-                child: FadingFAB(
-                  onPressed: () => _showAddOptions(context),
-                  heroTag: 'accounts_fab',
+                child: Semantics(
+                  label: 'Add account',
+                  button: true,
+                  child: FadingFAB(
+                    onPressed: () => _showAddOptions(context),
+                    heroTag: 'accounts_fab',
+                  ),
                 ),
               ),
             ],
@@ -1110,7 +1115,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
 
   void _showAccountDetailsSheet(Account account) {
     final balanceHistory = _computeBalanceHistory(account);
-    final recentTxs = _getAccountTransactions(account).take(5).toList();
+    final recentTxs = _getAccountTransactions(account).take(3).toList();
     showCupertinoModalPopup(
       context: context,
       builder: (modalContext) {
@@ -1348,22 +1353,33 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                 ),
                               ),
                               const Spacer(),
-                              if (recentTxs.isNotEmpty)
-                                CupertinoButton(
+                              CupertinoButton(
                                   padding: EdgeInsets.zero,
-                                  onPressed: () =>
-                                      _exportAccountCsv(account), minimumSize: const Size(0, 0),
+                                  minimumSize: const Size(0, 0),
+                                  onPressed: () {
+                                    Navigator.pop(modalContext);
+                                    Navigator.push(
+                                      context,
+                                      CupertinoPageRoute(
+                                        builder: (_) =>
+                                            TransactionHistoryScreen(
+                                          filterAccountId: account.id,
+                                          filterAccountName: account.name,
+                                        ),
+                                      ),
+                                    );
+                                  },
                                   child: const Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Icon(
-                                        CupertinoIcons.share,
+                                        CupertinoIcons.list_bullet,
                                         size: 14,
                                         color: AppStyles.aetherTeal,
                                       ),
                                       SizedBox(width: 4),
                                       Text(
-                                        'Export All',
+                                        'View All',
                                         style: TextStyle(
                                           color: AppStyles.aetherTeal,
                                           fontSize: TypeScale.footnote,

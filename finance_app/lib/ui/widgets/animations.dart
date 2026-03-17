@@ -390,9 +390,24 @@ class _BouncyButtonState extends State<BouncyButton>
       duration: AppDurations.buttonPress,
       reverseDuration: AppDurations.buttonPress,
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: widget.scaleFactor)
-        .animate(
-            CurvedAnimation(parent: _controller, curve: MotionCurves.standard));
+    // Spring feel: compress → overshoot slightly below target → settle
+    _scaleAnimation = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 1.0, end: widget.scaleFactor),
+        weight: 60,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(
+            begin: widget.scaleFactor, end: widget.scaleFactor - 0.01),
+        weight: 20,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(
+            begin: widget.scaleFactor - 0.01, end: widget.scaleFactor),
+        weight: 20,
+      ),
+    ]).animate(
+        CurvedAnimation(parent: _controller, curve: MotionCurves.standard));
   }
 
   @override

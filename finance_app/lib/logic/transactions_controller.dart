@@ -168,4 +168,34 @@ class TransactionsController with ChangeNotifier {
         .where((t) => t.type == TransactionType.transfer && t.charges != null)
         .fold(0.0, (sum, t) => sum + (t.charges ?? 0.0));
   }
+
+  /// Unified filter — future NL query and advanced search integration point.
+  List<Transaction> filter({
+    DateTimeRange? dateRange,
+    String? categoryId,
+    double? minAmount,
+    double? maxAmount,
+    String? merchant,
+    TransactionType? type,
+  }) {
+    return _transactions.where((t) {
+      if (dateRange != null &&
+          (t.dateTime.isBefore(dateRange.start) ||
+              t.dateTime.isAfter(dateRange.end))) {
+        return false;
+      }
+      if (categoryId != null &&
+          (t.metadata?['categoryId'] as String?) != categoryId) {
+        return false;
+      }
+      if (minAmount != null && t.amount.abs() < minAmount) { return false; }
+      if (maxAmount != null && t.amount.abs() > maxAmount) { return false; }
+      if (merchant != null) {
+        final m = (t.metadata?['merchant'] as String?) ?? '';
+        if (!m.toLowerCase().contains(merchant.toLowerCase())) return false;
+      }
+      if (type != null && t.type != type) return false;
+      return true;
+    }).toList();
+  }
 }

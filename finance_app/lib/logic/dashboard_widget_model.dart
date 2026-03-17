@@ -10,6 +10,7 @@ enum DashboardWidgetType {
   monthlySummary,
   sipTracker,
   healthScore,
+  spendingInsights,
 }
 
 class DashboardWidgetConfig {

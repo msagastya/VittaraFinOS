@@ -31,7 +31,14 @@ class Transaction {
   final String? cashbackAccountId;
   final String? cashbackAccountName;
 
-  // Metadata
+  /// Optional metadata map. May contain:
+  /// - `'categoryId'`, `'categoryName'`, `'merchant'`, `'tags'`
+  /// - `'accountId'`: linked account ID
+  /// - `'accountDeleted'`: true if linked account was deleted
+  /// - `'derived'`: ML-computed sub-map with keys:
+  ///   - `'recurrenceScore'` (0.0–1.0): likelihood this is recurring
+  ///   - `'merchantFrequency'` (int): how many times this merchant appears
+  ///   - `'amountPercentile'` (0.0–1.0): amount vs same-category transactions
   final Map<String, dynamic>? metadata;
 
   Transaction({

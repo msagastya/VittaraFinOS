@@ -1578,10 +1578,10 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
             }),
           ),
           const SizedBox(height: Spacing.md),
-          SizedBox(
-            height: 160,
+          AspectRatio(
+            aspectRatio: 16 / 9,
             child: CustomPaint(
-              size: const Size(double.infinity, 160),
+              size: Size.infinite,
               painter: _CategoryTrendPainter(
                 categories: top
                     .asMap()
@@ -1659,8 +1659,8 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
             subtitle: 'Expense totals for the last 6 months',
           ),
           const SizedBox(height: Spacing.lg),
-          SizedBox(
-            height: 180,
+          AspectRatio(
+            aspectRatio: 16 / 9,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: List.generate(months.length, (i) {

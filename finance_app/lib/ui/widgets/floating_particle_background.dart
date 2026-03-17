@@ -565,13 +565,16 @@ class _SubtleParticleOverlayState extends State<SubtleParticleOverlay>
     return Stack(
       children: [
         widget.child,
-        IgnorePointer(
-          child: CustomPaint(
-            painter: ParticlePainter(
-              particles: _particles,
-              color: particleColor,
+        // AU18-03 — Exclude decorative particle layer from semantics tree
+        ExcludeSemantics(
+          child: IgnorePointer(
+            child: CustomPaint(
+              painter: ParticlePainter(
+                particles: _particles,
+                color: particleColor,
+              ),
+              child: Container(),
             ),
-            child: Container(),
           ),
         ),
       ],

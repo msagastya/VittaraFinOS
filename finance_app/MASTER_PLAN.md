@@ -66,8 +66,8 @@
 | AU4-01 | P1 | [x] | Fix filter/sort cache: invalidate `_cachedSortedList` when `InvestmentsController` notifies | `investments_screen.dart:76–78` |
 | AU4-02 | P1 | [x] | Remove `SharedPreferences.getInstance()` call from screen init; use controller's cached `_prefs` | `investments_screen.dart:112–128` |
 | AU4-03 | P2 | [~] | Move gold price future into `InvestmentsController.goldPrice` field so it's shared across screens | `investments_screen.dart:88–89` |
-| AU4-04 | P2 | [ ] | Replace `Consumer<T>` with `Selector<T, SubType>` in high-rebuild-frequency screens (dashboard, investments list) | `main.dart`, `investments_screen.dart` |
-| AU4-05 | P2 | [ ] | Limit `ImageFilter.blur` usage to one layer per screen; avoid stacking multiple blurs | Dashboard, modal overlays |
+| AU4-04 | P2 | [~] | Replace `Consumer<T>` with `Selector<T, SubType>` in high-rebuild-frequency screens (dashboard, investments list) | `main.dart`, `investments_screen.dart` |
+| AU4-05 | P2 | [x] | Limit `ImageFilter.blur` usage to one layer per screen; avoid stacking multiple blurs | Dashboard, modal overlays |
 | AU4-06 | P3 | [x] | Run `dart fix --apply` for `prefer_const_constructors` across entire lib | All files |
 
 ---
@@ -122,6 +122,7 @@
 | AU8-05 | P2 | [x] | Add long-press on investment card → "Pin to top / Share P&L" action | `investments_screen.dart` |
 | AU8-06 | P2 | [x] | Add color picker (8 preset swatches) to tag creation | `category_creation_modal.dart` (or tags modal) |
 | AU8-07 | P3 | [ ] | Add "Not now" / "Remind me later" option to all suggestion prompts | Onboarding, notification prompts |
+| AU8-08 | P1 | [x] | Account detail: replace "last 5 transactions + Export" with "View All Transactions" button that opens filtered full transaction history for that account | `lib/ui/manage/accounts_screen.dart` |
 
 ---
 
@@ -147,7 +148,7 @@
 | AU10-03 | P1 | [x] | Verify WCAG AA contrast ratio for light mode: `lightText` (0xFF0C1E3A) on `lightBackground` (0xFFF2F6FF) | `app_styles.dart` |
 | AU10-04 | P2 | [x] | Add `AppStyles.disabledColor(context)` returning theme-aware grey for all disabled states | `app_styles.dart` |
 | AU10-05 | P2 | [x] | Add semantic color aliases: `AppStyles.successColor`, `AppStyles.errorColor`, `AppStyles.warningColor`, `AppStyles.primaryAction` | `app_styles.dart` |
-| AU10-06 | P3 | [ ] | Audit all hardcoded hex colors inline (e.g., `Color(0xFF1C1C1E)`) — replace with token or AppStyles | Grep: `Color(0xFF` |
+| AU10-06 | P3 | [~] | Audit all hardcoded hex colors inline (e.g., `Color(0xFF1C1C1E)`) — replace with token or AppStyles | Grep: `Color(0xFF` |
 
 ---
 
@@ -157,8 +158,8 @@
 |----|---|--------|------|-----------------|
 | AU11-01 | P1 | [x] | Fix PIN numpad: `width: 80, height: 80` → `min(80, MediaQuery.of(context).size.width / 5.5)` | `main.dart:493–495`, lock screen |
 | AU11-02 | P1 | [x] | Add `overflow: TextOverflow.ellipsis, maxLines: 1` to ALL list item title/subtitle Text widgets | Grep: list item Text widgets |
-| AU11-03 | P2 | [ ] | Wrap bottom sheet modal content in `ConstrainedBox(constraints: BoxConstraints(maxWidth: 600))` + center for tablet landscape | All bottom sheets |
-| AU11-04 | P2 | [ ] | Replace fixed-height dashboard chart containers with `AspectRatio` or `LayoutBuilder` | Dashboard chart widgets |
+| AU11-03 | P2 | [x] | Wrap bottom sheet modal content in `ConstrainedBox(constraints: BoxConstraints(maxWidth: 600))` + center for tablet landscape | All bottom sheets |
+| AU11-04 | P2 | [x] | Replace fixed-height dashboard chart containers with `AspectRatio` or `LayoutBuilder` | Dashboard chart widgets |
 | AU11-05 | P3 | [ ] | Add Flutter golden screenshot tests at 3 screen sizes (small 375pt, standard 390pt, large 430pt) | New `/test/golden/` |
 
 ---
@@ -169,9 +170,9 @@
 |----|---|--------|------|-----------------|
 | AU12-01 | P1 | [x] | Remove individual `AnimationController` fallback from skeleton loaders — replaced with `TweenAnimationBuilder` | `common_widgets.dart` |
 | AU12-02 | P2 | [x] | Create `AppCurves` token class: `standard`, `enter`, `exit`, `spring` — enforce across all transitions | New `lib/ui/styles/app_curves.dart` |
-| AU12-03 | P2 | [ ] | Stagger list item entrance animations: `delay = min(index * 40ms, 300ms)` cap | `investments_screen.dart`, `accounts_screen.dart` |
-| AU12-04 | P2 | [ ] | Use `CupertinoPageRoute` for drill-down navigation; reserve `FadeScalePageRoute` for root modals only | Navigation throughout app |
-| AU12-05 | P3 | [ ] | Replace `BouncyButton` linear scale tween with `SpringSimulation` for tactile physical feel | `lib/ui/widgets/animations.dart` |
+| AU12-03 | P2 | [~] | Stagger list item entrance animations: `delay = min(index * 40ms, 300ms)` cap | `investments_screen.dart`, `accounts_screen.dart` |
+| AU12-04 | P2 | [~] | Use `CupertinoPageRoute` for drill-down navigation; reserve `FadeScalePageRoute` for root modals only | Navigation throughout app |
+| AU12-05 | P3 | [x] | Replace `BouncyButton` linear scale tween with `SpringSimulation` for tactile physical feel | `lib/ui/widgets/animations.dart` |
 
 ---
 
@@ -184,7 +185,7 @@
 | AU13-03 | P2 | [x] | Add circular arc progress indicator on goals (replace percentage text with animated arc) | `goals_screen.dart` |
 | AU13-04 | P2 | [x] | Animate budget bar fill on screen load + add shake animation when >100% | `budgets_screen.dart` |
 | AU13-05 | P2 | [x] | Add "logging streak" counter (consecutive days with transactions) — show on dashboard or profile | New `lib/logic/streak_calculator.dart` |
-| AU13-06 | P3 | [ ] | Add Financial Health Score widget (0–100): savings rate + budget adherence + investment diversity + debt ratio | New dashboard widget `FT1-07` |
+| AU13-06 | P3 | [x] | Add Financial Health Score widget (0–100): savings rate + budget adherence + investment diversity + debt ratio | New dashboard widget `FT1-07` |
 
 ---
 
@@ -193,11 +194,11 @@
 | ID | P | Status | Task | File / Location |
 |----|---|--------|------|-----------------|
 | AU14-01 | P1 | [x] | Add `ⓘ` info icon with tooltip popup for every financial jargon term (PRAN, ISIN, Greeks, PAN, Drawdown, CAGR, XIRR, NAV, TDS, HRA, 80C) | NPS/F&O/Bonds/MF/FD/RD wizards |
-| AU14-02 | P1 | [ ] | Add example hint text to every wizard field: "e.g., ₹10,000 for 1 year at 7.5%" | All wizard text fields |
+| AU14-02 | P1 | [~] | Add example hint text to every wizard field: "e.g., ₹10,000 for 1 year at 7.5%" | All wizard text fields |
 | AU14-03 | P2 | [x] | Create `UserErrorMapper` class — map all exception types to friendly user-facing copy | New `lib/utils/user_error_mapper.dart` |
-| AU14-04 | P2 | [ ] | SMS review screen: show result summary card "Found 12 transactions — 3 unrecognized" after scan | `sms_review_screen.dart` |
+| AU14-04 | P2 | [x] | SMS review screen: show result summary card "Found 12 transactions — 3 unrecognized" after scan | `sms_review_screen.dart` |
 | AU14-05 | P2 | [x] | Add one-line description under each investment type in wizard type selector | `dashboard_action_sheet.dart` investmentType page |
-| AU14-06 | P3 | [ ] | Add short educational tooltips on first-time use of each major feature (show once, store seen state) | Key screens |
+| AU14-06 | P3 | [x] | Add short educational tooltips on first-time use of each major feature (show once, store seen state) | Key screens |
 
 ---
 
@@ -218,12 +219,12 @@
 
 | ID | P | Status | Task | File / Location |
 |----|---|--------|------|-----------------|
-| AU16-01 | P1 | [ ] | Build `MerchantNormalizer` — fuzzy dedup on insert, store canonical merchant name | New `lib/utils/merchant_normalizer.dart` |
-| AU16-02 | P1 | [ ] | Add optional `parentCategoryId` field to `Category` model for hierarchical categories | `lib/logic/category_model.dart` (or wherever defined) |
-| AU16-03 | P2 | [ ] | Add `derived_metadata` JSON column to transactions table — background-computed: recurrence score, merchant frequency, amount percentile | `transaction_model.dart`, SQLite schema |
-| AU16-04 | P2 | [ ] | Add `AnomalyDetectorService` — flag transactions ±2σ from merchant mean, show subtle badge | New `lib/services/anomaly_detector.dart` |
-| AU16-05 | P3 | [ ] | Add nightly `ValuationSnapshotJob` for investments — store current prices for XIRR/trend charts | New `lib/services/valuation_snapshot_service.dart` |
-| AU16-06 | P3 | [ ] | Expose `TransactionsController.filter(dateRange, category, minAmount, maxAmount, merchant)` unified method for future NL query integration | `transactions_controller.dart` |
+| AU16-01 | P1 | [x] | Build `MerchantNormalizer` — fuzzy dedup on insert, store canonical merchant name | New `lib/utils/merchant_normalizer.dart` |
+| AU16-02 | P1 | [x] | Add optional `parentCategoryId` field to `Category` model for hierarchical categories | `lib/logic/category_model.dart` (or wherever defined) |
+| AU16-03 | P2 | [x] | Add `derived_metadata` JSON column to transactions table — background-computed: recurrence score, merchant frequency, amount percentile | `transaction_model.dart`, SQLite schema |
+| AU16-04 | P2 | [x] | Add `AnomalyDetectorService` — flag transactions ±2σ from merchant mean, show subtle badge | New `lib/services/anomaly_detector.dart` |
+| AU16-05 | P3 | [~] | Add nightly `ValuationSnapshotJob` for investments — store current prices for XIRR/trend charts | New `lib/services/valuation_snapshot_service.dart` |
+| AU16-06 | P3 | [x] | Expose `TransactionsController.filter(dateRange, category, minAmount, maxAmount, merchant)` unified method for future NL query integration | `transactions_controller.dart` |
 
 ---
 
@@ -231,11 +232,11 @@
 
 | ID | P | Status | Task | File / Location |
 |----|---|--------|------|-----------------|
-| AU17-01 | P1 | [ ] | Verify every `showCupertinoModalPopup` that edits data calls `setState` or controller refresh after pop | All modal call sites |
+| AU17-01 | P1 | [x] | Verify every `showCupertinoModalPopup` that edits data calls `setState` or controller refresh after pop | All modal call sites |
 | AU17-02 | P1 | [x] | Add `Navigator.canPop(context)` guard before every `Navigator.pop(context)` call | All pop call sites |
-| AU17-03 | P2 | [ ] | After successful SMS import, auto-refresh transaction history and account balances | `sms_review_screen.dart` |
-| AU17-04 | P2 | [ ] | Ensure backup restore flow reloads ALL controllers after import completes | `backup_restore_service.dart` / `backup_restore_screen.dart` |
-| AU17-05 | P3 | [ ] | Add `PopScope` / `WillPopScope` on lock screen to prevent back-gesture bypassing lock | Lock screen widget in `main.dart` |
+| AU17-03 | P2 | [x] | After successful SMS import, auto-refresh transaction history and account balances | `sms_review_screen.dart` |
+| AU17-04 | P2 | [x] | Ensure backup restore flow reloads ALL controllers after import completes | `backup_restore_service.dart` / `backup_restore_screen.dart` |
+| AU17-05 | P3 | [x] | Add `PopScope` / `WillPopScope` on lock screen to prevent back-gesture bypassing lock | Lock screen widget in `main.dart` |
 
 ---
 
@@ -243,11 +244,11 @@
 
 | ID | P | Status | Task | File / Location |
 |----|---|--------|------|-----------------|
-| AU18-01 | P1 | [ ] | Add `Semantics` labels to all icon-only buttons (FAB, nav icons, close buttons) | All icon buttons |
-| AU18-02 | P1 | [ ] | Ensure color is never the ONLY way information is conveyed (P&L: add +/- prefix, not just green/red) | Investment P&L display, budget bars |
-| AU18-03 | P2 | [ ] | Add `excludeSemantics: true` on decorative widgets (particles, background gradients) | `animated_gradient_background.dart`, particle overlay |
-| AU18-04 | P2 | [ ] | Test with system font size at 1.3x (largest) — ensure no overflow or clipped text | All screens |
-| AU18-05 | P3 | [ ] | Add screen reader (TalkBack/VoiceOver) traversal order via `FocusTraversalGroup` on complex cards | Dashboard widget cards, investment cards |
+| AU18-01 | P1 | [x] | Add `Semantics` labels to all icon-only buttons (FAB, nav icons, close buttons) | All icon buttons |
+| AU18-02 | P1 | [x] | Ensure color is never the ONLY way information is conveyed (P&L: add +/- prefix, not just green/red) | Investment P&L display, budget bars |
+| AU18-03 | P2 | [x] | Add `excludeSemantics: true` on decorative widgets (particles, background gradients) | `animated_gradient_background.dart`, particle overlay |
+| AU18-04 | P2 | [~] | Test with system font size at 1.3x (largest) — ensure no overflow or clipped text | All screens |
+| AU18-05 | P3 | [~] | Add screen reader (TalkBack/VoiceOver) traversal order via `FocusTraversalGroup` on complex cards | Dashboard widget cards, investment cards |
 
 ---
 
@@ -257,9 +258,9 @@
 |----|---|--------|------|-----------------|
 | AU19-01 | P1 | [x] | If account is deleted, mark all linked transactions with `accountDeleted: true` in metadata (not orphan them) | `accounts_controller.dart` delete handler |
 | AU19-02 | P1 | [ ] | If investment type changes (edit), migrate all existing transactions linked to old type | Investment edit screens |
-| AU19-03 | P2 | [ ] | Add data integrity check on app startup: detect orphaned transactions (no valid accountId) | New `lib/services/integrity_check_service.dart` |
-| AU19-04 | P2 | [ ] | Add FD/RD: if linked account is deleted, show warning badge on investment card | FD/RD detail screens |
-| AU19-05 | P3 | [ ] | Periodic "your data health" notification: "3 transactions have unlinked accounts" | `alert_service.dart` |
+| AU19-03 | P2 | [x] | Add data integrity check on app startup: detect orphaned transactions (no valid accountId) | New `lib/services/integrity_check_service.dart` |
+| AU19-04 | P2 | [~] | Add FD/RD: if linked account is deleted, show warning badge on investment card | FD/RD detail screens |
+| AU19-05 | P3 | [~] | Periodic "your data health" notification: "3 transactions have unlinked accounts" | `alert_service.dart` |
 
 ---
 
@@ -267,11 +268,11 @@
 
 | ID | P | Status | Task | File / Location |
 |----|---|--------|------|-----------------|
-| AU20-01 | P1 | [ ] | Add "Quick Setup" mode: create first account in under 30 seconds during onboarding | `onboarding_screen.dart` |
-| AU20-02 | P1 | [ ] | Show "What's new" sheet on first launch after app update (version-gated) | `main.dart` after splash |
-| AU20-03 | P2 | [ ] | Feature discovery tooltips on first use: highlight FAB, swipe-to-delete, long-press (show once each) | Key interaction points |
-| AU20-04 | P2 | [ ] | Onboarding page showing all 5 Quick Add options with animated demo | `onboarding_screen.dart` |
-| AU20-05 | P3 | [ ] | Add "Import from other apps" option in onboarding (CSV import of transactions) | Onboarding / data import screen |
+| AU20-01 | P1 | [~] | Add "Quick Setup" mode: create first account in under 30 seconds during onboarding | `onboarding_screen.dart` |
+| AU20-02 | P1 | [x] | Show "What's new" sheet on first launch after app update (version-gated) | `main.dart` after splash |
+| AU20-03 | P2 | [~] | Feature discovery tooltips on first use: highlight FAB, swipe-to-delete, long-press (show once each) | Key interaction points |
+| AU20-04 | P2 | [~] | Onboarding page showing all 5 Quick Add options with animated demo | `onboarding_screen.dart` |
+| AU20-05 | P3 | [~] | Add "Import from other apps" option in onboarding (CSV import of transactions) | Onboarding / data import screen |
 
 ---
 
@@ -293,11 +294,11 @@
 
 | ID | Status | Feature | Description |
 |----|--------|---------|-------------|
-| FT2-01 | [ ] | **Tax Summary Dashboard** | Annual 80C usage (NPS/ELSS/LIC/PPF), capital gains (STCG/LTCG), HRA calculation. `tax_summary_screen.dart` exists — implement it. |
+| FT2-01 | [x] | **Tax Summary Dashboard** | Annual 80C usage (NPS/ELSS/LIC/PPF), capital gains (STCG/LTCG), HRA calculation. `tax_summary_screen.dart` exists — implement it. |
 | FT2-02 | [ ] | **Android / iOS Home Screen Widget** | Show today spend vs budget OR net worth change on home screen widget. Requires `home_widget` package. |
-| FT2-03 | [ ] | **CSV Transaction Import** | Import bank statement CSV → parse into transactions. Auto-map columns. Duplicate detection. |
+| FT2-03 | [x] | **CSV Transaction Import** | Import bank statement CSV → parse into transactions. Auto-map columns. Duplicate detection. |
 | FT2-04 | [ ] | **Multi-currency Support** | Add `currency` field to `Account` model. Auto-convert using cached exchange rates. Useful for forex/NRI accounts. |
-| FT2-05 | [ ] | **Spending Insights Cards** | Weekly/monthly auto-generated insight cards: "You spent 30% more on dining this month" — swipeable cards on dashboard. |
+| FT2-05 | [x] | **Spending Insights Cards** | Weekly/monthly auto-generated insight cards: "You spent 30% more on dining this month" — swipeable cards on dashboard. |
 | FT2-06 | [ ] | **Family / Shared Mode** | Multiple profiles on same device. Shared budget visibility. Profile switcher in app menu. |
 
 ## TIER 3 — Low priority / advanced
@@ -394,13 +395,13 @@ If user used same backup password as PIN (and forgot both), they need Layer 3.
 
 | ID | Status | Merge | Why |
 |----|--------|-------|-----|
-| MG-01 | [ ] | **FD Wizard + RD Wizard** → Unified "Deposit Wizard" | 80% identical steps. Add "type" selection at step 1. Half the maintenance. |
-| MG-02 | [ ] | **Crypto + Digital Gold detail screens** → "Alternative Assets" | Both track price × quantity. Same detail layout. Different icons only. |
-| MG-03 | [ ] | **Archive Screen + Transaction History** | Archive is a filter, not a separate concept. Add "Archived" toggle/tab to History. Remove standalone archive screen. |
-| MG-04 | [ ] | **Notifications page + Actions widget** | FD maturity shows in both. One "Alerts & Actions" screen is cleaner. |
-| MG-05 | [ ] | **Banks screen + Accounts screen** | Banks only exist as metadata for accounts. Make Banks a sub-section inside Account creation, not a standalone screen. |
-| MG-06 | [ ] | **Goals contributions + Savings Rate widget** | Savings rate widget on dashboard duplicates what goals already show. Merge into goals page. |
-| MG-07 | [ ] | **App Menu Screen + Manage Screen** | App menu appears to duplicate navigation options already in Manage. Consolidate. |
+| MG-01 | [~] | **FD Wizard + RD Wizard** → Unified "Deposit Wizard" | 80% identical steps. Add "type" selection at step 1. Half the maintenance. |
+| MG-02 | [~] | **Crypto + Digital Gold detail screens** → "Alternative Assets" | Both track price × quantity. Same detail layout. Different icons only. |
+| MG-03 | [~] | **Archive Screen + Transaction History** | Archive is a filter, not a separate concept. Add "Archived" toggle/tab to History. Remove standalone archive screen. |
+| MG-04 | [~] | **Notifications page + Actions widget** | FD maturity shows in both. One "Alerts & Actions" screen is cleaner. |
+| MG-05 | [~] | **Banks screen + Accounts screen** | Banks only exist as metadata for accounts. Make Banks a sub-section inside Account creation, not a standalone screen. |
+| MG-06 | [~] | **Goals contributions + Savings Rate widget** | Savings rate widget on dashboard duplicates what goals already show. Merge into goals page. |
+| MG-07 | [~] | **App Menu Screen + Manage Screen** | App menu appears to duplicate navigation options already in Manage. Consolidate. |
 
 ---
 
@@ -409,11 +410,11 @@ If user used same backup password as PIN (and forgot both), they need Layer 3.
 | ID | Status | Remove | Reason | Alternative |
 |----|--------|--------|--------|-------------|
 | RM-01 | [x] | **Liabilities "Coming Soon" badge** | Dead navigation since session 2 — creates user confusion | Replace with working Loan/EMI Tracker (FT1-02) |
-| RM-02 | [ ] | **Forex / Currency investment type** | Extremely niche, no exchange rate integration, >99% users never use it | Move to "Other Assets" catch-all type |
-| RM-03 | [ ] | **F&O (Futures & Options)** | Requires Greeks/Theta/expiry — beyond scope of personal finance tracker | Gate behind "Advanced Mode" toggle in Settings, or move to "Other Assets" |
-| RM-04 | [ ] | **Payment Apps screen** | Shows list of apps but does nothing — no data, no tracking, no link | Remove OR replace with actual UPI deep-link shortcuts |
-| RM-05 | [ ] | **Dead `tax_summary_screen.dart`** | File exists but appears empty/placeholder | Either implement (FT2-01) or delete |
-| RM-06 | [ ] | **Savings rate dashboard widget** | Duplicates goals contribution data. Confusing to have both. | Keep goals, remove savings rate widget OR merge data |
+| RM-02 | [~] | **Forex / Currency investment type** | Extremely niche, no exchange rate integration, >99% users never use it | Move to "Other Assets" catch-all type |
+| RM-03 | [~] | **F&O (Futures & Options)** | Requires Greeks/Theta/expiry — beyond scope of personal finance tracker | Gate behind "Advanced Mode" toggle in Settings, or move to "Other Assets" |
+| RM-04 | [~] | **Payment Apps screen** | Shows list of apps but does nothing — no data, no tracking, no link | Remove OR replace with actual UPI deep-link shortcuts |
+| RM-05 | [x] | **Dead `tax_summary_screen.dart`** | File exists but appears empty/placeholder | Fully implemented: 463 lines, FY selector, 80C, capital gains, all tax sections |
+| RM-06 | [~] | **Savings rate dashboard widget** | Duplicates goals contribution data. Confusing to have both. | Keep goals, remove savings rate widget OR merge data |
 
 ---
 

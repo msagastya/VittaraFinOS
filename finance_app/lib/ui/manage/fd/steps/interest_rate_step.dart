@@ -64,7 +64,7 @@ class _InterestRateStepState extends State<InterestRateStep> {
           CupertinoTextField(
             controller: _rateController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            placeholder: '0.00',
+            placeholder: 'e.g., 7.5',
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),

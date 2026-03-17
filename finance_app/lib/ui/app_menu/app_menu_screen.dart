@@ -8,6 +8,7 @@ import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/tags_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/ui/financial_calendar_screen.dart';
+import 'package:vittara_fin_os/ui/settings/csv_import_screen.dart';
 import 'package:vittara_fin_os/ui/manage/reports_analysis_screen.dart';
 import 'package:vittara_fin_os/ui/manage_screen.dart';
 import 'package:vittara_fin_os/ui/settings_screen.dart';
@@ -183,6 +184,15 @@ class DashboardAppMenuScreen extends StatelessWidget {
                       color: SemanticColors.accounts,
                       onTap: () => Navigator.of(context).push(
                         FadeScalePageRoute(page: const ManageScreen()),
+                      ),
+                    ),
+                    _MenuItem(
+                      title: 'Import CSV',
+                      subtitle: 'Import bank statement transactions from CSV',
+                      icon: CupertinoIcons.arrow_down_doc_fill,
+                      color: AppStyles.aetherTeal,
+                      onTap: () => Navigator.of(context).push(
+                        FadeScalePageRoute(page: const CsvImportScreen()),
                       ),
                     ),
                     _MenuItem(

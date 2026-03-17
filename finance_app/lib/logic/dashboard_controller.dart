@@ -158,6 +158,16 @@ class DashboardController with ChangeNotifier {
           columnSpan: 3,
           rowSpan: 2,
         ),
+        DashboardWidgetConfig(
+          id: 'spending_insights',
+          type: DashboardWidgetType.spendingInsights,
+          title: 'Spending Insights',
+          isVisible: false,
+          gridRow: 14,
+          gridColumn: 1,
+          columnSpan: 3,
+          rowSpan: 1,
+        ),
       ],
     );
   }
@@ -173,7 +183,8 @@ class DashboardController with ChangeNotifier {
         w.id == 'ai_planner' ||
         w.id == 'monthly_summary' ||
         w.id == 'sip_tracker' ||
-        w.id == 'health_score');
+        w.id == 'health_score' ||
+        w.id == 'spending_insights');
 
     for (final optional in defaults) {
       if (!existingIds.contains(optional.id)) {

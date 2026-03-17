@@ -55,6 +55,9 @@ import 'package:vittara_fin_os/services/sms_auto_scan_service.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/pin_recovery_screen.dart';
 import 'package:vittara_fin_os/ui/dashboard/widgets/health_score_widget.dart';
+import 'package:vittara_fin_os/ui/dashboard/widgets/insights_widget.dart';
+import 'package:vittara_fin_os/ui/whats_new_sheet.dart';
+import 'package:shared_preferences/shared_preferences.dart' as sp;
 
 final AppLogger logger = AppLogger();
 
@@ -595,6 +598,7 @@ class _SplashScreenState extends State<SplashScreen> {
         Navigator.of(context).pushReplacement(
             FadeScalePageRoute(page: const DashboardScreen()));
         _triggerSmsStartupScan();
+        _checkAndShowWhatsNew();
       } else {
         Navigator.of(context).pushReplacement(
           FadeScalePageRoute(
@@ -603,9 +607,30 @@ class _SplashScreenState extends State<SplashScreen> {
                 Navigator.of(ctx).pushReplacement(
                     FadeScalePageRoute(page: const DashboardScreen()));
                 _triggerSmsStartupScan();
+                if (mounted) _checkAndShowWhatsNew();
               },
             ),
           ),
+        );
+      }
+    });
+  }
+
+  /// AU20-02 — Show "What's New" once on first launch after an app update.
+  void _checkAndShowWhatsNew() {
+    const currentVersion = WhatsNewSheet.currentVersion;
+    Future.microtask(() async {
+      final prefs = await sp.SharedPreferences.getInstance();
+      final lastSeen = prefs.getString('lastSeenVersion') ?? '';
+      if (lastSeen != currentVersion) {
+        await prefs.setString('lastSeenVersion', currentVersion);
+        if (!mounted) return;
+        // Small delay so the dashboard finishes its entrance animation first
+        await Future.delayed(const Duration(milliseconds: 800));
+        if (!mounted) return;
+        showCupertinoModalPopup<void>(
+          context: context,
+          builder: (_) => const WhatsNewSheet(),
         );
       }
     });
@@ -1181,6 +1206,8 @@ class DashboardScreen extends StatelessWidget {
         return CupertinoIcons.graph_circle_fill;
       case DashboardWidgetType.healthScore:
         return CupertinoIcons.heart_fill;
+      case DashboardWidgetType.spendingInsights:
+        return CupertinoIcons.lightbulb_fill;
     }
   }
 
@@ -1208,6 +1235,8 @@ class DashboardScreen extends StatelessWidget {
         return CupertinoColors.activeBlue;
       case DashboardWidgetType.healthScore:
         return AppStyles.accentCoral;
+      case DashboardWidgetType.spendingInsights:
+        return AppStyles.aetherTeal;
     }
   }
 
@@ -2497,6 +2526,8 @@ class DashboardScreen extends StatelessWidget {
         );
       case DashboardWidgetType.healthScore:
         return HealthScoreWidget(config: widgetConfig);
+      case DashboardWidgetType.spendingInsights:
+        return InsightsWidget(config: widgetConfig);
       default:
         return const SizedBox.shrink();
     }
@@ -2586,6 +2617,9 @@ class DashboardScreen extends StatelessWidget {
         break;
       case DashboardWidgetType.healthScore:
         // No dedicated detail screen — widget is self-contained
+        break;
+      case DashboardWidgetType.spendingInsights:
+        // No dedicated detail screen — insights are self-contained
         break;
       default:
         break;

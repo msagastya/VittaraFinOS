@@ -63,7 +63,7 @@ class _PrincipalStepState extends State<PrincipalStep> {
           CupertinoTextField(
             controller: _principalController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            placeholder: '0.00',
+            placeholder: 'e.g., 50,000',
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
