@@ -1265,6 +1265,12 @@ class _SmsQuickConfirmSheetState extends State<_SmsQuickConfirmSheet> {
         description: desc.isNotEmpty ? desc : 'SMS Transaction',
         dateTime: _selectedDate,
         amount: amount,
+        // sourceAccountId + paymentAppName must be set directly (not just in
+        // metadata) so that TransactionAccountAdjuster.reverseTransaction()
+        // can find them and correctly reverse balances on permanent delete.
+        sourceAccountId: _selectedAccount?.id,
+        sourceAccountName: _selectedAccount?.name,
+        paymentAppName: _selectedPaymentApp,
         metadata: meta,
       );
       await txCtrl.addTransaction(tx);
