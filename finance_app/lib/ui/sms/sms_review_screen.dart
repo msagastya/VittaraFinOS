@@ -14,8 +14,11 @@ import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/banks_controller.dart';
 import 'package:vittara_fin_os/logic/categories_controller.dart';
 import 'package:vittara_fin_os/logic/category_model.dart';
+import 'package:vittara_fin_os/logic/payment_apps_controller.dart';
+import 'package:vittara_fin_os/logic/tags_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
+import 'package:vittara_fin_os/ui/widgets/app_date_picker.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/services/sms_auto_scan_service.dart';
 import 'package:vittara_fin_os/services/sms_service.dart';
@@ -1161,7 +1164,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
 class _SmsQuickConfirmSheet extends StatefulWidget {
   final SmsParseResult item;
   final VoidCallback onSaved;
-  final VoidCallback onOpenWizard;
+  final VoidCallback onOpenWizard; // used only for Transfer type
 
   const _SmsQuickConfirmSheet({
     required this.item,
@@ -1174,118 +1177,256 @@ class _SmsQuickConfirmSheet extends StatefulWidget {
 }
 
 class _SmsQuickConfirmSheetState extends State<_SmsQuickConfirmSheet> {
-  late bool _isExpense; // true = use SMS type (expense/income); false = transfer
-  late bool _isCreditSms; // true if SMS type == 'income'
+  // ── Type ─────────────────────────────────────────────────────────────────
+  late bool _isCreditSms;
+  late _SmsConfirmType _txType;
+
+  // ── Fields ────────────────────────────────────────────────────────────────
+  late TextEditingController _amountController;
+  late TextEditingController _descriptionController;
+  late TextEditingController _tagController;
+  late DateTime _selectedDate;
   Category? _selectedCategory;
   Account? _selectedAccount;
+  String? _selectedPaymentApp;
+  final List<String> _selectedTags = [];
+
+  bool _saving = false;
 
   @override
   void initState() {
     super.initState();
-    _isCreditSms = widget.item.parsed.type == 'income';
-    _isExpense = true;
+    final p = widget.item.parsed;
+    _isCreditSms = p.type == 'income';
+    _txType = _isCreditSms ? _SmsConfirmType.income : _SmsConfirmType.expense;
+    _amountController =
+        TextEditingController(text: p.amount.toStringAsFixed(2));
+    _descriptionController =
+        TextEditingController(text: p.merchant ?? p.upiId ?? '');
+    _tagController = TextEditingController();
+    _selectedDate = p.date;
     _selectedAccount = widget.item.matchedAccount;
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_selectedCategory == null && !_isCreditSms) {
+    if (_selectedCategory == null &&
+        _txType == _SmsConfirmType.expense) {
       final cats = context.read<CategoriesController>().categories;
       if (cats.isNotEmpty) _selectedCategory = cats.first;
     }
   }
 
+  @override
+  void dispose() {
+    _amountController.dispose();
+    _descriptionController.dispose();
+    _tagController.dispose();
+    super.dispose();
+  }
+
+  // ── Save ─────────────────────────────────────────────────────────────────
   Future<void> _save() async {
-    if (_isExpense) {
+    if (_txType == _SmsConfirmType.transfer) {
+      Navigator.pop(context);
+      widget.onOpenWizard();
+      return;
+    }
+    final amount = double.tryParse(_amountController.text) ?? 0;
+    if (amount <= 0) {
+      toast.showError('Enter a valid amount');
+      return;
+    }
+    if (_saving) return;
+    setState(() => _saving = true);
+
+    try {
       final txCtrl = context.read<TransactionsController>();
-      final p = widget.item.parsed;
+      final type = _txType == _SmsConfirmType.income
+          ? TransactionType.income
+          : TransactionType.expense;
       final meta = <String, dynamic>{
         if (_selectedCategory != null) 'categoryId': _selectedCategory!.id,
-        if (_selectedCategory != null) 'categoryName': _selectedCategory!.name,
-        if (p.merchant != null) 'merchant': p.merchant,
-        if (p.upiId != null) 'upiId': p.upiId,
+        if (_selectedCategory != null)
+          'categoryName': _selectedCategory!.name,
+        if (_selectedPaymentApp != null) 'paymentApp': _selectedPaymentApp,
+        if (_selectedTags.isNotEmpty) 'tags': _selectedTags,
         'fromSms': true,
       };
       if (_selectedAccount != null) {
         meta['accountId'] = _selectedAccount!.id;
         meta['accountName'] = _selectedAccount!.name;
       }
+      final desc = _descriptionController.text.trim();
       final tx = Transaction(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
-        type: _isCreditSms ? TransactionType.income : TransactionType.expense,
-        description: p.merchant ?? p.upiId ?? 'SMS Transaction',
-        dateTime: p.date,
-        amount: p.amount,
+        type: type,
+        description: desc.isNotEmpty ? desc : 'SMS Transaction',
+        dateTime: _selectedDate,
+        amount: amount,
         metadata: meta,
       );
       await txCtrl.addTransaction(tx);
       if (!mounted) return;
+
+      // Update account balance
       if (_selectedAccount != null) {
         final acctCtrl = context.read<AccountsController>();
         final fresh = acctCtrl.accounts
             .where((a) => a.id == _selectedAccount!.id)
             .firstOrNull;
         if (fresh != null) {
-          final delta = _isCreditSms ? p.amount : -p.amount;
-          await acctCtrl.updateAccount(
-              fresh.copyWith(balance: fresh.balance + delta));
+          final delta =
+              type == TransactionType.income ? amount : -amount;
+          await acctCtrl
+              .updateAccount(fresh.copyWith(balance: fresh.balance + delta));
         }
       }
+
+      // Update payment app wallet
+      if (_selectedPaymentApp != null) {
+        final appCtrl = context.read<PaymentAppsController>();
+        final delta =
+            type == TransactionType.income ? amount : -amount;
+        await appCtrl.adjustWalletBalanceByName(
+            _selectedPaymentApp!, delta);
+      }
+
       if (!mounted) return;
       Navigator.pop(context);
       widget.onSaved();
       toast.showSuccess(
-        '${_isCreditSms ? 'Income' : 'Expense'} saved — ${CurrencyFormatter.compact(p.amount)}',
+        '${type == TransactionType.income ? 'Income' : 'Expense'} saved — ${CurrencyFormatter.compact(amount)}',
       );
-    } else {
-      Navigator.pop(context);
-      widget.onOpenWizard();
+    } finally {
+      if (mounted) setState(() => _saving = false);
     }
   }
 
+  // ── Tag helpers ──────────────────────────────────────────────────────────
+  void _addTag(String tag) {
+    final t = tag.trim();
+    if (t.isNotEmpty && !_selectedTags.contains(t)) {
+      setState(() => _selectedTags.add(t));
+    }
+    _tagController.clear();
+  }
+
+  void _removeTag(String tag) => setState(() => _selectedTags.remove(tag));
+
+  // ── Pickers ──────────────────────────────────────────────────────────────
+  Future<void> _pickDate() async {
+    final picked = await showAppDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+    );
+    if (picked != null) setState(() => _selectedDate = picked);
+  }
+
+  void _pickAccount() {
+    final accounts =
+        context.read<AccountsController>().accounts;
+    if (accounts.isEmpty) return;
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (ctx) => CupertinoActionSheet(
+        title: const Text('Select Account'),
+        actions: [
+          ...accounts.map((a) => CupertinoActionSheetAction(
+                onPressed: () {
+                  setState(() => _selectedAccount = a);
+                  Navigator.pop(ctx);
+                },
+                child: Text(a.name),
+              )),
+          CupertinoActionSheetAction(
+            onPressed: () {
+              setState(() => _selectedAccount = null);
+              Navigator.pop(ctx);
+            },
+            child: const Text('No Account'),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(ctx),
+          child: const Text('Cancel'),
+        ),
+      ),
+    );
+  }
+
+  void _pickPaymentApp() {
+    final apps =
+        context.read<PaymentAppsController>().paymentApps;
+    if (apps.isEmpty) return;
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (ctx) => CupertinoActionSheet(
+        title: const Text('Select Payment App'),
+        actions: [
+          ...apps.map((a) => CupertinoActionSheetAction(
+                onPressed: () {
+                  setState(() => _selectedPaymentApp = a['name'] as String);
+                  Navigator.pop(ctx);
+                },
+                child: Text(a['name'] as String),
+              )),
+          CupertinoActionSheetAction(
+            onPressed: () {
+              setState(() => _selectedPaymentApp = null);
+              Navigator.pop(ctx);
+            },
+            child: const Text('None'),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(ctx),
+          child: const Text('Cancel'),
+        ),
+      ),
+    );
+  }
+
+  // ── Build ─────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     final isDark = AppStyles.isDarkMode(context);
     final p = widget.item.parsed;
-    final sheetBg = isDark ? AppStyles.darkBackground : Colors.white;
-    final accentColor =
-        _isCreditSms ? AppStyles.bioGreen : AppStyles.plasmaRed;
-    final smsLabel = _isCreditSms ? 'Income' : 'Expense';
-    final smsIcon = _isCreditSms
-        ? CupertinoIcons.arrow_down_circle_fill
-        : CupertinoIcons.arrow_up_circle_fill;
+    final isTransfer = _txType == _SmsConfirmType.transfer;
+    final isIncome = _txType == _SmsConfirmType.income;
+    final accentColor = isTransfer
+        ? AppStyles.accentBlue
+        : isIncome
+            ? AppStyles.bioGreen
+            : AppStyles.plasmaRed;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: sheetBg,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: SafeArea(
-        top: false,
+    return DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: 0.7,
+      minChildSize: 0.4,
+      maxChildSize: 0.95,
+      builder: (ctx, scrollController) => Container(
+        decoration: AppStyles.bottomSheetDecoration(context),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           children: [
-            // Handle
-            Container(
-              margin: const EdgeInsets.only(top: 10),
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppStyles.getDividerColor(context),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Amount hero
+            // ── Handle + header ───────────────────────────────────────────
+            const ModalHandle(),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding:
+                  const EdgeInsets.fromLTRB(Spacing.lg, 4, Spacing.lg, 0),
               child: Row(
                 children: [
+                  Expanded(
+                    child: Text(
+                      'Save from SMS',
+                      style: AppStyles.headerStyle(context),
+                    ),
+                  ),
+                  // SMS source badge
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: accentColor.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(8),
@@ -1300,295 +1441,549 @@ class _SmsQuickConfirmSheetState extends State<_SmsQuickConfirmSheet> {
                           width: 6,
                           height: 6,
                           decoration: BoxDecoration(
-                              color: accentColor, shape: BoxShape.circle),
+                              color: accentColor,
+                              shape: BoxShape.circle),
                         ),
                         const SizedBox(width: 5),
-                        Text('SMS',
-                            style: TextStyle(
-                              fontSize: TypeScale.caption,
-                              fontWeight: FontWeight.w700,
-                              color: accentColor,
-                            )),
-                        if (widget.item.matchedAccount != null) ...[
-                          const SizedBox(width: 4),
-                          Text(
-                            '· ${widget.item.matchedAccount!.bankName}',
-                            style: TextStyle(
-                              fontSize: TypeScale.caption,
-                              color: accentColor.withValues(alpha: 0.7),
-                            ),
+                        Text(
+                          'SMS',
+                          style: TextStyle(
+                            fontSize: TypeScale.caption,
+                            fontWeight: FontWeight.w700,
+                            color: accentColor,
                           ),
-                        ],
+                        ),
                       ],
                     ),
                   ),
-                  const Spacer(),
-                  Text(
-                    '${_isCreditSms ? '+' : '−'}${CurrencyFormatter.compact(p.amount)}',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w900,
-                      color: accentColor,
-                      letterSpacing: -1.0,
-                    ),
-                  ),
                 ],
               ),
             ),
+            const SizedBox(height: Spacing.sm),
 
-            // Confirmed details chips
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              child: Row(
+            // ── Scrollable form ───────────────────────────────────────────
+            Expanded(
+              child: ListView(
+                controller: scrollController,
+                padding: const EdgeInsets.fromLTRB(
+                    Spacing.lg, 0, Spacing.lg, Spacing.xxxl),
                 children: [
-                  _confirmedChip(context,
-                      icon: CupertinoIcons.calendar,
-                      label:
-                          '${p.date.day} ${DateFormatter.getMonthName(p.date.month)} ${p.date.year}'),
-                  if (p.merchant != null) ...[
-                    const SizedBox(width: 8),
-                    _confirmedChip(context,
-                        icon: CupertinoIcons.building_2_fill,
-                        label: p.merchant!),
-                  ] else if (p.upiId != null) ...[
-                    const SizedBox(width: 8),
-                    _confirmedChip(context,
-                        icon: CupertinoIcons.link,
-                        label: p.upiId!.length > 20
-                            ? '${p.upiId!.substring(0, 20)}…'
-                            : p.upiId!),
-                  ],
-                ],
-              ),
-            ),
-
-            // Type selector (2 options only)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'What is this?',
-                    style: TextStyle(
-                      fontSize: TypeScale.caption,
-                      fontWeight: FontWeight.w600,
-                      color: AppStyles.getSecondaryTextColor(context),
-                      letterSpacing: 0.3,
+                  // ── Amount ─────────────────────────────────────────────
+                  _FormSection(
+                    label: 'Amount',
+                    fromSms: true,
+                    child: CupertinoTextField(
+                      controller: _amountController,
+                      keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true),
+                      prefix: Padding(
+                        padding: const EdgeInsets.only(left: 12),
+                        child: Text('₹',
+                            style: AppStyles.titleStyle(context)),
+                      ),
+                      style: AppStyles.titleStyle(context).copyWith(
+                          fontWeight: FontWeight.w700),
+                      decoration: BoxDecoration(
+                        color: AppStyles.getCardColor(context),
+                        borderRadius: BorderRadius.circular(Radii.md),
+                        border: Border.all(
+                            color: AppStyles.getDividerColor(context)),
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      _typeButton(context,
-                          label: smsLabel,
-                          icon: smsIcon,
-                          color: accentColor,
-                          selected: _isExpense,
-                          onTap: () => setState(() => _isExpense = true)),
-                      const SizedBox(width: 10),
-                      _typeButton(context,
+                  const SizedBox(height: Spacing.lg),
+
+                  // ── Date ───────────────────────────────────────────────
+                  _FormSection(
+                    label: 'Date',
+                    fromSms: true,
+                    child: GestureDetector(
+                      onTap: _pickDate,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 14),
+                        decoration: BoxDecoration(
+                          color: AppStyles.getCardColor(context),
+                          borderRadius: BorderRadius.circular(Radii.md),
+                          border: Border.all(
+                              color: AppStyles.getDividerColor(context)),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(CupertinoIcons.calendar,
+                                size: 16,
+                                color:
+                                    AppStyles.getSecondaryTextColor(context)),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                '${_selectedDate.day} ${DateFormatter.getMonthName(_selectedDate.month)} ${_selectedDate.year}',
+                                style: TextStyle(fontSize: TypeScale.body, color: AppStyles.getTextColor(context)),
+                              ),
+                            ),
+                            Icon(CupertinoIcons.chevron_right,
+                                size: 14,
+                                color:
+                                    AppStyles.getSecondaryTextColor(context)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: Spacing.lg),
+
+                  // ── Type ───────────────────────────────────────────────
+                  _FormSection(
+                    label: 'Type',
+                    fromSms: true,
+                    child: Row(
+                      children: [
+                        _typeChip(
+                          context,
+                          label: 'Expense',
+                          icon: CupertinoIcons.arrow_up_circle_fill,
+                          color: AppStyles.plasmaRed,
+                          selected: _txType == _SmsConfirmType.expense,
+                          onTap: () {
+                            setState(() {
+                              _txType = _SmsConfirmType.expense;
+                              if (_selectedCategory == null) {
+                                final cats = context
+                                    .read<CategoriesController>()
+                                    .categories;
+                                if (cats.isNotEmpty) {
+                                  _selectedCategory = cats.first;
+                                }
+                              }
+                            });
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        _typeChip(
+                          context,
+                          label: 'Income',
+                          icon: CupertinoIcons.arrow_down_circle_fill,
+                          color: AppStyles.bioGreen,
+                          selected: _txType == _SmsConfirmType.income,
+                          onTap: () => setState(
+                              () => _txType = _SmsConfirmType.income),
+                        ),
+                        const SizedBox(width: 8),
+                        _typeChip(
+                          context,
                           label: 'Transfer',
                           icon: CupertinoIcons.arrow_right_arrow_left,
                           color: AppStyles.accentBlue,
-                          selected: !_isExpense,
-                          onTap: () => setState(() => _isExpense = false)),
-                    ],
+                          selected: _txType == _SmsConfirmType.transfer,
+                          onTap: () => setState(
+                              () => _txType = _SmsConfirmType.transfer),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: Spacing.lg),
+
+                  // ── Category (expense only) ────────────────────────────
+                  if (_txType == _SmsConfirmType.expense) ...[
+                    _FormSection(
+                      label: 'Category',
+                      isEmpty: _selectedCategory == null,
+                      child: Consumer<CategoriesController>(
+                        builder: (ctx, catCtrl, _) {
+                          final cats = catCtrl.categories;
+                          return SizedBox(
+                            height: 42,
+                            child: ListView.separated(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: cats.length,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(width: 8),
+                              itemBuilder: (ctx, i) {
+                                final cat = cats[i];
+                                final sel =
+                                    _selectedCategory?.id == cat.id;
+                                return GestureDetector(
+                                  onTap: () => setState(
+                                      () => _selectedCategory = cat),
+                                  child: AnimatedContainer(
+                                    duration:
+                                        const Duration(milliseconds: 160),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: sel
+                                          ? cat.color
+                                              .withValues(alpha: 0.18)
+                                          : AppStyles.getCardColor(context),
+                                      borderRadius:
+                                          BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: sel
+                                            ? cat.color
+                                            : AppStyles.getDividerColor(
+                                                context),
+                                        width: sel ? 1.5 : 0.8,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(cat.icon,
+                                            size: 13,
+                                            color: sel
+                                                ? cat.color
+                                                : AppStyles
+                                                    .getSecondaryTextColor(
+                                                        context)),
+                                        const SizedBox(width: 5),
+                                        Text(cat.name,
+                                            style: TextStyle(
+                                              fontSize: TypeScale.caption,
+                                              fontWeight: sel
+                                                  ? FontWeight.w700
+                                                  : FontWeight.w500,
+                                              color: sel
+                                                  ? cat.color
+                                                  : AppStyles.getTextColor(
+                                                      context),
+                                            )),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: Spacing.lg),
+                  ],
+
+                  // ── Account ────────────────────────────────────────────
+                  _FormSection(
+                    label: 'Account',
+                    fromSms: _selectedAccount != null &&
+                        widget.item.matchedAccount?.id ==
+                            _selectedAccount?.id,
+                    isEmpty: _selectedAccount == null,
+                    child: GestureDetector(
+                      onTap: _pickAccount,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 14),
+                        decoration: BoxDecoration(
+                          color: AppStyles.getCardColor(context),
+                          borderRadius: BorderRadius.circular(Radii.md),
+                          border: Border.all(
+                            color: _selectedAccount == null
+                                ? AppStyles.plasmaRed.withValues(alpha: 0.5)
+                                : AppStyles.getDividerColor(context),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(CupertinoIcons.creditcard,
+                                size: 16,
+                                color: _selectedAccount == null
+                                    ? AppStyles.plasmaRed
+                                    : AppStyles.getSecondaryTextColor(
+                                        context)),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                _selectedAccount?.name ?? 'Tap to select account',
+                                style: TextStyle(fontSize: TypeScale.body, color: AppStyles.getTextColor(context)).copyWith(
+                                  color: _selectedAccount == null
+                                      ? AppStyles.plasmaRed
+                                      : AppStyles.getTextColor(context),
+                                ),
+                              ),
+                            ),
+                            Icon(CupertinoIcons.chevron_right,
+                                size: 14,
+                                color:
+                                    AppStyles.getSecondaryTextColor(context)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: Spacing.lg),
+
+                  // ── Payment App ────────────────────────────────────────
+                  Consumer<PaymentAppsController>(
+                    builder: (ctx, appCtrl, _) {
+                      if (appCtrl.paymentApps.isEmpty) return const SizedBox.shrink();
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _FormSection(
+                            label: 'Payment App',
+                            isEmpty: _selectedPaymentApp == null,
+                            child: GestureDetector(
+                              onTap: _pickPaymentApp,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 14),
+                                decoration: BoxDecoration(
+                                  color: AppStyles.getCardColor(context),
+                                  borderRadius:
+                                      BorderRadius.circular(Radii.md),
+                                  border: Border.all(
+                                      color:
+                                          AppStyles.getDividerColor(context)),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(CupertinoIcons.device_phone_portrait,
+                                        size: 16,
+                                        color: AppStyles.getSecondaryTextColor(
+                                            context)),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        _selectedPaymentApp ??
+                                            'Optional — tap to select',
+                                        style: TextStyle(fontSize: TypeScale.body, color: AppStyles.getTextColor(context))
+                                            .copyWith(
+                                          color: _selectedPaymentApp == null
+                                              ? AppStyles.getSecondaryTextColor(
+                                                  context)
+                                              : AppStyles.getTextColor(context),
+                                        ),
+                                      ),
+                                    ),
+                                    Icon(CupertinoIcons.chevron_right,
+                                        size: 14,
+                                        color: AppStyles.getSecondaryTextColor(
+                                            context)),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: Spacing.lg),
+                        ],
+                      );
+                    },
+                  ),
+
+                  // ── Description ────────────────────────────────────────
+                  _FormSection(
+                    label: 'Description',
+                    fromSms: p.merchant != null || p.upiId != null,
+                    isEmpty: _descriptionController.text.trim().isEmpty,
+                    child: CupertinoTextField(
+                      controller: _descriptionController,
+                      placeholder: 'Merchant, note or description',
+                      placeholderStyle: TextStyle(
+                          color: AppStyles.getSecondaryTextColor(context)),
+                      style: TextStyle(fontSize: TypeScale.body, color: AppStyles.getTextColor(context)),
+                      decoration: BoxDecoration(
+                        color: AppStyles.getCardColor(context),
+                        borderRadius: BorderRadius.circular(Radii.md),
+                        border: Border.all(
+                            color: AppStyles.getDividerColor(context)),
+                      ),
+                      padding: const EdgeInsets.all(12),
+                    ),
+                  ),
+                  const SizedBox(height: Spacing.lg),
+
+                  // ── Tags ───────────────────────────────────────────────
+                  Consumer<TagsController>(
+                    builder: (ctx, tagsCtrl, _) {
+                      if (tagsCtrl.tags.isEmpty &&
+                          _selectedTags.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _FormSection(
+                            label: 'Tags',
+                            isEmpty: _selectedTags.isEmpty,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Existing system tags as chips
+                                if (tagsCtrl.tags.isNotEmpty)
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 6,
+                                    children: tagsCtrl.tags.map((tag) {
+                                      final sel = _selectedTags
+                                          .contains(tag.name);
+                                      return GestureDetector(
+                                        onTap: () => sel
+                                            ? _removeTag(tag.name)
+                                            : _addTag(tag.name),
+                                        child: AnimatedContainer(
+                                          duration: const Duration(
+                                              milliseconds: 150),
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 10, vertical: 5),
+                                          decoration: BoxDecoration(
+                                            color: sel
+                                                ? AppStyles.accentBlue
+                                                    .withValues(alpha: 0.15)
+                                                : AppStyles.getCardColor(
+                                                    context),
+                                            borderRadius:
+                                                BorderRadius.circular(16),
+                                            border: Border.all(
+                                              color: sel
+                                                  ? AppStyles.accentBlue
+                                                  : AppStyles.getDividerColor(
+                                                      context),
+                                              width: sel ? 1.5 : 0.8,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            tag.name,
+                                            style: TextStyle(
+                                              fontSize: TypeScale.caption,
+                                              fontWeight: sel
+                                                  ? FontWeight.w700
+                                                  : FontWeight.w500,
+                                              color: sel
+                                                  ? AppStyles.accentBlue
+                                                  : AppStyles.getTextColor(
+                                                      context),
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                // Selected custom tags
+                                if (_selectedTags
+                                    .where((t) => !tagsCtrl.tags
+                                        .any((tt) => tt.name == t))
+                                    .isNotEmpty) ...[
+                                  const SizedBox(height: 8),
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 6,
+                                    children: _selectedTags
+                                        .where((t) => !tagsCtrl.tags
+                                            .any((tt) => tt.name == t))
+                                        .map((t) => GestureDetector(
+                                              onTap: () => _removeTag(t),
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 10,
+                                                        vertical: 5),
+                                                decoration: BoxDecoration(
+                                                  color: AppStyles.accentBlue
+                                                      .withValues(alpha: 0.15),
+                                                  borderRadius:
+                                                      BorderRadius.circular(16),
+                                                  border: Border.all(
+                                                      color:
+                                                          AppStyles.accentBlue),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    Text(t,
+                                                        style: const TextStyle(
+                                                            fontSize:
+                                                                TypeScale.caption,
+                                                            color: AppStyles
+                                                                .accentBlue)),
+                                                    const SizedBox(width: 4),
+                                                    const Icon(
+                                                        CupertinoIcons.xmark,
+                                                        size: 10,
+                                                        color:
+                                                            AppStyles.accentBlue),
+                                                  ],
+                                                ),
+                                              ),
+                                            ))
+                                        .toList(),
+                                  ),
+                                ],
+                                const SizedBox(height: 8),
+                                // Custom tag input
+                                CupertinoTextField(
+                                  controller: _tagController,
+                                  placeholder: 'Add a tag and press Return',
+                                  placeholderStyle: TextStyle(
+                                      color: AppStyles.getSecondaryTextColor(
+                                          context)),
+                                  style: TextStyle(fontSize: TypeScale.body, color: AppStyles.getTextColor(context)),
+                                  decoration: BoxDecoration(
+                                    color: AppStyles.getCardColor(context),
+                                    borderRadius:
+                                        BorderRadius.circular(Radii.md),
+                                    border: Border.all(
+                                        color:
+                                            AppStyles.getDividerColor(context)),
+                                  ),
+                                  padding: const EdgeInsets.all(10),
+                                  onSubmitted: _addTag,
+                                  textInputAction: TextInputAction.done,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: Spacing.lg),
+                        ],
+                      );
+                    },
                   ),
                 ],
               ),
             ),
 
-            // Category chips (expense only)
-            if (_isExpense && !_isCreditSms) ...[
-              const SizedBox(height: 14),
-              Padding(
+            // ── Save button ───────────────────────────────────────────────
+            Container(
+              color: AppStyles.getBackground(context),
+              padding: EdgeInsets.fromLTRB(
+                Spacing.lg,
+                Spacing.md,
+                Spacing.lg,
+                MediaQuery.of(context).padding.bottom + Spacing.md,
+              ),
+              child: CupertinoButton(
                 padding:
-                    const EdgeInsets.only(left: 20, right: 20, bottom: 4),
-                child: Text('Category',
-                    style: TextStyle(
-                      fontSize: TypeScale.caption,
-                      fontWeight: FontWeight.w600,
-                      color: AppStyles.getSecondaryTextColor(context),
-                      letterSpacing: 0.3,
-                    )),
-              ),
-              SizedBox(
-                height: 42,
-                child: Consumer<CategoriesController>(
-                  builder: (ctx, catCtrl, _) {
-                    final cats = catCtrl.categories;
-                    return ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      itemCount: cats.length,
-                      separatorBuilder: (_, __) =>
-                          const SizedBox(width: 8),
-                      itemBuilder: (ctx, i) {
-                        final cat = cats[i];
-                        final sel = _selectedCategory?.id == cat.id;
-                        return GestureDetector(
-                          onTap: () =>
-                              setState(() => _selectedCategory = cat),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 160),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: sel
-                                  ? cat.color.withValues(alpha: 0.18)
-                                  : AppStyles.getBackground(context),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: sel
-                                    ? cat.color
-                                    : AppStyles.getDividerColor(context),
-                                width: sel ? 1.5 : 0.8,
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(cat.icon,
-                                    size: 13,
-                                    color: sel
-                                        ? cat.color
-                                        : AppStyles.getSecondaryTextColor(
-                                            context)),
-                                const SizedBox(width: 5),
-                                Text(cat.name,
-                                    style: TextStyle(
-                                      fontSize: TypeScale.caption,
-                                      fontWeight: sel
-                                          ? FontWeight.w700
-                                          : FontWeight.w500,
-                                      color: sel
-                                          ? cat.color
-                                          : AppStyles.getTextColor(context),
-                                    )),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
-
-            // Account row
-            if (_selectedAccount != null && _isExpense) ...[
-              const SizedBox(height: 12),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  children: [
-                    Icon(CupertinoIcons.creditcard,
-                        size: 13,
-                        color: AppStyles.getSecondaryTextColor(context)),
-                    const SizedBox(width: 6),
-                    Text(_selectedAccount!.name,
-                        style: TextStyle(
-                          fontSize: TypeScale.footnote,
-                          color: AppStyles.getSecondaryTextColor(context),
-                        )),
-                    const SizedBox(width: 4),
-                    const Icon(CupertinoIcons.checkmark_circle_fill,
-                        size: 12, color: AppStyles.bioGreen),
-                  ],
-                ),
-              ),
-            ],
-
-            const SizedBox(height: 20),
-
-            // Action buttons
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: CupertinoButton(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      color: AppStyles.getBackground(context),
-                      borderRadius: BorderRadius.circular(Radii.md),
-                      onPressed: () {
-                        Navigator.pop(context);
-                        widget.onOpenWizard();
-                      },
-                      child: Text('Customize',
-                          style: TextStyle(
-                            fontSize: TypeScale.footnote,
-                            fontWeight: FontWeight.w600,
-                            color: AppStyles.getSecondaryTextColor(context),
-                          )),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    flex: 3,
-                    child: CupertinoButton(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      color:
-                          _isExpense ? accentColor : AppStyles.accentBlue,
-                      borderRadius: BorderRadius.circular(Radii.md),
-                      onPressed: _save,
-                      child: Text(
-                        _isExpense
-                            ? 'Save ${_isCreditSms ? 'Income' : 'Expense'}'
-                            : 'Open Transfer',
+                    const EdgeInsets.symmetric(vertical: 16),
+                color: isTransfer
+                    ? AppStyles.accentBlue
+                    : isIncome
+                        ? AppStyles.bioGreen
+                        : AppStyles.plasmaRed,
+                borderRadius: BorderRadius.circular(Radii.md),
+                onPressed: _saving ? null : _save,
+                child: _saving
+                    ? const CupertinoActivityIndicator(
+                        color: Colors.white)
+                    : Text(
+                        isTransfer
+                            ? 'Open Transfer Wizard'
+                            : isIncome
+                                ? 'Save Income'
+                                : 'Save Expense',
                         style: const TextStyle(
                           fontSize: TypeScale.callout,
                           fontWeight: FontWeight.w700,
                           color: Colors.white,
                         ),
                       ),
-                    ),
-                  ),
-                ],
               ),
             ),
-            const SizedBox(height: 16),
           ],
         ),
       ),
     );
   }
 
-  Widget _confirmedChip(BuildContext context,
-      {required IconData icon, required String label}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: AppStyles.getBackground(context),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-            color: AppStyles.getDividerColor(context), width: 0.8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon,
-              size: 11,
-              color: AppStyles.getSecondaryTextColor(context)),
-          const SizedBox(width: 4),
-          Text(label,
-              style: TextStyle(
-                fontSize: TypeScale.caption,
-                color: AppStyles.getSecondaryTextColor(context),
-              )),
-          const SizedBox(width: 4),
-          const Icon(CupertinoIcons.checkmark_alt,
-              size: 10, color: AppStyles.bioGreen),
-        ],
-      ),
-    );
-  }
-
-  Widget _typeButton(
+  Widget _typeChip(
     BuildContext context, {
     required String label,
     required IconData icon,
@@ -1600,34 +1995,38 @@ class _SmsQuickConfirmSheetState extends State<_SmsQuickConfirmSheet> {
       child: GestureDetector(
         onTap: onTap,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(vertical: 14),
+          duration: const Duration(milliseconds: 160),
+          padding:
+              const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
             color: selected
                 ? color.withValues(alpha: 0.15)
-                : AppStyles.getBackground(context),
+                : AppStyles.getCardColor(context),
             borderRadius: BorderRadius.circular(Radii.md),
             border: Border.all(
-              color: selected ? color : AppStyles.getDividerColor(context),
+              color: selected
+                  ? color
+                  : AppStyles.getDividerColor(context),
               width: selected ? 1.5 : 0.8,
             ),
           ),
           child: Column(
             children: [
               Icon(icon,
-                  size: 22,
+                  size: 18,
                   color: selected
                       ? color
                       : AppStyles.getSecondaryTextColor(context)),
               const SizedBox(height: 4),
               Text(label,
                   style: TextStyle(
-                    fontSize: TypeScale.footnote,
-                    fontWeight:
-                        selected ? FontWeight.w700 : FontWeight.w500,
+                    fontSize: TypeScale.caption,
+                    fontWeight: selected
+                        ? FontWeight.w700
+                        : FontWeight.w500,
                     color: selected
                         ? color
-                        : AppStyles.getSecondaryTextColor(context),
+                        : AppStyles.getTextColor(context),
                   )),
             ],
           ),
@@ -1636,3 +2035,88 @@ class _SmsQuickConfirmSheetState extends State<_SmsQuickConfirmSheet> {
     );
   }
 }
+
+// ── Form section label widget ─────────────────────────────────────────────────
+
+class _FormSection extends StatelessWidget {
+  final String label;
+  final Widget child;
+  final bool fromSms;
+  final bool isEmpty;
+
+  const _FormSection({
+    required this.label,
+    required this.child,
+    this.fromSms = false,
+    this.isEmpty = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: TypeScale.caption,
+                fontWeight: FontWeight.w600,
+                color: AppStyles.getSecondaryTextColor(context),
+                letterSpacing: 0.3,
+              ),
+            ),
+            const SizedBox(width: 6),
+            if (fromSms)
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppStyles.accentBlue.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(CupertinoIcons.checkmark_alt,
+                        size: 9, color: AppStyles.accentBlue),
+                    const SizedBox(width: 3),
+                    const Text(
+                      'from SMS',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                        color: AppStyles.accentBlue,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else if (isEmpty)
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppStyles.plasmaRed.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text(
+                  'empty',
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                    color: AppStyles.plasmaRed,
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        child,
+      ],
+    );
+  }
+}
+
+enum _SmsConfirmType { expense, income, transfer }
