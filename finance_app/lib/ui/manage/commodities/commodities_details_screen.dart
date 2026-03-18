@@ -38,7 +38,7 @@ class _CommoditiesDetailsScreenState extends State<CommoditiesDetailsScreen> {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
       navigationBar: CupertinoNavigationBar(
-        previousPageTitle: 'Investments',
+        previousPageTitle: 'Back',
         middle: Text(commodity.name,
             style: TextStyle(color: AppStyles.getTextColor(context))),
         backgroundColor: AppStyles.getBackground(context),

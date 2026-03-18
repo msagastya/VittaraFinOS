@@ -578,7 +578,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
       navigationBar: CupertinoNavigationBar(
         middle: Text('Accounts',
             style: TextStyle(color: AppStyles.getTextColor(context))),
-        previousPageTitle: 'Manage',
+        previousPageTitle: 'Back',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
       ),
@@ -1121,31 +1121,18 @@ class _AccountsScreenState extends State<AccountsScreen> {
       builder: (modalContext) {
         return DraggableScrollableSheet(
           expand: false,
-          initialChildSize: 0.75,
+          initialChildSize: 0.7,
           minChildSize: 0.4,
           maxChildSize: 0.95,
           builder: (dragContext, scrollController) {
             return Container(
-              decoration: BoxDecoration(
-                color: AppStyles.getCardColor(dragContext),
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(24)),
-              ),
+              decoration: AppStyles.bottomSheetDecoration(dragContext),
               child: SingleChildScrollView(
                 controller: scrollController,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Handle bar
-                    Container(
-                      margin: const EdgeInsets.only(top: 12),
-                      width: 40,
-                      height: 5,
-                      decoration: BoxDecoration(
-                        color: CupertinoColors.systemGrey3,
-                        borderRadius: BorderRadius.circular(2.5),
-                      ),
-                    ),
+                    const ModalHandle(),
                     const SizedBox(height: Spacing.xl),
 
                     // Account Details

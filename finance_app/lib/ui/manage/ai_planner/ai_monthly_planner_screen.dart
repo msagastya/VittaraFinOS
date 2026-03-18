@@ -343,7 +343,7 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
       navigationBar: CupertinoNavigationBar(
         middle: Text('AI Monthly Planner',
             style: TextStyle(color: AppStyles.getTextColor(context))),
-        previousPageTitle: 'Manage',
+        previousPageTitle: 'Back',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
       ),

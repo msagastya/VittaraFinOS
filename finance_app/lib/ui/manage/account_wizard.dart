@@ -7,6 +7,7 @@ import 'package:vittara_fin_os/logic/brokers_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
+import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
 
 class AccountWizard extends StatefulWidget {
@@ -474,14 +475,7 @@ class _AccountWizardState extends State<AccountWizard> {
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     child: Column(
                       children: [
-                        Container(
-                          width: 40,
-                          height: 5,
-                          decoration: BoxDecoration(
-                            color: CupertinoColors.systemGrey3,
-                            borderRadius: BorderRadius.circular(2.5),
-                          ),
-                        ),
+                        const ModalHandle(),
                         const SizedBox(height: Spacing.lg),
                         Text(
                           'Add New Broker',
@@ -1104,14 +1098,7 @@ class _AccountWizardState extends State<AccountWizard> {
                     const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 child: Column(
                   children: [
-                    Container(
-                      width: 40,
-                      height: 5,
-                      decoration: BoxDecoration(
-                        color: CupertinoColors.systemGrey3,
-                        borderRadius: BorderRadius.circular(2.5),
-                      ),
-                    ),
+                    const ModalHandle(),
                     const SizedBox(height: Spacing.lg),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1282,14 +1269,7 @@ class _AccountWizardState extends State<AccountWizard> {
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     child: Column(
                       children: [
-                        Container(
-                          width: 40,
-                          height: 5,
-                          decoration: BoxDecoration(
-                            color: CupertinoColors.systemGrey3,
-                            borderRadius: BorderRadius.circular(2.5),
-                          ),
-                        ),
+                        const ModalHandle(),
                         const SizedBox(height: Spacing.lg),
                         Text(
                           'Add New Bank',

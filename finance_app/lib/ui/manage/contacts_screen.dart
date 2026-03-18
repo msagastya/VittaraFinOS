@@ -60,7 +60,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
             ),
           ],
         ),
-        previousPageTitle: 'Manage',
+        previousPageTitle: 'Back',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
       ),

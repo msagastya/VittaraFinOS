@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 
 /// Bottom sheet shown once on first launch after an app update.
 class WhatsNewSheet extends StatelessWidget {
@@ -31,16 +32,7 @@ class WhatsNewSheet extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Handle
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppStyles.getDividerColor(context),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
+            const Center(child: ModalHandle()),
             const SizedBox(height: Spacing.xl),
 
             // Title

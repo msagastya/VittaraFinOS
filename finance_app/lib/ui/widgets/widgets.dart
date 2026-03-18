@@ -22,3 +22,6 @@ export 'account_selection_step.dart';
 
 // AU9-06 — Unified AppButton component
 export 'app_button.dart';
+
+// Standard date picker modal
+export 'app_date_picker.dart';

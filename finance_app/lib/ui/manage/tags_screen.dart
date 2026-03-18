@@ -42,7 +42,7 @@ class _TagsScreenState extends State<TagsScreen> {
             size: 22,
           ),
         ),
-        previousPageTitle: 'Manage',
+        previousPageTitle: 'Back',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
       ),

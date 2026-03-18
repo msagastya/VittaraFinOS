@@ -7,6 +7,7 @@ import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
+import 'package:vittara_fin_os/ui/widgets/app_date_picker.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class SimpleInvestmentEntryWizard extends StatefulWidget {
@@ -63,43 +64,15 @@ class _SimpleInvestmentEntryWizardState
   }
 
   Future<void> _pickDate() async {
-    DateTime tempDate = _investmentDate;
-    await showCupertinoModalPopup<void>(
+    final picked = await showAppDatePicker(
       context: context,
-      builder: (ctx) => Container(
-        height: 280,
-        color: CupertinoTheme.of(ctx).scaffoldBackgroundColor,
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                CupertinoButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Cancel'),
-                ),
-                CupertinoButton(
-                  onPressed: () {
-                    setState(() => _investmentDate = tempDate);
-                    Navigator.pop(ctx);
-                  },
-                  child: const Text('Done'),
-                ),
-              ],
-            ),
-            Expanded(
-              child: CupertinoDatePicker(
-                mode: CupertinoDatePickerMode.date,
-                initialDateTime: _investmentDate,
-                maximumDate: DateTime.now(),
-                minimumDate: DateTime(2000, 1, 1),
-                onDateTimeChanged: (d) => tempDate = d,
-              ),
-            ),
-          ],
-        ),
-      ),
+      initialDate: _investmentDate,
+      maximumDate: DateTime.now(),
+      minimumDate: DateTime(2000, 1, 1),
     );
+    if (picked != null) {
+      setState(() => _investmentDate = picked);
+    }
   }
 
   Future<void> _pickAccount() async {

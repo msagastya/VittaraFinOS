@@ -7,6 +7,7 @@ import 'package:vittara_fin_os/logic/investment_type_preferences_controller.dart
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
+import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 
 class InvestmentTypeSelectionModal extends StatefulWidget {
   final Function(InvestmentType) onTypeSelected;
@@ -81,24 +82,12 @@ class _InvestmentTypeSelectionModalState
     return BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
       child: Container(
-        decoration: BoxDecoration(
-          color: AppStyles.getCardColor(context),
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
+        decoration: AppStyles.bottomSheetDecoration(context),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Handle bar
-              Container(
-                margin: const EdgeInsets.only(top: 12),
-                width: 40,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: CupertinoColors.systemGrey3,
-                  borderRadius: BorderRadius.circular(2.5),
-                ),
-              ),
+              const ModalHandle(),
               const SizedBox(height: Spacing.xl),
 
               // Title with Settings Button
@@ -331,24 +320,12 @@ class _InvestmentTypePreferencesModalState
     return BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
       child: Container(
-        decoration: BoxDecoration(
-          color: AppStyles.getCardColor(context),
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
+        decoration: AppStyles.bottomSheetDecoration(context),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Handle bar
-              Container(
-                margin: const EdgeInsets.only(top: 12),
-                width: 40,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: CupertinoColors.systemGrey3,
-                  borderRadius: BorderRadius.circular(2.5),
-                ),
-              ),
+              const ModalHandle(),
               const SizedBox(height: Spacing.xl),
 
               // Title

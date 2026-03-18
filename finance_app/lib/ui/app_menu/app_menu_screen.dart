@@ -35,7 +35,7 @@ class DashboardAppMenuScreen extends StatelessWidget {
           'Menu',
           style: TextStyle(color: AppStyles.getTextColor(context)),
         ),
-        previousPageTitle: 'Dashboard',
+        previousPageTitle: 'Back',
         backgroundColor: AppStyles.isDarkMode(context) ? Colors.black : Colors.white.withValues(alpha: 0.95),
         border: null,
       ),
@@ -464,7 +464,7 @@ class AboutAppScreen extends StatelessWidget {
       navigationBar: CupertinoNavigationBar(
         middle: Text('About',
             style: TextStyle(color: AppStyles.getTextColor(context))),
-        previousPageTitle: 'Menu',
+        previousPageTitle: 'Back',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
       ),
@@ -546,7 +546,7 @@ class FAQsScreen extends StatelessWidget {
       navigationBar: CupertinoNavigationBar(
         middle: Text('FAQs',
             style: TextStyle(color: AppStyles.getTextColor(context))),
-        previousPageTitle: 'Menu',
+        previousPageTitle: 'Back',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
       ),
@@ -617,7 +617,7 @@ class AppInformationScreen extends StatelessWidget {
               'App Information',
               style: TextStyle(color: AppStyles.getTextColor(context)),
             ),
-            previousPageTitle: 'Menu',
+            previousPageTitle: 'Back',
             backgroundColor: AppStyles.getBackground(context),
             border: null,
           ),
@@ -688,7 +688,7 @@ class WhatsNewScreen extends StatelessWidget {
       navigationBar: CupertinoNavigationBar(
         middle: Text('What\'s New',
             style: TextStyle(color: AppStyles.getTextColor(context))),
-        previousPageTitle: 'Menu',
+        previousPageTitle: 'Back',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
       ),
@@ -762,7 +762,7 @@ class LegalDocumentScreen extends StatelessWidget {
       navigationBar: CupertinoNavigationBar(
         middle: Text(title,
             style: TextStyle(color: AppStyles.getTextColor(context))),
-        previousPageTitle: 'Menu',
+        previousPageTitle: 'Back',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
       ),

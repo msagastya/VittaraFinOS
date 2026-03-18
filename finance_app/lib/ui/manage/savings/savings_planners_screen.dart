@@ -52,13 +52,7 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                      margin: const EdgeInsets.only(top: Spacing.md),
-                      width: 40,
-                      height: 5,
-                      decoration: BoxDecoration(
-                          color: CupertinoColors.systemGrey3,
-                          borderRadius: BorderRadius.circular(2.5))),
+                  const ModalHandle(),
                   const SizedBox(height: Spacing.xl),
                   Text('Create Savings Planner',
                       style: TextStyle(
@@ -109,14 +103,7 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
                                   child: Column(
                                     children: [
                                       const SizedBox(height: Spacing.md),
-                                      Container(
-                                          width: 40,
-                                          height: 5,
-                                          decoration: BoxDecoration(
-                                              color:
-                                                  CupertinoColors.systemGrey3,
-                                              borderRadius:
-                                                  BorderRadius.circular(2.5))),
+                                      const ModalHandle(),
                                       const SizedBox(height: Spacing.lg),
                                       Text('Select Category',
                                           style: TextStyle(
@@ -329,7 +316,7 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
       navigationBar: CupertinoNavigationBar(
         middle: Text('Savings Planners',
             style: TextStyle(color: AppStyles.getTextColor(context))),
-        previousPageTitle: 'Manage',
+        previousPageTitle: 'Back',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
       ),

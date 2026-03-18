@@ -79,7 +79,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       navigationBar: CupertinoNavigationBar(
         middle: Text('Categories',
             style: TextStyle(color: AppStyles.getTextColor(context))),
-        previousPageTitle: 'Manage',
+        previousPageTitle: 'Back',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
         trailing: CupertinoButton(

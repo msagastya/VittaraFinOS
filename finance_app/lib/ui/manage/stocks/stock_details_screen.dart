@@ -9,6 +9,7 @@ import 'package:vittara_fin_os/services/stock_api_service.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/widgets/app_date_picker.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
@@ -130,7 +131,7 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
       navigationBar: CupertinoNavigationBar(
         middle: Text(_symbol,
             style: TextStyle(color: AppStyles.getTextColor(context))),
-        previousPageTitle: 'Investments',
+        previousPageTitle: 'Back',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
       ),
@@ -472,31 +473,18 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
   double get _charges => double.tryParse(_chargesController.text) ?? 0;
   double get _totalCost => (_qty * _price) + _charges;
 
-  void _showDatePicker() {
-    showCupertinoModalPopup(
+  Future<void> _showDatePicker() async {
+    final picked = await showAppDatePicker(
       context: context,
-      builder: (context) => Container(
-        height: 216,
-        padding: const EdgeInsets.only(top: 6.0),
-        margin:
-            EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-        color: CupertinoColors.systemBackground.resolveFrom(context),
-        child: SafeArea(
-          top: false,
-          child: CupertinoDatePicker(
-            initialDateTime: _transactionDate,
-            mode: CupertinoDatePickerMode.date,
-            maximumDate: DateTime.now(),
-            onDateTimeChanged: (DateTime newDate) {
-              setState(() {
-                _transactionDate = newDate;
-                _dateController.text = _formatDate(newDate);
-              });
-            },
-          ),
-        ),
-      ),
+      initialDate: _transactionDate,
+      maximumDate: DateTime.now(),
     );
+    if (picked != null) {
+      setState(() {
+        _transactionDate = picked;
+        _dateController.text = _formatDate(picked);
+      });
+    }
   }
 
   void _showAccountSelector() {
@@ -1292,31 +1280,18 @@ class _SellModalState extends State<_SellModal> {
   double get _grossProceeds => _qty * _price;
   double get _netProceeds => _grossProceeds - _charges;
 
-  void _showDatePicker() {
-    showCupertinoModalPopup(
+  Future<void> _showDatePicker() async {
+    final picked = await showAppDatePicker(
       context: context,
-      builder: (context) => Container(
-        height: 216,
-        padding: const EdgeInsets.only(top: 6.0),
-        margin:
-            EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-        color: CupertinoColors.systemBackground.resolveFrom(context),
-        child: SafeArea(
-          top: false,
-          child: CupertinoDatePicker(
-            initialDateTime: _transactionDate,
-            mode: CupertinoDatePickerMode.date,
-            maximumDate: DateTime.now(),
-            onDateTimeChanged: (DateTime newDate) {
-              setState(() {
-                _transactionDate = newDate;
-                _dateController.text = _formatDate(newDate);
-              });
-            },
-          ),
-        ),
-      ),
+      initialDate: _transactionDate,
+      maximumDate: DateTime.now(),
     );
+    if (picked != null) {
+      setState(() {
+        _transactionDate = picked;
+        _dateController.text = _formatDate(picked);
+      });
+    }
   }
 
   void _showAccountSelector() {

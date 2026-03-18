@@ -14,6 +14,7 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/services/nav_service.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
+import 'package:vittara_fin_os/ui/widgets/app_date_picker.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
@@ -850,23 +851,15 @@ class _MFDividendModalState extends State<_MFDividendModal> {
     super.dispose();
   }
 
-  void _pickDate() {
-    showCupertinoModalPopup(
+  Future<void> _pickDate() async {
+    final picked = await showAppDatePicker(
       context: context,
-      builder: (_) => Container(
-        height: 216,
-        color: CupertinoColors.systemBackground.resolveFrom(context),
-        child: SafeArea(
-          top: false,
-          child: CupertinoDatePicker(
-            mode: CupertinoDatePickerMode.date,
-            initialDateTime: _dividendDate,
-            maximumDate: DateTime.now(),
-            onDateTimeChanged: (value) => setState(() => _dividendDate = value),
-          ),
-        ),
-      ),
+      initialDate: _dividendDate,
+      maximumDate: DateTime.now(),
     );
+    if (picked != null) {
+      setState(() => _dividendDate = picked);
+    }
   }
 
   Future<void> _submit() async {

@@ -4,6 +4,7 @@ import 'package:vittara_fin_os/ui/manage/mf/mf_wizard_controller.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/widgets/app_date_picker.dart';
 
 class MFTransactionDetailsStep extends StatefulWidget {
   const MFTransactionDetailsStep({super.key});
@@ -43,32 +44,17 @@ class _MFTransactionDetailsStepState extends State<MFTransactionDetailsStep> {
     );
   }
 
-  void _showDatePicker() {
+  Future<void> _showDatePicker() async {
     final controller = Provider.of<MFWizardController>(context, listen: false);
-    showCupertinoModalPopup(
+    final picked = await showAppDatePicker(
       context: context,
-      builder: (context) => Container(
-        height: 216,
-        padding: const EdgeInsets.only(top: 6.0),
-        margin: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        color: CupertinoColors.systemBackground.resolveFrom(context),
-        child: SafeArea(
-          top: false,
-          child: CupertinoDatePicker(
-            initialDateTime: controller.investmentDate,
-            mode: CupertinoDatePickerMode.date,
-            minimumDate:
-                DateTime.now().subtract(const Duration(days: 365 * 30)),
-            maximumDate: DateTime.now(),
-            onDateTimeChanged: (DateTime newDate) {
-              controller.updatePurchaseDate(newDate);
-            },
-          ),
-        ),
-      ),
+      initialDate: controller.investmentDate,
+      minimumDate: DateTime.now().subtract(const Duration(days: 365 * 30)),
+      maximumDate: DateTime.now(),
     );
+    if (picked != null) {
+      controller.updatePurchaseDate(picked);
+    }
   }
 
   @override

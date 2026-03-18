@@ -5,34 +5,21 @@ import 'package:vittara_fin_os/ui/manage/digital_gold/digital_gold_wizard_contro
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/widgets/app_date_picker.dart';
 
 class GoldInvestmentDateStep extends StatelessWidget {
   const GoldInvestmentDateStep({super.key});
 
-  void _showDatePicker(
-      BuildContext context, DigitalGoldWizardController controller) {
-    showCupertinoModalPopup(
+  Future<void> _showDatePicker(
+      BuildContext context, DigitalGoldWizardController controller) async {
+    final picked = await showAppDatePicker(
       context: context,
-      builder: (context) => Container(
-        height: 216,
-        padding: const EdgeInsets.only(top: 6.0),
-        margin: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        color: CupertinoColors.systemBackground.resolveFrom(context),
-        child: SafeArea(
-          top: false,
-          child: CupertinoDatePicker(
-            initialDateTime: controller.investmentDate,
-            mode: CupertinoDatePickerMode.date,
-            maximumDate: DateTime.now(),
-            onDateTimeChanged: (DateTime newDate) {
-              controller.updateInvestmentDate(newDate);
-            },
-          ),
-        ),
-      ),
+      initialDate: controller.investmentDate,
+      maximumDate: DateTime.now(),
     );
+    if (picked != null) {
+      controller.updateInvestmentDate(picked);
+    }
   }
 
   @override

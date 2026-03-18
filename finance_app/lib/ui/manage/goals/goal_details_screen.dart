@@ -33,7 +33,7 @@ class GoalDetailsScreen extends StatelessWidget {
             navigationBar: CupertinoNavigationBar(
               middle: Text('Goal Details',
                   style: TextStyle(color: AppStyles.getTextColor(context))),
-              previousPageTitle: 'Goals',
+              previousPageTitle: 'Back',
               backgroundColor: AppStyles.getBackground(context),
               border: null,
             ),
@@ -54,7 +54,7 @@ class GoalDetailsScreen extends StatelessWidget {
           navigationBar: CupertinoNavigationBar(
             middle: Text('Goal Details',
                 style: TextStyle(color: AppStyles.getTextColor(context))),
-            previousPageTitle: 'Goals',
+            previousPageTitle: 'Back',
             backgroundColor: AppStyles.getBackground(context),
             border: null,
             trailing: CupertinoButton(

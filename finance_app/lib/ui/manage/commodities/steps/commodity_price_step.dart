@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/ui/manage/commodities/commodities_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/widgets/app_date_picker.dart';
 
 class CommodityPriceStep extends StatefulWidget {
   final CommoditiesWizardController ctrl;
@@ -77,51 +78,12 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
                   fontWeight: FontWeight.w600, fontSize: TypeScale.body)),
           const SizedBox(height: Spacing.md),
           GestureDetector(
-            onTap: () {
-              showCupertinoModalPopup(
+            onTap: () async {
+              final picked = await showAppDatePicker(
                 context: context,
-                builder: (ctx) => Container(
-                  height: 300,
-                  color: AppStyles.getBackground(context),
-                  child: Column(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(Spacing.lg),
-                        decoration: BoxDecoration(
-                          color: AppStyles.getCardColor(context),
-                          border: Border(
-                            bottom: BorderSide(
-                                color: CupertinoColors.systemGrey
-                                    .withValues(alpha: 0.2)),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('Select Date',
-                                style: TextStyle(
-                                    fontSize: TypeScale.headline,
-                                    fontWeight: FontWeight.bold)),
-                            GestureDetector(
-                              onTap: () => Navigator.pop(ctx),
-                              child: const Icon(CupertinoIcons.xmark),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: CupertinoDatePicker(
-                          mode: CupertinoDatePickerMode.date,
-                          initialDateTime: widget.ctrl.purchaseDate,
-                          onDateTimeChanged: (date) {
-                            widget.ctrl.updatePurchaseDate(date);
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                initialDate: widget.ctrl.purchaseDate,
               );
+              if (picked != null) widget.ctrl.updatePurchaseDate(picked);
             },
             child: Container(
               padding: const EdgeInsets.all(Spacing.lg),

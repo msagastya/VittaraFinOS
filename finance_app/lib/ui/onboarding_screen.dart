@@ -213,9 +213,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                             child: Text(
                               'Skip',
                               style: TextStyle(
-                                color: isDark
-                                    ? const Color(0xFF6B8AAD)
-                                    : Colors.black54,
+                                color: AppStyles.getSecondaryTextColor(context),
                                 fontSize: 15,
                               ),
                             ),
@@ -302,9 +300,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                         child: Text(
                           'Back',
                           style: TextStyle(
-                            color: isDark
-                                ? const Color(0xFF6B8AAD)
-                                : Colors.black54,
+                            color: AppStyles.getSecondaryTextColor(context),
                             fontSize: 15,
                           ),
                         ),
@@ -338,7 +334,7 @@ class _OnboardingPageView extends StatelessWidget {
   Widget build(BuildContext context) {
     final textColor = isDark ? AppStyles.darkText : AppStyles.lightText;
     final secondaryColor =
-        isDark ? const Color(0xFF6B8AAD) : Colors.black54;
+        AppStyles.getSecondaryTextColor(context);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32),

@@ -155,7 +155,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
           navigationBar: CupertinoNavigationBar(
             middle: Text('Payment Apps',
                 style: TextStyle(color: AppStyles.getTextColor(context))),
-            previousPageTitle: 'Manage',
+            previousPageTitle: 'Back',
             backgroundColor: AppStyles.getBackground(context),
             border: null,
             trailing: CupertinoButton(

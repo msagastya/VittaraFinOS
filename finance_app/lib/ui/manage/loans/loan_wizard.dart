@@ -5,6 +5,7 @@ import 'package:vittara_fin_os/logic/loan_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
+import 'package:vittara_fin_os/ui/widgets/app_date_picker.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/utils/id_generator.dart';
 
@@ -1144,58 +1145,14 @@ class _DatePickerField extends StatelessWidget {
   }
 
   Future<void> _showDatePicker(BuildContext context) async {
-    DateTime picked = date;
-    await showCupertinoModalPopup<void>(
+    final picked = await showAppDatePicker(
       context: context,
-      builder: (ctx) => Container(
-        height: 280,
-        color: AppStyles.getCardColor(context),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.sm),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  CupertinoButton(
-                    padding: EdgeInsets.zero,
-                    onPressed: () => Navigator.of(ctx).pop(),
-                    child: Text(
-                      'Cancel',
-                      style: TextStyle(
-                        color: AppStyles.getSecondaryTextColor(context),
-                      ),
-                    ),
-                  ),
-                  CupertinoButton(
-                    padding: EdgeInsets.zero,
-                    onPressed: () {
-                      onChanged(picked);
-                      Navigator.of(ctx).pop();
-                    },
-                    child: Text(
-                      'Done',
-                      style: TextStyle(
-                        color: AppStyles.getPrimaryColor(context),
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: CupertinoDatePicker(
-                mode: CupertinoDatePickerMode.date,
-                initialDateTime: date,
-                maximumDate: DateTime.now().add(const Duration(days: 365 * 30)),
-                minimumDate: DateTime(2000),
-                onDateTimeChanged: (d) => picked = d,
-              ),
-            ),
-          ],
-        ),
-      ),
+      initialDate: date,
+      maximumDate: DateTime.now().add(const Duration(days: 365 * 30)),
+      minimumDate: DateTime(2000),
     );
+    if (picked != null) {
+      onChanged(picked);
+    }
   }
 }

@@ -76,7 +76,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
       navigationBar: CupertinoNavigationBar(
-        previousPageTitle: 'Investments',
+        previousPageTitle: 'Back',
         middle: Text(
           bondName,
           style: TextStyle(color: AppStyles.getTextColor(context)),

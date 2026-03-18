@@ -1248,9 +1248,9 @@ class _SmsQuickConfirmSheetState extends State<_SmsQuickConfirmSheet> {
   Widget build(BuildContext context) {
     final isDark = AppStyles.isDarkMode(context);
     final p = widget.item.parsed;
-    final sheetBg = isDark ? const Color(0xFF0A0A0F) : Colors.white;
+    final sheetBg = isDark ? AppStyles.darkBackground : Colors.white;
     final accentColor =
-        _isCreditSms ? const Color(0xFF34C759) : const Color(0xFFFF3B30);
+        _isCreditSms ? AppStyles.bioGreen : AppStyles.plasmaRed;
     final smsLabel = _isCreditSms ? 'Income' : 'Expense';
     final smsIcon = _isCreditSms
         ? CupertinoIcons.arrow_down_circle_fill
@@ -1496,7 +1496,7 @@ class _SmsQuickConfirmSheetState extends State<_SmsQuickConfirmSheet> {
                         )),
                     const SizedBox(width: 4),
                     const Icon(CupertinoIcons.checkmark_circle_fill,
-                        size: 12, color: Color(0xFF34C759)),
+                        size: 12, color: AppStyles.bioGreen),
                   ],
                 ),
               ),
@@ -1582,7 +1582,7 @@ class _SmsQuickConfirmSheetState extends State<_SmsQuickConfirmSheet> {
               )),
           const SizedBox(width: 4),
           const Icon(CupertinoIcons.checkmark_alt,
-              size: 10, color: Color(0xFF34C759)),
+              size: 10, color: AppStyles.bioGreen),
         ],
       ),
     );

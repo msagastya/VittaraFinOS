@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/ui/manage/cryptocurrency/crypto_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/widgets/app_date_picker.dart';
 
 class CryptoPurchaseStep extends StatefulWidget {
   const CryptoPurchaseStep({super.key});
@@ -78,51 +79,13 @@ class _CryptoPurchaseStepState extends State<CryptoPurchaseStep> {
           const SizedBox(height: Spacing.md),
           GestureDetector(
             onTap: () async {
-              final pickedDate = await showCupertinoModalPopup<DateTime>(
+              final picked = await showAppDatePicker(
                 context: context,
-                builder: (BuildContext context) {
-                  return Container(
-                    height: 300,
-                    color: AppStyles.getBackground(context),
-                    child: Column(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(Spacing.md),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              CupertinoButton(
-                                padding: EdgeInsets.zero,
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text('Cancel'),
-                              ),
-                              CupertinoButton(
-                                padding: EdgeInsets.zero,
-                                onPressed: () => Navigator.pop(
-                                    context, controller.purchaseDate),
-                                child: const Text('Done'),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Expanded(
-                          child: CupertinoDatePicker(
-                            initialDateTime: controller.purchaseDate,
-                            maximumDate: DateTime.now(),
-                            mode: CupertinoDatePickerMode.date,
-                            onDateTimeChanged: (DateTime newDate) {
-                              controller.updatePurchaseDate(newDate);
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
+                initialDate: controller.purchaseDate,
+                maximumDate: DateTime.now(),
               );
-
-              if (pickedDate != null) {
-                controller.updatePurchaseDate(pickedDate);
+              if (picked != null) {
+                controller.updatePurchaseDate(picked);
               }
             },
             child: Container(

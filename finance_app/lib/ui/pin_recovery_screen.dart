@@ -282,9 +282,7 @@ class _PinRecoveryScreenState extends State<PinRecoveryScreen> {
                     color: textColor,
                   ),
                   decoration: BoxDecoration(
-                    color: isDark
-                        ? const Color(0xFF1C1C1E)
-                        : CupertinoColors.systemGrey6,
+                    color: AppStyles.getCardColor(context),
                     borderRadius: BorderRadius.circular(Radii.sm),
                     border: _errorText != null
                         ? Border.all(color: AppStyles.plasmaRed, width: 1.5)
@@ -508,9 +506,7 @@ class _PinRecoveryScreenState extends State<PinRecoveryScreen> {
                               height: 72,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: isDark
-                                    ? const Color(0xFF2C2C2E)
-                                    : CupertinoColors.systemGrey5,
+                                color: AppStyles.getCardColor(context),
                               ),
                               child: Center(
                                 child: Text(
@@ -647,9 +643,7 @@ class _PinRecoveryScreenState extends State<PinRecoveryScreen> {
                       letterSpacing: 1),
                   textAlign: TextAlign.center,
                   decoration: BoxDecoration(
-                    color: isDark
-                        ? const Color(0xFF1C1C1E)
-                        : CupertinoColors.systemGrey6,
+                    color: AppStyles.getCardColor(context),
                     borderRadius: BorderRadius.circular(Radii.sm),
                   ),
                   padding: const EdgeInsets.all(Spacing.md),

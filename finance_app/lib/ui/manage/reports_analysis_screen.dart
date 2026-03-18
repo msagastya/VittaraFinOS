@@ -310,7 +310,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
           'Reports & Analysis',
           style: TextStyle(color: AppStyles.getTextColor(context)),
         ),
-        previousPageTitle: 'Menu',
+        previousPageTitle: 'Back',
         backgroundColor: AppStyles.isDarkMode(context) ? Colors.black : Colors.white.withValues(alpha: 0.95),
         border: null,
       ),
@@ -2777,15 +2777,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
               child: Column(
                 children: [
                   const SizedBox(height: Spacing.md),
-                  Container(
-                    width: 40,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: AppStyles.getSecondaryTextColor(ctx)
-                          .withValues(alpha: 0.45),
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                  ),
+                  const ModalHandle(),
                   const SizedBox(height: Spacing.md),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),

@@ -37,7 +37,7 @@ class _PensionDetailsScreenState extends State<PensionDetailsScreen> {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
       navigationBar: CupertinoNavigationBar(
-        previousPageTitle: 'Investments',
+        previousPageTitle: 'Back',
         middle: Text(pension.getTypeLabel(),
             style: TextStyle(color: AppStyles.getTextColor(context))),
         backgroundColor: AppStyles.getBackground(context),

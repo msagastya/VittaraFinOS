@@ -42,7 +42,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
       navigationBar: CupertinoNavigationBar(
         middle: Text('Lending & Borrowing',
             style: TextStyle(color: AppStyles.getTextColor(context))),
-        previousPageTitle: 'Manage',
+        previousPageTitle: 'Back',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
         trailing: Row(

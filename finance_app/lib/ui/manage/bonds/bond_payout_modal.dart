@@ -52,10 +52,7 @@ class _BondPayoutModalState extends State<BondPayoutModal> {
         return SafeArea(
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: AppStyles.getCardColor(context),
-              borderRadius: BorderRadius.circular(Radii.lg),
-            ),
+            decoration: AppStyles.bottomSheetDecoration(ctx),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -136,7 +133,7 @@ class _BondPayoutModalState extends State<BondPayoutModal> {
       context: context,
       builder: (ctx) => Container(
         height: 300,
-        color: CupertinoColors.systemBackground.resolveFrom(context),
+        color: AppStyles.getCardColor(ctx),
         child: Column(
           children: [
             Container(
@@ -216,10 +213,7 @@ class _BondPayoutModalState extends State<BondPayoutModal> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        color: AppStyles.getCardColor(context),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-      ),
+      decoration: AppStyles.bottomSheetDecoration(context),
       child: Padding(
         padding: EdgeInsets.only(
           left: 24,

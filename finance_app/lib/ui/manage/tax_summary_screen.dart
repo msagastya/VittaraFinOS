@@ -67,7 +67,7 @@ class _TaxSummaryScreenState extends State<TaxSummaryScreen> {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         middle: Text('Tax Summary · ${_fYLabel()}'),
-        previousPageTitle: 'Reports',
+        previousPageTitle: 'Back',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
         trailing: Row(

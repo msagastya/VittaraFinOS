@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 // ============================================================
@@ -300,7 +301,6 @@ class GradientBorderContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final radius = borderRadius ?? BorderRadius.circular(24);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       decoration: BoxDecoration(
@@ -314,8 +314,7 @@ class GradientBorderContainer extends StatelessWidget {
       padding: EdgeInsets.all(borderWidth),
       child: Container(
         decoration: BoxDecoration(
-          color: backgroundColor ??
-              (isDark ? const Color(0xFF1C1C1E) : Colors.white),
+          color: backgroundColor ?? AppStyles.getCardColor(context),
           borderRadius: BorderRadius.circular(radius.topLeft.x - borderWidth),
         ),
         child: child,
@@ -1066,7 +1065,6 @@ class _AnimatedGradientBorderState extends State<AnimatedGradientBorder>
   @override
   Widget build(BuildContext context) {
     final radius = widget.borderRadius ?? Radii.cardRadius;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return AnimatedBuilder(
       animation: _controller,
@@ -1082,7 +1080,7 @@ class _AnimatedGradientBorderState extends State<AnimatedGradientBorder>
           padding: EdgeInsets.all(widget.borderWidth),
           child: Container(
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
+              color: AppStyles.getCardColor(context),
               borderRadius: BorderRadius.circular(
                 radius.topLeft.x - widget.borderWidth,
               ),

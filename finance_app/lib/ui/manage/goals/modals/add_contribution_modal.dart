@@ -6,6 +6,7 @@ import 'package:vittara_fin_os/logic/goal_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
+import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
 import 'package:vittara_fin_os/utils/alert_service.dart';
 
@@ -113,14 +114,7 @@ class _AddContributionModalState extends State<AddContributionModal> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                margin: const EdgeInsets.only(top: Spacing.md),
-                width: 40,
-                height: 5,
-                decoration: BoxDecoration(
-                    color: CupertinoColors.systemGrey3,
-                    borderRadius: BorderRadius.circular(2.5)),
-              ),
+              const ModalHandle(),
               const SizedBox(height: Spacing.xl),
               Text('Add Contribution',
                   style: TextStyle(

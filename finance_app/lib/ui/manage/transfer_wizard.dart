@@ -13,6 +13,7 @@ import 'package:vittara_fin_os/ui/manage/payment_apps_screen.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
+import 'package:vittara_fin_os/ui/widgets/app_date_picker.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class TransferWizard extends StatefulWidget {
@@ -1521,34 +1522,16 @@ class _TransferWizardState extends State<TransferWizard> {
     );
   }
 
-  void _showTransferDatePicker() {
-    showCupertinoModalPopup(
+  Future<void> _showTransferDatePicker() async {
+    final picked = await showAppDatePicker(
       context: context,
-      builder: (ctx) => Container(
-        height: 260,
-        color: AppStyles.getCardColor(ctx),
-        child: Column(
-          children: [
-            Expanded(
-              child: CupertinoDatePicker(
-                mode: CupertinoDatePickerMode.date,
-                initialDateTime: _selectedTransferDate,
-                minimumDate:
-                    DateTime.now().subtract(const Duration(days: 365 * 30)),
-                maximumDate: DateTime.now().add(const Duration(days: 3650)),
-                onDateTimeChanged: (value) {
-                  setState(() => _selectedTransferDate = value);
-                },
-              ),
-            ),
-            CupertinoButton(
-              child: const Text('Done'),
-              onPressed: () => Navigator.pop(ctx),
-            ),
-          ],
-        ),
-      ),
+      initialDate: _selectedTransferDate,
+      minimumDate: DateTime.now().subtract(const Duration(days: 365 * 30)),
+      maximumDate: DateTime.now().add(const Duration(days: 3650)),
     );
+    if (picked != null) {
+      setState(() => _selectedTransferDate = picked);
+    }
   }
 
   String _formatDate(DateTime date) {

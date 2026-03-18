@@ -250,7 +250,7 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
       backgroundColor: AppStyles.getBackground(context),
       navigationBar: CupertinoNavigationBar(
         middle: Text('Import CSV'),
-        previousPageTitle: 'Menu',
+        previousPageTitle: 'Back',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
       ),

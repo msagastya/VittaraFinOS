@@ -16,6 +16,8 @@ import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
+import 'package:vittara_fin_os/ui/widgets/app_date_picker.dart';
+import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
 import 'package:vittara_fin_os/ui/manage/bonds/bond_payout_modal.dart';
 import 'package:vittara_fin_os/ui/manage/bonds/bonds_details_screen.dart';
@@ -381,10 +383,7 @@ class NotificationsPage extends StatelessWidget {
                                       );
                                     } catch (e) {
                                       if (context.mounted) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(content: Text('Error: $e')),
-                                        );
+                                        toast_lib.toast.showError('Error: $e');
                                       }
                                     }
                                   },
@@ -432,10 +431,7 @@ class NotificationsPage extends StatelessWidget {
                                       );
                                     } catch (e) {
                                       if (context.mounted) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(content: Text('Error: $e')),
-                                        );
+                                        toast_lib.toast.showError('Error: $e');
                                       }
                                     }
                                   },
@@ -1504,27 +1500,18 @@ class _SipExecutionModalState extends State<_SipExecutionModal> {
         (metadata['accountName'] as String?);
   }
 
-  void _showDatePicker() {
-    showCupertinoModalPopup(
+  Future<void> _showDatePicker() async {
+    final picked = await showAppDatePicker(
       context: context,
-      builder: (_) => Container(
-        height: 216,
-        color: CupertinoColors.systemBackground.resolveFrom(context),
-        child: SafeArea(
-          top: false,
-          child: CupertinoDatePicker(
-            mode: CupertinoDatePickerMode.date,
-            initialDateTime: _executionDate,
-            onDateTimeChanged: (value) {
-              setState(() {
-                _executionDate = value;
-                _dateController.text = _formatDate(value);
-              });
-            },
-          ),
-        ),
-      ),
+      initialDate: _executionDate,
+      maximumDate: DateTime.now(),
     );
+    if (picked != null) {
+      setState(() {
+        _executionDate = picked;
+        _dateController.text = _formatDate(picked);
+      });
+    }
   }
 
   void _showAccountPicker() {
@@ -1534,17 +1521,14 @@ class _SipExecutionModalState extends State<_SipExecutionModal> {
         builder: (context, controller, __) {
           final accounts = controller.accounts;
           return Container(
-            decoration: BoxDecoration(
-              color: AppStyles.getCardColor(context),
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(20)),
-            ),
+            decoration: AppStyles.bottomSheetDecoration(context),
             child: SafeArea(
               child: Padding(
                 padding: const EdgeInsets.all(Spacing.lg),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    const ModalHandle(),
                     Text(
                       'Select Debit Account',
                       style: TextStyle(
@@ -2009,9 +1993,9 @@ class _SmsSectionWidgetState extends State<_SmsSectionWidget> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final txns = context.watch<TransactionsController>().transactions;
     final cardBg =
-        isDark ? const Color(0xFF0D1520) : CupertinoColors.systemBackground;
+        isDark ? AppStyles.darkBackground : CupertinoColors.systemBackground;
     final borderColor =
-        isDark ? const Color(0xFF1C2A3A) : const Color(0xFFE5E5EA);
+        isDark ? AppStyles.darkCard : const Color(0xFFE5E5EA);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2025,7 +2009,7 @@ class _SmsSectionWidgetState extends State<_SmsSectionWidget> {
                 width: 6,
                 height: 6,
                 decoration: const BoxDecoration(
-                  color: Color(0xFF34C759),
+                  color: AppStyles.bioGreen,
                   shape: BoxShape.circle,
                 ),
               ),
@@ -2035,7 +2019,7 @@ class _SmsSectionWidgetState extends State<_SmsSectionWidget> {
                 style: const TextStyle(
                   fontSize: TypeScale.footnote,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF34C759),
+                  color: AppStyles.bioGreen,
                 ),
               ),
               const Spacer(),
@@ -2069,8 +2053,8 @@ class _SmsSectionWidgetState extends State<_SmsSectionWidget> {
           final p = item.parsed;
           final isExpense = p.type == 'expense';
           final accentColor = isExpense
-              ? const Color(0xFFFF3B30)
-              : const Color(0xFF34C759);
+              ? AppStyles.plasmaRed
+              : AppStyles.bioGreen;
           final hasDup = _hasDuplicate(item, txns);
 
           return Dismissible(
@@ -2362,12 +2346,10 @@ class _SmsQuickConfirmSheetState extends State<_SmsQuickConfirmSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = AppStyles.isDarkMode(context);
     final p = widget.item.parsed;
-    final sheetBg = isDark ? const Color(0xFF0A0A0F) : Colors.white;
     final accentColor = _isCreditSms
-        ? const Color(0xFF34C759)
-        : const Color(0xFFFF3B30);
+        ? AppStyles.bioGreen
+        : AppStyles.plasmaRed;
 
     // Type option labels
     final smsLabel = _isCreditSms ? 'Income' : 'Expense';
@@ -2376,25 +2358,13 @@ class _SmsQuickConfirmSheetState extends State<_SmsQuickConfirmSheet> {
         : CupertinoIcons.arrow_up_circle_fill;
 
     return Container(
-      decoration: BoxDecoration(
-        color: sheetBg,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      decoration: AppStyles.bottomSheetDecoration(context),
       child: SafeArea(
         top: false,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // ── Handle ──────────────────────────────────────────────────────
-            Container(
-              margin: const EdgeInsets.only(top: 10),
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppStyles.getDividerColor(context),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
+            const ModalHandle(),
             const SizedBox(height: 16),
 
             // ── Amount hero ─────────────────────────────────────────────────
@@ -2639,7 +2609,7 @@ class _SmsQuickConfirmSheetState extends State<_SmsQuickConfirmSheet> {
                     const Icon(
                       CupertinoIcons.checkmark_circle_fill,
                       size: 12,
-                      color: Color(0xFF34C759),
+                      color: AppStyles.bioGreen,
                     ),
                   ],
                 ),
@@ -2734,7 +2704,7 @@ class _SmsQuickConfirmSheetState extends State<_SmsQuickConfirmSheet> {
           ),
           const SizedBox(width: 4),
           const Icon(CupertinoIcons.checkmark_alt,
-              size: 10, color: Color(0xFF34C759)),
+              size: 10, color: AppStyles.bioGreen),
         ],
       ),
     );

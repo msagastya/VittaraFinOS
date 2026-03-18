@@ -26,6 +26,7 @@ import 'package:vittara_fin_os/ui/manage/transfer_wizard.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
+import 'package:vittara_fin_os/ui/widgets/app_date_picker.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
 
@@ -1155,16 +1156,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: CupertinoColors.systemGrey4,
-                      borderRadius: BorderRadius.circular(2.5),
-                    ),
-                  ),
-                ),
+                const Center(child: ModalHandle()),
                 const SizedBox(height: Spacing.xl),
                 Text('Save Recurring Template',
                     style: AppStyles.titleStyle(ctx)),
@@ -1310,14 +1302,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const SizedBox(height: Spacing.lg),
-              Container(
-                width: 40,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: CupertinoColors.systemGrey4,
-                  borderRadius: BorderRadius.circular(2.5),
-                ),
-              ),
+              const ModalHandle(),
               const SizedBox(height: Spacing.lg),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: Spacing.xl),
@@ -1841,34 +1826,16 @@ class _TransactionWizardState extends State<TransactionWizard> {
     );
   }
 
-  void _showDatePicker() {
-    showCupertinoModalPopup(
+  Future<void> _showDatePicker() async {
+    final picked = await showAppDatePicker(
       context: context,
-      builder: (ctx) => Container(
-        height: 260,
-        color: AppStyles.getCardColor(ctx),
-        child: Column(
-          children: [
-            Expanded(
-              child: CupertinoDatePicker(
-                mode: CupertinoDatePickerMode.date,
-                initialDateTime: _selectedDate,
-                minimumDate:
-                    DateTime.now().subtract(const Duration(days: 365 * 30)),
-                maximumDate: DateTime.now(),
-                onDateTimeChanged: (value) {
-                  setState(() => _selectedDate = value);
-                },
-              ),
-            ),
-            CupertinoButton(
-              child: const Text('Done'),
-              onPressed: () => Navigator.pop(ctx),
-            ),
-          ],
-        ),
-      ),
+      initialDate: _selectedDate,
+      minimumDate: DateTime.now().subtract(const Duration(days: 365 * 30)),
+      maximumDate: DateTime.now(),
     );
+    if (picked != null) {
+      setState(() => _selectedDate = picked);
+    }
   }
 
   Widget _buildPaymentTypePage() {
@@ -2942,22 +2909,20 @@ class _TransactionWizardState extends State<TransactionWizard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextField(
+              CupertinoTextField(
                 controller: _descriptionController,
                 autofocus: _currentStep == 9,
                 textInputAction: TextInputAction.done,
                 onSubmitted: (_) => _nextStep(),
                 onChanged: (_) => setState(() {}),
-                decoration: InputDecoration(
-                  hintText: 'e.g., Lunch with team, Monthly Netflix',
-                  filled: true,
-                  fillColor: AppStyles.getCardColor(context),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(Radii.md),
-                    borderSide: BorderSide.none,
-                  ),
+                placeholder: 'e.g., Lunch with team, Monthly Netflix',
+                padding: const EdgeInsets.all(Spacing.lg),
+                decoration: BoxDecoration(
+                  color: AppStyles.getCardColor(context),
+                  borderRadius: BorderRadius.circular(Radii.md),
                 ),
                 maxLines: 4,
+                style: TextStyle(color: AppStyles.getTextColor(context)),
               ),
               if (suggestions.isNotEmpty) ...[
                 const SizedBox(height: Spacing.lg),

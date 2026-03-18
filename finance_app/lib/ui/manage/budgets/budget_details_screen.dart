@@ -30,7 +30,7 @@ class BudgetDetailsScreen extends StatelessWidget {
             navigationBar: CupertinoNavigationBar(
               middle: Text('Budget Details',
                   style: TextStyle(color: AppStyles.getTextColor(context))),
-              previousPageTitle: 'Budgets',
+              previousPageTitle: 'Back',
               backgroundColor: AppStyles.getBackground(context),
               border: null,
             ),
@@ -56,7 +56,7 @@ class BudgetDetailsScreen extends StatelessWidget {
           navigationBar: CupertinoNavigationBar(
             middle: Text('Budget Details',
                 style: TextStyle(color: AppStyles.getTextColor(context))),
-            previousPageTitle: 'Budgets',
+            previousPageTitle: 'Back',
             backgroundColor: AppStyles.getBackground(context),
             border: null,
           ),

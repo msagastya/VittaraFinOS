@@ -8,6 +8,7 @@ import 'package:vittara_fin_os/ui/recovery_code_save_screen.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
+import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -186,9 +187,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       padding: const EdgeInsets.only(left: 60),
       child: Container(
         height: 1,
-        color: AppStyles.isDarkMode(context)
-            ? const Color(0xFF2C2C2E)
-            : CupertinoColors.systemGrey6,
+        color: AppStyles.getDividerColor(context),
       ),
     );
   }
@@ -363,7 +362,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setS) {
-          final isDark = AppStyles.isDarkMode(ctx);
           final dotColor =
               error ? AppStyles.plasmaRed : AppStyles.accentBlue;
           final current = inConfirm ? confirmDigits! : digits;
@@ -410,23 +408,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           return Container(
             height: MediaQuery.of(ctx).size.height * 0.75,
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1C1C1E) : CupertinoColors.white,
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(20)),
-            ),
+            decoration: AppStyles.bottomSheetDecoration(ctx),
             child: SafeArea(
               child: Column(
                 children: [
                   const SizedBox(height: 16),
-                  Container(
-                    width: 36,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: CupertinoColors.systemGrey3,
-                      borderRadius: BorderRadius.circular(2.5),
-                    ),
-                  ),
+                  const ModalHandle(),
                   const SizedBox(height: 24),
                   const Icon(CupertinoIcons.number_square_fill,
                       size: 36, color: CupertinoColors.systemPurple),
@@ -502,9 +489,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     height: 72,
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
-                                      color: isDark
-                                          ? const Color(0xFF2C2C2E)
-                                          : CupertinoColors.systemGrey5,
+                                      color: AppStyles.getCardColor(ctx),
                                     ),
                                     child: Center(
                                       child: Text(

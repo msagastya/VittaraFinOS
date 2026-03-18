@@ -28,7 +28,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
           'Insurance Tracker',
           style: TextStyle(color: AppStyles.getTextColor(context)),
         ),
-        previousPageTitle: 'Manage',
+        previousPageTitle: 'Back',
         backgroundColor: AppStyles.isDarkMode(context)
             ? Colors.black
             : Colors.white.withValues(alpha: 0.95),

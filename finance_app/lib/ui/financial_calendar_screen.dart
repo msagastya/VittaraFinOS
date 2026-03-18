@@ -626,7 +626,7 @@ class _EventCard extends StatelessWidget {
       case CalendarEventType.fd:
         return AppStyles.solarGold;
       case CalendarEventType.rd:
-        return const Color(0xFFFF9E2C); // accentOrange
+        return AppStyles.accentOrange;
       case CalendarEventType.sip:
         return AppStyles.aetherTeal;
       case CalendarEventType.bill:

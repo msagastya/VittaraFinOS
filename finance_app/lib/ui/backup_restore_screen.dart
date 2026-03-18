@@ -308,7 +308,7 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
           'Backup & Restore',
           style: TextStyle(color: AppStyles.getTextColor(context)),
         ),
-        previousPageTitle: 'Settings',
+        previousPageTitle: 'Back',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
       ),

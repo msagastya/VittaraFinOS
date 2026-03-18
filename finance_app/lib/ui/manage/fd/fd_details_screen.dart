@@ -9,6 +9,7 @@ import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
+import 'package:vittara_fin_os/ui/widgets/app_date_picker.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/manage/fd/fd_renewal_wizard_screen.dart';
@@ -44,7 +45,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
           'FD Details',
           style: TextStyle(color: AppStyles.getTextColor(context)),
         ),
-        previousPageTitle: 'Investments',
+        previousPageTitle: 'Back',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
       ),
@@ -785,36 +786,11 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                           const SizedBox(height: Spacing.sm),
                           GestureDetector(
                             onTap: () async {
-                              final picked =
-                                  await showCupertinoModalPopup<DateTime>(
+                              final picked = await showAppDatePicker(
                                 context: context,
-                                builder: (BuildContext context) {
-                                  return Container(
-                                    height: 216,
-                                    padding: const EdgeInsets.only(top: 6.0),
-                                    margin: EdgeInsets.only(
-                                      bottom: MediaQuery.of(context)
-                                          .viewInsets
-                                          .bottom,
-                                    ),
-                                    color: CupertinoColors.systemBackground
-                                        .resolveFrom(context),
-                                    child: SafeArea(
-                                      top: false,
-                                      child: CupertinoDatePicker(
-                                        initialDateTime: withdrawalDate,
-                                        mode: CupertinoDatePickerMode.date,
-                                        minimumDate: widget.fd.investmentDate,
-                                        maximumDate: DateTime.now(),
-                                        onDateTimeChanged: (DateTime newDate) {
-                                          setState(() {
-                                            withdrawalDate = newDate;
-                                          });
-                                        },
-                                      ),
-                                    ),
-                                  );
-                                },
+                                initialDate: withdrawalDate,
+                                minimumDate: widget.fd.investmentDate,
+                                maximumDate: DateTime.now(),
                               );
                               if (picked != null) {
                                 setState(() {

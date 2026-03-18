@@ -531,23 +531,15 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       context: context,
       builder: (ctx) => DraggableScrollableSheet(
         expand: false,
-        initialChildSize: 0.6,
+        initialChildSize: 0.7,
         minChildSize: 0.4,
-        maxChildSize: 0.9,
+        maxChildSize: 0.95,
         builder: (drag, scrollController) {
           return Container(
-            decoration: AppStyles.bottomSheetDecoration(context),
+            decoration: AppStyles.bottomSheetDecoration(drag),
             child: Column(
               children: [
-                Container(
-                  margin: const EdgeInsets.only(top: 12),
-                  width: 40,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: CupertinoColors.systemGrey3,
-                    borderRadius: BorderRadius.circular(2.5),
-                  ),
-                ),
+                const ModalHandle(),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
                   child: Row(
@@ -984,7 +976,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       navigationBar: CupertinoNavigationBar(
         middle: Text('Investments',
             style: TextStyle(color: AppStyles.getTextColor(context))),
-        previousPageTitle: 'Manage',
+        previousPageTitle: 'Back',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
         trailing: Row(

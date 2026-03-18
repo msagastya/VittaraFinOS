@@ -34,6 +34,7 @@ import 'package:vittara_fin_os/ui/manage/stocks/stocks_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/transfer_wizard.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 
@@ -269,15 +270,7 @@ class _DashboardActionSheetState extends State<_DashboardActionSheet> {
             mainAxisSize: MainAxisSize.min,
             children: [
               // Handle
-              Container(
-                margin: const EdgeInsets.only(top: 12, bottom: 4),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppStyles.getDividerColor(context),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
+              const ModalHandle(),
               // Animated page
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 240),

@@ -28,7 +28,7 @@ class _LoanTrackerScreenState extends State<LoanTrackerScreen> {
           'Loan / EMI Tracker',
           style: TextStyle(color: AppStyles.getTextColor(context)),
         ),
-        previousPageTitle: 'Manage',
+        previousPageTitle: 'Back',
         backgroundColor: AppStyles.isDarkMode(context)
             ? Colors.black
             : Colors.white.withValues(alpha: 0.95),

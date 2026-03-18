@@ -52,7 +52,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
       navigationBar: CupertinoNavigationBar(
         middle: Text('Goals',
             style: TextStyle(color: AppStyles.getTextColor(context))),
-        previousPageTitle: 'Manage',
+        previousPageTitle: 'Back',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
         trailing: CupertinoButton(

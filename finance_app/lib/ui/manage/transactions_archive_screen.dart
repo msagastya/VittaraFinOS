@@ -68,7 +68,7 @@ class _TransactionsArchiveScreenState extends State<TransactionsArchiveScreen> {
       navigationBar: CupertinoNavigationBar(
         middle: Text('Archived Transactions',
             style: TextStyle(color: AppStyles.getTextColor(context))),
-        previousPageTitle: 'Manage',
+        previousPageTitle: 'Back',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
         trailing: CupertinoButton(
@@ -280,8 +280,8 @@ class _ArchivedTransactionCard extends StatelessWidget {
       context: context,
       builder: (modalContext) => DraggableScrollableSheet(
         expand: false,
-        initialChildSize: 0.8,
-        minChildSize: 0.55,
+        initialChildSize: 0.7,
+        minChildSize: 0.4,
         maxChildSize: 0.95,
         builder: (dragContext, scrollController) {
           final restoreButton = CupertinoButton.filled(
@@ -302,25 +302,13 @@ class _ArchivedTransactionCard extends StatelessWidget {
           );
 
           return Container(
-            decoration: BoxDecoration(
-              color: AppStyles.getCardColor(dragContext),
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(24)),
-            ),
+            decoration: AppStyles.bottomSheetDecoration(dragContext),
             child: SingleChildScrollView(
               controller: scrollController,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    margin: const EdgeInsets.only(top: 12),
-                    width: 40,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: CupertinoColors.systemGrey3,
-                      borderRadius: BorderRadius.circular(2.5),
-                    ),
-                  ),
+                  const ModalHandle(),
                   TransactionDetailsContent(
                     transaction: transaction,
                     actionButtons: [restoreButton, deleteButton],

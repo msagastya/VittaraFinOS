@@ -77,7 +77,7 @@ class _CryptoDetailsScreenState extends State<CryptoDetailsScreen> {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
       navigationBar: CupertinoNavigationBar(
-        previousPageTitle: 'Investments',
+        previousPageTitle: 'Back',
         middle: Text(
           '${crypto.name} (${crypto.symbol})',
           style: TextStyle(color: AppStyles.getTextColor(context)),

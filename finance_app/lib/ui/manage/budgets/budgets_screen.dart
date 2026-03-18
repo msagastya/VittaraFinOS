@@ -49,7 +49,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
       navigationBar: CupertinoNavigationBar(
         middle: Text('Budgets',
             style: TextStyle(color: AppStyles.getTextColor(context))),
-        previousPageTitle: 'Manage',
+        previousPageTitle: 'Back',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
         trailing: CupertinoButton(

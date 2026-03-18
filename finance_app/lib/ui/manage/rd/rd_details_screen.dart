@@ -28,7 +28,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
       navigationBar: CupertinoNavigationBar(
         middle: Text('RD Details',
             style: TextStyle(color: AppStyles.getTextColor(context))),
-        previousPageTitle: 'Investments',
+        previousPageTitle: 'Back',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
       ),
