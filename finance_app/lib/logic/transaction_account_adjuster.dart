@@ -18,30 +18,37 @@ class TransactionAccountAdjuster {
     final cashbackAmount = transaction.cashbackAmount ?? 0.0;
     final cashbackFlow = metadata['cashbackFlow'] as String? ?? 'bank';
 
+    // Normalise account IDs: prefer the top-level fields, fall back to
+    // metadata so any creation path that stores accountId in metadata
+    // (CSV import, SMS save, future screens) also gets balance reversal.
+    final effectiveSourceId =
+        transaction.sourceAccountId ?? metadata['accountId'] as String?;
+    final effectivePaymentApp =
+        transaction.paymentAppName ?? metadata['paymentApp'] as String?;
+
     switch (transaction.type) {
       case TransactionType.expense:
         await _adjustAccount(
           accountsController,
-          transaction.sourceAccountId,
+          effectiveSourceId,
           amount - appWalletAmount,
         );
-        if (appWalletAmount > 0 && transaction.paymentAppName != null) {
+        if (appWalletAmount > 0 && effectivePaymentApp != null) {
           await paymentAppsController.adjustWalletBalanceByName(
-            transaction.paymentAppName!,
+            effectivePaymentApp,
             appWalletAmount,
           );
         }
         if (cashbackAmount > 0) {
-          if (cashbackFlow == 'paymentApp' &&
-              transaction.paymentAppName != null) {
+          if (cashbackFlow == 'paymentApp' && effectivePaymentApp != null) {
             await paymentAppsController.adjustWalletBalanceByName(
-              transaction.paymentAppName!,
+              effectivePaymentApp,
               -cashbackAmount,
             );
           } else {
             await _adjustAccount(
               accountsController,
-              transaction.cashbackAccountId ?? transaction.sourceAccountId,
+              transaction.cashbackAccountId ?? effectiveSourceId,
               -cashbackAmount,
             );
           }
@@ -49,18 +56,17 @@ class TransactionAccountAdjuster {
         break;
       case TransactionType.income:
         await _adjustAccount(
-            accountsController, transaction.sourceAccountId, -amount);
+            accountsController, effectiveSourceId, -amount);
         if (cashbackAmount > 0) {
-          if (cashbackFlow == 'paymentApp' &&
-              transaction.paymentAppName != null) {
+          if (cashbackFlow == 'paymentApp' && effectivePaymentApp != null) {
             await paymentAppsController.adjustWalletBalanceByName(
-              transaction.paymentAppName!,
+              effectivePaymentApp,
               -cashbackAmount,
             );
           } else {
             await _adjustAccount(
               accountsController,
-              transaction.cashbackAccountId ?? transaction.sourceAccountId,
+              transaction.cashbackAccountId ?? effectiveSourceId,
               -cashbackAmount,
             );
           }
@@ -69,28 +75,27 @@ class TransactionAccountAdjuster {
       case TransactionType.transfer:
         await _adjustAccount(
           accountsController,
-          transaction.sourceAccountId,
+          effectiveSourceId,
           (amount - appWalletAmount) + (transaction.charges ?? 0.0),
         );
         await _adjustAccount(
             accountsController, transaction.destinationAccountId, -amount);
-        if (appWalletAmount > 0 && transaction.paymentAppName != null) {
+        if (appWalletAmount > 0 && effectivePaymentApp != null) {
           await paymentAppsController.adjustWalletBalanceByName(
-            transaction.paymentAppName!,
+            effectivePaymentApp,
             appWalletAmount,
           );
         }
         if (cashbackAmount > 0) {
-          if (cashbackFlow == 'paymentApp' &&
-              transaction.paymentAppName != null) {
+          if (cashbackFlow == 'paymentApp' && effectivePaymentApp != null) {
             await paymentAppsController.adjustWalletBalanceByName(
-              transaction.paymentAppName!,
+              effectivePaymentApp,
               -cashbackAmount,
             );
           } else {
             await _adjustAccount(
               accountsController,
-              transaction.cashbackAccountId ?? transaction.sourceAccountId,
+              transaction.cashbackAccountId ?? effectiveSourceId,
               -cashbackAmount,
             );
           }
