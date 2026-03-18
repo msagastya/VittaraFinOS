@@ -3,17 +3,9 @@
 class AppConfig {
   AppConfig._();
 
-  // Gold price API
-  static const String goldPriceBaseUrl =
-      'https://data-asg.goldprice.org/dbXRates';
-  static const String goldPriceInrUrl = '$goldPriceBaseUrl/INR';
-  static const String goldPriceUsdUrl = '$goldPriceBaseUrl/USD';
-
-  // Exchange rate APIs
-  static const String exchangeRateBaseUrl =
-      'https://api.exchangerate-api.com/v4/latest/USD';
-  static const String exchangeRateFallbackUrl =
-      'https://open.er-api.com/v6/latest/USD';
+  // Gold price — Yahoo Finance COMEX futures (GC=F), no API key needed
+  // Exchange rate used for USD→INR conversion
+  // (URLs inlined in GoldPriceService to keep service self-contained)
 
   // MF (Mutual Fund) API
   static const String mfApiBaseUrl = 'https://api.mfapi.in';

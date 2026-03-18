@@ -2,7 +2,6 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:vittara_fin_os/utils/app_config.dart';
 
 class GoldPriceService {
   static final Logger _logger = Logger();
@@ -11,39 +10,108 @@ class GoldPriceService {
   static const String _cacheTimestampKey = 'gold_price_cached_at';
   static const Duration _cacheTTL = Duration(hours: 1);
 
+  // Yahoo Finance: Gold Futures (COMEX) — free, no API key, reliable
+  static const String _yahooGoldUrl =
+      'https://query1.finance.yahoo.com/v8/finance/chart/GC=F?interval=1d&range=1d';
+  static const String _yahooGoldUrlAlt =
+      'https://query2.finance.yahoo.com/v8/finance/chart/GC=F?interval=1d&range=1d';
+
+  // Exchange rate fallbacks
+  static const String _exchangeRatePrimary =
+      'https://open.er-api.com/v6/latest/USD';
+  static const String _exchangeRateFallback =
+      'https://api.exchangerate-api.com/v4/latest/USD';
+
   /// Fetch current gold price per gram in INR.
   /// Returns cached value if fresh (< 1 hour old), otherwise fetches live.
   static Future<double?> fetchCurrentGoldPrice() async {
-    // Return cached price if still fresh
     final cached = await _getCachedPrice();
     if (cached != null) {
       _logger.i('Using cached gold price: ₹$cached/g');
       return cached;
     }
 
-    // Try primary source: goldprice.org (free, no API key, most reliable)
-    var price = await _fetchFromGoldPriceOrg();
-    if (price != null) {
-      await _cachePrice(price);
-      return price;
+    // Step 1: Get USD gold price per troy ounce from Yahoo Finance
+    final priceUsdPerOz = await _fetchGoldUsdFromYahoo();
+    if (priceUsdPerOz != null && priceUsdPerOz > 0) {
+      // Step 2: Convert to INR per gram
+      final exchangeRate = await _getUsdInrRate();
+      if (exchangeRate != null && exchangeRate > 0) {
+        // (USD/oz) × (INR/USD) ÷ (31.1035 g/oz) × MCX markup
+        final pricePerGram = (priceUsdPerOz * exchangeRate / 31.1035) * 1.185;
+        _logger.i(
+            '✓ Yahoo Finance + ExRate: ₹${pricePerGram.toStringAsFixed(2)}/gram '
+            '(gold=\$$priceUsdPerOz/oz, rate=₹$exchangeRate)');
+        await _cachePrice(pricePerGram);
+        return pricePerGram;
+      }
     }
 
-    // Try secondary source: International USD price + INR conversion
-    price = await _fetchUsdGoldWithConversion();
-    if (price != null) {
-      await _cachePrice(price);
-      return price;
-    }
-
-    // All sources failed — return stale cache if available rather than null
+    // All sources failed — return stale cache rather than null
     final stale = await _getStalePrice();
     if (stale != null) {
       _logger.w('Using stale cached gold price: ₹$stale/g');
       return stale;
     }
 
-    _logger
-        .w('❌ All gold price sources failed - unable to fetch current price');
+    _logger.w('❌ All gold price sources failed');
+    return null;
+  }
+
+  /// Fetch USD gold price per troy ounce via Yahoo Finance
+  static Future<double?> _fetchGoldUsdFromYahoo() async {
+    for (final url in [_yahooGoldUrl, _yahooGoldUrlAlt]) {
+      try {
+        final response = await http.get(
+          Uri.parse(url),
+          headers: {
+            'User-Agent':
+                'Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36',
+            'Accept': 'application/json',
+          },
+        ).timeout(const Duration(seconds: 8));
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body) as Map<String, dynamic>;
+          final result = (data['chart']?['result'] as List?)?.firstOrNull;
+          if (result != null) {
+            final price =
+                (result['meta']?['regularMarketPrice'] as num?)?.toDouble();
+            if (price != null && price > 0) {
+              _logger.i('Yahoo Finance gold: \$$price/oz');
+              return price;
+            }
+          }
+        }
+      } catch (e) {
+        _logger.w('Yahoo Finance ($url) failed: $e');
+      }
+    }
+    return null;
+  }
+
+  /// Get live USD → INR exchange rate
+  static Future<double?> _getUsdInrRate() async {
+    for (final url in [_exchangeRatePrimary, _exchangeRateFallback]) {
+      try {
+        final response = await http.get(
+          Uri.parse(url),
+          headers: {'User-Agent': 'VittaraFinOS/1.0'},
+        ).timeout(const Duration(seconds: 5));
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body) as Map<String, dynamic>;
+          final rates = data['rates'] as Map<String, dynamic>?;
+          final rate = (rates?['INR'] as num?)?.toDouble();
+          if (rate != null && rate > 0) {
+            _logger.i('ExRate: 1 USD = ₹$rate (from $url)');
+            return rate;
+          }
+        }
+      } catch (e) {
+        _logger.w('ExRate ($url) failed: $e');
+      }
+    }
     return null;
   }
 
@@ -76,14 +144,9 @@ class GoldPriceService {
       await prefs.setInt(
           _cacheTimestampKey, DateTime.now().millisecondsSinceEpoch);
     } catch (e) {
-      _logger.w('Failed to cache gold price', error: e);
+      _logger.w('Failed to cache gold price: $e');
     }
   }
-
-  /// Get cached gold price synchronously — for quick display without API call.
-  /// Returns null if no cached price available.
-  static double? getCachedPrice() =>
-      null; // legacy stub; use fetchCurrentGoldPrice
 
   /// Returns the DateTime when the gold price was last cached, or null.
   static Future<DateTime?> getLastFetchedTime() async {
@@ -97,179 +160,6 @@ class GoldPriceService {
     }
   }
 
-  /// Source 1: goldprice.org - Most reliable, free, no API key
-  /// Endpoint: https://data-asg.goldprice.org/dbXRates/INR
-  /// Returns: xauPrice in INR per troy ounce, convert to per gram
-  static Future<double?> _fetchFromGoldPriceOrg() async {
-    try {
-      final response = await http.get(
-        Uri.parse(AppConfig.goldPriceInrUrl),
-        headers: {
-          'User-Agent': 'VittaraFinOS/1.0 (Android)',
-          'Accept': 'application/json',
-        },
-      ).timeout(
-        const Duration(seconds: 5),
-        onTimeout: () => throw Exception('Timeout'),
-      );
-
-      if (response.statusCode == 200) {
-        try {
-          // Response format: {"items":[{"curr":"INR","xauPrice":441109.0387,...}]}
-          final data = jsonDecode(response.body) as Map<String, dynamic>;
-
-          if (data.containsKey('items') && data['items'] is List) {
-            final items = data['items'] as List;
-            if (items.isNotEmpty) {
-              final item = items[0] as Map<String, dynamic>;
-
-              if (item.containsKey('xauPrice')) {
-                // xauPrice is per troy ounce in INR
-                final pricePerOz = (item['xauPrice'] as num).toDouble();
-
-                if (pricePerOz > 0) {
-                  // Convert troy ounce to gram: 1 troy oz = 31.1035 grams
-                  var pricePerGram = pricePerOz / 31.1035;
-
-                  // Apply MCX adjustment: spot prices need ~18-20% markup to match MCX retail prices
-                  // MCX includes GST, making charges, and local market factors
-                  pricePerGram = pricePerGram * 1.185; // 18.5% markup
-
-                  _logger.i(
-                      '✓ GoldPrice.org (MCX Adjusted): ₹${pricePerGram.toStringAsFixed(2)}/gram');
-                  return pricePerGram;
-                }
-              }
-            }
-          }
-        } catch (parseError) {
-          _logger.w('GoldPrice.org parse error: $parseError');
-        }
-      }
-    } catch (e) {
-      _logger.w('GoldPrice.org fetch failed: $e');
-    }
-    return null;
-  }
-
-  /// Source 2: USD gold price (per troy ounce) + live INR exchange rate
-  /// Converts USD spot price to INR per gram
-  static Future<double?> _fetchUsdGoldWithConversion() async {
-    try {
-      // Fetch USD gold price per troy ounce
-      final response = await http.get(
-        Uri.parse(AppConfig.goldPriceUsdUrl),
-        headers: {
-          'User-Agent': 'VittaraFinOS/1.0 (Android)',
-          'Accept': 'application/json',
-        },
-      ).timeout(
-        const Duration(seconds: 5),
-        onTimeout: () => throw Exception('Timeout'),
-      );
-
-      if (response.statusCode == 200) {
-        try {
-          final data = jsonDecode(response.body) as Map<String, dynamic>;
-
-          if (data.containsKey('items') && data['items'] is List) {
-            final items = data['items'] as List;
-            if (items.isNotEmpty) {
-              final item = items[0] as Map<String, dynamic>;
-
-              if (item.containsKey('xauPrice')) {
-                final priceUsdPerOz = (item['xauPrice'] as num).toDouble();
-
-                if (priceUsdPerOz > 0) {
-                  // Get live exchange rate
-                  final exchangeRate = await _getExchangeRate();
-                  if (exchangeRate != null && exchangeRate > 0) {
-                    // Convert: (USD/oz) * (INR/USD) / (grams/oz)
-                    var priceINRPerGram =
-                        (priceUsdPerOz * exchangeRate) / 31.1035;
-
-                    // Apply MCX adjustment: spot prices need ~18-20% markup to match MCX retail prices
-                    priceINRPerGram = priceINRPerGram * 1.185; // 18.5% markup
-
-                    _logger.i(
-                        '✓ USD Gold + ExRate (MCX Adjusted): ₹${priceINRPerGram.toStringAsFixed(2)}/gram');
-                    return priceINRPerGram;
-                  }
-                }
-              }
-            }
-          }
-        } catch (parseError) {
-          _logger.w('USD Gold conversion parse error: $parseError');
-        }
-      }
-    } catch (e) {
-      _logger.w('USD Gold price fetch failed: $e');
-    }
-    return null;
-  }
-
-  /// Get live USD to INR exchange rate
-  static Future<double?> _getExchangeRate() async {
-    try {
-      // Primary forex source
-      final response = await http.get(
-        Uri.parse(AppConfig.exchangeRateBaseUrl),
-        headers: {
-          'User-Agent': 'VittaraFinOS/1.0 (Android)',
-        },
-      ).timeout(
-        const Duration(seconds: 3),
-        onTimeout: () => throw Exception('Timeout'),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body) as Map<String, dynamic>;
-        final rates = data['rates'] as Map<String, dynamic>;
-        final rate = (rates['INR'] as num).toDouble();
-        _logger.i('Exchange rate: 1 USD = ₹$rate');
-        return rate;
-      }
-    } catch (e) {
-      _logger.w('ExchangeRate-API failed: $e');
-    }
-
-    // Fallback forex source
-    try {
-      final response = await http.get(
-        Uri.parse(AppConfig.exchangeRateFallbackUrl),
-        headers: {
-          'User-Agent': 'VittaraFinOS/1.0 (Android)',
-        },
-      ).timeout(
-        const Duration(seconds: 3),
-        onTimeout: () => throw Exception('Timeout'),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body) as Map<String, dynamic>;
-        final rates = data['rates'] as Map<String, dynamic>;
-        final rate = (rates['INR'] as num).toDouble();
-        _logger.i('Exchange rate (alt): 1 USD = ₹$rate');
-        return rate;
-      }
-    } catch (e) {
-      _logger.w('Open.er-api.com failed: $e');
-    }
-
-    return null;
-  }
+  // Legacy stub — use fetchCurrentGoldPrice() instead
+  static double? getCachedPrice() => null;
 }
-
-// API Sources Used:
-// 1. goldprice.org/dbXRates/INR (primary - direct INR per troy ounce)
-//    - Free, no authentication required
-//    - Direct INR pricing (most reliable for India)
-//    - Fallback converts troy ounce to grams
-//
-// 2. goldprice.org/dbXRates/USD + exchangerate-api.com (secondary)
-//    - USD per ounce converted to INR using live exchange rate
-//    - Reliable fallback if INR endpoint is slow
-//
-// Returns null if ALL sources fail (NO hardcoded fallbacks)
-// Caller MUST handle null gracefully in UI
