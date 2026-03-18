@@ -198,8 +198,6 @@ class _DashboardSettingsModalState extends State<DashboardSettingsModal> {
 
   String _getWidgetDescription(DashboardWidgetType type) {
     switch (type) {
-      case DashboardWidgetType.actions:
-        return 'Quick action buttons';
       case DashboardWidgetType.netWorth:
         return 'Your total net worth & breakdown';
       case DashboardWidgetType.transactionHistory:

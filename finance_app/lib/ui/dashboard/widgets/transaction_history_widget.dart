@@ -72,6 +72,22 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
           investments: investmentsController.investments,
         ).take(txCount).toList();
 
+        // Micro summary: this month spent & income
+        final now = DateTime.now();
+        final monthStart = DateTime(now.year, now.month, 1);
+        double monthSpent = 0;
+        double monthIncome = 0;
+        for (final tx in transactionController.transactions) {
+          if (tx.dateTime.isBefore(monthStart)) continue;
+          if (tx.type == TransactionType.expense) {
+            monthSpent += tx.amount.abs();
+          } else if (tx.type == TransactionType.income ||
+              tx.type == TransactionType.cashback) {
+            monthIncome += tx.amount.abs();
+          }
+        }
+        final hasMonthlySummary = monthSpent > 0 || monthIncome > 0;
+
         if (transactions.isEmpty) {
           return Center(
             child: Column(
@@ -99,22 +115,52 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
 
         return Column(
           mainAxisSize: MainAxisSize.min,
-          children: transactions.asMap().entries.map((entry) {
-            final isLast = entry.key == transactions.length - 1;
-            return Column(
-              children: [
-                _buildTransactionItem(
-                  context,
-                  entry.value,
-                  compact: columnSpan == 1,
+          children: [
+            if (hasMonthlySummary && columnSpan >= 2) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                margin: const EdgeInsets.only(bottom: Spacing.sm),
+                decoration: BoxDecoration(
+                  color: AppStyles.getSecondaryTextColor(context)
+                      .withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(6),
                 ),
-                if (!isLast) const Divider(height: 12),
-              ],
-            );
-          }).toList(),
+                child: Text(
+                  'This month: ₹${_compact(monthSpent)} spent · ₹${_compact(monthIncome)} income',
+                  style: TextStyle(
+                    fontSize: TypeScale.caption,
+                    color: AppStyles.getSecondaryTextColor(context),
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+            ...transactions.asMap().entries.map((entry) {
+              final isLast = entry.key == transactions.length - 1;
+              return Column(
+                children: [
+                  _buildTransactionItem(
+                    context,
+                    entry.value,
+                    compact: columnSpan == 1,
+                  ),
+                  if (!isLast) const Divider(height: 12),
+                ],
+              );
+            }),
+          ],
         );
       },
     );
+  }
+
+  String _compact(double v) {
+    if (v >= 100000) return '${(v / 100000).toStringAsFixed(1)}L';
+    if (v >= 1000) return '${(v / 1000).toStringAsFixed(0)}K';
+    return v.toStringAsFixed(0);
   }
 
   String _relativeTime(DateTime dt) {

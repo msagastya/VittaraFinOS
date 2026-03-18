@@ -23,6 +23,7 @@ import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_feed_builder.dart';
 import 'package:vittara_fin_os/logic/goals_controller.dart';
+import 'package:vittara_fin_os/logic/goal_model.dart';
 import 'package:vittara_fin_os/logic/budgets_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_archive_controller.dart';
 import 'package:vittara_fin_os/logic/recurring_templates_controller.dart';
@@ -49,6 +50,9 @@ import 'package:vittara_fin_os/ui/manage/budgets/budgets_screen.dart';
 import 'package:vittara_fin_os/ui/onboarding_screen.dart';
 import 'package:vittara_fin_os/ui/manage/savings/savings_planners_screen.dart';
 import 'package:vittara_fin_os/ui/manage/ai_planner/ai_monthly_planner_screen.dart';
+import 'package:vittara_fin_os/ui/manage/reports_analysis_screen.dart';
+import 'package:vittara_fin_os/ui/manage/investments_screen.dart';
+import 'package:vittara_fin_os/logic/ai_planner_context.dart';
 import 'package:vittara_fin_os/ui/app_menu/app_menu_screen.dart';
 import 'package:vittara_fin_os/ui/sms/sms_review_screen.dart';
 import 'package:vittara_fin_os/services/sms_auto_scan_service.dart';
@@ -1198,8 +1202,6 @@ class DashboardScreen extends StatelessWidget {
         return CupertinoIcons.arrow_right_arrow_left_circle_fill;
       case DashboardWidgetType.notificationsAndActions:
         return CupertinoIcons.bell_fill;
-      case DashboardWidgetType.actions:
-        return CupertinoIcons.bolt_fill;
       case DashboardWidgetType.monthlySummary:
         return CupertinoIcons.calendar_circle_fill;
       case DashboardWidgetType.sipTracker:
@@ -1227,8 +1229,6 @@ class DashboardScreen extends StatelessWidget {
         return SemanticColors.info;
       case DashboardWidgetType.notificationsAndActions:
         return SemanticColors.warning;
-      case DashboardWidgetType.actions:
-        return AppStyles.novaPurple;
       case DashboardWidgetType.monthlySummary:
         return AppStyles.accentGreen;
       case DashboardWidgetType.sipTracker:
@@ -1546,8 +1546,8 @@ class DashboardScreen extends StatelessWidget {
       BuildContext context, DashboardWidgetConfig widgetConfig) {
     switch (widgetConfig.type) {
       case DashboardWidgetType.netWorth:
-        return Consumer2<AccountsController, InvestmentsController>(
-          builder: (context, accountsController, investmentsController, child) {
+        return Consumer3<AccountsController, InvestmentsController, TransactionsController>(
+          builder: (context, accountsController, investmentsController, txController, child) {
             // Calculate Savings (non-credit accounts)
             double totalSavings = 0;
             for (var account in accountsController.accounts) {
@@ -1581,6 +1581,23 @@ class DashboardScreen extends StatelessWidget {
             // Net Worth = Savings + Investments - Credit Used
             final totalNetWorth =
                 totalSavings + totalInvestments - totalCreditUsed;
+
+            // Trend: compare current NW to last month's net flow
+            final now = DateTime.now();
+            final monthStart = DateTime(now.year, now.month, 1);
+            double thisMonthNet = 0;
+            for (final tx in txController.transactions) {
+              if (tx.dateTime.isBefore(monthStart)) continue;
+              if (tx.type == TransactionType.income || tx.type == TransactionType.cashback) {
+                thisMonthNet += tx.amount.abs();
+              } else if (tx.type == TransactionType.expense || tx.type == TransactionType.investment) {
+                thisMonthNet -= tx.amount.abs();
+              }
+            }
+            final hasTrend = totalNetWorth.abs() > 0;
+            final trendPct = hasTrend ? (thisMonthNet / totalNetWorth.abs() * 100) : 0.0;
+            final trendUp = trendPct >= 0;
+            final trendColor = trendUp ? AppStyles.accentGreen : AppStyles.plasmaRed;
 
             // Determine color based on positive/negative
             final isPositive = totalNetWorth >= 0;
@@ -1628,6 +1645,28 @@ class DashboardScreen extends StatelessWidget {
                           color: displayColor,
                         ),
                       ),
+                      if (hasTrend && thisMonthNet != 0) ...[
+                        const SizedBox(height: 4),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              trendUp ? CupertinoIcons.arrow_up : CupertinoIcons.arrow_down,
+                              size: 12,
+                              color: trendColor,
+                            ),
+                            const SizedBox(width: 3),
+                            Text(
+                              '${trendPct.abs().toStringAsFixed(1)}% this month',
+                              style: TextStyle(
+                                fontSize: TypeScale.caption,
+                                fontWeight: FontWeight.w600,
+                                color: trendColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                       const SizedBox(height: 6),
                       Container(
                         padding:
@@ -1721,14 +1760,50 @@ class DashboardScreen extends StatelessWidget {
           },
         );
       case DashboardWidgetType.goalsOverview:
-        return Consumer<GoalsController>(
-          builder: (context, goalsController, child) {
+        return Consumer2<GoalsController, TransactionsController>(
+          builder: (context, goalsController, txController, child) {
             final activeGoals = goalsController.activeGoals.length;
             final totalSaved = goalsController.totalSavedAmount;
             final totalTarget = goalsController.totalTargetAmount;
             final progress = totalTarget > 0
                 ? (totalSaved / totalTarget).clamp(0, 1).toDouble()
                 : 0.0;
+
+            // Find top goal (soonest deadline or highest current amount)
+            final goals = goalsController.activeGoals;
+            Goal? topGoal;
+            if (goals.isNotEmpty) {
+              topGoal = goals.reduce((a, b) =>
+                  a.targetDate.isBefore(b.targetDate) ? a : b);
+            }
+
+            // Estimate avg monthly contribution from transactions (last 3m)
+            String? paceLabel;
+            if (topGoal != null) {
+              final now = DateTime.now();
+              final threeMonthsAgo = DateTime(now.year, now.month - 3, 1);
+              double contributed = 0;
+              for (final tx in txController.transactions) {
+                if (tx.dateTime.isBefore(threeMonthsAgo)) continue;
+                if (tx.type == TransactionType.income || tx.type == TransactionType.cashback) {
+                  contributed += tx.amount.abs();
+                }
+              }
+              final avgMonthly = contributed / 3;
+              final remaining = (topGoal.targetAmount - topGoal.currentAmount).clamp(0, double.infinity);
+              if (avgMonthly > 0 && remaining > 0) {
+                final months = (remaining / avgMonthly).ceil();
+                final monthsLeft = topGoal.monthsRemaining;
+                final onTrack = months <= (monthsLeft > 0 ? monthsLeft : 9999);
+                if (onTrack) {
+                  paceLabel = '${topGoal.name} — on track, $monthsLeft month${monthsLeft == 1 ? '' : 's'} left';
+                } else {
+                  paceLabel = '${topGoal.name} — $months month${months == 1 ? '' : 's'} to go at current pace';
+                }
+              } else if (remaining == 0) {
+                paceLabel = '${topGoal.name} — complete!';
+              }
+            }
 
             return Column(
               mainAxisSize: MainAxisSize.min,
@@ -1782,6 +1857,28 @@ class DashboardScreen extends StatelessWidget {
                     ),
                   ],
                 ),
+                if (paceLabel != null) ...[
+                  const SizedBox(height: Spacing.sm),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: AppStyles.accentTeal.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppStyles.accentTeal.withValues(alpha: 0.2)),
+                    ),
+                    child: Text(
+                      paceLabel,
+                      style: TextStyle(
+                        fontSize: TypeScale.caption,
+                        color: AppStyles.accentTeal,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ],
             );
           },
@@ -1793,6 +1890,33 @@ class DashboardScreen extends StatelessWidget {
             final exceeded = budgetsController.getBudgetsExceedingLimit();
             final warning = budgetsController.getBudgetsInWarning();
             final alertBudgets = [...exceeded, ...warning].take(3).toList();
+
+            // Burn rate insight
+            final now = DateTime.now();
+            final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
+            final daysFraction = now.day / daysInMonth;
+            final activeBudgets = budgetsController.activeBudgets;
+            double avgBudgetFraction = 0;
+            if (activeBudgets.isNotEmpty) {
+              double totalFrac = 0;
+              for (final b in activeBudgets) {
+                totalFrac += b.limitAmount > 0 ? (b.spentAmount / b.limitAmount).clamp(0.0, double.infinity) : 0.0;
+              }
+              avgBudgetFraction = totalFrac / activeBudgets.length;
+            }
+            final bool overspending = avgBudgetFraction > daysFraction * 1.2;
+            final bool underPace = avgBudgetFraction < daysFraction * 0.8;
+            String? burnRateLabel;
+            Color? burnRateColor;
+            if (activeBudgets.isNotEmpty && daysFraction > 0.05) {
+              if (overspending) {
+                burnRateLabel = 'Spending faster than expected';
+                burnRateColor = CupertinoColors.systemOrange;
+              } else if (underPace) {
+                burnRateLabel = 'Spending within pace';
+                burnRateColor = AppStyles.accentGreen;
+              }
+            }
 
             return Column(
               mainAxisSize: MainAxisSize.min,
@@ -1889,6 +2013,36 @@ class DashboardScreen extends StatelessWidget {
                     ],
                   ),
                 ],
+                if (burnRateLabel != null) ...[
+                  const SizedBox(height: Spacing.sm),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: burnRateColor!.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: burnRateColor.withValues(alpha: 0.2)),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          overspending ? CupertinoIcons.exclamationmark_triangle_fill : CupertinoIcons.checkmark_circle_fill,
+                          size: 12,
+                          color: burnRateColor,
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          burnRateLabel,
+                          style: TextStyle(
+                            fontSize: TypeScale.caption,
+                            color: burnRateColor,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             );
           },
@@ -1947,59 +2101,106 @@ class DashboardScreen extends StatelessWidget {
           },
         );
       case DashboardWidgetType.aiPlanner:
-        return Consumer2<GoalsController, BudgetsController>(
-          builder: (context, goalsController, budgetsController, child) {
-            final progress = goalsController.overallProgress;
-            final recommendedSavings =
-                goalsController.totalRecommendedMonthlySavings;
-            final budgetWarnings =
-                budgetsController.getBudgetsInWarning().length;
-
+        return FutureBuilder<AIPlannerContext?>(
+          future: AIPlannerContext.load(),
+          builder: (context, snapshot) {
+            final plannerCtx = snapshot.data;
+            if (plannerCtx == null) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(CupertinoIcons.sparkles,
+                          size: 16, color: AppStyles.accentOrange),
+                      const SizedBox(width: Spacing.sm),
+                      Text(
+                        'Set your financial focus →',
+                        style: TextStyle(
+                          fontSize: TypeScale.subhead,
+                          fontWeight: FontWeight.w600,
+                          color: AppStyles.getTextColor(context),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: Spacing.sm),
+                  Text(
+                    'Tell me what you\'re working toward and get a personalized plan from your actual data.',
+                    style: TextStyle(
+                      fontSize: TypeScale.caption,
+                      color: AppStyles.getSecondaryTextColor(context),
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              );
+            }
             return Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'AI Planner Score',
-                  style: TextStyle(
-                    fontSize: TypeScale.subhead,
-                    fontWeight: FontWeight.w600,
-                    color: AppStyles.getTextColor(context),
-                  ),
-                ),
-                const SizedBox(height: Spacing.md),
                 Row(
                   children: [
-                    const Icon(CupertinoIcons.lightbulb,
-                        size: 16, color: Colors.purple),
-                    const SizedBox(width: Spacing.sm),
-                    Text(
-                      '${progress.toStringAsFixed(0)}% Financial Health',
-                      style: TextStyle(
-                        fontSize: TypeScale.footnote,
-                        color: AppStyles.getSecondaryTextColor(context),
+                    const Icon(CupertinoIcons.sparkles,
+                        size: 14, color: AppStyles.accentOrange),
+                    const SizedBox(width: Spacing.xs),
+                    Expanded(
+                      child: Text(
+                        plannerCtx.focusLabel,
+                        style: TextStyle(
+                          fontSize: TypeScale.subhead,
+                          fontWeight: FontWeight.w700,
+                          color: AppStyles.getTextColor(context),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppStyles.accentOrange.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        plannerCtx.timelineLabel,
+                        style: const TextStyle(
+                          fontSize: TypeScale.caption,
+                          color: AppStyles.accentOrange,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: Spacing.sm),
-                Text(
-                  'Recommended monthly savings: ₹${recommendedSavings.toStringAsFixed(0)}',
-                  style: TextStyle(
-                    fontSize: TypeScale.caption,
-                    color: AppStyles.getSecondaryTextColor(context),
+                if (plannerCtx.targetAmount != null && plannerCtx.targetAmount! > 0) ...[
+                  Text(
+                    'Target: ₹${plannerCtx.targetAmount!.toStringAsFixed(0)}',
+                    style: TextStyle(
+                      fontSize: TypeScale.caption,
+                      color: AppStyles.getSecondaryTextColor(context),
+                    ),
                   ),
-                ),
-                Text(
-                  budgetWarnings > 0
-                      ? '$budgetWarnings budgets need attention'
-                      : 'Budget health looks stable',
-                  style: TextStyle(
-                    fontSize: TypeScale.caption,
-                    color: budgetWarnings > 0
-                        ? CupertinoColors.systemOrange
-                        : CupertinoColors.systemGreen,
-                  ),
+                  const SizedBox(height: Spacing.xs),
+                ],
+                Row(
+                  children: [
+                    const Icon(CupertinoIcons.chart_bar_alt_fill,
+                        size: 12, color: AppStyles.accentTeal),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Tap to view your personalized analysis',
+                      style: TextStyle(
+                        fontSize: TypeScale.caption,
+                        color: AppStyles.accentTeal,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             );
@@ -2284,6 +2485,20 @@ class DashboardScreen extends StatelessWidget {
                     ),
                   );
                 }),
+                const SizedBox(height: Spacing.sm),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(
+                      'Tap for detailed analysis →',
+                      style: TextStyle(
+                        fontSize: TypeScale.caption,
+                        color: AppStyles.accentTeal,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
               ],
             );
           },
@@ -2607,19 +2822,23 @@ class DashboardScreen extends StatelessWidget {
         break;
       case DashboardWidgetType.monthlySummary:
         Navigator.of(context).push(
-          FadeScalePageRoute(page: const TransactionHistoryScreen()),
+          FadeScalePageRoute(page: const ReportsAnalysisScreen()),
         );
         break;
       case DashboardWidgetType.sipTracker:
         Navigator.of(context).push(
-          FadeScalePageRoute(page: const NotificationsPage()),
+          FadeScalePageRoute(page: const InvestmentsScreen()),
         );
         break;
       case DashboardWidgetType.healthScore:
-        // No dedicated detail screen — widget is self-contained
+        Navigator.of(context).push(
+          FadeScalePageRoute(page: const ReportsAnalysisScreen()),
+        );
         break;
       case DashboardWidgetType.spendingInsights:
-        // No dedicated detail screen — insights are self-contained
+        Navigator.of(context).push(
+          FadeScalePageRoute(page: const TransactionHistoryScreen()),
+        );
         break;
       default:
         break;

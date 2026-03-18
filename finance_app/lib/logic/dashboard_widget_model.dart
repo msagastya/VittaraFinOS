@@ -1,5 +1,4 @@
 enum DashboardWidgetType {
-  actions,
   transactionHistory,
   netWorth,
   goalsOverview,
@@ -97,10 +96,10 @@ class DashboardWidgetConfig {
   }
 
   static DashboardWidgetType _parseWidgetType(String? type) {
-    if (type == null) return DashboardWidgetType.actions;
+    if (type == null) return DashboardWidgetType.transactionHistory;
     return DashboardWidgetType.values.firstWhere(
       (e) => e.toString() == type,
-      orElse: () => DashboardWidgetType.actions,
+      orElse: () => DashboardWidgetType.transactionHistory,
     );
   }
 }
