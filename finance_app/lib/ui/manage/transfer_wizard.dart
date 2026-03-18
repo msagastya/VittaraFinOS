@@ -238,6 +238,14 @@ class _TransferWizardState extends State<TransferWizard> {
             ? (canCreditCashbackToApp ? 'paymentApp' : 'bank')
             : 'bank',
         'transferRef': IdGenerator.next(prefix: 'tref'),
+        if (_sourceAccount != null)
+          'sourceBalanceAfter': _sourceAccount!.balance - deductFromSource - charges,
+        if (_sourceAccount?.creditLimit != null)
+          'sourceCreditLimit': _sourceAccount!.creditLimit,
+        if (_destinationAccount != null)
+          'destBalanceAfter': _destinationAccount!.balance + amount,
+        if (_destinationAccount?.creditLimit != null)
+          'destCreditLimit': _destinationAccount!.creditLimit,
       },
     );
 

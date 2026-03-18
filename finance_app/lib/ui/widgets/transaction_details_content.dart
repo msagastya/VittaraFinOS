@@ -17,6 +17,15 @@ class TransactionDetailsContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final detailEntries = _buildDetailEntries(context);
+    final meta = transaction.metadata ?? {};
+
+    final sourceBalanceAfter = (meta['sourceBalanceAfter'] as num?)?.toDouble();
+    final sourceCreditLimit = (meta['sourceCreditLimit'] as num?)?.toDouble();
+    final destBalanceAfter = (meta['destBalanceAfter'] as num?)?.toDouble();
+    final destCreditLimit = (meta['destCreditLimit'] as num?)?.toDouble();
+
+    final hasSourceBalance = sourceBalanceAfter != null;
+    final hasDestBalance = destBalanceAfter != null;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 40),
@@ -24,6 +33,8 @@ class TransactionDetailsContent extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: Spacing.lg),
+
+          // ── Header card ──────────────────────────────────────────────
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 24),
             padding: const EdgeInsets.all(Spacing.lg),
@@ -34,11 +45,8 @@ class TransactionDetailsContent extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  _getTransactionIcon(),
-                  color: _getTransactionColor(),
-                  size: 32,
-                ),
+                Icon(_getTransactionIcon(),
+                    color: _getTransactionColor(), size: 32),
                 const SizedBox(height: Spacing.md),
                 Text(
                   transaction.getTypeLabel(),
@@ -57,6 +65,8 @@ class TransactionDetailsContent extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 28),
+
+          // ── Amount ───────────────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
@@ -82,7 +92,78 @@ class TransactionDetailsContent extends StatelessWidget {
             ),
           ),
           const SizedBox(height: Spacing.xxl),
-          ...detailEntries.map((entry) => _buildDetailRow(context, entry)),
+
+          // ── Detail rows ──────────────────────────────────────────────
+          ...detailEntries.map((e) => _buildDetailRow(context, e)),
+
+          // ── Balance snapshot section ─────────────────────────────────
+          if (hasSourceBalance || hasDestBalance) ...[
+            const SizedBox(height: Spacing.xl),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        'BALANCE AT TIME OF TRANSACTION',
+                        style: TextStyle(
+                          fontSize: TypeScale.caption,
+                          fontWeight: FontWeight.w700,
+                          color: AppStyles.getSecondaryTextColor(context),
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 5, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppStyles.accentBlue.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          'snapshot',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            color: AppStyles.accentBlue,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: Spacing.md),
+                  if (hasSourceBalance)
+                    _BalanceSnapshotCard(
+                      accountName: transaction.sourceAccountName ??
+                          (meta['accountName'] as String?) ??
+                          'Account',
+                      label: transaction.type == TransactionType.transfer
+                          ? 'Source Account'
+                          : 'Account',
+                      balanceAfter: sourceBalanceAfter,
+                      creditLimit: sourceCreditLimit,
+                      context: context,
+                    ),
+                  if (hasDestBalance) ...[
+                    const SizedBox(height: Spacing.md),
+                    _BalanceSnapshotCard(
+                      accountName:
+                          transaction.destinationAccountName ?? 'Destination',
+                      label: 'Destination Account',
+                      balanceAfter: destBalanceAfter,
+                      creditLimit: destCreditLimit,
+                      context: context,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+
+          // ── Action buttons ───────────────────────────────────────────
           if (actionButtons.isNotEmpty) ...[
             const SizedBox(height: Spacing.xxxl),
             ...actionButtons.map(
@@ -97,6 +178,8 @@ class TransactionDetailsContent extends StatelessWidget {
       ),
     );
   }
+
+  // ── Detail rows ──────────────────────────────────────────────────────────
 
   List<_DetailEntry> _buildDetailEntries(BuildContext context) {
     final entries = <_DetailEntry>[];
@@ -118,18 +201,13 @@ class TransactionDetailsContent extends StatelessWidget {
     if (transaction.type == TransactionType.transfer) {
       final appWallet = transaction.appWalletAmount ?? 0.0;
       if (appWallet > 0) {
-        maybeAdd(
-          'From App Wallet',
-          '₹${appWallet.toStringAsFixed(2)}',
-          forceColor: CupertinoColors.systemOrange,
-        );
-        maybeAdd(
-          'From Source Account',
-          '₹${(transaction.amount - appWallet).toStringAsFixed(2)}',
-        );
+        maybeAdd('From App Wallet', '₹${appWallet.toStringAsFixed(2)}',
+            forceColor: CupertinoColors.systemOrange);
+        maybeAdd('From Source Account',
+            '₹${(transaction.amount - appWallet).toStringAsFixed(2)}');
       } else {
-        maybeAdd(
-            'From Source Account', '₹${transaction.amount.toStringAsFixed(2)}');
+        maybeAdd('From Source Account',
+            '₹${transaction.amount.toStringAsFixed(2)}');
       }
     }
 
@@ -137,18 +215,14 @@ class TransactionDetailsContent extends StatelessWidget {
     maybeAdd('Category', metadata['categoryName'] as String?);
     maybeAdd('Investment', metadata['investmentName'] as String?);
     final merchant = metadata['merchant'] as String?;
-    if (merchant != null && merchant.isNotEmpty) {
-      maybeAdd('Merchant', merchant);
-    }
+    if (merchant != null && merchant.isNotEmpty) maybeAdd('Merchant', merchant);
     maybeAdd('Payment App', transaction.paymentAppName);
     final paymentApp = metadata['paymentApp'] as String?;
     if ((transaction.paymentAppName ?? '').isEmpty) {
       maybeAdd('Payment App', paymentApp);
     }
     final tags = metadata['tags'];
-    if (tags is List && tags.isNotEmpty) {
-      maybeAdd('Tags', tags.join(', '));
-    }
+    if (tags is List && tags.isNotEmpty) maybeAdd('Tags', tags.join(', '));
 
     if (transaction.cashbackAmount != null && transaction.cashbackAmount! > 0) {
       maybeAdd('Cashback Amount',
@@ -223,6 +297,8 @@ class TransactionDetailsContent extends StatelessWidget {
     );
   }
 
+  // ── Helpers ──────────────────────────────────────────────────────────────
+
   IconData _getTransactionIcon() {
     switch (transaction.type) {
       case TransactionType.transfer:
@@ -265,17 +341,215 @@ class TransactionDetailsContent extends StatelessWidget {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final txnDate = DateTime(dateTime.year, dateTime.month, dateTime.day);
-
     if (txnDate == today) {
       return 'Today ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
     }
-
     final yesterday = today.subtract(const Duration(days: 1));
-    if (txnDate == yesterday) {
-      return 'Yesterday';
-    }
-
+    if (txnDate == yesterday) return 'Yesterday';
     return '${dateTime.day} ${DateFormatter.getMonthName(dateTime.month)}';
+  }
+}
+
+// ── Balance snapshot card ─────────────────────────────────────────────────────
+
+class _BalanceSnapshotCard extends StatelessWidget {
+  final String accountName;
+  final String label;
+  final double? balanceAfter;
+  final double? creditLimit;
+  final BuildContext context;
+
+  const _BalanceSnapshotCard({
+    required this.accountName,
+    required this.label,
+    required this.balanceAfter,
+    required this.context,
+    this.creditLimit,
+  });
+
+  @override
+  Widget build(BuildContext ctx) {
+    if (creditLimit != null) {
+      return _buildCreditCard(ctx);
+    }
+    return _buildRegularCard(ctx);
+  }
+
+  Widget _buildRegularCard(BuildContext ctx) {
+    final b = balanceAfter ?? 0;
+    final isNegative = b < 0;
+    final color = isNegative ? AppStyles.plasmaRed : AppStyles.bioGreen;
+
+    return Container(
+      padding: const EdgeInsets.all(Spacing.lg),
+      decoration: BoxDecoration(
+        color: AppStyles.getCardColor(ctx),
+        borderRadius: BorderRadius.circular(Radii.md),
+        border: Border.all(color: AppStyles.getDividerColor(ctx)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label,
+                    style: TextStyle(
+                      fontSize: TypeScale.caption,
+                      color: AppStyles.getSecondaryTextColor(ctx),
+                    )),
+                const SizedBox(height: 2),
+                Text(accountName,
+                    style: TextStyle(
+                      fontSize: TypeScale.footnote,
+                      fontWeight: FontWeight.w600,
+                      color: AppStyles.getTextColor(ctx),
+                    )),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '₹${b.toStringAsFixed(2)}',
+                style: TextStyle(
+                  fontSize: TypeScale.title3,
+                  fontWeight: FontWeight.w800,
+                  color: color,
+                ),
+              ),
+              Text(
+                isNegative ? 'overdrawn' : 'after transaction',
+                style: TextStyle(
+                  fontSize: TypeScale.caption,
+                  color: color.withValues(alpha: 0.7),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCreditCard(BuildContext ctx) {
+    final limit = creditLimit!;
+    // For credit accounts: balance = available credit remaining
+    // Used = limit - available
+    final available = (balanceAfter ?? 0).clamp(0.0, limit);
+    final used = (limit - available).clamp(0.0, limit);
+    final usedRatio = limit > 0 ? (used / limit).clamp(0.0, 1.0) : 0.0;
+
+    final barColor = usedRatio < 0.3
+        ? AppStyles.bioGreen
+        : usedRatio < 0.7
+            ? CupertinoColors.systemOrange
+            : AppStyles.plasmaRed;
+
+    return Container(
+      padding: const EdgeInsets.all(Spacing.lg),
+      decoration: BoxDecoration(
+        color: AppStyles.getCardColor(ctx),
+        borderRadius: BorderRadius.circular(Radii.md),
+        border: Border.all(color: AppStyles.getDividerColor(ctx)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(label,
+                        style: TextStyle(
+                          fontSize: TypeScale.caption,
+                          color: AppStyles.getSecondaryTextColor(ctx),
+                        )),
+                    const SizedBox(height: 2),
+                    Text(accountName,
+                        style: TextStyle(
+                          fontSize: TypeScale.footnote,
+                          fontWeight: FontWeight.w600,
+                          color: AppStyles.getTextColor(ctx),
+                        )),
+                  ],
+                ),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: barColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  '${(usedRatio * 100).toStringAsFixed(0)}% used',
+                  style: TextStyle(
+                    fontSize: TypeScale.caption,
+                    fontWeight: FontWeight.w700,
+                    color: barColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: Spacing.md),
+          // Progress bar
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: SizedBox(
+              height: 6,
+              child: Stack(
+                children: [
+                  Container(
+                      width: double.infinity,
+                      color: AppStyles.getDividerColor(ctx)),
+                  FractionallySizedBox(
+                    widthFactor: usedRatio,
+                    child: Container(color: barColor),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: Spacing.md),
+          Row(
+            children: [
+              _stat(ctx, 'Used', '₹${used.toStringAsFixed(0)}',
+                  AppStyles.plasmaRed),
+              const SizedBox(width: Spacing.lg),
+              _stat(ctx, 'Limit', '₹${limit.toStringAsFixed(0)}',
+                  AppStyles.getSecondaryTextColor(ctx)),
+              const Spacer(),
+              _stat(ctx, 'Available', '₹${available.toStringAsFixed(0)}',
+                  AppStyles.bioGreen),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _stat(BuildContext ctx, String label, String value, Color color) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: TextStyle(
+              fontSize: TypeScale.caption,
+              color: AppStyles.getSecondaryTextColor(ctx),
+            )),
+        Text(value,
+            style: TextStyle(
+              fontSize: TypeScale.footnote,
+              fontWeight: FontWeight.w700,
+              color: color,
+            )),
+      ],
+    );
   }
 }
 
@@ -283,6 +557,5 @@ class _DetailEntry {
   final String label;
   final String value;
   final Color? color;
-
   const _DetailEntry({required this.label, required this.value, this.color});
 }

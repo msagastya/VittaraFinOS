@@ -1258,6 +1258,17 @@ class _SmsQuickConfirmSheetState extends State<_SmsQuickConfirmSheet> {
         meta['accountId'] = _selectedAccount!.id;
         meta['accountName'] = _selectedAccount!.name;
       }
+      // Compute balance snapshot to record at time of transaction
+      if (_selectedAccount != null) {
+        final current = context.read<AccountsController>().accounts
+            .firstWhere((a) => a.id == _selectedAccount!.id,
+                orElse: () => _selectedAccount!);
+        final delta = type == TransactionType.income ? amount : -amount;
+        meta['sourceBalanceAfter'] = current.balance + delta;
+        if (current.creditLimit != null) {
+          meta['sourceCreditLimit'] = current.creditLimit;
+        }
+      }
       final desc = _descriptionController.text.trim();
       final tx = Transaction(
         id: DateTime.now().millisecondsSinceEpoch.toString(),

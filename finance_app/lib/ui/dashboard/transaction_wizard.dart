@@ -743,6 +743,17 @@ class _TransactionWizardState extends State<TransactionWizard> {
       }
     }
 
+    // Snapshot balance after transaction for historical display
+    if (_selectedAccount != null) {
+      final snapped = accountsController.accounts
+          .firstWhere((a) => a.id == _selectedAccount!.id,
+              orElse: () => _selectedAccount!);
+      metadata['sourceBalanceAfter'] = snapped.balance;
+      if (snapped.creditLimit != null) {
+        metadata['sourceCreditLimit'] = snapped.creditLimit;
+      }
+    }
+
     final transaction = Transaction(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       type: _branch == TransactionWizardBranch.income
