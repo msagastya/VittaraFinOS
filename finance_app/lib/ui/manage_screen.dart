@@ -5,7 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/logic/settings_controller.dart';
 import 'package:vittara_fin_os/ui/manage/banks_screen.dart';
 import 'package:vittara_fin_os/ui/manage/accounts_screen.dart';
-import 'package:vittara_fin_os/ui/manage/cash_screen.dart';
 import 'package:vittara_fin_os/ui/manage/payment_apps_screen.dart';
 import 'package:vittara_fin_os/ui/manage/investments_screen.dart';
 import 'package:vittara_fin_os/ui/manage/categories_screen.dart';
@@ -46,12 +45,6 @@ class _ManageScreenState extends State<ManageScreen> {
       'title': 'Accounts',
       'icon': CupertinoIcons.creditcard_fill,
       'color': AppStyles.bioGreen
-    },
-    {
-      'id': 'cash',
-      'title': 'Cash',
-      'icon': CupertinoIcons.money_dollar_circle_fill,
-      'color': CupertinoColors.systemMint
     },
     {
       'id': 'pay',
@@ -355,9 +348,6 @@ class _ManageScreenState extends State<ManageScreen> {
         break;
       case 'accounts':
         page = const AccountsScreen();
-        break;
-      case 'cash':
-        page = const CashScreen();
         break;
       case 'pay':
         page = const PaymentAppsScreen();
