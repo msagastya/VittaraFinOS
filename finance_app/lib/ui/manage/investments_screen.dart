@@ -124,6 +124,9 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     _searchController = TextEditingController(text: _persistedSearchQuery);
     _loadSortPrefs();
     _scrollController.addListener(_onScroll);
+    // Initialise once so FutureBuilder always gets the same Future instance
+    // (creating a new Future on every build resets FutureBuilder to loading)
+    _goldPriceFuture = _getCurrentGoldPrice();
   }
 
   void _onScroll() {
@@ -412,24 +415,24 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     showCupertinoModalPopup(
       context: context,
       builder: (modalContext) => InvestmentTypeSelectionModal(
-        onTypeSelected: (investmentType) {
+        onTypeSelected: (investmentType) async {
           logger.info('Selected investment type: ${investmentType.name}',
               context: 'InvestmentsScreen');
 
           if (investmentType == InvestmentType.stocks) {
-            Navigator.of(context).push(
+            await Navigator.of(context).push(
               FadeScalePageRoute(page: const StocksWizard()),
             );
           } else if (investmentType == InvestmentType.mutualFund) {
-            Navigator.of(context).push(
+            await Navigator.of(context).push(
               FadeScalePageRoute(page: const MFWizard()),
             );
           } else if (investmentType == InvestmentType.digitalGold) {
-            Navigator.of(context).push(
+            await Navigator.of(context).push(
               FadeScalePageRoute(page: const DigitalGoldWizard()),
             );
           } else if (investmentType == InvestmentType.nationalSavingsScheme) {
-            Navigator.of(context).push(
+            await Navigator.of(context).push(
               FadeScalePageRoute(
                 page: const SimpleInvestmentEntryWizard(
                   type: InvestmentType.nationalSavingsScheme,
@@ -444,7 +447,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               ),
             );
           } else if (investmentType == InvestmentType.bonds) {
-            Navigator.of(context).push(
+            await Navigator.of(context).push(
               FadeScalePageRoute(
                 page: const SimpleInvestmentEntryWizard(
                   type: InvestmentType.bonds,
@@ -462,6 +465,11 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             toast.showInfo(
               'This investment type is intentionally disabled for focused professional tracking.',
             );
+          }
+          // Reload list after any wizard completes
+          if (mounted) {
+            await context.read<InvestmentsController>().loadInvestments();
+            setState(() => _filterSortCache.clear());
           }
         },
       ),
@@ -2783,7 +2791,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     final weightInGrams = (metadata['weightInGrams'] as num?)?.toDouble() ?? 0;
 
     return FutureBuilder<double?>(
-      future: _getCurrentGoldPrice(),
+      future: _goldPriceFuture,
       builder: (context, snapshot) {
         double currentValue = 0;
         double currentRate = 0;
@@ -2791,9 +2799,10 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
         if (snapshot.hasData && snapshot.data != null) {
           currentRate = snapshot.data!;
           currentValue = weightInGrams * currentRate;
-        } else if (snapshot.hasError) {
-          // Use stored value as fallback
-          currentValue = (metadata['currentValue'] as num?)?.toDouble() ?? 0;
+        } else {
+          // While loading or on error, use stored value so card never shows ₹0
+          currentValue =
+              (metadata['currentValue'] as num?)?.toDouble() ?? investedAmount;
           currentRate = (metadata['currentRate'] as num?)?.toDouble() ?? 0;
         }
 
@@ -3145,20 +3154,21 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     }
   }
 
-  void _navigateToDetails(Investment investment) {
+  Future<void> _navigateToDetails(Investment investment) async {
+    final ctrl = context.read<InvestmentsController>();
     switch (investment.type) {
       case InvestmentType.stocks:
-        Navigator.of(context).push(FadeScalePageRoute(
+        await Navigator.of(context).push(FadeScalePageRoute(
             page: StockDetailsScreen(investment: investment)));
       case InvestmentType.mutualFund:
-        Navigator.of(context).push(FadeScalePageRoute(
+        await Navigator.of(context).push(FadeScalePageRoute(
             page: MFDetailsScreen(investment: investment)));
       case InvestmentType.fixedDeposit:
         if (investment.metadata?.containsKey('fdData') == true) {
           try {
             final fd = FixedDeposit.fromMap(
                 Map<String, dynamic>.from(investment.metadata!['fdData'] as Map));
-            Navigator.of(context)
+            await Navigator.of(context)
                 .push(FadeScalePageRoute(page: FDDetailsScreen(fd: fd)));
           } catch (_) {
             toast.showError('Error loading FD details');
@@ -3169,36 +3179,41 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
           try {
             final rd = RecurringDeposit.fromMap(
                 Map<String, dynamic>.from(investment.metadata!['rdData'] as Map));
-            Navigator.of(context)
+            await Navigator.of(context)
                 .push(FadeScalePageRoute(page: RDDetailsScreen(rd: rd)));
           } catch (_) {
             toast.showError('Error loading RD details');
           }
         }
       case InvestmentType.bonds:
-        Navigator.of(context).push(FadeScalePageRoute(
+        await Navigator.of(context).push(FadeScalePageRoute(
             page: BondsDetailsScreen(investment: investment)));
       case InvestmentType.cryptocurrency:
-        Navigator.of(context).push(FadeScalePageRoute(
+        await Navigator.of(context).push(FadeScalePageRoute(
             page: CryptoDetailsScreen(investment: investment)));
       case InvestmentType.digitalGold:
-        Navigator.of(context).push(FadeScalePageRoute(
+        await Navigator.of(context).push(FadeScalePageRoute(
             page: DigitalGoldDetailsScreen(investment: investment)));
       case InvestmentType.nationalSavingsScheme:
-        Navigator.of(context).push(FadeScalePageRoute(
+        await Navigator.of(context).push(FadeScalePageRoute(
             page: NPSDetailsScreen(investment: investment)));
       case InvestmentType.pensionSchemes:
-        Navigator.of(context).push(FadeScalePageRoute(
+        await Navigator.of(context).push(FadeScalePageRoute(
             page: PensionDetailsScreen(investment: investment)));
       case InvestmentType.commodities:
-        Navigator.of(context).push(FadeScalePageRoute(
+        await Navigator.of(context).push(FadeScalePageRoute(
             page: CommoditiesDetailsScreen(investment: investment)));
       case InvestmentType.futuresOptions:
-        Navigator.of(context).push(FadeScalePageRoute(
+        await Navigator.of(context).push(FadeScalePageRoute(
             page: FODetailsScreen(investment: investment)));
       default:
-        Navigator.of(context).push(FadeScalePageRoute(
+        await Navigator.of(context).push(FadeScalePageRoute(
             page: SimpleInvestmentDetailsScreen(investment: investment)));
+    }
+    // Reload after returning from any detail screen so edits/deletions reflect immediately
+    if (mounted) {
+      await ctrl.loadInvestments();
+      setState(() => _filterSortCache.clear());
     }
   }
 
