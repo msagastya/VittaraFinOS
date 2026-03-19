@@ -19,6 +19,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
   final AppLogger logger = AppLogger();
   String _searchQuery = '';
   bool _isAscending = true;
+  int _selectedTab = 0; // 0 = Wallets, 1 = All Apps
 
   void _onReorder(
       int oldIndex, int newIndex, PaymentAppsController appsController) {
@@ -143,6 +144,12 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
   Widget build(BuildContext context) {
     return Consumer<PaymentAppsController>(
       builder: (context, appsController, child) {
+        final walletApps = appsController.paymentApps
+            .where((app) =>
+                (app['isEnabled'] as bool? ?? false) &&
+                (app['hasWallet'] as bool? ?? false))
+            .toList();
+
         final filteredApps = appsController.paymentApps.where((app) {
           return app['name']
               .toString()
@@ -158,17 +165,19 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
             previousPageTitle: 'Back',
             backgroundColor: AppStyles.getBackground(context),
             border: null,
-            trailing: CupertinoButton(
-              padding: EdgeInsets.zero,
-              onPressed: () => _sortApps(appsController),
-              child: Icon(
-                _isAscending
-                    ? CupertinoIcons.sort_down
-                    : CupertinoIcons.sort_up,
-                size: 24,
-                color: AppStyles.accentBlue,
-              ),
-            ),
+            trailing: _selectedTab == 1
+                ? CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: () => _sortApps(appsController),
+                    child: Icon(
+                      _isAscending
+                          ? CupertinoIcons.sort_down
+                          : CupertinoIcons.sort_up,
+                      size: 24,
+                      color: AppStyles.accentBlue,
+                    ),
+                  )
+                : null,
           ),
           child: SafeArea(
             child: Stack(
@@ -176,54 +185,97 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
               children: [
                 Column(
                   children: [
-                    Container(
-                      margin: const EdgeInsets.all(Spacing.lg),
-                      decoration: BoxDecoration(
-                        color: AppStyles.getCardColor(context),
-                        borderRadius: BorderRadius.circular(Radii.md),
-                      ),
-                      child: CupertinoSearchTextField(
-                        backgroundColor: Colors.transparent,
-                        style:
-                            TextStyle(color: AppStyles.getTextColor(context)),
-                        placeholder: 'Search Payment Apps',
-                        placeholderStyle: TextStyle(
-                            color: AppStyles.getSecondaryTextColor(context)),
-                        onChanged: (value) =>
-                            setState(() => _searchQuery = value),
+                    // Segmented control
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                      child: CupertinoSlidingSegmentedControl<int>(
+                        groupValue: _selectedTab,
+                        backgroundColor: AppStyles.getCardColor(context),
+                        thumbColor: _selectedTab == 0
+                            ? CupertinoColors.systemIndigo
+                            : AppStyles.accentBlue,
+                        children: {
+                          0: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(CupertinoIcons.creditcard_fill,
+                                    size: 14,
+                                    color: _selectedTab == 0
+                                        ? Colors.white
+                                        : AppStyles.getSecondaryTextColor(context)),
+                                const SizedBox(width: 6),
+                                Text('Wallets',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      color: _selectedTab == 0
+                                          ? Colors.white
+                                          : AppStyles.getTextColor(context),
+                                    )),
+                                if (walletApps.isNotEmpty) ...[
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: _selectedTab == 0
+                                          ? Colors.white.withValues(alpha: 0.3)
+                                          : CupertinoColors.systemIndigo
+                                              .withValues(alpha: 0.2),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      '${walletApps.length}',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        color: _selectedTab == 0
+                                            ? Colors.white
+                                            : CupertinoColors.systemIndigo,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                          1: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                    CupertinoIcons.device_phone_portrait,
+                                    size: 14,
+                                    color: _selectedTab == 1
+                                        ? Colors.white
+                                        : AppStyles.getSecondaryTextColor(context)),
+                                const SizedBox(width: 6),
+                                Text('All Apps',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      color: _selectedTab == 1
+                                          ? Colors.white
+                                          : AppStyles.getTextColor(context),
+                                    )),
+                              ],
+                            ),
+                          ),
+                        },
+                        onValueChanged: (val) {
+                          if (val != null) setState(() => _selectedTab = val);
+                        },
                       ),
                     ),
+                    const SizedBox(height: 12),
+
+                    // Tab content
                     Expanded(
-                      child: filteredApps.isEmpty
-                          ? EmptyStateView(
-                              icon: CupertinoIcons.device_phone_portrait,
-                              title: appsController.paymentApps.isEmpty
-                                  ? 'No payment apps yet'
-                                  : 'No apps match your search',
-                              subtitle: appsController.paymentApps.isEmpty
-                                  ? 'Add your first payment app to track wallet balances.'
-                                  : 'Try a different search term.',
-                              actionLabel: appsController.paymentApps.isEmpty
-                                  ? 'Add First App'
-                                  : null,
-                              onAction: appsController.paymentApps.isEmpty
-                                  ? () => _showAddPaymentAppModal(
-                                      context, appsController)
-                                  : null,
-                            )
-                          : ReorderableListView.builder(
-                              buildDefaultDragHandles: false,
-                              padding:
-                                  const EdgeInsets.fromLTRB(16, 0, 16, 120),
-                              itemCount: filteredApps.length,
-                              onReorder: (oldIndex, newIndex) => _onReorder(
-                                  oldIndex, newIndex, appsController),
-                              itemBuilder: (context, index) {
-                                final app = filteredApps[index];
-                                return _buildPaymentAppCard(
-                                    app, appsController);
-                              },
-                            ),
+                      child: _selectedTab == 0
+                          ? _buildWalletsTab(walletApps, appsController)
+                          : _buildAllAppsTab(
+                              filteredApps, appsController),
                     ),
                   ],
                 ),
@@ -269,6 +321,215 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
           ),
         );
       },
+    );
+  }
+
+  // ── Wallets tab ──────────────────────────────────────────────────────────────
+
+  Widget _buildWalletsTab(
+      List<Map<String, dynamic>> walletApps, PaymentAppsController ctrl) {
+    if (walletApps.isEmpty) {
+      return EmptyStateView(
+        icon: CupertinoIcons.creditcard_fill,
+        title: 'No wallet apps',
+        subtitle:
+            'Enable apps with wallet feature and toggle them on to see them here.',
+        actionLabel: 'Go to All Apps',
+        onAction: () => setState(() => _selectedTab = 1),
+      );
+    }
+
+    final totalWalletBalance = walletApps.fold<double>(
+        0, (sum, app) => sum + ((app['walletBalance'] as num?)?.toDouble() ?? 0));
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
+      children: [
+        // Total balance banner
+        Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.all(Spacing.xl),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                CupertinoColors.systemIndigo,
+                CupertinoColors.systemIndigo.withValues(alpha: 0.75),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: [
+              BoxShadow(
+                color: CupertinoColors.systemIndigo.withValues(alpha: 0.3),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              const Icon(CupertinoIcons.creditcard_fill,
+                  color: Colors.white, size: 28),
+              const SizedBox(width: Spacing.lg),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Total Wallet Balance',
+                      style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: TypeScale.footnote,
+                          fontWeight: FontWeight.w500)),
+                  const SizedBox(height: 4),
+                  Text(
+                    '₹${totalWalletBalance.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: TypeScale.title1,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+              const Spacer(),
+              Text(
+                '${walletApps.length} wallet${walletApps.length == 1 ? '' : 's'}',
+                style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: TypeScale.footnote,
+                    fontWeight: FontWeight.w500),
+              ),
+            ],
+          ),
+        ),
+
+        // Wallet cards
+        ...walletApps.map((app) => _buildWalletCard(app, ctrl)),
+      ],
+    );
+  }
+
+  Widget _buildWalletCard(
+      Map<String, dynamic> app, PaymentAppsController ctrl) {
+    final balance = (app['walletBalance'] as num?)?.toDouble() ?? 0.0;
+    final color = (app['color'] as Color?) ?? CupertinoColors.systemBlue;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: AppStyles.sectionDecoration(context, tint: color, radius: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(Spacing.lg),
+        child: Row(
+          children: [
+            Container(
+              width: 46,
+              height: 46,
+              decoration: AppStyles.iconBoxDecoration(context, color),
+              child: Center(
+                child: Icon(CupertinoIcons.square_fill, color: color, size: 22),
+              ),
+            ),
+            const SizedBox(width: Spacing.lg),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(app['name'] as String,
+                      style: AppStyles.titleStyle(context)),
+                  const SizedBox(height: 4),
+                  Text(
+                    '₹${balance.toStringAsFixed(2)}',
+                    style: TextStyle(
+                      fontSize: TypeScale.headline,
+                      fontWeight: FontWeight.w700,
+                      color: balance >= 0 ? AppStyles.bioGreen : AppStyles.plasmaRed,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            BouncyButton(
+              onPressed: () =>
+                  _showSetWalletBalanceModal(context, ctrl, app),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                      color: color.withValues(alpha: 0.35), width: 1),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(CupertinoIcons.pencil, size: 14, color: color),
+                    const SizedBox(width: 4),
+                    Text('Edit',
+                        style: TextStyle(
+                            color: color,
+                            fontSize: TypeScale.footnote,
+                            fontWeight: FontWeight.w600)),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── All Apps tab ─────────────────────────────────────────────────────────────
+
+  Widget _buildAllAppsTab(
+      List<Map<String, dynamic>> filteredApps, PaymentAppsController ctrl) {
+    return Column(
+      children: [
+        Container(
+          margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          decoration: BoxDecoration(
+            color: AppStyles.getCardColor(context),
+            borderRadius: BorderRadius.circular(Radii.md),
+          ),
+          child: CupertinoSearchTextField(
+            backgroundColor: Colors.transparent,
+            style: TextStyle(color: AppStyles.getTextColor(context)),
+            placeholder: 'Search Payment Apps',
+            placeholderStyle:
+                TextStyle(color: AppStyles.getSecondaryTextColor(context)),
+            onChanged: (value) => setState(() => _searchQuery = value),
+          ),
+        ),
+        Expanded(
+          child: filteredApps.isEmpty
+              ? EmptyStateView(
+                  icon: CupertinoIcons.device_phone_portrait,
+                  title: ctrl.paymentApps.isEmpty
+                      ? 'No payment apps yet'
+                      : 'No apps match your search',
+                  subtitle: ctrl.paymentApps.isEmpty
+                      ? 'Add your first payment app to track wallet balances.'
+                      : 'Try a different search term.',
+                  actionLabel:
+                      ctrl.paymentApps.isEmpty ? 'Add First App' : null,
+                  onAction: ctrl.paymentApps.isEmpty
+                      ? () => _showAddPaymentAppModal(context, ctrl)
+                      : null,
+                )
+              : ReorderableListView.builder(
+                  buildDefaultDragHandles: false,
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
+                  itemCount: filteredApps.length,
+                  onReorder: (oldIndex, newIndex) =>
+                      _onReorder(oldIndex, newIndex, ctrl),
+                  itemBuilder: (context, index) {
+                    final app = filteredApps[index];
+                    return _buildPaymentAppCard(app, ctrl);
+                  },
+                ),
+        ),
+      ],
     );
   }
 
