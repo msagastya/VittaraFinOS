@@ -106,94 +106,117 @@ class _DeductionStepState extends State<DeductionStep> {
                     ),
                   ],
                 ),
-                if (controller.deductFromAccount) ...[
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    child: Divider(height: 1),
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'Extra Charges',
-                          style:
-                              TextStyle(color: AppStyles.getTextColor(context)),
-                        ),
-                      ),
-                      SizedBox(
-                        width: 100,
-                        child: CupertinoTextField(
-                          controller: _chargesController,
-                          keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true),
-                          placeholder: '0.00',
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 8, horizontal: 12),
-                          decoration: BoxDecoration(
-                            color: isDarkMode(context)
-                                ? Colors.grey[800]
-                                : Colors.grey[200],
-                            borderRadius: BorderRadius.circular(8),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  child: Divider(height: 1),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Extra Charges',
+                            style: TextStyle(
+                                color: AppStyles.getTextColor(context),
+                                fontWeight: FontWeight.w600),
                           ),
-                          style:
-                              TextStyle(color: AppStyles.getTextColor(context)),
-                          onChanged: _onChargesChanged,
-                        ),
+                          const SizedBox(height: Spacing.xs),
+                          Text(
+                            'Brokerage, taxes, STT, etc.',
+                            style: TextStyle(
+                                color:
+                                    AppStyles.getSecondaryTextColor(context),
+                                fontSize: TypeScale.footnote),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                    SizedBox(
+                      width: 110,
+                      child: CupertinoTextField(
+                        controller: _chargesController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
+                        placeholder: '0.00',
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 8, horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: isDarkMode(context)
+                              ? Colors.grey[800]
+                              : Colors.grey[200],
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        prefix: Padding(
+                          padding: const EdgeInsets.only(left: 8),
+                          child: Text('₹',
+                              style: TextStyle(
+                                  color: AppStyles.getTextColor(context))),
+                        ),
+                        style:
+                            TextStyle(color: AppStyles.getTextColor(context)),
+                        onChanged: _onChargesChanged,
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
           const SizedBox(height: Spacing.xl),
-          if (controller.deductFromAccount) ...[
-            Container(
-              padding: const EdgeInsets.all(Spacing.lg),
-              decoration: BoxDecoration(
+          // Always show the cost summary
+          Container(
+            padding: const EdgeInsets.all(Spacing.lg),
+            decoration: BoxDecoration(
+              color: hasInsufficientBalance
+                  ? AppStyles.plasmaRed.withValues(alpha: 0.1)
+                  : SemanticColors.investments.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
                 color: hasInsufficientBalance
-                    ? AppStyles.plasmaRed.withValues(alpha: 0.1)
-                    : AppStyles.bioGreen.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: hasInsufficientBalance
-                      ? AppStyles.plasmaRed
-                      : AppStyles.bioGreen,
-                  width: 1,
-                ),
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Purchase Amount:'),
-                      Text('₹${controller.totalAmount.toStringAsFixed(2)}'),
-                    ],
-                  ),
-                  const SizedBox(height: Spacing.sm),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Charges:'),
-                      Text('₹${controller.extraCharges.toStringAsFixed(2)}'),
-                    ],
-                  ),
-                  const Divider(),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Total Deduction:',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                      Text(
-                        '₹${controller.totalDeduction.toStringAsFixed(2)}',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                ],
+                    ? AppStyles.plasmaRed
+                    : SemanticColors.investments.withValues(alpha: 0.3),
+                width: 1,
               ),
             ),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Purchase Amount:'),
+                    Text('₹${controller.totalAmount.toStringAsFixed(2)}'),
+                  ],
+                ),
+                const SizedBox(height: Spacing.sm),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Extra Charges:'),
+                    Text('₹${controller.extraCharges.toStringAsFixed(2)}'),
+                  ],
+                ),
+                const Divider(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      controller.deductFromAccount
+                          ? 'Total Deduction:'
+                          : 'Total Cost:',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      '₹${controller.totalDeduction.toStringAsFixed(2)}',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          if (controller.deductFromAccount) ...[
             if (hasInsufficientBalance)
               Padding(
                 padding: const EdgeInsets.only(top: 16),
