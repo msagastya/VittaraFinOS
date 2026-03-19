@@ -96,10 +96,7 @@ class StocksWizardController extends ChangeNotifier {
         return selectedAccount != null;
       case 2: // Details
         return qty > 0 && price > 0;
-      case 3: // Deduction
-        if (deductFromAccount && selectedAccount != null) {
-          return selectedAccount!.balance >= totalDeduction;
-        }
+      case 3: // Deduction — balance warning shown in UI but never blocks
         return true;
       default:
         return true;

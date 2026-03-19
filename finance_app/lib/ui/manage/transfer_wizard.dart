@@ -120,16 +120,14 @@ class _TransferWizardState extends State<TransferWizard> {
 
     if (_sourceAccount != null &&
         deductFromSource + charges > _sourceAccount!.balance) {
-      toast.showError('Source account has insufficient balance');
-      return;
+      toast.showWarning('Balance will go negative in ${_sourceAccount!.name}');
     }
 
     if (appWalletAmount > 0 && _selectedPaymentApp != null) {
       final app = paymentAppsController.getAppByName(_selectedPaymentApp!);
       final walletBalance = (app?['walletBalance'] as num?)?.toDouble() ?? 0.0;
       if (appWalletAmount > walletBalance) {
-        toast.showError('Payment app wallet has insufficient balance');
-        return;
+        toast.showWarning('Payment app wallet balance will go negative');
       }
     }
 

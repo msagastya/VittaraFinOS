@@ -1614,8 +1614,7 @@ class _SipExecutionModalState extends State<_SipExecutionModal> {
     if (selectedAccount != null) {
       if (selectedAccount.balance < amount) {
         toast_lib.toast
-            .showError('Insufficient balance in ${selectedAccount.name}');
-        return;
+            .showWarning('Balance will go negative in ${selectedAccount.name}');
       }
       await accountsController.updateAccount(
         selectedAccount.copyWith(balance: selectedAccount.balance - amount),
@@ -1626,8 +1625,8 @@ class _SipExecutionModalState extends State<_SipExecutionModal> {
       if (index >= 0) {
         final account = accountsController.accounts[index];
         if (account.balance < amount) {
-          toast_lib.toast.showError('Insufficient balance in ${account.name}');
-          return;
+          toast_lib.toast
+              .showWarning('Balance will go negative in ${account.name}');
         }
         await accountsController.updateAccount(
           account.copyWith(balance: account.balance - amount),
