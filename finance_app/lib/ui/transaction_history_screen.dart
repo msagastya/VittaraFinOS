@@ -21,6 +21,7 @@ import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vittara_fin_os/services/transaction_export_service.dart';
 
 class TransactionHistoryScreen extends StatefulWidget {
   /// When [filterAccountId] is provided, only transactions linked to that
@@ -47,6 +48,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   double? _maxAmount;
   TransactionType? _typeFilter;
   bool _isExportingCsv = false;
+  bool _isExportingPdf = false;
+  bool _isExportingXlsx = false;
   final ScrollController _scrollController = ScrollController();
   bool _showScrollToTop = false;
 
@@ -376,6 +379,127 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     }
   }
 
+  Future<void> _exportPdf(List<Transaction> transactions) async {
+    if (_isExportingPdf) return;
+    setState(() => _isExportingPdf = true);
+    try {
+      final file = await TransactionExportService.buildPdf(
+        transactions,
+        title: widget.filterAccountName ?? 'Transaction History',
+        accountName: widget.filterAccountName,
+      );
+      if (!mounted) return;
+      await Share.shareXFiles(
+        [XFile(file.path, mimeType: 'application/pdf')],
+        subject: '${widget.filterAccountName ?? 'Transactions'} — PDF Export',
+      );
+      try { await file.delete(); } catch (_) {}
+    } catch (e) {
+      if (mounted) toast_lib.toast.showError('PDF export failed: $e');
+    } finally {
+      if (mounted) setState(() => _isExportingPdf = false);
+    }
+  }
+
+  Future<void> _exportXlsx(List<Transaction> transactions) async {
+    if (_isExportingXlsx) return;
+    setState(() => _isExportingXlsx = true);
+    try {
+      final file = await TransactionExportService.buildXlsx(
+        transactions,
+        title: widget.filterAccountName ?? 'Transaction History',
+        accountName: widget.filterAccountName,
+      );
+      if (!mounted) return;
+      await Share.shareXFiles(
+        [XFile(file.path, mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')],
+        subject: '${widget.filterAccountName ?? 'Transactions'} — Excel Export',
+      );
+      try { await file.delete(); } catch (_) {}
+    } catch (e) {
+      if (mounted) toast_lib.toast.showError('Excel export failed: $e');
+    } finally {
+      if (mounted) setState(() => _isExportingXlsx = false);
+    }
+  }
+
+  void _showExportSheet(BuildContext context, List<Transaction> transactions) {
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (ctx) => CupertinoActionSheet(
+        title: const Text('Export Transactions'),
+        message: Text('${transactions.length} transaction${transactions.length == 1 ? '' : 's'} will be exported'),
+        actions: [
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _exportPdf(transactions);
+            },
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(CupertinoIcons.doc_richtext, color: CupertinoColors.systemRed),
+                SizedBox(width: 10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Export as PDF', style: TextStyle(fontWeight: FontWeight.w600)),
+                    Text('Styled report with logo & summary', style: TextStyle(fontSize: 12, color: CupertinoColors.systemGrey)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _exportXlsx(transactions);
+            },
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(CupertinoIcons.square_grid_2x2, color: CupertinoColors.systemGreen),
+                SizedBox(width: 10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Export as Excel (.xlsx)', style: TextStyle(fontWeight: FontWeight.w600)),
+                    Text('Spreadsheet with colour coding', style: TextStyle(fontSize: 12, color: CupertinoColors.systemGrey)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _exportCsv(transactions);
+            },
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(CupertinoIcons.doc_plaintext, color: CupertinoColors.systemBlue),
+                SizedBox(width: 10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Export as CSV', style: TextStyle(fontWeight: FontWeight.w600)),
+                    Text('Plain comma-separated values', style: TextStyle(fontSize: 12, color: CupertinoColors.systemGrey)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(ctx),
+          isDefaultAction: true,
+          child: const Text('Cancel'),
+        ),
+      ),
+    );
+  }
+
   String _escapeCsv(String value) {
     if (value.contains(',') || value.contains('"') || value.contains('\n')) {
       return '"${value.replaceAll('"', '""')}"';
@@ -435,10 +559,10 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                 final filtered = _filterBySearch(all);
                 return CupertinoButton(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
-                  onPressed: _isExportingCsv || filtered.isEmpty
+                  onPressed: (_isExportingCsv || _isExportingPdf || _isExportingXlsx) || filtered.isEmpty
                       ? null
-                      : () => _exportCsv(filtered),
-                  child: _isExportingCsv
+                      : () => _showExportSheet(context, filtered),
+                  child: _isExportingCsv || _isExportingPdf || _isExportingXlsx
                       ? const CupertinoActivityIndicator(radius: 10)
                       : Icon(
                           CupertinoIcons.share,

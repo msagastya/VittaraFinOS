@@ -22,6 +22,7 @@ import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/transaction_history_screen.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
+import 'package:vittara_fin_os/services/transaction_export_service.dart';
 
 class AccountsScreen extends StatefulWidget {
   const AccountsScreen({super.key});
@@ -1058,6 +1059,93 @@ class _AccountsScreenState extends State<AccountsScreen> {
     }
   }
 
+  Future<void> _exportAccountPdf(Account account) async {
+    final txList = _getAccountTransactions(account);
+    if (txList.isEmpty) { toast.showError('No transactions to export'); return; }
+    try {
+      final file = await TransactionExportService.buildPdf(
+        txList,
+        title: '${account.name} Statement',
+        accountName: account.name,
+      );
+      await Share.shareXFiles(
+        [XFile(file.path, mimeType: 'application/pdf')],
+        subject: '${account.name} — PDF Statement',
+      );
+      try { await file.delete(); } catch (_) {}
+    } catch (e) {
+      if (mounted) toast.showError('Export failed: $e');
+    }
+  }
+
+  Future<void> _exportAccountXlsx(Account account) async {
+    final txList = _getAccountTransactions(account);
+    if (txList.isEmpty) { toast.showError('No transactions to export'); return; }
+    try {
+      final file = await TransactionExportService.buildXlsx(
+        txList,
+        title: '${account.name} Transactions',
+        accountName: account.name,
+      );
+      await Share.shareXFiles(
+        [XFile(file.path, mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')],
+        subject: '${account.name} — Excel Export',
+      );
+      try { await file.delete(); } catch (_) {}
+    } catch (e) {
+      if (mounted) toast.showError('Export failed: $e');
+    }
+  }
+
+  void _showAccountExportSheet(BuildContext context, Account account) {
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (ctx) => CupertinoActionSheet(
+        title: Text('Export — ${account.name}'),
+        actions: [
+          CupertinoActionSheetAction(
+            onPressed: () { Navigator.pop(ctx); _exportAccountPdf(account); },
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(CupertinoIcons.doc_richtext, color: CupertinoColors.systemRed),
+                SizedBox(width: 10),
+                Text('Export as PDF', style: TextStyle(fontWeight: FontWeight.w600)),
+              ],
+            ),
+          ),
+          CupertinoActionSheetAction(
+            onPressed: () { Navigator.pop(ctx); _exportAccountXlsx(account); },
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(CupertinoIcons.square_grid_2x2, color: CupertinoColors.systemGreen),
+                SizedBox(width: 10),
+                Text('Export as Excel (.xlsx)', style: TextStyle(fontWeight: FontWeight.w600)),
+              ],
+            ),
+          ),
+          CupertinoActionSheetAction(
+            onPressed: () { Navigator.pop(ctx); _exportAccountCsv(account); },
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(CupertinoIcons.doc_plaintext, color: CupertinoColors.systemBlue),
+                SizedBox(width: 10),
+                Text('Export as CSV', style: TextStyle(fontWeight: FontWeight.w600)),
+              ],
+            ),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(ctx),
+          isDefaultAction: true,
+          child: const Text('Cancel'),
+        ),
+      ),
+    );
+  }
+
   /// Compute 30-day balance history for an account by reversing transactions.
   List<double> _computeBalanceHistory(Account account) {
     final txController = context.read<TransactionsController>();
@@ -1513,6 +1601,48 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                           'Adjust Balance',
                                           style: TextStyle(
                                             color: AppStyles.bioGreen,
+                                            fontSize: TypeScale.body,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: Spacing.md),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: BouncyButton(
+                                  onPressed: () {
+                                    Navigator.pop(modalContext);
+                                    _showAccountExportSheet(context, account);
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 12),
+                                    decoration: BoxDecoration(
+                                      color: CupertinoColors.systemOrange
+                                          .withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: const Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          CupertinoIcons.share,
+                                          size: 16,
+                                          color: CupertinoColors.systemOrange,
+                                        ),
+                                        SizedBox(width: 6),
+                                        Text(
+                                          'Export',
+                                          style: TextStyle(
+                                            color: CupertinoColors.systemOrange,
                                             fontSize: TypeScale.body,
                                             fontWeight: FontWeight.w600,
                                           ),

@@ -34,6 +34,8 @@ dependencies:
   flutter_local_notifications: ^18.0.0
   share_plus: ^10.1.4
   flutter_secure_storage: ^9.2.4
+  pdf: ^3.10.8
+  excel: ^4.0.2
 dev_dependencies:
   flutter_test:
     sdk: flutter
