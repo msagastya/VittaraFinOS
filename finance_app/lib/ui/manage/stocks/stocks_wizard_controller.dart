@@ -1,27 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
+import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/services/stock_api_service.dart';
 
 class StocksWizardController extends ChangeNotifier {
-  final PageController pageController = PageController();
-  int _currentStep = 0;
+  late final PageController pageController;
+  int _currentStep;
   bool isSubmitting = false;
 
-  // Step 1: Stock Selection
+  /// When provided the stock search step (step 0) is pre-filled and skipped.
+  final Investment? existingInvestment;
+
+  // Step 0: Stock Selection
   StockSearchResult? selectedStock;
 
-  // Step 2: Account Selection
+  // Step 1: Account Selection
   Account? selectedAccount;
 
-  // Step 3: Details
+  // Step 2: Details
   double qty = 0;
   double price = 0;
   DateTime purchaseDate = DateTime.now();
   double currentValue = 0;
 
-  // Step 4: Deduction
+  // Step 3: Deduction
   bool deductFromAccount = false;
   double extraCharges = 0;
+
+  StocksWizardController({this.existingInvestment})
+      : _currentStep = existingInvestment != null ? 1 : 0 {
+    pageController =
+        PageController(initialPage: existingInvestment != null ? 1 : 0);
+    if (existingInvestment != null) {
+      final meta = existingInvestment!.metadata ?? {};
+      selectedStock = StockSearchResult(
+        symbol: (meta['symbol'] as String?) ?? existingInvestment!.name,
+        name: (meta['name'] as String?) ?? existingInvestment!.name,
+        exchange: (meta['exchange'] as String?) ?? '',
+        type: (meta['type'] as String?) ?? 'EQUITY',
+      );
+    }
+  }
 
   int get currentStep => _currentStep;
   double get totalAmount => qty * price;
@@ -101,7 +120,9 @@ class StocksWizardController extends ChangeNotifier {
   }
 
   void previousPage() {
-    if (_currentStep > 0) {
+    // If stock was pre-filled (adding to existing), step 1 is the minimum
+    final minStep = existingInvestment != null ? 1 : 0;
+    if (_currentStep > minStep) {
       _currentStep--;
       pageController.animateToPage(
         _currentStep,

@@ -3138,7 +3138,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
   Widget _addWizardFor(Investment investment) {
     switch (investment.type) {
       case InvestmentType.stocks:
-        return const StocksWizard();
+        return StocksWizard(existingInvestment: investment);
       case InvestmentType.mutualFund:
         return const MFWizard();
       case InvestmentType.digitalGold:

@@ -16,12 +16,16 @@ import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class StocksWizard extends StatelessWidget {
-  const StocksWizard({super.key});
+  const StocksWizard({super.key, this.existingInvestment});
+
+  /// When set, the stock search step (step 0) is pre-filled and skipped.
+  final Investment? existingInvestment;
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => StocksWizardController(),
+      create: (_) =>
+          StocksWizardController(existingInvestment: existingInvestment),
       child: const _StocksWizardContent(),
     );
   }
@@ -99,7 +103,10 @@ class _StocksWizardContent extends StatelessWidget {
       backgroundColor: AppStyles.getBackground(context),
       navigationBar: CupertinoNavigationBar(
         previousPageTitle: 'Back',
-        middle: Text('Add Stock Investment',
+        middle: Text(
+            controller.existingInvestment != null
+                ? 'Buy More — ${controller.selectedStock?.symbol ?? controller.existingInvestment!.name}'
+                : 'Add Stock Investment',
             style: TextStyle(color: AppStyles.getTextColor(context))),
         backgroundColor: AppStyles.getBackground(context),
         leading: CupertinoButton(
