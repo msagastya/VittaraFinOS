@@ -23,6 +23,8 @@ import 'package:vittara_fin_os/ui/manage/fo/fo_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/investments/simple_investment_details_screen.dart';
 import 'package:vittara_fin_os/ui/manage/mf/mf_details_screen.dart';
 import 'package:vittara_fin_os/ui/manage/mf/mf_wizard.dart';
+import 'package:vittara_fin_os/ui/manage/mf/mf_wizard_controller.dart';
+import 'package:vittara_fin_os/models/mutual_fund_model.dart';
 import 'package:vittara_fin_os/ui/manage/nps/nps_details_screen.dart';
 import 'package:vittara_fin_os/ui/manage/pension/pension_details_screen.dart';
 import 'package:vittara_fin_os/ui/manage/pension/pension_wizard.dart';
@@ -198,6 +200,43 @@ class _DashboardActionSheetState extends State<_DashboardActionSheet> {
         );
       case InvestmentType.commodities:
         return const CommoditiesWizard();
+    }
+  }
+
+  // ── Add-to-existing wizard router ───────────────────────────────────────────
+
+  Widget _addWizardFor(Investment investment) {
+    switch (investment.type) {
+      case InvestmentType.stocks:
+        return StocksWizard(existingInvestment: investment);
+      case InvestmentType.mutualFund:
+        final meta = investment.metadata ?? {};
+        final intent = MFWizardIntent(
+          mode: MFWizardMode.buyMore,
+          mutualFund: MutualFund(
+            schemeCode: (meta['schemeCode'] as String?) ?? investment.id,
+            schemeName: (meta['schemeName'] as String?) ?? investment.name,
+            schemeType: meta['schemeType'] as String?,
+            fundHouse: meta['fundHouse'] as String?,
+          ),
+          transactionAmount: 0,
+          transactionNav: (meta['currentNAV'] as num?)?.toDouble() ?? 0.0,
+          transactionDate: DateTime.now(),
+          targetInvestment: investment,
+          initialStep: 3,
+        );
+        return MFWizard(intent: intent);
+      case InvestmentType.digitalGold:
+        return DigitalGoldWizard(existingInvestment: investment);
+      default:
+        return SimpleInvestmentEntryWizard(
+          type: investment.type,
+          title: 'Add ${_typeInfo[investment.type]?.label ?? investment.type.name}',
+          subtitle: 'Add more to your existing position.',
+          color: _typeInfo[investment.type]?.color ?? const Color(0xFF888888),
+          defaultName: investment.name,
+          existingInvestment: investment,
+        );
     }
   }
 
@@ -765,8 +804,7 @@ class _DashboardActionSheetState extends State<_DashboardActionSheet> {
             itemBuilder: (ctx, i) {
               final inv = _typeInvestments[i];
               return _investmentRow(inv, isDark, onTap: () {
-                // "Add to Existing" → launch the buy/add wizard directly
-                _launch(_wizardFor(_selectedType!));
+                _launch(_addWizardFor(inv));
               }, actionLabel: 'Add');
             },
           ),
