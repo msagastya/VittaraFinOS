@@ -18,6 +18,7 @@ class SimpleInvestmentEntryWizard extends StatefulWidget {
   final String defaultName;
   final String? referenceLabel;
   final String? referenceHint;
+  final Investment? existingInvestment;
 
   const SimpleInvestmentEntryWizard({
     super.key,
@@ -28,6 +29,7 @@ class SimpleInvestmentEntryWizard extends StatefulWidget {
     required this.defaultName,
     this.referenceLabel,
     this.referenceHint,
+    this.existingInvestment,
   });
 
   @override
@@ -155,22 +157,47 @@ class _SimpleInvestmentEntryWizardState
         metadata['bondTrackingMode'] = 'standard';
       }
 
-      final investment = Investment(
-        id: DateTime.now().microsecondsSinceEpoch.toString(),
-        name: name,
-        type: widget.type,
-        amount: amount,
-        color: widget.color,
-        notes: notes.isEmpty ? null : notes,
-        broker: _linkedAccount?.bankName,
-        metadata: metadata,
-      );
-
-      await context.read<InvestmentsController>().addInvestment(investment);
+      if (widget.existingInvestment != null) {
+        // Buy more — merge into existing record
+        final existing = widget.existingInvestment!;
+        final existingMeta =
+            Map<String, dynamic>.from(existing.metadata ?? {});
+        final oldCurrentValue =
+            (existingMeta['currentValue'] as num?)?.toDouble() ??
+                existing.amount;
+        final mergedMeta = {
+          ...existingMeta,
+          'currentValue': oldCurrentValue + currentValue,
+          'investmentAmount': existing.amount + amount,
+          'lastActivityAt': DateTime.now().toIso8601String(),
+        };
+        if (notes.isNotEmpty) mergedMeta['notes'] = notes;
+        final updatedInvestment = existing.copyWith(
+          amount: existing.amount + amount,
+          metadata: mergedMeta,
+        );
+        await context
+            .read<InvestmentsController>()
+            .updateInvestment(updatedInvestment);
+      } else {
+        final investment = Investment(
+          id: DateTime.now().microsecondsSinceEpoch.toString(),
+          name: name,
+          type: widget.type,
+          amount: amount,
+          color: widget.color,
+          notes: notes.isEmpty ? null : notes,
+          broker: _linkedAccount?.bankName,
+          metadata: metadata,
+        );
+        await context.read<InvestmentsController>().addInvestment(investment);
+      }
 
       if (!mounted) return;
       Haptics.success();
-      toast.showSuccess('Investment added.');
+      toast.showSuccess(widget.existingInvestment != null
+          ? 'Position updated.'
+          : 'Investment added.');
       Navigator.of(context).pop();
     } catch (error) {
       toast.showError('Failed to add investment: $error');

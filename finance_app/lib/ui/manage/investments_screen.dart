@@ -12,6 +12,8 @@ import 'package:vittara_fin_os/ui/manage/investment_type_selection.dart';
 import 'package:vittara_fin_os/ui/manage/stocks/stocks_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/stocks/stock_details_screen.dart';
 import 'package:vittara_fin_os/ui/manage/mf/mf_wizard.dart';
+import 'package:vittara_fin_os/ui/manage/mf/mf_wizard_controller.dart';
+import 'package:vittara_fin_os/models/mutual_fund_model.dart';
 import 'package:vittara_fin_os/ui/manage/mf/mf_details_screen.dart';
 import 'package:vittara_fin_os/ui/manage/fd/fd_details_screen.dart';
 import 'package:vittara_fin_os/ui/manage/rd/rd_details_screen.dart';
@@ -3140,9 +3142,9 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       case InvestmentType.stocks:
         return StocksWizard(existingInvestment: investment);
       case InvestmentType.mutualFund:
-        return const MFWizard();
+        return _buildMFBuyMoreWizard(investment);
       case InvestmentType.digitalGold:
-        return const DigitalGoldWizard();
+        return DigitalGoldWizard(existingInvestment: investment);
       default:
         return SimpleInvestmentEntryWizard(
           type: investment.type,
@@ -3150,8 +3152,35 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
           subtitle: 'Add more to your existing position.',
           color: _getInvestmentTypeColor(investment.type),
           defaultName: investment.name,
+          existingInvestment: investment,
         );
     }
+  }
+
+  Widget _buildMFBuyMoreWizard(Investment investment) {
+    final meta = investment.metadata ?? {};
+    final schemeCode =
+        (meta['schemeCode'] as String?) ?? investment.id;
+    final schemeName =
+        (meta['schemeName'] as String?) ?? investment.name;
+    final nav = (meta['currentNAV'] as num?)?.toDouble() ?? 0.0;
+
+    final intent = MFWizardIntent(
+      mode: MFWizardMode.buyMore,
+      mutualFund: MutualFund(
+        schemeCode: schemeCode,
+        schemeName: schemeName,
+        schemeType: meta['schemeType'] as String?,
+        fundHouse: meta['fundHouse'] as String?,
+      ),
+      transactionAmount: 0,
+      transactionNav: nav,
+      transactionDate: DateTime.now(),
+      targetInvestment: investment,
+      initialStep: 3,
+    );
+
+    return MFWizard(intent: intent);
   }
 
   Future<void> _navigateToDetails(Investment investment) async {

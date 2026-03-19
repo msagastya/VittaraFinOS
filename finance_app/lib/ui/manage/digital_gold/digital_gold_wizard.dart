@@ -15,19 +15,21 @@ import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class DigitalGoldWizard extends StatelessWidget {
-  const DigitalGoldWizard({super.key});
+  const DigitalGoldWizard({super.key, this.existingInvestment});
+  final Investment? existingInvestment;
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => DigitalGoldWizardController(),
-      child: const _DigitalGoldWizardContent(),
+      child: _DigitalGoldWizardContent(existingInvestment: existingInvestment),
     );
   }
 }
 
 class _DigitalGoldWizardContent extends StatelessWidget {
-  const _DigitalGoldWizardContent();
+  const _DigitalGoldWizardContent({this.existingInvestment});
+  final Investment? existingInvestment;
 
   Future<void> _saveInvestment(
     BuildContext context,
@@ -37,34 +39,68 @@ class _DigitalGoldWizardContent extends StatelessWidget {
         Provider.of<InvestmentsController>(context, listen: false);
 
     try {
-      final investment = Investment(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        name: controller.selectedCompany!.name,
-        type: InvestmentType.digitalGold,
-        amount: controller.investedAmount,
-        color: const Color(0xFFFFB81C),
-        broker: null,
-        metadata: {
-          'company': controller.selectedCompany!.name,
-          'investmentRate': controller.investmentRate,
-          'gstRate': controller.gstRate,
-          'investmentDate': controller.investmentDate.toIso8601String(),
-          'investedAmount': controller.investedAmount,
-          'actualGoldCost': controller.actualAmount,
-          'gstAmount': controller.gstAmount,
-          'weightInGrams': controller.weightInGrams,
-          'currentRate':
-              0.0, // Will be fetched and updated when viewing details
-          'currentValue': 0.0, // Will be calculated when viewing details
-          'lastUpdated': DateTime.now().toIso8601String(),
-        },
-      );
+      if (existingInvestment != null) {
+        // Buy more gold — accumulate into existing record
+        final existing = existingInvestment!;
+        final existingMeta =
+            Map<String, dynamic>.from(existing.metadata ?? {});
+        final oldWeight =
+            (existingMeta['weightInGrams'] as num?)?.toDouble() ?? 0;
+        final oldActualCost =
+            (existingMeta['actualGoldCost'] as num?)?.toDouble() ?? 0;
+        final oldGst =
+            (existingMeta['gstAmount'] as num?)?.toDouble() ?? 0;
 
-      await investmentsController.addInvestment(investment);
+        final newWeight = oldWeight + controller.weightInGrams;
+        final newAmount = existing.amount + controller.investedAmount;
+
+        final updatedMeta = {
+          ...existingMeta,
+          'weightInGrams': newWeight,
+          'investedAmount': newAmount,
+          'actualGoldCost': oldActualCost + controller.actualAmount,
+          'gstAmount': oldGst + controller.gstAmount,
+          // Keep currentRate/currentValue at 0 — will be recalculated on details screen
+          'currentValue': 0.0,
+          'lastUpdated': DateTime.now().toIso8601String(),
+        };
+
+        final updatedInvestment = existing.copyWith(
+          amount: newAmount,
+          metadata: updatedMeta,
+        );
+
+        await investmentsController.updateInvestment(updatedInvestment);
+      } else {
+        final investment = Investment(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          name: controller.selectedCompany!.name,
+          type: InvestmentType.digitalGold,
+          amount: controller.investedAmount,
+          color: const Color(0xFFFFB81C),
+          broker: null,
+          metadata: {
+            'company': controller.selectedCompany!.name,
+            'investmentRate': controller.investmentRate,
+            'gstRate': controller.gstRate,
+            'investmentDate': controller.investmentDate.toIso8601String(),
+            'investedAmount': controller.investedAmount,
+            'actualGoldCost': controller.actualAmount,
+            'gstAmount': controller.gstAmount,
+            'weightInGrams': controller.weightInGrams,
+            'currentRate': 0.0,
+            'currentValue': 0.0,
+            'lastUpdated': DateTime.now().toIso8601String(),
+          },
+        );
+        await investmentsController.addInvestment(investment);
+      }
 
       if (context.mounted) {
         Haptics.success();
-        toast.showSuccess('Digital Gold investment added successfully!');
+        toast.showSuccess(existingInvestment != null
+            ? 'Gold position updated successfully!'
+            : 'Digital Gold investment added successfully!');
         Navigator.of(context).pop();
       }
     } catch (e) {

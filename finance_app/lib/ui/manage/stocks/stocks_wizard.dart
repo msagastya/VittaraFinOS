@@ -53,35 +53,78 @@ class _StocksWizardContent extends StatelessWidget {
         await accountsController.updateAccount(updatedAccount);
       }
 
-      // 2. Create Investment
-      final investment = Investment(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        name: controller.selectedStock!.symbol,
-        type: InvestmentType.stocks,
-        amount: controller.totalAmount,
-        color: const Color(0xFF00B050), // Stock color
-        broker: controller.selectedAccount?.bankName,
-        metadata: {
-          'symbol': controller.selectedStock!.symbol,
-          'name': controller.selectedStock!.name,
-          'exchange': controller.selectedStock!.exchange,
-          'accountId': controller.selectedAccount?.id,
-          'qty': controller.qty,
-          'pricePerShare': controller.price,
-          'extraCharges': controller.extraCharges,
-          'deductedFromAccount': controller.deductFromAccount,
-          'purchaseDate': controller.purchaseDate.toIso8601String(),
-          'currentValue': controller.currentValue > 0
-              ? controller.currentValue
-              : controller.totalAmount,
-        },
-      );
+      // 2. Create or update Investment
+      if (controller.existingInvestment != null) {
+        // Buy more — merge into existing record
+        final existing = controller.existingInvestment!;
+        final existingMeta =
+            Map<String, dynamic>.from(existing.metadata ?? {});
 
-      await investmentsController.addInvestment(investment);
+        final oldQty =
+            (existingMeta['qty'] as num?)?.toDouble() ?? 0;
+        final oldCurrentValue =
+            (existingMeta['currentValue'] as num?)?.toDouble() ??
+                existing.amount;
+        final oldExtraCharges =
+            (existingMeta['extraCharges'] as num?)?.toDouble() ?? 0;
+
+        final newQty = oldQty + controller.qty;
+        final newAmount = existing.amount + controller.totalAmount;
+        final newCurrentValue = oldCurrentValue +
+            (controller.currentValue > 0
+                ? controller.currentValue
+                : controller.totalAmount);
+        final avgPrice = newQty > 0 ? newAmount / newQty : controller.price;
+
+        final updatedMeta = {
+          ...existingMeta,
+          'qty': newQty,
+          'pricePerShare': avgPrice,
+          'extraCharges': oldExtraCharges + controller.extraCharges,
+          'currentValue': newCurrentValue,
+          // preserve original symbol/name/exchange/purchaseDate/accountId
+        };
+
+        final updatedInvestment = existing.copyWith(
+          amount: newAmount,
+          broker: controller.selectedAccount?.bankName ?? existing.broker,
+          metadata: updatedMeta,
+        );
+
+        await investmentsController.updateInvestment(updatedInvestment);
+      } else {
+        // New stock entry
+        final investment = Investment(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          name: controller.selectedStock!.symbol,
+          type: InvestmentType.stocks,
+          amount: controller.totalAmount,
+          color: const Color(0xFF00B050),
+          broker: controller.selectedAccount?.bankName,
+          metadata: {
+            'symbol': controller.selectedStock!.symbol,
+            'name': controller.selectedStock!.name,
+            'exchange': controller.selectedStock!.exchange,
+            'accountId': controller.selectedAccount?.id,
+            'qty': controller.qty,
+            'pricePerShare': controller.price,
+            'extraCharges': controller.extraCharges,
+            'deductedFromAccount': controller.deductFromAccount,
+            'purchaseDate': controller.purchaseDate.toIso8601String(),
+            'currentValue': controller.currentValue > 0
+                ? controller.currentValue
+                : controller.totalAmount,
+          },
+        );
+
+        await investmentsController.addInvestment(investment);
+      }
 
       if (context.mounted) {
         Haptics.success();
-        toast.showSuccess('Investment added successfully!');
+        toast.showSuccess(controller.existingInvestment != null
+            ? 'Position updated successfully!'
+            : 'Investment added successfully!');
         Navigator.of(context).pop();
       }
     } catch (e) {
