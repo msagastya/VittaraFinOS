@@ -45,10 +45,13 @@ class _StocksWizardContent extends StatelessWidget {
     controller.notifyListeners();
     try {
       // 1. Deduct from account if needed
+      double? balanceAfter;
+      double? creditLimit;
       if (controller.deductFromAccount && controller.selectedAccount != null) {
         final account = controller.selectedAccount!;
         final newBalance = account.balance - controller.totalDeduction;
-
+        balanceAfter = newBalance;
+        creditLimit = account.creditLimit;
         final updatedAccount = account.copyWith(balance: newBalance);
         await accountsController.updateAccount(updatedAccount);
       }
@@ -82,7 +85,11 @@ class _StocksWizardContent extends StatelessWidget {
           'pricePerShare': avgPrice,
           'extraCharges': oldExtraCharges + controller.extraCharges,
           'currentValue': newCurrentValue,
-          // preserve original symbol/name/exchange/purchaseDate/accountId
+          'accountId': controller.selectedAccount?.id ?? existingMeta['accountId'],
+          'accountName': controller.selectedAccount?.name ?? existingMeta['accountName'],
+          if (balanceAfter != null) 'sourceBalanceAfter': balanceAfter,
+          if (creditLimit != null) 'sourceCreditLimit': creditLimit,
+          // preserve original symbol/name/exchange/purchaseDate
         };
 
         final updatedInvestment = existing.copyWith(
@@ -106,6 +113,7 @@ class _StocksWizardContent extends StatelessWidget {
             'name': controller.selectedStock!.name,
             'exchange': controller.selectedStock!.exchange,
             'accountId': controller.selectedAccount?.id,
+            'accountName': controller.selectedAccount?.name,
             'qty': controller.qty,
             'pricePerShare': controller.price,
             'extraCharges': controller.extraCharges,
@@ -114,6 +122,8 @@ class _StocksWizardContent extends StatelessWidget {
             'currentValue': controller.currentValue > 0
                 ? controller.currentValue
                 : controller.totalAmount,
+            if (balanceAfter != null) 'sourceBalanceAfter': balanceAfter,
+            if (creditLimit != null) 'sourceCreditLimit': creditLimit,
           },
         );
 

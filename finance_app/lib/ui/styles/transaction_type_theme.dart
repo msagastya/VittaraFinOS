@@ -14,7 +14,7 @@ extension TransactionTypeTheme on TransactionType {
       case TransactionType.borrowing:
         return CupertinoColors.systemPurple;
       case TransactionType.investment:
-        return AppStyles.plasmaRed;
+        return CupertinoColors.systemIndigo;
       case TransactionType.expense:
         return AppStyles.plasmaRed;
       case TransactionType.income:

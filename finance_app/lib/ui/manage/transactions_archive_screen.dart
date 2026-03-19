@@ -206,8 +206,11 @@ class _ArchivedTransactionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final typeColor = transaction.type.typeColor;
-    final typeIcon = transaction.type.typeIcon;
+    final eventType = transaction.metadata?['investmentEventType'] as String?;
+    final isDividend = eventType == 'dividend';
+    final isSell = eventType == 'sell' || eventType == 'decrease' || eventType == 'redeem';
+    final typeColor = isDividend ? const Color(0xFFFFB800) : isSell ? AppStyles.bioGreen : transaction.type.typeColor;
+    final typeIcon = isDividend ? CupertinoIcons.money_dollar_circle_fill : isSell ? CupertinoIcons.arrow_up_circle_fill : transaction.type.typeIcon;
 
     return BouncyButton(
       onPressed: () => _showDetailSheet(context),

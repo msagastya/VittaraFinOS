@@ -516,9 +516,120 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
               ),
 
               const SizedBox(height: Spacing.xl),
+
+              // Activity Log
+              _buildActivityLog(),
+              const SizedBox(height: Spacing.xl),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildActivityLog() {
+    final activityLog = (investment.metadata?['activityLog'] as List?)
+        ?.cast<Map<String, dynamic>>() ?? [];
+    if (activityLog.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Activity',
+            style: AppStyles.titleStyle(context).copyWith(fontSize: TypeScale.headline)),
+        const SizedBox(height: Spacing.lg),
+        ...activityLog.reversed.map((entry) => _buildActivityEntry(entry)),
+      ],
+    );
+  }
+
+  Widget _buildActivityEntry(Map<String, dynamic> entry) {
+    final type = entry['type'] as String? ?? 'buy';
+    final amount = (entry['amount'] as num?)?.toDouble() ?? 0.0;
+    final description = entry['description'] as String? ?? '';
+    final accountName = entry['accountName'] as String? ?? '';
+    final dateStr = entry['date'] as String?;
+    final date = dateStr != null ? DateTime.tryParse(dateStr) : null;
+
+    final isSell = type == 'sell' || type == 'decrease' || type == 'redeem';
+    final isDividend = type == 'dividend';
+    final color = isDividend
+        ? const Color(0xFFFFB800)
+        : isSell ? AppStyles.bioGreen : CupertinoColors.systemIndigo;
+    final icon = isDividend
+        ? CupertinoIcons.money_dollar_circle_fill
+        : isSell ? CupertinoIcons.arrow_up_circle_fill : CupertinoIcons.arrow_down_circle_fill;
+
+    final label = isDividend ? 'Dividend' : isSell ? 'Redeemed' : description.isNotEmpty ? description : 'Invested';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: Spacing.md),
+      padding: const EdgeInsets.all(Spacing.lg),
+      decoration: AppStyles.cardDecoration(context),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(Spacing.sm),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(Radii.sm),
+            ),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          const SizedBox(width: Spacing.lg),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(label,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: TypeScale.subhead,
+                          color: AppStyles.getTextColor(context),
+                        )),
+                    Text(
+                      '${isSell || isDividend ? '+' : '-'}₹${amount.toStringAsFixed(2)}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: TypeScale.subhead,
+                        color: color,
+                      ),
+                    ),
+                  ],
+                ),
+                if (date != null) ...[
+                  const SizedBox(height: Spacing.xs),
+                  Text(
+                    DateFormatter.format(date),
+                    style: TextStyle(
+                      color: AppStyles.getSecondaryTextColor(context),
+                      fontSize: TypeScale.footnote,
+                    ),
+                  ),
+                ],
+                if (accountName.isNotEmpty) ...[
+                  const SizedBox(height: Spacing.xs),
+                  Row(
+                    children: [
+                      Icon(CupertinoIcons.creditcard_fill,
+                          size: 12, color: AppStyles.getSecondaryTextColor(context)),
+                      const SizedBox(width: 4),
+                      Text(accountName,
+                          style: TextStyle(
+                            color: AppStyles.getSecondaryTextColor(context),
+                            fontSize: TypeScale.footnote,
+                          )),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

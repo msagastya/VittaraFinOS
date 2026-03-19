@@ -751,8 +751,19 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     Transaction transaction,
     TransactionsController controller,
   ) {
-    final typeColor = transaction.type.typeColor;
-    final typeIcon = transaction.type.typeIcon;
+    final eventType = transaction.metadata?['investmentEventType'] as String?;
+    final isDividend = eventType == 'dividend';
+    final isSell = eventType == 'sell' || eventType == 'decrease' || eventType == 'redeem';
+    final typeColor = isDividend
+        ? const Color(0xFFFFB800) // amber for dividends
+        : isSell
+            ? AppStyles.bioGreen
+            : transaction.type.typeColor;
+    final typeIcon = isDividend
+        ? CupertinoIcons.money_dollar_circle_fill
+        : isSell
+            ? CupertinoIcons.arrow_up_circle_fill
+            : transaction.type.typeIcon;
 
     return BouncyButton(
       onPressed: () => _showTransactionDetails(

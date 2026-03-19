@@ -119,6 +119,8 @@ class _SimpleInvestmentDetailsScreenState
                   children: [_DetailRow('', _notes!)],
                 ),
               ],
+              const SizedBox(height: Spacing.xl),
+              _buildActivityLog(context),
               const SizedBox(height: 30),
               SizedBox(
                 width: double.infinity,
@@ -169,6 +171,123 @@ class _SimpleInvestmentDetailsScreenState
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildActivityLog(BuildContext context) {
+    final activityLog = (widget.investment.metadata?['activityLog'] as List?)
+        ?.cast<Map<String, dynamic>>() ?? [];
+    if (activityLog.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Activity',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: TypeScale.headline,
+              color: AppStyles.getTextColor(context),
+            )),
+        const SizedBox(height: Spacing.lg),
+        ...activityLog.reversed.map((entry) {
+          final type = entry['type'] as String? ?? 'create';
+          final amount = (entry['amount'] as num?)?.toDouble() ?? 0.0;
+          final description = entry['description'] as String? ?? '';
+          final accountName = entry['accountName'] as String? ?? '';
+          final dateStr = entry['date'] as String?;
+          final date = dateStr != null ? DateTime.tryParse(dateStr) : null;
+
+          final isSell = type == 'sell' || type == 'decrease';
+          final isDividend = type == 'dividend';
+          final color = isDividend
+              ? const Color(0xFFFFB800)
+              : isSell ? AppStyles.bioGreen : CupertinoColors.systemIndigo;
+          final icon = isDividend
+              ? CupertinoIcons.money_dollar_circle_fill
+              : isSell ? CupertinoIcons.arrow_up_circle_fill : CupertinoIcons.arrow_down_circle_fill;
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: Spacing.md),
+            padding: const EdgeInsets.all(Spacing.lg),
+            decoration: BoxDecoration(
+              color: AppStyles.getCardColor(context),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                  color: CupertinoColors.systemGrey.withValues(alpha: 0.2)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(Spacing.sm),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(Radii.sm),
+                  ),
+                  child: Icon(icon, color: color, size: 18),
+                ),
+                const SizedBox(width: Spacing.lg),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              description.isNotEmpty ? description : (isDividend ? 'Dividend' : isSell ? 'Reduced' : 'Invested'),
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: TypeScale.subhead,
+                                color: AppStyles.getTextColor(context),
+                              ),
+                            ),
+                          ),
+                          Text(
+                            '${isSell || isDividend ? '+' : '-'}₹${amount.toStringAsFixed(2)}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: TypeScale.subhead,
+                              color: color,
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (date != null) ...[
+                        const SizedBox(height: Spacing.xs),
+                        Text(
+                          '${date.day}/${date.month}/${date.year}',
+                          style: TextStyle(
+                            color: AppStyles.getSecondaryTextColor(context),
+                            fontSize: TypeScale.footnote,
+                          ),
+                        ),
+                      ],
+                      if (accountName.isNotEmpty) ...[
+                        const SizedBox(height: Spacing.xs),
+                        Row(
+                          children: [
+                            Icon(CupertinoIcons.creditcard_fill,
+                                size: 12,
+                                color: AppStyles.getSecondaryTextColor(context)),
+                            const SizedBox(width: 4),
+                            Text(accountName,
+                                style: TextStyle(
+                                  color: AppStyles.getSecondaryTextColor(context),
+                                  fontSize: TypeScale.footnote,
+                                )),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
+      ],
     );
   }
 
