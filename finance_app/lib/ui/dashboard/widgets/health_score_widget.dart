@@ -316,30 +316,18 @@ class HealthScoreWidget extends BaseDashboardWidget {
     super.key,
   });
 
+  /// The dashboard card in main.dart already renders the outer card shell
+  /// (icon badge + title + border). Overriding build() here means we skip
+  /// BaseDashboardWidget's inner card + inner header entirely — no duplicate
+  /// title, no nested card.
   @override
-  Widget buildHeader(BuildContext context, {bool compact = false}) {
-    return Row(
-      children: [
-        Icon(
-          CupertinoIcons.heart_fill,
-          size: compact ? 15 : 17,
-          color: AppStyles.accentCoral,
-        ),
-        const SizedBox(width: Spacing.sm),
-        Expanded(
-          child: Text(
-            config.title,
-            style: TextStyle(
-              fontSize: compact ? TypeScale.footnote : TypeScale.headline,
-              fontWeight: FontWeight.bold,
-              color: AppStyles.getTextColor(context),
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
-    );
-  }
+  Widget build(BuildContext context) => buildContent(
+        context,
+        columnSpan: config.columnSpan,
+        rowSpan: config.rowSpan,
+        width: double.infinity,
+        height: double.infinity,
+      );
 
   @override
   Widget buildContent(
