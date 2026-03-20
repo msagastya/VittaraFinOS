@@ -614,47 +614,51 @@ class _DashboardActionSheetState extends State<_DashboardActionSheet> {
     final info = _typeInfo[type]!;
     final hasSellable = _typeInvestments.isNotEmpty;
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _sheetHeader(info.label, 'What would you like to do?'),
-          Row(
-            children: [
-              Expanded(
-                child: _actionTile(
-                  icon: CupertinoIcons.add_circled_solid,
-                  label: 'Add',
-                  subtitle: 'Buy or invest',
-                  color: info.color,
-                  onTap: () {
-                    final hasExisting = _typeInvestments.isNotEmpty &&
-                        type != InvestmentType.fixedDeposit &&
-                        type != InvestmentType.recurringDeposit;
-                    if (hasExisting) {
-                      _push(_Page.investmentAddPick);
-                    } else {
-                      _launch(_wizardFor(type));
-                    }
-                  },
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 320),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 36),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _sheetHeader(info.label, 'What would you like to do?'),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: _actionTile(
+                    icon: CupertinoIcons.add_circled_solid,
+                    label: 'Add',
+                    subtitle: 'Buy or invest',
+                    color: info.color,
+                    onTap: () {
+                      final hasExisting = _typeInvestments.isNotEmpty &&
+                          type != InvestmentType.fixedDeposit &&
+                          type != InvestmentType.recurringDeposit;
+                      if (hasExisting) {
+                        _push(_Page.investmentAddPick);
+                      } else {
+                        _launch(_wizardFor(type));
+                      }
+                    },
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _actionTile(
-                  icon: CupertinoIcons.minus_circle_fill,
-                  label: 'Sell',
-                  subtitle: hasSellable ? 'Redeem or withdraw' : 'No holdings yet',
-                  color: hasSellable ? const Color(0xFFFF3B30) : AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.4),
-                  onTap: hasSellable
-                      ? () => _push(_Page.investmentSellPick)
-                      : null,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _actionTile(
+                    icon: CupertinoIcons.minus_circle_fill,
+                    label: 'Sell',
+                    subtitle: hasSellable ? 'Redeem or withdraw' : 'No holdings yet',
+                    color: hasSellable ? const Color(0xFFFF3B30) : AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.4),
+                    onTap: hasSellable
+                        ? () => _push(_Page.investmentSellPick)
+                        : null,
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -670,7 +674,7 @@ class _DashboardActionSheetState extends State<_DashboardActionSheet> {
       onPressed: onTap ?? () {},
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 160),
-        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+        padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 12),
         decoration: BoxDecoration(
           color: onTap != null
               ? color.withValues(alpha: 0.10)
@@ -683,8 +687,8 @@ class _DashboardActionSheetState extends State<_DashboardActionSheet> {
         ),
         child: Column(
           children: [
-            Icon(icon, size: 32, color: color),
-            const SizedBox(height: 8),
+            Icon(icon, size: 38, color: color),
+            const SizedBox(height: 10),
             Text(
               label,
               style: TextStyle(
@@ -848,60 +852,64 @@ class _DashboardActionSheetState extends State<_DashboardActionSheet> {
   // ── Page: Dividend Type ────────────────────────────────────────────────────
 
   Widget _buildDividendType(bool isDark) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _sheetHeader('Dividend', 'Which type of holding paid a dividend?'),
-          Row(
-            children: [
-              Expanded(
-                child: _actionTile(
-                  icon: CupertinoIcons.chart_bar_fill,
-                  label: 'Stocks',
-                  subtitle: 'Equity dividend',
-                  color: const Color(0xFF00B050),
-                  onTap: () {
-                    final investments = context
-                        .read<InvestmentsController>()
-                        .investments
-                        .where((inv) => inv.type == InvestmentType.stocks)
-                        .toList();
-                    setState(() {
-                      _isDividendStock = true;
-                      _dividendInvestments = investments;
-                      _forward = true;
-                      _page = _Page.dividendPick;
-                    });
-                  },
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 320),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 36),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _sheetHeader('Dividend', 'Which type of holding paid a dividend?'),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: _actionTile(
+                    icon: CupertinoIcons.chart_bar_fill,
+                    label: 'Stocks',
+                    subtitle: 'Equity dividend',
+                    color: const Color(0xFF00B050),
+                    onTap: () {
+                      final investments = context
+                          .read<InvestmentsController>()
+                          .investments
+                          .where((inv) => inv.type == InvestmentType.stocks)
+                          .toList();
+                      setState(() {
+                        _isDividendStock = true;
+                        _dividendInvestments = investments;
+                        _forward = true;
+                        _page = _Page.dividendPick;
+                      });
+                    },
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _actionTile(
-                  icon: CupertinoIcons.chart_pie_fill,
-                  label: 'Mutual Fund',
-                  subtitle: 'MF dividend / IDCW',
-                  color: const Color(0xFF0066CC),
-                  onTap: () {
-                    final investments = context
-                        .read<InvestmentsController>()
-                        .investments
-                        .where((inv) => inv.type == InvestmentType.mutualFund)
-                        .toList();
-                    setState(() {
-                      _isDividendStock = false;
-                      _dividendInvestments = investments;
-                      _forward = true;
-                      _page = _Page.dividendPick;
-                    });
-                  },
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _actionTile(
+                    icon: CupertinoIcons.chart_pie_fill,
+                    label: 'Mutual Fund',
+                    subtitle: 'MF dividend / IDCW',
+                    color: const Color(0xFF0066CC),
+                    onTap: () {
+                      final investments = context
+                          .read<InvestmentsController>()
+                          .investments
+                          .where((inv) => inv.type == InvestmentType.mutualFund)
+                          .toList();
+                      setState(() {
+                        _isDividendStock = false;
+                        _dividendInvestments = investments;
+                        _forward = true;
+                        _page = _Page.dividendPick;
+                      });
+                    },
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
