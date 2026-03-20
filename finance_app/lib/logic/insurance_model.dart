@@ -19,6 +19,27 @@ extension InsuranceTypeExtension on InsuranceType {
         return 'Other';
     }
   }
+
+  /// Label used for the key date of this insurance type.
+  String get dateConcept {
+    switch (this) {
+      case InsuranceType.term:
+        return 'Maturity';
+      case InsuranceType.life:
+        return 'Maturity';
+      case InsuranceType.travel:
+        return 'Trip End';
+      default:
+        return 'Renewal';
+    }
+  }
+
+  bool get usesMaturityDate =>
+      this == InsuranceType.term || this == InsuranceType.life;
+
+  bool get usesPolicyTerm => this == InsuranceType.term;
+
+  bool get usesMaturityPicker => this == InsuranceType.life;
 }
 
 class InsurancePolicy {
@@ -30,11 +51,16 @@ class InsurancePolicy {
   final double premiumAmount;
   final String premiumFrequency; // 'monthly', 'quarterly', 'annual'
   final double sumInsured;
-  final DateTime renewalDate;
+  final DateTime renewalDate;  // used for health/vehicle/home/other/travel
   final DateTime startDate;
   final String? nomineeName;
   final String? notes;
   final bool isActive;
+
+  // Type-specific date fields
+  final DateTime? maturityDate;        // term, life — the end/maturity date
+  final int? policyTermYears;          // term — policy duration in years
+  final int? premiumPayingTermYears;   // life — premium paying term (can differ from policy term)
 
   InsurancePolicy({
     required this.id,
@@ -50,16 +76,26 @@ class InsurancePolicy {
     this.nomineeName,
     this.notes,
     this.isActive = true,
+    this.maturityDate,
+    this.policyTermYears,
+    this.premiumPayingTermYears,
   });
+
+  /// The date used for expiry calculations — type-specific.
+  DateTime get _effectiveDate {
+    if (type.usesMaturityDate) {
+      return maturityDate ?? renewalDate;
+    }
+    return renewalDate;
+  }
 
   bool get isExpiringSoon =>
       !isExpired &&
-      renewalDate.isBefore(DateTime.now().add(const Duration(days: 30)));
+      _effectiveDate.isBefore(DateTime.now().add(const Duration(days: 30)));
 
-  bool get isExpired => renewalDate.isBefore(DateTime.now());
+  bool get isExpired => _effectiveDate.isBefore(DateTime.now());
 
-  int get daysUntilRenewal =>
-      renewalDate.difference(DateTime.now()).inDays;
+  int get daysUntilRenewal => _effectiveDate.difference(DateTime.now()).inDays;
 
   /// Normalise premium to annual amount.
   double get annualPremium {
@@ -89,6 +125,9 @@ class InsurancePolicy {
       'nomineeName': nomineeName,
       'notes': notes,
       'isActive': isActive,
+      'maturityDate': maturityDate?.toIso8601String(),
+      'policyTermYears': policyTermYears,
+      'premiumPayingTermYears': premiumPayingTermYears,
     };
   }
 
@@ -98,6 +137,7 @@ class InsurancePolicy {
       (t) => t.name == rawType,
       orElse: () => InsuranceType.other,
     );
+    final maturityRaw = map['maturityDate'] as String?;
     return InsurancePolicy(
       id: map['id'] as String,
       name: map['name'] as String,
@@ -112,6 +152,9 @@ class InsurancePolicy {
       nomineeName: map['nomineeName'] as String?,
       notes: map['notes'] as String?,
       isActive: (map['isActive'] as bool?) ?? true,
+      maturityDate: maturityRaw != null ? DateTime.parse(maturityRaw) : null,
+      policyTermYears: map['policyTermYears'] as int?,
+      premiumPayingTermYears: map['premiumPayingTermYears'] as int?,
     );
   }
 
@@ -129,6 +172,9 @@ class InsurancePolicy {
     Object? nomineeName = _sentinel,
     Object? notes = _sentinel,
     bool? isActive,
+    Object? maturityDate = _sentinel,
+    Object? policyTermYears = _sentinel,
+    Object? premiumPayingTermYears = _sentinel,
   }) {
     return InsurancePolicy(
       id: id ?? this.id,
@@ -147,6 +193,15 @@ class InsurancePolicy {
           nomineeName == _sentinel ? this.nomineeName : nomineeName as String?,
       notes: notes == _sentinel ? this.notes : notes as String?,
       isActive: isActive ?? this.isActive,
+      maturityDate: maturityDate == _sentinel
+          ? this.maturityDate
+          : maturityDate as DateTime?,
+      policyTermYears: policyTermYears == _sentinel
+          ? this.policyTermYears
+          : policyTermYears as int?,
+      premiumPayingTermYears: premiumPayingTermYears == _sentinel
+          ? this.premiumPayingTermYears
+          : premiumPayingTermYears as int?,
     );
   }
 }

@@ -44,7 +44,14 @@ class _InsuranceWizardState extends State<InsuranceWizard> {
 
   // Step 4 — Dates + Nominee
   DateTime _startDate = DateTime.now();
+  // Used for: health/vehicle/home/other (renewal), travel (trip end)
   DateTime _renewalDate = DateTime.now().add(const Duration(days: 365));
+  // Used for: term (auto-calculated), life (user-picked)
+  DateTime? _maturityDate;
+  int? _policyTermYears;
+  int? _premiumPayingTermYears;
+  final _policyTermController = TextEditingController();
+  final _premPayingTermController = TextEditingController();
   final _nomineeController = TextEditingController();
   final _notesController = TextEditingController();
 
@@ -62,6 +69,15 @@ class _InsuranceWizardState extends State<InsuranceWizard> {
       _sumInsuredController.text = p.sumInsured.toStringAsFixed(0);
       _startDate = p.startDate;
       _renewalDate = p.renewalDate;
+      _maturityDate = p.maturityDate;
+      _policyTermYears = p.policyTermYears;
+      _premiumPayingTermYears = p.premiumPayingTermYears;
+      if (p.policyTermYears != null) {
+        _policyTermController.text = p.policyTermYears.toString();
+      }
+      if (p.premiumPayingTermYears != null) {
+        _premPayingTermController.text = p.premiumPayingTermYears.toString();
+      }
       _nomineeController.text = p.nomineeName ?? '';
       _notesController.text = p.notes ?? '';
     }
@@ -75,6 +91,8 @@ class _InsuranceWizardState extends State<InsuranceWizard> {
     _policyNumberController.dispose();
     _premiumController.dispose();
     _sumInsuredController.dispose();
+    _policyTermController.dispose();
+    _premPayingTermController.dispose();
     _nomineeController.dispose();
     _notesController.dispose();
     super.dispose();
@@ -129,6 +147,20 @@ class _InsuranceWizardState extends State<InsuranceWizard> {
         if (sumInsured == null || sumInsured <= 0) {
           _showError('Enter a valid sum insured amount.');
           return false;
+        }
+        return true;
+      case 3:
+        // Validate date step based on type
+        if (_selectedType == InsuranceType.term) {
+          if (_policyTermYears == null || _policyTermYears! <= 0) {
+            _showError('Please enter a valid policy term (years).');
+            return false;
+          }
+        } else if (_selectedType == InsuranceType.life) {
+          if (_maturityDate == null) {
+            _showError('Please select a maturity date.');
+            return false;
+          }
         }
         return true;
       default:
@@ -186,6 +218,15 @@ class _InsuranceWizardState extends State<InsuranceWizard> {
     if (_isSaving) return;
     setState(() => _isSaving = true);
 
+    // For term/life, store maturityDate as the effective date.
+    // renewalDate is set to maturityDate for fallback compatibility.
+    final DateTime effectiveRenewal;
+    if (_selectedType.usesMaturityDate) {
+      effectiveRenewal = _maturityDate ?? _renewalDate;
+    } else {
+      effectiveRenewal = _renewalDate;
+    }
+
     final policy = InsurancePolicy(
       id: widget.existingPolicy?.id ?? IdGenerator.next(prefix: 'ins'),
       name: _nameController.text.trim(),
@@ -197,7 +238,7 @@ class _InsuranceWizardState extends State<InsuranceWizard> {
       premiumAmount: double.parse(_premiumController.text),
       premiumFrequency: _premiumFrequency,
       sumInsured: double.parse(_sumInsuredController.text),
-      renewalDate: _renewalDate,
+      renewalDate: effectiveRenewal,
       startDate: _startDate,
       nomineeName: _nomineeController.text.trim().isNotEmpty
           ? _nomineeController.text.trim()
@@ -205,6 +246,9 @@ class _InsuranceWizardState extends State<InsuranceWizard> {
       notes: _notesController.text.trim().isNotEmpty
           ? _notesController.text.trim()
           : null,
+      maturityDate: _selectedType.usesMaturityDate ? _maturityDate : null,
+      policyTermYears: _policyTermYears,
+      premiumPayingTermYears: _premiumPayingTermYears,
     );
 
     widget.onSave(policy);
@@ -263,6 +307,12 @@ class _InsuranceWizardState extends State<InsuranceWizard> {
                         setState(() {
                           _selectedType = t;
                           _hasUnsavedChanges = true;
+                          // Reset type-specific date fields on type change
+                          _maturityDate = null;
+                          _policyTermYears = null;
+                          _premiumPayingTermYears = null;
+                          _policyTermController.clear();
+                          _premPayingTermController.clear();
                         });
                       },
                     ),
@@ -285,16 +335,52 @@ class _InsuranceWizardState extends State<InsuranceWizard> {
                           setState(() => _hasUnsavedChanges = true),
                     ),
                     _Step4DatesNominee(
+                      selectedType: _selectedType,
                       startDate: _startDate,
                       renewalDate: _renewalDate,
+                      maturityDate: _maturityDate,
+                      policyTermYears: _policyTermYears,
+                      premiumPayingTermYears: _premiumPayingTermYears,
+                      policyTermController: _policyTermController,
+                      premPayingTermController: _premPayingTermController,
                       nomineeController: _nomineeController,
                       notesController: _notesController,
                       onStartDateChanged: (d) => setState(() {
                         _startDate = d;
                         _hasUnsavedChanges = true;
+                        // Auto-recalculate maturity for term
+                        if (_selectedType == InsuranceType.term &&
+                            _policyTermYears != null) {
+                          _maturityDate = DateTime(
+                            d.year + _policyTermYears!,
+                            d.month,
+                            d.day,
+                          );
+                        }
                       }),
                       onRenewalDateChanged: (d) => setState(() {
                         _renewalDate = d;
+                        _hasUnsavedChanges = true;
+                      }),
+                      onMaturityDateChanged: (d) => setState(() {
+                        _maturityDate = d;
+                        _hasUnsavedChanges = true;
+                      }),
+                      onPolicyTermChanged: (years) => setState(() {
+                        _policyTermYears = years;
+                        _hasUnsavedChanges = true;
+                        if (years != null && years > 0) {
+                          _maturityDate = DateTime(
+                            _startDate.year + years,
+                            _startDate.month,
+                            _startDate.day,
+                          );
+                        } else {
+                          _maturityDate = null;
+                        }
+                      }),
+                      onPremPayingTermChanged: (years) => setState(() {
+                        _premiumPayingTermYears = years;
                         _hasUnsavedChanges = true;
                       }),
                       onChanged: () =>
@@ -312,6 +398,9 @@ class _InsuranceWizardState extends State<InsuranceWizard> {
                           double.tryParse(_sumInsuredController.text) ?? 0,
                       startDate: _startDate,
                       renewalDate: _renewalDate,
+                      maturityDate: _maturityDate,
+                      policyTermYears: _policyTermYears,
+                      premiumPayingTermYears: _premiumPayingTermYears,
                       nomineeName: _nomineeController.text.trim(),
                     ),
                   ],
@@ -680,7 +769,7 @@ class _Step3FinancialDetails extends StatelessWidget {
           const SizedBox(height: Spacing.xxl),
           _WizardField(
             controller: premiumController,
-            label: 'Premium Amount (₹)',
+            label: 'Premium Amount (Rs)',
             placeholder: 'Amount per payment period',
             keyboardType:
                 const TextInputType.numberWithOptions(decimal: false),
@@ -753,7 +842,7 @@ class _Step3FinancialDetails extends StatelessWidget {
           const SizedBox(height: Spacing.lg),
           _WizardField(
             controller: sumInsuredController,
-            label: 'Sum Insured / Coverage (₹)',
+            label: 'Sum Insured / Coverage (Rs)',
             placeholder: 'Total coverage amount',
             keyboardType:
                 const TextInputType.numberWithOptions(decimal: false),
@@ -768,21 +857,39 @@ class _Step3FinancialDetails extends StatelessWidget {
 // ─── Step 4: Dates + Nominee ──────────────────────────────────────────────────
 
 class _Step4DatesNominee extends StatelessWidget {
+  final InsuranceType selectedType;
   final DateTime startDate;
   final DateTime renewalDate;
+  final DateTime? maturityDate;
+  final int? policyTermYears;
+  final int? premiumPayingTermYears;
+  final TextEditingController policyTermController;
+  final TextEditingController premPayingTermController;
   final TextEditingController nomineeController;
   final TextEditingController notesController;
   final void Function(DateTime) onStartDateChanged;
   final void Function(DateTime) onRenewalDateChanged;
+  final void Function(DateTime?) onMaturityDateChanged;
+  final void Function(int?) onPolicyTermChanged;
+  final void Function(int?) onPremPayingTermChanged;
   final VoidCallback onChanged;
 
   const _Step4DatesNominee({
+    required this.selectedType,
     required this.startDate,
     required this.renewalDate,
+    required this.maturityDate,
+    required this.policyTermYears,
+    required this.premiumPayingTermYears,
+    required this.policyTermController,
+    required this.premPayingTermController,
     required this.nomineeController,
     required this.notesController,
     required this.onStartDateChanged,
     required this.onRenewalDateChanged,
+    required this.onMaturityDateChanged,
+    required this.onPolicyTermChanged,
+    required this.onPremPayingTermChanged,
     required this.onChanged,
   });
 
@@ -803,7 +910,7 @@ class _Step4DatesNominee extends StatelessWidget {
           ),
           const SizedBox(height: Spacing.xs),
           Text(
-            'Set the policy dates and nominee details.',
+            _subtitleForType(selectedType),
             style: TextStyle(
               fontSize: TypeScale.body,
               color: AppStyles.getSecondaryTextColor(context),
@@ -816,11 +923,7 @@ class _Step4DatesNominee extends StatelessWidget {
             onChanged: onStartDateChanged,
           ),
           const SizedBox(height: Spacing.lg),
-          _DatePickerField(
-            label: 'Renewal Date',
-            date: renewalDate,
-            onChanged: onRenewalDateChanged,
-          ),
+          ..._buildTypeDateFields(context),
           const SizedBox(height: Spacing.lg),
           _WizardField(
             controller: nomineeController,
@@ -842,6 +945,103 @@ class _Step4DatesNominee extends StatelessWidget {
       ),
     );
   }
+
+  String _subtitleForType(InsuranceType type) {
+    switch (type) {
+      case InsuranceType.term:
+        return 'Enter the policy term — maturity date is calculated automatically.';
+      case InsuranceType.life:
+        return 'Set the maturity date and premium paying term.';
+      case InsuranceType.travel:
+        return 'Set trip dates and nominee details.';
+      default:
+        return 'Set the policy dates and nominee details.';
+    }
+  }
+
+  List<Widget> _buildTypeDateFields(BuildContext context) {
+    switch (selectedType) {
+      case InsuranceType.term:
+        return _buildTermFields(context);
+      case InsuranceType.life:
+        return _buildLifeFields(context);
+      case InsuranceType.travel:
+        return _buildTravelFields(context);
+      default:
+        return _buildRenewalFields(context);
+    }
+  }
+
+  // Term: policy term years input + auto-calculated maturity date display
+  List<Widget> _buildTermFields(BuildContext context) {
+    return [
+      _WizardField(
+        controller: policyTermController,
+        label: 'Policy Term (years)',
+        placeholder: 'e.g. 30',
+        keyboardType: TextInputType.number,
+        onChanged: (val) {
+          final years = int.tryParse(val.trim());
+          onPolicyTermChanged(years);
+        },
+      ),
+      if (maturityDate != null) ...[
+        const SizedBox(height: Spacing.md),
+        _InfoBanner(
+          icon: CupertinoIcons.calendar_badge_plus,
+          color: AppStyles.novaPurple,
+          label: 'Calculated Maturity Date',
+          value: DateFormatter.format(maturityDate!),
+        ),
+      ],
+    ];
+  }
+
+  // Life: maturity date picker + optional premium paying term
+  List<Widget> _buildLifeFields(BuildContext context) {
+    return [
+      _DatePickerField(
+        label: 'Maturity Date',
+        date: maturityDate ?? DateTime.now().add(const Duration(days: 365 * 20)),
+        onChanged: (d) => onMaturityDateChanged(d),
+      ),
+      const SizedBox(height: Spacing.lg),
+      _WizardField(
+        controller: premPayingTermController,
+        label: 'Premium Paying Term (years, optional)',
+        placeholder: 'e.g. 20  (leave blank if same as policy)',
+        keyboardType: TextInputType.number,
+        onChanged: (val) {
+          final years = int.tryParse(val.trim());
+          onPremPayingTermChanged(years);
+        },
+      ),
+    ];
+  }
+
+  // Travel: trip end date (semantically a "renewal" but different label)
+  List<Widget> _buildTravelFields(BuildContext context) {
+    return [
+      _DatePickerField(
+        label: 'Trip End Date',
+        date: renewalDate,
+        onChanged: onRenewalDateChanged,
+      ),
+    ];
+  }
+
+  // Health / Vehicle / Home / Other: renewal date
+  List<Widget> _buildRenewalFields(BuildContext context) {
+    return [
+      _DatePickerField(
+        label: selectedType == InsuranceType.vehicle
+            ? 'Renewal / Expiry Date'
+            : 'Renewal Date',
+        date: renewalDate,
+        onChanged: onRenewalDateChanged,
+      ),
+    ];
+  }
 }
 
 // ─── Step 5: Review ───────────────────────────────────────────────────────────
@@ -856,6 +1056,9 @@ class _Step5Review extends StatelessWidget {
   final double sumInsured;
   final DateTime startDate;
   final DateTime renewalDate;
+  final DateTime? maturityDate;
+  final int? policyTermYears;
+  final int? premiumPayingTermYears;
   final String nomineeName;
 
   const _Step5Review({
@@ -868,6 +1071,9 @@ class _Step5Review extends StatelessWidget {
     required this.sumInsured,
     required this.startDate,
     required this.renewalDate,
+    required this.maturityDate,
+    required this.policyTermYears,
+    required this.premiumPayingTermYears,
     required this.nomineeName,
   });
 
@@ -946,14 +1152,7 @@ class _Step5Review extends StatelessWidget {
                   label: 'Start Date',
                   value: DateFormatter.format(startDate),
                 ),
-                _ReviewRow(
-                  label: 'Renewal Date',
-                  value: DateFormatter.format(renewalDate),
-                  valueColor: renewalDate.isBefore(
-                          DateTime.now().add(const Duration(days: 30)))
-                      ? AppStyles.accentOrange
-                      : null,
-                ),
+                ..._buildDateReviewRows(context),
                 if (nomineeName.isNotEmpty)
                   _ReviewRow(label: 'Nominee', value: nomineeName),
               ],
@@ -962,6 +1161,76 @@ class _Step5Review extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  List<Widget> _buildDateReviewRows(BuildContext context) {
+    switch (policyType) {
+      case InsuranceType.term:
+        final termText =
+            policyTermYears != null ? '$policyTermYears years' : '—';
+        final matText = maturityDate != null
+            ? DateFormatter.format(maturityDate!)
+            : '—';
+        final isSoon = maturityDate != null &&
+            maturityDate!.isBefore(
+                DateTime.now().add(const Duration(days: 30)));
+        return [
+          _ReviewRow(label: 'Policy Term', value: termText),
+          _ReviewRow(
+            label: 'Maturity Date',
+            value: matText,
+            valueColor: isSoon ? AppStyles.accentOrange : null,
+          ),
+        ];
+
+      case InsuranceType.life:
+        final matText = maturityDate != null
+            ? DateFormatter.format(maturityDate!)
+            : '—';
+        final isSoon = maturityDate != null &&
+            maturityDate!.isBefore(
+                DateTime.now().add(const Duration(days: 30)));
+        final payTermText = premiumPayingTermYears != null
+            ? '$premiumPayingTermYears years'
+            : '—';
+        return [
+          _ReviewRow(
+            label: 'Maturity Date',
+            value: matText,
+            valueColor: isSoon ? AppStyles.accentOrange : null,
+          ),
+          _ReviewRow(
+            label: 'Premium Paying Term',
+            value: payTermText,
+          ),
+        ];
+
+      case InsuranceType.travel:
+        return [
+          _ReviewRow(
+            label: 'Trip End Date',
+            value: DateFormatter.format(renewalDate),
+            valueColor: renewalDate
+                    .isBefore(DateTime.now().add(const Duration(days: 30)))
+                ? AppStyles.accentOrange
+                : null,
+          ),
+        ];
+
+      default:
+        return [
+          _ReviewRow(
+            label: policyType == InsuranceType.vehicle
+                ? 'Renewal / Expiry'
+                : 'Renewal Date',
+            value: DateFormatter.format(renewalDate),
+            valueColor: renewalDate
+                    .isBefore(DateTime.now().add(const Duration(days: 30)))
+                ? AppStyles.accentOrange
+                : null,
+          ),
+        ];
+    }
   }
 
   Widget _divider(BuildContext context) {
@@ -1007,6 +1276,66 @@ class _ReviewRow extends StatelessWidget {
                 color: valueColor ?? AppStyles.getTextColor(context),
               ),
               textAlign: TextAlign.right,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Info Banner (read-only computed value display) ───────────────────────────
+
+class _InfoBanner extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String label;
+  final String value;
+
+  const _InfoBanner({
+    required this.icon,
+    required this.color,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(Radii.md),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
+      ),
+      padding: const EdgeInsets.symmetric(
+          horizontal: Spacing.md, vertical: Spacing.sm),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 16),
+          const SizedBox(width: Spacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: TypeScale.caption,
+                    color: color,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: TypeScale.body,
+                    fontWeight: FontWeight.w700,
+                    color: AppStyles.getTextColor(context),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -1196,7 +1525,7 @@ class _DatePickerField extends StatelessWidget {
                 mode: CupertinoDatePickerMode.date,
                 initialDateTime: date,
                 maximumDate:
-                    DateTime.now().add(const Duration(days: 365 * 30)),
+                    DateTime.now().add(const Duration(days: 365 * 50)),
                 minimumDate: DateTime(2000),
                 onDateTimeChanged: (d) => picked = d,
               ),

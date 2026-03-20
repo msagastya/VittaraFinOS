@@ -202,8 +202,8 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
             Expanded(
               child: Text(
                 expiring.length == 1
-                    ? '"${expiring.first.name}" renews in ${expiring.first.daysUntilRenewal} day(s).'
-                    : '${expiring.length} policies renewing within 30 days.',
+                    ? '"${expiring.first.name}" — ${expiring.first.type.dateConcept.toLowerCase()} in ${expiring.first.daysUntilRenewal} day(s).'
+                    : '${expiring.length} policies due within 30 days.',
                 style: const TextStyle(
                   fontSize: TypeScale.caption,
                   color: AppStyles.accentOrange,
@@ -437,11 +437,22 @@ class _PolicyCard extends StatelessWidget {
   }
 
   String _renewalLabel() {
-    if (policy.isExpired) return 'Expired';
+    final concept = policy.type.dateConcept; // 'Renewal', 'Maturity', 'Trip End'
     final days = policy.daysUntilRenewal;
-    if (days == 0) return 'Renews today';
-    if (days < 0) return 'Expired ${(-days)} days ago';
-    return 'Renews in $days days';
+    if (policy.isExpired) {
+      switch (policy.type) {
+        case InsuranceType.term:
+        case InsuranceType.life:
+          return 'Matured';
+        case InsuranceType.travel:
+          return 'Trip ended';
+        default:
+          return 'Expired';
+      }
+    }
+    if (days == 0) return '$concept today';
+    if (days < 0) return '${(-days)}d ago';
+    return '$concept in ${days}d';
   }
 
   void _showActions(BuildContext context) {
