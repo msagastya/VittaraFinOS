@@ -7,7 +7,7 @@ import 'package:vittara_fin_os/logic/transaction_model.dart';
 
 /// Generates beautifully styled PDF and XLSX exports for transaction lists.
 class TransactionExportService {
-  static const _appName = 'VITTARA FINŌS';
+  static const _appName = 'VittaraFinOS';
   static const _tagline = 'Track Wealth, Master Life';
 
   // ─── Color Palette ────────────────────────────────────────────────────────
@@ -125,8 +125,9 @@ class TransactionExportService {
       final bg = i.isEven ? '#FFFFFF' : '#F3F4F6';
       final eventType = meta['investmentEventType'] as String?;
       final isCredit = _isCredit(t.type, eventType);
-      final amtColor = isCredit ? '#1CB045' : '#EB4235';
       final typeHex = _typeHex(t.type, eventType);
+      // Amount sign: green for inflow, red for outflow — matches type color for transfers/investments
+      final amtColor = typeHex;
 
       final description = (meta['description'] ?? meta['merchant'] ?? t.description ?? t.getSummary()).toString();
       final merchant = (meta['merchant'] ?? '').toString();
@@ -150,10 +151,10 @@ class TransactionExportService {
         backgroundColorHex: ExcelColor.fromHexString(bg),
         fontColorHex: ExcelColor.fromHexString(amtColor),
       ));
-      _setCell(sheet, row, 6, isCredit ? 'Credit' : 'Debit', CellStyle(
-        fontSize: 10,
+      _setCell(sheet, row, 6, isCredit ? 'Inflow' : 'Outflow', CellStyle(
+        fontSize: 10, bold: true,
         backgroundColorHex: ExcelColor.fromHexString(bg),
-        fontColorHex: ExcelColor.fromHexString(amtColor),
+        fontColorHex: ExcelColor.fromHexString(typeHex),
       ));
       _setCell(sheet, row, 7, account, base());
       _setCell(sheet, row, 8, category, base());
@@ -308,19 +309,19 @@ class TransactionExportService {
       padding: const pw.EdgeInsets.fromLTRB(20, 10, 20, 10),
       child: pw.Row(
         children: [
-          _statCard('INCOME', '₹${_fmtAmt(stats['income']!)}', _green, '↑'),
+          _statCard('INCOME', 'Rs ${_fmtAmt(stats['income']!)}', _green, '+'),
           pw.SizedBox(width: 8),
-          _statCard('EXPENSES', '₹${_fmtAmt(stats['expense']!)}', _red, '↓'),
+          _statCard('EXPENSES', 'Rs ${_fmtAmt(stats['expense']!)}', _red, '-'),
           pw.SizedBox(width: 8),
           _statCard(
             'NET FLOW',
-            '${net >= 0 ? '+' : '−'}₹${_fmtAmt(net.abs())}',
-            net >= 0 ? _green : _red, '≈',
+            '${net >= 0 ? '+' : '-'}Rs ${_fmtAmt(net.abs())}',
+            net >= 0 ? _green : _red, '~',
           ),
           pw.SizedBox(width: 8),
           _statCard('TRANSACTIONS', '${stats['count']!.toInt()}', _teal, '#'),
           pw.SizedBox(width: 8),
-          _statCard('INVESTED', '₹${_fmtAmt(stats['investment']!)}', _indigo, '◆'),
+          _statCard('INVESTED', 'Rs ${_fmtAmt(stats['investment']!)}', _indigo, '*'),
         ],
       ),
     );
@@ -392,7 +393,7 @@ class TransactionExportService {
     final isCredit = _isCredit(t.type, eventType);
     final typeColor = _typeColor(t.type, eventType);
     final amtColor = isCredit ? _green : _red;
-    final amtStr = '${isCredit ? '+' : '−'}₹${_fmtAmt(t.amount)}';
+    final amtStr = '${isCredit ? '+' : '-'}Rs ${_fmtAmt(t.amount)}';
     final description = (meta['description'] ?? meta['merchant'] ?? t.description ?? t.getSummary()).toString();
     final account = (meta['accountName'] ?? t.sourceAccountName ?? '').toString();
     final typeLabel = _typeLabel(t.type, eventType);
