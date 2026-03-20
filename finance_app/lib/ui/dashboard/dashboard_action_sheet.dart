@@ -512,12 +512,13 @@ class _DashboardActionSheetState extends State<_DashboardActionSheet> {
 
   Widget _buildInvestmentType(bool isDark) {
     const allTypes = InvestmentType.values;
+    final screenH = MediaQuery.of(context).size.height;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         _sheetHeader('Investment Type', 'Select the type of investment'),
         SizedBox(
-          height: 440,
+          height: screenH * 0.60,
           child: GridView.builder(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -613,16 +614,17 @@ class _DashboardActionSheetState extends State<_DashboardActionSheet> {
     final type = _selectedType!;
     final info = _typeInfo[type]!;
     final hasSellable = _typeInvestments.isNotEmpty;
+    final screenH = MediaQuery.of(context).size.height;
 
-    return ConstrainedBox(
-      constraints: const BoxConstraints(minHeight: 320),
+    return SizedBox(
+      height: screenH * 0.68,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 36),
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 40),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _sheetHeader(info.label, 'What would you like to do?'),
-            const SizedBox(height: 8),
+            const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
@@ -656,6 +658,20 @@ class _DashboardActionSheetState extends State<_DashboardActionSheet> {
                   ),
                 ),
               ],
+            ),
+            const Spacer(),
+            // Hint row at the bottom
+            Center(
+              child: Text(
+                hasSellable
+                    ? 'You have ${_typeInvestments.length} ${info.shortLabel} holding${_typeInvestments.length == 1 ? '' : 's'}'
+                    : 'No ${info.shortLabel} holdings yet — start by adding one',
+                style: TextStyle(
+                  fontSize: TypeScale.caption,
+                  color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.55),
+                ),
+                textAlign: TextAlign.center,
+              ),
             ),
           ],
         ),
@@ -852,15 +868,17 @@ class _DashboardActionSheetState extends State<_DashboardActionSheet> {
   // ── Page: Dividend Type ────────────────────────────────────────────────────
 
   Widget _buildDividendType(bool isDark) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(minHeight: 320),
+    final screenH = MediaQuery.of(context).size.height;
+
+    return SizedBox(
+      height: screenH * 0.68,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 36),
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 40),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _sheetHeader('Dividend', 'Which type of holding paid a dividend?'),
-            const SizedBox(height: 8),
+            const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
@@ -907,6 +925,17 @@ class _DashboardActionSheetState extends State<_DashboardActionSheet> {
                   ),
                 ),
               ],
+            ),
+            const Spacer(),
+            Center(
+              child: Text(
+                'Dividends are credited to your account as income',
+                style: TextStyle(
+                  fontSize: TypeScale.caption,
+                  color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.55),
+                ),
+                textAlign: TextAlign.center,
+              ),
             ),
           ],
         ),
