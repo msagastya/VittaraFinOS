@@ -23,8 +23,14 @@ import 'package:vittara_fin_os/ui/manage/digital_gold/digital_gold_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/digital_gold/digital_gold_details_screen.dart';
 import 'package:vittara_fin_os/ui/manage/nps/nps_details_screen.dart';
 import 'package:vittara_fin_os/ui/manage/pension/pension_details_screen.dart';
+import 'package:vittara_fin_os/ui/manage/pension/pension_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/commodities/commodities_details_screen.dart';
+import 'package:vittara_fin_os/ui/manage/commodities/commodities_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/fo/fo_details_screen.dart';
+import 'package:vittara_fin_os/ui/manage/fo/fo_wizard.dart';
+import 'package:vittara_fin_os/ui/manage/fd/fd_wizard_screen.dart';
+import 'package:vittara_fin_os/ui/manage/rd/rd_wizard_screen.dart';
+import 'package:vittara_fin_os/ui/manage/cryptocurrency/crypto_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/investments/simple_investment_details_screen.dart';
 import 'package:vittara_fin_os/ui/manage/simple_investment_entry_wizard.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -62,9 +68,16 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
   static const List<InvestmentType> _supportedInvestmentTypes = [
     InvestmentType.stocks,
     InvestmentType.mutualFund,
+    InvestmentType.fixedDeposit,
+    InvestmentType.recurringDeposit,
     InvestmentType.digitalGold,
     InvestmentType.nationalSavingsScheme,
     InvestmentType.bonds,
+    InvestmentType.pensionSchemes,
+    InvestmentType.cryptocurrency,
+    InvestmentType.futuresOptions,
+    InvestmentType.commodities,
+    InvestmentType.forexCurrency,
   ];
 
   final AppLogger logger = AppLogger();
@@ -429,6 +442,14 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             await Navigator.of(context).push(
               FadeScalePageRoute(page: const MFWizard()),
             );
+          } else if (investmentType == InvestmentType.fixedDeposit) {
+            await Navigator.of(context).push(
+              FadeScalePageRoute(page: const FDWizardScreen()),
+            );
+          } else if (investmentType == InvestmentType.recurringDeposit) {
+            await Navigator.of(context).push(
+              FadeScalePageRoute(page: const RDWizardScreen()),
+            );
           } else if (investmentType == InvestmentType.digitalGold) {
             await Navigator.of(context).push(
               FadeScalePageRoute(page: const DigitalGoldWizard()),
@@ -463,9 +484,33 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                 ),
               ),
             );
-          } else {
-            toast.showInfo(
-              'This investment type is intentionally disabled for focused professional tracking.',
+          } else if (investmentType == InvestmentType.pensionSchemes) {
+            await Navigator.of(context).push(
+              FadeScalePageRoute(page: const PensionWizard()),
+            );
+          } else if (investmentType == InvestmentType.cryptocurrency) {
+            await Navigator.of(context).push(
+              FadeScalePageRoute(page: const CryptoWizard()),
+            );
+          } else if (investmentType == InvestmentType.futuresOptions) {
+            await Navigator.of(context).push(
+              FadeScalePageRoute(page: const FOWizard()),
+            );
+          } else if (investmentType == InvestmentType.commodities) {
+            await Navigator.of(context).push(
+              FadeScalePageRoute(page: const CommoditiesWizard()),
+            );
+          } else if (investmentType == InvestmentType.forexCurrency) {
+            await Navigator.of(context).push(
+              FadeScalePageRoute(
+                page: const SimpleInvestmentEntryWizard(
+                  type: InvestmentType.forexCurrency,
+                  title: 'Add Forex',
+                  subtitle: 'Track foreign currency positions.',
+                  color: Color(0xFF34495E),
+                  defaultName: 'Forex Position',
+                ),
+              ),
             );
           }
           // Reload list after any wizard completes
