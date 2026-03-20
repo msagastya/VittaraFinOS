@@ -29,7 +29,10 @@ class MFDetailsScreen extends StatefulWidget {
 }
 
 class _MFDetailsScreenState extends State<MFDetailsScreen> {
-  Investment get investment => widget.investment;
+  // Backing field — refreshed at the start of every build() via context.watch
+  late Investment _investment;
+  // Convenience getter used by methods outside build()
+  Investment get investment => _investment;
 
   bool _isRefreshingNAV = false;
   final _navService = NAVService();
@@ -38,6 +41,7 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
   @override
   void initState() {
     super.initState();
+    _investment = widget.investment;
     if (widget.autoOpenDividend) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _showDividendModal(context);
@@ -85,7 +89,10 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final investment = widget.investment;
+    // Refresh from controller on every rebuild so edits/buy-more reflect immediately
+    _investment = context.watch<InvestmentsController>().investments
+        .firstWhere((i) => i.id == widget.investment.id, orElse: () => _investment);
+    final investment = _investment;
     final metadata = investment.metadata ?? {};
     final investedAmount =
         (metadata['investmentAmount'] as num?)?.toDouble() ?? investment.amount;

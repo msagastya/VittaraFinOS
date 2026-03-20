@@ -1202,8 +1202,6 @@ class _AccountsScreenState extends State<AccountsScreen> {
   }
 
   void _showAccountDetailsSheet(Account account) {
-    final balanceHistory = _computeBalanceHistory(account);
-    final recentTxs = _getAccountTransactions(account).take(3).toList();
     showCupertinoModalPopup(
       context: context,
       builder: (modalContext) {
@@ -1213,6 +1211,14 @@ class _AccountsScreenState extends State<AccountsScreen> {
           minChildSize: 0.4,
           maxChildSize: 0.95,
           builder: (dragContext, scrollController) {
+            // Consumer ensures the sheet rebuilds when accounts or transactions change
+            return Consumer2<AccountsController, TransactionsController>(
+              builder: (ctx, acctCtrl, txCtrl, _) {
+                // Always use the freshest account data by ID
+                final freshAccount = acctCtrl.accounts
+                    .firstWhere((a) => a.id == account.id, orElse: () => account);
+                final balanceHistory = _computeBalanceHistory(freshAccount);
+                final recentTxs = _getAccountTransactions(freshAccount).take(3).toList();
             return Container(
               decoration: AppStyles.bottomSheetDecoration(dragContext),
               child: SingleChildScrollView(
@@ -1230,13 +1236,13 @@ class _AccountsScreenState extends State<AccountsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            account.name,
+                            freshAccount.name,
                             style: AppStyles.titleStyle(dragContext)
                                 .copyWith(fontSize: TypeScale.title2),
                           ),
                           const SizedBox(height: Spacing.sm),
                           Text(
-                            '${account.bankName} • ${account.type.name.toUpperCase()}',
+                            '${freshAccount.bankName} • ${freshAccount.type.name.toUpperCase()}',
                             style: TextStyle(
                               color:
                                   AppStyles.getSecondaryTextColor(dragContext),
@@ -1256,7 +1262,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                           ),
                           const SizedBox(height: Spacing.xs),
                           Text(
-                            '₹${account.balance.toStringAsFixed(2)}',
+                            '₹${freshAccount.balance.toStringAsFixed(2)}',
                             style: AppStyles.titleStyle(dragContext).copyWith(
                               fontSize: TypeScale.largeTitle,
                               color: AppStyles.accentBlue,
@@ -1265,8 +1271,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
                           ),
 
                           // Credit Card Number (if exists)
-                          if (account.creditCardNumber != null &&
-                              account.creditCardNumber!.isNotEmpty) ...[
+                          if (freshAccount.creditCardNumber != null &&
+                              freshAccount.creditCardNumber!.isNotEmpty) ...[
                             const SizedBox(height: Spacing.lg),
                             Text(
                               'Card Number',
@@ -1280,7 +1286,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                             GestureDetector(
                               onLongPress: () {
                                 Clipboard.setData(ClipboardData(
-                                    text: account.creditCardNumber!));
+                                    text: freshAccount.creditCardNumber!));
                                 HapticFeedback.lightImpact();
                                 toast.showSuccess('Card number copied — clears in 30s');
                                 Future.delayed(const Duration(seconds: 30), () {
@@ -1290,7 +1296,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                               child: Row(
                                 children: [
                                   Text(
-                                    account.creditCardNumber!,
+                                    freshAccount.creditCardNumber!,
                                     style: TextStyle(
                                       color: AppStyles.getTextColor(dragContext),
                                       fontSize: TypeScale.headline,
@@ -1303,7 +1309,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                     padding: EdgeInsets.zero,
                                     onPressed: () {
                                       Clipboard.setData(ClipboardData(
-                                          text: account.creditCardNumber!));
+                                          text: freshAccount.creditCardNumber!));
                                       HapticFeedback.lightImpact();
                                       toast.showSuccess('Card number copied — clears in 30s');
                                       Future.delayed(const Duration(seconds: 30), () {
@@ -1322,8 +1328,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
                           ],
 
                           // Credit Card/Pay Later - Show Credit Limit and Amount Used
-                          if (account.type == AccountType.credit ||
-                              account.type == AccountType.payLater) ...[
+                          if (freshAccount.type == AccountType.credit ||
+                              freshAccount.type == AccountType.payLater) ...[
                             const SizedBox(height: Spacing.xxl),
                             Row(
                               children: [
@@ -1343,7 +1349,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                       ),
                                       const SizedBox(height: Spacing.xs),
                                       Text(
-                                        '₹${(account.creditLimit ?? 0.0).toStringAsFixed(2)}',
+                                        '₹${(freshAccount.creditLimit ?? 0.0).toStringAsFixed(2)}',
                                         style: TextStyle(
                                           color: AppStyles.getTextColor(
                                               dragContext),
@@ -1742,6 +1748,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
                 ),
               ),
             );
+              }, // end Consumer builder
+            ); // end Consumer
           },
         );
       },

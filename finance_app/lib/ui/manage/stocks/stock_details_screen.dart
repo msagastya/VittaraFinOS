@@ -26,6 +26,7 @@ class StockDetailsScreen extends StatefulWidget {
 
 class _StockDetailsScreenState extends State<StockDetailsScreen> {
   final AppLogger logger = AppLogger();
+  // Always refreshed from the controller at the top of build() — never stale
   late Investment _investment;
 
   @override
@@ -124,6 +125,10 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Always read fresh investment from controller so any edit/buy-more reflects immediately
+    _investment = context.watch<InvestmentsController>().investments
+        .firstWhere((i) => i.id == widget.investment.id, orElse: () => _investment);
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return CupertinoPageScaffold(

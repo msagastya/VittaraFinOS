@@ -21,38 +21,32 @@ class SimpleInvestmentDetailsScreen extends StatefulWidget {
 
 class _SimpleInvestmentDetailsScreenState
     extends State<SimpleInvestmentDetailsScreen> {
-  late double _currentValue;
-  late double _investmentAmount;
-  late String? _notes;
-  late String? _reference;
-  late DateTime _investmentDate;
-
-  @override
-  void initState() {
-    super.initState();
-    final meta = widget.investment.metadata ?? {};
-    _currentValue =
-        (meta['currentValue'] as num?)?.toDouble() ?? widget.investment.amount;
-    _investmentAmount = (meta['investmentAmount'] as num?)?.toDouble() ??
-        widget.investment.amount;
-    _notes = meta['notes'] as String?;
-    _reference = meta['reference'] as String?;
-    final dateStr =
-        meta['investmentDate'] as String? ?? meta['purchaseDate'] as String?;
-    _investmentDate = dateStr != null
-        ? DateTime.tryParse(dateStr) ?? DateTime.now()
-        : DateTime.now();
-  }
-
-  double get _gainLoss => _currentValue - _investmentAmount;
-  double get _gainLossPercent =>
-      _investmentAmount > 0 ? (_gainLoss / _investmentAmount) * 100 : 0;
 
   @override
   Widget build(BuildContext context) {
-    final investmentsCtrl =
-        Provider.of<InvestmentsController>(context, listen: false);
-    final isPositive = _gainLoss >= 0;
+    // Always read fresh investment from controller — rebuilds whenever any investment changes
+    final fresh = context.watch<InvestmentsController>().investments
+        .firstWhere((i) => i.id == widget.investment.id,
+            orElse: () => widget.investment);
+    final investmentsCtrl = context.read<InvestmentsController>();
+
+    final meta = fresh.metadata ?? {};
+    final currentValue =
+        (meta['currentValue'] as num?)?.toDouble() ?? fresh.amount;
+    final investmentAmount =
+        (meta['investmentAmount'] as num?)?.toDouble() ?? fresh.amount;
+    final notes = meta['notes'] as String?;
+    final reference = meta['reference'] as String?;
+    final dateStr =
+        meta['investmentDate'] as String? ?? meta['purchaseDate'] as String?;
+    final investmentDate = dateStr != null
+        ? DateTime.tryParse(dateStr) ?? DateTime.now()
+        : DateTime.now();
+
+    final gainLoss = currentValue - investmentAmount;
+    final gainLossPercent =
+        investmentAmount > 0 ? (gainLoss / investmentAmount) * 100 : 0.0;
+    final isPositive = gainLoss >= 0;
 
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
@@ -76,14 +70,14 @@ class _SimpleInvestmentDetailsScreenState
               _DetailCard(
                 title: 'Investment Information',
                 children: [
-                  _DetailRow('Name', widget.investment.name),
-                  _DetailRow('Type', widget.investment.getTypeLabel()),
+                  _DetailRow('Name', fresh.name),
+                  _DetailRow('Type', fresh.getTypeLabel()),
                   _DetailRow(
                     'Date',
-                    '${_investmentDate.day}/${_investmentDate.month}/${_investmentDate.year}',
+                    '${investmentDate.day}/${investmentDate.month}/${investmentDate.year}',
                   ),
-                  if (_reference != null && _reference!.isNotEmpty)
-                    _DetailRow('Reference', _reference!),
+                  if (reference != null && reference.isNotEmpty)
+                    _DetailRow('Reference', reference),
                 ],
               ),
               const SizedBox(height: Spacing.xl),
@@ -91,32 +85,32 @@ class _SimpleInvestmentDetailsScreenState
                 title: 'Financial Summary',
                 children: [
                   _DetailRow(
-                      'Invested', '₹${_investmentAmount.toStringAsFixed(2)}'),
+                      'Invested', '₹${investmentAmount.toStringAsFixed(2)}'),
                   _DetailRow(
                     'Current Value',
-                    '₹${_currentValue.toStringAsFixed(2)}',
+                    '₹${currentValue.toStringAsFixed(2)}',
                     isBold: true,
                   ),
                   _DetailRow(
                     'Gain/Loss',
-                    '${isPositive ? '+' : ''}₹${_gainLoss.toStringAsFixed(2)}',
+                    '${isPositive ? '+' : ''}₹${gainLoss.toStringAsFixed(2)}',
                     isGainLoss: true,
                     isPositive: isPositive,
                   ),
                   _DetailRow(
                     'Return %',
-                    '${isPositive ? '+' : ''}${_gainLossPercent.toStringAsFixed(2)}%',
+                    '${isPositive ? '+' : ''}${gainLossPercent.toStringAsFixed(2)}%',
                     isGainLoss: true,
                     isPositive: isPositive,
                     isBold: true,
                   ),
                 ],
               ),
-              if (_notes != null && _notes!.isNotEmpty) ...[
+              if (notes != null && notes.isNotEmpty) ...[
                 const SizedBox(height: Spacing.xl),
                 _DetailCard(
                   title: 'Notes',
-                  children: [_DetailRow('', _notes!)],
+                  children: [_DetailRow('', notes)],
                 ),
               ],
               const SizedBox(height: Spacing.xl),
@@ -175,7 +169,9 @@ class _SimpleInvestmentDetailsScreenState
   }
 
   Widget _buildActivityLog(BuildContext context) {
-    final activityLog = (widget.investment.metadata?['activityLog'] as List?)
+    final inv = context.read<InvestmentsController>().investments
+        .firstWhere((i) => i.id == widget.investment.id, orElse: () => widget.investment);
+    final activityLog = (inv.metadata?['activityLog'] as List?)
         ?.cast<Map<String, dynamic>>() ?? [];
     if (activityLog.isEmpty) return const SizedBox.shrink();
 
@@ -293,9 +289,13 @@ class _SimpleInvestmentDetailsScreenState
 
   void _showEditSheet(
       BuildContext context, InvestmentsController investmentsCtrl) {
-    final valueCtrl =
-        TextEditingController(text: _currentValue.toStringAsFixed(2));
-    final notesCtrl = TextEditingController(text: _notes ?? '');
+    final fresh = investmentsCtrl.investments
+        .firstWhere((i) => i.id == widget.investment.id, orElse: () => widget.investment);
+    final meta = fresh.metadata ?? {};
+    final curVal = (meta['currentValue'] as num?)?.toDouble() ?? fresh.amount;
+    final curNotes = meta['notes'] as String?;
+    final valueCtrl = TextEditingController(text: curVal.toStringAsFixed(2));
+    final notesCtrl = TextEditingController(text: curNotes ?? '');
 
     showCupertinoModalPopup(
       context: context,
@@ -364,27 +364,21 @@ class _SimpleInvestmentDetailsScreenState
                       Expanded(
                         child: CupertinoButton.filled(
                           onPressed: () async {
-                            final newValue = double.tryParse(valueCtrl.text) ??
-                                _currentValue;
+                            final newValue = double.tryParse(valueCtrl.text) ?? curVal;
                             final newNotes = notesCtrl.text.trim().isEmpty
                                 ? null
                                 : notesCtrl.text.trim();
-                            final updatedMeta = Map<String, dynamic>.from(
-                                widget.investment.metadata ?? {});
+                            final latestFresh = investmentsCtrl.investments
+                                .firstWhere((i) => i.id == widget.investment.id, orElse: () => fresh);
+                            final updatedMeta = Map<String, dynamic>.from(latestFresh.metadata ?? {});
                             updatedMeta['currentValue'] = newValue;
                             updatedMeta['notes'] = newNotes;
-                            final updatedInvestment =
-                                widget.investment.copyWith(
+                            final updatedInvestment = latestFresh.copyWith(
                               amount: newValue,
                               metadata: updatedMeta,
                             );
-                            await investmentsCtrl
-                                .updateInvestment(updatedInvestment);
+                            await investmentsCtrl.updateInvestment(updatedInvestment);
                             if (ctx.mounted) {
-                              setState(() {
-                                _currentValue = newValue;
-                                _notes = newNotes;
-                              });
                               Navigator.pop(ctx);
                               toast.showSuccess('Investment updated');
                             }
