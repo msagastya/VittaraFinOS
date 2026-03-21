@@ -17,6 +17,266 @@ import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Asset Allocation Ring — animated donut showing savings/investments/debt
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _AllocationArcPainter extends CustomPainter {
+  final double savingsFrac;
+  final double investmentsFrac;
+  final double debtFrac;
+  final double progress; // 0→1 animation progress
+
+  const _AllocationArcPainter({
+    required this.savingsFrac,
+    required this.investmentsFrac,
+    required this.debtFrac,
+    required this.progress,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final strokeW = size.width * 0.16;
+    final radius = (size.width - strokeW) / 2;
+    final center = Offset(size.width / 2, size.height / 2);
+    final rect = Rect.fromCircle(center: center, radius: radius);
+    const gap = 0.04; // radians gap between segments
+    const full = math.pi * 2;
+
+    final trackPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.06)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeW;
+    canvas.drawArc(rect, 0, full, false, trackPaint);
+
+    void drawArc(double startFrac, double sweepFrac, Color color) {
+      if (sweepFrac <= 0) return;
+      final start = full * startFrac - math.pi / 2;
+      final sweep = (full * sweepFrac - gap) * progress;
+      if (sweep <= 0) return;
+      final paint = Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeW
+        ..strokeCap = StrokeCap.round;
+      canvas.drawArc(rect, start, sweep, false, paint);
+    }
+
+    final total = savingsFrac + investmentsFrac + debtFrac;
+    if (total <= 0) return;
+    final sFrac = savingsFrac / total;
+    final iFrac = investmentsFrac / total;
+    final dFrac = debtFrac / total;
+
+    drawArc(0, sFrac, const Color(0xFF34C759));
+    drawArc(sFrac, iFrac, const Color(0xFF00D4AA));
+    drawArc(sFrac + iFrac, dFrac, const Color(0xFFFF453A));
+  }
+
+  @override
+  bool shouldRepaint(_AllocationArcPainter old) =>
+      old.savingsFrac != savingsFrac ||
+      old.investmentsFrac != investmentsFrac ||
+      old.debtFrac != debtFrac ||
+      old.progress != progress;
+}
+
+class _AllocationRing extends StatefulWidget {
+  final double savings;
+  final double investments;
+  final double debt;
+  final String centerLabel;
+
+  const _AllocationRing({
+    required this.savings,
+    required this.investments,
+    required this.debt,
+    required this.centerLabel,
+  });
+
+  @override
+  State<_AllocationRing> createState() => _AllocationRingState();
+}
+
+class _AllocationRingState extends State<_AllocationRing>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _anim;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 1200));
+    _anim = CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic);
+    _ctrl.forward();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _anim,
+      builder: (_, __) => CustomPaint(
+        size: const Size(72, 72),
+        painter: _AllocationArcPainter(
+          savingsFrac: widget.savings,
+          investmentsFrac: widget.investments,
+          debtFrac: widget.debt,
+          progress: _anim.value,
+        ),
+        child: SizedBox(
+          width: 72,
+          height: 72,
+          child: Center(
+            child: Text(
+              widget.centerLabel,
+              style: const TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Animated composition bar (savings | investments | debt segments)
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _CompositionBar extends StatefulWidget {
+  final double savings;
+  final double investments;
+  final double debt;
+
+  const _CompositionBar({
+    required this.savings,
+    required this.investments,
+    required this.debt,
+  });
+
+  @override
+  State<_CompositionBar> createState() => _CompositionBarState();
+}
+
+class _CompositionBarState extends State<_CompositionBar>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _anim;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 1000));
+    _anim = CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic);
+    _ctrl.forward();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final total = widget.savings + widget.investments + widget.debt;
+    if (total <= 0) return const SizedBox.shrink();
+    final sFrac = widget.savings / total;
+    final iFrac = widget.investments / total;
+    final dFrac = widget.debt / total;
+
+    return AnimatedBuilder(
+      animation: _anim,
+      builder: (_, __) {
+        final p = _anim.value;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: SizedBox(
+                height: 8,
+                child: Row(
+                  children: [
+                    Flexible(
+                      flex: (sFrac * 1000 * p).round().clamp(1, 1000),
+                      child: Container(color: const Color(0xFF34C759)),
+                    ),
+                    if (iFrac > 0)
+                      Flexible(
+                        flex: (iFrac * 1000 * p).round().clamp(0, 1000),
+                        child: Container(color: const Color(0xFF00D4AA)),
+                      ),
+                    if (dFrac > 0)
+                      Flexible(
+                        flex: (dFrac * 1000 * p).round().clamp(0, 1000),
+                        child: Container(color: const Color(0xFFFF453A)),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                _LegendDot(color: const Color(0xFF34C759), label: '${(sFrac * 100).toStringAsFixed(0)}% Savings'),
+                const SizedBox(width: 12),
+                if (iFrac > 0) ...[
+                  _LegendDot(color: const Color(0xFF00D4AA), label: '${(iFrac * 100).toStringAsFixed(0)}% Invest'),
+                  const SizedBox(width: 12),
+                ],
+                if (dFrac > 0)
+                  _LegendDot(color: const Color(0xFFFF453A), label: '${(dFrac * 100).toStringAsFixed(0)}% Debt'),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _LegendDot extends StatelessWidget {
+  final Color color;
+  final String label;
+  const _LegendDot({required this.color, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 6,
+          height: 6,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 9,
+            color: Colors.white60,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class NetWorthPage extends StatefulWidget {
   const NetWorthPage({super.key});
 
@@ -467,20 +727,42 @@ class _NetWorthPageState extends State<NetWorthPage> {
 
                   const SizedBox(height: Spacing.md),
 
-                  // The big number
-                  AnimatedCounter(
-                    value: totalNetWorth,
-                    style: const TextStyle(
-                      fontSize: 46,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
-                      letterSpacing: -1.5,
-                      height: 1.0,
-                    ),
-                    prefix: '₹',
+                  // The big number + allocation ring side-by-side
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: AnimatedCounter(
+                          value: totalNetWorth,
+                          style: const TextStyle(
+                            fontSize: 42,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            letterSpacing: -1.5,
+                            height: 1.0,
+                          ),
+                          prefix: '₹',
+                        ),
+                      ),
+                      _AllocationRing(
+                        savings: totalSavings,
+                        investments: totalInvestments,
+                        debt: totalCreditUsed,
+                        centerLabel: totalNetWorth >= 0 ? 'Assets' : 'Deficit',
+                      ),
+                    ],
                   ),
 
-                  const SizedBox(height: Spacing.xl),
+                  const SizedBox(height: Spacing.md),
+
+                  // Animated composition bar
+                  _CompositionBar(
+                    savings: totalSavings,
+                    investments: totalInvestments,
+                    debt: totalCreditUsed,
+                  ),
+
+                  const SizedBox(height: Spacing.md),
 
                   // Breakdown strip
                   Container(
@@ -699,8 +981,9 @@ class _NetWorthPageState extends State<NetWorthPage> {
                             ],
                           ),
                         ),
-                        Text(
-                          '₹${account.balance.toStringAsFixed(0)}',
+                        AnimatedCounter(
+                          value: account.balance,
+                          prefix: '₹',
                           style: TextStyle(
                             fontSize: TypeScale.subhead,
                             fontWeight: FontWeight.bold,
@@ -825,8 +1108,9 @@ class _NetWorthPageState extends State<NetWorthPage> {
                             ],
                           ),
                         ),
-                        Text(
-                          '₹${account.balance.toStringAsFixed(0)}',
+                        AnimatedCounter(
+                          value: account.balance,
+                          prefix: '₹',
                           style: TextStyle(
                             fontSize: TypeScale.subhead,
                             fontWeight: FontWeight.bold,
