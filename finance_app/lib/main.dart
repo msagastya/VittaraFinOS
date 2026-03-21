@@ -33,6 +33,7 @@ import 'package:vittara_fin_os/ui/fintech_loader.dart';
 import 'package:vittara_fin_os/ui/manage_screen.dart';
 import 'package:vittara_fin_os/ui/settings_screen.dart';
 import 'package:vittara_fin_os/ui/transaction_history_screen.dart';
+import 'package:vittara_fin_os/ui/spending_insights_screen.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/logic/notification_helpers.dart';
 import 'package:vittara_fin_os/ui/dashboard/dashboard_action_sheet.dart';
@@ -2837,7 +2838,7 @@ class DashboardScreen extends StatelessWidget {
         break;
       case DashboardWidgetType.spendingInsights:
         Navigator.of(context).push(
-          FadeScalePageRoute(page: const TransactionHistoryScreen()),
+          FadeScalePageRoute(page: const SpendingInsightsScreen()),
         );
         break;
       default:

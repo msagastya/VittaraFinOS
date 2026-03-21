@@ -14,15 +14,15 @@ import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 // Data models
 // ─────────────────────────────────────────────────────────────────────────────
 
-enum _InsightLevel { positive, warning, alert, neutral }
+enum SpendInsightLevel { positive, warning, alert, neutral }
 
-class _NarrativeInsight {
+class SpendNarrative {
   final String headline;
   final String detail;
   final IconData icon;
-  final _InsightLevel level;
+  final SpendInsightLevel level;
 
-  const _NarrativeInsight({
+  const SpendNarrative({
     required this.headline,
     required this.detail,
     required this.icon,
@@ -31,26 +31,26 @@ class _NarrativeInsight {
 
   Color color(bool isDark) {
     switch (level) {
-      case _InsightLevel.positive:
+      case SpendInsightLevel.positive:
         return AppStyles.bioGreen;
-      case _InsightLevel.warning:
+      case SpendInsightLevel.warning:
         return AppStyles.accentOrange;
-      case _InsightLevel.alert:
+      case SpendInsightLevel.alert:
         return AppStyles.plasmaRed;
-      case _InsightLevel.neutral:
+      case SpendInsightLevel.neutral:
         return AppStyles.aetherTeal;
     }
   }
 }
 
-class _CategoryDrift {
+class SpendCategoryDrift {
   final String name;
   final String emoji;
   final double thisMonth;
   final double lastMonth;
   final double threeMonthAvg;
 
-  const _CategoryDrift({
+  const SpendCategoryDrift({
     required this.name,
     required this.emoji,
     required this.thisMonth,
@@ -65,9 +65,9 @@ class _CategoryDrift {
   bool get isAnomalous => thisMonth > 0 && vsAvgDelta > 40;
 }
 
-class _SpendIntelData {
-  final List<_NarrativeInsight> narratives;
-  final List<_CategoryDrift> categoryDrifts;
+class SpendIntelData {
+  final List<SpendNarrative> narratives;
+  final List<SpendCategoryDrift> categoryDrifts;
   final List<double> dowSpend; // index 0=Mon..6=Sun
   final double totalThisMonth;
   final double totalLastMonth;
@@ -78,7 +78,7 @@ class _SpendIntelData {
   final List<MapEntry<String, double>> topMerchants;
   final bool hasData;
 
-  const _SpendIntelData({
+  const SpendIntelData({
     required this.narratives,
     required this.categoryDrifts,
     required this.dowSpend,
@@ -104,13 +104,13 @@ class _SpendIntelData {
 // Intelligence computation engine
 // ─────────────────────────────────────────────────────────────────────────────
 
-String _fmt(double v) {
+String spendFmt(double v) {
   if (v >= 100000) return '₹${(v / 100000).toStringAsFixed(1)}L';
   if (v >= 1000) return '₹${(v / 1000).toStringAsFixed(1)}K';
   return '₹${v.toStringAsFixed(0)}';
 }
 
-String _dowName(int i) =>
+String spendDowName(int i) =>
     ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][i.clamp(0, 6)];
 
 String _catEmoji(String cat) {
@@ -139,7 +139,7 @@ String _catEmoji(String cat) {
   return '💳';
 }
 
-_SpendIntelData _computeSpendIntel(
+SpendIntelData computeSpendIntel(
     List<Transaction> transactions, List budgets) {
   final now = DateTime.now();
   final dayOfMonth = now.day;
@@ -201,7 +201,7 @@ _SpendIntelData _computeSpendIntel(
   final catThree = catTotal(threeMoExp);
 
   final allCats = catThis.keys.toSet();
-  final categoryDrifts = <_CategoryDrift>[];
+  final categoryDrifts = <SpendCategoryDrift>[];
   for (final cat in allCats) {
     final thisV = catThis[cat] ?? 0;
     final lastV = catLast[cat] ?? 0;
@@ -211,7 +211,7 @@ _SpendIntelData _computeSpendIntel(
     final avg = historicMonths.isEmpty
         ? 0.0
         : historicMonths.fold(0.0, (a, b) => a + b) / historicMonths.length;
-    categoryDrifts.add(_CategoryDrift(
+    categoryDrifts.add(SpendCategoryDrift(
       name: cat,
       emoji: _catEmoji(cat),
       thisMonth: thisV,
@@ -241,16 +241,16 @@ _SpendIntelData _computeSpendIntel(
   final top3Merchants = topMerchants.take(3).toList();
 
   // ── Narrative insights ───────────────────────────────────────────────────
-  final narratives = <_NarrativeInsight>[];
+  final narratives = <SpendNarrative>[];
 
   if (!hasData) {
-    narratives.add(const _NarrativeInsight(
+    narratives.add(const SpendNarrative(
       headline: 'No spending data yet',
       detail: 'Add transactions to unlock AI-powered spending intelligence.',
       icon: CupertinoIcons.sparkles,
-      level: _InsightLevel.neutral,
+      level: SpendInsightLevel.neutral,
     ));
-    return _SpendIntelData(
+    return SpendIntelData(
       narratives: narratives,
       categoryDrifts: topCats,
       dowSpend: dow,
@@ -269,14 +269,14 @@ _SpendIntelData _computeSpendIntel(
   if (projected > 0 && totalLast > 0) {
     final projDelta = ((projected - totalLast) / totalLast) * 100;
     final level = projDelta > 20
-        ? _InsightLevel.alert
+        ? SpendInsightLevel.alert
         : projDelta > 5
-            ? _InsightLevel.warning
-            : _InsightLevel.positive;
-    narratives.add(_NarrativeInsight(
-      headline: 'Month-end forecast: ${_fmt(projected)}',
+            ? SpendInsightLevel.warning
+            : SpendInsightLevel.positive;
+    narratives.add(SpendNarrative(
+      headline: 'Month-end forecast: ${spendFmt(projected)}',
       detail: projDelta >= 0
-          ? '+${projDelta.toStringAsFixed(1)}% above last month (${_fmt(totalLast)})'
+          ? '+${projDelta.toStringAsFixed(1)}% above last month (${spendFmt(totalLast)})'
           : '${projDelta.toStringAsFixed(1)}% below last month — great pace!',
       icon: CupertinoIcons.chart_bar_alt_fill,
       level: level,
@@ -288,12 +288,12 @@ _SpendIntelData _computeSpendIntel(
   if (anomalous.isNotEmpty) {
     final top = anomalous.first;
     final mult = top.threeMonthAvg > 0 ? top.thisMonth / top.threeMonthAvg : 0.0;
-    narratives.add(_NarrativeInsight(
+    narratives.add(SpendNarrative(
       headline: '${top.emoji} ${top.name} spike detected',
       detail:
-          '${_fmt(top.thisMonth)} this month — ${mult.toStringAsFixed(1)}× your 3-month average of ${_fmt(top.threeMonthAvg)}',
+          '${spendFmt(top.thisMonth)} this month — ${mult.toStringAsFixed(1)}× your 3-month average of ${spendFmt(top.threeMonthAvg)}',
       icon: CupertinoIcons.exclamationmark_triangle_fill,
-      level: _InsightLevel.warning,
+      level: SpendInsightLevel.warning,
     ));
   }
 
@@ -301,14 +301,14 @@ _SpendIntelData _computeSpendIntel(
   if (incomeThis > 0) {
     final rate = ((incomeThis - totalThis) / incomeThis) * 100;
     final level = rate >= 20
-        ? _InsightLevel.positive
+        ? SpendInsightLevel.positive
         : rate >= 5
-            ? _InsightLevel.neutral
-            : _InsightLevel.alert;
-    narratives.add(_NarrativeInsight(
+            ? SpendInsightLevel.neutral
+            : SpendInsightLevel.alert;
+    narratives.add(SpendNarrative(
       headline: 'Savings rate: ${rate.clamp(-99, 100).toStringAsFixed(1)}%',
       detail: rate >= 20
-          ? 'Excellent! You\'re saving ${_fmt(incomeThis - totalThis)} of ${_fmt(incomeThis)}'
+          ? 'Excellent! You\'re saving ${spendFmt(incomeThis - totalThis)} of ${spendFmt(incomeThis)}'
           : rate >= 5
               ? 'Moderate — aim for 20%+ to build strong reserves'
               : 'Spending exceeds income this month — review your budgets',
@@ -323,12 +323,12 @@ _SpendIntelData _computeSpendIntel(
   if (top3Merchants.isNotEmpty && totalThis > 0) {
     final top = top3Merchants.first;
     final share = (top.value / totalThis * 100).toStringAsFixed(1);
-    narratives.add(_NarrativeInsight(
+    narratives.add(SpendNarrative(
       headline: '${top.key} — $share% of spend',
       detail:
-          '${_fmt(top.value)} this month. Top 3 merchants account for ${_fmt(top3Merchants.fold(0.0, (s, e) => s + e.value))} total.',
+          '${spendFmt(top.value)} this month. Top 3 merchants account for ${spendFmt(top3Merchants.fold(0.0, (s, e) => s + e.value))} total.',
       icon: CupertinoIcons.building_2_fill,
-      level: _InsightLevel.neutral,
+      level: SpendInsightLevel.neutral,
     ));
   }
 
@@ -338,12 +338,12 @@ _SpendIntelData _computeSpendIntel(
     final maxIdx = dow.indexOf(maxDow);
     final totalDow = dow.fold(0.0, (a, b) => a + b);
     final pct = (maxDow / totalDow * 100).toStringAsFixed(1);
-    narratives.add(_NarrativeInsight(
-      headline: '${_dowName(maxIdx)}s are your peak spend day',
+    narratives.add(SpendNarrative(
+      headline: '${spendDowName(maxIdx)}s are your peak spend day',
       detail:
-          '${_fmt(maxDow)} on ${_dowName(maxIdx)}s — $pct% of this month\'s expenses',
+          '${spendFmt(maxDow)} on ${spendDowName(maxIdx)}s — $pct% of this month\'s expenses',
       icon: CupertinoIcons.calendar_today,
-      level: _InsightLevel.neutral,
+      level: SpendInsightLevel.neutral,
     ));
   }
 
@@ -351,16 +351,16 @@ _SpendIntelData _computeSpendIntel(
   if (totalLast > 0) {
     final pct = ((totalThis - totalLast) / totalLast * 100);
     final level = pct > 15
-        ? _InsightLevel.warning
+        ? SpendInsightLevel.warning
         : pct < -10
-            ? _InsightLevel.positive
-            : _InsightLevel.neutral;
-    narratives.add(_NarrativeInsight(
+            ? SpendInsightLevel.positive
+            : SpendInsightLevel.neutral;
+    narratives.add(SpendNarrative(
       headline: pct >= 0
           ? '+${pct.toStringAsFixed(1)}% vs last month'
           : '${pct.toStringAsFixed(1)}% vs last month',
       detail:
-          '${_fmt(totalThis)} spent so far (day $dayOfMonth) vs ${_fmt(totalLast)} all of last month',
+          '${spendFmt(totalThis)} spent so far (day $dayOfMonth) vs ${spendFmt(totalLast)} all of last month',
       icon: pct >= 0
           ? CupertinoIcons.arrow_up_right_circle_fill
           : CupertinoIcons.arrow_down_right_circle_fill,
@@ -371,19 +371,19 @@ _SpendIntelData _computeSpendIntel(
   // 7. Average monthly trend (3-mo)
   if (totalTwo > 0 && totalThree > 0) {
     final threeMonthAvg = (totalLast + totalTwo + totalThree) / 3;
-    narratives.add(_NarrativeInsight(
-      headline: '3-month avg: ${_fmt(threeMonthAvg)}/mo',
+    narratives.add(SpendNarrative(
+      headline: '3-month avg: ${spendFmt(threeMonthAvg)}/mo',
       detail: totalThis < threeMonthAvg * 0.9
-          ? 'You\'re spending below average — ${_fmt(threeMonthAvg - totalThis)} under pace'
+          ? 'You\'re spending below average — ${spendFmt(threeMonthAvg - totalThis)} under pace'
           : totalThis > threeMonthAvg * 1.1
               ? 'Trending ${((totalThis / threeMonthAvg - 1) * 100).toStringAsFixed(0)}% above your rolling average'
               : 'Spending is in line with your rolling average',
       icon: CupertinoIcons.waveform_path,
-      level: _InsightLevel.neutral,
+      level: SpendInsightLevel.neutral,
     ));
   }
 
-  return _SpendIntelData(
+  return SpendIntelData(
     narratives: narratives,
     categoryDrifts: topCats,
     dowSpend: dow,
@@ -402,10 +402,10 @@ _SpendIntelData _computeSpendIntel(
 // Section header
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _SectionLabel extends StatelessWidget {
+class SpendSectionLabel extends StatelessWidget {
   final String text;
 
-  const _SectionLabel(this.text);
+  const SpendSectionLabel(this.text);
 
   @override
   Widget build(BuildContext context) {
@@ -431,17 +431,17 @@ class _SectionLabel extends StatelessWidget {
 // Narrative carousel — auto-cycling, swipeable
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _NarrativeCarousel extends StatefulWidget {
-  final List<_NarrativeInsight> insights;
+class SpendNarrativeCarousel extends StatefulWidget {
+  final List<SpendNarrative> insights;
   final bool isDark;
 
-  const _NarrativeCarousel({required this.insights, required this.isDark});
+  const SpendNarrativeCarousel({required this.insights, required this.isDark});
 
   @override
-  State<_NarrativeCarousel> createState() => _NarrativeCarouselState();
+  State<SpendNarrativeCarousel> createState() => SpendNarrativeCarouselState();
 }
 
-class _NarrativeCarouselState extends State<_NarrativeCarousel> {
+class SpendNarrativeCarouselState extends State<SpendNarrativeCarousel> {
   int _page = 0;
   late final PageController _ctrl;
   Timer? _timer;
@@ -511,7 +511,7 @@ class _NarrativeCarouselState extends State<_NarrativeCarousel> {
 }
 
 class _NarrativeCard extends StatelessWidget {
-  final _NarrativeInsight insight;
+  final SpendNarrative insight;
   final bool isDark;
 
   const _NarrativeCard({required this.insight, required this.isDark});
@@ -580,11 +580,11 @@ class _NarrativeCard extends StatelessWidget {
 // Month forecast bar
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _ForecastBar extends StatelessWidget {
-  final _SpendIntelData data;
+class SpendForecastBar extends StatelessWidget {
+  final SpendIntelData data;
   final bool isDark;
 
-  const _ForecastBar({required this.data, required this.isDark});
+  const SpendForecastBar({required this.data, required this.isDark});
 
   @override
   Widget build(BuildContext context) {
@@ -619,7 +619,7 @@ class _ForecastBar extends StatelessWidget {
             Row(
               children: [
                 Text(
-                  _fmt(data.totalThisMonth),
+                  spendFmt(data.totalThisMonth),
                   style: TextStyle(
                     fontSize: TypeScale.caption,
                     fontWeight: FontWeight.w700,
@@ -627,7 +627,7 @@ class _ForecastBar extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '  →  ${_fmt(data.projectedMonthEnd)}',
+                  '  →  ${spendFmt(data.projectedMonthEnd)}',
                   style: TextStyle(
                     fontSize: TypeScale.caption,
                     color: barColor,
@@ -685,8 +685,8 @@ class _ForecastBar extends StatelessWidget {
         const SizedBox(height: Spacing.xs),
         Text(
           data.totalLastMonth > 0
-              ? '${data.momChange >= 0 ? '+' : ''}${data.momChange.toStringAsFixed(1)}% vs last month\'s ${_fmt(data.totalLastMonth)}'
-              : 'At ${_fmt(data.projectedMonthEnd > 0 ? data.totalThisMonth / data.dayOfMonth : 0)}/day pace',
+              ? '${data.momChange >= 0 ? '+' : ''}${data.momChange.toStringAsFixed(1)}% vs last month\'s ${spendFmt(data.totalLastMonth)}'
+              : 'At ${spendFmt(data.projectedMonthEnd > 0 ? data.totalThisMonth / data.dayOfMonth : 0)}/day pace',
           style: TextStyle(
             fontSize: TypeScale.caption,
             color: barColor,
@@ -702,11 +702,11 @@ class _ForecastBar extends StatelessWidget {
 // Category drift row — horizontal scrollable cards
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _CategoryDriftRow extends StatelessWidget {
-  final List<_CategoryDrift> drifts;
+class SpendCategoryDriftRow extends StatelessWidget {
+  final List<SpendCategoryDrift> drifts;
   final bool isDark;
 
-  const _CategoryDriftRow({required this.drifts, required this.isDark});
+  const SpendCategoryDriftRow({required this.drifts, required this.isDark});
 
   @override
   Widget build(BuildContext context) {
@@ -725,17 +725,17 @@ class _CategoryDriftRow extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         itemCount: drifts.length,
         separatorBuilder: (_, __) => const SizedBox(width: Spacing.sm),
-        itemBuilder: (_, i) => _CategoryDriftCard(drift: drifts[i], isDark: isDark),
+        itemBuilder: (_, i) => SpendCategoryDriftCard(drift: drifts[i], isDark: isDark),
       ),
     );
   }
 }
 
-class _CategoryDriftCard extends StatelessWidget {
-  final _CategoryDrift drift;
+class SpendCategoryDriftCard extends StatelessWidget {
+  final SpendCategoryDrift drift;
   final bool isDark;
 
-  const _CategoryDriftCard({required this.drift, required this.isDark});
+  const SpendCategoryDriftCard({required this.drift, required this.isDark});
 
   @override
   Widget build(BuildContext context) {
@@ -789,7 +789,7 @@ class _CategoryDriftCard extends StatelessWidget {
           ),
           // Amount
           Text(
-            _fmt(drift.thisMonth),
+            spendFmt(drift.thisMonth),
             style: TextStyle(
               fontSize: TypeScale.caption,
               fontWeight: FontWeight.w700,
@@ -855,11 +855,16 @@ class _CategoryDriftCard extends StatelessWidget {
 // Day-of-week heatmap
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _DowHeatmap extends StatelessWidget {
+class SpendDowHeatmap extends StatelessWidget {
   final List<double> dowSpend; // 0=Mon..6=Sun
   final bool isDark;
+  final double barHeight;
 
-  const _DowHeatmap({required this.dowSpend, required this.isDark});
+  const SpendDowHeatmap({
+    required this.dowSpend,
+    required this.isDark,
+    this.barHeight = 40,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -873,7 +878,7 @@ class _DowHeatmap extends StatelessWidget {
         ),
       );
     }
-    const barH = 40.0;
+    final barH = barHeight;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: List.generate(7, (i) {
@@ -896,7 +901,7 @@ class _DowHeatmap extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 2),
                   child: Text(
-                    _fmt(dowSpend[i]),
+                    spendFmt(dowSpend[i]),
                     style: TextStyle(
                       fontSize: 8,
                       fontWeight: FontWeight.w700,
@@ -915,7 +920,7 @@ class _DowHeatmap extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                _dowName(i).substring(0, 2),
+                spendDowName(i).substring(0, 2),
                 style: TextStyle(
                   fontSize: 9,
                   fontWeight: isPeak ? FontWeight.w700 : FontWeight.w500,
@@ -937,12 +942,12 @@ class _DowHeatmap extends StatelessWidget {
 // Top merchants minibar
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _TopMerchantsSection extends StatelessWidget {
+class SpendTopMerchantsSection extends StatelessWidget {
   final List<MapEntry<String, double>> merchants;
   final double totalThisMonth;
   final bool isDark;
 
-  const _TopMerchantsSection({
+  const SpendTopMerchantsSection({
     required this.merchants,
     required this.totalThisMonth,
     required this.isDark,
@@ -1036,7 +1041,7 @@ class InsightsWidget extends BaseDashboardWidget {
     return RepaintBoundary(
       child: Consumer2<TransactionsController, BudgetsController>(
         builder: (context, txCtrl, budgetsCtrl, _) {
-          final data = _computeSpendIntel(
+          final data = computeSpendIntel(
               txCtrl.transactions, budgetsCtrl.budgets);
           final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -1046,35 +1051,35 @@ class InsightsWidget extends BaseDashboardWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // ── AI Insight Carousel ────────────────────────────────
-                _NarrativeCarousel(insights: data.narratives, isDark: isDark),
+                SpendNarrativeCarousel(insights: data.narratives, isDark: isDark),
 
                 const SizedBox(height: Spacing.md),
 
                 // ── Month Forecast ─────────────────────────────────────
                 if (data.hasData && data.projectedMonthEnd > 0) ...[
-                  _SectionLabel('MONTH FORECAST'),
-                  _ForecastBar(data: data, isDark: isDark),
+                  SpendSectionLabel('MONTH FORECAST'),
+                  SpendForecastBar(data: data, isDark: isDark),
                   const SizedBox(height: Spacing.md),
                 ],
 
                 // ── Category Pulse ─────────────────────────────────────
                 if (data.categoryDrifts.isNotEmpty) ...[
-                  _SectionLabel('CATEGORY PULSE  ·  this month vs last'),
-                  _CategoryDriftRow(drifts: data.categoryDrifts, isDark: isDark),
+                  SpendSectionLabel('CATEGORY PULSE  ·  this month vs last'),
+                  SpendCategoryDriftRow(drifts: data.categoryDrifts, isDark: isDark),
                   const SizedBox(height: Spacing.md),
                 ],
 
                 // ── Spend Rhythm ───────────────────────────────────────
                 if (data.hasData) ...[
-                  _SectionLabel('SPEND RHYTHM  ·  by day of week'),
-                  _DowHeatmap(dowSpend: data.dowSpend, isDark: isDark),
+                  SpendSectionLabel('SPEND RHYTHM  ·  by day of week'),
+                  SpendDowHeatmap(dowSpend: data.dowSpend, isDark: isDark),
                   const SizedBox(height: Spacing.md),
                 ],
 
                 // ── Top Merchants ──────────────────────────────────────
                 if (data.topMerchants.isNotEmpty && data.totalThisMonth > 0) ...[
-                  _SectionLabel('TOP MERCHANTS  ·  by share'),
-                  _TopMerchantsSection(
+                  SpendSectionLabel('TOP MERCHANTS  ·  by share'),
+                  SpendTopMerchantsSection(
                     merchants: data.topMerchants,
                     totalThisMonth: data.totalThisMonth,
                     isDark: isDark,
