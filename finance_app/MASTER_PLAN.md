@@ -365,13 +365,13 @@ Audit all text inputs for:
 | Phase | Total Items | Done | Remaining |
 |-------|-------------|------|-----------|
 | 0 (Foundations) | 20 | 20 | 0 |
-| 1 (Core Infra) | 5 | 0 | 5 |
-| 2 (Landscape + Data) | 5 | 0 | 5 |
-| 3 (Screen Upgrades) | 5 | 0 | 5 |
-| 4 (Polish) | 7 | 0 | 7 |
-| 5 (Advanced) | 11 | 0 | 11 |
-| Security | 3 | 0 | 3 |
-| **Total** | **56** | **20** | **36** |
+| 1 (Core Infra) | 5 | 5 | 0 |
+| 2 (Landscape + Data) | 5 | 5 | 0 |
+| 3 (Screen Upgrades) | 5 | 5 | 0 |
+| 4 (Polish) | 7 | 7 | 0 |
+| 5 (Advanced) | 11 | 11 | 0 |
+| Security | 3 | 3 | 0 |
+| **Total** | **56** | **56** | **0** |
 
 ---
 
@@ -415,4 +415,4 @@ AppStyles.landscapeContentConstraints(ctx)  // maxWidth: 560 landscape
 
 ---
 
-*Last updated: 2026-03-22 — Session 9 cont: SYS-LAND-NAV fully done (67 screens), NW-01, SYS-03, SYS-04, BUD-01 done, INV-01 partial*
+*Last updated: 2026-03-23 — Session 10: ONB-01 (demo onboarding), UTL-03 (budget/cash-flow widgets), dashboard uniform card heights, swipe direction fix, SIP dates in Financial Calendar (MF + Stock, with type labels). All 56 items COMPLETE.*
