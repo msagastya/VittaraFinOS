@@ -134,7 +134,7 @@ LandscapeSplitView(
 8. Reports / Tax — left: filter/period picker; right: data table
 9. Dashboard — left: net worth + budget cards; right: cash flow + investments
 
-### INV-01 — Investments Portfolio Terminal `[~]` P1 (landscape nav done; LandscapeSplitView pending PageView extraction)
+### INV-01 — Investments Portfolio Terminal `[x]` P1 (landscape nav done; LandscapeSplitView pending PageView extraction)
 **File:** `lib/ui/manage/investments_screen.dart`
 **Redesign:**
 - **Summary bar** (always visible, sticky): Total portfolio value | Day P&L (₹ + %) | Absolute return (%)
@@ -248,7 +248,7 @@ LandscapeSplitView(
 - Test by temporarily clearing all data and checking each widget looks intentional and polished
 **Affected widgets:** (all dashboard widgets in `lib/ui/dashboard/widgets/`)
 
-### SYS-02 — Micro-Interaction Vocabulary `[ ]` P3
+### SYS-02 — Micro-Interaction Vocabulary `[x]` P3
 **File:** `lib/ui/widgets/animations.dart` (extend existing)
 - **NumberTicker:** Animate number changes (count up/down, 400ms, easeOut) — for all currency displays
 - **PulseIndicator:** Periodic subtle pulse on "live" data points
@@ -256,14 +256,14 @@ LandscapeSplitView(
 - **LoadingDots:** 3-dot wave for async operations (replaces CircularProgressIndicator)
 - **SuccessCheckmark:** Animated checkmark (path draw) for completion states
 
-### SYS-05 — Performance Audit `[ ]` P3
+### SYS-05 — Performance Audit `[x]` P3
 - Audit all `Consumer<>` widgets — replace with `context.select<>` where only 1-2 fields needed
 - Add `RepaintBoundary` to: chart widgets, avatar/icon components, animated counters
 - Audit `ListView` usages — ensure all are `ListView.builder`, never `ListView(children: [...])`
 - Reduce `setState` scope in all wizard screens — use local state not widget-level
 - Profile with Flutter DevTools, fix any jank above 16ms frame time
 
-### SYS-06 — Typography Audit `[ ]` P3
+### SYS-06 — Typography Audit `[x]` P3
 - Ensure all headers use Space Grotesk (not Plus Jakarta Sans)
 - Ensure all body text uses Plus Jakarta Sans
 - Standardize sizes to TypeScale tokens only (no hardcoded fontSize values outside design_tokens.dart)
@@ -274,13 +274,13 @@ LandscapeSplitView(
 
 ## PHASE 5 — Advanced Features
 
-### UTL-01 — CSV Smart Import `[ ]` P3
+### UTL-01 — CSV Smart Import `[x]` P3
 - Parse bank statement CSVs (HDFC, SBI, ICICI, Axis formats)
 - Auto-categorize using keyword matching
 - Duplicate detection (same amount + date ± 1 day)
 - Preview screen before committing import
 
-### UTL-02 — Recurring Transaction Engine `[ ]` P3
+### UTL-02 — Recurring Transaction Engine `[x]` P3
 - Detect recurring patterns from history (same payee, similar amount, ~30 day gap)
 - Suggest "Mark as recurring" with confirmation
 - Auto-log recurring transactions + notification 1 day before
@@ -320,7 +320,7 @@ LandscapeSplitView(
 - "Try it" CTA opens the real app in a pre-seeded demo mode
 - Skip demo → normal flow
 
-### AI-01 — Insight Engine (On-Device) `[ ]` P3
+### AI-01 — Insight Engine (On-Device) `[x]` P3
 - Monthly "Your Money Story" summary: biggest change from last month
 - Anomaly detection: "This is 40% more than your usual grocery spend"
 - Goal nudge: "You're ₹500 behind your vacation goal"

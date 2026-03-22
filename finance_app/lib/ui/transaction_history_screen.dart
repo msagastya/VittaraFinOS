@@ -10,6 +10,10 @@ import 'package:vittara_fin_os/logic/transaction_feed_builder.dart';
 import 'package:vittara_fin_os/logic/transactions_archive_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
+import 'package:vittara_fin_os/logic/recurring_templates_controller.dart';
+import 'package:vittara_fin_os/logic/recurring_template_model.dart';
+import 'package:vittara_fin_os/logic/recurring_pattern_detector.dart';
+import 'package:vittara_fin_os/utils/id_generator.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/styles/transaction_type_theme.dart';
@@ -93,6 +97,9 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   // Pagination: show at most _visibleCount transactions at a time.
   int _visibleCount = 50;
   static const int _pageSize = 50;
+
+  // UTL-02: track dismissed recurring suggestions
+  final Set<String> _dismissedSuggestions = {};
 
   static const _prefKeyTxType = 'tx_filter_type';
 
@@ -667,6 +674,10 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                   ),
                 ),
                 _buildDateChips(),
+                // UTL-02 — recurring pattern suggestions
+                if (_searchQuery.isEmpty && _dateFilter == _DateRangeFilter.all)
+                  _buildRecurringSuggestions(
+                      transactionsController.transactions),
                 if (_hasActiveFilter)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(
@@ -1585,6 +1596,147 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         toast_lib.toast.showInfo('Restored');
       },
     ));
+  }
+
+  // ── UTL-02: Recurring pattern suggestion banner ───────────────────────────
+
+  Widget _buildRecurringSuggestions(List<Transaction> transactions) {
+    final recurringCtrl = context.read<RecurringTemplatesController>();
+    final patterns = recurringCtrl
+        .detectSuggestions(transactions)
+        .where((p) => !_dismissedSuggestions.contains(p.payee))
+        .take(2)
+        .toList();
+    if (patterns.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, Spacing.sm),
+      padding: const EdgeInsets.all(Spacing.md),
+      decoration: BoxDecoration(
+        color: CupertinoColors.activeBlue.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(Radii.md),
+        border: Border.all(color: CupertinoColors.activeBlue.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(CupertinoIcons.repeat,
+                  size: 13, color: CupertinoColors.activeBlue),
+              const SizedBox(width: 6),
+              Text(
+                'Recurring patterns detected',
+                style: TextStyle(
+                  fontSize: TypeScale.caption,
+                  fontWeight: FontWeight.w700,
+                  color: AppStyles.getTextColor(context),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: Spacing.sm),
+          ...patterns.map((p) => _buildPatternRow(p, recurringCtrl)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPatternRow(
+      RecurringPattern p, RecurringTemplatesController ctrl) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: Spacing.xs),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  p.payee,
+                  style: TextStyle(
+                    fontSize: TypeScale.caption,
+                    fontWeight: FontWeight.w600,
+                    color: AppStyles.getTextColor(context),
+                  ),
+                ),
+                Text(
+                  '₹${p.avgAmount.toStringAsFixed(0)} · ${p.suggestedFrequency} · ${p.occurrences}× seen',
+                  style: TextStyle(
+                    fontSize: TypeScale.micro,
+                    color: AppStyles.getSecondaryTextColor(context),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            minSize: 28,
+            onPressed: () => _confirmMarkRecurring(p, ctrl),
+            child: const Text(
+              'Track',
+              style: TextStyle(
+                fontSize: TypeScale.caption,
+                color: CupertinoColors.activeBlue,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          const SizedBox(width: 4),
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            minSize: 28,
+            onPressed: () =>
+                setState(() => _dismissedSuggestions.add(p.payee)),
+            child: const Icon(CupertinoIcons.xmark,
+                size: 14, color: CupertinoColors.inactiveGray),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmMarkRecurring(
+      RecurringPattern p, RecurringTemplatesController ctrl) {
+    showCupertinoDialog<void>(
+      context: context,
+      builder: (ctx) => CupertinoAlertDialog(
+        title: Text('Track "${p.payee}" as recurring?'),
+        content: Text(
+          'We detected this ~${p.avgIntervalDays}-day ${p.suggestedFrequency} '
+          'expense of ₹${p.avgAmount.toStringAsFixed(0)}. '
+          'Adding it to your recurring templates.',
+        ),
+        actions: [
+          CupertinoDialogAction(
+            isDestructiveAction: false,
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          CupertinoDialogAction(
+            isDefaultAction: true,
+            onPressed: () {
+              Navigator.pop(ctx);
+              final now = DateTime.now();
+              ctrl.addTemplate(RecurringTemplate(
+                id: IdGenerator.next(prefix: 'rt'),
+                name: p.payee,
+                branch: 'expense',
+                amount: p.avgAmount,
+                frequency: p.suggestedFrequency,
+                nextDueDate: p.estimatedNextDue,
+                merchant: p.payee,
+                createdAt: now,
+              ));
+              setState(() => _dismissedSuggestions.add(p.payee));
+              toast_lib.toast.showSuccess('"${p.payee}" added to recurring');
+            },
+            child: const Text('Track it'),
+          ),
+        ],
+      ),
+    );
   }
 }
 

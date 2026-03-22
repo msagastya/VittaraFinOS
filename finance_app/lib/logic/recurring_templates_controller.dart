@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/logic/recurring_template_model.dart';
+import 'package:vittara_fin_os/logic/recurring_pattern_detector.dart';
+import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 
 final _recurringLogger = AppLogger();
@@ -84,6 +86,18 @@ class RecurringTemplatesController with ChangeNotifier {
     _templates[idx] = _templates[idx].withPaymentRecorded();
     notifyListeners();
     _save();
+  }
+
+  /// Analyses [transactions] and returns up to [limit] suggested patterns
+  /// that aren't already tracked as recurring templates.
+  List<RecurringPattern> detectSuggestions(
+    List<Transaction> transactions, {
+    int limit = 5,
+  }) {
+    return RecurringPatternDetector.detect(
+      transactions,
+      existing: _templates,
+    ).take(limit).toList();
   }
 
   /// Removes the payment record for the current month (undo).

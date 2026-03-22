@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/budgets_controller.dart';
+import 'package:vittara_fin_os/logic/goals_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/ui/dashboard/base_dashboard_widget.dart';
@@ -140,7 +141,8 @@ String _catEmoji(String cat) {
 }
 
 SpendIntelData computeSpendIntel(
-    List<Transaction> transactions, List budgets) {
+    List<Transaction> transactions, List budgets,
+    {List goals = const []}) {
   final now = DateTime.now();
   final dayOfMonth = now.day;
   final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
@@ -381,6 +383,45 @@ SpendIntelData computeSpendIntel(
       icon: CupertinoIcons.waveform_path,
       level: SpendInsightLevel.neutral,
     ));
+  }
+
+  // 8. Goal nudges (AI-01)
+  for (final goal in goals.take(2)) {
+    try {
+      final remaining = (goal.targetAmount as double) - (goal.currentAmount as double);
+      if (remaining <= 0) continue;
+      final monthsLeft = goal.monthsRemaining as int;
+      if (monthsLeft <= 0) continue;
+      final neededPerMonth = remaining / monthsLeft;
+      // Estimate monthly savings from income vs expense
+      final monthlySavings = (incomeThis - totalThis).clamp(0.0, double.infinity);
+      if (monthlySavings <= 0) {
+        narratives.add(SpendNarrative(
+          headline: '🎯 ${goal.name} goal at risk',
+          detail:
+              'Need ${spendFmt(neededPerMonth)}/mo to reach goal in $monthsLeft month${monthsLeft == 1 ? '' : 's'}. Reduce expenses to stay on track.',
+          icon: CupertinoIcons.flag_fill,
+          level: SpendInsightLevel.alert,
+        ));
+      } else if (monthlySavings < neededPerMonth) {
+        final gap = neededPerMonth - monthlySavings;
+        narratives.add(SpendNarrative(
+          headline: '🎯 ${goal.name} — ${spendFmt(gap)}/mo behind',
+          detail:
+              'Saving ${spendFmt(monthlySavings)}/mo but need ${spendFmt(neededPerMonth)}/mo for ${goal.name} in $monthsLeft month${monthsLeft == 1 ? '' : 's'}.',
+          icon: CupertinoIcons.flag,
+          level: SpendInsightLevel.warning,
+        ));
+      } else {
+        narratives.add(SpendNarrative(
+          headline: '🎯 ${goal.name} — on track',
+          detail:
+              'At current pace, you\'ll reach ${spendFmt(goal.targetAmount as double)} in ~$monthsLeft month${monthsLeft == 1 ? '' : 's'}.',
+          icon: CupertinoIcons.checkmark_seal_fill,
+          level: SpendInsightLevel.positive,
+        ));
+      }
+    } catch (_) {}
   }
 
   return SpendIntelData(
@@ -1086,10 +1127,11 @@ class InsightsWidget extends BaseDashboardWidget {
     required double height,
   }) {
     return RepaintBoundary(
-      child: Consumer2<TransactionsController, BudgetsController>(
-        builder: (context, txCtrl, budgetsCtrl, _) {
+      child: Consumer3<TransactionsController, BudgetsController, GoalsController>(
+        builder: (context, txCtrl, budgetsCtrl, goalsCtrl, _) {
           final data = computeSpendIntel(
-              txCtrl.transactions, budgetsCtrl.budgets);
+              txCtrl.transactions, budgetsCtrl.budgets,
+              goals: goalsCtrl.activeGoals);
           final isDark = Theme.of(context).brightness == Brightness.dark;
 
           if (!data.hasData && data.narratives.isEmpty) {
