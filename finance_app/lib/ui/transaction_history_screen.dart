@@ -23,6 +23,7 @@ import 'package:vittara_fin_os/utils/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/services/transaction_export_service.dart';
 import 'package:vittara_fin_os/ui/widgets/animated_counter.dart' as counter_widgets;
+import 'package:flutter_slidable/flutter_slidable.dart';
 
 enum _DateRangeFilter {
   all,
@@ -940,6 +941,24 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   ) {
     // Build a flat list of headers + transactions (all items, for grouping).
     final groups = DateFormatter.groupByDate(transactions, (t) => t.dateTime);
+    // Compute per-group totals for the date headers.
+    final Map<String, ({int count, double expense, double income})> groupStats = {};
+    for (final entry in groups.entries) {
+      double exp = 0;
+      double inc = 0;
+      for (final t in entry.value) {
+        final evtType = t.metadata?['investmentEventType'] as String?;
+        final isInflow = t.type == TransactionType.income ||
+            evtType == 'dividend' || evtType == 'sell' ||
+            evtType == 'decrease' || evtType == 'redeem';
+        if (isInflow) {
+          inc += t.amount;
+        } else if (t.type == TransactionType.expense) {
+          exp += t.amount;
+        }
+      }
+      groupStats[entry.key] = (count: entry.value.length, expense: exp, income: inc);
+    }
     final allItems = <_TxnListItem>[];
     for (final entry in groups.entries) {
       allItems.add(_TxnListItem.header(entry.key));
@@ -1002,6 +1021,10 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           }
           final item = listItems[index];
           if (item.isHeader) {
+            final stats = groupStats[item.header!];
+            final dayExpense = stats?.expense ?? 0;
+            final dayIncome = stats?.income ?? 0;
+            final dayCount = stats?.count ?? 0;
             return Padding(
               key: ValueKey('h_${item.header}'),
               padding: EdgeInsets.only(
@@ -1030,6 +1053,43 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                       letterSpacing: 0.7,
                     ),
                   ),
+                  const SizedBox(width: 6),
+                  Text(
+                    '· $dayCount',
+                    style: TextStyle(
+                      fontSize: TypeScale.caption,
+                      color: AppStyles.getSecondaryTextColor(context)
+                          .withValues(alpha: 0.5),
+                    ),
+                  ),
+                  const Spacer(),
+                  if (dayIncome > 0)
+                    Text(
+                      '+₹${dayIncome.toStringAsFixed(0)}',
+                      style: TextStyle(
+                        fontSize: TypeScale.caption,
+                        fontWeight: FontWeight.w600,
+                        color: AppStyles.bioGreen.withValues(alpha: 0.8),
+                      ),
+                    ),
+                  if (dayIncome > 0 && dayExpense > 0)
+                    Text(
+                      '  ',
+                      style: TextStyle(
+                        fontSize: TypeScale.caption,
+                        color: AppStyles.getDividerColor(context),
+                      ),
+                    ),
+                  if (dayExpense > 0)
+                    Text(
+                      '-₹${dayExpense.toStringAsFixed(0)}',
+                      style: TextStyle(
+                        fontSize: TypeScale.caption,
+                        fontWeight: FontWeight.w600,
+                        color: CupertinoColors.systemRed
+                            .withValues(alpha: 0.75),
+                      ),
+                    ),
                 ],
               ),
             );
@@ -1097,17 +1157,36 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
             ? CupertinoIcons.arrow_up_circle_fill
             : transaction.type.typeIcon;
 
-    return BouncyButton(
-      onPressed: () => _showTransactionDetails(
-        context,
-        transaction,
-        controller,
-        allowArchive: !TransactionFeedBuilder.isDerivedInvestmentEvent(
+    final isDerived = TransactionFeedBuilder.isDerivedInvestmentEvent(transaction);
+    final archiveCtrl = Provider.of<TransactionsArchiveController>(context, listen: false);
+
+    return Slidable(
+      key: ValueKey('slide_${transaction.id}'),
+      endActionPane: isDerived
+          ? null
+          : ActionPane(
+              motion: const DrawerMotion(),
+              extentRatio: 0.22,
+              children: [
+                SlidableAction(
+                  onPressed: (_) =>
+                      _archiveTransaction(transaction, controller, archiveCtrl),
+                  backgroundColor: AppStyles.aetherTeal,
+                  foregroundColor: CupertinoColors.white,
+                  icon: CupertinoIcons.archivebox_fill,
+                  borderRadius: BorderRadius.circular(Radii.lg),
+                ),
+              ],
+            ),
+      child: BouncyButton(
+        onPressed: () => _showTransactionDetails(
+          context,
           transaction,
+          controller,
+          allowArchive: !isDerived,
         ),
-      ),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: Spacing.md),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: Spacing.md),
         decoration: AppStyles.accentCardDecoration(context, typeColor),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(Radii.xxl),
@@ -1256,6 +1335,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

@@ -213,12 +213,13 @@ class _ScoreArcPainter extends CustomPainter {
 // Animated sub-score bar
 // ---------------------------------------------------------------------------
 
-class _AnimatedSubScoreBar extends StatelessWidget {
+class _AnimatedSubScoreBar extends StatefulWidget {
   final String label;
   final int score;
   final int maxScore;
   final Color color;
   final Animation<double> animation;
+  final String tip;
 
   const _AnimatedSubScoreBar({
     required this.label,
@@ -226,69 +227,138 @@ class _AnimatedSubScoreBar extends StatelessWidget {
     required this.maxScore,
     required this.color,
     required this.animation,
+    required this.tip,
   });
 
   @override
+  State<_AnimatedSubScoreBar> createState() => _AnimatedSubScoreBarState();
+}
+
+class _AnimatedSubScoreBarState extends State<_AnimatedSubScoreBar> {
+  bool _expanded = false;
+
+  @override
   Widget build(BuildContext context) {
-    final targetFraction = maxScore > 0 ? (score / maxScore).clamp(0.0, 1.0) : 0.0;
+    final targetFraction = widget.maxScore > 0
+        ? (widget.score / widget.maxScore).clamp(0.0, 1.0)
+        : 0.0;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final trackColor = isDark
         ? Colors.white.withValues(alpha: 0.08)
         : Colors.black.withValues(alpha: 0.06);
 
     return AnimatedBuilder(
-      animation: animation,
+      animation: widget.animation,
       builder: (context, _) {
-        final fraction = targetFraction * animation.value;
-        return Padding(
-          padding: const EdgeInsets.only(bottom: Spacing.sm),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: TypeScale.caption,
-                      fontWeight: FontWeight.w500,
-                      color: AppStyles.getSecondaryTextColor(context),
-                    ),
-                  ),
-                  Text(
-                    '$score/$maxScore',
-                    style: TextStyle(
-                      fontSize: TypeScale.caption,
-                      fontWeight: FontWeight.w700,
-                      color: color,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: Spacing.xxs + 1),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(Radii.full),
-                child: Stack(
+        final fraction = targetFraction * widget.animation.value;
+        return GestureDetector(
+          onTap: () => setState(() => _expanded = !_expanded),
+          behavior: HitTestBehavior.opaque,
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: Spacing.sm),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(height: 5, color: trackColor),
-                    FractionallySizedBox(
-                      widthFactor: fraction,
-                      child: Container(
-                        height: 5,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(colors: [
-                            color.withValues(alpha: 0.7),
-                            color,
-                          ]),
-                          borderRadius: BorderRadius.circular(Radii.full),
+                    Row(
+                      children: [
+                        Text(
+                          widget.label,
+                          style: TextStyle(
+                            fontSize: TypeScale.caption,
+                            fontWeight: FontWeight.w500,
+                            color: AppStyles.getSecondaryTextColor(context),
+                          ),
                         ),
+                        const SizedBox(width: 4),
+                        AnimatedRotation(
+                          turns: _expanded ? 0.25 : 0.0,
+                          duration: const Duration(milliseconds: 200),
+                          child: Icon(
+                            CupertinoIcons.chevron_right,
+                            size: 9,
+                            color: AppStyles.getSecondaryTextColor(context)
+                                .withValues(alpha: 0.5),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      '${widget.score}/${widget.maxScore}',
+                      style: TextStyle(
+                        fontSize: TypeScale.caption,
+                        fontWeight: FontWeight.w700,
+                        color: widget.color,
                       ),
                     ),
                   ],
                 ),
-              ),
-            ],
+                const SizedBox(height: Spacing.xxs + 1),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(Radii.full),
+                  child: Stack(
+                    children: [
+                      Container(height: 5, color: trackColor),
+                      FractionallySizedBox(
+                        widthFactor: fraction,
+                        child: Container(
+                          height: 5,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(colors: [
+                              widget.color.withValues(alpha: 0.7),
+                              widget.color,
+                            ]),
+                            borderRadius: BorderRadius.circular(Radii.full),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeOutCubic,
+                  child: _expanded
+                      ? Padding(
+                          padding: const EdgeInsets.only(top: Spacing.xs),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: Spacing.md, vertical: Spacing.sm),
+                            decoration: BoxDecoration(
+                              color: widget.color.withValues(alpha: 0.07),
+                              borderRadius: BorderRadius.circular(Radii.md),
+                              border: Border.all(
+                                  color: widget.color.withValues(alpha: 0.18)),
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(CupertinoIcons.info_circle_fill,
+                                    size: 12,
+                                    color:
+                                        widget.color.withValues(alpha: 0.7)),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    widget.tip,
+                                    style: TextStyle(
+                                      fontSize: TypeScale.caption,
+                                      color:
+                                          AppStyles.getSecondaryTextColor(context),
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      : const SizedBox.shrink(),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -562,6 +632,7 @@ class _AnimatedHealthScoreBodyState extends State<_AnimatedHealthScoreBody>
           maxScore: 25,
           color: const Color(0xFF00C853),
           animation: _bar1Anim,
+          tip: 'Based on income vs savings ratio. Aim to save 20%+ of monthly income to score full marks.',
         ),
         _AnimatedSubScoreBar(
           label: 'Budget Adherence',
@@ -569,6 +640,7 @@ class _AnimatedHealthScoreBodyState extends State<_AnimatedHealthScoreBody>
           maxScore: 25,
           color: AppStyles.accentBlue,
           animation: _bar2Anim,
+          tip: 'Based on staying within your budgets. Review and resolve exceeded budgets to improve this score.',
         ),
         _AnimatedSubScoreBar(
           label: 'Investment Diversity',
@@ -576,6 +648,7 @@ class _AnimatedHealthScoreBodyState extends State<_AnimatedHealthScoreBody>
           maxScore: 25,
           color: AppStyles.accentTeal,
           animation: _bar3Anim,
+          tip: 'Based on spread across asset classes. Adding equity, debt, gold, and FDs improves diversity.',
         ),
         _AnimatedSubScoreBar(
           label: 'Debt Ratio',
@@ -583,6 +656,7 @@ class _AnimatedHealthScoreBodyState extends State<_AnimatedHealthScoreBody>
           maxScore: 25,
           color: AppStyles.accentOrange,
           animation: _bar4Anim,
+          tip: 'Based on debt-to-income ratio. Keep EMIs below 40% of monthly income for a healthy score.',
         ),
       ],
     );
