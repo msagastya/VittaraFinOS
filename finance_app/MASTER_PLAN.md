@@ -65,7 +65,7 @@
 6. SIP Command — next SIP dates, MTD invested, projected year-end
 **Implementation:** Replace current `ReorderableListView` in dashboard with `CardDeckView`, keep quick-add FAB intact
 
-### NW-01 — Net Worth Page Card Deck `[ ]` P1
+### NW-01 — Net Worth Page Card Deck `[x]` P1
 **File:** `lib/ui/net_worth/` (net worth screen)
 **Cards (6 total):**
 1. Vault — total net worth, absolute + % change (1M/3M/1Y tabs)
@@ -102,7 +102,7 @@ navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(..
 // Then in body, conditionally show compact back button overlay
 ```
 
-### SYS-03 — Skeleton Loading States `[ ]` P1
+### SYS-03 — Skeleton Loading States `[x]` P1
 **File:** `lib/ui/widgets/skeleton_loader.dart` (new)
 **Design:** Shimmer sweep animation (135° angle, 1.2s loop), color `Color(0xFF1A1A1A)` dark / `Color(0xFFE8E8E8)` light
 - `SkeletonBox(width, height, radius)` — base widget
@@ -111,7 +111,7 @@ navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(..
 - `SkeletonChart()` — bar chart placeholder (5 bars of varying height)
 Apply to: Investments screen (initial load), Transaction history (first paint), Budget screen
 
-### SYS-04 — LandscapeSplitView Widget `[ ]` P1
+### SYS-04 — LandscapeSplitView Widget `[x]` P1
 **File:** `lib/ui/widgets/landscape_split_view.dart` (new)
 **API:**
 ```dart
@@ -134,7 +134,7 @@ LandscapeSplitView(
 8. Reports / Tax — left: filter/period picker; right: data table
 9. Dashboard — left: net worth + budget cards; right: cash flow + investments
 
-### INV-01 — Investments Portfolio Terminal `[ ]` P1
+### INV-01 — Investments Portfolio Terminal `[~]` P1 (landscape nav done; LandscapeSplitView pending PageView extraction)
 **File:** `lib/ui/manage/investments_screen.dart`
 **Redesign:**
 - **Summary bar** (always visible, sticky): Total portfolio value | Day P&L (₹ + %) | Absolute return (%)
@@ -146,7 +146,7 @@ LandscapeSplitView(
 - **Sort bar:** Return % | Value | Name | Date Added (tap to toggle, arrow indicator)
 - **Aggregate footer:** Total invested | Total current | Absolute return | XIRR (if calculable)
 
-### BUD-01 — Budget Mission Control `[ ]` P1
+### BUD-01 — Budget Mission Control `[x]` P1
 **File:** `lib/ui/budget_screen.dart` (or equivalent)
 **Redesign:**
 - **Hero metric:** Big radial gauge (0–100%) showing MTD budget consumption
@@ -406,4 +406,4 @@ AppStyles.landscapeContentConstraints(ctx)  // maxWidth: 560 landscape
 
 ---
 
-*Last updated: 2026-03-22 — Session 9: SYS-07, D-01, D-02 done; SYS-LAND-NAV dashboard done*
+*Last updated: 2026-03-22 — Session 9 cont: NW-01, SYS-03, SYS-04, BUD-01 done; INV-01 landscape nav done, SYS-LAND-NAV ongoing*

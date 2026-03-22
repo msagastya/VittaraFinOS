@@ -7,6 +7,7 @@ import 'package:vittara_fin_os/logic/budgets_controller.dart';
 import 'package:vittara_fin_os/logic/budget_model.dart';
 import 'package:vittara_fin_os/ui/manage/budgets/budget_details_screen.dart';
 import 'package:vittara_fin_os/ui/manage/budgets/modals/add_budget_modal.dart';
+import 'dart:math' as math;
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
@@ -44,21 +45,25 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isLandscape = AppStyles.isLandscape(context);
+
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: CupertinoNavigationBar(
-        middle: Text('Budgets',
-            style: TextStyle(color: AppStyles.getTextColor(context))),
-        previousPageTitle: 'Back',
-        backgroundColor: AppStyles.getBackground(context),
-        border: null,
-        trailing: CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: () => _showPeriodFilter(),
-          child: const Icon(CupertinoIcons.line_horizontal_3_decrease,
-              color: AppStyles.accentBlue),
-        ),
-      ),
+      navigationBar: isLandscape
+          ? null
+          : CupertinoNavigationBar(
+              middle: Text('Budgets',
+                  style: TextStyle(color: AppStyles.getTextColor(context))),
+              previousPageTitle: 'Back',
+              backgroundColor: AppStyles.getBackground(context),
+              border: null,
+              trailing: CupertinoButton(
+                padding: EdgeInsets.zero,
+                onPressed: () => _showPeriodFilter(),
+                child: const Icon(CupertinoIcons.line_horizontal_3_decrease,
+                    color: AppStyles.accentBlue),
+              ),
+            ),
       child: Consumer<BudgetsController>(
         builder: (context, controller, child) {
           final filteredBudgets = controller.activeBudgets.where((budget) {
@@ -73,7 +78,11 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
               SafeArea(
                 child: filteredBudgets.isEmpty && _filterPeriod == null
                     ? _buildEmptyState()
-                    : CustomScrollView(
+                    : Column(
+                        children: [
+                          if (isLandscape) _buildLandscapeNavBar(context),
+                          Expanded(
+                            child: CustomScrollView(
                         slivers: [
                           // Pull-to-refresh
                           CupertinoSliverRefreshControl(
@@ -218,6 +227,9 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                               ),
                             ),
                           const SliverToBoxAdapter(child: SizedBox(height: 80)),
+                        ],
+                      ),
+                          ),
                         ],
                       ),
               ),
@@ -511,19 +523,39 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
             ? SemanticColors.warning
             : SemanticColors.success;
 
+    // Pace label for Mission Control status line
+    final remaining = (totalBudgeted - totalSpent).clamp(0.0, double.infinity);
+    final String paceLabel;
+    final Color paceColor;
+    if (exceededCount > 0) {
+      paceLabel = 'Overpacing — $exceededCount budget${exceededCount > 1 ? 's' : ''} exceeded';
+      paceColor = AppStyles.loss(context);
+    } else if (warningCount > 0) {
+      paceLabel = 'Watch out — $warningCount near limit';
+      paceColor = AppStyles.warning(context);
+    } else if (totalBudgeted > 0) {
+      paceLabel = '${(remaining / totalBudgeted * 100).toStringAsFixed(0)}% headroom remaining';
+      paceColor = AppStyles.gain(context);
+    } else {
+      paceLabel = 'No active budgets';
+      paceColor = AppStyles.neutral(context);
+    }
+
     return GlassCard(
       padding: const EdgeInsets.all(Spacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Bloomberg-style panel header
           Row(
             children: [
               Text(
-                'Budget Health',
+                'MISSION CONTROL',
                 style: TextStyle(
-                  fontSize: TypeScale.callout,
+                  fontSize: 11,
                   fontWeight: FontWeight.w700,
-                  color: AppStyles.getTextColor(context),
+                  color: barColor,
+                  letterSpacing: 1.1,
                 ),
               ),
               const Spacer(),
@@ -550,79 +582,209 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
             ],
           ),
           const SizedBox(height: Spacing.md),
-          // Overall progress bar
-          ClipRRect(
-            borderRadius: BorderRadius.circular(Radii.full),
-            child: TweenAnimationBuilder<double>(
-              tween: Tween(begin: 0, end: overallPct),
-              duration: const Duration(milliseconds: 900),
-              curve: Curves.easeOutCubic,
-              builder: (ctx, v, _) => Stack(
-                children: [
-                  Container(
-                    height: 8,
-                    width: double.infinity,
-                    color: AppStyles.getDividerColor(context),
-                  ),
-                  FractionallySizedBox(
-                    widthFactor: v,
-                    child: Container(
-                      height: 8,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [barColor, barColor.withValues(alpha: 0.7)],
-                        ),
+
+          // Main content: radial arc gauge (left) + stats (right)
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Radial arc gauge
+              TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0, end: overallPct),
+                duration: const Duration(milliseconds: 1000),
+                curve: Curves.easeOutCubic,
+                builder: (ctx, v, _) => SizedBox(
+                  width: 100,
+                  height: 100,
+                  child: CustomPaint(
+                    painter: _BudgetGaugePainter(
+                      progress: v,
+                      trackColor: AppStyles.getDividerColor(context),
+                      fillColor: barColor,
+                    ),
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '${(v * 100).toStringAsFixed(0)}%',
+                            style: TextStyle(
+                              fontSize: TypeScale.headline,
+                              fontWeight: FontWeight.w800,
+                              color: barColor,
+                              height: 1.0,
+                            ),
+                          ),
+                          Text(
+                            'used',
+                            style: TextStyle(
+                              fontSize: 9,
+                              color: AppStyles.getSecondaryTextColor(context),
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                ],
+                ),
               ),
-            ),
+              const SizedBox(width: Spacing.lg),
+              // Stats column
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _missionStatRow('Budgeted', totalBudgeted,
+                        AppStyles.getSecondaryTextColor(context)),
+                    const SizedBox(height: Spacing.xs),
+                    _missionStatRow('Spent', totalSpent, barColor),
+                    const SizedBox(height: Spacing.xs),
+                    _missionStatRow('Remaining', remaining,
+                        AppStyles.gain(context)),
+                    const Divider(height: Spacing.lg),
+                    Row(
+                      children: [
+                        _compactBadge('$onTrackCount', 'OK',
+                            AppStyles.gain(context)),
+                        const SizedBox(width: Spacing.sm),
+                        if (warningCount > 0) ...[
+                          _compactBadge('$warningCount', '!',
+                              AppStyles.warning(context)),
+                          const SizedBox(width: Spacing.sm),
+                        ],
+                        _compactBadge('$exceededCount', '✕',
+                            AppStyles.loss(context)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: Spacing.md),
-          IntrinsicHeight(
+          const SizedBox(height: Spacing.sm),
+          // Pace status line
+          Row(
+            children: [
+              Container(
+                width: 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: paceColor,
+                ),
+              ),
+              const SizedBox(width: Spacing.sm),
+              Expanded(
+                child: Text(
+                  paceLabel,
+                  style: TextStyle(
+                    fontSize: TypeScale.caption,
+                    color: paceColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _missionStatRow(String label, double value, Color color) {
+    return Row(
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: TypeScale.caption,
+            color: AppStyles.getSecondaryTextColor(context),
+          ),
+        ),
+        const Spacer(),
+        counter_widgets.CurrencyCounter(
+          value: value,
+          textStyle: TextStyle(
+            fontSize: TypeScale.footnote,
+            fontWeight: FontWeight.w700,
+            color: color,
+          ),
+          decimalPlaces: 0,
+        ),
+      ],
+    );
+  }
+
+  Widget _compactBadge(String count, String icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(icon,
+              style: TextStyle(
+                  fontSize: 9, color: color, fontWeight: FontWeight.w800)),
+          const SizedBox(width: 3),
+          Text(count,
+              style: TextStyle(
+                  fontSize: TypeScale.caption,
+                  color: color,
+                  fontWeight: FontWeight.w700)),
+        ],
+      ),
+    );
+  }
+
+  /// Compact 40dp nav bar for landscape mode.
+  Widget _buildLandscapeNavBar(BuildContext context) {
+    final secondary = AppStyles.getSecondaryTextColor(context);
+    return Container(
+      height: 40,
+      padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
+      decoration: BoxDecoration(
+        color: AppStyles.getCardColor(context).withValues(alpha: 0.85),
+        border: Border(
+          bottom: BorderSide(
+              color: AppStyles.getDividerColor(context), width: 0.5),
+        ),
+      ),
+      child: Row(
+        children: [
+          BouncyButton(
+            onPressed: () => Navigator.of(context).pop(),
             child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                _budgetStatCell(
-                  label: 'Budgeted',
-                  value: totalBudgeted,
-                  color: AppStyles.getSecondaryTextColor(context),
-                ),
-                VerticalDivider(
-                    width: 1,
-                    thickness: 1,
-                    color: AppStyles.getDividerColor(context)),
-                _budgetStatCell(
-                  label: 'Spent',
-                  value: totalSpent,
-                  color: barColor,
-                ),
-                VerticalDivider(
-                    width: 1,
-                    thickness: 1,
-                    color: AppStyles.getDividerColor(context)),
-                _budgetStatCell(
-                  label: 'Remaining',
-                  value: (totalBudgeted - totalSpent).clamp(0, double.infinity),
-                  color: SemanticColors.success,
-                ),
+                Icon(CupertinoIcons.chevron_back,
+                    size: 16, color: AppStyles.getPrimaryColor(context)),
+                const SizedBox(width: 4),
+                Text('Back',
+                    style: TextStyle(
+                        fontSize: 14,
+                        color: AppStyles.getPrimaryColor(context),
+                        fontWeight: FontWeight.w500)),
               ],
             ),
           ),
-          const SizedBox(height: Spacing.md),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _budgetCountBadge(
-                  onTrackCount, 'On track', SemanticColors.success),
-              if (warningCount > 0)
-                _budgetCountBadge(warningCount, 'Warning', SemanticColors.warning),
-              _budgetCountBadge(
-                  exceededCount, 'Exceeded', SemanticColors.error),
-              _budgetCountBadge(
-                  allBudgets.length, 'Total', AppStyles.accentBlue),
-            ],
+          const Spacer(),
+          Text('BUDGETS',
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: secondary,
+                  letterSpacing: 1.2)),
+          const Spacer(),
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            onPressed: () => _showPeriodFilter(),
+            child: Icon(CupertinoIcons.line_horizontal_3_decrease,
+                size: 18, color: secondary),
           ),
+          const SizedBox(width: 60),
         ],
       ),
     );
@@ -860,3 +1022,56 @@ class _ShakingBudgetBarState extends State<_ShakingBudgetBar>
     );
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Budget Gauge Painter — Bloomberg Mission Control arc gauge (BUD-01)
+// ─────────────────────────────────────────────────────────────────────────────
+class _BudgetGaugePainter extends CustomPainter {
+  final double progress; // 0.0 → 1.0
+  final Color trackColor;
+  final Color fillColor;
+
+  const _BudgetGaugePainter({
+    required this.progress,
+    required this.trackColor,
+    required this.fillColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final strokeW = size.width * 0.12;
+    final radius = (size.width - strokeW) / 2;
+    final center = Offset(size.width / 2, size.height / 2);
+    final rect = Rect.fromCircle(center: center, radius: radius);
+
+    // Arc spans 240° (starts at 150°, ends at 30° clock-wise) — like a speedometer
+    const startAngle = math.pi * 0.75; // 135°
+    const sweepAngle = math.pi * 1.5;  // 270°
+
+    // Track
+    final trackPaint = Paint()
+      ..color = trackColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeW
+      ..strokeCap = StrokeCap.round;
+    canvas.drawArc(rect, startAngle, sweepAngle, false, trackPaint);
+
+    // Fill
+    if (progress > 0) {
+      final fillPaint = Paint()
+        ..color = fillColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeW
+        ..strokeCap = StrokeCap.round;
+      canvas.drawArc(rect, startAngle, sweepAngle * progress.clamp(0, 1), false,
+          fillPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_BudgetGaugePainter old) =>
+      old.progress != progress ||
+      old.trackColor != trackColor ||
+      old.fillColor != fillColor;
+}
+

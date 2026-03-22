@@ -37,6 +37,7 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
+import 'package:vittara_fin_os/ui/widgets/landscape_split_view.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -1026,9 +1027,13 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isLandscape = AppStyles.isLandscape(context);
+
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: isLandscape
+          ? null
+          : CupertinoNavigationBar(
         middle: Text('Investments',
             style: TextStyle(color: AppStyles.getTextColor(context))),
         previousPageTitle: 'Back',
@@ -1133,6 +1138,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                 SafeArea(
                   child: Column(
                     children: [
+                      // Compact landscape nav bar (replaces CupertinoNavigationBar)
+                      if (isLandscape) _buildLandscapeInvestmentsNavBar(context),
                       // Compact Summary Section
                       _buildCompactSummary(context, investments),
                       // Asset Allocation Donut Chart
@@ -1302,6 +1309,82 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             ],
           );
         },
+      ),
+    );
+  }
+
+  /// Compact 40dp nav bar shown in landscape (replaces CupertinoNavigationBar).
+  Widget _buildLandscapeInvestmentsNavBar(BuildContext context) {
+    final textColor = AppStyles.getTextColor(context);
+    final secondary = AppStyles.getSecondaryTextColor(context);
+    return Container(
+      height: 40,
+      padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
+      decoration: BoxDecoration(
+        color: AppStyles.getCardColor(context).withValues(alpha: 0.85),
+        border: Border(
+          bottom: BorderSide(
+              color: AppStyles.getDividerColor(context), width: 0.5),
+        ),
+      ),
+      child: Row(
+        children: [
+          BouncyButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(CupertinoIcons.chevron_back,
+                    size: 16, color: AppStyles.getPrimaryColor(context)),
+                const SizedBox(width: 4),
+                Text('Back',
+                    style: TextStyle(
+                        fontSize: 14,
+                        color: AppStyles.getPrimaryColor(context),
+                        fontWeight: FontWeight.w500)),
+              ],
+            ),
+          ),
+          const Spacer(),
+          Text(
+            'INVESTMENTS',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: secondary,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const Spacer(),
+          // Maturity calendar + sort + refresh in compact row
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            onPressed: () => _showMaturityCalendar(
+                context,
+                Provider.of<InvestmentsController>(context, listen: false)
+                    .investments),
+            child: Icon(CupertinoIcons.calendar, size: 18, color: secondary),
+          ),
+          const SizedBox(width: Spacing.sm),
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            onPressed: () => _showSortModal(context),
+            child: Icon(CupertinoIcons.arrow_up_arrow_down,
+                size: 18, color: secondary),
+          ),
+          const SizedBox(width: Spacing.sm),
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            onPressed: _isRefreshingCurrentValues
+                ? null
+                : () => _refreshCurrentValues(context),
+            child: _isRefreshingCurrentValues
+                ? const CupertinoActivityIndicator(radius: 8)
+                : Icon(CupertinoIcons.arrow_clockwise, size: 18, color: secondary),
+          ),
+          const SizedBox(width: Spacing.xs),
+          Text(textColor.toString().isEmpty ? '' : ''),
+        ],
       ),
     );
   }

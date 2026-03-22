@@ -13,6 +13,7 @@ import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/widgets/card_deck_view.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
@@ -361,17 +362,23 @@ class _NetWorthPageState extends State<NetWorthPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isLandscape = AppStyles.isLandscape(context);
+
     return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        middle: const Text('Net Worth'),
-        previousPageTitle: 'Back',
-        backgroundColor: AppStyles.getBackground(context),
-        border: null,
-      ),
+      // Landscape: hide nav bar — replaced by compact inline bar in body
+      navigationBar: isLandscape
+          ? null
+          : const CupertinoNavigationBar(
+              middle: Text('Net Worth'),
+              previousPageTitle: 'Back',
+              border: null,
+            ),
       child: SafeArea(
-        child: Consumer2<AccountsController, InvestmentsController>(
-          builder: (context, accountsController, investmentsController, child) {
-            // Show skeleton while data is loading from storage
+        child: Consumer3<AccountsController, InvestmentsController,
+            TransactionsController>(
+          builder:
+              (context, accountsController, investmentsController, txCtrl, _) {
+            // Loading skeleton
             if (!accountsController.isLoaded ||
                 !investmentsController.isLoaded) {
               return const SkeletonAnimationProvider(
@@ -388,7 +395,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
               );
             }
 
-            // Empty state — no data yet
+            // Empty state
             if (accountsController.accounts.isEmpty &&
                 investmentsController.investments.isEmpty) {
               return Center(
@@ -433,43 +440,95 @@ class _NetWorthPageState extends State<NetWorthPage> {
             }
 
             try {
-              final totalNetWorth =
-                  _calculateNetWorth(accountsController, investmentsController);
+              final totalNetWorth = _calculateNetWorth(
+                  accountsController, investmentsController);
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (mounted) _maybeSaveSnapshot(totalNetWorth);
               });
 
-              return SingleChildScrollView(
-                padding: const EdgeInsets.all(Spacing.lg),
-                child: Column(
-                  children: [
-                    _buildTotalNetWorthCard(
-                        context, accountsController, investmentsController),
-                    if (_historySnapshots.length >= 2) ...[
-                      const SizedBox(height: Spacing.md),
-                      _buildMotivationalBanner(context, totalNetWorth),
-                      const SizedBox(height: Spacing.md),
-                      _buildNetWorthTrendCard(context),
-                    ],
-                    const SizedBox(height: Spacing.xl),
-                    Consumer<TransactionsController>(
-                      builder: (context, txCtrl, _) => _buildForecastCard(
-                        context,
-                        txCtrl,
-                        totalNetWorth,
-                      ),
+              // ── Card Deck Layout ────────────────────────────────────────
+              return Column(
+                children: [
+                  // Compact nav bar in landscape
+                  if (isLandscape) _buildLandscapeNavBar(context),
+                  Expanded(
+                    child: CardDeckView(
+                      cards: [
+                        // Card 1: Vault — headline net worth + momentum banner
+                        _buildNwDeckCard(
+                          context,
+                          label: 'VAULT',
+                          icon: CupertinoIcons.lock_shield_fill,
+                          accent: AppStyles.teal(context),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _buildTotalNetWorthCard(context,
+                                  accountsController, investmentsController),
+                              if (_historySnapshots.length >= 2) ...[
+                                const SizedBox(height: Spacing.md),
+                                _buildMotivationalBanner(
+                                    context, totalNetWorth),
+                              ],
+                            ],
+                          ),
+                        ),
+                        // Card 2: Trajectory — trend + forecast
+                        _buildNwDeckCard(
+                          context,
+                          label: 'TRAJECTORY',
+                          icon: CupertinoIcons.chart_bar_alt_fill,
+                          accent: AppStyles.violet(context),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (_historySnapshots.length >= 2)
+                                _buildNetWorthTrendCard(context),
+                              const SizedBox(height: Spacing.lg),
+                              _buildForecastCard(
+                                  context, txCtrl, totalNetWorth),
+                            ],
+                          ),
+                        ),
+                        // Card 3: Liquid Assets — bank accounts
+                        _buildNwDeckCard(
+                          context,
+                          label: 'LIQUID ASSETS',
+                          icon: CupertinoIcons.building_2_fill,
+                          accent: AppStyles.gain(context),
+                          child: _buildBankAccountsSection(
+                              context, accountsController),
+                        ),
+                        // Card 4: Portfolio — demat + investments
+                        _buildNwDeckCard(
+                          context,
+                          label: 'PORTFOLIO',
+                          icon: CupertinoIcons.chart_pie_fill,
+                          accent: AppStyles.gold(context),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _buildDematAccountsSection(
+                                  context, accountsController),
+                              const SizedBox(height: Spacing.lg),
+                              _buildInvestmentsSection(
+                                  context, investmentsController),
+                            ],
+                          ),
+                        ),
+                        // Card 5: Obligations — credit liabilities
+                        _buildNwDeckCard(
+                          context,
+                          label: 'OBLIGATIONS',
+                          icon: CupertinoIcons.creditcard_fill,
+                          accent: AppStyles.loss(context),
+                          child: _buildCreditLiabilitiesSection(
+                              context, accountsController),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: Spacing.xl),
-                    _buildBankAccountsSection(context, accountsController),
-                    const SizedBox(height: Spacing.lg),
-                    _buildDematAccountsSection(context, accountsController),
-                    const SizedBox(height: Spacing.lg),
-                    _buildCreditLiabilitiesSection(context, accountsController),
-                    const SizedBox(height: Spacing.lg),
-                    _buildInvestmentsSection(context, investmentsController),
-                    const SizedBox(height: Spacing.xl),
-                  ],
-                ),
+                  ),
+                ],
               );
             } catch (e) {
               if (kDebugMode) {
@@ -509,6 +568,131 @@ class _NetWorthPageState extends State<NetWorthPage> {
             }
           },
         ),
+      ),
+    );
+  }
+
+  // ── Compact landscape nav bar (back button + title) ─────────────────────────
+  Widget _buildLandscapeNavBar(BuildContext context) {
+    return Container(
+      height: 40,
+      padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
+      decoration: BoxDecoration(
+        color: AppStyles.getCardColor(context).withValues(alpha: 0.85),
+        border: Border(
+          bottom: BorderSide(
+              color: AppStyles.getDividerColor(context), width: 0.5),
+        ),
+      ),
+      child: Row(
+        children: [
+          BouncyButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(CupertinoIcons.chevron_back,
+                    size: 16,
+                    color: AppStyles.getPrimaryColor(context)),
+                const SizedBox(width: 4),
+                Text(
+                  'Back',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppStyles.getPrimaryColor(context),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Spacer(),
+          Text(
+            'NET WORTH',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: AppStyles.getSecondaryTextColor(context),
+              letterSpacing: 1.2,
+            ),
+          ),
+          const Spacer(),
+          // Spacer to balance back button width
+          const SizedBox(width: 60),
+        ],
+      ),
+    );
+  }
+
+  // ── Bloomberg-style deck card wrapper ───────────────────────────────────────
+  Widget _buildNwDeckCard(
+    BuildContext context, {
+    required String label,
+    required IconData icon,
+    required Color accent,
+    required Widget child,
+  }) {
+    final isDark = AppStyles.isDarkMode(context);
+    return Container(
+      decoration: AppStyles.cardDecoration(context).copyWith(
+        borderRadius: BorderRadius.circular(Radii.xxl),
+        border: Border.all(
+          color: accent.withValues(alpha: isDark ? 0.35 : 0.25),
+          width: 1.0,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Bloomberg panel header
+          Container(
+            padding: const EdgeInsets.fromLTRB(
+                Spacing.lg, Spacing.sm, Spacing.lg, Spacing.sm),
+            decoration: BoxDecoration(
+              color: accent.withValues(alpha: isDark ? 0.12 : 0.07),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(Radii.xxl),
+                topRight: Radius.circular(Radii.xxl),
+              ),
+              border: Border(
+                bottom: BorderSide(
+                  color: accent.withValues(alpha: isDark ? 0.25 : 0.15),
+                  width: 0.5,
+                ),
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: accent.withValues(alpha: isDark ? 0.20 : 0.12),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Icon(icon, size: 13, color: accent),
+                ),
+                const SizedBox(width: Spacing.sm),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: accent,
+                    letterSpacing: 1.1,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Scrollable body
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(Spacing.lg),
+              child: child,
+            ),
+          ),
+        ],
       ),
     );
   }

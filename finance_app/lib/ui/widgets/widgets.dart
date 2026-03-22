@@ -28,3 +28,6 @@ export 'app_date_picker.dart';
 
 // D-01 — Bloomberg-level swipeable card deck
 export 'card_deck_view.dart';
+
+// SYS-04 — Landscape split-view (left panel + right panel)
+export 'landscape_split_view.dart';

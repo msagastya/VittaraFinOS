@@ -395,6 +395,43 @@ class SkeletonSummaryCard extends StatelessWidget {
 // ============================================================
 
 // ============================================================
+// SKELETON CHART — bar chart placeholder for loading states
+// ============================================================
+
+/// Five shimmering bars of varying height, simulating a bar chart.
+/// Used on Investments, Budget, and Reports screens during first paint.
+class SkeletonChart extends StatelessWidget {
+  final int barCount;
+  final double height;
+
+  const SkeletonChart({super.key, this.barCount = 5, this.height = 80});
+
+  static const _heights = [0.45, 0.70, 0.55, 0.90, 0.65, 0.40, 0.80];
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: height,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: List.generate(barCount, (i) {
+          final fraction = _heights[i % _heights.length];
+          return Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 3),
+              child: SkeletonLoader(
+                height: height * fraction,
+                borderRadius: 4,
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+}
+
+// ============================================================
 // EMPTY STATE WIDGET
 // ============================================================
 
