@@ -115,7 +115,10 @@ class _CardDeckViewState extends State<CardDeckView>
 
   void _advanceCard() {
     setState(() {
-      _frontIndex = (_frontIndex + 1) % _cardCount;
+      // Swipe right = go to previous card; swipe left = go to next card.
+      _frontIndex = _swipingRight
+          ? (_frontIndex - 1 + _cardCount) % _cardCount
+          : (_frontIndex + 1) % _cardCount;
       _dragOffset = 0;
       _isSwiping = false;
     });
@@ -247,7 +250,10 @@ class _CardDeckViewState extends State<CardDeckView>
       }
     }
 
-    return Positioned.fill(
+    return Positioned(
+      left: 0,
+      right: 0,
+      top: 0,
       child: AnimatedBuilder(
         animation: Listenable.merge(
             [_swipeController, _returnController, _promotionController]),
