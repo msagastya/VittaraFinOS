@@ -24,7 +24,7 @@ class _LoanTrackerScreenState extends State<LoanTrackerScreen> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         middle: Text(
           'Loan / EMI Tracker',
           style: TextStyle(color: AppStyles.getTextColor(context)),

@@ -159,7 +159,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
 
         return CupertinoPageScaffold(
           backgroundColor: AppStyles.getBackground(context),
-          navigationBar: CupertinoNavigationBar(
+          navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
             middle: Text('Payment Apps',
                 style: TextStyle(color: AppStyles.getTextColor(context))),
             previousPageTitle: 'Back',

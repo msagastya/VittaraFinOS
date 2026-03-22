@@ -146,7 +146,7 @@ class _FDRenewalWizardScreenState extends State<FDRenewalWizardScreen> {
       value: _controller,
       child: CupertinoPageScaffold(
         backgroundColor: AppStyles.getBackground(context),
-        navigationBar: CupertinoNavigationBar(
+        navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
           middle: Consumer<FDRenewalWizardController>(
             builder: (context, controller, _) {
               return Text('Renew FD - Step ${controller.currentStep + 1}/5');

@@ -88,7 +88,7 @@ Add missing semantic helpers:
 
 ## PHASE 2 — Landscape Mode + Data Surfaces
 
-### SYS-LAND-NAV — Fix Landscape Navigation Bar `[~]` **P0** (Dashboard done; other screens pending)
+### SYS-LAND-NAV — Fix Landscape Navigation Bar `[x]` **P0** (All 67 screens done — nav bar hidden in landscape, swipe-back for navigation)
 **Problem:** `CupertinoNavigationBar` / `AppBar` takes ~50% of screen height in landscape orientation on phones — unusable.
 **Fix:** In every screen that uses a nav bar:
 1. Wrap with `OrientationBuilder`
@@ -406,4 +406,4 @@ AppStyles.landscapeContentConstraints(ctx)  // maxWidth: 560 landscape
 
 ---
 
-*Last updated: 2026-03-22 — Session 9 cont: NW-01, SYS-03, SYS-04, BUD-01 done; INV-01 landscape nav done, SYS-LAND-NAV ongoing*
+*Last updated: 2026-03-22 — Session 9 cont: SYS-LAND-NAV fully done (67 screens), NW-01, SYS-03, SYS-04, BUD-01 done, INV-01 partial*

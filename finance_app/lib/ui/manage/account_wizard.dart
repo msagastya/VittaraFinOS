@@ -253,7 +253,7 @@ class _AccountWizardState extends State<AccountWizard> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         middle: Text(widget.existingAccount != null
             ? 'Edit Account'
             : (widget.isInvestment ? 'Investment Wizard' : 'Bank Wizard')),

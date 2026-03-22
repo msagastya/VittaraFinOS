@@ -133,7 +133,7 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
 
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         middle: Text(_symbol,
             style: TextStyle(color: AppStyles.getTextColor(context))),
         previousPageTitle: 'Back',

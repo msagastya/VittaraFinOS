@@ -148,7 +148,7 @@ class _RDWizardScreenState extends State<RDWizardScreen> {
       value: _controller,
       child: CupertinoPageScaffold(
         backgroundColor: AppStyles.getBackground(context),
-        navigationBar: CupertinoNavigationBar(
+        navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
           middle: Text('Create Recurring Deposit',
               style: TextStyle(color: AppStyles.getTextColor(context))),
           previousPageTitle: 'Back',

@@ -313,7 +313,7 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         middle: Text('Savings Planners',
             style: TextStyle(color: AppStyles.getTextColor(context))),
         previousPageTitle: 'Back',

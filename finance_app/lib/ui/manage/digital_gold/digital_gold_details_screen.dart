@@ -130,7 +130,7 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
 
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         middle: Text(
           metadata['company'] as String? ?? investment.name,
           style: TextStyle(color: AppStyles.getTextColor(context)),

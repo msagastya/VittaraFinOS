@@ -255,7 +255,7 @@ class _LoanWizardState extends State<LoanWizard> {
       },
       child: CupertinoPageScaffold(
         backgroundColor: AppStyles.getBackground(context),
-        navigationBar: CupertinoNavigationBar(
+        navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
           middle: Text(
             widget.existingLoan != null ? 'Edit Loan' : 'Add Loan',
             style: TextStyle(color: AppStyles.getTextColor(context)),

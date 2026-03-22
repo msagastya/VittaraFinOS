@@ -271,7 +271,7 @@ class _InsuranceWizardState extends State<InsuranceWizard> {
       },
       child: CupertinoPageScaffold(
         backgroundColor: AppStyles.getBackground(context),
-        navigationBar: CupertinoNavigationBar(
+        navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
           middle: Text(
             widget.existingPolicy != null ? 'Edit Policy' : 'Add Insurance',
             style: TextStyle(color: AppStyles.getTextColor(context)),

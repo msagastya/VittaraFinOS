@@ -39,7 +39,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         middle: Text('Lending & Borrowing',
             style: TextStyle(color: AppStyles.getTextColor(context))),
         previousPageTitle: 'Back',
@@ -1502,7 +1502,7 @@ class _TransactionTypeWizard extends StatelessWidget {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         middle: Text(
           'New Transaction',
           style: TextStyle(

@@ -164,7 +164,7 @@ class _LendingWizardState extends State<LendingWizard> {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
       resizeToAvoidBottomInset: true,
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         middle: Text(
           widget.existingRecord != null
               ? 'Edit Record'

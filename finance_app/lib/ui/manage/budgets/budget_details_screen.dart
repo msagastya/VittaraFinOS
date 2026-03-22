@@ -27,7 +27,7 @@ class BudgetDetailsScreen extends StatelessWidget {
         if (budgetIdx < 0) {
           return CupertinoPageScaffold(
             backgroundColor: AppStyles.getBackground(context),
-            navigationBar: CupertinoNavigationBar(
+            navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
               middle: Text('Budget Details',
                   style: TextStyle(color: AppStyles.getTextColor(context))),
               previousPageTitle: 'Back',
@@ -53,7 +53,7 @@ class BudgetDetailsScreen extends StatelessWidget {
 
         return CupertinoPageScaffold(
           backgroundColor: AppStyles.getBackground(context),
-          navigationBar: CupertinoNavigationBar(
+          navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
             middle: Text('Budget Details',
                 style: TextStyle(color: AppStyles.getTextColor(context))),
             previousPageTitle: 'Back',

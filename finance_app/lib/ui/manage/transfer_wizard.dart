@@ -368,7 +368,7 @@ class _TransferWizardState extends State<TransferWizard> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         middle: const Text('Transfer Money'),
         leading: CupertinoButton(
           padding: EdgeInsets.zero,
@@ -1703,7 +1703,7 @@ class _PaymentAppSetupWizardState extends State<_PaymentAppSetupWizard> {
       builder: (context, controller, _) {
         final disabledApps = controller.disabledApps;
         return CupertinoPageScaffold(
-          navigationBar: CupertinoNavigationBar(
+          navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
             middle: const Text('Select New App'),
             leading: CupertinoButton(
               padding: EdgeInsets.zero,

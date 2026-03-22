@@ -205,7 +205,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
 
     return CupertinoPageScaffold(
       backgroundColor: bg,
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         backgroundColor:
             isDark ? const Color(0xFF000000) : CupertinoColors.systemBackground,
         previousPageTitle: 'Back',

@@ -24,7 +24,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         middle: Text(
           'Insurance Tracker',
           style: TextStyle(color: AppStyles.getTextColor(context)),

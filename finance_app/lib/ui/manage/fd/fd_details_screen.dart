@@ -40,7 +40,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         middle: Text(
           'FD Details',
           style: TextStyle(color: AppStyles.getTextColor(context)),

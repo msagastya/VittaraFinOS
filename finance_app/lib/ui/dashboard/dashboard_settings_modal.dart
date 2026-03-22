@@ -20,7 +20,7 @@ class _DashboardSettingsModalState extends State<DashboardSettingsModal> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         middle: const Text('Dashboard Settings'),
         previousPageTitle: 'Back',
         backgroundColor: AppStyles.getBackground(context),

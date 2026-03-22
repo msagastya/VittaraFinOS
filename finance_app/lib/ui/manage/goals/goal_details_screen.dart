@@ -30,7 +30,7 @@ class GoalDetailsScreen extends StatelessWidget {
         if (goalIdx < 0) {
           return CupertinoPageScaffold(
             backgroundColor: AppStyles.getBackground(context),
-            navigationBar: CupertinoNavigationBar(
+            navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
               middle: Text('Goal Details',
                   style: TextStyle(color: AppStyles.getTextColor(context))),
               previousPageTitle: 'Back',
@@ -51,7 +51,7 @@ class GoalDetailsScreen extends StatelessWidget {
 
         return CupertinoPageScaffold(
           backgroundColor: AppStyles.getBackground(context),
-          navigationBar: CupertinoNavigationBar(
+          navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
             middle: Text('Goal Details',
                 style: TextStyle(color: AppStyles.getTextColor(context))),
             previousPageTitle: 'Back',

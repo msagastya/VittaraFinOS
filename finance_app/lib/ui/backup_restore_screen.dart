@@ -303,7 +303,7 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
 
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         middle: Text(
           'Backup & Restore',
           style: TextStyle(color: AppStyles.getTextColor(context)),

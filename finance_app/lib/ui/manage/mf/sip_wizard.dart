@@ -42,7 +42,7 @@ class _SIPWizardContent extends StatelessWidget {
 
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         middle: Text(
           'Configure SIP',
           style: TextStyle(color: AppStyles.getTextColor(context)),

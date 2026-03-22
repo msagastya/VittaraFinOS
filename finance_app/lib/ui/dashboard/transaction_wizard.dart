@@ -928,7 +928,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         middle: const Text('Transaction Wizard'),
         leading: CupertinoButton(
           padding: EdgeInsets.zero,

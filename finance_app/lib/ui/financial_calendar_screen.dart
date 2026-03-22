@@ -245,7 +245,7 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
 
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         middle: Text(
           'Financial Calendar',
           style: TextStyle(color: AppStyles.getTextColor(context)),

@@ -225,7 +225,7 @@ class _PinRecoveryScreenState extends State<PinRecoveryScreen> {
 
     return CupertinoPageScaffold(
       backgroundColor: bg,
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         middle:
             Text('Forgot PIN', style: TextStyle(color: textColor)),
         previousPageTitle: 'Back',
@@ -422,7 +422,7 @@ class _PinRecoveryScreenState extends State<PinRecoveryScreen> {
 
     return CupertinoPageScaffold(
       backgroundColor: bg,
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         middle:
             Text('Set New PIN', style: TextStyle(color: textColor)),
         previousPageTitle: 'Back',
@@ -542,7 +542,7 @@ class _PinRecoveryScreenState extends State<PinRecoveryScreen> {
 
     return CupertinoPageScaffold(
       backgroundColor: bg,
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         middle: Text('Erase All Data', style: TextStyle(color: textColor)),
         leading: CupertinoButton(
           padding: EdgeInsets.zero,

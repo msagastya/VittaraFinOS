@@ -305,7 +305,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         middle: Text(
           'Reports & Analysis',
           style: TextStyle(color: AppStyles.getTextColor(context)),

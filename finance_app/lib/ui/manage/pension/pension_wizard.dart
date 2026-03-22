@@ -115,7 +115,7 @@ class _PensionWizardContentState extends State<_PensionWizardContent> {
 
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         previousPageTitle: 'Back',
         middle: Text('Add Pension Scheme',
             style: TextStyle(color: AppStyles.getTextColor(context))),

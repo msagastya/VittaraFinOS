@@ -30,7 +30,7 @@ class DashboardAppMenuScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         middle: Text(
           'Menu',
           style: TextStyle(color: AppStyles.getTextColor(context)),
@@ -461,7 +461,7 @@ class AboutAppScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         middle: Text('About',
             style: TextStyle(color: AppStyles.getTextColor(context))),
         previousPageTitle: 'Back',
@@ -543,7 +543,7 @@ class FAQsScreen extends StatelessWidget {
 
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         middle: Text('FAQs',
             style: TextStyle(color: AppStyles.getTextColor(context))),
         previousPageTitle: 'Back',
@@ -612,7 +612,7 @@ class AppInformationScreen extends StatelessWidget {
       ) {
         return CupertinoPageScaffold(
           backgroundColor: AppStyles.getBackground(context),
-          navigationBar: CupertinoNavigationBar(
+          navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
             middle: Text(
               'App Information',
               style: TextStyle(color: AppStyles.getTextColor(context)),
@@ -685,7 +685,7 @@ class WhatsNewScreen extends StatelessWidget {
 
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         middle: Text('What\'s New',
             style: TextStyle(color: AppStyles.getTextColor(context))),
         previousPageTitle: 'Back',
@@ -759,7 +759,7 @@ class LegalDocumentScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         middle: Text(title,
             style: TextStyle(color: AppStyles.getTextColor(context))),
         previousPageTitle: 'Back',

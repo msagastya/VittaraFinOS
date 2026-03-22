@@ -65,7 +65,7 @@ class _TaxSummaryScreenState extends State<TaxSummaryScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         middle: Text('Tax Summary · ${_fYLabel()}'),
         previousPageTitle: 'Back',
         backgroundColor: AppStyles.getBackground(context),

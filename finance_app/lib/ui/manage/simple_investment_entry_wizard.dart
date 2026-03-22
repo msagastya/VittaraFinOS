@@ -218,7 +218,7 @@ class _SimpleInvestmentEntryWizardState
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         middle: Text(
           widget.title,
           style: TextStyle(color: AppStyles.getTextColor(context)),

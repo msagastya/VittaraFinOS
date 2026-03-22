@@ -35,7 +35,7 @@ class _NPSDetailsScreenState extends State<NPSDetailsScreen> {
 
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         previousPageTitle: 'Back',
         middle: Text('${nps.name} - NPS',
             style: TextStyle(color: AppStyles.getTextColor(context))),

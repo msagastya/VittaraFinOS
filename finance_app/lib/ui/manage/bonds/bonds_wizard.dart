@@ -95,7 +95,7 @@ class _BondsWizardContent extends StatelessWidget {
 
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         previousPageTitle: 'Back',
         middle: Text(
           'Add Bond Investment',

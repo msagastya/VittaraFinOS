@@ -45,7 +45,7 @@ class _RecoveryCodeSaveScreenState extends State<RecoveryCodeSaveScreen> {
 
     return CupertinoPageScaffold(
       backgroundColor: bg,
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         middle: Text('Recovery Code',
             style: TextStyle(color: textColor)),
         backgroundColor: bg.withValues(alpha: 0.85),

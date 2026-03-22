@@ -105,7 +105,7 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
 
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         middle: Text(
           metadata['schemeName'] as String? ?? investment.name,
           style: TextStyle(color: AppStyles.getTextColor(context)),

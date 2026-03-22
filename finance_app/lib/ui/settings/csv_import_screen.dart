@@ -248,7 +248,7 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         middle: Text('Import CSV'),
         previousPageTitle: 'Back',
         backgroundColor: AppStyles.getBackground(context),

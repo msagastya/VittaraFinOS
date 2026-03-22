@@ -155,7 +155,7 @@ class _FDWizardScreenState extends State<FDWizardScreen> {
       value: _controller,
       child: CupertinoPageScaffold(
         backgroundColor: AppStyles.getBackground(context),
-        navigationBar: CupertinoNavigationBar(
+        navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
           middle: Text('Create Fixed Deposit',
               style: TextStyle(color: AppStyles.getTextColor(context))),
           previousPageTitle: 'Back',

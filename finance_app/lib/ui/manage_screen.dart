@@ -152,7 +152,7 @@ class _ManageScreenState extends State<ManageScreen> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         middle: Text('Manage',
             style: TextStyle(color: AppStyles.getTextColor(context))),
         previousPageTitle: 'Back',

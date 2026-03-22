@@ -35,7 +35,7 @@ class _FODetailsScreenState extends State<FODetailsScreen> {
 
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         previousPageTitle: 'Back',
         middle: Text(fo.name,
             style: TextStyle(color: AppStyles.getTextColor(context))),

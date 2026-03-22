@@ -366,7 +366,7 @@ class _BanksScreenState extends State<BanksScreen> {
 
         return CupertinoPageScaffold(
           backgroundColor: AppStyles.getBackground(context),
-          navigationBar: CupertinoNavigationBar(
+          navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
             middle: Text('Banks',
                 style: TextStyle(color: AppStyles.getTextColor(context))),
             previousPageTitle: 'Back',

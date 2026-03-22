@@ -264,7 +264,7 @@ class _BillSplitScreenState extends State<BillSplitScreen> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         middle: Text('Split Bill',
             style: TextStyle(color: AppStyles.getTextColor(context))),
         previousPageTitle: 'Back',
