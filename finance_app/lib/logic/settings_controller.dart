@@ -259,6 +259,25 @@ class SettingsController with ChangeNotifier {
     notifyListeners();
   }
 
+  /// Resets only app settings to defaults — financial data is preserved.
+  Future<void> resetToDefaults() async {
+    await _prefs.remove('themeMode');
+    await _prefs.remove('isBiometricEnabled');
+    await _prefs.remove('lockOnMinimize');
+    await _prefs.remove('lockTimeoutSeconds');
+    await _prefs.remove('isInvestmentTrackingEnabled');
+    await _prefs.remove('showArchivedTransactions');
+    await _prefs.remove('isSmsEnabled');
+    _themeMode = ThemeMode.system;
+    _isBiometricEnabled = true;
+    _lockOnMinimize = false;
+    _lockTimeoutSeconds = 10;
+    _isInvestmentTrackingEnabled = false;
+    _isArchivedTransactionsEnabled = false;
+    _isSmsEnabled = false;
+    notifyListeners();
+  }
+
   /// Nuclear reset — wipes ALL app data from secure storage.
   /// Called only from the last-resort reset flow (triple-confirmed by user).
   Future<void> nuclearReset() async {

@@ -239,6 +239,15 @@ LandscapeSplitView(
 - Recent searches persisted in SharedPreferences (last 10)
 - Debounce 200ms, min 2 chars
 
+### DASH-EMPTY — Dashboard Widget Empty States `[ ]` P2
+**Problem:** When dashboard widgets have no data (no transactions, no investments, etc.), they look blank, visually unbalanced, or awkward — especially when all widgets are the same height.
+**Fix:** Audit every dashboard widget for its empty-state appearance:
+- Each widget must have a non-blank, visually complete empty state: icon + short prompt text + optional CTA button ("Add your first transaction" / "Add investment")
+- Widget height must never collapse to near-zero in empty state — maintain minimum content height with a centered empty-state card
+- No widget should look "unfinished" — use a placeholder illustration or icon + text as visual filler
+- Test by temporarily clearing all data and checking each widget looks intentional and polished
+**Affected widgets:** (all dashboard widgets in `lib/ui/dashboard/widgets/`)
+
 ### SYS-02 — Micro-Interaction Vocabulary `[ ]` P3
 **File:** `lib/ui/widgets/animations.dart` (extend existing)
 - **NumberTicker:** Animate number changes (count up/down, 400ms, easeOut) — for all currency displays
@@ -300,7 +309,7 @@ LandscapeSplitView(
 - FY selector (Apr–Mar)
 - Export to CA-ready PDF
 
-### SET-01 — Settings Screen Redesign `[ ]` P3
+### SET-01 — Settings Screen Redesign `[x]` P3
 - Group: Privacy & Security | Data & Backup | Display | Notifications | About
 - Each group = card section with dividers
 - Toggles use CupertinoSwitch with immediate visual feedback
