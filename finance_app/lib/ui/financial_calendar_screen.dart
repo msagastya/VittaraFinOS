@@ -938,7 +938,7 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
           events.add(CalendarEvent(
             id: 'sip_${inv.id}_${current.toIso8601String()}',
             title: inv.name,
-            subtitle: 'SIP Due · $freqLabel',
+            subtitle: '${_sipTypeLabel(inv.type)} SIP · $freqLabel',
             date: current,
             type: CalendarEventType.sip,
             amount: _sipAmount(meta),
@@ -1094,9 +1094,51 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
 
   // ─── SIP helpers ────────────────────────────────────────────────────────
 
+  /// Returns the next due date for a SIP investment.
+  /// Handles both stock SIPs (top-level meta keys) and MF SIPs (nested
+  /// sipData map with monthDay / weekday).
   DateTime? _nextSipDate(Map<String, dynamic> meta) {
-    final freqStr =
-        ((meta['sipFrequency'] as String?) ?? 'monthly').toLowerCase();
+    final sipData = meta['sipData'] as Map<String, dynamic>?;
+
+    // Frequency: top-level (stocks) OR nested sipData (MF)
+    final freqStr = ((meta['sipFrequency'] as String?) ??
+            (sipData?['frequency'] as String?) ??
+            'monthly')
+        .toLowerCase();
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    // Monthly MF SIP: use the explicit day-of-month stored in sipData
+    if (freqStr == 'monthly') {
+      final monthDay = (sipData?['monthDay'] as int?) ??
+          (meta['sipMonthDay'] as int?);
+      if (monthDay != null && monthDay >= 1 && monthDay <= 31) {
+        // Clamp to 28 to avoid month-overflow issues
+        final safeDay = monthDay.clamp(1, 28);
+        var candidate = DateTime(today.year, today.month, safeDay);
+        if (!candidate.isAfter(today)) {
+          candidate = DateTime(today.year, today.month + 1, safeDay);
+        }
+        return candidate;
+      }
+    }
+
+    // Weekly MF SIP: use the explicit weekday stored in sipData
+    // App convention: 0 = Monday … 6 = Sunday
+    // DateTime convention: 1 = Monday … 7 = Sunday
+    if (freqStr == 'weekly') {
+      final weekdayIdx = (sipData?['weekday'] as int?) ??
+          (meta['sipWeekday'] as int?);
+      if (weekdayIdx != null) {
+        final target = weekdayIdx + 1; // convert to DateTime weekday
+        var daysAhead = (target - today.weekday + 7) % 7;
+        if (daysAhead == 0) daysAhead = 7;
+        return today.add(Duration(days: daysAhead));
+      }
+    }
+
+    // Fallback: advance from lastExecutionDate or sipStartDate (stock SIPs)
     final lastExec = meta['sipLastExecutionDate'] as String?;
     final startDate = meta['sipStartDate'] as String?;
     DateTime? base;
@@ -1130,6 +1172,22 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
         return 'Yearly';
       default:
         return 'Monthly';
+    }
+  }
+
+  /// Human-readable investment type prefix for SIP event subtitles.
+  String _sipTypeLabel(InvestmentType type) {
+    switch (type) {
+      case InvestmentType.mutualFund:
+        return 'MF';
+      case InvestmentType.stocks:
+        return 'Stock';
+      case InvestmentType.cryptocurrency:
+        return 'Crypto';
+      case InvestmentType.digitalGold:
+        return 'Gold';
+      default:
+        return 'SIP';
     }
   }
 
