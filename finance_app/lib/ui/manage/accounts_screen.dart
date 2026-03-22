@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
+import 'package:vittara_fin_os/ui/widgets/animated_counter.dart' as counter_widgets;
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
@@ -349,13 +350,14 @@ class _AccountsScreenState extends State<AccountsScreen> {
             ),
           ),
           const SizedBox(height: 2),
-          Text(
-            '₹${amount.abs().toStringAsFixed(0)}',
-            style: TextStyle(
+          counter_widgets.CurrencyCounter(
+            value: amount.abs(),
+            textStyle: TextStyle(
               fontSize: TypeScale.footnote,
               fontWeight: FontWeight.w700,
               color: color,
             ),
+            decimalPlaces: 0,
           ),
         ],
       ),

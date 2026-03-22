@@ -10,6 +10,7 @@ import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
+import 'package:vittara_fin_os/ui/widgets/animated_counter.dart' as counter_widgets;
 
 class InsuranceScreen extends StatefulWidget {
   const InsuranceScreen({super.key});
@@ -154,7 +155,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
             Expanded(
               child: _SummaryMetric(
                 label: 'Annual Premium',
-                value: CurrencyFormatter.compact(annual),
+                numericValue: annual,
                 color: AppStyles.accentBlue,
               ),
             ),
@@ -166,8 +167,9 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
             Expanded(
               child: _SummaryMetric(
                 label: 'Active Policies',
-                value: '$count',
+                numericValue: count.toDouble(),
                 color: AppStyles.aetherTeal,
+                isCurrency: false,
               ),
             ),
           ],
@@ -340,17 +342,25 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
 
 class _SummaryMetric extends StatelessWidget {
   final String label;
-  final String value;
+  final double numericValue;
   final Color color;
+  final bool isCurrency;
 
   const _SummaryMetric({
     required this.label,
-    required this.value,
+    required this.numericValue,
     required this.color,
+    this.isCurrency = true,
   });
 
   @override
   Widget build(BuildContext context) {
+    final textStyle = TextStyle(
+      fontSize: TypeScale.title3,
+      fontWeight: FontWeight.w800,
+      color: color,
+      letterSpacing: -0.5,
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -364,16 +374,17 @@ class _SummaryMetric extends StatelessWidget {
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: Spacing.xs),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: TypeScale.title3,
-            fontWeight: FontWeight.w800,
-            color: color,
-            letterSpacing: -0.5,
-          ),
-          textAlign: TextAlign.center,
-        ),
+        isCurrency
+            ? counter_widgets.CurrencyCounter(
+                value: numericValue,
+                textStyle: textStyle,
+                decimalPlaces: 0,
+              )
+            : counter_widgets.AnimatedCounter(
+                value: numericValue,
+                decimalPlaces: 0,
+                textStyle: textStyle,
+              ),
       ],
     );
   }

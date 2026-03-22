@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:math' show min;
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart' show RefreshIndicator;
+import 'package:flutter/material.dart' show RefreshIndicator, VerticalDivider;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:provider/provider.dart';
@@ -22,6 +22,40 @@ import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/services/transaction_export_service.dart';
+import 'package:vittara_fin_os/ui/widgets/animated_counter.dart' as counter_widgets;
+
+enum _DateRangeFilter {
+  all,
+  today,
+  week,
+  month,
+  year;
+
+  String get label {
+    switch (this) {
+      case _DateRangeFilter.all:   return 'All';
+      case _DateRangeFilter.today: return 'Today';
+      case _DateRangeFilter.week:  return 'Week';
+      case _DateRangeFilter.month: return 'Month';
+      case _DateRangeFilter.year:  return 'Year';
+    }
+  }
+
+  DateTime cutoff(DateTime now) {
+    switch (this) {
+      case _DateRangeFilter.all:
+        return DateTime(2000);
+      case _DateRangeFilter.today:
+        return DateTime(now.year, now.month, now.day);
+      case _DateRangeFilter.week:
+        return now.subtract(const Duration(days: 7));
+      case _DateRangeFilter.month:
+        return DateTime(now.year, now.month, 1);
+      case _DateRangeFilter.year:
+        return DateTime(now.year, 1, 1);
+    }
+  }
+}
 
 class TransactionHistoryScreen extends StatefulWidget {
   /// When [filterAccountId] is provided, only transactions linked to that
@@ -47,6 +81,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   double? _minAmount;
   double? _maxAmount;
   TransactionType? _typeFilter;
+  _DateRangeFilter _dateFilter = _DateRangeFilter.all;
   bool _isExportingCsv = false;
   bool _isExportingPdf = false;
   bool _isExportingXlsx = false;
@@ -100,7 +135,10 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   }
 
   bool get _hasActiveFilter =>
-      _minAmount != null || _maxAmount != null || _typeFilter != null;
+      _minAmount != null ||
+      _maxAmount != null ||
+      _typeFilter != null ||
+      _dateFilter != _DateRangeFilter.all;
 
   List<Transaction> _filterBySearch(List<Transaction> txns) {
     var result = txns;
@@ -130,6 +168,11 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     }
     if (_maxAmount != null) {
       result = result.where((t) => t.amount <= _maxAmount!).toList();
+    }
+    if (_dateFilter != _DateRangeFilter.all) {
+      final now = DateTime.now();
+      final cutoff = _dateFilter.cutoff(now);
+      result = result.where((t) => t.dateTime.isAfter(cutoff)).toList();
     }
     return result;
   }
@@ -296,6 +339,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                                 _minAmount = null;
                                 _maxAmount = null;
                                 _typeFilter = null;
+                                _dateFilter = _DateRangeFilter.all;
                               });
                               _saveFilterPrefs();
                               Navigator.pop(ctx);
@@ -612,6 +656,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                     }),
                   ),
                 ),
+                _buildDateChips(),
                 if (_hasActiveFilter)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(
@@ -648,6 +693,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                               _minAmount = null;
                               _maxAmount = null;
                               _typeFilter = null;
+                              _dateFilter = _DateRangeFilter.all;
                             });
                             _saveFilterPrefs();
                           },
@@ -660,6 +706,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                       ],
                     ),
                   ),
+                if (transactions.isNotEmpty)
+                  _buildSummaryStrip(transactions),
                 if (transactions.isEmpty)
                   Expanded(
                     child: _searchQuery.isNotEmpty
@@ -684,6 +732,166 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildDateChips() {
+    return SizedBox(
+      height: 34,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
+        children: _DateRangeFilter.values.map((filter) {
+          final selected = _dateFilter == filter;
+          return GestureDetector(
+            onTap: () => setState(() {
+              _dateFilter = filter;
+              _visibleCount = _pageSize;
+            }),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              margin: const EdgeInsets.only(right: 8, bottom: 4),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+              decoration: BoxDecoration(
+                color: selected
+                    ? AppStyles.getPrimaryColor(context)
+                    : AppStyles.getCardColor(context),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: selected
+                      ? AppStyles.getPrimaryColor(context)
+                      : AppStyles.getDividerColor(context),
+                ),
+                boxShadow: selected
+                    ? [
+                        BoxShadow(
+                          color: AppStyles.getPrimaryColor(context)
+                              .withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                    : null,
+              ),
+              child: Text(
+                filter.label,
+                style: TextStyle(
+                  color: selected
+                      ? CupertinoColors.white
+                      : AppStyles.getSecondaryTextColor(context),
+                  fontSize: TypeScale.footnote,
+                  fontWeight:
+                      selected ? FontWeight.w700 : FontWeight.w500,
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildSummaryStrip(List<Transaction> transactions) {
+    double totalIncome = 0;
+    double totalExpense = 0;
+    for (final t in transactions) {
+      final eventType = t.metadata?['investmentEventType'] as String?;
+      final isSellOrDividend =
+          eventType == 'dividend' || eventType == 'sell' || eventType == 'decrease' || eventType == 'redeem';
+      if (t.type == TransactionType.income || isSellOrDividend) {
+        totalIncome += t.amount;
+      } else if (t.type == TransactionType.expense) {
+        totalExpense += t.amount;
+      }
+    }
+    final net = totalIncome - totalExpense;
+    final netPositive = net >= 0;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, Spacing.md),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppStyles.getCardColor(context),
+          borderRadius: BorderRadius.circular(Radii.xl),
+          border: Border.all(color: AppStyles.getDividerColor(context)),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: Spacing.md),
+        child: IntrinsicHeight(
+          child: Row(
+            children: [
+              _buildStatCell(
+                label: 'Income',
+                value: totalIncome,
+                color: AppStyles.bioGreen,
+                icon: CupertinoIcons.arrow_down_circle_fill,
+              ),
+              VerticalDivider(
+                width: 1,
+                thickness: 1,
+                color: AppStyles.getDividerColor(context),
+              ),
+              _buildStatCell(
+                label: 'Expenses',
+                value: totalExpense,
+                color: CupertinoColors.systemRed,
+                icon: CupertinoIcons.arrow_up_circle_fill,
+              ),
+              VerticalDivider(
+                width: 1,
+                thickness: 1,
+                color: AppStyles.getDividerColor(context),
+              ),
+              _buildStatCell(
+                label: 'Net',
+                value: net.abs(),
+                color: netPositive ? AppStyles.bioGreen : CupertinoColors.systemRed,
+                icon: netPositive
+                    ? CupertinoIcons.chart_bar_alt_fill
+                    : CupertinoIcons.arrow_down_right_circle_fill,
+                prefix: netPositive ? '+₹' : '-₹',
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatCell({
+    required String label,
+    required double value,
+    required Color color,
+    required IconData icon,
+    String? prefix,
+  }) {
+    return Expanded(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color.withValues(alpha: 0.8)),
+          const SizedBox(height: 4),
+          counter_widgets.AnimatedCounter(
+            value: value,
+            prefix: prefix ?? '₹',
+            decimalPlaces: 0,
+            textStyle: TextStyle(
+              fontSize: TypeScale.footnote,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: TypeScale.caption,
+              color: AppStyles.getSecondaryTextColor(context),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       ),
     );
   }

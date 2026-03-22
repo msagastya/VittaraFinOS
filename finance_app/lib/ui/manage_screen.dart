@@ -37,66 +37,77 @@ class _ManageScreenState extends State<ManageScreen> {
     {
       'id': 'banks',
       'title': 'Banks',
+      'subtitle': 'Manage linked bank profiles',
       'icon': CupertinoIcons.building_2_fill,
       'color': CupertinoColors.systemBlue
     },
     {
       'id': 'accounts',
       'title': 'Accounts',
+      'subtitle': 'Savings, credit cards & wallets',
       'icon': CupertinoIcons.creditcard_fill,
       'color': AppStyles.bioGreen
     },
     {
       'id': 'pay',
       'title': 'Payment Apps',
+      'subtitle': 'UPI & digital payment wallets',
       'icon': CupertinoIcons.device_phone_portrait,
       'color': CupertinoColors.systemIndigo
     },
     {
       'id': 'invest',
       'title': 'Investments',
+      'subtitle': 'Stocks, MF, FD, gold & more',
       'icon': CupertinoIcons.graph_square_fill,
       'color': CupertinoColors.systemOrange
     },
     {
       'id': 'debt',
       'title': 'Loan / EMI Tracker',
+      'subtitle': 'Home, car & personal loans',
       'icon': CupertinoIcons.doc_chart_fill,
       'color': AppStyles.plasmaRed,
     },
     {
       'id': 'insurance',
       'title': 'Insurance Tracker',
+      'subtitle': 'Health, life & general policies',
       'icon': CupertinoIcons.shield_fill,
       'color': AppStyles.accentBlue,
     },
     {
       'id': 'cats',
       'title': 'Categories',
+      'subtitle': 'Organise spending by type',
       'icon': CupertinoIcons.square_grid_2x2_fill,
       'color': CupertinoColors.systemPurple
     },
     {
       'id': 'contacts',
       'title': 'People',
+      'subtitle': 'Contacts for transfers & splits',
       'icon': CupertinoIcons.person_2_fill,
       'color': CupertinoColors.systemBrown
     },
     {
       'id': 'lend',
       'title': 'Personal Lending & Borrowing',
+      'subtitle': 'Track money lent & borrowed',
       'icon': CupertinoIcons.money_dollar_circle_fill,
       'color': CupertinoColors.systemTeal
     },
     {
       'id': 'tags',
       'title': 'Tags',
+      'subtitle': 'Custom labels for transactions',
       'icon': CupertinoIcons.tag_fill,
       'color': CupertinoColors.systemIndigo
     },
     {
       'id': 'archived',
       'title': 'Archived Transactions',
+      'subtitle': 'Hidden & archived entries',
       'icon': CupertinoIcons.archivebox_fill,
       'color': CupertinoColors.systemPurple
     },
@@ -275,6 +286,19 @@ class _ManageScreenState extends State<ManageScreen> {
                         item['title'],
                         style: AppStyles.titleStyle(context),
                       ),
+                      if (item['subtitle'] != null) ...[
+                        const SizedBox(height: Spacing.xxs),
+                        Text(
+                          item['subtitle'] as String,
+                          style: TextStyle(
+                            fontSize: TypeScale.footnote,
+                            color: AppStyles.getSecondaryTextColor(context),
+                            fontWeight: FontWeight.w400,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                       if (item['comingSoon'] == true) ...[
                         const SizedBox(height: Spacing.xxs),
                         Container(

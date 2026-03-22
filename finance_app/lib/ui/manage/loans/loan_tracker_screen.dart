@@ -10,6 +10,7 @@ import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
+import 'package:vittara_fin_os/ui/widgets/animated_counter.dart' as counter_widgets;
 
 class LoanTrackerScreen extends StatefulWidget {
   const LoanTrackerScreen({super.key});
@@ -141,7 +142,7 @@ class _LoanTrackerScreenState extends State<LoanTrackerScreen> {
             Expanded(
               child: _SummaryMetric(
                 label: 'Total Outstanding',
-                value: CurrencyFormatter.compact(outstanding),
+                numericValue: outstanding,
                 color: AppStyles.plasmaRed,
               ),
             ),
@@ -153,7 +154,7 @@ class _LoanTrackerScreenState extends State<LoanTrackerScreen> {
             Expanded(
               child: _SummaryMetric(
                 label: 'Monthly EMI',
-                value: CurrencyFormatter.compact(emi),
+                numericValue: emi,
                 color: AppStyles.aetherTeal,
               ),
             ),
@@ -285,12 +286,12 @@ class _LoanTrackerScreenState extends State<LoanTrackerScreen> {
 
 class _SummaryMetric extends StatelessWidget {
   final String label;
-  final String value;
+  final double numericValue;
   final Color color;
 
   const _SummaryMetric({
     required this.label,
-    required this.value,
+    required this.numericValue,
     required this.color,
   });
 
@@ -309,15 +310,15 @@ class _SummaryMetric extends StatelessWidget {
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: Spacing.xs),
-        Text(
-          value,
-          style: TextStyle(
+        counter_widgets.CurrencyCounter(
+          value: numericValue,
+          textStyle: TextStyle(
             fontSize: TypeScale.title3,
             fontWeight: FontWeight.w800,
             color: color,
             letterSpacing: -0.5,
           ),
-          textAlign: TextAlign.center,
+          decimalPlaces: 0,
         ),
       ],
     );

@@ -84,6 +84,15 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                                   .reloadFromStorage();
                             },
                           ),
+                          // Budget Health Overview
+                          SliverToBoxAdapter(
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(
+                                  Spacing.lg, Spacing.lg, Spacing.lg, 0),
+                              child: _buildHealthSummary(
+                                  controller.activeBudgets),
+                            ),
+                          ),
                           if (exceededBudgets.isNotEmpty)
                             SliverToBoxAdapter(
                               child: Padding(
@@ -478,6 +487,196 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildHealthSummary(List<Budget> allBudgets) {
+    if (allBudgets.isEmpty) return const SizedBox.shrink();
+
+    final totalBudgeted =
+        allBudgets.fold<double>(0, (sum, b) => sum + b.limitAmount);
+    final totalSpent =
+        allBudgets.fold<double>(0, (sum, b) => sum + b.spentAmount);
+    final overallPct =
+        totalBudgeted > 0 ? (totalSpent / totalBudgeted).clamp(0.0, 1.0) : 0.0;
+    final onTrackCount =
+        allBudgets.where((b) => b.status == BudgetStatus.onTrack).length;
+    final exceededCount =
+        allBudgets.where((b) => b.status == BudgetStatus.exceeded).length;
+    final warningCount = allBudgets.length - onTrackCount - exceededCount;
+
+    final barColor = exceededCount > 0
+        ? SemanticColors.error
+        : warningCount > 0
+            ? SemanticColors.warning
+            : SemanticColors.success;
+
+    return GlassCard(
+      padding: const EdgeInsets.all(Spacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                'Budget Health',
+                style: TextStyle(
+                  fontSize: TypeScale.callout,
+                  fontWeight: FontWeight.w700,
+                  color: AppStyles.getTextColor(context),
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: Spacing.md, vertical: Spacing.xxs),
+                decoration: BoxDecoration(
+                  color: barColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(Radii.full),
+                ),
+                child: Text(
+                  exceededCount > 0
+                      ? '$exceededCount over limit'
+                      : warningCount > 0
+                          ? '$warningCount near limit'
+                          : 'All on track',
+                  style: TextStyle(
+                    fontSize: TypeScale.caption,
+                    fontWeight: FontWeight.w600,
+                    color: barColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: Spacing.md),
+          // Overall progress bar
+          ClipRRect(
+            borderRadius: BorderRadius.circular(Radii.full),
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: overallPct),
+              duration: const Duration(milliseconds: 900),
+              curve: Curves.easeOutCubic,
+              builder: (ctx, v, _) => Stack(
+                children: [
+                  Container(
+                    height: 8,
+                    width: double.infinity,
+                    color: AppStyles.getDividerColor(context),
+                  ),
+                  FractionallySizedBox(
+                    widthFactor: v,
+                    child: Container(
+                      height: 8,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [barColor, barColor.withValues(alpha: 0.7)],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: Spacing.md),
+          IntrinsicHeight(
+            child: Row(
+              children: [
+                _budgetStatCell(
+                  label: 'Budgeted',
+                  value: totalBudgeted,
+                  color: AppStyles.getSecondaryTextColor(context),
+                ),
+                VerticalDivider(
+                    width: 1,
+                    thickness: 1,
+                    color: AppStyles.getDividerColor(context)),
+                _budgetStatCell(
+                  label: 'Spent',
+                  value: totalSpent,
+                  color: barColor,
+                ),
+                VerticalDivider(
+                    width: 1,
+                    thickness: 1,
+                    color: AppStyles.getDividerColor(context)),
+                _budgetStatCell(
+                  label: 'Remaining',
+                  value: (totalBudgeted - totalSpent).clamp(0, double.infinity),
+                  color: SemanticColors.success,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: Spacing.md),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _budgetCountBadge(
+                  onTrackCount, 'On track', SemanticColors.success),
+              if (warningCount > 0)
+                _budgetCountBadge(warningCount, 'Warning', SemanticColors.warning),
+              _budgetCountBadge(
+                  exceededCount, 'Exceeded', SemanticColors.error),
+              _budgetCountBadge(
+                  allBudgets.length, 'Total', AppStyles.accentBlue),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _budgetStatCell({
+    required String label,
+    required double value,
+    required Color color,
+  }) {
+    return Expanded(
+      child: Column(
+        children: [
+          counter_widgets.CurrencyCounter(
+            value: value,
+            textStyle: TextStyle(
+              fontSize: TypeScale.footnote,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+            decimalPlaces: 0,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: TypeScale.caption,
+              color: AppStyles.getSecondaryTextColor(context),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _budgetCountBadge(int count, String label, Color color) {
+    return Column(
+      children: [
+        Text(
+          '$count',
+          style: TextStyle(
+            fontSize: TypeScale.callout,
+            fontWeight: FontWeight.w800,
+            color: color,
+          ),
+        ),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: TypeScale.caption,
+            color: AppStyles.getSecondaryTextColor(context),
+          ),
+        ),
+      ],
     );
   }
 
