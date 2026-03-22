@@ -76,13 +76,13 @@ class _BondPayoutModalState extends State<BondPayoutModal> {
                             horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? AppStyles.aetherTeal
+                              ? AppStyles.teal(context)
                                   .withValues(alpha: 0.1)
                               : AppStyles.getBackground(context),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
                             color: isSelected
-                                ? AppStyles.aetherTeal
+                                ? AppStyles.teal(context)
                                 : Colors.transparent,
                           ),
                         ),
@@ -110,9 +110,9 @@ class _BondPayoutModalState extends State<BondPayoutModal> {
                               ),
                             ),
                             if (isSelected)
-                              const Icon(
+                              Icon(
                                   CupertinoIcons.checkmark_alt_circle_fill,
-                                  color: AppStyles.aetherTeal),
+                                  color: AppStyles.teal(context)),
                           ],
                         ),
                       ),

@@ -133,18 +133,32 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                             setState(() => _searchQuery = value),
                       ),
                     ),
-                    // Categories List
+                    // Categories List — CustomScrollView avoids shrinkWrap anti-pattern
                     Expanded(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Default Categories
-                            if (defaultCats.isNotEmpty) ...[
-                              Padding(
+                      child: CustomScrollView(
+                        cacheExtent: 400,
+                        slivers: [
+                          // Empty state when search finds nothing
+                          if (filteredCategories.isEmpty &&
+                              _searchQuery.isNotEmpty)
+                            SliverToBoxAdapter(
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 40),
+                                child: EmptyStateView(
+                                  icon: CupertinoIcons.search,
+                                  title: 'No categories found',
+                                  subtitle: 'No results for "$_searchQuery"',
+                                  showPulse: false,
+                                ),
+                              ),
+                            ),
+                          // Default Categories header
+                          if (defaultCats.isNotEmpty)
+                            SliverToBoxAdapter(
+                              child: Padding(
                                 padding: const EdgeInsets.only(
-                                    left: 8, top: 16, bottom: 12),
+                                    left: 24, top: 16, bottom: 12, right: 16),
                                 child: Text(
                                   'Built-in Categories (${defaultCats.length})',
                                   style: TextStyle(
@@ -155,9 +169,13 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                                   ),
                                 ),
                               ),
-                              GridView.builder(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
+                            ),
+                          // Default categories grid
+                          if (defaultCats.isNotEmpty)
+                            SliverPadding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              sliver: SliverGrid(
                                 gridDelegate:
                                     const SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: 3,
@@ -165,35 +183,25 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                                   mainAxisSpacing: 12,
                                   childAspectRatio: 1,
                                 ),
-                                itemCount: defaultCats.length,
-                                itemBuilder: (context, index) {
-                                  final category = defaultCats[index];
-                                  return StaggeredItem(
-                                    index: index,
-                                    child: _buildCategoryCard(category, context,
-                                        categoriesController),
-                                  );
-                                },
-                              ),
-                            ],
-                            // Empty state when search finds nothing
-                            if (filteredCategories.isEmpty &&
-                                _searchQuery.isNotEmpty)
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 40),
-                                child: EmptyStateView(
-                                  icon: CupertinoIcons.search,
-                                  title: 'No categories found',
-                                  subtitle: 'No results for "$_searchQuery"',
-                                  showPulse: false,
+                                delegate: SliverChildBuilderDelegate(
+                                  (context, index) {
+                                    final category = defaultCats[index];
+                                    return StaggeredItem(
+                                      index: index.clamp(0, 8),
+                                      child: _buildCategoryCard(category,
+                                          context, categoriesController),
+                                    );
+                                  },
+                                  childCount: defaultCats.length,
                                 ),
                               ),
-                            // Custom Categories
-                            if (customCats.isNotEmpty) ...[
-                              Padding(
+                            ),
+                          // Custom Categories header
+                          if (customCats.isNotEmpty)
+                            SliverToBoxAdapter(
+                              child: Padding(
                                 padding: const EdgeInsets.only(
-                                    left: 8, top: 24, bottom: 12),
+                                    left: 24, top: 24, bottom: 12, right: 16),
                                 child: Text(
                                   'Your Custom Categories (${customCats.length})',
                                   style: TextStyle(
@@ -204,9 +212,13 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                                   ),
                                 ),
                               ),
-                              GridView.builder(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
+                            ),
+                          // Custom categories grid
+                          if (customCats.isNotEmpty)
+                            SliverPadding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              sliver: SliverGrid(
                                 gridDelegate:
                                     const SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: 3,
@@ -214,22 +226,27 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                                   mainAxisSpacing: 12,
                                   childAspectRatio: 1,
                                 ),
-                                itemCount: customCats.length,
-                                itemBuilder: (context, index) {
-                                  final category = customCats[index];
-                                  return StaggeredItem(
-                                    index: index + defaultCats.length,
-                                    child: _buildCategoryCard(
-                                      category,
-                                      context,
-                                      categoriesController,
-                                    ),
-                                  );
-                                },
+                                delegate: SliverChildBuilderDelegate(
+                                  (context, index) {
+                                    final category = customCats[index];
+                                    return StaggeredItem(
+                                      index: index.clamp(0, 8),
+                                      child: _buildCategoryCard(
+                                        category,
+                                        context,
+                                        categoriesController,
+                                      ),
+                                    );
+                                  },
+                                  childCount: customCats.length,
+                                ),
                               ),
-                            ],
-                          ],
-                        ),
+                            ),
+                          // Bottom padding for FAB clearance
+                          const SliverToBoxAdapter(
+                            child: SizedBox(height: 100),
+                          ),
+                        ],
                       ),
                     ),
                   ],

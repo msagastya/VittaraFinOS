@@ -359,9 +359,9 @@ class _LoanWizardState extends State<LoanWizard> {
                   margin: const EdgeInsets.symmetric(horizontal: 2),
                   decoration: BoxDecoration(
                     color: done
-                        ? AppStyles.aetherTeal
+                        ? AppStyles.teal(context)
                         : active
-                            ? AppStyles.plasmaRed
+                            ? AppStyles.loss(context)
                             : AppStyles.getDividerColor(context),
                     borderRadius: BorderRadius.circular(Radii.full),
                   ),
@@ -406,9 +406,9 @@ class _LoanWizardState extends State<LoanWizard> {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: Spacing.md),
           decoration: BoxDecoration(
-            color: isLast ? AppStyles.aetherTeal : AppStyles.plasmaRed,
+            color: isLast ? AppStyles.teal(context) : AppStyles.loss(context),
             borderRadius: BorderRadius.circular(Radii.lg),
-            boxShadow: Shadows.fab(isLast ? AppStyles.aetherTeal : AppStyles.plasmaRed),
+            boxShadow: Shadows.fab(isLast ? AppStyles.teal(context) : AppStyles.loss(context)),
           ),
           alignment: Alignment.center,
           child: _isSaving
@@ -459,20 +459,20 @@ class _Step1TypeSelector extends StatelessWidget {
     }
   }
 
-  Color _colorForType(LoanType type) {
+  Color _colorForType(BuildContext context, LoanType type) {
     switch (type) {
       case LoanType.home:
-        return AppStyles.aetherTeal;
+        return AppStyles.teal(context);
       case LoanType.car:
         return AppStyles.accentBlue;
       case LoanType.personal:
-        return AppStyles.novaPurple;
+        return AppStyles.violet(context);
       case LoanType.education:
-        return AppStyles.solarGold;
+        return AppStyles.gold(context);
       case LoanType.gold:
-        return AppStyles.accentAmber;
+        return AppStyles.gold(context);
       case LoanType.creditCard:
-        return AppStyles.plasmaRed;
+        return AppStyles.loss(context);
       case LoanType.other:
         return AppStyles.accentOrange;
     }
@@ -515,7 +515,7 @@ class _Step1TypeSelector extends StatelessWidget {
             itemBuilder: (context, i) {
               final type = _types[i];
               final isSelected = type == selected;
-              final color = _colorForType(type);
+              final color = _colorForType(context, type);
               return BouncyButton(
                 onPressed: () {
                   HapticFeedback.selectionClick();
@@ -890,12 +890,12 @@ class _Step5Review extends StatelessWidget {
                 _ReviewRow(
                   label: 'Outstanding',
                   value: CurrencyFormatter.compact(outstanding),
-                  valueColor: AppStyles.plasmaRed,
+                  valueColor: AppStyles.loss(context),
                 ),
                 _ReviewRow(
                   label: 'Monthly EMI',
                   value: CurrencyFormatter.format(emi, decimals: 0),
-                  valueColor: AppStyles.aetherTeal,
+                  valueColor: AppStyles.teal(context),
                 ),
                 _divider(context),
                 _ReviewRow(
@@ -941,8 +941,8 @@ class _Step5Review extends StatelessWidget {
                     backgroundColor: AppStyles.getDividerColor(context),
                     valueColor: AlwaysStoppedAnimation<Color>(
                       progressPercent >= 0.8
-                          ? AppStyles.bioGreen
-                          : AppStyles.aetherTeal,
+                          ? AppStyles.gain(context)
+                          : AppStyles.teal(context),
                     ),
                   ),
                 ),

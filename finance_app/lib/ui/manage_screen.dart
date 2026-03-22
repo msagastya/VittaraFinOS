@@ -46,7 +46,7 @@ class _ManageScreenState extends State<ManageScreen> {
       'title': 'Accounts',
       'subtitle': 'Savings, credit cards & wallets',
       'icon': CupertinoIcons.creditcard_fill,
-      'color': AppStyles.bioGreen
+      'color': SemanticColors.accounts // natural green, safe in both themes
     },
     {
       'id': 'pay',
@@ -67,7 +67,7 @@ class _ManageScreenState extends State<ManageScreen> {
       'title': 'Loan / EMI Tracker',
       'subtitle': 'Home, car & personal loans',
       'icon': CupertinoIcons.doc_chart_fill,
-      'color': AppStyles.plasmaRed,
+      'color': SemanticColors.liabilities, // normal red, safe in both themes
     },
     {
       'id': 'insurance',

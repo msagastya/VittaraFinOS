@@ -431,7 +431,7 @@ class _InsuranceWizardState extends State<InsuranceWizard> {
                   margin: const EdgeInsets.symmetric(horizontal: 2),
                   decoration: BoxDecoration(
                     color: done
-                        ? AppStyles.aetherTeal
+                        ? AppStyles.teal(context)
                         : active
                             ? AppStyles.accentBlue
                             : AppStyles.getDividerColor(context),
@@ -479,10 +479,10 @@ class _InsuranceWizardState extends State<InsuranceWizard> {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: Spacing.md),
           decoration: BoxDecoration(
-            color: isLast ? AppStyles.aetherTeal : accentColor,
+            color: isLast ? AppStyles.teal(context) : accentColor,
             borderRadius: BorderRadius.circular(Radii.lg),
             boxShadow:
-                Shadows.fab(isLast ? AppStyles.aetherTeal : accentColor),
+                Shadows.fab(isLast ? AppStyles.teal(context) : accentColor),
           ),
           alignment: Alignment.center,
           child: _isSaving
@@ -533,22 +533,22 @@ class _Step1TypeSelector extends StatelessWidget {
     }
   }
 
-  Color _colorForType(InsuranceType type) {
+  Color _colorForType(BuildContext context, InsuranceType type) {
     switch (type) {
       case InsuranceType.health:
-        return AppStyles.plasmaRed;
+        return AppStyles.loss(context);
       case InsuranceType.life:
-        return AppStyles.aetherTeal;
+        return AppStyles.teal(context);
       case InsuranceType.term:
-        return AppStyles.novaPurple;
+        return AppStyles.violet(context);
       case InsuranceType.vehicle:
         return AppStyles.accentBlue;
       case InsuranceType.travel:
         return AppStyles.accentOrange;
       case InsuranceType.home:
-        return AppStyles.bioGreen;
+        return AppStyles.gain(context);
       case InsuranceType.other:
-        return AppStyles.solarGold;
+        return AppStyles.gold(context);
     }
   }
 
@@ -589,7 +589,7 @@ class _Step1TypeSelector extends StatelessWidget {
             itemBuilder: (context, i) {
               final type = _types[i];
               final isSelected = type == selected;
-              final color = _colorForType(type);
+              final color = _colorForType(context, type);
               return BouncyButton(
                 onPressed: () {
                   HapticFeedback.selectionClick();
@@ -989,7 +989,7 @@ class _Step4DatesNominee extends StatelessWidget {
         const SizedBox(height: Spacing.md),
         _InfoBanner(
           icon: CupertinoIcons.calendar_badge_plus,
-          color: AppStyles.novaPurple,
+          color: AppStyles.violet(context),
           label: 'Calculated Maturity Date',
           value: DateFormatter.format(maturityDate!),
         ),
@@ -1145,7 +1145,7 @@ class _Step5Review extends StatelessWidget {
                 _ReviewRow(
                   label: 'Sum Insured',
                   value: CurrencyFormatter.compact(sumInsured),
-                  valueColor: AppStyles.aetherTeal,
+                  valueColor: AppStyles.teal(context),
                 ),
                 _divider(context),
                 _ReviewRow(

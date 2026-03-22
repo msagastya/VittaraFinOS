@@ -216,7 +216,7 @@ class _FDRenewalWizardScreenState extends State<FDRenewalWizardScreen> {
                         Expanded(
                           child: CupertinoButton(
                             color: controller.canProceedToNextStep
-                                ? AppStyles.aetherTeal
+                                ? AppStyles.teal(context)
                                 : CupertinoColors.inactiveGray,
                             onPressed: controller.canProceedToNextStep
                                 ? (controller.currentStep == 4

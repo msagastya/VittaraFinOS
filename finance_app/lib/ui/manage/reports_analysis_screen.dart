@@ -2762,7 +2762,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setSheetState) {
           return Container(
-            height: MediaQuery.of(ctx).size.height * 0.75,
+            height: AppStyles.sheetMaxHeight(ctx),
             decoration: AppStyles.sectionDecoration(
               ctx,
               tint: AppStyles.accentBlue.withValues(alpha: 0.8),

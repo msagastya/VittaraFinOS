@@ -38,6 +38,7 @@ class _OnboardingPage {
   });
 }
 
+// Onboarding uses fixed dark-mode hero backgrounds, so static accent colors are fine
 const _pages = [
   _OnboardingPage(
     title: 'Your Financial OS',
@@ -178,7 +179,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           AnimatedPositioned(
             duration: const Duration(milliseconds: 500),
             curve: Curves.easeInOut,
-            top: MediaQuery.of(context).size.height * 0.1,
+            top: AppStyles.sheetMaxHeight(context),
             left: MediaQuery.of(context).size.width * 0.1,
             right: MediaQuery.of(context).size.width * 0.1,
             child: AnimatedContainer(

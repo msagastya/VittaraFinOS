@@ -213,7 +213,7 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
               color: AppStyles.getBackground(context).withValues(alpha: 0.7),
               borderRadius: BorderRadius.circular(Radii.md),
               border: Border.all(
-                color: AppStyles.bioGreen.withValues(alpha: 0.3),
+                color: AppStyles.gain(context).withValues(alpha: 0.3),
                 width: 1,
               ),
             ),
@@ -244,10 +244,10 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
           Container(
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
-              color: AppStyles.bioGreen.withValues(alpha: 0.15),
+              color: AppStyles.gain(context).withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(Radii.md),
               border: Border.all(
-                color: AppStyles.bioGreen.withValues(alpha: 0.4),
+                color: AppStyles.gain(context).withValues(alpha: 0.4),
                 width: 1.5,
               ),
             ),
@@ -268,10 +268,10 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
                 ),
                 Text(
                   '₹${(controller.qty * _currentMarketPrice).toStringAsFixed(2)}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: TypeScale.headline,
-                    color: AppStyles.bioGreen,
+                    color: AppStyles.gain(context),
                   ),
                 ),
               ],
@@ -323,8 +323,8 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
                           fontSize: TypeScale.headline,
                           color:
                               controller.currentValue >= controller.totalAmount
-                                  ? AppStyles.bioGreen
-                                  : AppStyles.plasmaRed,
+                                  ? AppStyles.gain(context)
+                                  : AppStyles.loss(context),
                         ),
                       ),
                     ],
@@ -346,8 +346,8 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
                           fontSize: TypeScale.body,
                           color:
                               controller.currentValue >= controller.totalAmount
-                                  ? AppStyles.bioGreen
-                                  : AppStyles.plasmaRed,
+                                  ? AppStyles.gain(context)
+                                  : AppStyles.loss(context),
                         ),
                       ),
                     ],

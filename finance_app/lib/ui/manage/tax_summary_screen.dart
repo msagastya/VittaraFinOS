@@ -133,7 +133,7 @@ class _TaxSummaryScreenState extends State<TaxSummaryScreen> {
                     padding: const EdgeInsets.all(Spacing.lg),
                     decoration: AppStyles.sectionDecoration(
                       context,
-                      tint: AppStyles.solarGold.withValues(alpha: 0.6),
+                      tint: AppStyles.gold(context).withValues(alpha: 0.6),
                       radius: Radii.xl,
                     ),
                     child: Column(
@@ -145,15 +145,15 @@ class _TaxSummaryScreenState extends State<TaxSummaryScreen> {
                               width: 40,
                               height: 40,
                               decoration: BoxDecoration(
-                                color: AppStyles.solarGold
+                                color: AppStyles.gold(context)
                                     .withValues(alpha: 0.18),
                                 borderRadius:
                                     BorderRadius.circular(Radii.md),
                               ),
                               alignment: Alignment.center,
-                              child: const Icon(
+                              child: Icon(
                                 CupertinoIcons.doc_text_fill,
-                                color: AppStyles.solarGold,
+                                color: AppStyles.gold(context),
                                 size: IconSizes.sm,
                               ),
                             ),
@@ -269,7 +269,7 @@ class _TaxSummaryScreenState extends State<TaxSummaryScreen> {
                               BorderRadius.circular(Radii.lg),
                           border: Border.all(
                             color: isOver
-                                ? AppStyles.solarGold
+                                ? AppStyles.gold(context)
                                     .withValues(alpha: 0.5)
                                 : AppStyles.getDividerColor(context),
                           ),
@@ -283,17 +283,17 @@ class _TaxSummaryScreenState extends State<TaxSummaryScreen> {
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: AppStyles.solarGold
+                                    color: AppStyles.gold(context)
                                         .withValues(alpha: 0.15),
                                     borderRadius:
                                         BorderRadius.circular(8),
                                   ),
                                   child: Text(
                                     section.code,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: TypeScale.footnote,
                                       fontWeight: FontWeight.w800,
-                                      color: AppStyles.solarGold,
+                                      color: AppStyles.gold(context),
                                     ),
                                   ),
                                 ),
@@ -322,7 +322,7 @@ class _TaxSummaryScreenState extends State<TaxSummaryScreen> {
                                     fontSize: TypeScale.title3,
                                     fontWeight: FontWeight.w700,
                                     color: isOver
-                                        ? AppStyles.solarGold
+                                        ? AppStyles.gold(context)
                                         : AppStyles.getTextColor(context),
                                   ),
                                 ),
@@ -348,8 +348,8 @@ class _TaxSummaryScreenState extends State<TaxSummaryScreen> {
                                       .getDividerColor(context),
                                   valueColor: AlwaysStoppedAnimation<Color>(
                                     isOver
-                                        ? AppStyles.solarGold
-                                        : AppStyles.bioGreen,
+                                        ? AppStyles.gold(context)
+                                        : AppStyles.gain(context),
                                   ),
                                 ),
                               ),
@@ -361,7 +361,7 @@ class _TaxSummaryScreenState extends State<TaxSummaryScreen> {
                                 style: TextStyle(
                                   fontSize: TypeScale.caption,
                                   color: isOver
-                                      ? AppStyles.solarGold
+                                      ? AppStyles.gold(context)
                                       : AppStyles.getSecondaryTextColor(
                                           context),
                                 ),
@@ -435,10 +435,10 @@ class _TaxSummaryScreenState extends State<TaxSummaryScreen> {
       children: [
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: TypeScale.title3,
             fontWeight: FontWeight.w700,
-            color: AppStyles.solarGold,
+            color: AppStyles.gold(context),
           ),
         ),
         Text(

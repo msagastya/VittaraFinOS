@@ -62,7 +62,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
             top: false,
             child: Container(
               constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(ctx).size.height * 0.65,
+                maxHeight: AppStyles.sheetMaxHeight(ctx),
               ),
               padding: const EdgeInsets.all(Spacing.xxl),
               decoration: BoxDecoration(
@@ -442,7 +442,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                     style: TextStyle(
                       fontSize: TypeScale.headline,
                       fontWeight: FontWeight.w700,
-                      color: balance >= 0 ? AppStyles.bioGreen : AppStyles.plasmaRed,
+                      color: balance >= 0 ? AppStyles.gain(context) : AppStyles.loss(context),
                     ),
                   ),
                 ],
@@ -551,7 +551,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
             top: false,
             child: Container(
               constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(ctx).size.height * 0.65,
+                maxHeight: AppStyles.sheetMaxHeight(ctx),
               ),
               padding: const EdgeInsets.all(Spacing.xxl),
               decoration: BoxDecoration(
@@ -703,7 +703,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                   scale: 0.8,
                   child: CupertinoSwitch(
                     value: app['isEnabled'],
-                    activeTrackColor: AppStyles.bioGreen,
+                    activeTrackColor: AppStyles.gain(context),
                     onChanged: (bool value) async {
                       await appsController.toggleApp(
                         app['id'] as String,
@@ -796,7 +796,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
               top: false,
               child: Container(
                 constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.82,
+                  maxHeight: AppStyles.sheetMaxHeight(context),
                 ),
                 decoration: BoxDecoration(
                   color: AppStyles.getCardColor(context),
@@ -884,7 +884,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                                             vertical: 12),
                                         decoration: BoxDecoration(
                                           color: hasWallet
-                                              ? AppStyles.bioGreen
+                                              ? AppStyles.gain(context)
                                               : Colors.transparent,
                                           borderRadius:
                                               BorderRadius.circular(10),
@@ -910,7 +910,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                                             vertical: 12),
                                         decoration: BoxDecoration(
                                           color: !hasWallet
-                                              ? AppStyles.plasmaRed
+                                              ? AppStyles.loss(context)
                                               : Colors.transparent,
                                           borderRadius:
                                               BorderRadius.circular(10),

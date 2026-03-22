@@ -159,7 +159,7 @@ class _PensionDetailsScreenState extends State<PensionDetailsScreen> {
         builder: (ctx, setS) {
           final isDark = AppStyles.isDarkMode(ctx);
           return Container(
-            height: MediaQuery.of(ctx).size.height * 0.5,
+            height: AppStyles.sheetMaxHeight(ctx),
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF1C1C1E) : CupertinoColors.white,
               borderRadius:

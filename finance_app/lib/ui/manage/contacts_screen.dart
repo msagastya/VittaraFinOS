@@ -525,7 +525,7 @@ class _PhoneContactsPickerSheetState extends State<_PhoneContactsPickerSheet> {
     }).toList();
 
     return Container(
-      height: MediaQuery.of(context).size.height * 0.78,
+      height: AppStyles.sheetMaxHeight(context),
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),

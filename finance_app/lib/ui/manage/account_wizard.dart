@@ -231,7 +231,7 @@ class _AccountWizardState extends State<AccountWizard> {
         type: _selectedAccountType ?? AccountType.savings,
         balance: finalBalance,
         color: _selectedAccountType == AccountType.cash
-            ? AppStyles.bioGreen
+            ? AppStyles.gain(context)
             : _selectedColor ?? CupertinoColors.systemBlue,
         creditCardNumber: (_selectedAccountType == AccountType.credit ||
                 _selectedAccountType == AccountType.payLater)
@@ -463,7 +463,7 @@ class _AccountWizardState extends State<AccountWizard> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return Container(
-              height: MediaQuery.of(context).size.height * 0.6,
+              height: AppStyles.sheetMaxHeight(context),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius:
@@ -533,8 +533,8 @@ class _AccountWizardState extends State<AccountWizard> {
                             child: Row(
                               children: [
                                 CupertinoColors.systemBlue,
-                                AppStyles.bioGreen,
-                                AppStyles.plasmaRed,
+                                AppStyles.gain(context),
+                                AppStyles.loss(context),
                                 CupertinoColors.systemPurple,
                                 CupertinoColors.systemOrange,
                                 CupertinoColors.systemTeal,
@@ -868,7 +868,7 @@ class _AccountWizardState extends State<AccountWizard> {
                 onPressed: () {
                   setState(() {
                     _selectedBank = _cashBankName;
-                    _selectedColor = AppStyles.bioGreen;
+                    _selectedColor = AppStyles.gain(context);
                   });
                   _nextStep();
                 },
@@ -876,10 +876,10 @@ class _AccountWizardState extends State<AccountWizard> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
-                    color: AppStyles.bioGreen.withValues(alpha: 0.12),
+                    color: AppStyles.gain(context).withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(Radii.md),
                     border: Border.all(
-                      color: AppStyles.bioGreen.withValues(alpha: 0.5),
+                      color: AppStyles.gain(context).withValues(alpha: 0.5),
                       width: 1.2,
                     ),
                   ),
@@ -889,14 +889,14 @@ class _AccountWizardState extends State<AccountWizard> {
                         width: 44,
                         height: 44,
                         decoration: BoxDecoration(
-                          color: AppStyles.bioGreen
+                          color: AppStyles.gain(context)
                               .withValues(alpha: 0.2),
                           shape: BoxShape.circle,
                         ),
-                        child: const Center(
+                        child: Center(
                           child: Icon(
                             CupertinoIcons.money_dollar_circle_fill,
-                            color: AppStyles.bioGreen,
+                            color: AppStyles.gain(context),
                           ),
                         ),
                       ),
@@ -920,10 +920,10 @@ class _AccountWizardState extends State<AccountWizard> {
                           ],
                         ),
                       ),
-                      const Icon(
+                      Icon(
                         CupertinoIcons.chevron_right,
                         size: 16,
-                        color: AppStyles.bioGreen,
+                        color: AppStyles.gain(context),
                       ),
                     ],
                   ),
@@ -1085,7 +1085,7 @@ class _AccountWizardState extends State<AccountWizard> {
         final disabledBanks = banksController.disabledBanks;
 
         return Container(
-          height: MediaQuery.of(context).size.height * 0.7,
+          height: AppStyles.sheetMaxHeight(context),
           decoration: BoxDecoration(
             color: AppStyles.getCardColor(context),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
@@ -1256,7 +1256,7 @@ class _AccountWizardState extends State<AccountWizard> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return Container(
-              height: MediaQuery.of(context).size.height * 0.6,
+              height: AppStyles.sheetMaxHeight(context),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
                 borderRadius:
@@ -1328,8 +1328,8 @@ class _AccountWizardState extends State<AccountWizard> {
                             child: Row(
                               children: [
                                 CupertinoColors.systemBlue,
-                                AppStyles.bioGreen,
-                                AppStyles.plasmaRed,
+                                AppStyles.gain(context),
+                                AppStyles.loss(context),
                                 CupertinoColors.systemPurple,
                                 CupertinoColors.systemOrange,
                                 CupertinoColors.systemTeal,
@@ -1518,7 +1518,7 @@ class _AccountWizardState extends State<AccountWizard> {
                     _selectedAccountType = selectedType;
                     if (selectedType == AccountType.cash) {
                       _selectedBank = _cashBankName;
-                      _selectedColor = AppStyles.bioGreen;
+                      _selectedColor = AppStyles.gain(context);
                     } else if (_selectedBank == _cashBankName) {
                       _selectedBank = 'Other';
                     }

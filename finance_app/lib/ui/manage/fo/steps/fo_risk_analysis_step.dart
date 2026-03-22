@@ -160,7 +160,7 @@ class _AnalysisRow extends StatelessWidget {
     Color? color;
     if (label.contains('P&L') || label.contains('Loss')) {
       color =
-          isProfit ? AppStyles.bioGreen : AppStyles.plasmaRed;
+          isProfit ? AppStyles.gain(context) : AppStyles.loss(context);
     }
 
     return Column(

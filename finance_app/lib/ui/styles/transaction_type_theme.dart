@@ -3,12 +3,12 @@ import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 
 extension TransactionTypeTheme on TransactionType {
-  Color get typeColor {
+  Color typeColor(BuildContext context) {
     switch (this) {
       case TransactionType.transfer:
-        return AppStyles.aetherTeal;
+        return AppStyles.teal(context);
       case TransactionType.cashback:
-        return AppStyles.bioGreen;
+        return AppStyles.gain(context);
       case TransactionType.lending:
         return CupertinoColors.systemOrange;
       case TransactionType.borrowing:
@@ -16,9 +16,9 @@ extension TransactionTypeTheme on TransactionType {
       case TransactionType.investment:
         return CupertinoColors.systemIndigo;
       case TransactionType.expense:
-        return AppStyles.plasmaRed;
+        return AppStyles.loss(context);
       case TransactionType.income:
-        return AppStyles.bioGreen;
+        return AppStyles.gain(context);
     }
   }
 

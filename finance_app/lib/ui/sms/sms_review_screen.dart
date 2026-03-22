@@ -257,13 +257,13 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
-                      color: AppStyles.plasmaRed.withValues(alpha: 0.12),
+                      color: AppStyles.loss(context).withValues(alpha: 0.12),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       CupertinoIcons.lock_shield,
                       size: 40,
-                      color: AppStyles.plasmaRed,
+                      color: AppStyles.loss(context),
                     ),
                   ),
                   const SizedBox(height: Spacing.lg),
@@ -626,7 +626,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
                       '$_parseFailCount message${_parseFailCount == 1 ? '' : 's'} could not be parsed',
                       style: TextStyle(
                         fontSize: TypeScale.caption,
-                        color: AppStyles.solarGold.withValues(alpha: 0.8),
+                        color: AppStyles.gold(context).withValues(alpha: 0.8),
                       ),
                     ),
                 ],
@@ -669,7 +669,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
     final p = r.parsed;
     final isExpense = p.type == 'expense';
     final txColor =
-        isExpense ? AppStyles.plasmaRed : AppStyles.bioGreen;
+        isExpense ? AppStyles.loss(context) : AppStyles.gain(context);
     final fmt =
         NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 2);
     final dateFmt = DateFormat('dd MMM · hh:mm a');
@@ -833,7 +833,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
                       '${acctSuffix != null ? ' ··$acctSuffix' : ''}'
                       '  ${(r.accountMatchConfidence * 100).toInt()}%',
                       isDark,
-                      color: _confidenceColor(r.accountMatchConfidence),
+                      color: _confidenceColor(context, r.accountMatchConfidence),
                     ),
                   // Duplicate warning
                   if (dupe != null)
@@ -867,7 +867,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
                       const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                   decoration: BoxDecoration(
                     color:
-                        _confidenceColor(p.confidence).withValues(alpha: 0.12),
+                        _confidenceColor(context, p.confidence).withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
@@ -875,7 +875,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
-                      color: _confidenceColor(p.confidence),
+                      color: _confidenceColor(context, p.confidence),
                     ),
                   ),
                 ),
@@ -953,7 +953,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
     showCupertinoModalPopup(
       context: context,
       builder: (ctx) => Container(
-        height: MediaQuery.of(ctx).size.height * 0.75,
+        height: AppStyles.sheetMaxHeight(ctx),
         decoration: BoxDecoration(
           color: isDark
               ? const Color(0xFF1C1C1E)
@@ -991,8 +991,8 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
                             fontSize: 26,
                             fontWeight: FontWeight.w700,
                             color: p.type == 'expense'
-                                ? AppStyles.plasmaRed
-                                : AppStyles.bioGreen,
+                                ? AppStyles.loss(context)
+                                : AppStyles.gain(context),
                           ),
                         ),
                         Text(
@@ -1152,10 +1152,10 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
     );
   }
 
-  Color _confidenceColor(double c) {
-    if (c >= 0.85) return AppStyles.bioGreen;
+  Color _confidenceColor(BuildContext context, double c) {
+    if (c >= 0.85) return AppStyles.gain(context);
     if (c >= 0.65) return CupertinoColors.systemOrange;
-    return AppStyles.plasmaRed;
+    return AppStyles.loss(context);
   }
 }
 
@@ -1415,8 +1415,8 @@ class _SmsQuickConfirmSheetState extends State<_SmsQuickConfirmSheet> {
     final accentColor = isTransfer
         ? AppStyles.accentBlue
         : isIncome
-            ? AppStyles.bioGreen
-            : AppStyles.plasmaRed;
+            ? AppStyles.gain(context)
+            : AppStyles.loss(context);
 
     return DraggableScrollableSheet(
       expand: false,
@@ -1559,7 +1559,7 @@ class _SmsQuickConfirmSheetState extends State<_SmsQuickConfirmSheet> {
                           context,
                           label: 'Expense',
                           icon: CupertinoIcons.arrow_up_circle_fill,
-                          color: AppStyles.plasmaRed,
+                          color: AppStyles.loss(context),
                           selected: _txType == _SmsConfirmType.expense,
                           onTap: () {
                             setState(() {
@@ -1580,7 +1580,7 @@ class _SmsQuickConfirmSheetState extends State<_SmsQuickConfirmSheet> {
                           context,
                           label: 'Income',
                           icon: CupertinoIcons.arrow_down_circle_fill,
-                          color: AppStyles.bioGreen,
+                          color: AppStyles.gain(context),
                           selected: _txType == _SmsConfirmType.income,
                           onTap: () => setState(
                               () => _txType = _SmsConfirmType.income),
@@ -1694,7 +1694,7 @@ class _SmsQuickConfirmSheetState extends State<_SmsQuickConfirmSheet> {
                           borderRadius: BorderRadius.circular(Radii.md),
                           border: Border.all(
                             color: _selectedAccount == null
-                                ? AppStyles.plasmaRed.withValues(alpha: 0.5)
+                                ? AppStyles.loss(context).withValues(alpha: 0.5)
                                 : AppStyles.getDividerColor(context),
                           ),
                         ),
@@ -1703,7 +1703,7 @@ class _SmsQuickConfirmSheetState extends State<_SmsQuickConfirmSheet> {
                             Icon(CupertinoIcons.creditcard,
                                 size: 16,
                                 color: _selectedAccount == null
-                                    ? AppStyles.plasmaRed
+                                    ? AppStyles.loss(context)
                                     : AppStyles.getSecondaryTextColor(
                                         context)),
                             const SizedBox(width: 8),
@@ -1712,7 +1712,7 @@ class _SmsQuickConfirmSheetState extends State<_SmsQuickConfirmSheet> {
                                 _selectedAccount?.name ?? 'Tap to select account',
                                 style: TextStyle(fontSize: TypeScale.body, color: AppStyles.getTextColor(context)).copyWith(
                                   color: _selectedAccount == null
-                                      ? AppStyles.plasmaRed
+                                      ? AppStyles.loss(context)
                                       : AppStyles.getTextColor(context),
                                 ),
                               ),
@@ -1973,8 +1973,8 @@ class _SmsQuickConfirmSheetState extends State<_SmsQuickConfirmSheet> {
                 color: isTransfer
                     ? AppStyles.accentBlue
                     : isIncome
-                        ? AppStyles.bioGreen
-                        : AppStyles.plasmaRed,
+                        ? AppStyles.gain(context)
+                        : AppStyles.loss(context),
                 borderRadius: BorderRadius.circular(Radii.md),
                 onPressed: _saving ? null : _save,
                 child: _saving
@@ -2115,15 +2115,15 @@ class _FormSection extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                 decoration: BoxDecoration(
-                  color: AppStyles.plasmaRed.withValues(alpha: 0.10),
+                  color: AppStyles.loss(context).withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: const Text(
+                child: Text(
                   'empty',
                   style: TextStyle(
                     fontSize: 9,
                     fontWeight: FontWeight.w600,
-                    color: AppStyles.plasmaRed,
+                    color: AppStyles.loss(context),
                   ),
                 ),
               ),

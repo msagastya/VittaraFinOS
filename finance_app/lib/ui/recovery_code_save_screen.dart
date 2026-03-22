@@ -62,11 +62,11 @@ class _RecoveryCodeSaveScreenState extends State<RecoveryCodeSaveScreen> {
                 width: 72,
                 height: 72,
                 decoration: BoxDecoration(
-                  color: AppStyles.solarGold.withValues(alpha: 0.12),
+                  color: AppStyles.gold(context).withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(CupertinoIcons.shield_lefthalf_fill,
-                    color: AppStyles.solarGold, size: 36),
+                child: Icon(CupertinoIcons.shield_lefthalf_fill,
+                    color: AppStyles.gold(context), size: 36),
               ),
               const SizedBox(height: Spacing.xl),
 
@@ -100,23 +100,23 @@ class _RecoveryCodeSaveScreenState extends State<RecoveryCodeSaveScreen> {
                 padding: const EdgeInsets.all(Spacing.xl),
                 decoration: BoxDecoration(
                   color: isDark
-                      ? AppStyles.solarGold.withValues(alpha: 0.06)
-                      : AppStyles.solarGold.withValues(alpha: 0.08),
+                      ? AppStyles.gold(context).withValues(alpha: 0.06)
+                      : AppStyles.gold(context).withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(Radii.xxl),
                   border: Border.all(
-                    color: AppStyles.solarGold.withValues(alpha: 0.30),
+                    color: AppStyles.gold(context).withValues(alpha: 0.30),
                     width: 1.5,
                   ),
                 ),
                 child: Column(
                   children: [
-                    const Text(
+                    Text(
                       'EMERGENCY RECOVERY CODE',
                       style: TextStyle(
                         fontSize: TypeScale.caption,
                         fontWeight: FontWeight.w600,
                         letterSpacing: 1.2,
-                        color: AppStyles.solarGold,
+                        color: AppStyles.gold(context),
                       ),
                     ),
                     const SizedBox(height: Spacing.lg),
@@ -130,8 +130,8 @@ class _RecoveryCodeSaveScreenState extends State<RecoveryCodeSaveScreen> {
                             horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
                           color: isDark
-                              ? AppStyles.solarGold.withValues(alpha: 0.10)
-                              : AppStyles.solarGold.withValues(alpha: 0.12),
+                              ? AppStyles.gold(context).withValues(alpha: 0.10)
+                              : AppStyles.gold(context).withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
@@ -155,13 +155,13 @@ class _RecoveryCodeSaveScreenState extends State<RecoveryCodeSaveScreen> {
                             horizontal: Spacing.xl, vertical: Spacing.sm),
                         decoration: BoxDecoration(
                           color: _copied
-                              ? AppStyles.bioGreen.withValues(alpha: 0.15)
-                              : AppStyles.solarGold.withValues(alpha: 0.15),
+                              ? AppStyles.gain(context).withValues(alpha: 0.15)
+                              : AppStyles.gold(context).withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
                             color: _copied
-                                ? AppStyles.bioGreen.withValues(alpha: 0.5)
-                                : AppStyles.solarGold.withValues(alpha: 0.4),
+                                ? AppStyles.gain(context).withValues(alpha: 0.5)
+                                : AppStyles.gold(context).withValues(alpha: 0.4),
                           ),
                         ),
                         child: Row(
@@ -172,7 +172,7 @@ class _RecoveryCodeSaveScreenState extends State<RecoveryCodeSaveScreen> {
                                   ? CupertinoIcons.checkmark_circle_fill
                                   : CupertinoIcons.doc_on_doc,
                               size: 16,
-                              color: _copied ? AppStyles.bioGreen : AppStyles.solarGold,
+                              color: _copied ? AppStyles.gain(context) : AppStyles.gold(context),
                             ),
                             const SizedBox(width: 6),
                             Text(
@@ -180,7 +180,7 @@ class _RecoveryCodeSaveScreenState extends State<RecoveryCodeSaveScreen> {
                               style: TextStyle(
                                 fontSize: TypeScale.subhead,
                                 fontWeight: FontWeight.w600,
-                                color: _copied ? AppStyles.bioGreen : AppStyles.solarGold,
+                                color: _copied ? AppStyles.gain(context) : AppStyles.gold(context),
                               ),
                             ),
                           ],
@@ -196,7 +196,7 @@ class _RecoveryCodeSaveScreenState extends State<RecoveryCodeSaveScreen> {
               _warningBox(
                 context,
                 icon: CupertinoIcons.eye_slash_fill,
-                color: AppStyles.plasmaRed,
+                color: AppStyles.loss(context),
                 text: 'This code will NOT be shown again. Screenshot it or write it on paper NOW.',
               ),
               const SizedBox(height: Spacing.md),
@@ -223,12 +223,12 @@ class _RecoveryCodeSaveScreenState extends State<RecoveryCodeSaveScreen> {
                       height: 22,
                       decoration: BoxDecoration(
                         color: _confirmed
-                            ? AppStyles.bioGreen
+                            ? AppStyles.gain(context)
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(5),
                         border: Border.all(
                           color: _confirmed
-                              ? AppStyles.bioGreen
+                              ? AppStyles.gain(context)
                               : subColor.withValues(alpha: 0.4),
                           width: 1.5,
                         ),
@@ -263,9 +263,9 @@ class _RecoveryCodeSaveScreenState extends State<RecoveryCodeSaveScreen> {
                   height: 52,
                   decoration: BoxDecoration(
                     gradient: _confirmed
-                        ? const LinearGradient(colors: [
-                            AppStyles.bioGreen,
-                            AppStyles.aetherTeal,
+                        ? LinearGradient(colors: [
+                            AppStyles.gain(context),
+                            AppStyles.teal(context),
                           ])
                         : null,
                     color: _confirmed ? null : subColor.withValues(alpha: 0.12),

@@ -89,7 +89,7 @@ class _StockSearchStepState extends State<StockSearchStep> {
               child: Center(
                   child: Text(_error,
                       style:
-                          const TextStyle(color: AppStyles.plasmaRed))))
+                          TextStyle(color: AppStyles.loss(context)))))
         else if (_results.isEmpty && _searchController.text.isNotEmpty)
           const Expanded(
             child: EmptyStateView(

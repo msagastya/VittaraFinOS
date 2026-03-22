@@ -62,7 +62,7 @@ class SIPReviewStep extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(Spacing.md),
               decoration: BoxDecoration(
-                color: AppStyles.bioGreen.withValues(alpha: 0.1),
+                color: AppStyles.gain(context).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(

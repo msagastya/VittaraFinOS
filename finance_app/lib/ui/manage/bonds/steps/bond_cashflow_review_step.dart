@@ -120,8 +120,8 @@ class BondCashFlowReviewStep extends StatelessWidget {
                                   fontSize: TypeScale.footnote,
                                   fontWeight: FontWeight.w600,
                                   color: isNegative
-                                      ? AppStyles.plasmaRed
-                                      : AppStyles.bioGreen,
+                                      ? AppStyles.loss(context)
+                                      : AppStyles.gain(context),
                                 ),
                               ),
                             ),
@@ -154,13 +154,13 @@ class BondCashFlowReviewStep extends StatelessWidget {
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
               color: isProfit
-                  ? AppStyles.bioGreen.withValues(alpha: 0.1)
-                  : AppStyles.plasmaRed.withValues(alpha: 0.1),
+                  ? AppStyles.gain(context).withValues(alpha: 0.1)
+                  : AppStyles.loss(context).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: isProfit
-                    ? AppStyles.bioGreen.withValues(alpha: 0.3)
-                    : AppStyles.plasmaRed.withValues(alpha: 0.3),
+                    ? AppStyles.gain(context).withValues(alpha: 0.3)
+                    : AppStyles.loss(context).withValues(alpha: 0.3),
               ),
             ),
             child: Column(
@@ -168,13 +168,13 @@ class BondCashFlowReviewStep extends StatelessWidget {
                 _SummaryRow(
                   label: 'Total Invested',
                   value: '₹${ctrl.totalInvested.toStringAsFixed(2)}',
-                  color: AppStyles.plasmaRed,
+                  color: AppStyles.loss(context),
                 ),
                 const SizedBox(height: Spacing.md),
                 _SummaryRow(
                   label: 'Total Received',
                   value: '₹${ctrl.totalReceived.toStringAsFixed(2)}',
-                  color: AppStyles.bioGreen,
+                  color: AppStyles.gain(context),
                 ),
                 const SizedBox(height: Spacing.md),
                 Divider(color: AppStyles.getDividerColor(context)),
@@ -184,8 +184,8 @@ class BondCashFlowReviewStep extends StatelessWidget {
                   value:
                       '${isProfit ? '+' : ''}₹${ctrl.gainLoss.toStringAsFixed(2)}',
                   color: isProfit
-                      ? AppStyles.bioGreen
-                      : AppStyles.plasmaRed,
+                      ? AppStyles.gain(context)
+                      : AppStyles.loss(context),
                   isBold: true,
                 ),
                 const SizedBox(height: Spacing.md),
@@ -194,8 +194,8 @@ class BondCashFlowReviewStep extends StatelessWidget {
                   value:
                       '${isProfit ? '+' : ''}${ctrl.gainLossPercent.toStringAsFixed(2)}%',
                   color: isProfit
-                      ? AppStyles.bioGreen
-                      : AppStyles.plasmaRed,
+                      ? AppStyles.gain(context)
+                      : AppStyles.loss(context),
                   isBold: true,
                 ),
                 const SizedBox(height: Spacing.md),

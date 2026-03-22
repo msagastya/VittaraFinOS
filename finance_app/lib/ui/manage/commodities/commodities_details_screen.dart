@@ -185,7 +185,7 @@ class _CommoditiesDetailsScreenState extends State<CommoditiesDetailsScreen> {
         builder: (ctx, setS) {
           final isDark = AppStyles.isDarkMode(ctx);
           return Container(
-            height: MediaQuery.of(ctx).size.height * 0.7,
+            height: AppStyles.sheetMaxHeight(ctx),
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF1C1C1E) : CupertinoColors.white,
               borderRadius:

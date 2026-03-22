@@ -79,6 +79,24 @@ class AppStyles {
   static bool isDarkMode(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark;
 
+  /// True when the device is in landscape orientation.
+  /// Use this to switch between portrait and landscape layouts.
+  static bool isLandscape(BuildContext context) =>
+      MediaQuery.of(context).orientation == Orientation.landscape;
+
+  /// Max width for content in landscape so it doesn't stretch edge-to-edge.
+  /// Wrap modal/sheet content with ConstrainedBox(constraints: landscapeContentConstraints(context)).
+  static BoxConstraints landscapeContentConstraints(BuildContext context) =>
+      isLandscape(context)
+          ? const BoxConstraints(maxWidth: 560)
+          : const BoxConstraints(maxWidth: double.infinity);
+
+  /// Max height for bottom sheets — 85% in portrait, 95% in landscape.
+  static double sheetMaxHeight(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    return isLandscape(context) ? size.height * 0.95 : size.height * 0.85;
+  }
+
   // ── Theme-Aware Semantic Accent Getters ───────────────────────────────────
   // These are the CORRECT way to use accent colors — they adapt to light/dark.
   // Never use bioGreen/plasmaRed/solarGold/aetherTeal directly in UI widgets.

@@ -126,8 +126,8 @@ class _InterestRateStepState extends State<InterestRateStep> {
                         ),
                         Text(
                           '₹${controller.totalInterestAtMaturity.toStringAsFixed(2)}',
-                          style: const TextStyle(
-                            color: AppStyles.bioGreen,
+                          style: TextStyle(
+                            color: AppStyles.gain(context),
                             fontWeight: FontWeight.bold,
                           ),
                         ),

@@ -66,7 +66,7 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
       child: Scaffold(
         backgroundColor: AppStyles.getBackground(context),
         appBar: CupertinoNavigationBar(
-          middle: const Text('Withdraw RD'),
+          middle: Text('Withdraw RD'),
           previousPageTitle: 'Back',
           backgroundColor: AppStyles.getBackground(context),
           border: null,
@@ -222,19 +222,19 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
                       ],
                     ),
                     const SizedBox(height: Spacing.md),
-                    const Row(
+                    Row(
                       children: [
                         Icon(
                           CupertinoIcons.check_mark_circled_solid,
                           size: 16,
-                          color: AppStyles.bioGreen,
+                          color: AppStyles.gain(context),
                         ),
                         SizedBox(width: Spacing.sm),
                         Expanded(
                           child: Text(
                             'Maturity value includes principal + interest',
                             style: TextStyle(
-                              color: AppStyles.bioGreen,
+                              color: AppStyles.gain(context),
                               fontSize: TypeScale.footnote,
                             ),
                           ),
@@ -250,7 +250,7 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
               SizedBox(
                 width: double.infinity,
                 child: CupertinoButton(
-                  color: AppStyles.bioGreen,
+                  color: AppStyles.gain(context),
                   onPressed: () async {
                     // If we have the investment controller, persist the withdrawal
                     if (widget.investmentController != null &&

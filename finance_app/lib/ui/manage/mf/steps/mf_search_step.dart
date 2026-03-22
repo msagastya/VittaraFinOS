@@ -255,11 +255,11 @@ class _MFSearchStepState extends State<MFSearchStep> {
                 CupertinoButton(
                   padding: EdgeInsets.zero,
                   onPressed: _clearRecentSearches,
-                  child: const Text(
+                  child: Text(
                     'Clear',
                     style: TextStyle(
                       fontSize: TypeScale.footnote,
-                      color: AppStyles.plasmaRed,
+                      color: AppStyles.loss(context),
                     ),
                   ),
                 ),
@@ -335,7 +335,7 @@ class _MFSearchStepState extends State<MFSearchStep> {
       return Center(
         child: Text(
           _error,
-          style: const TextStyle(color: AppStyles.plasmaRed),
+          style: TextStyle(color: AppStyles.loss(context)),
           textAlign: TextAlign.center,
         ),
       );

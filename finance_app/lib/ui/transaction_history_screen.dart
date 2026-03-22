@@ -1150,7 +1150,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         ? const Color(0xFFFFB800) // amber for dividends
         : isSell
             ? AppStyles.gain(context)
-            : transaction.type.typeColor;
+            : transaction.type.typeColor(context);
     final typeIcon = isDividend
         ? CupertinoIcons.money_dollar_circle_fill
         : isSell

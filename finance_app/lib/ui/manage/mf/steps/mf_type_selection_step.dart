@@ -82,7 +82,7 @@ class MFTypeSelectionStep extends StatelessWidget {
                                 .withValues(alpha: 0.15),
                             shape: BoxShape.circle,
                           ),
-                          child: const Center(
+                          child: Center(
                             child: Icon(
                               CupertinoIcons.plus_circle,
                               size: 28,
@@ -168,15 +168,15 @@ class MFTypeSelectionStep extends StatelessWidget {
                           width: 60,
                           height: 60,
                           decoration: BoxDecoration(
-                            color: AppStyles.aetherTeal
+                            color: AppStyles.teal(context)
                                 .withValues(alpha: 0.15),
                             shape: BoxShape.circle,
                           ),
-                          child: const Center(
+                          child: Center(
                             child: Icon(
                               CupertinoIcons.star_circle,
                               size: 28,
-                              color: AppStyles.aetherTeal,
+                              color: AppStyles.teal(context),
                             ),
                           ),
                         ),

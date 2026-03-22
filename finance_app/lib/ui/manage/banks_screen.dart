@@ -96,7 +96,7 @@ class _BanksScreenState extends State<BanksScreen> {
                   child: Padding(
                     padding: EdgeInsets.only(bottom: keyboardHeight),
                     child: Container(
-                      height: MediaQuery.of(context).size.height * 0.75,
+                      height: AppStyles.sheetMaxHeight(context),
                       decoration: BoxDecoration(
                         color: AppStyles.getCardColor(context),
                         borderRadius: const BorderRadius.vertical(

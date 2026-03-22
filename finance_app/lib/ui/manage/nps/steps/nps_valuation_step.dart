@@ -131,8 +131,8 @@ class _StatRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = isHighlight
-        ? (isPositive ? AppStyles.bioGreen : AppStyles.plasmaRed)
-        : (isPositive ? null : AppStyles.plasmaRed);
+        ? (isPositive ? AppStyles.gain(context) : AppStyles.loss(context))
+        : (isPositive ? null : AppStyles.loss(context));
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,

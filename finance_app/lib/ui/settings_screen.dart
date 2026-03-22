@@ -51,7 +51,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   icon: CupertinoIcons.viewfinder,
                   title: 'Biometric Auth',
                   value: settings.isBiometricEnabled,
-                  color: AppStyles.bioGreen,
+                  color: AppStyles.gain(context),
                   onChanged: (val) => settings.toggleBiometric(val),
                 ),
                 if (settings.isBiometricEnabled) ...[
@@ -94,7 +94,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       icon: CupertinoIcons.shield_lefthalf_fill,
                       title: 'Recovery Code',
                       value: 'View',
-                      color: AppStyles.solarGold,
+                      color: AppStyles.gold(context),
                       onTap: () => _showRecoveryCode(context, settings),
                     ),
                   ],
@@ -139,7 +139,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   icon: CupertinoIcons.chat_bubble_text_fill,
                   title: 'SMS Scanning',
                   value: settings.isSmsEnabled,
-                  color: AppStyles.aetherTeal,
+                  color: AppStyles.teal(context),
                   onChanged: (val) => settings.toggleSmsScanning(val),
                 ),
               ]),
@@ -363,7 +363,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setS) {
           final dotColor =
-              error ? AppStyles.plasmaRed : AppStyles.accentBlue;
+              error ? AppStyles.loss(ctx) : AppStyles.accentBlue;
           final current = inConfirm ? confirmDigits! : digits;
 
           Future<void> onDigit(String d) async {
@@ -407,7 +407,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           }
 
           return Container(
-            height: MediaQuery.of(ctx).size.height * 0.75,
+            height: AppStyles.sheetMaxHeight(ctx),
             decoration: AppStyles.bottomSheetDecoration(ctx),
             child: SafeArea(
               child: Column(
@@ -435,7 +435,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             : 'Choose a 6-digit PIN',
                     style: TextStyle(
                       color: error
-                          ? AppStyles.plasmaRed
+                          ? AppStyles.loss(ctx)
                           : AppStyles.getSecondaryTextColor(ctx),
                       fontSize: TypeScale.body,
                     ),

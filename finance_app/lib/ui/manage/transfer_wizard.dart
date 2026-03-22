@@ -850,18 +850,18 @@ class _TransferWizardState extends State<TransferWizard> {
                 Container(
                   padding: const EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
-                    color: AppStyles.bioGreen.withValues(alpha: 0.1),
+                    color: AppStyles.gain(context).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(Radii.md),
                     border: Border.all(
-                      color: AppStyles.bioGreen,
+                      color: AppStyles.gain(context),
                       width: 2,
                     ),
                   ),
                   child: Row(
                     children: [
-                      const Icon(
+                      Icon(
                         CupertinoIcons.lock_fill,
-                        color: AppStyles.bioGreen,
+                        color: AppStyles.gain(context),
                         size: 24,
                       ),
                       const SizedBox(width: Spacing.md),
@@ -875,19 +875,19 @@ class _TransferWizardState extends State<TransferWizard> {
                                   .copyWith(fontSize: TypeScale.headline),
                             ),
                             const SizedBox(height: Spacing.xs),
-                            const Text(
+                            Text(
                               'Auto-selected (Fixed)',
                               style: TextStyle(
                                 fontSize: TypeScale.footnote,
-                                color: AppStyles.bioGreen,
+                                color: AppStyles.gain(context),
                               ),
                             ),
                           ],
                         ),
                       ),
-                      const Icon(
+                      Icon(
                         CupertinoIcons.checkmark_circle_fill,
-                        color: AppStyles.bioGreen,
+                        color: AppStyles.gain(context),
                         size: 24,
                       ),
                     ],
@@ -1261,7 +1261,7 @@ class _TransferWizardState extends State<TransferWizard> {
                         borderRadius: BorderRadius.circular(Radii.md),
                         border: isSelected
                             ? Border.all(
-                                color: AppStyles.bioGreen, width: 2)
+                                color: AppStyles.gain(context), width: 2)
                             : Border.all(
                                 color: AppStyles.getSecondaryTextColor(context)
                                     .withValues(alpha: 0.1),
@@ -1307,9 +1307,9 @@ class _TransferWizardState extends State<TransferWizard> {
                             ),
                           ),
                           if (isSelected)
-                            const Icon(
+                            Icon(
                               CupertinoIcons.checkmark_circle_fill,
-                              color: AppStyles.bioGreen,
+                              color: AppStyles.gain(context),
                               size: 20,
                             ),
                         ],
@@ -1331,7 +1331,7 @@ class _TransferWizardState extends State<TransferWizard> {
                         borderRadius: BorderRadius.circular(Radii.md),
                         border: _cashbackToPaymentApp
                             ? Border.all(
-                                color: AppStyles.bioGreen, width: 2)
+                                color: AppStyles.gain(context), width: 2)
                             : Border.all(
                                 color: AppStyles.getSecondaryTextColor(context)
                                     .withValues(alpha: 0.1),
@@ -1376,9 +1376,9 @@ class _TransferWizardState extends State<TransferWizard> {
                             ),
                           ),
                           if (_cashbackToPaymentApp)
-                            const Icon(
+                            Icon(
                               CupertinoIcons.checkmark_circle_fill,
-                              color: AppStyles.bioGreen,
+                              color: AppStyles.gain(context),
                               size: 20,
                             ),
                         ],
@@ -1565,9 +1565,9 @@ class _TransferWizardState extends State<TransferWizard> {
           value,
           style: TextStyle(
             color: isPositive
-                ? AppStyles.bioGreen
+                ? AppStyles.gain(context)
                 : isNegative
-                    ? AppStyles.plasmaRed
+                    ? AppStyles.loss(context)
                     : isAmount
                         ? CupertinoColors.systemBlue
                         : AppStyles.getTextColor(context),
@@ -1909,7 +1909,7 @@ class _PaymentAppSetupWizardState extends State<_PaymentAppSetupWizard> {
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       decoration: BoxDecoration(
                         color: _hasWallet
-                            ? AppStyles.bioGreen
+                            ? AppStyles.gain(context)
                             : CupertinoColors.systemGrey5,
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -1934,7 +1934,7 @@ class _PaymentAppSetupWizardState extends State<_PaymentAppSetupWizard> {
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       decoration: BoxDecoration(
                         color: !_hasWallet
-                            ? AppStyles.plasmaRed
+                            ? AppStyles.loss(context)
                             : CupertinoColors.systemGrey5,
                         borderRadius: BorderRadius.circular(10),
                       ),

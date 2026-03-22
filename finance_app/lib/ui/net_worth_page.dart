@@ -1199,10 +1199,10 @@ class _NetWorthPageState extends State<NetWorthPage> {
                 ),
                 Text(
                   '₹${totalUsed.toStringAsFixed(0)}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: TypeScale.callout,
                     fontWeight: FontWeight.bold,
-                    color: AppStyles.plasmaRed,
+                    color: AppStyles.loss(context),
                   ),
                 ),
               ],

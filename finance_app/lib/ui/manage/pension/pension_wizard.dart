@@ -582,8 +582,8 @@ class _Summary extends StatelessWidget {
                 fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
                 fontSize: isBold ? 14 : 13,
                 color: isPositive
-                    ? AppStyles.bioGreen
-                    : AppStyles.plasmaRed)),
+                    ? AppStyles.gain(context)
+                    : AppStyles.loss(context))),
       ],
     );
   }

@@ -607,7 +607,7 @@ class _ContextWizardSheetState extends State<_ContextWizardSheet> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: MediaQuery.of(context).size.height * 0.85,
+      height: AppStyles.sheetMaxHeight(context),
       decoration: BoxDecoration(
         color: AppStyles.getBackground(context),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),

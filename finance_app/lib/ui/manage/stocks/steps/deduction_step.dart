@@ -152,13 +152,13 @@ class _DeductionStepState extends State<DeductionStep> {
               padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: hasInsufficientBalance
-                    ? AppStyles.plasmaRed.withValues(alpha: 0.1)
-                    : AppStyles.bioGreen.withValues(alpha: 0.1),
+                    ? AppStyles.loss(context).withValues(alpha: 0.1)
+                    : AppStyles.gain(context).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: hasInsufficientBalance
-                      ? AppStyles.plasmaRed
-                      : AppStyles.bioGreen,
+                      ? AppStyles.loss(context)
+                      : AppStyles.gain(context),
                   width: 1,
                 ),
               ),
@@ -167,7 +167,7 @@ class _DeductionStepState extends State<DeductionStep> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Purchase Amount:'),
+                      Text('Purchase Amount:'),
                       Text('₹${controller.totalAmount.toStringAsFixed(2)}'),
                     ],
                   ),
@@ -199,14 +199,14 @@ class _DeductionStepState extends State<DeductionStep> {
                 padding: const EdgeInsets.only(top: 16),
                 child: Row(
                   children: [
-                    const Icon(CupertinoIcons.exclamationmark_triangle_fill,
-                        color: AppStyles.plasmaRed),
+                    Icon(CupertinoIcons.exclamationmark_triangle_fill,
+                        color: AppStyles.loss(context)),
                     const SizedBox(width: Spacing.sm),
                     Expanded(
                       child: Text(
                         'Insufficient balance in ${account.name}. Please add funds first.',
                         style:
-                            const TextStyle(color: AppStyles.plasmaRed),
+                            TextStyle(color: AppStyles.loss(context)),
                       ),
                     ),
                   ],

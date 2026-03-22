@@ -159,7 +159,7 @@ class _LendingWizardState extends State<LendingWizard> {
   @override
   Widget build(BuildContext context) {
     final isLent = widget.type == LendingType.lent;
-    final color = isLent ? AppStyles.accentBlue : AppStyles.plasmaRed;
+    final color = isLent ? AppStyles.accentBlue : AppStyles.loss(context);
 
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
@@ -270,7 +270,7 @@ class _LendingWizardState extends State<LendingWizard> {
                   title: 'Phone Contacts',
                   subtitle: 'Browse device contacts',
                   icon: CupertinoIcons.phone_fill,
-                  color: AppStyles.bioGreen,
+                  color: AppStyles.gain(context),
                   onTap: () => _loadPhoneContactsAndSelect(),
                 ),
                 const SizedBox(height: Spacing.lg),
@@ -587,7 +587,7 @@ class _LendingWizardState extends State<LendingWizard> {
           ),
           const SizedBox(height: Spacing.xxl),
           if (_loadingPhoneContacts)
-            const Center(
+            Center(
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 48),
                 child: CupertinoActivityIndicator(),
@@ -651,7 +651,7 @@ class _LendingWizardState extends State<LendingWizard> {
                       borderRadius: BorderRadius.circular(Radii.lg),
                       border: Border.all(
                         color: isSelected
-                            ? AppStyles.bioGreen
+                            ? AppStyles.gain(context)
                             : CupertinoColors.systemGrey
                                 .withValues(alpha: 0.15),
                         width: isSelected ? 2.5 : 1.5,
@@ -659,7 +659,7 @@ class _LendingWizardState extends State<LendingWizard> {
                       boxShadow: [
                         BoxShadow(
                           color: isSelected
-                              ? AppStyles.bioGreen
+                              ? AppStyles.gain(context)
                                   .withValues(alpha: 0.25)
                               : Colors.black.withValues(alpha: 0.08),
                           blurRadius: isSelected ? 12 : 8,
@@ -679,9 +679,9 @@ class _LendingWizardState extends State<LendingWizard> {
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
-                                  AppStyles.bioGreen
+                                  AppStyles.gain(context)
                                       .withValues(alpha: 0.2),
-                                  AppStyles.bioGreen
+                                  AppStyles.gain(context)
                                       .withValues(alpha: 0.1),
                                 ],
                                 begin: Alignment.topLeft,
@@ -689,7 +689,7 @@ class _LendingWizardState extends State<LendingWizard> {
                               ),
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: AppStyles.bioGreen
+                                color: AppStyles.gain(context)
                                     .withValues(alpha: 0.3),
                                 width: 1.5,
                               ),
@@ -697,8 +697,8 @@ class _LendingWizardState extends State<LendingWizard> {
                             child: Center(
                               child: Text(
                                 firstLetter,
-                                style: const TextStyle(
-                                  color: AppStyles.bioGreen,
+                                style: TextStyle(
+                                  color: AppStyles.gain(context),
                                   fontWeight: FontWeight.w700,
                                   fontSize: TypeScale.title2,
                                 ),
@@ -746,11 +746,11 @@ class _LendingWizardState extends State<LendingWizard> {
                               width: 28,
                               height: 28,
                               decoration: BoxDecoration(
-                                color: AppStyles.bioGreen,
+                                color: AppStyles.gain(context),
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppStyles.bioGreen
+                                    color: AppStyles.gain(context)
                                         .withValues(alpha: 0.4),
                                     blurRadius: 8,
                                   ),
@@ -1060,12 +1060,12 @@ class _LendingWizardState extends State<LendingWizard> {
                   decoration: BoxDecoration(
                     color: (_selectedDueDate == null)
                         ? CupertinoColors.systemGrey.withValues(alpha: 0.1)
-                        : AppStyles.plasmaRed.withValues(alpha: 0.1),
+                        : AppStyles.loss(context).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(Radii.md),
                     border: Border.all(
                       color: (_selectedDueDate == null)
                           ? CupertinoColors.systemGrey.withValues(alpha: 0.3)
-                          : AppStyles.plasmaRed.withValues(alpha: 0.4),
+                          : AppStyles.loss(context).withValues(alpha: 0.4),
                       width: 2,
                     ),
                   ),
@@ -1079,7 +1079,7 @@ class _LendingWizardState extends State<LendingWizard> {
                           style: TextStyle(
                             color: _selectedDueDate == null
                                 ? AppStyles.getSecondaryTextColor(context)
-                                : AppStyles.plasmaRed,
+                                : AppStyles.loss(context),
                             fontSize: _selectedDueDate == null ? 14 : 24,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 0.5,

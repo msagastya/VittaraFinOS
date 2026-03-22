@@ -212,14 +212,14 @@ class _FOPositionDetailsStepState extends State<FOPositionDetailsStep> {
               padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: (widget.ctrl.gainLoss >= 0
-                        ? AppStyles.bioGreen
-                        : AppStyles.plasmaRed)
+                        ? AppStyles.gain(context)
+                        : AppStyles.loss(context))
                     .withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(Radii.md),
                 border: Border.all(
                     color: (widget.ctrl.gainLoss >= 0
-                            ? AppStyles.bioGreen
-                            : AppStyles.plasmaRed)
+                            ? AppStyles.gain(context)
+                            : AppStyles.loss(context))
                         .withValues(alpha: 0.3)),
               ),
               child: Column(
@@ -270,8 +270,8 @@ class _Summary extends StatelessWidget {
                 fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
                 fontSize: isBold ? 14 : 13,
                 color: isPositive
-                    ? AppStyles.bioGreen
-                    : AppStyles.plasmaRed)),
+                    ? AppStyles.gain(context)
+                    : AppStyles.loss(context))),
       ],
     );
   }

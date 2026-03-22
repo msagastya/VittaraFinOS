@@ -246,8 +246,8 @@ class _PinRecoveryScreenState extends State<PinRecoveryScreen> {
                   color: AppStyles.aetherTeal.withValues(alpha: 0.10),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(CupertinoIcons.lock_open_fill,
-                    color: AppStyles.aetherTeal, size: 30),
+                child: Icon(CupertinoIcons.lock_open_fill,
+                    color: AppStyles.teal(context), size: 30),
               ),
               const SizedBox(height: Spacing.xl),
               Text('Enter Recovery Code',
@@ -285,7 +285,7 @@ class _PinRecoveryScreenState extends State<PinRecoveryScreen> {
                     color: AppStyles.getCardColor(context),
                     borderRadius: BorderRadius.circular(Radii.sm),
                     border: _errorText != null
-                        ? Border.all(color: AppStyles.plasmaRed, width: 1.5)
+                        ? Border.all(color: AppStyles.loss(context), width: 1.5)
                         : null,
                   ),
                   padding: const EdgeInsets.all(Spacing.md),
@@ -294,8 +294,8 @@ class _PinRecoveryScreenState extends State<PinRecoveryScreen> {
                 if (_errorText != null) ...[
                   const SizedBox(height: Spacing.sm),
                   Text(_errorText!,
-                      style: const TextStyle(
-                          color: AppStyles.plasmaRed,
+                      style: TextStyle(
+                          color: AppStyles.loss(context),
                           fontSize: TypeScale.caption)),
                 ],
                 const SizedBox(height: Spacing.xl),
@@ -356,9 +356,9 @@ class _PinRecoveryScreenState extends State<PinRecoveryScreen> {
                     border: Border.all(
                         color: AppStyles.plasmaRed.withValues(alpha: 0.3)),
                   ),
-                  child: const Text('Erase All Data & Start Fresh',
+                  child: Text('Erase All Data & Start Fresh',
                       style: TextStyle(
-                          color: AppStyles.plasmaRed,
+                          color: AppStyles.loss(context),
                           fontSize: TypeScale.subhead,
                           fontWeight: FontWeight.w600)),
                 ),
@@ -391,12 +391,12 @@ class _PinRecoveryScreenState extends State<PinRecoveryScreen> {
           ),
           child: Column(
             children: [
-              const Icon(CupertinoIcons.lock_fill,
-                  color: AppStyles.plasmaRed, size: 28),
+              Icon(CupertinoIcons.lock_fill,
+                  color: AppStyles.loss(context), size: 28),
               const SizedBox(height: Spacing.sm),
-              const Text('Too many wrong attempts',
+              Text('Too many wrong attempts',
                   style: TextStyle(
-                      color: AppStyles.plasmaRed,
+                      color: AppStyles.loss(context),
                       fontWeight: FontWeight.w700,
                       fontSize: TypeScale.subhead)),
               const SizedBox(height: 4),
@@ -418,7 +418,7 @@ class _PinRecoveryScreenState extends State<PinRecoveryScreen> {
     final subColor = AppStyles.getSecondaryTextColor(context);
     final isDark = AppStyles.isDarkMode(context);
     final current = _inConfirm ? _confirmPinDigits : _newPinDigits;
-    final dotColor = _pinError ? AppStyles.plasmaRed : AppStyles.aetherTeal;
+    final dotColor = _pinError ? AppStyles.loss(context) : AppStyles.teal(context);
 
     return CupertinoPageScaffold(
       backgroundColor: bg,
@@ -456,7 +456,7 @@ class _PinRecoveryScreenState extends State<PinRecoveryScreen> {
                       ? 'Re-enter your 6-digit PIN'
                       : 'Choose a 6-digit PIN',
               style: TextStyle(
-                color: _pinError ? AppStyles.plasmaRed : subColor,
+                color: _pinError ? AppStyles.loss(context) : subColor,
                 fontSize: TypeScale.body,
               ),
             ),
@@ -552,8 +552,8 @@ class _PinRecoveryScreenState extends State<PinRecoveryScreen> {
             _nuclearController.clear();
             _countdownTimer?.cancel();
           }),
-          child: const Text('Cancel',
-              style: TextStyle(color: AppStyles.aetherTeal)),
+          child: Text('Cancel',
+              style: TextStyle(color: AppStyles.teal(context))),
         ),
         backgroundColor: bg.withValues(alpha: 0.85),
         border: null,
@@ -572,8 +572,8 @@ class _PinRecoveryScreenState extends State<PinRecoveryScreen> {
                   color: AppStyles.plasmaRed.withValues(alpha: 0.10),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(CupertinoIcons.exclamationmark_triangle_fill,
-                    color: AppStyles.plasmaRed, size: 36),
+                child: Icon(CupertinoIcons.exclamationmark_triangle_fill,
+                    color: AppStyles.loss(context), size: 36),
               ),
               const SizedBox(height: Spacing.xl),
 
@@ -607,10 +607,10 @@ class _PinRecoveryScreenState extends State<PinRecoveryScreen> {
                       border: Border.all(
                           color: AppStyles.plasmaRed.withValues(alpha: 0.4)),
                     ),
-                    child: const Center(
+                    child: Center(
                       child: Text('I Understand — Continue',
                           style: TextStyle(
-                              color: AppStyles.plasmaRed,
+                              color: AppStyles.loss(context),
                               fontSize: TypeScale.body,
                               fontWeight: FontWeight.w600)),
                     ),
@@ -661,7 +661,7 @@ class _PinRecoveryScreenState extends State<PinRecoveryScreen> {
                     height: 52,
                     decoration: BoxDecoration(
                       color: _nuclearController.text.trim() == 'DELETE MY DATA'
-                          ? AppStyles.plasmaRed
+                          ? AppStyles.loss(context)
                           : AppStyles.plasmaRed.withValues(alpha: 0.20),
                       borderRadius: BorderRadius.circular(Radii.full),
                     ),
@@ -689,11 +689,11 @@ class _PinRecoveryScreenState extends State<PinRecoveryScreen> {
                 const SizedBox(height: Spacing.xxl),
                 Text(
                   '$_countdown',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'SpaceGrotesk',
                     fontSize: 80,
                     fontWeight: FontWeight.w700,
-                    color: AppStyles.plasmaRed,
+                    color: AppStyles.loss(context),
                   ),
                 ),
                 const SizedBox(height: Spacing.xl),
