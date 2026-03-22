@@ -176,12 +176,17 @@ class _ManageScreenState extends State<ManageScreen> {
           return SafeArea(
             child: RepaintBoundary(
               child: SubtleParticleOverlay(
-                particleCount: 12,
+                particleCount: AppStyles.isLandscape(context) ? 0 : 12,
                 child: Container(
                   decoration: BoxDecoration(
                     gradient: AppStyles.backgroundGradient(context),
                   ),
-                  child: ReorderableListView.builder(
+                  child: Column(
+                    children: [
+                      if (AppStyles.isLandscape(context))
+                        _buildLandscapeNavBar(context),
+                      Expanded(
+                        child: ReorderableListView.builder(
                     padding: const EdgeInsets.symmetric(
                       horizontal: Spacing.lg,
                       vertical: Spacing.xl,
@@ -231,11 +236,36 @@ class _ManageScreenState extends State<ManageScreen> {
                       return _build3DCard(item, index);
                     },
                   ),
+                      ), // closes Expanded
+                    ], // closes Column children
+                  ), // closes Column
                 ),
               ),
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildLandscapeNavBar(BuildContext context) {
+    return Container(
+      height: 40,
+      padding: const EdgeInsets.symmetric(horizontal: Spacing.md),
+      child: Row(
+        children: [
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            minimumSize: Size.zero,
+            onPressed: () => Navigator.maybePop(context),
+            child: Icon(CupertinoIcons.chevron_left, size: 20,
+                color: AppStyles.getPrimaryColor(context)),
+          ),
+          const SizedBox(width: 8),
+          Text('MANAGE',
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
+                  color: AppStyles.getTextColor(context), letterSpacing: 1.1)),
+        ],
       ),
     );
   }

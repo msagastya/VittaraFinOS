@@ -106,11 +106,24 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                       (r.description?.toLowerCase().contains(q) ?? false))
                   .toList();
 
+          final totalLent = controller.getTotalLent();
+          final totalBorrowed = controller.getTotalBorrowed();
+          final netExposure = totalLent - totalBorrowed;
+          final overdueCount = controller.getLentActiveRecords()
+              .where((r) => r.dueDate != null && r.dueDate!.isBefore(DateTime.now()))
+              .length +
+              controller.getBorrowedActiveRecords()
+              .where((r) => r.dueDate != null && r.dueDate!.isBefore(DateTime.now()))
+              .length;
           return Stack(
             children: [
               SafeArea(
                 child: Column(
                   children: [
+                    if (AppStyles.isLandscape(context))
+                      _buildLandscapeNavBar(context, controller),
+                    // Net Exposure Bar
+                    _buildNetExposureBar(context, totalLent, totalBorrowed, netExposure, overdueCount),
                     // Tab Selector
                     Padding(
                       padding: const EdgeInsets.symmetric(
@@ -236,6 +249,90 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
         },
       ),
     );
+  }
+
+  Widget _buildLandscapeNavBar(BuildContext context, LendingBorrowingController controller) {
+    return Container(
+      height: 40,
+      padding: const EdgeInsets.symmetric(horizontal: Spacing.md),
+      child: Row(
+        children: [
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            minimumSize: Size.zero,
+            onPressed: () => Navigator.maybePop(context),
+            child: Icon(CupertinoIcons.chevron_left, size: 20,
+                color: AppStyles.getPrimaryColor(context)),
+          ),
+          const SizedBox(width: 8),
+          Text('LENDING & BORROWING',
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
+                  color: AppStyles.getTextColor(context), letterSpacing: 1.1)),
+          const Spacer(),
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            minimumSize: Size.zero,
+            onPressed: _showSortSheet,
+            child: Icon(CupertinoIcons.arrow_up_arrow_down, size: 18,
+                color: AppStyles.getSecondaryTextColor(context)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNetExposureBar(BuildContext context, double totalLent,
+      double totalBorrowed, double netExposure, int overdueCount) {
+    final isNetPositive = netExposure >= 0;
+    final netColor = isNetPositive ? AppStyles.accentBlue : AppStyles.loss(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(Spacing.md, Spacing.sm, Spacing.md, 0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
+        decoration: BoxDecoration(
+          color: AppStyles.getCardColor(context),
+          borderRadius: BorderRadius.circular(Radii.xl),
+          border: Border.all(color: AppStyles.getDividerColor(context)),
+        ),
+        child: Row(
+          children: [
+            _netStatCell('LENT', '₹${totalLent.toStringAsFixed(0)}', AppStyles.accentBlue),
+            _netDivider(context),
+            _netStatCell('BORROWED', '₹${totalBorrowed.toStringAsFixed(0)}', AppStyles.loss(context)),
+            _netDivider(context),
+            _netStatCell(
+              'NET',
+              '${isNetPositive ? '+' : '−'}₹${netExposure.abs().toStringAsFixed(0)}',
+              netColor,
+            ),
+            if (overdueCount > 0) ...[
+              _netDivider(context),
+              _netStatCell('OVERDUE', '$overdueCount', CupertinoColors.systemRed),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _netStatCell(String label, String value, Color color) {
+    return Expanded(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(label, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700,
+              color: color.withValues(alpha: 0.7), letterSpacing: 0.5)),
+          const SizedBox(height: 2),
+          Text(value, style: TextStyle(fontSize: TypeScale.footnote,
+              fontWeight: FontWeight.w800, color: color)),
+        ],
+      ),
+    );
+  }
+
+  Widget _netDivider(BuildContext context) {
+    return Container(width: 0.5, height: 28, color: AppStyles.getDividerColor(context),
+        margin: const EdgeInsets.symmetric(horizontal: 4));
   }
 
   Widget _buildTabTile(
@@ -1150,23 +1247,35 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                   ],
                   if (record.dueDate != null) ...[
                     const SizedBox(height: Spacing.sm),
-                    Row(
-                      children: [
-                        Icon(
-                          CupertinoIcons.calendar,
-                          size: IconSizes.xs,
-                          color: AppStyles.getSecondaryTextColor(context),
-                        ),
-                        const SizedBox(width: Spacing.xs),
-                        Text(
-                          'Due: ${_formatDate(record.dueDate!)}',
-                          style: TextStyle(
-                            fontSize: TypeScale.caption,
-                            color: AppStyles.getSecondaryTextColor(context),
+                    Builder(builder: (ctx) {
+                      final isOverdue = !record.isSettled &&
+                          record.dueDate!.isBefore(DateTime.now());
+                      final dueColor = isOverdue
+                          ? CupertinoColors.systemRed
+                          : AppStyles.getSecondaryTextColor(context);
+                      return Row(
+                        children: [
+                          Icon(
+                            isOverdue
+                                ? CupertinoIcons.exclamationmark_circle_fill
+                                : CupertinoIcons.calendar,
+                            size: IconSizes.xs,
+                            color: dueColor,
                           ),
-                        ),
-                      ],
-                    ),
+                          const SizedBox(width: Spacing.xs),
+                          Text(
+                            isOverdue
+                                ? 'OVERDUE · ${_formatDate(record.dueDate!)}'
+                                : 'Due: ${_formatDate(record.dueDate!)}',
+                            style: TextStyle(
+                              fontSize: TypeScale.caption,
+                              color: dueColor,
+                              fontWeight: isOverdue ? FontWeight.w700 : FontWeight.normal,
+                            ),
+                          ),
+                        ],
+                      );
+                    }),
                   ],
                   if (record.isSettled && settledOn != null) ...[
                     const SizedBox(height: Spacing.sm),

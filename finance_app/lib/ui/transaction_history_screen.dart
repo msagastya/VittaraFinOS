@@ -88,6 +88,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   bool _isExportingXlsx = false;
   final ScrollController _scrollController = ScrollController();
   bool _showScrollToTop = false;
+  bool _summaryCollapsed = false;
 
   // Pagination: show at most _visibleCount transactions at a time.
   int _visibleCount = 50;
@@ -106,6 +107,10 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     final show = _scrollController.offset > 400;
     if (show != _showScrollToTop) {
       setState(() => _showScrollToTop = show);
+    }
+    final collapsed = _scrollController.offset > 60;
+    if (collapsed != _summaryCollapsed) {
+      setState(() => _summaryCollapsed = collapsed);
     }
   }
 
@@ -641,9 +646,13 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           return SafeArea(
             child: Column(
               children: [
+                if (AppStyles.isLandscape(context))
+                  _buildLandscapeNavBar(context),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                      Spacing.lg, Spacing.lg, Spacing.lg, Spacing.sm),
+                  padding: EdgeInsets.fromLTRB(
+                      Spacing.lg,
+                      AppStyles.isLandscape(context) ? Spacing.sm : Spacing.lg,
+                      Spacing.lg, Spacing.sm),
                   child: CupertinoSearchTextField(
                     controller: _searchController,
                     placeholder: 'Search transactions',
@@ -708,7 +717,18 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                     ),
                   ),
                 if (transactions.isNotEmpty)
-                  _buildSummaryStrip(transactions),
+                  AnimatedOpacity(
+                    opacity: _summaryCollapsed ? 0.0 : 1.0,
+                    duration: const Duration(milliseconds: 200),
+                    child: AnimatedSize(
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeInOut,
+                      child: SizedBox(
+                        height: _summaryCollapsed ? 0 : null,
+                        child: _buildSummaryStrip(transactions),
+                      ),
+                    ),
+                  ),
                 if (transactions.isEmpty)
                   Expanded(
                     child: _searchQuery.isNotEmpty
@@ -1248,6 +1268,30 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
+                              Builder(builder: (ctx) {
+                                final cat = transaction.metadata?['categoryName'] as String?;
+                                if (cat == null || cat.isEmpty) return const SizedBox.shrink();
+                                return Padding(
+                                  padding: const EdgeInsets.only(top: 3),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: typeColor.withValues(alpha: 0.10),
+                                      borderRadius: BorderRadius.circular(4),
+                                      border: Border.all(color: typeColor.withValues(alpha: 0.25), width: 0.5),
+                                    ),
+                                    child: Text(
+                                      cat,
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600,
+                                        color: typeColor.withValues(alpha: 0.85),
+                                        letterSpacing: 0.2,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }),
                               if (transaction.type == TransactionType.transfer &&
                                   (transaction.metadata?['transferRef'] as String?)?.isNotEmpty == true) ...[
                                 const SizedBox(height: 4),
@@ -1336,6 +1380,49 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           ),
         ),
       ),
+      ),
+    );
+  }
+
+  Widget _buildLandscapeNavBar(BuildContext context) {
+    return Container(
+      height: 40,
+      padding: const EdgeInsets.symmetric(horizontal: Spacing.md),
+      child: Row(
+        children: [
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            minimumSize: Size.zero,
+            onPressed: () => Navigator.maybePop(context),
+            child: Icon(CupertinoIcons.chevron_left, size: 20,
+                color: AppStyles.getPrimaryColor(context)),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            widget.filterAccountName?.toUpperCase() ?? 'TRANSACTIONS',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: AppStyles.getTextColor(context),
+              letterSpacing: 1.1,
+            ),
+          ),
+          const Spacer(),
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            minimumSize: Size.zero,
+            onPressed: () => _showFilterSheet(context),
+            child: Icon(
+              _hasActiveFilter
+                  ? CupertinoIcons.line_horizontal_3_decrease_circle_fill
+                  : CupertinoIcons.line_horizontal_3_decrease_circle,
+              size: 20,
+              color: _hasActiveFilter
+                  ? AppStyles.getPrimaryColor(context)
+                  : AppStyles.getSecondaryTextColor(context),
+            ),
+          ),
+        ],
       ),
     );
   }

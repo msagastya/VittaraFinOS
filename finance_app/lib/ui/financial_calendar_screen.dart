@@ -258,6 +258,10 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
       child: SafeArea(
         child: Column(
           children: [
+            if (AppStyles.isLandscape(context))
+              _buildLandscapeNavBar(context),
+            // ── Upcoming 7-day strip ───────────────────────────────────────
+            _buildUpcomingStrip(context, eventsMap),
             // ── Calendar card ──────────────────────────────────────────────
             Container(
               margin: const EdgeInsets.fromLTRB(
@@ -296,6 +300,141 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  // ─── Landscape nav bar ───────────────────────────────────────────────────
+
+  Widget _buildLandscapeNavBar(BuildContext context) {
+    return Container(
+      height: 40,
+      padding: const EdgeInsets.symmetric(horizontal: Spacing.md),
+      child: Row(
+        children: [
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            minimumSize: Size.zero,
+            onPressed: () => Navigator.maybePop(context),
+            child: Icon(CupertinoIcons.chevron_left, size: 20,
+                color: AppStyles.getPrimaryColor(context)),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            'FINANCIAL CALENDAR',
+            style: TextStyle(
+              fontSize: 11, fontWeight: FontWeight.w700,
+              color: AppStyles.getTextColor(context), letterSpacing: 1.1,
+            ),
+          ),
+          const Spacer(),
+          Text(
+            '${DateFormatter.getMonthName(_focusedMonth.month, short: true)} ${_focusedMonth.year}',
+            style: TextStyle(
+              fontSize: TypeScale.footnote,
+              color: AppStyles.getSecondaryTextColor(context),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── Upcoming 7-day strip ────────────────────────────────────────────────
+
+  Widget _buildUpcomingStrip(
+      BuildContext context, Map<String, List<CalendarEvent>> eventsMap) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final days = List.generate(7, (i) => today.add(Duration(days: i)));
+    final isDark = AppStyles.isDarkMode(context);
+
+    return SizedBox(
+      height: 56,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
+        itemCount: 7,
+        itemBuilder: (ctx, i) {
+          final day = days[i];
+          final key = _dateKey(day);
+          final events = eventsMap[key] ?? [];
+          final isSelected = _selectedDay != null &&
+              _selectedDay!.year == day.year &&
+              _selectedDay!.month == day.month &&
+              _selectedDay!.day == day.day;
+          final dayLabel = i == 0
+              ? 'Today'
+              : i == 1
+                  ? 'Tmrw'
+                  : DateFormatter.getMonthName(day.month, short: true).substring(0, 3);
+          final accent = AppStyles.teal(context);
+
+          return GestureDetector(
+            onTap: () => _selectDay(day),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 160),
+              margin: const EdgeInsets.only(right: 8, top: 4, bottom: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? accent
+                    : isDark ? const Color(0xFF111111) : const Color(0xFFF2F2F7),
+                borderRadius: BorderRadius.circular(Radii.lg),
+                border: Border.all(
+                  color: isSelected ? accent : AppStyles.getDividerColor(context),
+                  width: 0.8,
+                ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '${day.day}',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: isSelected ? Colors.white : AppStyles.getTextColor(context),
+                      height: 1.0,
+                    ),
+                  ),
+                  const SizedBox(height: 1),
+                  Text(
+                    dayLabel,
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w600,
+                      color: isSelected
+                          ? Colors.white.withValues(alpha: 0.8)
+                          : AppStyles.getSecondaryTextColor(context),
+                    ),
+                  ),
+                  if (events.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? Colors.white.withValues(alpha: 0.25)
+                            : accent.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '${events.length}',
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                          color: isSelected ? Colors.white : accent,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }

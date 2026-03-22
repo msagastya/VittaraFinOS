@@ -396,7 +396,12 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
                 decoration: BoxDecoration(
                   gradient: AppStyles.backgroundGradient(context),
                 ),
-                child: RefreshIndicator(
+                child: Column(
+                  children: [
+                    if (AppStyles.isLandscape(context))
+                      _buildLandscapeNavBar(context),
+                    Expanded(
+                      child: RefreshIndicator(
                   onRefresh: () => transactionsController.loadTransactions(),
                   color: AppStyles.accentBlue,
                   child: ListView(
@@ -431,10 +436,56 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
                     ],
                   ),
                 ),
+                    ), // closes Expanded
+                  ], // closes Column children
+                ), // closes Column
               ),
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildLandscapeNavBar(BuildContext context) {
+    return Container(
+      height: 40,
+      padding: const EdgeInsets.symmetric(horizontal: Spacing.md),
+      child: Row(
+        children: [
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            minimumSize: Size.zero,
+            onPressed: () => Navigator.maybePop(context),
+            child: Icon(CupertinoIcons.chevron_left, size: 20,
+                color: AppStyles.getPrimaryColor(context)),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            'REPORTS & ANALYSIS',
+            style: TextStyle(
+              fontSize: 11, fontWeight: FontWeight.w700,
+              color: AppStyles.getTextColor(context), letterSpacing: 1.1,
+            ),
+          ),
+          const Spacer(),
+          if (_hasActiveFilters)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: AppStyles.getPrimaryColor(context).withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                '$_activeFilterCount filter${_activeFilterCount == 1 ? '' : 's'}',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: AppStyles.getPrimaryColor(context),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

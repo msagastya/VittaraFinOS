@@ -155,7 +155,7 @@ LandscapeSplitView(
 - **Spending velocity chart:** Last 7 days daily spend vs daily budget line (area chart)
 - **Projection callout:** "At this pace, you'll exceed budget by ₹X on [date]"
 
-### TXN-01 — Transaction History Terminal `[ ]` P1
+### TXN-01 — Transaction History Terminal `[x]` P1
 **File:** `lib/ui/transactions/transaction_history_screen.dart`
 **Redesign:**
 - **Sticky summary header:** Period income | Period expense | Net (colored) — collapses on scroll
@@ -164,7 +164,7 @@ LandscapeSplitView(
 - **Section headers:** Grouped by date, show day total (income - expense)
 - **Swipe actions:** Left = edit, Right = archive (with undo toast)
 
-### REP-01 — Reports & Analytics Terminal `[ ]` P2
+### REP-01 — Reports & Analytics Terminal `[x]` P2
 **File:** `lib/ui/reports/` (reports screen)
 **Redesign:**
 - **Period selector:** Pill tabs: This Month | Last Month | Q1/Q2/Q3/Q4 | FY | Custom
@@ -177,7 +177,7 @@ LandscapeSplitView(
 
 ## PHASE 3 — Screen-by-Screen Upgrades
 
-### FC-01 — Financial Calendar Terminal `[ ]` P2
+### FC-01 — Financial Calendar Terminal `[x]` P2
 **File:** `lib/ui/calendar/` (financial calendar screen)
 **Redesign:**
 - **Month grid:** Each day cell shows: dot indicators (income=green, expense=red, EMI=orange, SIP=blue)
@@ -186,7 +186,7 @@ LandscapeSplitView(
 - **Upcoming bar:** Horizontal scroll strip showing next 7 days with event count badges
 - **Recurring events highlighted:** EMI, SIP, rent — shown with repeat icon overlay
 
-### GOL-01 — Goals Dashboard `[ ]` P2
+### GOL-01 — Goals Dashboard `[x]` P2
 **File:** `lib/ui/goals/` (goals screen)
 **Redesign:**
 - **Goal card redesign:** Progress ring (arc, not bar) + amount needed + target date countdown
@@ -195,7 +195,7 @@ LandscapeSplitView(
 - **Priority stacking:** Visual urgency — goals near deadline float to top
 - **Add contribution FAB:** Quick-add ₹ to any goal from list view
 
-### LB-01 — Lending & Borrowing Terminal `[ ]` P2
+### LB-01 — Lending & Borrowing Terminal `[x]` P2
 **File:** `lib/ui/manage/lending_borrowing_screen.dart`
 **Redesign:**
 - **Summary bar:** Total lent out (₹) | Total borrowed (₹) | Net exposure (₹)
@@ -216,7 +216,7 @@ LandscapeSplitView(
 - Swipe to dismiss per item + "Clear all" in section header
 - Actionable CTAs inline: "View Budget" / "Pay Now" / "Add Transaction"
 
-### MNG-01 — Manage Screen Polish `[ ]` P2
+### MNG-01 — Manage Screen Polish `[x]` P2
 **File:** `lib/ui/manage_screen.dart`
 - Add section grouping: ACCOUNTS | TRACKING | ORGANIZE
 - Visual separators between groups

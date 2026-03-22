@@ -86,6 +86,10 @@ class _GoalsScreenState extends State<GoalsScreen> {
                     : CustomScrollView(
                         key: const PageStorageKey('goals_list'),
                         slivers: [
+                          if (AppStyles.isLandscape(context))
+                            SliverToBoxAdapter(
+                              child: _buildLandscapeNavBar(context, controller),
+                            ),
                           // Pull-to-refresh
                           CupertinoSliverRefreshControl(
                             onRefresh: () async {
@@ -267,6 +271,42 @@ class _GoalsScreenState extends State<GoalsScreen> {
             ],
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildLandscapeNavBar(BuildContext context, GoalsController controller) {
+    return Container(
+      height: 40,
+      padding: const EdgeInsets.symmetric(horizontal: Spacing.md),
+      child: Row(
+        children: [
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            minimumSize: Size.zero,
+            onPressed: () => Navigator.maybePop(context),
+            child: Icon(CupertinoIcons.chevron_left, size: 20,
+                color: AppStyles.getPrimaryColor(context)),
+          ),
+          const SizedBox(width: 8),
+          Text('GOALS',
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
+                  color: AppStyles.getTextColor(context), letterSpacing: 1.1)),
+          const Spacer(),
+          Text(
+            '${controller.activeGoals.length} active',
+            style: TextStyle(fontSize: TypeScale.footnote,
+                color: AppStyles.getSecondaryTextColor(context)),
+          ),
+          const SizedBox(width: 8),
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            minimumSize: Size.zero,
+            onPressed: _showFilterSheet,
+            child: Icon(CupertinoIcons.line_horizontal_3_decrease, size: 18,
+                color: AppStyles.getPrimaryColor(context)),
+          ),
+        ],
       ),
     );
   }
