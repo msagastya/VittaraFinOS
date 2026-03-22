@@ -231,7 +231,7 @@ LandscapeSplitView(
 - Trend line: score history (last 6 months)
 - Actionable insight: "Improve your score by: [top recommendation]"
 
-### SYS-01 — Global Search `[ ]` P2
+### SYS-01 — Global Search `[x]` P2
 **File:** `lib/ui/widgets/global_search_overlay.dart` (new)
 - Triggered by search icon in dashboard header or Cmd+F / pull-down gesture
 - Searches: transactions (name, amount, category) | accounts | investments | goals | contacts
@@ -293,7 +293,7 @@ LandscapeSplitView(
 - Session timeout: lock after N minutes background (configurable: 1/5/15/never)
 - Failed attempts: 5 strikes → 30 minute lockout
 
-### TAX-01 — Tax Summary Upgrade `[ ]` P2
+### TAX-01 — Tax Summary Upgrade `[x]` P2
 - LTCG/STCG calculation for stocks and MF (based on holding period)
 - Tax-loss harvesting suggestions
 - Section 80C tracking (ELSS + PPF + NPS contributions)
@@ -339,11 +339,11 @@ Move PIN hash storage from SharedPreferences (readable by anyone with device acc
 - Android: `flutter_secure_storage` → Android Keystore
 File: `lib/logic/settings_controller.dart` + `lib/ui/pin_recovery_screen.dart`
 
-### AU5-02 — Encryption Key Security `[ ]` **P0**
+### AU5-02 — Encryption Key Security `[x]` **P0**
 Move hardcoded backup encryption key to device secure storage.
 File: wherever backup encryption is implemented (check `lib/utils/` or `lib/logic/`)
 
-### AU5-03 — Input Validation `[ ]` P1
+### AU5-03 — Input Validation `[x]` P1
 Audit all text inputs for:
 - SQLite injection (use parameterized queries — verify all)
 - Amount fields: validate numeric, max ₹99,99,99,999

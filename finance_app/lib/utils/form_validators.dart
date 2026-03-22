@@ -2,6 +2,15 @@ import 'package:flutter/cupertino.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 
+/// Maximum transaction / investment amount allowed (₹99,99,99,999).
+const double kMaxAmountINR = 9999999999.0;
+
+/// Maximum character length for name / description fields.
+const int kMaxNameLength = 100;
+
+/// Regex for a valid INR amount — up to 10 integer digits, up to 2 decimal places.
+final RegExp kAmountInputRegex = RegExp(r'^\d{0,10}\.?\d{0,2}$');
+
 /// Comprehensive form validation utilities
 class FormValidators {
   FormValidators._();

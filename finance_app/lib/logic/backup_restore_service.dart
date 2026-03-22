@@ -7,6 +7,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart' hide Transaction;
 import 'package:vittara_fin_os/logic/transaction_model.dart' as app_txn;
@@ -56,7 +57,12 @@ class BackupRestoreService {
 
   static const String _encryptionAlgorithm = 'hmac-sha256-stream-xor-v2';
   static const String _legacyEncryptionAlgorithm = 'hmac-sha256-stream-xor-v1';
-  static const int _encryptionKeyVersion = 1;
+  // keyVersion 1 = derived from hardcoded seed (legacy).
+  // keyVersion 2 = derived from per-device key in flutter_secure_storage.
+  static const int _encryptionKeyVersion = 2;
+
+  /// Key used to store / retrieve the per-device backup master key.
+  static const String _deviceKeyStorageKey = 'vittara_backup_device_master_key_v2';
   static const String _macAssociatedData =
       'vittara_backup_authenticated_payload';
 
@@ -212,7 +218,7 @@ class BackupRestoreService {
         'summary': summary,
       };
 
-      final encrypted = _encryptPayload(jsonEncode(payload));
+      final encrypted = await _encryptPayload(jsonEncode(payload));
       final envelope = {
         'schemaVersion': currentSchemaVersion,
         'format': backupFormat,
@@ -247,7 +253,7 @@ class BackupRestoreService {
 
   static Future<BackupOperationResult> inspectBackupJson(String rawJson) async {
     try {
-      final parsed = _parseIncomingBackup(rawJson);
+      final parsed = await _parseIncomingBackup(rawJson);
       return BackupOperationResult(
         success: true,
         message: 'Backup parsed successfully.',
@@ -311,7 +317,7 @@ class BackupRestoreService {
 
   static Future<BackupOperationResult> restoreFromJson(String rawJson) async {
     try {
-      final parsed = _parseIncomingBackup(rawJson);
+      final parsed = await _parseIncomingBackup(rawJson);
       final prefs = await SharedPreferences.getInstance();
 
       await _applySnapshotMerged(prefs, parsed.snapshotEntries);
@@ -696,7 +702,7 @@ class BackupRestoreService {
     return value;
   }
 
-  static _ParsedBackup _parseIncomingBackup(String rawJson) {
+  static Future<_ParsedBackup> _parseIncomingBackup(String rawJson) async {
     final decoded = jsonDecode(rawJson);
     if (decoded is! Map) {
       throw const FormatException('Backup root must be an object');
@@ -710,7 +716,7 @@ class BackupRestoreService {
     if (root['format'] == backupFormat &&
         root['payload'] is String &&
         root['encryption'] is Map) {
-      final payloadJson = _decryptPayload(
+      final payloadJson = await _decryptPayload(
         payloadBase64: root['payload'] as String,
         encryptionMap: Map<String, dynamic>.from(root['encryption'] as Map),
         envelopeSchemaVersion: schemaVersion,
@@ -1342,16 +1348,37 @@ class BackupRestoreService {
     return input.replaceAll('"', '""');
   }
 
-  static Map<String, String> _encryptPayload(String payloadJson) {
+  /// Returns the per-device 32-byte backup master key, creating it on first use
+  /// and persisting it in flutter_secure_storage (iOS Keychain / Android Keystore).
+  static Future<Uint8List> _getOrCreateDeviceKey() async {
+    const storage = FlutterSecureStorage(
+      aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    );
+    final existing = await storage.read(key: _deviceKeyStorageKey);
+    if (existing != null) {
+      return base64Decode(existing);
+    }
+    final newKey = _randomBytes(32);
+    await storage.write(
+      key: _deviceKeyStorageKey,
+      value: base64Encode(newKey),
+    );
+    return newKey;
+  }
+
+  static Future<Map<String, String>> _encryptPayload(String payloadJson) async {
     const keyVersion = _encryptionKeyVersion;
     final nonce = _randomBytes(16);
     final salt = _randomBytes(16);
+    final deviceSeed = await _getOrCreateDeviceKey();
     final encryptionKey = _deriveEncryptionKey(
+      seed: deviceSeed,
       keyVersion: keyVersion,
       salt: salt,
       purpose: 'enc',
     );
     final macKey = _deriveEncryptionKey(
+      seed: deviceSeed,
       keyVersion: keyVersion,
       salt: salt,
       purpose: 'mac',
@@ -1386,11 +1413,11 @@ class BackupRestoreService {
     };
   }
 
-  static String _decryptPayload({
+  static Future<String> _decryptPayload({
     required String payloadBase64,
     required Map<String, dynamic> encryptionMap,
     required int envelopeSchemaVersion,
-  }) {
+  }) async {
     final algorithm = (encryptionMap['algorithm'] ?? '').toString();
     if (algorithm == _encryptionAlgorithm) {
       final nonceBase64 = encryptionMap['nonce']?.toString();
@@ -1409,12 +1436,22 @@ class BackupRestoreService {
       final cipher = base64Decode(payloadBase64);
       final mac = base64Decode(macBase64);
 
+      // keyVersion 1 = legacy hardcoded seed; keyVersion 2 = device key.
+      final Uint8List seed;
+      if (keyVersion >= 2) {
+        seed = await _getOrCreateDeviceKey();
+      } else {
+        seed = Uint8List.fromList(_masterSecretSeed);
+      }
+
       final encryptionKey = _deriveEncryptionKey(
+        seed: seed,
         keyVersion: keyVersion,
         salt: salt,
         purpose: 'enc',
       );
       final macKey = _deriveEncryptionKey(
+        seed: seed,
         keyVersion: keyVersion,
         salt: salt,
         purpose: 'mac',
@@ -1545,11 +1582,12 @@ class BackupRestoreService {
   }
 
   static Uint8List _deriveEncryptionKey({
+    required Uint8List seed,
     required int keyVersion,
     required Uint8List salt,
     required String purpose,
   }) {
-    final master = Hmac(sha256, _masterSecretSeed)
+    final master = Hmac(sha256, seed)
         .convert(utf8.encode('backup_master_v$keyVersion:$backupFormat'))
         .bytes;
 

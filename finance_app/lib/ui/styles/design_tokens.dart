@@ -273,6 +273,7 @@ class IconSizes {
 class TypeScale {
   TypeScale._();
 
+  static const double micro = 9.0;
   static const double caption = 11.0;
   static const double footnote = 12.0;
   static const double subhead = 13.0;

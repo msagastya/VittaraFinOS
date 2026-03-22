@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:vittara_fin_os/logic/investment_model.dart';
+import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -104,8 +106,8 @@ class _TaxSummaryScreenState extends State<TaxSummaryScreen> {
       child: SafeArea(
         child: Container(
           color: isDark ? Colors.black : CupertinoColors.systemGroupedBackground,
-          child: Consumer<TransactionsController>(
-            builder: (context, txController, _) {
+          child: Consumer2<TransactionsController, InvestmentsController>(
+            builder: (context, txController, invController, _) {
               final fyTxns = _filterByFY(txController.transactions);
 
               // Group tagged transactions by section code
@@ -124,10 +126,42 @@ class _TaxSummaryScreenState extends State<TaxSummaryScreen> {
 
               final hasTags = grouped.isNotEmpty;
 
-              return ListView(
-                padding: const EdgeInsets.fromLTRB(
-                    Spacing.lg, Spacing.lg, Spacing.lg, 80),
+              // Capital gains: equity investments grouped by holding period.
+              final equityTypes = {InvestmentType.stocks, InvestmentType.mutualFund};
+              final equityInvestments = invController.investments
+                  .where((i) => equityTypes.contains(i.type))
+                  .toList();
+              final now = DateTime.now();
+              final ltcgHoldings = <Investment>[];
+              final stcgHoldings = <Investment>[];
+              for (final inv in equityInvestments) {
+                final purchaseDate = _investmentPurchaseDate(inv);
+                if (purchaseDate == null) continue;
+                final months = (now.year - purchaseDate.year) * 12 +
+                    (now.month - purchaseDate.month);
+                if (months >= 12) {
+                  ltcgHoldings.add(inv);
+                } else {
+                  stcgHoldings.add(inv);
+                }
+              }
+
+              // 80C from investments: NPS & NSS (auto-detected).
+              final autoDetected80C = invController.investments.where((i) =>
+                  i.type == InvestmentType.nationalSavingsScheme ||
+                  i.type == InvestmentType.pensionSchemes);
+              final autoDetected80CTotal =
+                  autoDetected80C.fold<double>(0, (s, i) => s + i.amount);
+
+              return Column(
                 children: [
+                  if (AppStyles.isLandscape(context))
+                    _buildLandscapeNavBar(context),
+                  Expanded(
+                    child: ListView(
+                      padding: const EdgeInsets.fromLTRB(
+                          Spacing.lg, Spacing.lg, Spacing.lg, 80),
+                      children: [
                   // Header summary
                   Container(
                     padding: const EdgeInsets.all(Spacing.lg),
@@ -420,11 +454,332 @@ class _TaxSummaryScreenState extends State<TaxSummaryScreen> {
                         ),
                       );
                     }),
-                ],
-              );
+
+                  // Capital Gains Overview
+                  if (ltcgHoldings.isNotEmpty || stcgHoldings.isNotEmpty) ...[
+                    const SizedBox(height: Spacing.lg),
+                    _sectionHeader(context, 'CAPITAL GAINS OVERVIEW',
+                        CupertinoIcons.chart_bar_alt_fill,
+                        AppStyles.teal(context)),
+                    const SizedBox(height: Spacing.sm),
+                    Container(
+                      padding: const EdgeInsets.all(Spacing.md),
+                      decoration: BoxDecoration(
+                        color: AppStyles.getCardColor(context),
+                        borderRadius: BorderRadius.circular(Radii.lg),
+                        border: Border.all(color: AppStyles.getDividerColor(context)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _cgPill(context,
+                                    label: 'LTCG Eligible',
+                                    count: ltcgHoldings.length,
+                                    total: ltcgHoldings.fold<double>(0, (s, i) => s + i.amount),
+                                    color: AppStyles.gain(context)),
+                              ),
+                              const SizedBox(width: Spacing.sm),
+                              Expanded(
+                                child: _cgPill(context,
+                                    label: 'STCG / <1 yr',
+                                    count: stcgHoldings.length,
+                                    total: stcgHoldings.fold<double>(0, (s, i) => s + i.amount),
+                                    color: AppStyles.warning(context)),
+                              ),
+                            ],
+                          ),
+                          if (ltcgHoldings.isNotEmpty) ...[
+                            const SizedBox(height: Spacing.sm),
+                            Text('Long-term holdings (>12 months)',
+                                style: TextStyle(
+                                    fontSize: TypeScale.caption,
+                                    color: AppStyles.getSecondaryTextColor(context))),
+                            const SizedBox(height: Spacing.xs),
+                            ...ltcgHoldings.take(3).map((inv) =>
+                                _holdingRow(context, inv, now, isLtcg: true)),
+                            if (ltcgHoldings.length > 3)
+                              Text('+ ${ltcgHoldings.length - 3} more',
+                                  style: TextStyle(
+                                      fontSize: TypeScale.caption,
+                                      color: AppStyles.getSecondaryTextColor(context))),
+                          ],
+                          if (stcgHoldings.isNotEmpty) ...[
+                            const SizedBox(height: Spacing.sm),
+                            Text('Short-term holdings (<12 months)',
+                                style: TextStyle(
+                                    fontSize: TypeScale.caption,
+                                    color: AppStyles.getSecondaryTextColor(context))),
+                            const SizedBox(height: Spacing.xs),
+                            ...stcgHoldings.take(3).map((inv) =>
+                                _holdingRow(context, inv, now, isLtcg: false)),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  // 80C Auto-detected from investments
+                  if (autoDetected80CTotal > 0) ...[
+                    const SizedBox(height: Spacing.lg),
+                    _sectionHeader(context, '80C AUTO-DETECTED',
+                        CupertinoIcons.rosette, AppStyles.violet(context)),
+                    const SizedBox(height: Spacing.sm),
+                    Container(
+                      padding: const EdgeInsets.all(Spacing.md),
+                      decoration: BoxDecoration(
+                        color: AppStyles.getCardColor(context),
+                        borderRadius: BorderRadius.circular(Radii.lg),
+                        border: Border.all(color: AppStyles.getDividerColor(context)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'From NPS / NSS investments',
+                            style: TextStyle(
+                                fontSize: TypeScale.footnote,
+                                color: AppStyles.getSecondaryTextColor(context)),
+                          ),
+                          const SizedBox(height: Spacing.sm),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(_fmt(autoDetected80CTotal),
+                                  style: TextStyle(
+                                      fontSize: TypeScale.title3,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppStyles.violet(context))),
+                              Text('Limit: ₹1.50L',
+                                  style: TextStyle(
+                                      fontSize: TypeScale.caption,
+                                      color: AppStyles.getSecondaryTextColor(context))),
+                            ],
+                          ),
+                          const SizedBox(height: Spacing.sm),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: LinearProgressIndicator(
+                              value: (autoDetected80CTotal / 150000).clamp(0.0, 1.0),
+                              minHeight: 6,
+                              backgroundColor: AppStyles.getDividerColor(context),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  AppStyles.violet(context)),
+                            ),
+                          ),
+                          const SizedBox(height: Spacing.xs),
+                          Text(
+                            autoDetected80CTotal >= 150000
+                                ? 'Limit reached — maximised!'
+                                : '${_fmt(150000 - autoDetected80CTotal)} remaining to maximise',
+                            style: TextStyle(
+                                fontSize: TypeScale.caption,
+                                color: AppStyles.getSecondaryTextColor(context)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                      ],
+                    ), // closes ListView
+                  ), // closes Expanded
+                ], // closes Column children
+              ); // closes Column
             },
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _sectionHeader(BuildContext context, String title,
+      IconData icon, Color color) {
+    return Row(
+      children: [
+        Icon(icon, size: 14, color: color),
+        const SizedBox(width: 6),
+        Text(title,
+            style: TextStyle(
+                fontSize: TypeScale.caption,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.8,
+                color: color)),
+      ],
+    );
+  }
+
+  Widget _cgPill(BuildContext context,
+      {required String label,
+      required int count,
+      required double total,
+      required Color color}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+          horizontal: Spacing.sm, vertical: Spacing.xs),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(Radii.md),
+        border: Border.all(color: color.withValues(alpha: 0.30)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label,
+              style: TextStyle(
+                  fontSize: TypeScale.micro,
+                  fontWeight: FontWeight.w700,
+                  color: color)),
+          const SizedBox(height: 2),
+          Text(_fmt(total),
+              style: TextStyle(
+                  fontSize: TypeScale.footnote,
+                  fontWeight: FontWeight.w700,
+                  color: AppStyles.getTextColor(context))),
+          Text('$count holding${count == 1 ? '' : 's'}',
+              style: TextStyle(
+                  fontSize: TypeScale.micro,
+                  color: AppStyles.getSecondaryTextColor(context))),
+        ],
+      ),
+    );
+  }
+
+  Widget _holdingRow(BuildContext context, Investment inv,
+      DateTime now, {required bool isLtcg}) {
+    final purchaseDate = _investmentPurchaseDate(inv);
+    final months = purchaseDate == null
+        ? 0
+        : (now.year - purchaseDate.year) * 12 +
+            (now.month - purchaseDate.month);
+    final label = months >= 12
+        ? '${(months / 12).floor()}y ${months % 12}m'
+        : '${months}m';
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(inv.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                    fontSize: TypeScale.footnote,
+                    color: AppStyles.getTextColor(context))),
+          ),
+          const SizedBox(width: Spacing.sm),
+          Text(_fmt(inv.amount),
+              style: TextStyle(
+                  fontSize: TypeScale.footnote,
+                  fontWeight: FontWeight.w600,
+                  color: AppStyles.getTextColor(context))),
+          const SizedBox(width: Spacing.sm),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: (isLtcg ? AppStyles.gain(context) : AppStyles.warning(context))
+                  .withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(label,
+                style: TextStyle(
+                    fontSize: TypeScale.micro,
+                    fontWeight: FontWeight.w700,
+                    color: isLtcg
+                        ? AppStyles.gain(context)
+                        : AppStyles.warning(context))),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Extracts the purchase date from an investment's activity log or metadata.
+  DateTime? _investmentPurchaseDate(Investment inv) {
+    final meta = inv.metadata;
+    if (meta == null) return null;
+    // Try direct metadata keys first.
+    for (final key in ['investmentDate', 'purchaseDate', 'startDate', 'createdAt']) {
+      final raw = meta[key];
+      if (raw is String && raw.isNotEmpty) {
+        final parsed = DateTime.tryParse(raw);
+        if (parsed != null) return parsed;
+      }
+    }
+    // Try first 'create' entry in activityLog.
+    final log = meta['activityLog'];
+    if (log is List && log.isNotEmpty) {
+      final createEntry = log.firstWhere(
+        (e) => e is Map && (e['type'] as String?)?.toLowerCase() == 'create',
+        orElse: () => null,
+      );
+      if (createEntry != null) {
+        final raw = createEntry['date'];
+        if (raw is String) return DateTime.tryParse(raw);
+      }
+    }
+    return null;
+  }
+
+  Widget _buildLandscapeNavBar(BuildContext context) {
+    return Container(
+      height: 40,
+      color: AppStyles.getBackground(context),
+      padding: const EdgeInsets.symmetric(horizontal: Spacing.sm),
+      child: Row(
+        children: [
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            minimumSize: Size.zero,
+            onPressed: () => Navigator.of(context).maybePop(),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(CupertinoIcons.chevron_left,
+                    size: 16, color: AppStyles.getPrimaryColor(context)),
+                const SizedBox(width: 2),
+                Text('Back',
+                    style: TextStyle(
+                        fontSize: TypeScale.footnote,
+                        color: AppStyles.getPrimaryColor(context))),
+              ],
+            ),
+          ),
+          const Spacer(),
+          Text('TAX SUMMARY · ${_fYLabel()}',
+              style: TextStyle(
+                  fontSize: TypeScale.caption,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                  color: AppStyles.getTextColor(context))),
+          const Spacer(),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CupertinoButton(
+                padding: EdgeInsets.zero,
+                minimumSize: Size.zero,
+                onPressed: () => setState(() => _fyStartYear--),
+                child: Icon(CupertinoIcons.chevron_left,
+                    size: 16, color: AppStyles.getPrimaryColor(context)),
+              ),
+              CupertinoButton(
+                padding: EdgeInsets.zero,
+                minimumSize: Size.zero,
+                onPressed: () {
+                  final currentFy = _fyFor(DateTime.now()).startYear;
+                  if (_fyStartYear < currentFy) setState(() => _fyStartYear++);
+                },
+                child: Icon(CupertinoIcons.chevron_right,
+                    size: 16,
+                    color: _fyStartYear < _fyFor(DateTime.now()).startYear
+                        ? AppStyles.getPrimaryColor(context)
+                        : CupertinoColors.systemGrey),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

@@ -24,6 +24,7 @@ import 'package:vittara_fin_os/ui/manage/categories/category_creation_modal.dart
 import 'package:vittara_fin_os/ui/manage/payment_apps_screen.dart';
 import 'package:vittara_fin_os/ui/manage/transfer_wizard.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/utils/form_validators.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/app_date_picker.dart';
@@ -121,8 +122,10 @@ class _TransactionWizardState extends State<TransactionWizard> {
 
   int _currentStep = 0; // overwritten in initState when initialBranch is set
 
-  bool get _hasValidAmount =>
-      (double.tryParse(_amountController.text) ?? 0) > 0;
+  bool get _hasValidAmount {
+    final v = double.tryParse(_amountController.text) ?? 0;
+    return v > 0 && v <= kMaxAmountINR;
+  }
 
   void _tryAdvanceFromAmount() {
     if (_hasValidAmount) {
@@ -1538,6 +1541,9 @@ class _TransactionWizardState extends State<TransactionWizard> {
                     keyboardType:
                         const TextInputType.numberWithOptions(decimal: true),
                     textInputAction: TextInputAction.done,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(kAmountInputRegex),
+                    ],
                     onChanged: (_) {
                       if (_amountError) setState(() => _amountError = false);
                     },

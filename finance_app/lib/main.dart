@@ -63,6 +63,7 @@ import 'package:vittara_fin_os/ui/pin_recovery_screen.dart';
 import 'package:vittara_fin_os/ui/dashboard/widgets/health_score_widget.dart';
 import 'package:vittara_fin_os/ui/dashboard/widgets/insights_widget.dart';
 import 'package:vittara_fin_os/ui/dashboard/widgets/net_worth_widget.dart';
+import 'package:vittara_fin_os/ui/widgets/global_search_overlay.dart';
 import 'package:vittara_fin_os/ui/whats_new_sheet.dart';
 import 'package:shared_preferences/shared_preferences.dart' as sp;
 
@@ -800,6 +801,18 @@ class DashboardScreen extends StatelessWidget {
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      Semantics(
+                        label: 'Search',
+                        child: BouncyButton(
+                          onPressed: () => showGlobalSearch(context),
+                          child: Icon(
+                            CupertinoIcons.search,
+                            size: IconSizes.navIcon,
+                            color: AppStyles.getTextColor(context),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: Spacing.xl),
                       Semantics(
                         label: 'Dashboard layout settings',
                         child: BouncyButton(
