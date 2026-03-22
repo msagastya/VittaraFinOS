@@ -239,7 +239,7 @@ LandscapeSplitView(
 - Recent searches persisted in SharedPreferences (last 10)
 - Debounce 200ms, min 2 chars
 
-### DASH-EMPTY — Dashboard Widget Empty States `[ ]` P2
+### DASH-EMPTY — Dashboard Widget Empty States `[x]` P2
 **Problem:** When dashboard widgets have no data (no transactions, no investments, etc.), they look blank, visually unbalanced, or awkward — especially when all widgets are the same height.
 **Fix:** Audit every dashboard widget for its empty-state appearance:
 - Each widget must have a non-blank, visually complete empty state: icon + short prompt text + optional CTA button ("Add your first transaction" / "Add investment")

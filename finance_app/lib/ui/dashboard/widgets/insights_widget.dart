@@ -472,6 +472,52 @@ class SpendNarrativeCarouselState extends State<SpendNarrativeCarousel> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.insights.isEmpty) {
+      return SizedBox(
+        height: 88,
+        child: Container(
+          padding: const EdgeInsets.all(Spacing.md),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(Radii.lg),
+            color: (widget.isDark
+                    ? Colors.white
+                    : Colors.black)
+                .withValues(alpha: 0.04),
+            border: Border.all(
+              color: (widget.isDark ? Colors.white : Colors.black)
+                  .withValues(alpha: 0.08),
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(CupertinoIcons.lightbulb,
+                  size: 24,
+                  color: AppStyles.getSecondaryTextColor(context)),
+              const SizedBox(width: Spacing.sm),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('No insights yet',
+                        style: TextStyle(
+                            fontSize: TypeScale.callout,
+                            fontWeight: FontWeight.w600,
+                            color: AppStyles.getTextColor(context))),
+                    const SizedBox(height: 2),
+                    Text('Add transactions to unlock spending insights',
+                        style: TextStyle(
+                            fontSize: TypeScale.caption,
+                            color: AppStyles.getSecondaryTextColor(context))),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -1045,6 +1091,41 @@ class InsightsWidget extends BaseDashboardWidget {
           final data = computeSpendIntel(
               txCtrl.transactions, budgetsCtrl.budgets);
           final isDark = Theme.of(context).brightness == Brightness.dark;
+
+          if (!data.hasData && data.narratives.isEmpty) {
+            // Full empty state — no transactions at all
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppStyles.teal(context).withValues(alpha: 0.10),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(CupertinoIcons.chart_bar,
+                        size: 32,
+                        color: AppStyles.teal(context)),
+                  ),
+                  const SizedBox(height: Spacing.md),
+                  Text('Spending Insights',
+                      style: TextStyle(
+                          fontSize: TypeScale.callout,
+                          fontWeight: FontWeight.w700,
+                          color: AppStyles.getTextColor(context))),
+                  const SizedBox(height: Spacing.xs),
+                  Text(
+                    'Add transactions this month\nto unlock trend analysis',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        fontSize: TypeScale.footnote,
+                        color: AppStyles.getSecondaryTextColor(context)),
+                  ),
+                ],
+              ),
+            );
+          }
 
           return SingleChildScrollView(
             physics: const BouncingScrollPhysics(),

@@ -1641,8 +1641,45 @@ class DashboardScreen extends StatelessWidget {
                 ? (totalSaved / totalTarget).clamp(0, 1).toDouble()
                 : 0.0;
 
-            // Find top goal (soonest deadline or highest current amount)
+            // Empty state — no goals yet
             final goals = goalsController.activeGoals;
+            if (goals.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: CupertinoColors.activeBlue.withValues(alpha: 0.10),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(CupertinoIcons.flag, size: 28, color: CupertinoColors.activeBlue),
+                    ),
+                    const SizedBox(height: Spacing.sm),
+                    Text(
+                      'No goals yet',
+                      style: TextStyle(
+                        fontSize: TypeScale.subhead,
+                        fontWeight: FontWeight.w600,
+                        color: AppStyles.getTextColor(context),
+                      ),
+                    ),
+                    const SizedBox(height: Spacing.xs),
+                    Text(
+                      'Set a savings goal to track\nyour progress here',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: TypeScale.caption,
+                        color: AppStyles.getSecondaryTextColor(context),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            // Find top goal (soonest deadline or highest current amount)
             Goal? topGoal;
             if (goals.isNotEmpty) {
               topGoal = goals.reduce((a, b) =>
@@ -1790,6 +1827,42 @@ class DashboardScreen extends StatelessWidget {
               }
             }
 
+            if (activeCount == 0) {
+              return Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: CupertinoColors.systemOrange.withValues(alpha: 0.10),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(CupertinoIcons.chart_pie, size: 28, color: CupertinoColors.systemOrange),
+                    ),
+                    const SizedBox(height: Spacing.sm),
+                    Text(
+                      'No budgets set',
+                      style: TextStyle(
+                        fontSize: TypeScale.subhead,
+                        fontWeight: FontWeight.w600,
+                        color: AppStyles.getTextColor(context),
+                      ),
+                    ),
+                    const SizedBox(height: Spacing.xs),
+                    Text(
+                      'Create a budget to start\ntracking your spending limits',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: TypeScale.caption,
+                        color: AppStyles.getSecondaryTextColor(context),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
             return Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1928,6 +2001,42 @@ class DashboardScreen extends StatelessWidget {
             final ratio = totalTarget > 0
                 ? (totalSaved / totalTarget).clamp(0, 1).toDouble()
                 : 0.0;
+
+            if (plannerCount == 0) {
+              return Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: CupertinoColors.systemGreen.withValues(alpha: 0.10),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(CupertinoIcons.money_dollar_circle, size: 28, color: CupertinoColors.systemGreen),
+                    ),
+                    const SizedBox(height: Spacing.sm),
+                    Text(
+                      'No savings planners',
+                      style: TextStyle(
+                        fontSize: TypeScale.subhead,
+                        fontWeight: FontWeight.w600,
+                        color: AppStyles.getTextColor(context),
+                      ),
+                    ),
+                    const SizedBox(height: Spacing.xs),
+                    Text(
+                      'Add a savings planner to\nmonitor your monthly targets',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: TypeScale.caption,
+                        color: AppStyles.getSecondaryTextColor(context),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
 
             return Column(
               mainAxisSize: MainAxisSize.min,
@@ -2217,6 +2326,52 @@ class DashboardScreen extends StatelessWidget {
             final total = income + expenses;
             final incomeRatio =
                 total > 0 ? (income / total).clamp(0.0, 1.0) : 0.5;
+
+            if (income == 0 && expenses == 0) {
+              return Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: AppStyles.accentTeal.withValues(alpha: 0.10),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(CupertinoIcons.calendar, size: 28, color: AppStyles.accentTeal),
+                    ),
+                    const SizedBox(height: Spacing.sm),
+                    Text(
+                      monthLabel,
+                      style: TextStyle(
+                        fontSize: TypeScale.footnote,
+                        fontWeight: FontWeight.w600,
+                        color: AppStyles.getSecondaryTextColor(context),
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    const SizedBox(height: Spacing.xs),
+                    Text(
+                      'No transactions this month yet',
+                      style: TextStyle(
+                        fontSize: TypeScale.subhead,
+                        fontWeight: FontWeight.w600,
+                        color: AppStyles.getTextColor(context),
+                      ),
+                    ),
+                    const SizedBox(height: Spacing.xs),
+                    Text(
+                      'Add income or expenses to\nsee your monthly summary',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: TypeScale.caption,
+                        color: AppStyles.getSecondaryTextColor(context),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
