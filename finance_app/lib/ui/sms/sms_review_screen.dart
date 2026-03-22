@@ -784,7 +784,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
                       child: Text(
                         isExpense ? 'EXPENSE' : 'INCOME',
                         style: TextStyle(
-                          fontSize: 9,
+                          fontSize: TypeScale.micro,
                           fontWeight: FontWeight.w800,
                           color: txColor,
                           letterSpacing: 0.8,
@@ -873,7 +873,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
                   child: Text(
                     '${(p.confidence * 100).toInt()}% confidence',
                     style: TextStyle(
-                      fontSize: 10,
+                      fontSize: TypeScale.label,
                       fontWeight: FontWeight.w600,
                       color: _confidenceColor(context, p.confidence),
                     ),
@@ -2102,7 +2102,7 @@ class _FormSection extends StatelessWidget {
                     const Text(
                       'from SMS',
                       style: TextStyle(
-                        fontSize: 9,
+                        fontSize: TypeScale.micro,
                         fontWeight: FontWeight.w700,
                         color: AppStyles.accentBlue,
                       ),
@@ -2121,7 +2121,7 @@ class _FormSection extends StatelessWidget {
                 child: Text(
                   'empty',
                   style: TextStyle(
-                    fontSize: 9,
+                    fontSize: TypeScale.micro,
                     fontWeight: FontWeight.w600,
                     color: AppStyles.loss(context),
                   ),

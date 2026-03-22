@@ -2167,7 +2167,7 @@ class _SmsSectionWidgetState extends State<_SmsSectionWidget> {
                                     child: const Text(
                                       'Possible duplicate',
                                       style: TextStyle(
-                                        fontSize: 10,
+                                        fontSize: TypeScale.label,
                                         color: CupertinoColors.systemOrange,
                                         fontWeight: FontWeight.w600,
                                       ),
@@ -2243,7 +2243,7 @@ class _SmsSectionWidgetState extends State<_SmsSectionWidget> {
                           Text(
                             'Add',
                             style: TextStyle(
-                              fontSize: 10,
+                              fontSize: TypeScale.label,
                               color: accentColor.withValues(alpha: 0.8),
                               fontWeight: FontWeight.w600,
                             ),
@@ -2442,7 +2442,7 @@ class _SmsQuickConfirmSheetState extends State<_SmsQuickConfirmSheet> {
                   Text(
                     '${_isCreditSms ? '+' : '−'}${CurrencyFormatter.compact(p.amount)}',
                     style: TextStyle(
-                      fontSize: 32,
+                      fontSize: TypeScale.display,
                       fontWeight: FontWeight.w900,
                       color: accentColor,
                       letterSpacing: -1.0,

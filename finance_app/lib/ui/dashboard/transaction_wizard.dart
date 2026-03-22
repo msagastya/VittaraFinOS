@@ -1512,7 +1512,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                       Text(
                         '₹',
                         style: TextStyle(
-                          fontSize: 36,
+                          fontSize: TypeScale.displayLarge,
                           fontWeight: FontWeight.w800,
                           color: _branch == TransactionWizardBranch.income
                               ? AppStyles.gain(context)
@@ -1793,7 +1793,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
               Text(
                 'Optional — you can add this later',
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: TypeScale.label,
                   color: AppStyles.getSecondaryTextColor(context)
                       .withValues(alpha: 0.55),
                 ),
@@ -3115,7 +3115,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                         Text(
                           'Limit: ${section.limit}',
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: TypeScale.label,
                             color: AppStyles.getSecondaryTextColor(context),
                           ),
                         ),

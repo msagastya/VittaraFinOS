@@ -1092,3 +1092,285 @@ class _AnimatedGradientBorderState extends State<AnimatedGradientBorder>
     );
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LoadingDots — SYS-02
+// 3-dot wave animation for async operations. Drop-in for CupertinoActivityIndicator.
+// ─────────────────────────────────────────────────────────────────────────────
+class LoadingDots extends StatefulWidget {
+  final Color? color;
+  final double dotSize;
+  final double spacing;
+
+  const LoadingDots({
+    super.key,
+    this.color,
+    this.dotSize = 7.0,
+    this.spacing = 5.0,
+  });
+
+  @override
+  State<LoadingDots> createState() => _LoadingDotsState();
+}
+
+class _LoadingDotsState extends State<LoadingDots>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final dotColor = widget.color ??
+        (Theme.of(context).brightness == Brightness.dark
+            ? Colors.white54
+            : Colors.black45);
+    return SizedBox(
+      height: widget.dotSize * 2,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: List.generate(3, (i) {
+          return AnimatedBuilder(
+            animation: _ctrl,
+            builder: (context, _) {
+              // Each dot is offset by 0.33 in the cycle → wave effect
+              final phase = (_ctrl.value - i / 3).remainder(1.0);
+              // Map phase 0..0.5 → 0..1..0 (sine wave only in first half)
+              final t = (math.sin(phase * 2 * math.pi) + 1) / 2;
+              final offset = -widget.dotSize * 0.6 * t;
+              return Padding(
+                padding: EdgeInsets.symmetric(horizontal: widget.spacing / 2),
+                child: Transform.translate(
+                  offset: Offset(0, offset),
+                  child: Container(
+                    width: widget.dotSize,
+                    height: widget.dotSize,
+                    decoration: BoxDecoration(
+                      color: dotColor,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+              );
+            },
+          );
+        }),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SuccessCheckmark — SYS-02
+// Animated path-draw checkmark for completion states (400ms draw animation).
+// ─────────────────────────────────────────────────────────────────────────────
+class SuccessCheckmark extends StatefulWidget {
+  final double size;
+  final Color? color;
+  final Color? circleColor;
+  final Duration duration;
+
+  const SuccessCheckmark({
+    super.key,
+    this.size = 56.0,
+    this.color,
+    this.circleColor,
+    this.duration = const Duration(milliseconds: 500),
+  });
+
+  @override
+  State<SuccessCheckmark> createState() => _SuccessCheckmarkState();
+}
+
+class _SuccessCheckmarkState extends State<SuccessCheckmark>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _circleAnim;
+  late final Animation<double> _checkAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: widget.duration);
+    _circleAnim = CurvedAnimation(
+        parent: _ctrl, curve: const Interval(0.0, 0.6, curve: Curves.easeOut));
+    _checkAnim = CurvedAnimation(
+        parent: _ctrl, curve: const Interval(0.4, 1.0, curve: Curves.easeOut));
+    _ctrl.forward();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final checkColor = widget.color ??
+        (isDark ? CupertinoColors.systemGreen : CupertinoColors.systemGreen);
+    final circleColor = widget.circleColor ??
+        checkColor.withValues(alpha: 0.15);
+
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (context, _) {
+        return SizedBox(
+          width: widget.size,
+          height: widget.size,
+          child: CustomPaint(
+            painter: _CheckmarkPainter(
+              circleProgress: _circleAnim.value,
+              checkProgress: _checkAnim.value,
+              checkColor: checkColor,
+              circleColor: circleColor,
+              strokeWidth: widget.size * 0.06,
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _CheckmarkPainter extends CustomPainter {
+  final double circleProgress;
+  final double checkProgress;
+  final Color checkColor;
+  final Color circleColor;
+  final double strokeWidth;
+
+  _CheckmarkPainter({
+    required this.circleProgress,
+    required this.checkProgress,
+    required this.checkColor,
+    required this.circleColor,
+    required this.strokeWidth,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2 - strokeWidth / 2;
+
+    // Draw circle fill background
+    final fillPaint = Paint()..color = circleColor;
+    canvas.drawCircle(center, radius * circleProgress, fillPaint);
+
+    // Draw circle stroke
+    final circlePaint = Paint()
+      ..color = checkColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round;
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      -math.pi / 2,
+      2 * math.pi * circleProgress,
+      false,
+      circlePaint,
+    );
+
+    if (checkProgress <= 0) return;
+
+    // Checkmark path: two segments — short left arm then long right arm
+    final s = size.width;
+    final p1 = Offset(s * 0.22, s * 0.52); // start of tick
+    final p2 = Offset(s * 0.42, s * 0.70); // bottom of tick
+    final p3 = Offset(s * 0.76, s * 0.32); // top right
+
+    // Total path length (approx) for interpolation
+    final seg1Len = (p2 - p1).distance;
+    final seg2Len = (p3 - p2).distance;
+    final totalLen = seg1Len + seg2Len;
+    final drawn = checkProgress * totalLen;
+
+    final checkPaint = Paint()
+      ..color = checkColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    final path = Path();
+    path.moveTo(p1.dx, p1.dy);
+
+    if (drawn <= seg1Len) {
+      final t = drawn / seg1Len;
+      path.lineTo(p1.dx + (p2.dx - p1.dx) * t, p1.dy + (p2.dy - p1.dy) * t);
+    } else {
+      path.lineTo(p2.dx, p2.dy);
+      final t = (drawn - seg1Len) / seg2Len;
+      path.lineTo(p2.dx + (p3.dx - p2.dx) * t, p2.dy + (p3.dy - p2.dy) * t);
+    }
+    canvas.drawPath(path, checkPaint);
+  }
+
+  @override
+  bool shouldRepaint(_CheckmarkPainter old) =>
+      old.circleProgress != circleProgress || old.checkProgress != checkProgress;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SwipeDeleteIndicator — SYS-02
+// Red (delete) / green (archive) sliding background for list items.
+// Wrap any list tile with this and set alignment to reveal the correct side.
+// ─────────────────────────────────────────────────────────────────────────────
+class SwipeActionBackground extends StatelessWidget {
+  /// Alignment.centerLeft = action on left (e.g. edit/archive)
+  /// Alignment.centerRight = action on right (e.g. delete)
+  final Alignment alignment;
+  final Color color;
+  final IconData icon;
+  final String label;
+
+  const SwipeActionBackground({
+    super.key,
+    required this.alignment,
+    required this.color,
+    required this.icon,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isLeft = alignment == Alignment.centerLeft;
+    return Container(
+      color: color,
+      alignment: alignment,
+      padding: EdgeInsets.only(
+        left: isLeft ? Spacing.xl : 0,
+        right: isLeft ? 0 : Spacing.xl,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: Colors.white, size: 22),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: TypeScale.caption,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

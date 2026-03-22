@@ -257,7 +257,7 @@ class _LegendItem extends StatelessWidget {
                 Text(
                   _nwFmt(value),
                   style: TextStyle(
-                    fontSize: 9,
+                    fontSize: TypeScale.micro,
                     fontWeight: FontWeight.w700,
                     color: color,
                   ),
@@ -372,7 +372,7 @@ class _NetWorthBodyState extends State<_NetWorthBody> {
                   Text(
                     'NET WORTH',
                     style: TextStyle(
-                      fontSize: 9,
+                      fontSize: TypeScale.micro,
                       letterSpacing: 1.2,
                       fontWeight: FontWeight.w700,
                       color: AppStyles.getSecondaryTextColor(context),
@@ -406,7 +406,7 @@ class _NetWorthBodyState extends State<_NetWorthBody> {
                     child: Text(
                       trendLabel,
                       style: TextStyle(
-                        fontSize: 9,
+                        fontSize: TypeScale.micro,
                         fontWeight: FontWeight.w700,
                         color: trendColor,
                       ),
@@ -554,7 +554,7 @@ class _NetWorthBodyState extends State<_NetWorthBody> {
                           Text(
                             account.bankName,
                             style: TextStyle(
-                              fontSize: 9,
+                              fontSize: TypeScale.micro,
                               color: AppStyles.getSecondaryTextColor(context),
                             ),
                             maxLines: 1,

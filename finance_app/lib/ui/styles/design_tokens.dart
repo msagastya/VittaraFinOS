@@ -274,6 +274,7 @@ class TypeScale {
   TypeScale._();
 
   static const double micro = 9.0;
+  static const double label = 10.0;
   static const double caption = 11.0;
   static const double footnote = 12.0;
   static const double subhead = 13.0;
@@ -285,6 +286,7 @@ class TypeScale {
   static const double title1 = 22.0;
   static const double largeTitle = 28.0;
   static const double display = 32.0;
+  static const double displayLarge = 36.0;
   static const double hero = 40.0;
 }
 

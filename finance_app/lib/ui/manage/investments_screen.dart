@@ -1136,126 +1136,58 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                 )
               else
                 SafeArea(
-                  child: Column(
-                    children: [
-                      // Compact landscape nav bar (replaces CupertinoNavigationBar)
-                      if (isLandscape) _buildLandscapeInvestmentsNavBar(context),
-                      // Compact Summary Section
-                      _buildCompactSummary(context, investments),
-                      // Asset Allocation Donut Chart
-                      _buildAllocationChart(context, investments),
-                      _buildCategoryTabs(context, investments, categories),
-                      const SizedBox(height: Spacing.xs),
-                      // Search bar
-                      _buildSearchBar(context),
-                      const SizedBox(height: Spacing.xs),
-                      // Active sort indicator chip
-                      _buildActiveSortChip(context),
-                      const SizedBox(height: Spacing.sm),
-                      // Investments List with Staggered Animation
-                      Expanded(
-                        child: PageView.builder(
-                          controller: _categoryPageController,
-                          itemCount: categories.length,
-                          onPageChanged: (index) {
-                            setState(() {
-                              _selectedCategoryIndex = index;
-                              _selectedFilter = categories[index];
-                            });
-                          },
-                          itemBuilder: (context, pageIndex) {
-                            final categoryType = categories[pageIndex];
-                            final pageInvestments =
-                                _getFilteredSorted(investments, categoryType);
-
-                            if (pageInvestments.isEmpty) {
-                              if (_searchQuery.isNotEmpty) {
-                                return _buildNoSearchResults();
-                              }
-                              return EmptyStateView(
-                                icon: CupertinoIcons.chart_bar_square,
-                                title: 'No investments yet',
-                                subtitle: 'Add your first ${categoryType?.name ?? ""} investment.',
-                                showPulse: false,
-                              );
-                            }
-
-                            final canReorder = categoryType == null &&
-                                _sortBy == SortBy.dateAdded;
-
-                            if (canReorder) {
-                              return ReorderableListView.builder(
-                                padding: const EdgeInsets.fromLTRB(
-                                    Spacing.lg, 0, Spacing.lg, 100),
-                                itemCount: pageInvestments.length,
-                                onReorder: (oldIndex, newIndex) {
-                                  Haptics.reorder();
-                                  _onReorder(oldIndex, newIndex);
-                                },
-                                proxyDecorator: (child, index, animation) {
-                                  return AnimatedBuilder(
-                                    animation: animation,
-                                    builder: (context, child) =>
-                                        Transform.scale(
-                                      scale: 1.02,
-                                      child: Container(
-                                        decoration:
-                                            AppStyles.cardDecoration(context),
-                                        child: child,
-                                      ),
-                                    ),
-                                    child: child,
-                                  );
-                                },
-                                itemBuilder: (context, index) {
-                                  return StaggeredItem(
-                                    key: ValueKey(pageInvestments[index].id),
-                                    index: index,
-                                    child: Container(
-                                      margin: const EdgeInsets.only(top: Spacing.lg),
-                                      child: _buildSlidableInvestmentCard(
-                                          pageInvestments[index]),
-                                    ),
-                                  );
-                                },
-                              );
-                            }
-
-                            return RefreshIndicator(
-                              onRefresh: () => _refreshCurrentValues(context),
-                              color: SemanticColors.investments,
-                              child: ListView.builder(
-                                key: PageStorageKey(
-                                    'investments_list_$pageIndex'),
-                                controller: pageIndex == _selectedCategoryIndex
-                                    ? _scrollController
-                                    : null,
-                                physics: const SmoothScrollPhysics(
-                                  parent: AlwaysScrollableScrollPhysics(),
+                  child: isLandscape
+                    ? LandscapeSplitView(
+                        leftFlex: 2,
+                        rightFlex: 3,
+                        leftPanel: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildLandscapeInvestmentsNavBar(context),
+                            Expanded(
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _buildCompactSummary(context, investments),
+                                    _buildAllocationChart(context, investments),
+                                    _buildCategoryTabs(context, investments, categories),
+                                    const SizedBox(height: Spacing.lg),
+                                  ],
                                 ),
-                                cacheExtent: 600,
-                                padding: const EdgeInsets.fromLTRB(
-                                    Spacing.lg, 0, Spacing.lg, 100),
-                                itemCount: pageInvestments.length,
-                                itemBuilder: (context, index) {
-                                  return StaggeredItem(
-                                    key: ValueKey(
-                                        '${categoryType?.name ?? 'all'}_${pageInvestments[index].id}'),
-                                    index: index,
-                                    child: Container(
-                                      margin: const EdgeInsets.only(top: Spacing.lg),
-                                      child: _buildSlidableInvestmentCard(
-                                          pageInvestments[index]),
-                                    ),
-                                  );
-                                },
                               ),
-                            );
-                          },
+                            ),
+                          ],
                         ),
+                        rightPanel: Column(
+                          children: [
+                            const SizedBox(height: Spacing.sm),
+                            _buildSearchBar(context),
+                            const SizedBox(height: Spacing.xs),
+                            _buildActiveSortChip(context),
+                            const SizedBox(height: Spacing.sm),
+                            _buildInvestmentPageView(context, investments, categories),
+                          ],
+                        ),
+                      )
+                    : Column(
+                        children: [
+                          // Compact Summary Section
+                          _buildCompactSummary(context, investments),
+                          // Asset Allocation Donut Chart
+                          _buildAllocationChart(context, investments),
+                          _buildCategoryTabs(context, investments, categories),
+                          const SizedBox(height: Spacing.xs),
+                          // Search bar
+                          _buildSearchBar(context),
+                          const SizedBox(height: Spacing.xs),
+                          // Active sort indicator chip
+                          _buildActiveSortChip(context),
+                          const SizedBox(height: Spacing.sm),
+                          // Investments List with Staggered Animation
+                          _buildInvestmentPageView(context, investments, categories),
+                        ],
                       ),
-                    ],
-                  ),
                 ),
               Positioned(
                 right: Spacing.lg,
@@ -1389,6 +1321,105 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     );
   }
 
+  /// Extracted PageView list — used in both portrait Column and landscape right panel.
+  Widget _buildInvestmentPageView(
+      BuildContext context,
+      List<Investment> investments,
+      List<InvestmentType?> categories) {
+    return Expanded(
+      child: PageView.builder(
+        controller: _categoryPageController,
+        itemCount: categories.length,
+        onPageChanged: (index) {
+          setState(() {
+            _selectedCategoryIndex = index;
+            _selectedFilter = categories[index];
+          });
+        },
+        itemBuilder: (context, pageIndex) {
+          final categoryType = categories[pageIndex];
+          final pageInvestments = _getFilteredSorted(investments, categoryType);
+
+          if (pageInvestments.isEmpty) {
+            if (_searchQuery.isNotEmpty) {
+              return _buildNoSearchResults();
+            }
+            return EmptyStateView(
+              icon: CupertinoIcons.chart_bar_square,
+              title: 'No investments yet',
+              subtitle: 'Add your first ${categoryType?.name ?? ""} investment.',
+              showPulse: false,
+            );
+          }
+
+          final canReorder =
+              categoryType == null && _sortBy == SortBy.dateAdded;
+
+          if (canReorder) {
+            return ReorderableListView.builder(
+              padding: const EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, 100),
+              itemCount: pageInvestments.length,
+              onReorder: (oldIndex, newIndex) {
+                Haptics.reorder();
+                _onReorder(oldIndex, newIndex);
+              },
+              proxyDecorator: (child, index, animation) {
+                return AnimatedBuilder(
+                  animation: animation,
+                  builder: (context, child) => Transform.scale(
+                    scale: 1.02,
+                    child: Container(
+                      decoration: AppStyles.cardDecoration(context),
+                      child: child,
+                    ),
+                  ),
+                  child: child,
+                );
+              },
+              itemBuilder: (context, index) {
+                return StaggeredItem(
+                  key: ValueKey(pageInvestments[index].id),
+                  index: index,
+                  child: Container(
+                    margin: const EdgeInsets.only(top: Spacing.lg),
+                    child: _buildSlidableInvestmentCard(pageInvestments[index]),
+                  ),
+                );
+              },
+            );
+          }
+
+          return RefreshIndicator(
+            onRefresh: () => _refreshCurrentValues(context),
+            color: SemanticColors.investments,
+            child: ListView.builder(
+              key: PageStorageKey('investments_list_$pageIndex'),
+              controller:
+                  pageIndex == _selectedCategoryIndex ? _scrollController : null,
+              physics: const SmoothScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
+              cacheExtent: 600,
+              padding: const EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, 100),
+              itemCount: pageInvestments.length,
+              itemBuilder: (context, index) {
+                return StaggeredItem(
+                  key: ValueKey(
+                      '${categoryType?.name ?? 'all'}_${pageInvestments[index].id}'),
+                  index: index,
+                  child: Container(
+                    margin: const EdgeInsets.only(top: Spacing.lg),
+                    child: _buildSlidableInvestmentCard(pageInvestments[index]),
+                  ),
+                );
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   /// Build a mini allocation donut chart with legend
   Widget _buildAllocationChart(
       BuildContext context, List<Investment> investments) {
@@ -1407,7 +1438,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     return Padding(
       padding:
           const EdgeInsets.symmetric(horizontal: Spacing.lg, vertical: Spacing.xs),
-      child: Container(
+      child: RepaintBoundary(
+        child: Container(
         decoration: AppStyles.cardDecoration(context),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1525,6 +1557,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
           ],
         ),
       ),
+      ), // RepaintBoundary
     );
   }
 

@@ -138,7 +138,7 @@ class _AllocationRingState extends State<_AllocationRing>
             child: Text(
               widget.centerLabel,
               style: const TextStyle(
-                fontSize: 9,
+                fontSize: TypeScale.micro,
                 fontWeight: FontWeight.w700,
                 color: Colors.white,
               ),
@@ -268,7 +268,7 @@ class _LegendDot extends StatelessWidget {
         Text(
           label,
           style: const TextStyle(
-            fontSize: 9,
+            fontSize: TypeScale.micro,
             color: Colors.white60,
             fontWeight: FontWeight.w500,
           ),
@@ -1542,14 +1542,14 @@ class _NetWorthPageState extends State<NetWorthPage> {
                         Text(
                           'Utilization',
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: TypeScale.label,
                             color: AppStyles.getSecondaryTextColor(context),
                           ),
                         ),
                         Text(
                           '${utilization.toStringAsFixed(1)}%',
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: TypeScale.label,
                             fontWeight: FontWeight.w600,
                             color: utilization > 80
                                 ? AppStyles.loss(context)
@@ -2053,7 +2053,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                   (e) => Text(
                     e.value,
                     style: TextStyle(
-                      fontSize: 10,
+                      fontSize: TypeScale.label,
                       color: e.key == 0
                           ? AppStyles.teal(context)
                           : e.key == forecastMonths
@@ -2242,7 +2242,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
               Text(
                 months[snapshots.first.date.month - 1],
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: TypeScale.label,
                   color: AppStyles.getSecondaryTextColor(context),
                 ),
               ),
@@ -2250,14 +2250,14 @@ class _NetWorthPageState extends State<NetWorthPage> {
                 Text(
                   months[snapshots[monthCount ~/ 2].date.month - 1],
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: TypeScale.label,
                     color: AppStyles.getSecondaryTextColor(context),
                   ),
                 ),
               Text(
                 months[snapshots.last.date.month - 1],
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: TypeScale.label,
                   color: AppStyles.getSecondaryTextColor(context),
                 ),
               ),
