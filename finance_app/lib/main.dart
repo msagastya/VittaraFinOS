@@ -1167,109 +1167,119 @@ class DashboardScreen extends StatelessWidget {
         decoration: AppStyles.accentCardDecoration(context, accent),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(Radii.xxl),
-          child: IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // ── Left accent bar ──────────────────────────────────────
-                Container(
-                  width: 4,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        accent,
-                        accent.withValues(alpha: 0.40),
-                      ],
-                    ),
-                  ),
-                ),
-
-                // ── Card body ────────────────────────────────────────────
-                Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Header row
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(
-                            Spacing.md, Spacing.md, Spacing.md, Spacing.xs),
-                        child: Row(
-                          children: [
-                            // Icon badge
-                            Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                color: accent.withValues(
-                                    alpha: isDark ? 0.22 : 0.12),
-                                borderRadius: BorderRadius.circular(Radii.sm),
-                                border: Border.all(
-                                  color: accent.withValues(
-                                      alpha: isDark ? 0.45 : 0.28),
-                                  width: 0.8,
-                                ),
-                              ),
-                              child: Icon(
-                                _widgetIcon(widgetConfig.type),
-                                size: 16,
-                                color: accent,
-                              ),
-                            ),
-                            const SizedBox(width: Spacing.sm),
-                            // Title
-                            Expanded(
-                              child: Text(
-                                widgetConfig.title,
-                                style: TextStyle(
-                                  fontSize: TypeScale.headline,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppStyles.getTextColor(context),
-                                  letterSpacing: -0.3,
-                                ),
-                              ),
-                            ),
-                            // Drag handle + arrow
-                            Icon(
-                              CupertinoIcons.line_horizontal_3,
-                              size: 16,
-                              color: accent.withValues(alpha: 0.45),
-                            ),
-                            const SizedBox(width: Spacing.sm),
-                            Icon(
-                              CupertinoIcons.chevron_right,
-                              size: 16,
-                              color: accent.withValues(alpha: 0.70),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Thin divider
-                      Container(
-                        height: 0.5,
-                        margin: const EdgeInsets.symmetric(
-                            horizontal: Spacing.md),
-                        color: accent.withValues(alpha: isDark ? 0.18 : 0.12),
-                      ),
-
-                      // Content — wrapped in RepaintBoundary so that when one
-                      // widget's data source changes only that widget repaints,
-                      // not the entire dashboard list.
-                      RepaintBoundary(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(
-                              Spacing.md, Spacing.sm, Spacing.md, Spacing.md),
-                          child: _buildWidgetPreview(context, widgetConfig),
-                        ),
-                      ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // ── Left accent bar ──────────────────────────────────────
+              Container(
+                width: 4,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      accent,
+                      accent.withValues(alpha: 0.40),
                     ],
                   ),
                 ),
-              ],
-            ),
+              ),
+
+              // ── Card body ────────────────────────────────────────────
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header row
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                          Spacing.md, Spacing.md, Spacing.md, Spacing.xs),
+                      child: Row(
+                        children: [
+                          // Icon badge
+                          Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: accent.withValues(
+                                  alpha: isDark ? 0.22 : 0.12),
+                              borderRadius: BorderRadius.circular(Radii.sm),
+                              border: Border.all(
+                                color: accent.withValues(
+                                    alpha: isDark ? 0.45 : 0.28),
+                                width: 0.8,
+                              ),
+                            ),
+                            child: Icon(
+                              _widgetIcon(widgetConfig.type),
+                              size: 16,
+                              color: accent,
+                            ),
+                          ),
+                          const SizedBox(width: Spacing.sm),
+                          // Title
+                          Expanded(
+                            child: Text(
+                              widgetConfig.title,
+                              style: TextStyle(
+                                fontSize: TypeScale.headline,
+                                fontWeight: FontWeight.w700,
+                                color: AppStyles.getTextColor(context),
+                                letterSpacing: -0.3,
+                              ),
+                            ),
+                          ),
+                          // Drag handle + arrow
+                          Icon(
+                            CupertinoIcons.line_horizontal_3,
+                            size: 16,
+                            color: accent.withValues(alpha: 0.45),
+                          ),
+                          const SizedBox(width: Spacing.sm),
+                          Icon(
+                            CupertinoIcons.chevron_right,
+                            size: 16,
+                            color: accent.withValues(alpha: 0.70),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Thin divider
+                    Container(
+                      height: 0.5,
+                      margin: const EdgeInsets.symmetric(
+                          horizontal: Spacing.md),
+                      color: accent.withValues(alpha: isDark ? 0.18 : 0.12),
+                    ),
+
+                    // Content — fills remaining card height; scrollable on overflow
+                    Expanded(
+                      child: RepaintBoundary(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                              Spacing.md, Spacing.sm, Spacing.md, Spacing.md),
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              return SingleChildScrollView(
+                                physics: const ClampingScrollPhysics(),
+                                child: ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    minHeight: constraints.maxHeight,
+                                  ),
+                                  child: _buildWidgetPreview(
+                                      context, widgetConfig),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -1794,6 +1804,75 @@ class DashboardScreen extends StatelessWidget {
                     ),
                   ),
                 ],
+                // Individual goal rows (up to 3)
+                if (goals.isNotEmpty) ...[
+                  const SizedBox(height: Spacing.md),
+                  const Divider(height: 1),
+                  const SizedBox(height: Spacing.sm),
+                  ...goals.take(3).map((g) {
+                    final pct = g.targetAmount > 0
+                        ? (g.currentAmount / g.targetAmount).clamp(0.0, 1.0)
+                        : 0.0;
+                    final daysLeft = g.targetDate.difference(DateTime.now()).inDays;
+                    final daysStr = daysLeft <= 0
+                        ? 'Due!'
+                        : daysLeft == 1
+                            ? '1 day left'
+                            : '$daysLeft days left';
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  g.name,
+                                  style: TextStyle(
+                                    fontSize: TypeScale.caption,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppStyles.getTextColor(context),
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              Text(
+                                daysStr,
+                                style: TextStyle(
+                                  fontSize: TypeScale.caption,
+                                  color: daysLeft <= 7
+                                      ? CupertinoColors.systemOrange
+                                      : AppStyles.getSecondaryTextColor(context),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(3),
+                            child: LinearProgressIndicator(
+                              value: pct,
+                              minHeight: 4,
+                              backgroundColor: g.color.withValues(alpha: 0.12),
+                              valueColor: AlwaysStoppedAnimation<Color>(g.color),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '₹${_fmtAmt(g.currentAmount)} of ₹${_fmtAmt(g.targetAmount)}',
+                            style: TextStyle(
+                              fontSize: 9,
+                              color: AppStyles.getSecondaryTextColor(context),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                ],
               ],
             );
           },
@@ -1885,6 +1964,65 @@ class DashboardScreen extends StatelessWidget {
                     ),
                   ],
                 ),
+                // Individual planner rows
+                if (budgetsController.savingsplanners.isNotEmpty) ...[
+                  const SizedBox(height: Spacing.md),
+                  const Divider(height: 1),
+                  const SizedBox(height: Spacing.sm),
+                  ...budgetsController.savingsplanners.take(4).map((p) {
+                    final pct = p.monthlyTarget > 0
+                        ? (p.currentMonthSaved / p.monthlyTarget).clamp(0.0, 1.0)
+                        : 0.0;
+                    final over = p.currentMonthSaved >= p.monthlyTarget;
+                    final barColor = over
+                        ? CupertinoColors.systemGreen
+                        : pct >= 0.5
+                            ? AppStyles.accentTeal
+                            : CupertinoColors.systemOrange;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  p.name,
+                                  style: TextStyle(
+                                    fontSize: TypeScale.caption,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppStyles.getTextColor(context),
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              Text(
+                                '₹${_fmtAmt(p.currentMonthSaved)} / ₹${_fmtAmt(p.monthlyTarget)}',
+                                style: TextStyle(
+                                  fontSize: TypeScale.caption,
+                                  color: barColor,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(3),
+                            child: LinearProgressIndicator(
+                              value: pct,
+                              minHeight: 4,
+                              backgroundColor: barColor.withValues(alpha: 0.12),
+                              valueColor: AlwaysStoppedAnimation<Color>(barColor),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                ],
               ],
             );
           },
@@ -1999,10 +2137,27 @@ class DashboardScreen extends StatelessWidget {
         return Consumer2<TransactionsController, InvestmentsController>(
           builder:
               (context, transactionController, investmentsController, child) {
+            final allTx = transactionController.transactions;
             final transactions = TransactionFeedBuilder.buildUnifiedFeed(
-              transactions: transactionController.transactions,
+              transactions: allTx,
               investments: investmentsController.investments,
-            ).take(3).toList();
+            ).take(5).toList();
+
+            // Month summary
+            final now = DateTime.now();
+            final monthStart = DateTime(now.year, now.month, 1);
+            double monthSpent = 0, monthIncome = 0;
+            int txCount = 0;
+            for (final tx in allTx) {
+              if (tx.dateTime.isBefore(monthStart)) continue;
+              txCount++;
+              if (tx.type == TransactionType.expense) {
+                monthSpent += tx.amount.abs();
+              } else if (tx.type == TransactionType.income ||
+                  tx.type == TransactionType.cashback) {
+                monthIncome += tx.amount.abs();
+              }
+            }
 
             if (transactions.isEmpty) {
               return Center(
@@ -2029,85 +2184,130 @@ class DashboardScreen extends StatelessWidget {
 
             return Column(
               mainAxisSize: MainAxisSize.min,
-              children: transactions.asMap().entries.map((entry) {
-                final isLast = entry.key == transactions.length - 1;
-                final tx = entry.value;
-                final amount = tx.amount;
-                final isDebit = tx.type == TransactionType.expense ||
-                    tx.type == TransactionType.investment ||
-                    tx.type == TransactionType.lending;
-
-                return Column(
-                  children: [
-                    Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Month summary bar
+                if (monthSpent > 0 || monthIncome > 0) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppStyles.getSecondaryTextColor(context)
+                          .withValues(alpha: 0.06),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
                       children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: (isDebit
-                                    ? CupertinoColors.systemRed
-                                    : CupertinoColors.systemGreen)
-                                .withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Icon(
-                            isDebit
-                                ? CupertinoIcons.arrow_up
-                                : CupertinoIcons.arrow_down,
-                            size: 18,
-                            color: isDebit
-                                ? CupertinoColors.systemRed
-                                : CupertinoColors.systemGreen,
-                          ),
-                        ),
-                        const SizedBox(width: Spacing.md),
+                        Icon(CupertinoIcons.calendar,
+                            size: 11,
+                            color: AppStyles.getSecondaryTextColor(context)),
+                        const SizedBox(width: 5),
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                tx.description,
-                                style: TextStyle(
-                                  fontSize: TypeScale.subhead,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppStyles.getTextColor(context),
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              Text(
-                                'Just now',
-                                style: TextStyle(
-                                  fontSize: TypeScale.caption,
-                                  color:
-                                      AppStyles.getSecondaryTextColor(context),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Text(
-                          '${isDebit ? '-' : '+'}₹${amount.abs().toStringAsFixed(0)}',
-                          style: TextStyle(
-                            fontSize: TypeScale.subhead,
-                            fontWeight: FontWeight.bold,
-                            color: isDebit
-                                ? CupertinoColors.systemRed
-                                : CupertinoColors.systemGreen,
+                          child: Text(
+                            'This month: $txCount tx · ₹${_fmtAmt(monthSpent)} out · ₹${_fmtAmt(monthIncome)} in',
+                            style: TextStyle(
+                              fontSize: TypeScale.caption,
+                              color:
+                                  AppStyles.getSecondaryTextColor(context),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
                     ),
-                    if (!isLast)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: Spacing.md),
-                        child: Divider(height: 1),
+                  ),
+                  const SizedBox(height: Spacing.sm),
+                ],
+                ...transactions.asMap().entries.map((entry) {
+                  final isLast = entry.key == transactions.length - 1;
+                  final tx = entry.value;
+                  final amount = tx.amount;
+                  final isDebit = tx.type == TransactionType.expense ||
+                      tx.type == TransactionType.investment ||
+                      tx.type == TransactionType.lending;
+                  final diff = now.difference(tx.dateTime);
+                  final timeLabel = diff.inMinutes < 60
+                      ? '${diff.inMinutes}m ago'
+                      : diff.inHours < 24
+                          ? '${diff.inHours}h ago'
+                          : diff.inDays == 1
+                              ? 'Yesterday'
+                              : '${diff.inDays}d ago';
+
+                  return Column(
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: (isDebit
+                                      ? CupertinoColors.systemRed
+                                      : CupertinoColors.systemGreen)
+                                  .withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              isDebit
+                                  ? CupertinoIcons.arrow_up
+                                  : CupertinoIcons.arrow_down,
+                              size: 16,
+                              color: isDebit
+                                  ? CupertinoColors.systemRed
+                                  : CupertinoColors.systemGreen,
+                            ),
+                          ),
+                          const SizedBox(width: Spacing.sm),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  tx.description,
+                                  style: TextStyle(
+                                    fontSize: TypeScale.footnote,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppStyles.getTextColor(context),
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  timeLabel,
+                                  style: TextStyle(
+                                    fontSize: TypeScale.caption,
+                                    color: AppStyles.getSecondaryTextColor(
+                                        context),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Text(
+                            '${isDebit ? '-' : '+'}₹${amount.abs().toStringAsFixed(0)}',
+                            style: TextStyle(
+                              fontSize: TypeScale.footnote,
+                              fontWeight: FontWeight.bold,
+                              color: isDebit
+                                  ? CupertinoColors.systemRed
+                                  : CupertinoColors.systemGreen,
+                            ),
+                          ),
+                        ],
                       ),
-                  ],
-                );
-              }).toList(),
+                      if (!isLast)
+                        const Padding(
+                          padding:
+                              EdgeInsets.symmetric(vertical: Spacing.sm),
+                          child: Divider(height: 1),
+                        ),
+                    ],
+                  );
+                }),
+              ],
             );
           },
         );
@@ -2232,6 +2432,42 @@ class DashboardScreen extends StatelessWidget {
                       color: AppStyles.getSecondaryTextColor(context),
                     ),
                   ),
+                // Total SIP corpus + yearly commitment
+                if (totalMonthly > 0) ...[
+                  const SizedBox(height: Spacing.sm),
+                  const Divider(height: 1),
+                  const SizedBox(height: Spacing.sm),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildSipStat(
+                          context,
+                          label: 'Per month',
+                          value: '₹${_fmtAmt(totalMonthly)}',
+                          color: CupertinoColors.activeBlue,
+                        ),
+                      ),
+                      Expanded(
+                        child: _buildSipStat(
+                          context,
+                          label: 'Per year',
+                          value: '₹${_fmtAmt(totalMonthly * 12)}',
+                          color: AppStyles.accentTeal,
+                        ),
+                      ),
+                      Expanded(
+                        child: _buildSipStat(
+                          context,
+                          label: 'Avg / SIP',
+                          value: activeSips.isNotEmpty
+                              ? '₹${_fmtAmt(totalMonthly / activeSips.length)}'
+                              : '—',
+                          color: AppStyles.accentOrange,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             );
           },
@@ -2356,6 +2592,50 @@ class DashboardScreen extends StatelessWidget {
       default:
         return const SizedBox.shrink();
     }
+  }
+
+  /// Compact amount formatter shared across dashboard widget previews.
+  String _fmtAmt(double v) {
+    final abs = v.abs();
+    final sign = v < 0 ? '-' : '';
+    if (abs >= 10000000) return '$sign₹${(abs / 10000000).toStringAsFixed(1)}Cr';
+    if (abs >= 100000) return '$sign₹${(abs / 100000).toStringAsFixed(1)}L';
+    if (abs >= 1000) return '$sign₹${(abs / 1000).toStringAsFixed(1)}K';
+    return '$sign₹${abs.toStringAsFixed(0)}';
+  }
+
+  /// Mini stat tile used in SIP tracker footer row.
+  Widget _buildSipStat(
+    BuildContext context, {
+    required String label,
+    required String value,
+    required Color color,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 9,
+            color: AppStyles.getSecondaryTextColor(context),
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: TypeScale.caption,
+            color: color,
+            fontWeight: FontWeight.w700,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    );
   }
 
   Widget _buildBadge(

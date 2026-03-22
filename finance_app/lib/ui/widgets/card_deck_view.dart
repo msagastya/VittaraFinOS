@@ -250,10 +250,7 @@ class _CardDeckViewState extends State<CardDeckView>
       }
     }
 
-    return Positioned(
-      left: 0,
-      right: 0,
-      top: 0,
+    return Positioned.fill(
       child: AnimatedBuilder(
         animation: Listenable.merge(
             [_swipeController, _returnController, _promotionController]),
