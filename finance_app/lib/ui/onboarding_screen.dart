@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
@@ -83,6 +84,14 @@ const _pages = [
       'Import past transactions via SMS',
       'Your data stays on your device',
     ],
+  ),
+  // Page 5 — interactive demo (rendered separately)
+  _OnboardingPage(
+    title: 'See it in action',
+    subtitle: 'Tap anything — this is exactly what your dashboard looks like.',
+    emoji: '⚡',
+    accent: AppStyles.solarGold,
+    bullets: [],
   ),
 ];
 
@@ -235,10 +244,13 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                       opacity: _fadeAnims[index],
                       child: SlideTransition(
                         position: _slideAnims[index],
-                        child: _OnboardingPageView(
-                          page: _pages[index],
-                          isDark: isDark,
-                        ),
+                        // Last page = interactive demo
+                        child: index == _pages.length - 1
+                            ? _DemoOnboardingPage(page: _pages[index], isDark: isDark)
+                            : _OnboardingPageView(
+                                page: _pages[index],
+                                isDark: isDark,
+                              ),
                       ),
                     );
                   },
@@ -496,6 +508,247 @@ class _NextButton extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Demo onboarding page (last page — interactive preview)
+// ──────────────────────────────────────────────────────────────────────────────
+
+class _DemoOnboardingPage extends StatelessWidget {
+  final _OnboardingPage page;
+  final bool isDark;
+
+  const _DemoOnboardingPage({required this.page, required this.isDark});
+
+  void _haptic() => HapticFeedback.lightImpact();
+
+  @override
+  Widget build(BuildContext context) {
+    final textColor = isDark ? AppStyles.darkText : AppStyles.lightText;
+    final secondaryColor = AppStyles.getSecondaryTextColor(context);
+    final cardBg = isDark
+        ? const Color(0xFF0D0D0D)
+        : Colors.white.withValues(alpha: 0.9);
+    final cardBorder = isDark
+        ? const Color(0xFF1C1C1C)
+        : Colors.black.withValues(alpha: 0.08);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        children: [
+          const SizedBox(height: 12),
+          // Header
+          Text(
+            page.title,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: textColor,
+              fontSize: TypeScale.title1,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.5,
+              height: 1.2,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            page.subtitle,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: secondaryColor,
+              fontSize: TypeScale.callout,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Mock net-worth card
+          GestureDetector(
+            onTap: _haptic,
+            child: Container(
+              decoration: BoxDecoration(
+                color: cardBg,
+                borderRadius: BorderRadius.circular(Radii.lg),
+                border: Border.all(color: cardBorder),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppStyles.aetherTeal.withValues(alpha: 0.08),
+                    blurRadius: 24,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Net Worth',
+                        style: TextStyle(
+                          color: secondaryColor,
+                          fontSize: TypeScale.footnote,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppStyles.bioGreen.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Text(
+                          '+2.4%',
+                          style: TextStyle(
+                            color: AppStyles.bioGreen,
+                            fontSize: TypeScale.caption,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '₹12,45,000',
+                    style: TextStyle(
+                      color: textColor,
+                      fontSize: TypeScale.display,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -1,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Assets ₹18,20,000  ·  Liabilities ₹5,75,000',
+                    style: TextStyle(
+                      color: secondaryColor,
+                      fontSize: TypeScale.caption,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Mini sparkline (static bars)
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [72, 68, 78, 75, 82, 80, 88, 85, 92, 90, 96, 100]
+                        .map((h) => Expanded(
+                              child: Container(
+                                margin:
+                                    const EdgeInsets.symmetric(horizontal: 1.5),
+                                height: h * 0.36,
+                                decoration: BoxDecoration(
+                                  color: AppStyles.aetherTeal
+                                      .withValues(alpha: 0.5 + h * 0.004),
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
+                            ))
+                        .toList(),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Mock transaction rows
+          ...[
+            (
+              icon: Icons.shopping_bag_outlined,
+              iconColor: AppStyles.novaPurple,
+              title: 'Swiggy Order',
+              subtitle: 'Food & Dining · today',
+              amount: '-₹349',
+              amtColor: const Color(0xFFFF6B6B),
+            ),
+            (
+              icon: Icons.account_balance_outlined,
+              iconColor: AppStyles.aetherTeal,
+              title: 'Salary Credit',
+              subtitle: 'Income · Mar 1',
+              amount: '+₹85,000',
+              amtColor: AppStyles.bioGreen,
+            ),
+          ].map(
+            (tx) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: GestureDetector(
+                onTap: _haptic,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: cardBg,
+                    borderRadius: BorderRadius.circular(Radii.md),
+                    border: Border.all(color: cardBorder),
+                  ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: tx.iconColor.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(tx.icon, color: tx.iconColor, size: 20),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              tx.title,
+                              style: TextStyle(
+                                color: textColor,
+                                fontSize: TypeScale.body,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              tx.subtitle,
+                              style: TextStyle(
+                                color: secondaryColor,
+                                fontSize: TypeScale.caption,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Text(
+                        tx.amount,
+                        style: TextStyle(
+                          color: tx.amtColor,
+                          fontSize: TypeScale.body,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 8),
+          Text(
+            'Tap anything above — it works!',
+            style: TextStyle(
+              color: page.accent.withValues(alpha: 0.7),
+              fontSize: TypeScale.caption,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
       ),
     );
   }

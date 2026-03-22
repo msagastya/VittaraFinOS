@@ -27,6 +27,7 @@ import 'package:vittara_fin_os/logic/goal_model.dart';
 import 'package:vittara_fin_os/logic/budgets_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_archive_controller.dart';
 import 'package:vittara_fin_os/logic/recurring_templates_controller.dart';
+import 'package:vittara_fin_os/logic/backup_restore_service.dart';
 import 'package:vittara_fin_os/logic/loan_controller.dart';
 import 'package:vittara_fin_os/logic/insurance_controller.dart';
 import 'package:vittara_fin_os/ui/fintech_loader.dart';
@@ -60,6 +61,8 @@ import 'package:vittara_fin_os/ui/sms/sms_review_screen.dart';
 import 'package:vittara_fin_os/services/sms_auto_scan_service.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/pin_recovery_screen.dart';
+import 'package:vittara_fin_os/ui/dashboard/widgets/budget_widget.dart';
+import 'package:vittara_fin_os/ui/dashboard/widgets/cash_flow_widget.dart';
 import 'package:vittara_fin_os/ui/dashboard/widgets/health_score_widget.dart';
 import 'package:vittara_fin_os/ui/dashboard/widgets/insights_widget.dart';
 import 'package:vittara_fin_os/ui/dashboard/widgets/net_worth_widget.dart';
@@ -607,6 +610,8 @@ class _SplashScreenState extends State<SplashScreen> {
             FadeScalePageRoute(page: const DashboardScreen()));
         _triggerSmsStartupScan();
         _checkAndShowWhatsNew();
+        // UTL-04: daily auto-backup (fire-and-forget, max once per day)
+        BackupRestoreService.runAutoBackupIfNeeded();
       } else {
         Navigator.of(context).pushReplacement(
           FadeScalePageRoute(
@@ -616,6 +621,7 @@ class _SplashScreenState extends State<SplashScreen> {
                     FadeScalePageRoute(page: const DashboardScreen()));
                 _triggerSmsStartupScan();
                 if (mounted) _checkAndShowWhatsNew();
+                BackupRestoreService.runAutoBackupIfNeeded();
               },
             ),
           ),
@@ -1793,205 +1799,7 @@ class DashboardScreen extends StatelessWidget {
           },
         );
       case DashboardWidgetType.budgetsOverview:
-        return Consumer<BudgetsController>(
-          builder: (context, budgetsController, child) {
-            final activeCount = budgetsController.activeBudgets.length;
-            final exceeded = budgetsController.getBudgetsExceedingLimit();
-            final warning = budgetsController.getBudgetsInWarning();
-            final alertBudgets = [...exceeded, ...warning].take(3).toList();
-
-            // Burn rate insight
-            final now = DateTime.now();
-            final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
-            final daysFraction = now.day / daysInMonth;
-            final activeBudgets = budgetsController.activeBudgets;
-            double avgBudgetFraction = 0;
-            if (activeBudgets.isNotEmpty) {
-              double totalFrac = 0;
-              for (final b in activeBudgets) {
-                totalFrac += b.limitAmount > 0 ? (b.spentAmount / b.limitAmount).clamp(0.0, double.infinity) : 0.0;
-              }
-              avgBudgetFraction = totalFrac / activeBudgets.length;
-            }
-            final bool overspending = avgBudgetFraction > daysFraction * 1.2;
-            final bool underPace = avgBudgetFraction < daysFraction * 0.8;
-            String? burnRateLabel;
-            Color? burnRateColor;
-            if (activeBudgets.isNotEmpty && daysFraction > 0.05) {
-              if (overspending) {
-                burnRateLabel = 'Spending faster than expected';
-                burnRateColor = CupertinoColors.systemOrange;
-              } else if (underPace) {
-                burnRateLabel = 'Spending within pace';
-                burnRateColor = AppStyles.accentGreen;
-              }
-            }
-
-            if (activeCount == 0) {
-              return Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: CupertinoColors.systemOrange.withValues(alpha: 0.10),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(CupertinoIcons.chart_pie, size: 28, color: CupertinoColors.systemOrange),
-                    ),
-                    const SizedBox(height: Spacing.sm),
-                    Text(
-                      'No budgets set',
-                      style: TextStyle(
-                        fontSize: TypeScale.subhead,
-                        fontWeight: FontWeight.w600,
-                        color: AppStyles.getTextColor(context),
-                      ),
-                    ),
-                    const SizedBox(height: Spacing.xs),
-                    Text(
-                      'Create a budget to start\ntracking your spending limits',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: TypeScale.caption,
-                        color: AppStyles.getSecondaryTextColor(context),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        '$activeCount Active Budget${activeCount == 1 ? '' : 's'}',
-                        style: TextStyle(
-                          fontSize: TypeScale.subhead,
-                          fontWeight: FontWeight.w600,
-                          color: AppStyles.getTextColor(context),
-                        ),
-                      ),
-                    ),
-                    if (exceeded.isNotEmpty)
-                      _buildBadge(context, 'Over', exceeded.length,
-                          CupertinoColors.systemRed),
-                    if (warning.isNotEmpty) ...[
-                      const SizedBox(width: Spacing.xs),
-                      _buildBadge(context, 'Near', warning.length,
-                          CupertinoColors.systemOrange),
-                    ],
-                  ],
-                ),
-                if (alertBudgets.isNotEmpty) ...[
-                  const SizedBox(height: Spacing.md),
-                  ...alertBudgets.map((b) {
-                    final isExceeded = b.status.name == 'exceeded';
-                    final color = isExceeded
-                        ? CupertinoColors.systemRed
-                        : CupertinoColors.systemOrange;
-                    final pct = b.usagePercentage.toStringAsFixed(0);
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: Spacing.xs),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: Spacing.sm, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: color.withValues(alpha: 0.2)),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            isExceeded
-                                ? CupertinoIcons.exclamationmark_circle_fill
-                                : CupertinoIcons.exclamationmark_triangle_fill,
-                            size: 12,
-                            color: color,
-                          ),
-                          const SizedBox(width: Spacing.xs),
-                          Expanded(
-                            child: Text(
-                              b.name,
-                              style: TextStyle(
-                                fontSize: TypeScale.caption,
-                                fontWeight: FontWeight.w600,
-                                color: AppStyles.getTextColor(context),
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          Text(
-                            '$pct%',
-                            style: TextStyle(
-                              fontSize: TypeScale.caption,
-                              fontWeight: FontWeight.w700,
-                              color: color,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
-                ] else if (activeCount > 0) ...[
-                  const SizedBox(height: Spacing.md),
-                  const Row(
-                    children: [
-                      Icon(CupertinoIcons.checkmark_seal_fill,
-                          size: 13, color: AppStyles.accentGreen),
-                      SizedBox(width: Spacing.xs),
-                      Text(
-                        'All budgets on track',
-                        style: TextStyle(
-                          fontSize: TypeScale.caption,
-                          color: AppStyles.accentGreen,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-                if (burnRateLabel != null) ...[
-                  const SizedBox(height: Spacing.sm),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: burnRateColor!.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: burnRateColor.withValues(alpha: 0.2)),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          overspending ? CupertinoIcons.exclamationmark_triangle_fill : CupertinoIcons.checkmark_circle_fill,
-                          size: 12,
-                          color: burnRateColor,
-                        ),
-                        const SizedBox(width: 5),
-                        Text(
-                          burnRateLabel,
-                          style: TextStyle(
-                            fontSize: TypeScale.caption,
-                            color: burnRateColor,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ],
-            );
-          },
-        );
+        return const BudgetDashboardWidget();
       case DashboardWidgetType.savingsPlanners:
         return Consumer<BudgetsController>(
           builder: (context, budgetsController, child) {
@@ -2304,232 +2112,7 @@ class DashboardScreen extends StatelessWidget {
           },
         );
       case DashboardWidgetType.monthlySummary:
-        return Consumer<TransactionsController>(
-          builder: (context, txController, child) {
-            final now = DateTime.now();
-            final monthStart = DateTime(now.year, now.month, 1);
-            final monthLabel =
-                '${DateFormatter.getMonthName(now.month)} ${now.year}';
-
-            double income = 0;
-            double expenses = 0;
-            for (final tx in txController.transactions) {
-              if (tx.dateTime.isBefore(monthStart)) continue;
-              if (tx.type == TransactionType.income ||
-                  tx.type == TransactionType.cashback) {
-                income += tx.amount;
-              } else if (tx.type == TransactionType.expense) {
-                expenses += tx.amount;
-              }
-            }
-            final net = income - expenses;
-            final total = income + expenses;
-            final incomeRatio =
-                total > 0 ? (income / total).clamp(0.0, 1.0) : 0.5;
-
-            if (income == 0 && expenses == 0) {
-              return Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: AppStyles.accentTeal.withValues(alpha: 0.10),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(CupertinoIcons.calendar, size: 28, color: AppStyles.accentTeal),
-                    ),
-                    const SizedBox(height: Spacing.sm),
-                    Text(
-                      monthLabel,
-                      style: TextStyle(
-                        fontSize: TypeScale.footnote,
-                        fontWeight: FontWeight.w600,
-                        color: AppStyles.getSecondaryTextColor(context),
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                    const SizedBox(height: Spacing.xs),
-                    Text(
-                      'No transactions this month yet',
-                      style: TextStyle(
-                        fontSize: TypeScale.subhead,
-                        fontWeight: FontWeight.w600,
-                        color: AppStyles.getTextColor(context),
-                      ),
-                    ),
-                    const SizedBox(height: Spacing.xs),
-                    Text(
-                      'Add income or expenses to\nsee your monthly summary',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: TypeScale.caption,
-                        color: AppStyles.getSecondaryTextColor(context),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  monthLabel,
-                  style: TextStyle(
-                    fontSize: TypeScale.caption,
-                    fontWeight: FontWeight.w600,
-                    color: AppStyles.getSecondaryTextColor(context),
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                const SizedBox(height: Spacing.md),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildMonthlyStat(
-                        context,
-                        label: 'Income',
-                        amount: income,
-                        color: CupertinoColors.systemGreen,
-                        icon: CupertinoIcons.arrow_down_circle_fill,
-                      ),
-                    ),
-                    const SizedBox(width: Spacing.md),
-                    Expanded(
-                      child: _buildMonthlyStat(
-                        context,
-                        label: 'Expenses',
-                        amount: expenses,
-                        color: CupertinoColors.systemRed,
-                        icon: CupertinoIcons.arrow_up_circle_fill,
-                      ),
-                    ),
-                    const SizedBox(width: Spacing.md),
-                    Expanded(
-                      child: _buildMonthlyStat(
-                        context,
-                        label: 'Saved',
-                        amount: net.abs(),
-                        color: net >= 0
-                            ? AppStyles.accentTeal
-                            : CupertinoColors.systemOrange,
-                        icon: net >= 0
-                            ? CupertinoIcons.checkmark_seal_fill
-                            : CupertinoIcons.exclamationmark_circle_fill,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: Spacing.md),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: Row(
-                    children: [
-                      Flexible(
-                        flex: (incomeRatio * 100).round(),
-                        child: Container(
-                          height: 6,
-                          color: CupertinoColors.systemGreen,
-                        ),
-                      ),
-                      Flexible(
-                        flex: ((1 - incomeRatio) * 100).round(),
-                        child: Container(
-                          height: 6,
-                          color: CupertinoColors.systemRed,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // F30 — Savings rate
-                if (income > 0) ...[
-                  const SizedBox(height: Spacing.sm),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Icon(
-                        CupertinoIcons.percent,
-                        size: 11,
-                        color: net >= 0
-                            ? AppStyles.accentTeal
-                            : CupertinoColors.systemOrange,
-                      ),
-                      const SizedBox(width: 3),
-                      Text(
-                        'Savings rate: ${((net / income) * 100).clamp(0.0, 100.0).toStringAsFixed(1)}%',
-                        style: TextStyle(
-                          fontSize: TypeScale.caption,
-                          color: net >= 0
-                              ? AppStyles.accentTeal
-                              : CupertinoColors.systemOrange,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-                // AU13-05 — Logging streak counter
-                Builder(builder: (context) {
-                  final streak = txController.loggingStreakDays;
-                  if (streak == 0) return const SizedBox.shrink();
-                  return Padding(
-                    padding: const EdgeInsets.only(top: Spacing.sm),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: CupertinoColors.systemOrange
-                            .withValues(alpha: 0.10),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: CupertinoColors.systemOrange
-                              .withValues(alpha: 0.25),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            CupertinoIcons.flame_fill,
-                            size: 13,
-                            color: CupertinoColors.systemOrange,
-                          ),
-                          const SizedBox(width: 5),
-                          Text(
-                            '$streak-day logging streak',
-                            style: const TextStyle(
-                              fontSize: TypeScale.caption,
-                              fontWeight: FontWeight.w600,
-                              color: CupertinoColors.systemOrange,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }),
-                const SizedBox(height: Spacing.sm),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text(
-                      'Tap for detailed analysis →',
-                      style: TextStyle(
-                        fontSize: TypeScale.caption,
-                        color: AppStyles.accentTeal,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            );
-          },
-        );
+        return const CashFlowDashboardWidget();
       case DashboardWidgetType.sipTracker:
         return Consumer<InvestmentsController>(
           builder: (context, investmentsController, child) {

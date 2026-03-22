@@ -164,7 +164,7 @@ class DashboardController with ChangeNotifier {
         DashboardWidgetConfig(
           id: 'monthly_summary',
           type: DashboardWidgetType.monthlySummary,
-          title: 'Monthly Summary',
+          title: 'Cash Flow',
           isVisible: false,
           gridRow: 13,
           gridColumn: 1,

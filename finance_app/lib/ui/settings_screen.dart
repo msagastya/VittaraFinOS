@@ -176,6 +176,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               page: const BackupRestoreScreen()),
                         ),
                       ),
+                      _buildDivider(context),
+                      _buildInfoRow(
+                        context,
+                        icon: CupertinoIcons.arrow_2_circlepath,
+                        title: 'Auto-backup',
+                        value: 'Daily · last 7 kept',
+                        color: AppStyles.accentGreen,
+                      ),
                     ]),
 
                     // ── ABOUT ────────────────────────────────────────────

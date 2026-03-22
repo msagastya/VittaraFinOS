@@ -191,6 +191,84 @@ class BackupRestoreService {
     }
   }
 
+  // ── UTL-04: Auto-backup (daily, keep last 7) ──────────────────────────────
+
+  static const String _lastAutoBackupDateKey = 'last_auto_backup_date';
+  static const int _keepBackupCount = 7;
+
+  /// Runs at most once per calendar day. Creates an encrypted local backup
+  /// and prunes older auto-backup files, keeping the [_keepBackupCount] most
+  /// recent ones. Safe to call from app startup — silently no-ops if already
+  /// backed up today or if running on web.
+  static Future<void> runAutoBackupIfNeeded() async {
+    if (kIsWeb) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final today = DateTime.now().toIso8601String().substring(0, 10);
+      final lastDate = prefs.getString(_lastAutoBackupDateKey) ?? '';
+      if (lastDate == today) return; // already backed up today
+
+      final result = await createLocalBackupFile();
+      if (result.success) {
+        await prefs.setString(_lastAutoBackupDateKey, today);
+        await _pruneOldAutoBackups();
+      }
+    } catch (_) {
+      // Auto-backup must never crash the app
+    }
+  }
+
+  /// Deletes oldest auto-backup files, keeping the [_keepBackupCount] newest.
+  static Future<void> _pruneOldAutoBackups() async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final backupDir = Directory('${directory.path}/$backupFolderName');
+      if (!await backupDir.exists()) return;
+
+      final files = await backupDir
+          .list()
+          .where((e) =>
+              e is File &&
+              e.path.contains(backupFilePrefix) &&
+              e.path.endsWith('.json'))
+          .cast<File>()
+          .toList();
+
+      if (files.length <= _keepBackupCount) return;
+
+      // Sort oldest first
+      files.sort((a, b) => a.path.compareTo(b.path));
+      final toDelete = files.sublist(0, files.length - _keepBackupCount);
+      for (final f in toDelete) {
+        await f.delete();
+      }
+    } catch (_) {}
+  }
+
+  /// Returns the list of local backup files sorted newest-first.
+  static Future<List<File>> listLocalBackups() async {
+    if (kIsWeb) return [];
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final backupDir = Directory('${directory.path}/$backupFolderName');
+      if (!await backupDir.exists()) return [];
+
+      final files = await backupDir
+          .list()
+          .where((e) =>
+              e is File &&
+              e.path.contains(backupFilePrefix) &&
+              e.path.endsWith('.json'))
+          .cast<File>()
+          .toList();
+
+      files.sort((a, b) => b.path.compareTo(a.path)); // newest first
+      return files;
+    } catch (_) {
+      return [];
+    }
+  }
+
   static Future<BackupOperationResult> buildBackupJson() async {
     try {
       final prefs = await SharedPreferences.getInstance();

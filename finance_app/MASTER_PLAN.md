@@ -285,12 +285,12 @@ LandscapeSplitView(
 - Suggest "Mark as recurring" with confirmation
 - Auto-log recurring transactions + notification 1 day before
 
-### UTL-03 — Widgets (Home Screen) `[ ]` P3
+### UTL-03 — Widgets (Home Screen) `[x]` P3
 - Net worth widget (2x1): current value + 30-day change
 - Budget widget (2x2): radial gauge + top 3 categories
 - Cash flow widget (4x2): income/expense bars current month
 
-### UTL-04 — Data Backup & Restore `[ ]` P3
+### UTL-04 — Data Backup & Restore `[x]` P3
 **P0 security issue (AU5-02):** Move encryption key from hardcoded to device keychain
 - Encrypted SQLite backup export to Files app
 - Restore from backup file
@@ -315,7 +315,7 @@ LandscapeSplitView(
 - Toggles use CupertinoSwitch with immediate visual feedback
 - Dangerous actions (Reset, Delete) isolated in a "red zone" section at bottom
 
-### ONB-01 — Onboarding Enhancement `[ ]` P3
+### ONB-01 — Onboarding Enhancement `[x]` P3
 - Add interactive demo screen (5th page): tappable mock transaction, mock net worth chart
 - "Try it" CTA opens the real app in a pre-seeded demo mode
 - Skip demo → normal flow
