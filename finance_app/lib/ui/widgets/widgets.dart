@@ -25,3 +25,6 @@ export 'app_button.dart';
 
 // Standard date picker modal
 export 'app_date_picker.dart';
+
+// D-01 — Bloomberg-level swipeable card deck
+export 'card_deck_view.dart';

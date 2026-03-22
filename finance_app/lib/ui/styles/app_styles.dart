@@ -146,6 +146,25 @@ class AppStyles {
       ? const Color(0xFF3A4A5C)
       : const Color(0xFFBBCCDD);
 
+  /// Neutral / flat / zero-change state — mid-gray, readable in both themes.
+  static Color neutral(BuildContext context) => isDarkMode(context)
+      ? const Color(0xFF8E8E93)
+      : const Color(0xFF6B6B6B);
+
+  /// Warning / 80% budget / caution — amber adapts for WCAG AA in light.
+  static Color warning(BuildContext context) => isDarkMode(context)
+      ? const Color(0xFFFF9F0A) // iOS systemOrange, vivid on void
+      : const Color(0xFF9A5700); // dark amber — WCAG AA on light bg
+
+  /// Informational / neutral action — blue adapts for WCAG AA in light.
+  static Color info(BuildContext context) => isDarkMode(context)
+      ? const Color(0xFF0A84FF) // iOS systemBlue on dark
+      : const Color(0xFF0062CC); // deep blue — WCAG AA on light bg
+
+  /// Card surface — elevated void in dark, white in light.
+  static Color surface(BuildContext context) =>
+      isDarkMode(context) ? darkCard : lightCard;
+
   // ── Background Gradients ──────────────────────────────────────────────────
 
   static LinearGradient backgroundGradient(BuildContext context) {

@@ -42,6 +42,7 @@ import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/dashboard/dashboard_settings_modal.dart';
 import 'package:vittara_fin_os/ui/net_worth_page.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
+import 'package:vittara_fin_os/ui/widgets/card_deck_view.dart';
 import 'package:vittara_fin_os/ui/widgets/floating_particle_background.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
@@ -748,109 +749,109 @@ class DashboardScreen extends StatelessWidget {
         }
 
         return CupertinoPageScaffold(
-          navigationBar: CupertinoNavigationBar(
-            leading: BouncyButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                  PageRouteBuilder(
-                    pageBuilder: (context, animation, secondaryAnimation) =>
-                        const DashboardAppMenuScreen(),
-                    transitionsBuilder:
-                        (context, animation, secondaryAnimation, child) {
-                      final slideTween = Tween<Offset>(
-                        begin: const Offset(-1.0, 0.0),
-                        end: Offset.zero,
-                      ).chain(
-                        CurveTween(curve: MotionCurves.standard),
-                      );
-                      final fadeTween = Tween<double>(
-                        begin: 0.0,
-                        end: 1.0,
-                      ).chain(
-                        CurveTween(curve: MotionCurves.standard),
-                      );
-                      return SlideTransition(
-                        position: animation.drive(slideTween),
-                        child: FadeTransition(
-                          opacity: animation.drive(fadeTween),
-                          child: child,
+          // Hide nav bar in landscape — replaced by compact inline bar in body
+          navigationBar: AppStyles.isLandscape(context)
+              ? null
+              : CupertinoNavigationBar(
+                  leading: BouncyButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        PageRouteBuilder(
+                          pageBuilder: (context, animation, secondaryAnimation) =>
+                              const DashboardAppMenuScreen(),
+                          transitionsBuilder:
+                              (context, animation, secondaryAnimation, child) {
+                            final slideTween = Tween<Offset>(
+                              begin: const Offset(-1.0, 0.0),
+                              end: Offset.zero,
+                            ).chain(
+                              CurveTween(curve: MotionCurves.standard),
+                            );
+                            final fadeTween = Tween<double>(
+                              begin: 0.0,
+                              end: 1.0,
+                            ).chain(
+                              CurveTween(curve: MotionCurves.standard),
+                            );
+                            return SlideTransition(
+                              position: animation.drive(slideTween),
+                              child: FadeTransition(
+                                opacity: animation.drive(fadeTween),
+                                child: child,
+                              ),
+                            );
+                          },
+                          transitionDuration: AppDurations.pageTransition,
+                          reverseTransitionDuration:
+                              AppDurations.pageTransitionReverse,
                         ),
                       );
                     },
-                    transitionDuration: AppDurations.pageTransition,
-                    reverseTransitionDuration:
-                        AppDurations.pageTransitionReverse,
-                  ),
-                );
-              },
-              child: Semantics(
-                label: 'Open app menu',
-                child: Icon(
-                  CupertinoIcons.line_horizontal_3,
-                  size: IconSizes.navIcon,
-                  color: AppStyles.getTextColor(context),
-                ),
-              ),
-            ),
-            middle: const Text('VittaraFinOS'),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Dashboard Settings
-                Semantics(
-                  label: 'Dashboard layout settings',
-                  child: BouncyButton(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        FadeScalePageRoute(
-                            page: const DashboardSettingsModal()),
-                      );
-                    },
-                    child: Icon(
-                      CupertinoIcons.slider_horizontal_3,
-                      size: IconSizes.navIcon,
-                      color: AppStyles.getTextColor(context),
+                    child: Semantics(
+                      label: 'Open app menu',
+                      child: Icon(
+                        CupertinoIcons.line_horizontal_3,
+                        size: IconSizes.navIcon,
+                        color: AppStyles.getTextColor(context),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: Spacing.xl),
-                // Manage button
-                Semantics(
-                  label: 'Manage accounts and investments',
-                  child: BouncyButton(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                          FadeScalePageRoute(page: const ManageScreen()));
-                    },
-                    child: Icon(
-                      CupertinoIcons.square_grid_2x2,
-                      size: IconSizes.navIcon,
-                      color: AppStyles.getTextColor(context),
-                    ),
+                  middle: const Text('VittaraFinOS'),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Semantics(
+                        label: 'Dashboard layout settings',
+                        child: BouncyButton(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              FadeScalePageRoute(
+                                  page: const DashboardSettingsModal()),
+                            );
+                          },
+                          child: Icon(
+                            CupertinoIcons.slider_horizontal_3,
+                            size: IconSizes.navIcon,
+                            color: AppStyles.getTextColor(context),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: Spacing.xl),
+                      Semantics(
+                        label: 'Manage accounts and investments',
+                        child: BouncyButton(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                                FadeScalePageRoute(page: const ManageScreen()));
+                          },
+                          child: Icon(
+                            CupertinoIcons.square_grid_2x2,
+                            size: IconSizes.navIcon,
+                            color: AppStyles.getTextColor(context),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: Spacing.xl),
+                      Semantics(
+                        label: 'Settings',
+                        child: BouncyButton(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                                FadeScalePageRoute(page: const SettingsScreen()));
+                          },
+                          child: Icon(
+                            CupertinoIcons.settings,
+                            size: IconSizes.navIcon,
+                            color: AppStyles.getTextColor(context),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
+                  backgroundColor:
+                      AppStyles.getCardColor(context).withValues(alpha: 0.90),
+                  border: null,
                 ),
-                const SizedBox(width: Spacing.xl),
-                // Settings button
-                Semantics(
-                  label: 'Settings',
-                  child: BouncyButton(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                          FadeScalePageRoute(page: const SettingsScreen()));
-                    },
-                    child: Icon(
-                      CupertinoIcons.settings,
-                      size: IconSizes.navIcon,
-                      color: AppStyles.getTextColor(context),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor:
-                AppStyles.getCardColor(context).withValues(alpha: 0.90),
-            border: null,
-          ),
           child: SafeArea(
             child: SubtleParticleOverlay(
               particleCount: isDark ? 42 : 30,
@@ -1023,43 +1024,111 @@ class DashboardScreen extends StatelessWidget {
     DashboardController controller,
     List<DashboardWidgetConfig> visibleWidgets,
   ) {
+    // Build card list for the deck — each widget config becomes a swipeable card
+    final cards = visibleWidgets
+        .map((w) => _buildDashboardWidgetCard(context, w))
+        .toList();
+
+    final isLandscape = AppStyles.isLandscape(context);
+
     return Column(
       children: [
-        // PROFESSIONAL HEADER
-        _buildHeaderSection(context),
+        // LANDSCAPE — compact inline nav bar replaces CupertinoNavigationBar
+        if (isLandscape) _buildLandscapeNavBar(context),
 
-        // REORDERABLE DASHBOARD WIDGETS
+        // PROFESSIONAL HEADER (hidden in landscape to save vertical space)
+        if (!isLandscape) _buildHeaderSection(context),
+
+        // CARD DECK — swipe left/right to cycle through widgets
         Expanded(
-          child: ReorderableListView(
-            padding: const EdgeInsets.all(Spacing.lg),
-            onReorder: (oldIndex, newIndex) {
-              // Reorder in the visible widgets list
-              final newVisibleWidgets = [...visibleWidgets];
-              if (newIndex > oldIndex) {
-                newIndex -= 1;
-              }
-              final widget = newVisibleWidgets.removeAt(oldIndex);
-              newVisibleWidgets.insert(newIndex, widget);
-
-              // Update controller with new order
-              for (int i = 0; i < newVisibleWidgets.length; i++) {
-                controller.updateWidget(
-                  newVisibleWidgets[i].copyWith(gridRow: i + 1),
-                );
-              }
-              controller.saveConfig();
-            },
-            children: visibleWidgets.asMap().entries.map((entry) {
-              final widget = entry.value;
-              return Container(
-                key: Key(widget.id),
-                margin: const EdgeInsets.only(bottom: Spacing.md),
-                child: _buildDashboardWidgetCard(context, widget),
-              );
-            }).toList(),
+          child: Padding(
+            padding: EdgeInsets.only(
+              top: isLandscape ? 0 : Spacing.md,
+              bottom: Spacing.sm,
+            ),
+            child: CardDeckView(
+              cards: cards,
+              onCardChanged: (_) {},
+            ),
           ),
         ),
       ],
+    );
+  }
+
+  /// Compact 40dp nav bar shown only in landscape (replaces CupertinoNavigationBar).
+  Widget _buildLandscapeNavBar(BuildContext context) {
+    final textColor = AppStyles.getTextColor(context);
+    final secondary = AppStyles.getSecondaryTextColor(context);
+    return Container(
+      height: 40,
+      padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
+      decoration: BoxDecoration(
+        color: AppStyles.getCardColor(context).withValues(alpha: 0.85),
+        border: Border(
+          bottom: BorderSide(
+            color: AppStyles.getDividerColor(context),
+            width: 0.5,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          // Menu button
+          BouncyButton(
+            onPressed: () => Navigator.of(context).push(
+              PageRouteBuilder(
+                pageBuilder: (_, __, ___) => const DashboardAppMenuScreen(),
+                transitionDuration: AppDurations.pageTransition,
+                reverseTransitionDuration: AppDurations.pageTransitionReverse,
+                transitionsBuilder: (ctx, anim, secAnim, child) =>
+                    SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(-1.0, 0.0),
+                    end: Offset.zero,
+                  ).animate(CurvedAnimation(
+                      parent: anim, curve: MotionCurves.standard)),
+                  child: child,
+                ),
+              ),
+            ),
+            child: Icon(CupertinoIcons.line_horizontal_3,
+                size: 18, color: textColor),
+          ),
+          const SizedBox(width: Spacing.lg),
+          // Title
+          Text(
+            'VittaraFinOS',
+            style: TextStyle(
+              color: textColor,
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.2,
+            ),
+          ),
+          const Spacer(),
+          // Action icons
+          BouncyButton(
+            onPressed: () => Navigator.of(context).push(
+                FadeScalePageRoute(page: const DashboardSettingsModal())),
+            child:
+                Icon(CupertinoIcons.slider_horizontal_3, size: 18, color: secondary),
+          ),
+          const SizedBox(width: Spacing.xl),
+          BouncyButton(
+            onPressed: () => Navigator.of(context)
+                .push(FadeScalePageRoute(page: const ManageScreen())),
+            child:
+                Icon(CupertinoIcons.square_grid_2x2, size: 18, color: secondary),
+          ),
+          const SizedBox(width: Spacing.xl),
+          BouncyButton(
+            onPressed: () => Navigator.of(context)
+                .push(FadeScalePageRoute(page: const SettingsScreen())),
+            child: Icon(CupertinoIcons.settings, size: 18, color: secondary),
+          ),
+        ],
+      ),
     );
   }
 
