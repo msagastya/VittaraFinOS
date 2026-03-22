@@ -105,14 +105,14 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: _getStatusColor(widget.fd.status)
+                            color: _getStatusColor(widget.fd.status, context)
                                 .withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
                             widget.fd.getStatusLabel(),
                             style: TextStyle(
-                              color: _getStatusColor(widget.fd.status),
+                              color: _getStatusColor(widget.fd.status, context),
                               fontSize: TypeScale.footnote,
                               fontWeight: FontWeight.w600,
                             ),
@@ -141,7 +141,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                           context,
                           'CAGR',
                           '${_calculateCAGR(widget.fd).toStringAsFixed(2)}%',
-                          AppStyles.bioGreen,
+                          AppStyles.gain(context),
                         ),
                       ],
                     ),
@@ -424,7 +424,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
             'Delete',
             'Remove this FD',
             CupertinoIcons.trash,
-            AppStyles.plasmaRed,
+            AppStyles.loss(context),
             () => _showDeleteConfirmation(context),
             isDangerous: true,
           ),
@@ -557,8 +557,8 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                       const SizedBox(height: Spacing.sm),
                       Text(
                         '₹${widget.fd.maturityValue.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          color: AppStyles.bioGreen,
+                        style: TextStyle(
+                          color: AppStyles.gain(context),
                           fontSize: TypeScale.title2,
                           fontWeight: FontWeight.bold,
                         ),
@@ -1254,16 +1254,16 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                 '₹${(payout.interestAmount + payout.principalAmount).toStringAsFixed(2)}',
                 style: TextStyle(
                   color: isPast
-                      ? AppStyles.bioGreen
+                      ? AppStyles.gain(context)
                       : AppStyles.getPrimaryColor(context),
                   fontWeight: FontWeight.bold,
                 ),
               ),
               if (isPast)
-                const Text(
+                Text(
                   'Credited',
                   style: TextStyle(
-                    color: AppStyles.bioGreen,
+                    color: AppStyles.gain(context),
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
                   ),
@@ -1742,14 +1742,14 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
     );
   }
 
-  Color _getStatusColor(FDStatus status) {
+  Color _getStatusColor(FDStatus status, BuildContext context) {
     switch (status) {
       case FDStatus.active:
-        return AppStyles.bioGreen;
+        return AppStyles.gain(context);
       case FDStatus.mature:
         return CupertinoColors.systemOrange;
       case FDStatus.prematurelyWithdrawn:
-        return AppStyles.plasmaRed;
+        return AppStyles.loss(context);
       case FDStatus.completed:
         return CupertinoColors.systemGrey;
     }
@@ -1863,12 +1863,12 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
       decoration: BoxDecoration(
         color: tdsApplicable
             ? CupertinoColors.systemOrange.withValues(alpha: 0.08)
-            : AppStyles.bioGreen.withValues(alpha: 0.08),
+            : AppStyles.gain(context).withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(Radii.md),
         border: Border.all(
           color: tdsApplicable
               ? CupertinoColors.systemOrange.withValues(alpha: 0.25)
-              : AppStyles.bioGreen.withValues(alpha: 0.25),
+              : AppStyles.gain(context).withValues(alpha: 0.25),
         ),
       ),
       child: Column(
@@ -1883,7 +1883,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                 size: 16,
                 color: tdsApplicable
                     ? CupertinoColors.systemOrange
-                    : AppStyles.bioGreen,
+                    : AppStyles.gain(context),
               ),
               const SizedBox(width: Spacing.sm),
               Text(
@@ -1893,7 +1893,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                   fontWeight: FontWeight.w700,
                   color: tdsApplicable
                       ? CupertinoColors.systemOrange
-                      : AppStyles.bioGreen,
+                      : AppStyles.gain(context),
                 ),
               ),
               const SizedBox(width: 4),
@@ -2118,7 +2118,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
               const SizedBox(width: Spacing.md),
               Expanded(
                 child: CupertinoButton(
-                  color: AppStyles.bioGreen,
+                  color: AppStyles.gain(context),
                   onPressed: () {
                     final investmentsController =
                         Provider.of<InvestmentsController>(context,

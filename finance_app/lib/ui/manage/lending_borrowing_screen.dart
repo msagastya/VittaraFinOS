@@ -139,7 +139,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                               subtitle:
                                   '₹${controller.getTotalBorrowed().toStringAsFixed(0)}',
                               selected: _selectedTab == 1,
-                              color: AppStyles.plasmaRed,
+                              color: AppStyles.loss(context),
                               onTap: () {
                                 HapticFeedback.selectionClick();
                                 setState(() => _selectedTab = 1);
@@ -394,7 +394,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
     LendingBorrowingController controller,
   ) {
     final isLent = record.type == LendingType.lent;
-    final color = isLent ? AppStyles.accentBlue : AppStyles.plasmaRed;
+    final color = isLent ? AppStyles.accentBlue : AppStyles.loss(context);
 
     showCupertinoModalPopup(
       context: context,
@@ -1018,7 +1018,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
     LendingBorrowingController controller,
   ) {
     final isLent = record.type == LendingType.lent;
-    final color = isLent ? AppStyles.accentBlue : AppStyles.plasmaRed;
+    final color = isLent ? AppStyles.accentBlue : AppStyles.loss(context);
     final icon =
         isLent ? CupertinoIcons.arrow_up_right : CupertinoIcons.arrow_down_left;
     final settledOn = DateTime.tryParse(record.settledDate ?? '');
@@ -1369,7 +1369,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                             child: resultRow(
                               'Outstanding Balance',
                               CurrencyFormatter.format(outstanding),
-                              valueColor: AppStyles.plasmaRed,
+                              valueColor: AppStyles.loss(ctx),
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -1434,7 +1434,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                                     resultRow('Payoff In',
                                         '$months month${months > 1 ? 's' : ''}',
                                         valueColor:
-                                            AppStyles.bioGreen),
+                                            AppStyles.gain(ctx)),
                                     if (payoffDate != null)
                                       resultRow('Estimated Date',
                                           DateFormatter.format(payoffDate)),
@@ -1552,7 +1552,7 @@ class _TransactionTypeWizard extends StatelessWidget {
                 title: 'I Borrowed Money',
                 subtitle: 'Money that I received from someone',
                 icon: CupertinoIcons.arrow_down_left,
-                color: AppStyles.plasmaRed,
+                color: AppStyles.loss(context),
                 onTap: () => onTypeSelected(LendingType.borrowed),
               ),
               const SizedBox(height: 40),

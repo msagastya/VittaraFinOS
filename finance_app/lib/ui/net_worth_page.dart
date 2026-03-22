@@ -483,7 +483,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                     Icon(
                       CupertinoIcons.exclamationmark_circle,
                       size: 50,
-                      color: AppStyles.plasmaRed.withValues(alpha: 0.7),
+                      color: AppStyles.loss(context).withValues(alpha: 0.7),
                     ),
                     const SizedBox(height: Spacing.lg),
                     Text(
@@ -540,7 +540,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
       } else {
         message = 'Up ${CurrencyFormatter.compact(absDelta)} from last month.';
       }
-      color = AppStyles.bioGreen;
+      color = AppStyles.gain(context);
       icon = CupertinoIcons.arrow_up_right_circle_fill;
     } else if (delta < 0) {
       if (pct.abs() >= 10) {
@@ -550,7 +550,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
         message =
             'Down ${CurrencyFormatter.compact(absDelta)} from last month — let\'s turn it around.';
       }
-      color = AppStyles.plasmaRed;
+      color = AppStyles.loss(context);
       icon = CupertinoIcons.arrow_down_right_circle_fill;
     } else {
       message = 'Net worth unchanged from last month.';
@@ -624,7 +624,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
 
     // Determine color based on positive/negative
     final netWorthColor =
-        totalNetWorth >= 0 ? SemanticColors.primary : AppStyles.plasmaRed;
+        totalNetWorth >= 0 ? SemanticColors.primary : AppStyles.loss(context);
 
     final isPositive = totalNetWorth >= 0;
     final heroGradient = isPositive
@@ -790,7 +790,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                             icon: CupertinoIcons.graph_square_fill,
                             label: 'Investments',
                             value: CurrencyFormatter.compact(totalInvestments),
-                            color: AppStyles.aetherTeal,
+                            color: AppStyles.teal(context),
                           ),
                         ],
                         if (totalCreditUsed > 0) ...[
@@ -1168,11 +1168,11 @@ class _NetWorthPageState extends State<NetWorthPage> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: AppStyles.plasmaRed.withValues(alpha: 0.15),
+                    color: AppStyles.loss(context).withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(CupertinoIcons.creditcard_fill,
-                      size: 20, color: AppStyles.plasmaRed),
+                  child: Icon(CupertinoIcons.creditcard_fill,
+                      size: 20, color: AppStyles.loss(context)),
                 ),
                 const SizedBox(width: Spacing.md),
                 Expanded(
@@ -1288,21 +1288,21 @@ class _NetWorthPageState extends State<NetWorthPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Text(
+                              Text(
                                 'Used',
                                 style: TextStyle(
                                   fontSize: TypeScale.caption,
-                                  color: AppStyles.plasmaRed,
+                                  color: AppStyles.loss(context),
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
                               const SizedBox(height: Spacing.xs),
                               Text(
                                 '₹${used.toStringAsFixed(0)}',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: TypeScale.subhead,
                                   fontWeight: FontWeight.bold,
-                                  color: AppStyles.plasmaRed,
+                                  color: AppStyles.loss(context),
                                 ),
                               ),
                             ],
@@ -1313,21 +1313,21 @@ class _NetWorthPageState extends State<NetWorthPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Text(
+                              Text(
                                 'Available',
                                 style: TextStyle(
                                   fontSize: TypeScale.caption,
-                                  color: AppStyles.bioGreen,
+                                  color: AppStyles.gain(context),
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
                               const SizedBox(height: Spacing.xs),
                               Text(
                                 '₹${available.toStringAsFixed(0)}',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: TypeScale.subhead,
                                   fontWeight: FontWeight.bold,
-                                  color: AppStyles.bioGreen,
+                                  color: AppStyles.gain(context),
                                 ),
                               ),
                             ],
@@ -1346,7 +1346,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                             CupertinoColors.systemGrey.withValues(alpha: 0.2),
                         valueColor: AlwaysStoppedAnimation<Color>(
                           utilization > 80
-                              ? AppStyles.plasmaRed
+                              ? AppStyles.loss(context)
                               : CupertinoColors.systemOrange,
                         ),
                       ),
@@ -1368,7 +1368,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
                             color: utilization > 80
-                                ? AppStyles.plasmaRed
+                                ? AppStyles.loss(context)
                                 : CupertinoColors.systemOrange,
                           ),
                         ),
@@ -1458,11 +1458,11 @@ class _NetWorthPageState extends State<NetWorthPage> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: AppStyles.bioGreen.withValues(alpha: 0.15),
+                    color: AppStyles.gain(context).withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(CupertinoIcons.chart_bar_fill,
-                      size: 20, color: AppStyles.bioGreen),
+                  child: Icon(CupertinoIcons.chart_bar_fill,
+                      size: 20, color: AppStyles.gain(context)),
                 ),
                 const SizedBox(width: Spacing.md),
                 Expanded(
@@ -1580,9 +1580,9 @@ class _NetWorthPageState extends State<NetWorthPage> {
                               ),
                               Text(
                                 '${percentage.toStringAsFixed(1)}%',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: TypeScale.caption,
-                                  color: AppStyles.bioGreen,
+                                  color: AppStyles.gain(context),
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -1613,10 +1613,10 @@ class _NetWorthPageState extends State<NetWorthPage> {
                         children: [
                           Text(
                             _expandInvestments ? 'Show Less' : 'Show All',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: TypeScale.subhead,
                               fontWeight: FontWeight.w600,
-                              color: AppStyles.bioGreen,
+                              color: AppStyles.gain(context),
                             ),
                           ),
                           const SizedBox(width: Spacing.xs),
@@ -1625,7 +1625,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                                 ? CupertinoIcons.chevron_up
                                 : CupertinoIcons.chevron_down,
                             size: 14,
-                            color: AppStyles.bioGreen,
+                            color: AppStyles.gain(context),
                           ),
                         ],
                       ),
@@ -1750,7 +1750,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
     final delta = endValue - currentNetWorth;
     final isPositiveDelta = delta >= 0;
     final deltaColor =
-        isPositiveDelta ? AppStyles.bioGreen : AppStyles.plasmaRed;
+        isPositiveDelta ? AppStyles.gain(context) : AppStyles.loss(context);
 
     // Build month labels for x-axis (current month + next 6)
     final xLabels = List.generate(forecastMonths + 1, (i) {
@@ -1774,13 +1774,13 @@ class _NetWorthPageState extends State<NetWorthPage> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppStyles.novaPurple.withValues(alpha: 0.15),
+                      color: AppStyles.violet(context).withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       CupertinoIcons.chart_bar_alt_fill,
                       size: 16,
-                      color: AppStyles.novaPurple,
+                      color: AppStyles.violet(context),
                     ),
                   ),
                   const SizedBox(width: Spacing.sm),
@@ -1845,8 +1845,8 @@ class _NetWorthPageState extends State<NetWorthPage> {
             child: CustomPaint(
               painter: _ForecastPainter(
                 values: projectedValues,
-                actualColor: AppStyles.aetherTeal,
-                forecastColor: AppStyles.novaPurple,
+                actualColor: AppStyles.teal(context),
+                forecastColor: AppStyles.violet(context),
                 gridColor: AppStyles.getSecondaryTextColor(context),
               ),
               size: Size.infinite,
@@ -1871,9 +1871,9 @@ class _NetWorthPageState extends State<NetWorthPage> {
                     style: TextStyle(
                       fontSize: 10,
                       color: e.key == 0
-                          ? AppStyles.aetherTeal
+                          ? AppStyles.teal(context)
                           : e.key == forecastMonths
-                              ? AppStyles.novaPurple
+                              ? AppStyles.violet(context)
                               : AppStyles.getSecondaryTextColor(context),
                       fontWeight: FontWeight.w500,
                     ),
@@ -1941,10 +1941,10 @@ class _NetWorthPageState extends State<NetWorthPage> {
     return Container(
       padding: const EdgeInsets.all(Spacing.md),
       decoration: BoxDecoration(
-        color: AppStyles.novaPurple.withValues(alpha: 0.06),
+        color: AppStyles.violet(context).withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(Radii.md),
         border: Border.all(
-          color: AppStyles.novaPurple.withValues(alpha: 0.12),
+          color: AppStyles.violet(context).withValues(alpha: 0.12),
           width: 0.8,
         ),
       ),
@@ -1963,7 +1963,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
     final changePct = first != 0 ? (change / first.abs()) * 100 : 0.0;
     final isPositive = change >= 0;
     final trendColor =
-        isPositive ? AppStyles.bioGreen : AppStyles.plasmaRed;
+        isPositive ? AppStyles.gain(context) : AppStyles.loss(context);
     final monthCount = snapshots.length;
     final months = [
       'Jan',

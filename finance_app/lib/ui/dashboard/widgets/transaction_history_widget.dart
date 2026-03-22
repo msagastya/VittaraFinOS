@@ -190,7 +190,7 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
     final category =
         (metadata['categoryName'] as String?) ?? transaction.getTypeLabel();
     final type = transaction.type;
-    final amountColor = _getAmountColor(type);
+    final amountColor = _getAmountColor(type, context);
     final displayAmount = amount.abs();
     final amountPrefix = _getAmountPrefix(type);
     final leadingIcon = _getTransactionIcon(type);
@@ -200,7 +200,7 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
       switch (categoryName.toLowerCase()) {
         case 'groceries':
         case 'food':
-          return AppStyles.bioGreen;
+          return AppStyles.gain(context);
         case 'transport':
         case 'fuel':
           return CupertinoColors.systemOrange;
@@ -209,10 +209,10 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
         case 'shopping':
           return Colors.pink;
         case 'utilities':
-          return AppStyles.aetherTeal;
+          return AppStyles.teal(context);
         case 'salary':
         case 'income':
-          return AppStyles.bioGreen;
+          return AppStyles.gain(context);
         default:
           return CupertinoColors.systemGrey;
       }
@@ -378,16 +378,16 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
     );
   }
 
-  Color _getAmountColor(TransactionType type) {
+  Color _getAmountColor(TransactionType type, BuildContext context) {
     switch (type) {
       case TransactionType.expense:
-        return AppStyles.plasmaRed;
+        return AppStyles.loss(context);
       case TransactionType.income:
-        return AppStyles.bioGreen;
+        return AppStyles.gain(context);
       case TransactionType.transfer:
         return CupertinoColors.systemBlue;
       case TransactionType.cashback:
-        return AppStyles.bioGreen;
+        return AppStyles.gain(context);
       case TransactionType.lending:
         return CupertinoColors.systemOrange;
       case TransactionType.borrowing:

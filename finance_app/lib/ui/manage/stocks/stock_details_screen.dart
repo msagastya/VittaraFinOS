@@ -248,8 +248,8 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                       padding: const EdgeInsets.all(Spacing.md),
                       decoration: BoxDecoration(
                         color: _isGain
-                            ? AppStyles.bioGreen.withValues(alpha: 0.1)
-                            : AppStyles.plasmaRed.withValues(alpha: 0.1),
+                            ? AppStyles.gain(context).withValues(alpha: 0.1)
+                            : AppStyles.loss(context).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(Radii.md),
                       ),
                       child: Row(
@@ -260,8 +260,8 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               color: _isGain
-                                  ? AppStyles.bioGreen
-                                  : AppStyles.plasmaRed,
+                                  ? AppStyles.gain(context)
+                                  : AppStyles.loss(context),
                             ),
                           ),
                           Text(
@@ -269,8 +269,8 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: _isGain
-                                  ? AppStyles.bioGreen
-                                  : AppStyles.plasmaRed,
+                                  ? AppStyles.gain(context)
+                                  : AppStyles.loss(context),
                             ),
                           ),
                         ],
@@ -318,14 +318,14 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                     context,
                     icon: CupertinoIcons.plus_circle_fill,
                     label: 'Buy More',
-                    color: AppStyles.bioGreen,
+                    color: AppStyles.gain(context),
                     onTap: _showBuyMoreModal,
                   ),
                   _buildActionButton(
                     context,
                     icon: CupertinoIcons.minus_circle_fill,
                     label: 'Sell',
-                    color: AppStyles.plasmaRed,
+                    color: AppStyles.loss(context),
                     onTap: _showSellModal,
                   ),
                   _buildActionButton(
@@ -353,7 +353,7 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                     context,
                     icon: CupertinoIcons.trash_circle_fill,
                     label: 'Delete',
-                    color: AppStyles.plasmaRed,
+                    color: AppStyles.loss(context),
                     onTap: _showDeleteConfirmation,
                   ),
                 ],
@@ -400,7 +400,7 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
     final color = isDividend
         ? const Color(0xFFFFB800)
         : isSell
-            ? AppStyles.bioGreen
+            ? AppStyles.gain(context)
             : CupertinoColors.systemIndigo;
     final icon = isDividend
         ? CupertinoIcons.money_dollar_circle_fill
@@ -1566,7 +1566,7 @@ class _SellModalState extends State<_SellModal> {
                         margin: const EdgeInsets.symmetric(horizontal: 2),
                         decoration: BoxDecoration(
                           color: index <= _step
-                              ? AppStyles.plasmaRed
+                              ? AppStyles.loss(context)
                               : (Theme.of(context).brightness == Brightness.dark
                                   ? Colors.grey[800]
                                   : Colors.grey[300]),
@@ -1720,7 +1720,7 @@ class _SellModalState extends State<_SellModal> {
         Container(
           padding: const EdgeInsets.all(Spacing.md),
           decoration: BoxDecoration(
-            color: AppStyles.bioGreen.withValues(alpha: 0.1),
+            color: AppStyles.gain(context).withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(Radii.md),
           ),
           child: Row(
@@ -1730,10 +1730,10 @@ class _SellModalState extends State<_SellModal> {
                   style: TextStyle(fontWeight: FontWeight.w600)),
               Text(
                 '₹${_grossProceeds.toStringAsFixed(2)}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: TypeScale.headline,
-                  color: AppStyles.bioGreen,
+                  color: AppStyles.gain(context),
                 ),
               ),
             ],
@@ -1778,7 +1778,7 @@ class _SellModalState extends State<_SellModal> {
             Container(
               padding: const EdgeInsets.all(Spacing.md),
               decoration: BoxDecoration(
-                color: AppStyles.bioGreen.withValues(alpha: 0.1),
+                color: AppStyles.gain(context).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(Radii.md),
               ),
               child: Column(
@@ -1885,10 +1885,10 @@ class _SellModalState extends State<_SellModal> {
                           fontSize: TypeScale.headline)),
                   Text(
                     '₹${_netProceeds.toStringAsFixed(2)}',
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: TypeScale.headline,
-                        color: AppStyles.bioGreen),
+                        color: AppStyles.gain(context)),
                   ),
                 ],
               ),
@@ -1943,10 +1943,10 @@ class _SellModalState extends State<_SellModal> {
                           fontSize: TypeScale.headline)),
                   Text(
                     '₹${_netProceeds.toStringAsFixed(2)}',
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: TypeScale.headline,
-                        color: AppStyles.bioGreen),
+                        color: AppStyles.gain(context)),
                   ),
                 ],
               ),
@@ -1970,7 +1970,7 @@ class _SellModalState extends State<_SellModal> {
             value,
             style: TextStyle(
               fontWeight: isHighlight ? FontWeight.bold : FontWeight.w500,
-              color: isHighlight ? AppStyles.bioGreen : null,
+              color: isHighlight ? AppStyles.gain(context) : null,
             ),
           ),
         ],
@@ -3004,10 +3004,10 @@ class _DividendModalState extends State<_DividendModal> {
                               ),
                             ],
                           ),
-                          const Text(
+                          Text(
                             'Required',
                             style: TextStyle(
-                              color: AppStyles.plasmaRed,
+                              color: AppStyles.loss(context),
                               fontSize: TypeScale.footnote,
                               fontWeight: FontWeight.w600,
                             ),
@@ -3047,8 +3047,8 @@ class _DividendModalState extends State<_DividendModal> {
                                 const SizedBox(height: Spacing.xs),
                                 Text(
                                   'After credit: ₹${(_selectedAccount!.balance + amount).toStringAsFixed(2)}',
-                                  style: const TextStyle(
-                                    color: AppStyles.bioGreen,
+                                  style: TextStyle(
+                                    color: AppStyles.gain(context),
                                     fontSize: TypeScale.footnote,
                                     fontWeight: FontWeight.w600,
                                   ),

@@ -209,7 +209,7 @@ class _ArchivedTransactionCard extends StatelessWidget {
     final eventType = transaction.metadata?['investmentEventType'] as String?;
     final isDividend = eventType == 'dividend';
     final isSell = eventType == 'sell' || eventType == 'decrease' || eventType == 'redeem';
-    final typeColor = isDividend ? const Color(0xFFFFB800) : isSell ? AppStyles.bioGreen : transaction.type.typeColor;
+    final typeColor = isDividend ? const Color(0xFFFFB800) : isSell ? AppStyles.gain(context) : transaction.type.typeColor;
     final typeIcon = isDividend ? CupertinoIcons.money_dollar_circle_fill : isSell ? CupertinoIcons.arrow_up_circle_fill : transaction.type.typeIcon;
 
     return BouncyButton(
@@ -300,8 +300,8 @@ class _ArchivedTransactionCard extends StatelessWidget {
 
           final deleteButton = CupertinoButton(
             onPressed: () => _showPermanentDeleteOptions(context, modalContext),
-            child: const Text('Permanently Delete',
-                style: TextStyle(color: AppStyles.plasmaRed)),
+            child: Text('Permanently Delete',
+                style: TextStyle(color: AppStyles.loss(context))),
           );
 
           return Container(

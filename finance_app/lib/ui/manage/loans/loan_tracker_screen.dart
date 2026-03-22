@@ -117,13 +117,13 @@ class _LoanTrackerScreenState extends State<LoanTrackerScreen> {
                     const Color(0xFF0D0007),
                   ]
                 : [
-                    AppStyles.plasmaRed.withValues(alpha: 0.08),
-                    AppStyles.plasmaRed.withValues(alpha: 0.03),
+                    AppStyles.loss(context).withValues(alpha: 0.08),
+                    AppStyles.loss(context).withValues(alpha: 0.03),
                   ],
           ),
           borderRadius: BorderRadius.circular(Radii.xxl),
           border: Border.all(
-            color: AppStyles.plasmaRed.withValues(alpha: isDark ? 0.25 : 0.15),
+            color: AppStyles.loss(context).withValues(alpha: isDark ? 0.25 : 0.15),
             width: 1,
           ),
           boxShadow: isDark
@@ -143,19 +143,19 @@ class _LoanTrackerScreenState extends State<LoanTrackerScreen> {
               child: _SummaryMetric(
                 label: 'Total Outstanding',
                 numericValue: outstanding,
-                color: AppStyles.plasmaRed,
+                color: AppStyles.loss(context),
               ),
             ),
             Container(
               width: 1,
               height: 44,
-              color: AppStyles.plasmaRed.withValues(alpha: 0.2),
+              color: AppStyles.loss(context).withValues(alpha: 0.2),
             ),
             Expanded(
               child: _SummaryMetric(
                 label: 'Monthly EMI',
                 numericValue: emi,
-                color: AppStyles.aetherTeal,
+                color: AppStyles.teal(context),
               ),
             ),
           ],
@@ -204,7 +204,7 @@ class _LoanTrackerScreenState extends State<LoanTrackerScreen> {
                   vertical: Spacing.md,
                 ),
                 decoration: BoxDecoration(
-                  color: AppStyles.plasmaRed,
+                  color: AppStyles.loss(context),
                   borderRadius: BorderRadius.circular(Radii.full),
                   boxShadow: Shadows.fab(AppStyles.plasmaRed),
                 ),
@@ -342,7 +342,7 @@ class _LoanCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = AppStyles.isDarkMode(context);
     final dueColor = loan.isOverdue
-        ? AppStyles.plasmaRed
+        ? AppStyles.loss(context)
         : loan.isDueSoon
             ? AppStyles.accentOrange
             : AppStyles.getSecondaryTextColor(context);
@@ -390,10 +390,10 @@ class _LoanCard extends StatelessWidget {
                   children: [
                     Text(
                       CurrencyFormatter.compact(loan.currentOutstanding),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: TypeScale.body,
                         fontWeight: FontWeight.w800,
-                        color: AppStyles.plasmaRed,
+                        color: AppStyles.loss(context),
                         letterSpacing: -0.3,
                       ),
                     ),
@@ -418,11 +418,11 @@ class _LoanCard extends StatelessWidget {
                 minHeight: 6,
                 backgroundColor: isDark
                     ? const Color(0xFF1C1C1C)
-                    : AppStyles.plasmaRed.withValues(alpha: 0.12),
+                    : AppStyles.loss(context).withValues(alpha: 0.12),
                 valueColor: AlwaysStoppedAnimation<Color>(
                   loan.progressPercent >= 0.8
-                      ? AppStyles.bioGreen
-                      : AppStyles.aetherTeal,
+                      ? AppStyles.gain(context)
+                      : AppStyles.teal(context),
                 ),
               ),
             ),
@@ -485,10 +485,10 @@ class _LoanCard extends StatelessWidget {
                   ),
                   Text(
                     CurrencyFormatter.format(loan.emiAmount, decimals: 0),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: TypeScale.caption,
                       fontWeight: FontWeight.w700,
-                      color: AppStyles.aetherTeal,
+                      color: AppStyles.teal(context),
                     ),
                   ),
                   Text(
@@ -566,20 +566,20 @@ class _LoanTypeIcon extends StatelessWidget {
     }
   }
 
-  Color get _color {
+  Color _colorFor(BuildContext context) {
     switch (type) {
       case LoanType.home:
-        return AppStyles.aetherTeal;
+        return AppStyles.teal(context);
       case LoanType.car:
         return AppStyles.accentBlue;
       case LoanType.personal:
-        return AppStyles.novaPurple;
+        return AppStyles.violet(context);
       case LoanType.education:
-        return AppStyles.solarGold;
+        return AppStyles.gold(context);
       case LoanType.gold:
-        return AppStyles.accentAmber;
+        return AppStyles.gold(context);
       case LoanType.creditCard:
-        return AppStyles.plasmaRed;
+        return AppStyles.loss(context);
       case LoanType.other:
         return AppStyles.accentOrange;
     }
@@ -587,15 +587,16 @@ class _LoanTypeIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final color = _colorFor(context);
     return Container(
       width: 44,
       height: 44,
       decoration: BoxDecoration(
-        color: _color.withValues(alpha: 0.15),
+        color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(Radii.lg),
-        boxShadow: Shadows.iconGlow(_color),
+        boxShadow: Shadows.iconGlow(color),
       ),
-      child: Icon(_icon, color: _color, size: 20),
+      child: Icon(_icon, color: color, size: 20),
     );
   }
 }
@@ -615,7 +616,7 @@ class _AddLoanFab extends StatelessWidget {
         width: 56,
         height: 56,
         decoration: BoxDecoration(
-          color: AppStyles.plasmaRed,
+          color: AppStyles.loss(context),
           shape: BoxShape.circle,
           boxShadow: Shadows.fab(AppStyles.plasmaRed),
         ),

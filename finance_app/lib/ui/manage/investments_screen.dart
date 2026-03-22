@@ -633,12 +633,12 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                             final isOverdue = daysLeft < 0;
                             final isToday = daysLeft == 0;
                             final statusColor = isOverdue
-                                ? AppStyles.plasmaRed
+                                ? AppStyles.loss(context)
                                 : isToday
                                     ? CupertinoColors.systemOrange
                                     : daysLeft <= 30
                                         ? CupertinoColors.systemYellow
-                                        : AppStyles.bioGreen;
+                                        : AppStyles.gain(context);
                             final statusText = isOverdue
                                 ? 'Matured ${(-daysLeft)} day${(-daysLeft) == 1 ? '' : 's'} ago'
                                 : isToday
@@ -741,7 +741,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                             e.maturityValue),
                                         style: AppStyles.titleStyle(context)
                                             .copyWith(
-                                          color: AppStyles.bioGreen,
+                                          color: AppStyles.gain(context),
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
@@ -1283,16 +1283,16 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: AppStyles.aetherTeal.withValues(alpha: 0.15),
+                            color: AppStyles.teal(context).withValues(alpha: 0.15),
                             shape: BoxShape.circle,
                             border: Border.all(
-                                color: AppStyles.aetherTeal
+                                color: AppStyles.teal(context)
                                     .withValues(alpha: 0.5)),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             CupertinoIcons.arrow_up,
                             size: 18,
-                            color: AppStyles.aetherTeal,
+                            color: AppStyles.teal(context),
                           ),
                         ),
                       ),
@@ -1488,7 +1488,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
         totalInvested > 0 ? (gainLoss / totalInvested) * 100 : 0.0;
     final isGain = gainLoss >= 0;
     final gainColor =
-        isGain ? AppStyles.bioGreen : AppStyles.plasmaRed;
+        isGain ? AppStyles.gain(context) : AppStyles.loss(context);
     // Portfolio CAGR
     String? cagrText;
     if (earliestDate != null && totalInvested > 0 && totalCurrentValue > 0) {
@@ -2765,8 +2765,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                 ),
                 decoration: BoxDecoration(
                   color: isPositive
-                      ? AppStyles.bioGreen.withValues(alpha: 0.1)
-                      : AppStyles.plasmaRed.withValues(alpha: 0.1),
+                      ? AppStyles.gain(context).withValues(alpha: 0.1)
+                      : AppStyles.loss(context).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Row(
@@ -2791,8 +2791,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                           style: TextStyle(
                             fontSize: TypeScale.subhead,
                             color: isPositive
-                                ? AppStyles.bioGreen
-                                : AppStyles.plasmaRed,
+                                ? AppStyles.gain(context)
+                                : AppStyles.loss(context),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -2814,8 +2814,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                           style: TextStyle(
                             fontSize: TypeScale.subhead,
                             color: isPositive
-                                ? AppStyles.bioGreen
-                                : AppStyles.plasmaRed,
+                                ? AppStyles.gain(context)
+                                : AppStyles.loss(context),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -3009,16 +3009,16 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                         vertical: Spacing.xs),
                                     decoration: BoxDecoration(
                                       color: isProfit
-                                          ? AppStyles.bioGreen
+                                          ? AppStyles.gain(context)
                                               .withValues(alpha: 0.15)
-                                          : AppStyles.plasmaRed
+                                          : AppStyles.loss(context)
                                               .withValues(alpha: 0.15),
                                       borderRadius: BorderRadius.circular(8),
                                       border: Border.all(
                                         color: isProfit
-                                            ? AppStyles.bioGreen
+                                            ? AppStyles.gain(context)
                                                 .withValues(alpha: 0.35)
-                                            : AppStyles.plasmaRed
+                                            : AppStyles.loss(context)
                                                 .withValues(alpha: 0.35),
                                         width: 0.8,
                                       ),
@@ -3029,8 +3029,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                         fontSize: TypeScale.footnote,
                                         fontWeight: FontWeight.w800,
                                         color: isProfit
-                                            ? AppStyles.bioGreen
-                                            : AppStyles.plasmaRed,
+                                            ? AppStyles.gain(context)
+                                            : AppStyles.loss(context),
                                       ),
                                     ),
                                   ),
@@ -3104,7 +3104,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
         children: [
           SlidableAction(
             onPressed: (_) => _deleteInvestmentWithConfirmation(investment),
-            backgroundColor: AppStyles.plasmaRed,
+            backgroundColor: AppStyles.loss(context),
             foregroundColor: Colors.white,
             icon: CupertinoIcons.delete,
             label: 'Delete',
@@ -3428,8 +3428,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                               fontSize: TypeScale.subhead,
                                               fontWeight: FontWeight.w700,
                                               color: isProfit
-                                                  ? AppStyles.bioGreen
-                                                  : AppStyles.plasmaRed,
+                                                  ? AppStyles.gain(context)
+                                                  : AppStyles.loss(context),
                                             ),
                                           ),
                                         ],
@@ -3452,16 +3452,16 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                     vertical: Spacing.xs),
                                 decoration: BoxDecoration(
                                   color: isProfit
-                                      ? AppStyles.bioGreen
+                                      ? AppStyles.gain(context)
                                           .withValues(alpha: 0.15)
-                                      : AppStyles.plasmaRed
+                                      : AppStyles.loss(context)
                                           .withValues(alpha: 0.15),
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border.all(
                                     color: isProfit
-                                        ? AppStyles.bioGreen
+                                        ? AppStyles.gain(context)
                                             .withValues(alpha: 0.35)
-                                        : AppStyles.plasmaRed
+                                        : AppStyles.loss(context)
                                             .withValues(alpha: 0.35),
                                     width: 0.8,
                                   ),
@@ -3476,8 +3476,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                         fontSize: TypeScale.footnote,
                                         fontWeight: FontWeight.w800,
                                         color: isProfit
-                                            ? AppStyles.bioGreen
-                                            : AppStyles.plasmaRed,
+                                            ? AppStyles.gain(context)
+                                            : AppStyles.loss(context),
                                       ),
                                     ),
                                     Text(
@@ -3486,9 +3486,9 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                         fontSize: 9.0,
                                         fontWeight: FontWeight.w600,
                                         color: isProfit
-                                            ? AppStyles.bioGreen
+                                            ? AppStyles.gain(context)
                                                 .withValues(alpha: 0.75)
-                                            : AppStyles.plasmaRed
+                                            : AppStyles.loss(context)
                                                 .withValues(alpha: 0.75),
                                       ),
                                     ),

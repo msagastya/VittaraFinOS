@@ -178,13 +178,13 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                 padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color: isProfit
-                      ? AppStyles.bioGreen.withValues(alpha: 0.1)
-                      : AppStyles.plasmaRed.withValues(alpha: 0.1),
+                      ? AppStyles.gain(context).withValues(alpha: 0.1)
+                      : AppStyles.loss(context).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(Radii.md),
                   border: Border.all(
                     color: isProfit
-                        ? AppStyles.bioGreen.withValues(alpha: 0.3)
-                        : AppStyles.plasmaRed.withValues(alpha: 0.3),
+                        ? AppStyles.gain(context).withValues(alpha: 0.3)
+                        : AppStyles.loss(context).withValues(alpha: 0.3),
                   ),
                 ),
                 child: Column(
@@ -202,13 +202,13 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                     _DetailRow(
                       label: 'Total Invested',
                       value: '₹${totalInvested.toStringAsFixed(2)}',
-                      color: AppStyles.plasmaRed,
+                      color: AppStyles.loss(context),
                     ),
                     const SizedBox(height: Spacing.md),
                     _DetailRow(
                       label: 'Total to Receive',
                       value: '₹${totalReceived.toStringAsFixed(2)}',
-                      color: AppStyles.bioGreen,
+                      color: AppStyles.gain(context),
                     ),
                     const SizedBox(height: Spacing.md),
                     Divider(color: AppStyles.getDividerColor(context)),
@@ -218,8 +218,8 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                       value:
                           '${isProfit ? '+' : ''}₹${gainLoss.toStringAsFixed(2)}',
                       color: isProfit
-                          ? AppStyles.bioGreen
-                          : AppStyles.plasmaRed,
+                          ? AppStyles.gain(context)
+                          : AppStyles.loss(context),
                       isBold: true,
                     ),
                     const SizedBox(height: Spacing.sm),
@@ -228,8 +228,8 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                       value:
                           '${isProfit ? '+' : ''}${gainLossPercent.toStringAsFixed(2)}%',
                       color: isProfit
-                          ? AppStyles.bioGreen
-                          : AppStyles.plasmaRed,
+                          ? AppStyles.gain(context)
+                          : AppStyles.loss(context),
                       isBold: true,
                     ),
                     const SizedBox(height: Spacing.sm),
@@ -338,8 +338,8 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                                         fontSize: TypeScale.footnote,
                                         fontWeight: FontWeight.w600,
                                         color: isNegative
-                                            ? AppStyles.plasmaRed
-                                            : AppStyles.bioGreen,
+                                            ? AppStyles.loss(context)
+                                            : AppStyles.gain(context),
                                       ),
                                     ),
                                   ),
@@ -414,7 +414,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
               SizedBox(
                 width: double.infinity,
                 child: CupertinoButton(
-                  color: AppStyles.plasmaRed.withValues(alpha: 0.1),
+                  color: AppStyles.loss(context).withValues(alpha: 0.1),
                   onPressed: () async {
                     showCupertinoDialog(
                       context: context,
@@ -447,9 +447,9 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                       ),
                     );
                   },
-                  child: const Text(
+                  child: Text(
                     'Delete Bond',
-                    style: TextStyle(color: AppStyles.plasmaRed),
+                    style: TextStyle(color: AppStyles.loss(context)),
                   ),
                 ),
               ),

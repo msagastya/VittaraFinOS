@@ -168,7 +168,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
               child: _SummaryMetric(
                 label: 'Active Policies',
                 numericValue: count.toDouble(),
-                color: AppStyles.aetherTeal,
+                color: AppStyles.teal(context),
                 isCurrency: false,
               ),
             ),
@@ -422,29 +422,29 @@ class _PolicyCard extends StatelessWidget {
     }
   }
 
-  Color _colorForType(InsuranceType type) {
+  Color _colorForType(InsuranceType type, BuildContext context) {
     switch (type) {
       case InsuranceType.health:
-        return AppStyles.plasmaRed;
+        return AppStyles.loss(context);
       case InsuranceType.life:
-        return AppStyles.aetherTeal;
+        return AppStyles.teal(context);
       case InsuranceType.term:
-        return AppStyles.novaPurple;
+        return AppStyles.violet(context);
       case InsuranceType.vehicle:
         return AppStyles.accentBlue;
       case InsuranceType.travel:
         return AppStyles.accentOrange;
       case InsuranceType.home:
-        return AppStyles.bioGreen;
+        return AppStyles.gain(context);
       case InsuranceType.other:
-        return AppStyles.solarGold;
+        return AppStyles.gold(context);
     }
   }
 
-  Color _renewalColor() {
-    if (policy.isExpired) return AppStyles.plasmaRed;
+  Color _renewalColor(BuildContext context) {
+    if (policy.isExpired) return AppStyles.loss(context);
     if (policy.isExpiringSoon) return AppStyles.accentOrange;
-    return AppStyles.bioGreen;
+    return AppStyles.gain(context);
   }
 
   String _renewalLabel() {
@@ -500,8 +500,8 @@ class _PolicyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final typeColor = _colorForType(policy.type);
-    final renewalColor = _renewalColor();
+    final typeColor = _colorForType(policy.type, context);
+    final renewalColor = _renewalColor(context);
     final isDark = AppStyles.isDarkMode(context);
 
     return GestureDetector(

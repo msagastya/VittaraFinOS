@@ -32,13 +32,13 @@ class SpendNarrative {
   Color color(bool isDark) {
     switch (level) {
       case SpendInsightLevel.positive:
-        return AppStyles.bioGreen;
+        return isDark ? AppStyles.bioGreen : const Color(0xFF00875A);
       case SpendInsightLevel.warning:
         return AppStyles.accentOrange;
       case SpendInsightLevel.alert:
-        return AppStyles.plasmaRed;
+        return isDark ? AppStyles.plasmaRed : const Color(0xFFCC1A35);
       case SpendInsightLevel.neutral:
-        return AppStyles.aetherTeal;
+        return isDark ? AppStyles.aetherTeal : const Color(0xFF007A6E);
     }
   }
 }
@@ -594,10 +594,10 @@ class SpendForecastBar extends StatelessWidget {
         : elapsed;
 
     final barColor = data.momChange > 20
-        ? AppStyles.plasmaRed
+        ? AppStyles.loss(context)
         : data.momChange > 5
             ? AppStyles.accentOrange
-            : AppStyles.bioGreen;
+            : AppStyles.gain(context);
 
     final trackColor = isDark
         ? Colors.white.withValues(alpha: 0.08)
@@ -742,10 +742,10 @@ class SpendCategoryDriftCard extends StatelessWidget {
     final delta = drift.momDelta;
     final isUp = delta >= 0;
     final barColor = drift.isAnomalous
-        ? AppStyles.plasmaRed
+        ? AppStyles.loss(context)
         : isUp
             ? AppStyles.accentOrange
-            : AppStyles.bioGreen;
+            : AppStyles.gain(context);
     final maxForBar = math.max(drift.thisMonth, drift.lastMonth);
     final thisFrac =
         maxForBar > 0 ? (drift.thisMonth / maxForBar).clamp(0.0, 1.0) : 0.0;
@@ -761,7 +761,7 @@ class SpendCategoryDriftCard extends StatelessWidget {
             : Colors.black.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(Radii.md),
         border: drift.isAnomalous
-            ? Border.all(color: AppStyles.plasmaRed.withValues(alpha: 0.4), width: 1)
+            ? Border.all(color: AppStyles.loss(context).withValues(alpha: 0.4), width: 1)
             : null,
       ),
       child: Column(
@@ -885,11 +885,12 @@ class SpendDowHeatmap extends StatelessWidget {
         final fraction = maxVal > 0 ? (dowSpend[i] / maxVal).clamp(0.0, 1.0) : 0.0;
         final isPeak = dowSpend[i] == maxVal;
         final h = fraction * barH;
+        final peakColor = AppStyles.violet(context);
         final color = isPeak
-            ? AppStyles.novaPurple
+            ? peakColor
             : Color.lerp(
-                AppStyles.novaPurple.withValues(alpha: 0.25),
-                AppStyles.novaPurple.withValues(alpha: 0.7),
+                peakColor.withValues(alpha: 0.25),
+                peakColor.withValues(alpha: 0.7),
                 fraction,
               )!;
 
@@ -905,7 +906,7 @@ class SpendDowHeatmap extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 8,
                       fontWeight: FontWeight.w700,
-                      color: AppStyles.novaPurple,
+                      color: peakColor,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -925,7 +926,7 @@ class SpendDowHeatmap extends StatelessWidget {
                   fontSize: 9,
                   fontWeight: isPeak ? FontWeight.w700 : FontWeight.w500,
                   color: isPeak
-                      ? AppStyles.novaPurple
+                      ? peakColor
                       : AppStyles.getSecondaryTextColor(context),
                 ),
                 textAlign: TextAlign.center,
@@ -956,7 +957,7 @@ class SpendTopMerchantsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (merchants.isEmpty || totalThisMonth == 0) return const SizedBox.shrink();
-    final colors = [AppStyles.aetherTeal, AppStyles.accentBlue, AppStyles.solarGold];
+    final colors = [AppStyles.teal(context), AppStyles.accentBlue, AppStyles.gold(context)];
     return Column(
       children: List.generate(merchants.length, (i) {
         final m = merchants[i];

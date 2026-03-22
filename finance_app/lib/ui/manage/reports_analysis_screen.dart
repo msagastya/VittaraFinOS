@@ -709,29 +709,29 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
               padding: const EdgeInsets.symmetric(
                   horizontal: 14, vertical: 11),
               decoration: BoxDecoration(
-                color: AppStyles.solarGold.withValues(alpha: 0.12),
+                color: AppStyles.gold(context).withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(Radii.md),
                 border: Border.all(
-                    color: AppStyles.solarGold.withValues(alpha: 0.4)),
+                    color: AppStyles.gold(context).withValues(alpha: 0.4)),
               ),
               child: Row(
                 children: [
-                  const Icon(CupertinoIcons.doc_text_fill,
-                      size: 16, color: AppStyles.solarGold),
+                  Icon(CupertinoIcons.doc_text_fill,
+                      size: 16, color: AppStyles.gold(context)),
                   const SizedBox(width: Spacing.sm),
                   Expanded(
                     child: Text(
                       'Tax Summary FY ${_currentFYLabel()}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: TypeScale.footnote,
                         fontWeight: FontWeight.w600,
-                        color: AppStyles.solarGold,
+                        color: AppStyles.gold(context),
                       ),
                     ),
                   ),
                   Icon(CupertinoIcons.chevron_right,
                       size: 14,
-                      color: AppStyles.solarGold
+                      color: AppStyles.gold(context)
                           .withValues(alpha: 0.7)),
                 ],
               ),
@@ -1225,7 +1225,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
         decoration: AppStyles.tabDecoration(
           context,
           selected: true,
-          color: AppStyles.accentTeal.withValues(alpha: 0.72),
+          color: AppStyles.teal(context).withValues(alpha: 0.72),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

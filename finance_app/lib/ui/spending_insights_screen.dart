@@ -146,12 +146,12 @@ class _SummaryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final momColor = data.momChange > 0 ? AppStyles.plasmaRed : AppStyles.bioGreen;
+    final momColor = data.momChange > 0 ? AppStyles.loss(context) : AppStyles.gain(context);
     final srColor = data.savingsRate >= 20
-        ? AppStyles.bioGreen
+        ? AppStyles.gain(context)
         : data.savingsRate >= 5
             ? AppStyles.accentOrange
-            : AppStyles.plasmaRed;
+            : AppStyles.loss(context);
 
     return Row(
       children: [
@@ -160,7 +160,7 @@ class _SummaryRow extends StatelessWidget {
             label: 'Spent',
             value: spendFmt(data.totalThisMonth),
             sub: 'this month',
-            color: AppStyles.aetherTeal,
+            color: AppStyles.teal(context),
             cardBg: cardBg,
           ),
         ),
@@ -340,11 +340,11 @@ class _FullCategoryTable extends StatelessWidget {
         final isLast = entry.key == drifts.length - 1;
         final delta = drift.momDelta;
         final deltaColor = drift.isAnomalous
-            ? AppStyles.plasmaRed
+            ? AppStyles.loss(context)
             : delta > 5
                 ? AppStyles.accentOrange
                 : delta < -5
-                    ? AppStyles.bioGreen
+                    ? AppStyles.gain(context)
                     : AppStyles.getSecondaryTextColor(context);
         final trackColor = isDark
             ? Colors.white.withValues(alpha: 0.07)
@@ -420,8 +420,8 @@ class _FullCategoryTable extends StatelessWidget {
                                   height: 4,
                                   decoration: BoxDecoration(
                                     gradient: LinearGradient(colors: [
-                                      AppStyles.aetherTeal.withValues(alpha: 0.6),
-                                      AppStyles.aetherTeal,
+                                      AppStyles.teal(context).withValues(alpha: 0.6),
+                                      AppStyles.teal(context),
                                     ]),
                                     borderRadius:
                                         BorderRadius.circular(Radii.full),
@@ -563,7 +563,7 @@ class _MonthlyTrendSection extends StatelessWidget {
                           style: TextStyle(
                             fontSize: TypeScale.caption,
                             fontWeight: FontWeight.w800,
-                            color: AppStyles.aetherTeal,
+                            color: AppStyles.teal(context),
                           ),
                         ),
                         if (data.projectedMonthEnd > 0)
@@ -588,11 +588,11 @@ class _MonthlyTrendSection extends StatelessWidget {
                                 4,
                             margin: const EdgeInsets.symmetric(horizontal: Spacing.sm),
                             decoration: BoxDecoration(
-                              color: AppStyles.aetherTeal.withValues(alpha: 0.12),
+                              color: AppStyles.teal(context).withValues(alpha: 0.12),
                               borderRadius:
                                   const BorderRadius.vertical(top: Radius.circular(6)),
                               border: Border.all(
-                                color: AppStyles.aetherTeal.withValues(alpha: 0.3),
+                                color: AppStyles.teal(context).withValues(alpha: 0.3),
                                 width: 1,
                               ),
                             ),
@@ -606,8 +606,8 @@ class _MonthlyTrendSection extends StatelessWidget {
                               begin: Alignment.bottomCenter,
                               end: Alignment.topCenter,
                               colors: [
-                                AppStyles.aetherTeal.withValues(alpha: 0.6),
-                                AppStyles.aetherTeal,
+                                AppStyles.teal(context).withValues(alpha: 0.6),
+                                AppStyles.teal(context),
                               ],
                             ),
                             borderRadius:
@@ -622,7 +622,7 @@ class _MonthlyTrendSection extends StatelessWidget {
                       style: TextStyle(
                         fontSize: TypeScale.caption,
                         fontWeight: FontWeight.w700,
-                        color: AppStyles.aetherTeal,
+                        color: AppStyles.teal(context),
                       ),
                     ),
                     Text(

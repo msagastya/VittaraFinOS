@@ -79,6 +79,36 @@ class AppStyles {
   static bool isDarkMode(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark;
 
+  // ── Theme-Aware Semantic Accent Getters ───────────────────────────────────
+  // These are the CORRECT way to use accent colors — they adapt to light/dark.
+  // Never use bioGreen/plasmaRed/solarGold/aetherTeal directly in UI widgets.
+  // Those constants are designed for AMOLED void; they are harsh in light mode.
+
+  /// Income / gain / success — bio-green in dark, deep forest green in light.
+  static Color gain(BuildContext context) => isDarkMode(context)
+      ? bioGreen // 0xFF00E896 — bioluminescent on void
+      : const Color(0xFF00875A); // deep forest — WCAG AA on light bg
+
+  /// Expense / loss / error — plasma crimson in dark, deep crimson in light.
+  static Color loss(BuildContext context) => isDarkMode(context)
+      ? plasmaRed // 0xFFFF4560 — plasma on void
+      : const Color(0xFFCC1A35); // deep crimson — WCAG AA on light bg
+
+  /// Gold / investment / wealth — solar gold in dark, dark amber in light.
+  static Color gold(BuildContext context) => isDarkMode(context)
+      ? solarGold // 0xFFFFD166 — bioluminescent gold on void
+      : const Color(0xFF9A6800); // dark amber — WCAG AA on light bg
+
+  /// Teal / primary brand — phosphorescent in dark, deep teal in light.
+  static Color teal(BuildContext context) => isDarkMode(context)
+      ? aetherTeal // 0xFF00D4AA — phosphorescent on void
+      : const Color(0xFF007A6E); // deep teal — WCAG AA on light bg
+
+  /// Violet / analytical — nova purple in dark, deeper violet in light.
+  static Color violet(BuildContext context) => isDarkMode(context)
+      ? novaPurple // 0xFF9B7FFF — on void
+      : const Color(0xFF5B3FCC); // deep violet — WCAG AA on light bg
+
   // ── Semantic Color Aliases ────────────────────────────────────────────────
 
   /// Success state — bio-green (gains, confirmations)

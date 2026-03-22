@@ -130,7 +130,7 @@ class _NPSDetailsScreenState extends State<NPSDetailsScreen> {
               SizedBox(
                 width: double.infinity,
                 child: CupertinoButton(
-                  color: AppStyles.plasmaRed.withValues(alpha: 0.1),
+                  color: AppStyles.loss(context).withValues(alpha: 0.1),
                   onPressed: () {
                     showCupertinoDialog(
                       context: context,
@@ -159,8 +159,8 @@ class _NPSDetailsScreenState extends State<NPSDetailsScreen> {
                       ),
                     );
                   },
-                  child: const Text('Delete Account',
-                      style: TextStyle(color: AppStyles.plasmaRed)),
+                  child: Text('Delete Account',
+                      style: TextStyle(color: AppStyles.loss(context))),
                 ),
               ),
               const SizedBox(height: Spacing.xl),
@@ -390,7 +390,7 @@ class _DetailRow extends StatelessWidget {
     Color? color;
     if (isGainLoss) {
       color =
-          isPositive ? AppStyles.bioGreen : AppStyles.plasmaRed;
+          isPositive ? AppStyles.gain(context) : AppStyles.loss(context);
     }
 
     return Row(

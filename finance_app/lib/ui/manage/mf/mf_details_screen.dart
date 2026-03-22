@@ -205,8 +205,8 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
                                 fontWeight: FontWeight.bold,
                                 fontSize: TypeScale.headline,
                                 color: currentValue >= investedAmount
-                                    ? AppStyles.bioGreen
-                                    : AppStyles.plasmaRed,
+                                    ? AppStyles.gain(context)
+                                    : AppStyles.loss(context),
                               ),
                             ),
                           ],
@@ -223,13 +223,13 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
                 padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color: gainPercent >= 0
-                      ? AppStyles.bioGreen.withValues(alpha: 0.1)
-                      : AppStyles.plasmaRed.withValues(alpha: 0.1),
+                      ? AppStyles.gain(context).withValues(alpha: 0.1)
+                      : AppStyles.loss(context).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(Radii.md),
                   border: Border.all(
                     color: gainPercent >= 0
-                        ? AppStyles.bioGreen.withValues(alpha: 0.3)
-                        : AppStyles.plasmaRed.withValues(alpha: 0.3),
+                        ? AppStyles.gain(context).withValues(alpha: 0.3)
+                        : AppStyles.loss(context).withValues(alpha: 0.3),
                   ),
                 ),
                 child: Row(
@@ -252,8 +252,8 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
                             fontWeight: FontWeight.bold,
                             fontSize: TypeScale.headline,
                             color: gainLoss >= 0
-                                ? AppStyles.bioGreen
-                                : AppStyles.plasmaRed,
+                                ? AppStyles.gain(context)
+                                : AppStyles.loss(context),
                           ),
                         ),
                       ],
@@ -275,8 +275,8 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
                             fontWeight: FontWeight.bold,
                             fontSize: TypeScale.headline,
                             color: gainPercent >= 0
-                                ? AppStyles.bioGreen
-                                : AppStyles.plasmaRed,
+                                ? AppStyles.gain(context)
+                                : AppStyles.loss(context),
                           ),
                         ),
                       ],
@@ -300,8 +300,8 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
                     final maxNav = navValues.reduce((a, b) => a > b ? a : b);
                     final isUp = navValues.last >= navValues.first;
                     final lineColor = isUp
-                        ? AppStyles.bioGreen
-                        : AppStyles.plasmaRed;
+                        ? AppStyles.gain(context)
+                        : AppStyles.loss(context);
 
                     return Column(
                       children: [
@@ -481,14 +481,14 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
                     context,
                     icon: CupertinoIcons.plus_circle_fill,
                     label: 'Buy More',
-                    color: AppStyles.bioGreen,
+                    color: AppStyles.gain(context),
                     onTap: () => _showBuyMoreWizard(context),
                   ),
                   _buildActionButton(
                     context,
                     icon: CupertinoIcons.minus_circle_fill,
                     label: 'Sell',
-                    color: AppStyles.plasmaRed,
+                    color: AppStyles.loss(context),
                     onTap: () => _showSellWizard(context),
                   ),
                   _buildActionButton(
@@ -516,7 +516,7 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
                     context,
                     icon: CupertinoIcons.trash_circle_fill,
                     label: 'Delete',
-                    color: AppStyles.plasmaRed,
+                    color: AppStyles.loss(context),
                     onTap: () => _showDeleteConfirmation(context),
                   ),
                 ],
@@ -562,7 +562,7 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
     final isDividend = type == 'dividend';
     final color = isDividend
         ? const Color(0xFFFFB800)
-        : isSell ? AppStyles.bioGreen : CupertinoColors.systemIndigo;
+        : isSell ? AppStyles.gain(context) : CupertinoColors.systemIndigo;
     final icon = isDividend
         ? CupertinoIcons.money_dollar_circle_fill
         : isSell ? CupertinoIcons.arrow_up_circle_fill : CupertinoIcons.arrow_down_circle_fill;

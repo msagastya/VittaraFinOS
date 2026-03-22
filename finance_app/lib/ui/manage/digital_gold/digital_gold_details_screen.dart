@@ -219,8 +219,8 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                                 fontWeight: FontWeight.bold,
                                 fontSize: TypeScale.headline,
                                 color: currentValue >= investedAmount
-                                    ? AppStyles.bioGreen
-                                    : AppStyles.plasmaRed,
+                                    ? AppStyles.gain(context)
+                                    : AppStyles.loss(context),
                               ),
                             ),
                           ],
@@ -237,13 +237,13 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                 padding: const EdgeInsets.all(Spacing.lg),
                 decoration: BoxDecoration(
                   color: gainPercent >= 0
-                      ? AppStyles.bioGreen.withValues(alpha: 0.1)
-                      : AppStyles.plasmaRed.withValues(alpha: 0.1),
+                      ? AppStyles.gain(context).withValues(alpha: 0.1)
+                      : AppStyles.loss(context).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: gainPercent >= 0
-                        ? AppStyles.bioGreen.withValues(alpha: 0.3)
-                        : AppStyles.plasmaRed.withValues(alpha: 0.3),
+                        ? AppStyles.gain(context).withValues(alpha: 0.3)
+                        : AppStyles.loss(context).withValues(alpha: 0.3),
                   ),
                 ),
                 child: Row(
@@ -266,8 +266,8 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                             fontWeight: FontWeight.bold,
                             fontSize: TypeScale.headline,
                             color: gainLoss >= 0
-                                ? AppStyles.bioGreen
-                                : AppStyles.plasmaRed,
+                                ? AppStyles.gain(context)
+                                : AppStyles.loss(context),
                           ),
                         ),
                       ],
@@ -289,8 +289,8 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                             fontWeight: FontWeight.bold,
                             fontSize: TypeScale.headline,
                             color: gainPercent >= 0
-                                ? AppStyles.bioGreen
-                                : AppStyles.plasmaRed,
+                                ? AppStyles.gain(context)
+                                : AppStyles.loss(context),
                           ),
                         ),
                       ],
@@ -392,7 +392,7 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                     context,
                     icon: CupertinoIcons.trash_circle_fill,
                     label: 'Delete',
-                    color: AppStyles.plasmaRed,
+                    color: AppStyles.loss(context),
                     onTap: _showDeleteConfirmation,
                   ),
                 ],

@@ -324,13 +324,13 @@ class _AccountsScreenState extends State<AccountsScreen> {
         ),
         child: Row(
           children: [
-            _buildSummaryColumn('Assets', assets, AppStyles.bioGreen),
+            _buildSummaryColumn('Assets', assets, AppStyles.gain(context)),
             _buildDivider(),
             _buildSummaryColumn(
-                'Liabilities', liabilities, AppStyles.plasmaRed),
+                'Liabilities', liabilities, AppStyles.loss(context)),
             _buildDivider(),
             _buildSummaryColumn('Net Worth', net,
-                net >= 0 ? AppStyles.accentBlue : AppStyles.plasmaRed),
+                net >= 0 ? AppStyles.accentBlue : AppStyles.loss(context)),
           ],
         ),
       ),
@@ -686,11 +686,11 @@ class _AccountsScreenState extends State<AccountsScreen> {
                       vertical: Spacing.md,
                     ),
                     decoration: BoxDecoration(
-                      color: AppStyles.bioGreen,
+                      color: AppStyles.gain(context),
                       borderRadius: BorderRadius.circular(Radii.md),
                       boxShadow: [
                         BoxShadow(
-                          color: AppStyles.bioGreen
+                          color: AppStyles.gain(context)
                               .withValues(alpha: 0.4),
                           blurRadius: 12,
                           offset: const Offset(0, 6),
@@ -1318,10 +1318,10 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                         Clipboard.setData(const ClipboardData(text: ''));
                                       });
                                     }, minimumSize: const Size(28, 28),
-                                    child: const Icon(
+                                    child: Icon(
                                       CupertinoIcons.doc_on_doc,
                                       size: 18,
-                                      color: AppStyles.aetherTeal,
+                                      color: AppStyles.teal(dragContext),
                                     ),
                                   ),
                                 ],
@@ -1379,8 +1379,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                       const SizedBox(height: Spacing.xs),
                                       Text(
                                         '₹${((account.creditLimit ?? 0.0) - account.balance).toStringAsFixed(2)}',
-                                        style: const TextStyle(
-                                          color: AppStyles.plasmaRed,
+                                        style: TextStyle(
+                                          color: AppStyles.loss(dragContext),
                                           fontSize: TypeScale.headline,
                                           fontWeight: FontWeight.w600,
                                         ),
@@ -1452,19 +1452,19 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                       ),
                                     );
                                   },
-                                  child: const Row(
+                                  child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Icon(
                                         CupertinoIcons.list_bullet,
                                         size: 14,
-                                        color: AppStyles.aetherTeal,
+                                        color: AppStyles.teal(dragContext),
                                       ),
-                                      SizedBox(width: 4),
+                                      const SizedBox(width: 4),
                                       Text(
                                         'View All',
                                         style: TextStyle(
-                                          color: AppStyles.aetherTeal,
+                                          color: AppStyles.teal(dragContext),
                                           fontSize: TypeScale.footnote,
                                           fontWeight: FontWeight.w600,
                                         ),
@@ -1502,16 +1502,16 @@ class _AccountsScreenState extends State<AccountsScreen> {
                               Color amtColor;
                               String prefix;
                               if (isSend) {
-                                amtColor = AppStyles.plasmaRed;
+                                amtColor = AppStyles.loss(dragContext);
                                 prefix = '−';
                               } else if (isReceive) {
-                                amtColor = AppStyles.bioGreen;
+                                amtColor = AppStyles.gain(dragContext);
                                 prefix = '+';
                               } else if (isExpense) {
-                                amtColor = AppStyles.plasmaRed;
+                                amtColor = AppStyles.loss(dragContext);
                                 prefix = '−';
                               } else {
-                                amtColor = AppStyles.bioGreen;
+                                amtColor = AppStyles.gain(dragContext);
                                 prefix = '+';
                               }
                               final label = (meta['categoryName'] as String?) ??
@@ -1591,24 +1591,24 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                     padding: const EdgeInsets.symmetric(
                                         vertical: 12),
                                     decoration: BoxDecoration(
-                                      color: AppStyles.bioGreen
+                                      color: AppStyles.gain(modalContext)
                                           .withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
-                                    child: const Row(
+                                    child: Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.center,
                                       children: [
                                         Icon(
                                           CupertinoIcons.arrow_up_down_circle,
                                           size: 16,
-                                          color: AppStyles.bioGreen,
+                                          color: AppStyles.gain(modalContext),
                                         ),
-                                        SizedBox(width: 6),
+                                        const SizedBox(width: 6),
                                         Text(
                                           'Adjust Balance',
                                           style: TextStyle(
-                                            color: AppStyles.bioGreen,
+                                            color: AppStyles.gain(modalContext),
                                             fontSize: TypeScale.body,
                                             fontWeight: FontWeight.w600,
                                           ),
@@ -1713,24 +1713,24 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                     padding: const EdgeInsets.symmetric(
                                         vertical: 12),
                                     decoration: BoxDecoration(
-                                      color: AppStyles.plasmaRed
+                                      color: AppStyles.loss(modalContext)
                                           .withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
-                                    child: const Row(
+                                    child: Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.center,
                                       children: [
                                         Icon(
                                           CupertinoIcons.trash,
                                           size: 16,
-                                          color: AppStyles.plasmaRed,
+                                          color: AppStyles.loss(modalContext),
                                         ),
-                                        SizedBox(width: 6),
+                                        const SizedBox(width: 6),
                                         Text(
                                           'Delete',
                                           style: TextStyle(
-                                            color: AppStyles.plasmaRed,
+                                            color: AppStyles.loss(modalContext),
                                             fontSize: TypeScale.body,
                                             fontWeight: FontWeight.w600,
                                           ),
@@ -1827,7 +1827,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                         vertical: 10),
                                     decoration: BoxDecoration(
                                       color: isAdding
-                                          ? AppStyles.bioGreen
+                                          ? AppStyles.gain(context)
                                           : Colors.transparent,
                                       borderRadius: BorderRadius.circular(10),
                                     ),
@@ -1871,7 +1871,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                         vertical: 10),
                                     decoration: BoxDecoration(
                                       color: !isAdding
-                                          ? AppStyles.plasmaRed
+                                          ? AppStyles.loss(context)
                                           : Colors.transparent,
                                       borderRadius: BorderRadius.circular(10),
                                     ),

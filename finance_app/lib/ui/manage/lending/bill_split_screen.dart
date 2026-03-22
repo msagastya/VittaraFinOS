@@ -375,7 +375,7 @@ class _BillSplitScreenState extends State<BillSplitScreen> {
                 Text(
                   'Select at least one participant.',
                   style: TextStyle(
-                    color: AppStyles.plasmaRed,
+                    color: AppStyles.loss(context),
                     fontSize: TypeScale.caption,
                   ),
                 ),
@@ -435,7 +435,7 @@ class _BillSplitScreenState extends State<BillSplitScreen> {
                     style: TextStyle(
                       color: (_totalPercent - 100).abs() < 0.01
                           ? SemanticColors.success
-                          : AppStyles.plasmaRed,
+                          : AppStyles.loss(context),
                       fontSize: TypeScale.caption,
                       fontWeight: FontWeight.w600,
                     ),
@@ -598,8 +598,8 @@ class _BillSplitScreenState extends State<BillSplitScreen> {
             ),
           ),
           if (_submitted && _totalAmount <= 0)
-            const Icon(CupertinoIcons.exclamationmark_circle,
-                color: AppStyles.plasmaRed, size: 18),
+            Icon(CupertinoIcons.exclamationmark_circle,
+                color: AppStyles.loss(context), size: 18),
         ],
       ),
     );

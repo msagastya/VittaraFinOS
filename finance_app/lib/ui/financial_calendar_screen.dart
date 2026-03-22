@@ -73,28 +73,31 @@ extension CalendarEventTypeX on CalendarEventType {
     }
   }
 
-  Color get color {
+  Color colorFor(bool isDark) {
     switch (this) {
       case CalendarEventType.fd:
-        return AppStyles.solarGold;
+        return isDark ? AppStyles.solarGold : const Color(0xFF9A6800);
       case CalendarEventType.rd:
         return AppStyles.accentOrange;
       case CalendarEventType.rdPayment:
         return const Color(0xFFFF8C42);
       case CalendarEventType.sip:
-        return AppStyles.aetherTeal;
+        return isDark ? AppStyles.aetherTeal : const Color(0xFF007A6E);
       case CalendarEventType.bill:
-        return AppStyles.plasmaRed;
+        return isDark ? AppStyles.plasmaRed : const Color(0xFFCC1A35);
       case CalendarEventType.goal:
-        return AppStyles.novaPurple;
+        return isDark ? AppStyles.novaPurple : const Color(0xFF5B3FCC);
       case CalendarEventType.budgetReset:
-        return AppStyles.bioGreen;
+        return isDark ? AppStyles.bioGreen : const Color(0xFF00875A);
       case CalendarEventType.insurance:
         return AppStyles.accentBlue;
       case CalendarEventType.loanEmi:
         return const Color(0xFFFF6D00);
     }
   }
+
+  // Keep for compatibility when isDark context is not available
+  Color get color => colorFor(true);
 
   IconData get icon {
     switch (this) {
@@ -331,7 +334,7 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
                     'This Month',
                     style: TextStyle(
                       fontSize: TypeScale.caption,
-                      color: AppStyles.aetherTeal,
+                      color: AppStyles.teal(context),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -355,19 +358,19 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
                 padding: const EdgeInsets.symmetric(
                     horizontal: Spacing.sm, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppStyles.aetherTeal.withValues(alpha: 0.12),
+                  color: AppStyles.teal(context).withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(Radii.full),
                   border: Border.all(
-                    color: AppStyles.aetherTeal.withValues(alpha: 0.3),
+                    color: AppStyles.teal(context).withValues(alpha: 0.3),
                     width: 0.8,
                   ),
                 ),
-                child: const Text(
+                child: Text(
                   'Today',
                   style: TextStyle(
                     fontSize: TypeScale.caption,
                     fontWeight: FontWeight.w700,
-                    color: AppStyles.aetherTeal,
+                    color: AppStyles.teal(context),
                   ),
                 ),
               ),
@@ -511,7 +514,7 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
           // "All" chip
           _FilterChip(
             label: 'All',
-            color: AppStyles.aetherTeal,
+            color: AppStyles.teal(context),
             isSelected: _filterType == null,
             onTap: () => setState(() => _filterType = null),
           ),
@@ -519,7 +522,7 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
                 padding: const EdgeInsets.only(left: Spacing.sm),
                 child: _FilterChip(
                   label: type.filterLabel,
-                  color: type.color,
+                  color: type.colorFor(AppStyles.isDarkMode(context)),
                   isSelected: _filterType == type,
                   onTap: () => setState(() {
                     _filterType =
@@ -579,15 +582,15 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
                   padding: const EdgeInsets.symmetric(
                       horizontal: Spacing.sm, vertical: 2),
                   decoration: BoxDecoration(
-                    color: AppStyles.aetherTeal.withValues(alpha: 0.12),
+                    color: AppStyles.teal(context).withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(Radii.full),
                   ),
                   child: Text(
                     '${events.length}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: TypeScale.caption,
                       fontWeight: FontWeight.w700,
-                      color: AppStyles.aetherTeal,
+                      color: AppStyles.teal(context),
                     ),
                   ),
                 ),
@@ -1044,8 +1047,9 @@ class _DayCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Collect distinct type colors (max 3)
+    final isDark = AppStyles.isDarkMode(context);
     final typeColors = events
-        .map((e) => e.type.color)
+        .map((e) => e.type.colorFor(isDark))
         .toSet()
         .take(3)
         .toList();
@@ -1055,7 +1059,7 @@ class _DayCell extends StatelessWidget {
     if (isSelected) {
       numberColor = Colors.white;
     } else if (isToday) {
-      numberColor = AppStyles.aetherTeal;
+      numberColor = AppStyles.teal(context);
     } else if (isSunday) {
       numberColor = const Color(0xFFFF3B30).withValues(alpha: 0.7);
     } else {
@@ -1077,9 +1081,9 @@ class _DayCell extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: isSelected
-                  ? AppStyles.aetherTeal
+                  ? AppStyles.teal(context)
                   : isToday
-                      ? AppStyles.aetherTeal.withValues(alpha: 0.15)
+                      ? AppStyles.teal(context).withValues(alpha: 0.15)
                       : Colors.transparent,
             ),
             child: Center(
@@ -1200,7 +1204,7 @@ class _EventTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = AppStyles.isDarkMode(context);
-    final color = event.type.color;
+    final color = event.type.colorFor(isDark);
     final icon = event.type.icon;
 
     final now = DateTime.now();
@@ -1213,7 +1217,7 @@ class _EventTile extends StatelessWidget {
     final Color daysColor;
     if (daysUntil == 0) {
       daysLabel = 'Today';
-      daysColor = AppStyles.plasmaRed;
+      daysColor = AppStyles.loss(context);
     } else if (daysUntil == 1) {
       daysLabel = 'Tomorrow';
       daysColor = AppStyles.accentOrange;

@@ -825,7 +825,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
               _buildStatCell(
                 label: 'Income',
                 value: totalIncome,
-                color: AppStyles.bioGreen,
+                color: AppStyles.gain(context),
                 icon: CupertinoIcons.arrow_down_circle_fill,
               ),
               VerticalDivider(
@@ -847,7 +847,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
               _buildStatCell(
                 label: 'Net',
                 value: net.abs(),
-                color: netPositive ? AppStyles.bioGreen : CupertinoColors.systemRed,
+                color: netPositive ? AppStyles.gain(context) : CupertinoColors.systemRed,
                 icon: netPositive
                     ? CupertinoIcons.chart_bar_alt_fill
                     : CupertinoIcons.arrow_down_right_circle_fill,
@@ -1035,10 +1035,10 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                     width: 3,
                     height: 13,
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
+                      gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: [AppStyles.accentBlue, AppStyles.accentTeal],
+                        colors: [AppStyles.accentBlue, AppStyles.teal(context)],
                       ),
                       borderRadius: BorderRadius.circular(2),
                     ),
@@ -1069,7 +1069,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                       style: TextStyle(
                         fontSize: TypeScale.caption,
                         fontWeight: FontWeight.w600,
-                        color: AppStyles.bioGreen.withValues(alpha: 0.8),
+                        color: AppStyles.gain(context).withValues(alpha: 0.8),
                       ),
                     ),
                   if (dayIncome > 0 && dayExpense > 0)
@@ -1120,15 +1120,15 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: AppStyles.aetherTeal.withValues(alpha: 0.15),
+                    color: AppStyles.teal(context).withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                     border: Border.all(
-                        color: AppStyles.aetherTeal.withValues(alpha: 0.5)),
+                        color: AppStyles.teal(context).withValues(alpha: 0.5)),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     CupertinoIcons.arrow_up,
                     size: 18,
-                    color: AppStyles.aetherTeal,
+                    color: AppStyles.teal(context),
                   ),
                 ),
               ),
@@ -1149,7 +1149,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     final typeColor = isDividend
         ? const Color(0xFFFFB800) // amber for dividends
         : isSell
-            ? AppStyles.bioGreen
+            ? AppStyles.gain(context)
             : transaction.type.typeColor;
     final typeIcon = isDividend
         ? CupertinoIcons.money_dollar_circle_fill
@@ -1171,7 +1171,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                 SlidableAction(
                   onPressed: (_) =>
                       _archiveTransaction(transaction, controller, archiveCtrl),
-                  backgroundColor: AppStyles.aetherTeal,
+                  backgroundColor: AppStyles.teal(context),
                   foregroundColor: CupertinoColors.white,
                   icon: CupertinoIcons.archivebox_fill,
                   borderRadius: BorderRadius.circular(Radii.lg),
@@ -1257,30 +1257,30 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 6, vertical: 2),
                                       decoration: BoxDecoration(
-                                        color: AppStyles.aetherTeal
+                                        color: AppStyles.teal(context)
                                             .withValues(alpha: 0.12),
                                         borderRadius: BorderRadius.circular(4),
                                         border: Border.all(
-                                          color: AppStyles.aetherTeal
+                                          color: AppStyles.teal(context)
                                               .withValues(alpha: 0.35),
                                           width: 0.5,
                                         ),
                                       ),
-                                      child: const Row(
+                                      child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Icon(
                                             CupertinoIcons.arrow_right_arrow_left,
                                             size: 9,
-                                            color: AppStyles.aetherTeal,
+                                            color: AppStyles.teal(context),
                                           ),
-                                          SizedBox(width: 3),
+                                          const SizedBox(width: 3),
                                           Text(
                                             'Transfer',
                                             style: TextStyle(
                                               fontSize: 10,
                                               fontWeight: FontWeight.w600,
-                                              color: AppStyles.aetherTeal,
+                                              color: AppStyles.teal(context),
                                               letterSpacing: 0.2,
                                             ),
                                           ),
@@ -1418,22 +1418,22 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: AppStyles.plasmaRed.withValues(alpha: 0.1),
+          color: AppStyles.loss(context).withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: const Row(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               CupertinoIcons.trash,
               size: 16,
-              color: AppStyles.plasmaRed,
+              color: AppStyles.loss(context),
             ),
-            SizedBox(width: 6),
+            const SizedBox(width: 6),
             Text(
               'Delete Transaction',
               style: TextStyle(
-                color: AppStyles.plasmaRed,
+                color: AppStyles.loss(context),
                 fontSize: TypeScale.body,
                 fontWeight: FontWeight.w600,
               ),

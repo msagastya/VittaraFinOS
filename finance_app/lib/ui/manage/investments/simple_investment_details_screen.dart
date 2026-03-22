@@ -127,7 +127,7 @@ class _SimpleInvestmentDetailsScreenState
               SizedBox(
                 width: double.infinity,
                 child: CupertinoButton(
-                  color: AppStyles.plasmaRed.withValues(alpha: 0.1),
+                  color: AppStyles.loss(context).withValues(alpha: 0.1),
                   onPressed: () {
                     showCupertinoDialog(
                       context: context,
@@ -156,8 +156,8 @@ class _SimpleInvestmentDetailsScreenState
                       ),
                     );
                   },
-                  child: const Text('Delete Investment',
-                      style: TextStyle(color: AppStyles.plasmaRed)),
+                  child: Text('Delete Investment',
+                      style: TextStyle(color: AppStyles.loss(context))),
                 ),
               ),
               const SizedBox(height: Spacing.xl),
@@ -197,7 +197,7 @@ class _SimpleInvestmentDetailsScreenState
           final isDividend = type == 'dividend';
           final color = isDividend
               ? const Color(0xFFFFB800)
-              : isSell ? AppStyles.bioGreen : CupertinoColors.systemIndigo;
+              : isSell ? AppStyles.gain(context) : CupertinoColors.systemIndigo;
           final icon = isDividend
               ? CupertinoIcons.money_dollar_circle_fill
               : isSell ? CupertinoIcons.arrow_up_circle_fill : CupertinoIcons.arrow_down_circle_fill;
@@ -502,7 +502,7 @@ class _DetailRow extends StatelessWidget {
     Color? color;
     if (isGainLoss) {
       color =
-          isPositive ? AppStyles.bioGreen : AppStyles.plasmaRed;
+          isPositive ? AppStyles.gain(context) : AppStyles.loss(context);
     }
 
     return Row(

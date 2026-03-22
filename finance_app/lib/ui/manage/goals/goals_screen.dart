@@ -817,7 +817,7 @@ class _GoalArcProgress extends StatelessWidget {
                   fontSize: 11,
                   fontWeight: FontWeight.w800,
                   color: progress >= 1.0
-                      ? AppStyles.bioGreen
+                      ? AppStyles.gain(context)
                       : color,
                 ),
               ),

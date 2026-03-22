@@ -39,14 +39,14 @@ class TransactionDetailsContent extends StatelessWidget {
             margin: const EdgeInsets.symmetric(horizontal: 24),
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(
-              color: _getTransactionColor().withValues(alpha: 0.15),
+              color: _getTransactionColor(context).withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(_getTransactionIcon(),
-                    color: _getTransactionColor(), size: 32),
+                    color: _getTransactionColor(context), size: 32),
                 const SizedBox(height: Spacing.md),
                 Text(
                   transaction.getTypeLabel(),
@@ -84,7 +84,7 @@ class TransactionDetailsContent extends StatelessWidget {
                   '₹${transaction.amount.toStringAsFixed(2)}',
                   style: AppStyles.titleStyle(context).copyWith(
                     fontSize: TypeScale.largeTitle,
-                    color: _getTransactionColor(),
+                    color: _getTransactionColor(context),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -227,7 +227,7 @@ class TransactionDetailsContent extends StatelessWidget {
     if (transaction.cashbackAmount != null && transaction.cashbackAmount! > 0) {
       maybeAdd('Cashback Amount',
           '₹${transaction.cashbackAmount!.toStringAsFixed(2)}',
-          forceColor: AppStyles.bioGreen);
+          forceColor: AppStyles.gain(context));
       maybeAdd('Cashback Flow',
           metadata['cashbackFlow'] as String? ?? 'Payment App');
       maybeAdd('Cashback Account', transaction.cashbackAccountName);
@@ -253,7 +253,7 @@ class TransactionDetailsContent extends StatelessWidget {
         transaction.charges != null &&
         transaction.charges! > 0) {
       maybeAdd('Charges', '₹${transaction.charges!.toStringAsFixed(2)}',
-          forceColor: AppStyles.plasmaRed);
+          forceColor: AppStyles.loss(context));
     }
 
     final transferRef = metadata['transferRef'] as String?;
@@ -318,22 +318,22 @@ class TransactionDetailsContent extends StatelessWidget {
     }
   }
 
-  Color _getTransactionColor() {
+  Color _getTransactionColor(BuildContext context) {
     switch (transaction.type) {
       case TransactionType.transfer:
         return CupertinoColors.systemBlue;
       case TransactionType.cashback:
-        return AppStyles.bioGreen;
+        return AppStyles.gain(context);
       case TransactionType.lending:
         return CupertinoColors.systemOrange;
       case TransactionType.borrowing:
         return CupertinoColors.systemPurple;
       case TransactionType.investment:
-        return AppStyles.plasmaRed;
+        return AppStyles.loss(context);
       case TransactionType.expense:
-        return AppStyles.plasmaRed;
+        return AppStyles.loss(context);
       case TransactionType.income:
-        return AppStyles.bioGreen;
+        return AppStyles.gain(context);
     }
   }
 
@@ -378,7 +378,7 @@ class _BalanceSnapshotCard extends StatelessWidget {
   Widget _buildRegularCard(BuildContext ctx) {
     final b = balanceAfter ?? 0;
     final isNegative = b < 0;
-    final color = isNegative ? AppStyles.plasmaRed : AppStyles.bioGreen;
+    final color = isNegative ? AppStyles.loss(ctx) : AppStyles.gain(ctx);
 
     return Container(
       padding: const EdgeInsets.all(Spacing.lg),
@@ -442,10 +442,10 @@ class _BalanceSnapshotCard extends StatelessWidget {
     final usedRatio = limit > 0 ? (used / limit).clamp(0.0, 1.0) : 0.0;
 
     final barColor = usedRatio < 0.3
-        ? AppStyles.bioGreen
+        ? AppStyles.gain(ctx)
         : usedRatio < 0.7
             ? CupertinoColors.systemOrange
-            : AppStyles.plasmaRed;
+            : AppStyles.loss(ctx);
 
     return Container(
       padding: const EdgeInsets.all(Spacing.lg),
@@ -519,13 +519,13 @@ class _BalanceSnapshotCard extends StatelessWidget {
           Row(
             children: [
               _stat(ctx, 'Used', '₹${used.toStringAsFixed(0)}',
-                  AppStyles.plasmaRed),
+                  AppStyles.loss(ctx)),
               const SizedBox(width: Spacing.lg),
               _stat(ctx, 'Limit', '₹${limit.toStringAsFixed(0)}',
                   AppStyles.getSecondaryTextColor(ctx)),
               const Spacer(),
               _stat(ctx, 'Available', '₹${available.toStringAsFixed(0)}',
-                  AppStyles.bioGreen),
+                  AppStyles.gain(ctx)),
             ],
           ),
         ],

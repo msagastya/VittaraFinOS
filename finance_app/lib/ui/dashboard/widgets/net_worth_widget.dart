@@ -29,20 +29,20 @@ String _nwFmt(double v) {
 // Account type helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-Color _accountTypeColor(AccountType type) {
+Color _accountTypeColor(AccountType type, BuildContext context) {
   switch (type) {
     case AccountType.savings:
     case AccountType.current:
-      return AppStyles.aetherTeal;
+      return AppStyles.teal(context);
     case AccountType.credit:
     case AccountType.payLater:
-      return AppStyles.plasmaRed;
+      return AppStyles.loss(context);
     case AccountType.wallet:
       return AppStyles.accentOrange;
     case AccountType.investment:
-      return AppStyles.novaPurple;
+      return AppStyles.violet(context);
     case AccountType.cash:
-      return AppStyles.solarGold;
+      return AppStyles.gold(context);
   }
 }
 
@@ -73,12 +73,18 @@ class _AllocationRingPainter extends CustomPainter {
   final double investments;
   final double debt;
   final double total;
+  final Color savingsColor;
+  final Color investmentsColor;
+  final Color debtColor;
 
   _AllocationRingPainter({
     required this.savings,
     required this.investments,
     required this.debt,
     required this.total,
+    required this.savingsColor,
+    required this.investmentsColor,
+    required this.debtColor,
   });
 
   @override
@@ -135,15 +141,15 @@ class _AllocationRingPainter extends CustomPainter {
 
     // Savings — green
     double cursor = startAngle;
-    drawArc(cursor, sAngle, AppStyles.bioGreen);
+    drawArc(cursor, sAngle, savingsColor);
     cursor += sAngle + gapRad;
 
     // Investments — teal
-    drawArc(cursor, iAngle, AppStyles.aetherTeal);
+    drawArc(cursor, iAngle, investmentsColor);
     cursor += iAngle + gapRad;
 
     // Debt — red
-    drawArc(cursor, dAngle, AppStyles.plasmaRed);
+    drawArc(cursor, dAngle, debtColor);
   }
 
   @override
@@ -151,7 +157,10 @@ class _AllocationRingPainter extends CustomPainter {
       old.savings != savings ||
       old.investments != investments ||
       old.debt != debt ||
-      old.total != total;
+      old.total != total ||
+      old.savingsColor != savingsColor ||
+      old.investmentsColor != investmentsColor ||
+      old.debtColor != debtColor;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -181,6 +190,9 @@ class _AllocationRing extends StatelessWidget {
           investments: investments,
           debt: debt,
           total: total,
+          savingsColor: AppStyles.gain(context),
+          investmentsColor: AppStyles.teal(context),
+          debtColor: AppStyles.loss(context),
         ),
         child: Center(
           child: Text(
@@ -333,10 +345,10 @@ class _NetWorthBodyState extends State<_NetWorthBody> {
   @override
   Widget build(BuildContext context) {
     final nw = widget.totalNetWorth;
-    final nwColor = nw >= 0 ? AppStyles.bioGreen : AppStyles.plasmaRed;
+    final nwColor = nw >= 0 ? AppStyles.gain(context) : AppStyles.loss(context);
     final trend = widget.momTrendPct;
     final trendPositive = trend >= 0;
-    final trendColor = trendPositive ? AppStyles.bioGreen : AppStyles.plasmaRed;
+    final trendColor = trendPositive ? AppStyles.gain(context) : AppStyles.loss(context);
     final trendLabel = trendPositive
         ? '+${trend.toStringAsFixed(1)}% this month'
         : '${trend.toStringAsFixed(1)}% this month';
@@ -427,19 +439,19 @@ class _NetWorthBodyState extends State<_NetWorthBody> {
                     Flexible(
                       flex: (widget.totalSavings / allocationTotal * 1000)
                           .round(),
-                      child: Container(color: AppStyles.bioGreen),
+                      child: Container(color: AppStyles.gain(context)),
                     ),
                   if (widget.totalInvestments > 0)
                     Flexible(
                       flex: (widget.totalInvestments / allocationTotal * 1000)
                           .round(),
-                      child: Container(color: AppStyles.aetherTeal),
+                      child: Container(color: AppStyles.teal(context)),
                     ),
                   if (widget.totalCreditUsed > 0)
                     Flexible(
                       flex: (widget.totalCreditUsed / allocationTotal * 1000)
                           .round(),
-                      child: Container(color: AppStyles.plasmaRed),
+                      child: Container(color: AppStyles.loss(context)),
                     ),
                   // Ensure at least a tiny sliver visible when all are 0
                   if (widget.totalSavings <= 0 &&
@@ -461,17 +473,17 @@ class _NetWorthBodyState extends State<_NetWorthBody> {
           Row(
             children: [
               _LegendItem(
-                color: AppStyles.bioGreen,
+                color: AppStyles.gain(context),
                 label: 'Savings',
                 value: widget.totalSavings,
               ),
               _LegendItem(
-                color: AppStyles.aetherTeal,
+                color: AppStyles.teal(context),
                 label: 'Investments',
                 value: widget.totalInvestments,
               ),
               _LegendItem(
-                color: AppStyles.plasmaRed,
+                color: AppStyles.loss(context),
                 label: 'Debt',
                 value: widget.totalCreditUsed,
               ),
@@ -504,7 +516,7 @@ class _NetWorthBodyState extends State<_NetWorthBody> {
               onPageChanged: (i) => setState(() => _carouselPage = i),
               itemBuilder: (_, i) {
                 final account = widget.accounts[i];
-                final color = _accountTypeColor(account.type);
+                final color = _accountTypeColor(account.type, context);
                 final icon = _accountTypeIcon(account.type);
                 final isDebt = account.type == AccountType.credit ||
                     account.type == AccountType.payLater;
@@ -576,7 +588,7 @@ class _NetWorthBodyState extends State<_NetWorthBody> {
               children: List.generate(widget.accounts.length, (i) {
                 final active = i == _carouselPage;
                 final color =
-                    _accountTypeColor(widget.accounts[i].type);
+                    _accountTypeColor(widget.accounts[i].type, context);
                 return AnimatedContainer(
                   duration: const Duration(milliseconds: 250),
                   margin: const EdgeInsets.symmetric(horizontal: 2.5),
