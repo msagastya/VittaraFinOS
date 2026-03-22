@@ -156,6 +156,8 @@ class NotificationsPage extends StatelessWidget {
               return SingleChildScrollView(
                 child: Column(
                   children: [
+                    if (AppStyles.isLandscape(context))
+                      _buildLandscapeNavBar(context),
                     // Financial Calendar shortcut
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
@@ -835,6 +837,28 @@ class NotificationsPage extends StatelessWidget {
             },
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildLandscapeNavBar(BuildContext context) {
+    return Container(
+      height: 40,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            minimumSize: Size.zero,
+            onPressed: () => Navigator.maybePop(context),
+            child: Icon(CupertinoIcons.chevron_left, size: 20,
+                color: AppStyles.getPrimaryColor(context)),
+          ),
+          const SizedBox(width: 8),
+          Text('NOTIFICATIONS',
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
+                  color: AppStyles.getTextColor(context), letterSpacing: 1.1)),
+        ],
       ),
     );
   }

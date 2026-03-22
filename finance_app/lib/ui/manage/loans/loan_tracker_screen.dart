@@ -8,6 +8,7 @@ import 'package:vittara_fin_os/ui/manage/loans/loan_wizard.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
+import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/widgets/animated_counter.dart' as counter_widgets;
@@ -53,6 +54,10 @@ class _LoanTrackerScreenState extends State<LoanTrackerScreen> {
                 child: CustomScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   slivers: [
+                    if (AppStyles.isLandscape(context))
+                      SliverToBoxAdapter(
+                        child: _buildLandscapeNavBar(context),
+                      ),
                     SliverToBoxAdapter(
                       child: _buildSummaryCard(context, controller),
                     ),
@@ -75,7 +80,7 @@ class _LoanTrackerScreenState extends State<LoanTrackerScreen> {
                               padding: const EdgeInsets.only(bottom: Spacing.md),
                               child: _LoanCard(
                                 loan: active[index],
-                                onTap: () => _openEditLoan(context, active[index]),
+                                onTap: () => _showLoanDetailSheet(context, active[index]),
                                 onDelete: () => _confirmDelete(context, controller, active[index]),
                               ),
                             ),
@@ -224,6 +229,29 @@ class _LoanTrackerScreenState extends State<LoanTrackerScreen> {
     );
   }
 
+  void _showLoanDetailSheet(BuildContext context, Loan loan) {
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (ctx) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.75,
+        minChildSize: 0.45,
+        maxChildSize: 0.95,
+        builder: (sheetCtx, scrollCtrl) => Container(
+          decoration: AppStyles.bottomSheetDecoration(sheetCtx),
+          child: _LoanDetailSheet(
+            loan: loan,
+            scrollController: scrollCtrl,
+            onEdit: () {
+              Navigator.of(ctx).pop();
+              _openEditLoan(context, loan);
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _openAddLoan(BuildContext context) async {
     await Navigator.of(context).push(
       CupertinoPageRoute<void>(
@@ -279,6 +307,28 @@ class _LoanTrackerScreenState extends State<LoanTrackerScreen> {
       await controller.deleteLoan(loan.id);
       toast.showSuccess('Loan removed');
     }
+  }
+
+  Widget _buildLandscapeNavBar(BuildContext context) {
+    return Container(
+      height: 40,
+      padding: const EdgeInsets.symmetric(horizontal: Spacing.md),
+      child: Row(
+        children: [
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            minimumSize: Size.zero,
+            onPressed: () => Navigator.maybePop(context),
+            child: Icon(CupertinoIcons.chevron_left, size: 20,
+                color: AppStyles.getPrimaryColor(context)),
+          ),
+          const SizedBox(width: 8),
+          Text('LOAN / EMI TRACKER',
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
+                  color: AppStyles.getTextColor(context), letterSpacing: 1.1)),
+        ],
+      ),
+    );
   }
 }
 
@@ -624,6 +674,366 @@ class _AddLoanFab extends StatelessWidget {
           CupertinoIcons.add,
           color: Colors.white,
           size: 26,
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Loan Detail Sheet ───────────────────────────────────────────────────────
+
+class _LoanDetailSheet extends StatefulWidget {
+  final Loan loan;
+  final ScrollController scrollController;
+  final VoidCallback onEdit;
+
+  const _LoanDetailSheet({
+    required this.loan,
+    required this.scrollController,
+    required this.onEdit,
+  });
+
+  @override
+  State<_LoanDetailSheet> createState() => _LoanDetailSheetState();
+}
+
+class _LoanDetailSheetState extends State<_LoanDetailSheet> {
+  final TextEditingController _prepayCtrl = TextEditingController();
+  double? _prepayAmount;
+  bool _showFullSchedule = false;
+
+  @override
+  void dispose() {
+    _prepayCtrl.dispose();
+    super.dispose();
+  }
+
+  List<({int month, double principal, double interest, double balance})> _buildSchedule() {
+    final monthlyRate = widget.loan.interestRate / 12 / 100;
+    double balance = widget.loan.currentOutstanding;
+    final emi = widget.loan.emiAmount;
+    final rows = <({int month, double principal, double interest, double balance})>[];
+    final maxRows = _showFullSchedule ? 360 : 12;
+    for (int i = 1; balance > 0.01 && i <= maxRows; i++) {
+      final interest = balance * monthlyRate;
+      var principal = emi - interest;
+      if (principal > balance) principal = balance;
+      balance = (balance - principal).clamp(0.0, double.infinity);
+      rows.add((month: i, principal: principal, interest: interest, balance: balance));
+    }
+    return rows;
+  }
+
+  ({int savedMonths, double savedInterest})? _computePrepaymentSavings() {
+    if (_prepayAmount == null || _prepayAmount! <= 0) return null;
+    final monthlyRate = widget.loan.interestRate / 12 / 100;
+    final emi = widget.loan.emiAmount;
+    if (emi <= 0 || monthlyRate <= 0) return null;
+
+    int computeMonths(double startBalance) {
+      double b = startBalance;
+      int m = 0;
+      while (b > 0.01 && m < 600) {
+        final interest = b * monthlyRate;
+        var principal = emi - interest;
+        if (principal <= 0) break;
+        if (principal > b) principal = b;
+        b -= principal;
+        m++;
+      }
+      return m;
+    }
+
+    double computeTotalInterest(double startBalance) {
+      double b = startBalance;
+      double total = 0;
+      int m = 0;
+      while (b > 0.01 && m < 600) {
+        final interest = b * monthlyRate;
+        var principal = emi - interest;
+        if (principal <= 0) break;
+        if (principal > b) principal = b;
+        total += interest;
+        b -= principal;
+        m++;
+      }
+      return total;
+    }
+
+    final m1 = computeMonths(widget.loan.currentOutstanding);
+    final m2 = computeMonths((widget.loan.currentOutstanding - _prepayAmount!).clamp(0.0, widget.loan.currentOutstanding));
+    final i1 = computeTotalInterest(widget.loan.currentOutstanding);
+    final i2 = computeTotalInterest((widget.loan.currentOutstanding - _prepayAmount!).clamp(0.0, widget.loan.currentOutstanding));
+    return (savedMonths: m1 - m2, savedInterest: i1 - i2);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final loan = widget.loan;
+    final isDark = AppStyles.isDarkMode(context);
+    final accentColor = AppStyles.loss(context);
+    final schedule = _buildSchedule();
+    final savings = _computePrepaymentSavings();
+
+    return SingleChildScrollView(
+      controller: widget.scrollController,
+      padding: const EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, Spacing.xxxl),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const ModalHandle(),
+          // Header
+          Row(
+            children: [
+              _LoanTypeIcon(type: loan.type),
+              const SizedBox(width: Spacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(loan.name,
+                        style: TextStyle(fontSize: TypeScale.title3,
+                            fontWeight: FontWeight.w800,
+                            color: AppStyles.getTextColor(context))),
+                    if (loan.bankName != null)
+                      Text(loan.bankName!,
+                          style: TextStyle(fontSize: TypeScale.footnote,
+                              color: AppStyles.getSecondaryTextColor(context))),
+                  ],
+                ),
+              ),
+              CupertinoButton(
+                padding: EdgeInsets.zero,
+                onPressed: widget.onEdit,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppStyles.getPrimaryColor(context).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text('Edit',
+                      style: TextStyle(fontSize: TypeScale.footnote,
+                          fontWeight: FontWeight.w700,
+                          color: AppStyles.getPrimaryColor(context))),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: Spacing.lg),
+
+          // Key metrics grid
+          Container(
+            padding: const EdgeInsets.all(Spacing.md),
+            decoration: BoxDecoration(
+              color: accentColor.withValues(alpha: isDark ? 0.06 : 0.04),
+              borderRadius: BorderRadius.circular(Radii.xl),
+              border: Border.all(color: accentColor.withValues(alpha: 0.15)),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    _metricCell('Outstanding', '₹${loan.currentOutstanding.toStringAsFixed(0)}', accentColor),
+                    _metricCell('Monthly EMI', '₹${loan.emiAmount.toStringAsFixed(0)}', AppStyles.teal(context)),
+                  ],
+                ),
+                const SizedBox(height: Spacing.sm),
+                Row(
+                  children: [
+                    _metricCell('Interest Rate', '${loan.interestRate.toStringAsFixed(2)}% p.a.', AppStyles.warning(context)),
+                    _metricCell('Total Interest', '₹${loan.totalInterestPayable.toStringAsFixed(0)}', AppStyles.getSecondaryTextColor(context)),
+                  ],
+                ),
+                const SizedBox(height: Spacing.sm),
+                // Progress bar
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(Radii.full),
+                  child: Stack(children: [
+                    Container(height: 6, color: AppStyles.getDividerColor(context)),
+                    FractionallySizedBox(
+                      widthFactor: loan.progressPercent,
+                      child: Container(
+                        height: 6,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(colors: [accentColor.withValues(alpha: 0.6), accentColor]),
+                          borderRadius: BorderRadius.circular(Radii.full),
+                        ),
+                      ),
+                    ),
+                  ]),
+                ),
+                const SizedBox(height: 4),
+                Row(children: [
+                  Text('${(loan.progressPercent * 100).toStringAsFixed(0)}% paid',
+                      style: TextStyle(fontSize: TypeScale.caption,
+                          color: AppStyles.gain(context), fontWeight: FontWeight.w600)),
+                  const Spacer(),
+                  Text('₹${loan.totalPaid.toStringAsFixed(0)} paid',
+                      style: TextStyle(fontSize: TypeScale.caption,
+                          color: AppStyles.getSecondaryTextColor(context))),
+                ]),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: Spacing.lg),
+
+          // Prepayment Calculator
+          _bloombergSectionHeader('PREPAYMENT CALCULATOR', CupertinoIcons.money_dollar_circle, AppStyles.teal(context)),
+          const SizedBox(height: Spacing.sm),
+          CupertinoTextField(
+            controller: _prepayCtrl,
+            placeholder: 'Enter extra amount (₹)',
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            prefix: const Padding(
+                padding: EdgeInsets.only(left: 12),
+                child: Text('₹', style: TextStyle(fontWeight: FontWeight.w700))),
+            style: TextStyle(color: AppStyles.getTextColor(context), fontWeight: FontWeight.w700),
+            decoration: BoxDecoration(
+              color: AppStyles.getCardColor(context),
+              borderRadius: BorderRadius.circular(Radii.lg),
+              border: Border.all(color: AppStyles.getDividerColor(context)),
+            ),
+            onChanged: (v) => setState(() => _prepayAmount = double.tryParse(v)),
+          ),
+          if (savings != null && savings.savedMonths > 0) ...[
+            const SizedBox(height: Spacing.sm),
+            Container(
+              padding: const EdgeInsets.all(Spacing.md),
+              decoration: BoxDecoration(
+                color: AppStyles.teal(context).withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(Radii.lg),
+                border: Border.all(color: AppStyles.teal(context).withValues(alpha: 0.25)),
+              ),
+              child: Row(
+                children: [
+                  Icon(CupertinoIcons.checkmark_circle_fill,
+                      size: 16, color: AppStyles.teal(context)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Save ${savings.savedMonths} month${savings.savedMonths == 1 ? '' : 's'} · '
+                      '₹${savings.savedInterest.toStringAsFixed(0)} interest saved',
+                      style: TextStyle(fontSize: TypeScale.footnote,
+                          fontWeight: FontWeight.w700,
+                          color: AppStyles.teal(context)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ] else if (savings != null && savings.savedMonths == 0) ...[
+            const SizedBox(height: Spacing.sm),
+            Text('Loan fully paid off with this prepayment.',
+                style: TextStyle(fontSize: TypeScale.footnote,
+                    color: AppStyles.gain(context), fontWeight: FontWeight.w700)),
+          ],
+
+          const SizedBox(height: Spacing.lg),
+
+          // Amortization Schedule
+          _bloombergSectionHeader('AMORTIZATION SCHEDULE', CupertinoIcons.calendar, accentColor),
+          const SizedBox(height: Spacing.sm),
+
+          // Table header
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: Spacing.sm, vertical: Spacing.xs),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF111111) : const Color(0xFFF5F5F7),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(Radii.md)),
+            ),
+            child: Row(
+              children: [
+                _amortCol('Mo.', 1, isHeader: true),
+                _amortCol('Principal', 2, isHeader: true),
+                _amortCol('Interest', 2, isHeader: true),
+                _amortCol('Balance', 2, isHeader: true),
+              ],
+            ),
+          ),
+
+          ...schedule.map((row) {
+            final isEven = row.month % 2 == 0;
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: Spacing.sm, vertical: 5),
+              decoration: BoxDecoration(
+                color: isEven
+                    ? (isDark ? const Color(0xFF0A0A0A) : const Color(0xFFFBFBFD))
+                    : Colors.transparent,
+              ),
+              child: Row(
+                children: [
+                  _amortCol('${row.month}', 1),
+                  _amortCol('₹${row.principal.toStringAsFixed(0)}', 2,
+                      color: AppStyles.teal(context)),
+                  _amortCol('₹${row.interest.toStringAsFixed(0)}', 2,
+                      color: accentColor.withValues(alpha: 0.8)),
+                  _amortCol('₹${row.balance.toStringAsFixed(0)}', 2),
+                ],
+              ),
+            );
+          }),
+
+          if (!_showFullSchedule && loan.currentOutstanding > 0)
+            CupertinoButton(
+              onPressed: () => setState(() => _showFullSchedule = true),
+              child: Text('Show full schedule',
+                  style: TextStyle(color: AppStyles.getPrimaryColor(context),
+                      fontSize: TypeScale.footnote)),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _bloombergSectionHeader(String label, IconData icon, Color accent) {
+    return Row(
+      children: [
+        Container(
+          width: 22, height: 22,
+          decoration: BoxDecoration(
+            color: accent.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(5),
+          ),
+          child: Icon(icon, size: 13, color: accent),
+        ),
+        const SizedBox(width: 6),
+        Text(label,
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
+                color: accent, letterSpacing: 1.0)),
+      ],
+    );
+  }
+
+  Widget _metricCell(String label, String value, Color color) {
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label,
+              style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600,
+                  color: AppStyles.getSecondaryTextColor(context), letterSpacing: 0.5)),
+          const SizedBox(height: 2),
+          Text(value,
+              style: TextStyle(fontSize: TypeScale.callout, fontWeight: FontWeight.w800,
+                  color: color)),
+        ],
+      ),
+    );
+  }
+
+  Widget _amortCol(String text, int flex, {bool isHeader = false, Color? color}) {
+    return Expanded(
+      flex: flex,
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: isHeader ? 9 : TypeScale.caption,
+          fontWeight: isHeader ? FontWeight.w700 : FontWeight.w500,
+          color: color ?? (isHeader
+              ? AppStyles.getSecondaryTextColor(context)
+              : AppStyles.getTextColor(context)),
+          letterSpacing: isHeader ? 0.5 : 0,
         ),
       ),
     );

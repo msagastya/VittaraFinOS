@@ -114,6 +114,12 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
     final annual = controller.totalAnnualPremium;
     final count = controller.activePolicies.length;
     final isDark = AppStyles.isDarkMode(context);
+    // Coverage breakdown
+    double healthCover = 0, lifeCover = 0;
+    for (final p in controller.activePolicies) {
+      if (p.type == InsuranceType.health) healthCover += p.sumInsured;
+      if (p.type == InsuranceType.life || p.type == InsuranceType.term) lifeCover += p.sumInsured;
+    }
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(
@@ -150,28 +156,52 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
               : [],
         ),
         padding: const EdgeInsets.all(Spacing.xl),
-        child: Row(
+        child: Column(
           children: [
-            Expanded(
-              child: _SummaryMetric(
-                label: 'Annual Premium',
-                numericValue: annual,
-                color: AppStyles.accentBlue,
+            Row(
+              children: [
+                Expanded(
+                  child: _SummaryMetric(
+                    label: 'Annual Premium',
+                    numericValue: annual,
+                    color: AppStyles.accentBlue,
+                  ),
+                ),
+                Container(
+                  width: 1, height: 44,
+                  color: AppStyles.accentBlue.withValues(alpha: 0.2),
+                ),
+                Expanded(
+                  child: _SummaryMetric(
+                    label: 'Active Policies',
+                    numericValue: count.toDouble(),
+                    color: AppStyles.teal(context),
+                    isCurrency: false,
+                  ),
+                ),
+              ],
+            ),
+            if (healthCover > 0 || lifeCover > 0) ...[
+              Divider(height: Spacing.lg,
+                  color: AppStyles.accentBlue.withValues(alpha: 0.12)),
+              Row(
+                children: [
+                  if (healthCover > 0)
+                    Expanded(child: _SummaryMetric(
+                        label: 'Health Cover',
+                        numericValue: healthCover,
+                        color: AppStyles.gain(context))),
+                  if (healthCover > 0 && lifeCover > 0)
+                    Container(width: 1, height: 36,
+                        color: AppStyles.accentBlue.withValues(alpha: 0.12)),
+                  if (lifeCover > 0)
+                    Expanded(child: _SummaryMetric(
+                        label: 'Life Cover',
+                        numericValue: lifeCover,
+                        color: AppStyles.violet(context))),
+                ],
               ),
-            ),
-            Container(
-              width: 1,
-              height: 44,
-              color: AppStyles.accentBlue.withValues(alpha: 0.2),
-            ),
-            Expanded(
-              child: _SummaryMetric(
-                label: 'Active Policies',
-                numericValue: count.toDouble(),
-                color: AppStyles.teal(context),
-                isCurrency: false,
-              ),
-            ),
+            ],
           ],
         ),
       ),

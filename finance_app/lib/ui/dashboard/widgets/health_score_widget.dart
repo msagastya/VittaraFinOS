@@ -48,6 +48,40 @@ class _HealthScoreData {
     if (t >= 40) return 'Fair';
     return 'Needs Attention';
   }
+
+  String get grade {
+    final t = total;
+    if (t >= 90) return 'A+';
+    if (t >= 80) return 'A';
+    if (t >= 70) return 'B+';
+    if (t >= 60) return 'B';
+    if (t >= 50) return 'C';
+    if (t >= 40) return 'D';
+    return 'F';
+  }
+
+  String get topRecommendation {
+    final scores = <String, int>{
+      'savings rate': savingsScore,
+      'budget adherence': budgetScore,
+      'investment diversity': diversityScore,
+      'debt management': debtScore,
+    };
+    final weakest = scores.entries
+        .reduce((a, b) => a.value < b.value ? a : b);
+    switch (weakest.key) {
+      case 'savings rate':
+        return 'Save at least 20% of monthly income to boost your score.';
+      case 'budget adherence':
+        return 'Resolve exceeded budgets to improve your adherence score.';
+      case 'investment diversity':
+        return 'Add equity, FD, or gold to diversify your portfolio.';
+      case 'debt management':
+        return 'Keep EMIs below 40% of income to improve debt ratio.';
+      default:
+        return 'Track income and expenses consistently for better insights.';
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -525,11 +559,12 @@ class _AnimatedHealthScoreBodyState extends State<_AnimatedHealthScoreBody>
                           ),
                         ),
                         Text(
-                          'of 100',
+                          data.grade,
                           style: TextStyle(
                             fontSize: TypeScale.caption,
-                            fontWeight: FontWeight.w500,
-                            color: AppStyles.getSecondaryTextColor(context),
+                            fontWeight: FontWeight.w800,
+                            color: data.bandColor,
+                            letterSpacing: 0.5,
                           ),
                         ),
                       ],
@@ -658,6 +693,41 @@ class _AnimatedHealthScoreBodyState extends State<_AnimatedHealthScoreBody>
           animation: _bar4Anim,
           tip: 'Based on debt-to-income ratio. Keep EMIs below 40% of monthly income for a healthy score.',
         ),
+        if (data.total < 90) ...[
+          const SizedBox(height: Spacing.md),
+          FadeTransition(
+            opacity: _bandFadeAnim,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: Spacing.md, vertical: Spacing.sm),
+              decoration: BoxDecoration(
+                color: data.bandColor.withValues(alpha: 0.07),
+                borderRadius: BorderRadius.circular(Radii.md),
+                border: Border.all(
+                    color: data.bandColor.withValues(alpha: 0.2)),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(CupertinoIcons.lightbulb_fill,
+                      size: 12,
+                      color: data.bandColor.withValues(alpha: 0.8)),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      data.topRecommendation,
+                      style: TextStyle(
+                        fontSize: TypeScale.caption,
+                        color: AppStyles.getSecondaryTextColor(context),
+                        height: 1.35,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }

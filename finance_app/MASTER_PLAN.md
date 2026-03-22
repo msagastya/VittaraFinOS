@@ -208,7 +208,7 @@ LandscapeSplitView(
 
 ## PHASE 4 — System Polish
 
-### NOT-01 — Notifications & Alerts Redesign `[ ]` P2
+### NOT-01 — Notifications & Alerts Redesign `[x]` P2
 **File:** `lib/ui/notifications_page.dart`
 **Redesign:**
 - Group by type: Budget | Bill | Goal | Insight | System
@@ -223,7 +223,7 @@ LandscapeSplitView(
 - Badge counts on relevant items (e.g., "Accounts (3)", "Categories (12)")
 - Animate cards on first load (staggered entrance, 30ms delay each)
 
-### HS-01 — Financial Health Score Widget `[ ]` P2
+### HS-01 — Financial Health Score Widget `[x]` P2
 **File:** (dashboard or dedicated screen)
 **Redesign:**
 - Replace numeric score with a gauge + letter grade (A+/A/B/C/D)
@@ -287,7 +287,7 @@ LandscapeSplitView(
 - Restore from backup file
 - Auto-backup on each app open (daily, keep last 7)
 
-### UTL-05 — PIN/Biometric Security `[ ]` P0
+### UTL-05 — PIN/Biometric Security `[x]` P0
 **P0 security issue (AU5-01):** Move PIN hash from SharedPreferences to iOS Keychain / Android Keystore
 - Biometric auth (FaceID/fingerprint) as primary, PIN as fallback
 - Session timeout: lock after N minutes background (configurable: 1/5/15/never)
@@ -317,13 +317,13 @@ LandscapeSplitView(
 - Goal nudge: "You're ₹500 behind your vacation goal"
 - All computed locally using SQLite aggregates — no cloud
 
-### LOAN-01 — Loan Tracker Upgrade `[ ]` P2
+### LOAN-01 — Loan Tracker Upgrade `[x]` P2
 - Amortization table: full schedule of principal/interest per EMI
 - Prepayment calculator: "If you pay ₹X extra today, you save ₹Y interest and close N months early"
 - EMI calendar overlay: show all future EMI dates on financial calendar
 - Part-payment log: track actual vs scheduled payments
 
-### INS-01 — Insurance Tracker Upgrade `[ ]` P2
+### INS-01 — Insurance Tracker Upgrade `[x]` P2
 - Premium due reminder (30 days, 7 days, 1 day before)
 - Coverage summary: total life cover | total health cover | total premium/year
 - Claim tracker: log claim, track status, outcome
@@ -333,7 +333,7 @@ LandscapeSplitView(
 
 ## Security Backlog (P0 — do before any public release)
 
-### AU5-01 — PIN Hash Migration `[ ]` **P0**
+### AU5-01 — PIN Hash Migration `[x]` **P0** (already implemented in settings_controller.dart)
 Move PIN hash storage from SharedPreferences (readable by anyone with device access) to:
 - iOS: `flutter_secure_storage` → iOS Keychain
 - Android: `flutter_secure_storage` → Android Keystore
