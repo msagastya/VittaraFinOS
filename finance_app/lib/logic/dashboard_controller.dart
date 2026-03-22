@@ -36,7 +36,14 @@ class DashboardController with ChangeNotifier {
       try {
         final map = jsonDecode(configJson) as Map<String, dynamic>;
         _config = DashboardConfig.fromMap(map);
-        final changed = _ensureOptionalWidgetsExist();
+
+        bool changed = _ensureOptionalWidgetsExist();
+
+        // v2 migration: enable health_score + spending_insights for existing users
+        if (_config.configVersion < 2) {
+          changed = _migrateToV2() || changed;
+        }
+
         if (changed) {
           await saveConfig();
           return;
@@ -53,6 +60,32 @@ class DashboardController with ChangeNotifier {
     } else {
       _config = _getDefaultConfig();
     }
+  }
+
+  /// Enables health_score and spending_insights and bumps configVersion to 2.
+  bool _migrateToV2() {
+    final updatedWidgets = _config.widgets.map((w) {
+      if (w.id == 'health_score' && !w.isVisible) {
+        // Place after the last currently-visible widget
+        final lastRow = _config.getVisibleWidgets().fold<int>(
+            0, (max, v) => v.gridRow + v.rowSpan - 1 > max ? v.gridRow + v.rowSpan - 1 : max);
+        return w.copyWith(isVisible: true, gridRow: lastRow + 1);
+      }
+      return w;
+    }).toList();
+
+    // Place spending_insights after health_score
+    final withSpending = updatedWidgets.map((w) {
+      if (w.id == 'spending_insights' && !w.isVisible) {
+        final hsRow = updatedWidgets.firstWhere((x) => x.id == 'health_score').gridRow;
+        final hsSpan = updatedWidgets.firstWhere((x) => x.id == 'health_score').rowSpan;
+        return w.copyWith(isVisible: true, gridRow: hsRow + hsSpan);
+      }
+      return w;
+    }).toList();
+
+    _config = _config.copyWith(widgets: withSpending, configVersion: 2);
+    return true;
   }
 
   DashboardConfig _getDefaultConfig() {
@@ -93,7 +126,7 @@ class DashboardController with ChangeNotifier {
           type: DashboardWidgetType.goalsOverview,
           title: 'Goals',
           isVisible: false,
-          gridRow: 6,
+          gridRow: 9,
           gridColumn: 1,
           columnSpan: 3,
           rowSpan: 1,
@@ -103,7 +136,7 @@ class DashboardController with ChangeNotifier {
           type: DashboardWidgetType.budgetsOverview,
           title: 'Budgets',
           isVisible: false,
-          gridRow: 7,
+          gridRow: 10,
           gridColumn: 1,
           columnSpan: 3,
           rowSpan: 1,
@@ -113,7 +146,7 @@ class DashboardController with ChangeNotifier {
           type: DashboardWidgetType.savingsPlanners,
           title: 'Savings Planners',
           isVisible: false,
-          gridRow: 8,
+          gridRow: 11,
           gridColumn: 1,
           columnSpan: 3,
           rowSpan: 1,
@@ -123,7 +156,7 @@ class DashboardController with ChangeNotifier {
           type: DashboardWidgetType.aiPlanner,
           title: 'AI Monthly Planner',
           isVisible: false,
-          gridRow: 9,
+          gridRow: 12,
           gridColumn: 1,
           columnSpan: 3,
           rowSpan: 1,
@@ -133,7 +166,7 @@ class DashboardController with ChangeNotifier {
           type: DashboardWidgetType.monthlySummary,
           title: 'Monthly Summary',
           isVisible: false,
-          gridRow: 10,
+          gridRow: 13,
           gridColumn: 1,
           columnSpan: 3,
           rowSpan: 1,
@@ -143,7 +176,7 @@ class DashboardController with ChangeNotifier {
           type: DashboardWidgetType.sipTracker,
           title: 'SIP Tracker',
           isVisible: false,
-          gridRow: 11,
+          gridRow: 14,
           gridColumn: 1,
           columnSpan: 3,
           rowSpan: 1,
@@ -152,8 +185,8 @@ class DashboardController with ChangeNotifier {
           id: 'health_score',
           type: DashboardWidgetType.healthScore,
           title: 'Financial Health Score',
-          isVisible: false,
-          gridRow: 12,
+          isVisible: true,
+          gridRow: 6,
           gridColumn: 1,
           columnSpan: 3,
           rowSpan: 2,
@@ -162,8 +195,8 @@ class DashboardController with ChangeNotifier {
           id: 'spending_insights',
           type: DashboardWidgetType.spendingInsights,
           title: 'Spending Insights',
-          isVisible: false,
-          gridRow: 14,
+          isVisible: true,
+          gridRow: 8,
           gridColumn: 1,
           columnSpan: 3,
           rowSpan: 1,

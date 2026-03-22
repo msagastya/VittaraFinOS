@@ -107,19 +107,23 @@ class DashboardWidgetConfig {
 class DashboardConfig {
   final List<DashboardWidgetConfig> widgets;
   final DateTime lastModified;
+  final int configVersion;
 
   DashboardConfig({
     required this.widgets,
     DateTime? lastModified,
+    this.configVersion = 2,
   }) : lastModified = lastModified ?? DateTime.now();
 
   DashboardConfig copyWith({
     List<DashboardWidgetConfig>? widgets,
     DateTime? lastModified,
+    int? configVersion,
   }) {
     return DashboardConfig(
       widgets: widgets ?? this.widgets,
       lastModified: lastModified ?? this.lastModified,
+      configVersion: configVersion ?? this.configVersion,
     );
   }
 
@@ -147,6 +151,7 @@ class DashboardConfig {
     return {
       'widgets': widgets.map((w) => w.toMap()).toList(),
       'lastModified': lastModified.toIso8601String(),
+      'configVersion': configVersion,
     };
   }
 
@@ -160,6 +165,7 @@ class DashboardConfig {
       lastModified: map['lastModified'] != null
           ? DateTime.parse(map['lastModified'])
           : DateTime.now(),
+      configVersion: (map['configVersion'] as int?) ?? 1,
     );
   }
 }
