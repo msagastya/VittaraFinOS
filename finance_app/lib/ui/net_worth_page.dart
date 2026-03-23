@@ -7,10 +7,14 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
+import 'package:vittara_fin_os/logic/budget_model.dart';
+import 'package:vittara_fin_os/logic/budgets_controller.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
+import 'package:vittara_fin_os/ui/dashboard/widgets/health_score_widget.dart'
+    show HealthScoreData, HealthScoreBody, computeHealthScore;
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/card_deck_view.dart';
@@ -374,10 +378,10 @@ class _NetWorthPageState extends State<NetWorthPage> {
               border: null,
             ),
       child: SafeArea(
-        child: Consumer3<AccountsController, InvestmentsController,
-            TransactionsController>(
-          builder:
-              (context, accountsController, investmentsController, txCtrl, _) {
+        child: Consumer4<AccountsController, InvestmentsController,
+            TransactionsController, BudgetsController>(
+          builder: (context, accountsController, investmentsController, txCtrl,
+              budgetsController, _) {
             // Loading skeleton
             if (!accountsController.isLoaded ||
                 !investmentsController.isLoaded) {
@@ -524,6 +528,22 @@ class _NetWorthPageState extends State<NetWorthPage> {
                           accent: AppStyles.loss(context),
                           child: _buildCreditLiabilitiesSection(
                               context, accountsController),
+                        ),
+                        // Card 6: Health Score — full animated gauge + sub-scores
+                        _buildNwDeckCard(
+                          context,
+                          label: 'HEALTH SCORE',
+                          icon: CupertinoIcons.heart_fill,
+                          accent: const Color(0xFF00C853),
+                          child: HealthScoreBody(
+                            data: computeHealthScore(
+                              transactions: txCtrl.transactions,
+                              budgets: budgetsController.budgets,
+                              investments: investmentsController.investments,
+                              accounts: accountsController.accounts,
+                            ),
+                            isDark: AppStyles.isDarkMode(context),
+                          ),
                         ),
                       ],
                     ),
