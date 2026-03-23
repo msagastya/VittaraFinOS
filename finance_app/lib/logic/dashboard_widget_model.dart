@@ -112,7 +112,7 @@ class DashboardConfig {
   DashboardConfig({
     required this.widgets,
     DateTime? lastModified,
-    this.configVersion = 4,
+    this.configVersion = 5,
   }) : lastModified = lastModified ?? DateTime.now();
 
   DashboardConfig copyWith({

@@ -54,6 +54,11 @@ class DashboardController with ChangeNotifier {
           changed = _migrateToV4() || changed;
         }
 
+        // v5 migration: ai_planner now hosts AI Planner + Savings Planners — make it visible
+        if (_config.configVersion < 5) {
+          changed = _migrateToV5() || changed;
+        }
+
         if (changed) {
           await saveConfig();
           return;
@@ -117,6 +122,20 @@ class DashboardController with ChangeNotifier {
       return w;
     }).toList();
     _config = _config.copyWith(widgets: updatedWidgets, configVersion: 4);
+    return true;
+  }
+
+  /// v5: ai_planner now hosts AI Monthly Planner + Savings Planners — make it visible.
+  bool _migrateToV5() {
+    final updatedWidgets = _config.widgets.map((w) {
+      if (w.id == 'ai_planner' && !w.isVisible) {
+        final lastRow = _config.getVisibleWidgets().fold<int>(
+            0, (max, v) => v.gridRow + v.rowSpan - 1 > max ? v.gridRow + v.rowSpan - 1 : max);
+        return w.copyWith(isVisible: true, gridRow: lastRow + 1);
+      }
+      return w;
+    }).toList();
+    _config = _config.copyWith(widgets: updatedWidgets, configVersion: 5);
     return true;
   }
 
@@ -198,9 +217,9 @@ class DashboardController with ChangeNotifier {
         DashboardWidgetConfig(
           id: 'ai_planner',
           type: DashboardWidgetType.aiPlanner,
-          title: 'AI Monthly Planner',
-          isVisible: false,
-          gridRow: 12,
+          title: 'AI Planner · Savings',
+          isVisible: true,
+          gridRow: 6,
           gridColumn: 1,
           columnSpan: 3,
           rowSpan: 1,

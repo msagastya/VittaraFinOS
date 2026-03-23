@@ -1648,8 +1648,8 @@ class DashboardScreen extends StatelessWidget {
       case DashboardWidgetType.netWorth:
         return NetWorthWidget(config: widgetConfig);
       case DashboardWidgetType.goalsOverview:
-        return Consumer3<GoalsController, TransactionsController, BudgetsController>(
-          builder: (context, goalsController, txController, budgetsController, child) {
+        return Consumer2<GoalsController, TransactionsController>(
+          builder: (context, goalsController, txController, child) {
             final activeGoals = goalsController.activeGoals.length;
             final totalSaved = goalsController.totalSavedAmount;
             final totalTarget = goalsController.totalTargetAmount;
@@ -1874,32 +1874,114 @@ class DashboardScreen extends StatelessWidget {
                   }),
                 ],
 
-                // ── Savings Planners section (merged) ─────────────────────
-                if (budgetsController.savingsplanners.isNotEmpty) ...[
-                  const SizedBox(height: Spacing.md),
-                  const Divider(height: 1),
-                  const SizedBox(height: Spacing.sm),
-                  Text(
-                    'SAVINGS PLANNERS',
-                    style: TextStyle(
-                      fontSize: TypeScale.micro,
-                      letterSpacing: 1.2,
-                      fontWeight: FontWeight.w700,
-                      color: AppStyles.getSecondaryTextColor(context),
+              ],
+            );
+          },
+        );
+      case DashboardWidgetType.budgetsOverview:
+        return Consumer<GoalsController>(
+          builder: (context, goalsCtrl, _) {
+            final goals = goalsCtrl.activeGoals;
+            final totalSaved = goalsCtrl.totalSavedAmount;
+            final totalTarget = goalsCtrl.totalTargetAmount;
+            final goalPct = totalTarget > 0
+                ? (totalSaved / totalTarget).clamp(0.0, 1.0)
+                : 0.0;
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── BUDGETS section ──────────────────────────────────────
+                _buildTappableSectionHeader(
+                  context,
+                  'BUDGETS',
+                  CupertinoColors.systemOrange,
+                  () => Navigator.of(context).push(
+                      FadeScalePageRoute(page: const BudgetsScreen())),
+                ),
+                const SizedBox(height: Spacing.sm),
+                const BudgetDashboardWidget(),
+
+                const SizedBox(height: Spacing.sm),
+                const Divider(height: 1),
+                const SizedBox(height: Spacing.sm),
+
+                // ── CASH FLOW section ────────────────────────────────────
+                _buildTappableSectionHeader(
+                  context,
+                  'CASH FLOW',
+                  AppStyles.accentTeal,
+                  () => Navigator.of(context).push(
+                      FadeScalePageRoute(page: const ReportsAnalysisScreen())),
+                ),
+                const SizedBox(height: Spacing.sm),
+                const CashFlowDashboardWidget(),
+
+                const SizedBox(height: Spacing.sm),
+                const Divider(height: 1),
+                const SizedBox(height: Spacing.sm),
+
+                // ── GOALS section ────────────────────────────────────────
+                _buildTappableSectionHeader(
+                  context,
+                  'GOALS',
+                  CupertinoColors.activeBlue,
+                  () => Navigator.of(context).push(
+                      FadeScalePageRoute(page: const GoalsScreen())),
+                ),
+                const SizedBox(height: Spacing.sm),
+                if (goals.isEmpty)
+                  Center(
+                    child: Text(
+                      'No goals yet — tap to add one',
+                      style: TextStyle(
+                        fontSize: TypeScale.caption,
+                        color: AppStyles.getSecondaryTextColor(context),
+                      ),
+                    ),
+                  )
+                else ...[
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(3),
+                    child: LinearProgressIndicator(
+                      value: goalPct,
+                      minHeight: 5,
+                      backgroundColor: CupertinoColors.activeBlue
+                          .withValues(alpha: 0.12),
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                          CupertinoColors.activeBlue),
                     ),
                   ),
+                  const SizedBox(height: Spacing.xs),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '${goals.length} goal${goals.length == 1 ? '' : 's'}',
+                        style: TextStyle(
+                          fontSize: TypeScale.caption,
+                          color: AppStyles.getSecondaryTextColor(context),
+                        ),
+                      ),
+                      Text(
+                        '${(goalPct * 100).toStringAsFixed(0)}% complete',
+                        style: const TextStyle(
+                          fontSize: TypeScale.caption,
+                          fontWeight: FontWeight.w600,
+                          color: CupertinoColors.activeBlue,
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: Spacing.sm),
-                  ...budgetsController.savingsplanners.take(3).map((p) {
-                    final pct = p.monthlyTarget > 0
-                        ? (p.currentMonthSaved / p.monthlyTarget).clamp(0.0, 1.0)
+                  ...goals.take(3).map((g) {
+                    final pct = g.targetAmount > 0
+                        ? (g.currentAmount / g.targetAmount).clamp(0.0, 1.0)
                         : 0.0;
-                    final barColor = pct >= 1.0
-                        ? CupertinoColors.systemGreen
-                        : pct >= 0.5
-                            ? AppStyles.accentTeal
-                            : CupertinoColors.systemOrange;
+                    final daysLeft =
+                        g.targetDate.difference(DateTime.now()).inDays;
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.only(bottom: 7),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -1907,7 +1989,7 @@ class DashboardScreen extends StatelessWidget {
                             children: [
                               Expanded(
                                 child: Text(
-                                  p.name,
+                                  g.name,
                                   style: TextStyle(
                                     fontSize: TypeScale.caption,
                                     fontWeight: FontWeight.w600,
@@ -1918,23 +2000,29 @@ class DashboardScreen extends StatelessWidget {
                                 ),
                               ),
                               Text(
-                                '₹${_fmtAmt(p.currentMonthSaved)} / ₹${_fmtAmt(p.monthlyTarget)}',
+                                daysLeft <= 0
+                                    ? 'Due!'
+                                    : '$daysLeft days left',
                                 style: TextStyle(
                                   fontSize: TypeScale.caption,
-                                  color: barColor,
-                                  fontWeight: FontWeight.w600,
+                                  color: daysLeft <= 7
+                                      ? CupertinoColors.systemOrange
+                                      : AppStyles.getSecondaryTextColor(context),
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 3),
                           ClipRRect(
                             borderRadius: BorderRadius.circular(3),
                             child: LinearProgressIndicator(
                               value: pct,
                               minHeight: 4,
-                              backgroundColor: barColor.withValues(alpha: 0.12),
-                              valueColor: AlwaysStoppedAnimation<Color>(barColor),
+                              backgroundColor:
+                                  g.color.withValues(alpha: 0.12),
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(g.color),
                             ),
                           ),
                         ],
@@ -1945,28 +2033,6 @@ class DashboardScreen extends StatelessWidget {
               ],
             );
           },
-        );
-      case DashboardWidgetType.budgetsOverview:
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const BudgetDashboardWidget(),
-            const SizedBox(height: Spacing.sm),
-            const Divider(height: 1),
-            const SizedBox(height: Spacing.sm),
-            Text(
-              'CASH FLOW',
-              style: TextStyle(
-                fontSize: TypeScale.micro,
-                letterSpacing: 1.2,
-                fontWeight: FontWeight.w700,
-                color: AppStyles.getSecondaryTextColor(context),
-              ),
-            ),
-            const SizedBox(height: Spacing.sm),
-            const CashFlowDashboardWidget(),
-          ],
         );
       case DashboardWidgetType.savingsPlanners:
         return Consumer<BudgetsController>(
@@ -2117,107 +2183,172 @@ class DashboardScreen extends StatelessWidget {
           },
         );
       case DashboardWidgetType.aiPlanner:
-        return FutureBuilder<AIPlannerContext?>(
-          future: AIPlannerContext.load(),
-          builder: (context, snapshot) {
-            final plannerCtx = snapshot.data;
-            if (plannerCtx == null) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(CupertinoIcons.sparkles,
-                          size: 16, color: AppStyles.accentOrange),
-                      const SizedBox(width: Spacing.sm),
-                      Text(
-                        'Set your financial focus →',
-                        style: TextStyle(
-                          fontSize: TypeScale.subhead,
-                          fontWeight: FontWeight.w600,
-                          color: AppStyles.getTextColor(context),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: Spacing.sm),
-                  Text(
-                    'Tell me what you\'re working toward and get a personalized plan from your actual data.',
-                    style: TextStyle(
-                      fontSize: TypeScale.caption,
-                      color: AppStyles.getSecondaryTextColor(context),
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              );
-            }
+        return Consumer<BudgetsController>(
+          builder: (context, budgetsCtrl, _) {
+            final planners = budgetsCtrl.savingsplanners;
             return Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    const Icon(CupertinoIcons.sparkles,
-                        size: 14, color: AppStyles.accentOrange),
-                    const SizedBox(width: Spacing.xs),
-                    Expanded(
-                      child: Text(
-                        plannerCtx.focusLabel,
-                        style: TextStyle(
-                          fontSize: TypeScale.subhead,
-                          fontWeight: FontWeight.w700,
-                          color: AppStyles.getTextColor(context),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppStyles.accentOrange.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        plannerCtx.timelineLabel,
-                        style: const TextStyle(
-                          fontSize: TypeScale.caption,
-                          color: AppStyles.accentOrange,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
+                // ── AI MONTHLY PLANNER section ───────────────────────────
+                _buildTappableSectionHeader(
+                  context,
+                  'AI MONTHLY PLANNER',
+                  AppStyles.accentOrange,
+                  () => Navigator.of(context).push(
+                      FadeScalePageRoute(page: const AIMonthlyPlannerScreen())),
                 ),
                 const SizedBox(height: Spacing.sm),
-                if (plannerCtx.targetAmount != null && plannerCtx.targetAmount! > 0) ...[
+                FutureBuilder<AIPlannerContext?>(
+                  future: AIPlannerContext.load(),
+                  builder: (ctx, snapshot) {
+                    final plannerCtx = snapshot.data;
+                    if (plannerCtx == null) {
+                      return Row(
+                        children: [
+                          const Icon(CupertinoIcons.sparkles,
+                              size: 14, color: AppStyles.accentOrange),
+                          const SizedBox(width: Spacing.sm),
+                          Expanded(
+                            child: Text(
+                              'Set your financial focus to get a personalised plan',
+                              style: TextStyle(
+                                fontSize: TypeScale.caption,
+                                color: AppStyles.getSecondaryTextColor(ctx),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(CupertinoIcons.sparkles,
+                                size: 13, color: AppStyles.accentOrange),
+                            const SizedBox(width: Spacing.xs),
+                            Expanded(
+                              child: Text(
+                                plannerCtx.focusLabel,
+                                style: TextStyle(
+                                  fontSize: TypeScale.footnote,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppStyles.getTextColor(ctx),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: AppStyles.accentOrange.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                plannerCtx.timelineLabel,
+                                style: const TextStyle(
+                                  fontSize: TypeScale.caption,
+                                  color: AppStyles.accentOrange,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (plannerCtx.targetAmount != null &&
+                            plannerCtx.targetAmount! > 0) ...[
+                          const SizedBox(height: 3),
+                          Text(
+                            'Target ₹${_fmtAmt(plannerCtx.targetAmount!)}',
+                            style: TextStyle(
+                              fontSize: TypeScale.caption,
+                              color: AppStyles.getSecondaryTextColor(ctx),
+                            ),
+                          ),
+                        ],
+                      ],
+                    );
+                  },
+                ),
+
+                const SizedBox(height: Spacing.sm),
+                const Divider(height: 1),
+                const SizedBox(height: Spacing.sm),
+
+                // ── SAVINGS PLANNERS section ─────────────────────────────
+                _buildTappableSectionHeader(
+                  context,
+                  'SAVINGS PLANNERS',
+                  AppStyles.accentGreen,
+                  () => Navigator.of(context).push(
+                      FadeScalePageRoute(page: const SavingsPlannersScreen())),
+                ),
+                const SizedBox(height: Spacing.sm),
+                if (planners.isEmpty)
                   Text(
-                    'Target: ₹${plannerCtx.targetAmount!.toStringAsFixed(0)}',
+                    'No savings planners yet — tap to add one',
                     style: TextStyle(
                       fontSize: TypeScale.caption,
                       color: AppStyles.getSecondaryTextColor(context),
                     ),
-                  ),
-                  const SizedBox(height: Spacing.xs),
-                ],
-                Row(
-                  children: [
-                    const Icon(CupertinoIcons.chart_bar_alt_fill,
-                        size: 12, color: AppStyles.accentTeal),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Tap to view your personalized analysis',
-                      style: TextStyle(
-                        fontSize: TypeScale.caption,
-                        color: AppStyles.accentTeal,
-                        fontWeight: FontWeight.w500,
+                  )
+                else
+                  ...planners.take(3).map((p) {
+                    final pct = p.monthlyTarget > 0
+                        ? (p.currentMonthSaved / p.monthlyTarget).clamp(0.0, 1.0)
+                        : 0.0;
+                    final barColor = pct >= 1.0
+                        ? CupertinoColors.systemGreen
+                        : pct >= 0.5
+                            ? AppStyles.accentTeal
+                            : CupertinoColors.systemOrange;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  p.name,
+                                  style: TextStyle(
+                                    fontSize: TypeScale.caption,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppStyles.getTextColor(context),
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              Text(
+                                '₹${_fmtAmt(p.currentMonthSaved)} / ₹${_fmtAmt(p.monthlyTarget)}',
+                                style: TextStyle(
+                                  fontSize: TypeScale.caption,
+                                  color: barColor,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(3),
+                            child: LinearProgressIndicator(
+                              value: pct,
+                              minHeight: 4,
+                              backgroundColor: barColor.withValues(alpha: 0.12),
+                              valueColor: AlwaysStoppedAnimation<Color>(barColor),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
+                    );
+                  }),
               ],
             );
           },
@@ -2616,95 +2747,6 @@ class DashboardScreen extends StatelessWidget {
                   ),
                 ],
 
-                // ── AI Planner section (merged) ───────────────────────────
-                const SizedBox(height: Spacing.md),
-                const Divider(height: 1),
-                const SizedBox(height: Spacing.sm),
-                Text(
-                  'AI PLANNER',
-                  style: TextStyle(
-                    fontSize: TypeScale.micro,
-                    letterSpacing: 1.2,
-                    fontWeight: FontWeight.w700,
-                    color: AppStyles.getSecondaryTextColor(context),
-                  ),
-                ),
-                const SizedBox(height: Spacing.sm),
-                FutureBuilder<AIPlannerContext?>(
-                  future: AIPlannerContext.load(),
-                  builder: (ctx, snapshot) {
-                    final plannerCtx = snapshot.data;
-                    if (plannerCtx == null) {
-                      return Row(
-                        children: [
-                          const Icon(CupertinoIcons.sparkles,
-                              size: 13, color: AppStyles.accentOrange),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              'Set your financial focus to get a personalised plan',
-                              style: TextStyle(
-                                fontSize: TypeScale.caption,
-                                color: AppStyles.getSecondaryTextColor(context),
-                              ),
-                            ),
-                          ),
-                        ],
-                      );
-                    }
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(CupertinoIcons.sparkles,
-                                size: 12, color: AppStyles.accentOrange),
-                            const SizedBox(width: 5),
-                            Expanded(
-                              child: Text(
-                                plannerCtx.focusLabel,
-                                style: TextStyle(
-                                  fontSize: TypeScale.caption,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppStyles.getTextColor(ctx),
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: AppStyles.accentOrange.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                plannerCtx.timelineLabel,
-                                style: const TextStyle(
-                                  fontSize: 9,
-                                  color: AppStyles.accentOrange,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (plannerCtx.targetAmount != null &&
-                            plannerCtx.targetAmount! > 0) ...[
-                          const SizedBox(height: 3),
-                          Text(
-                            'Target ₹${_fmtAmt(plannerCtx.targetAmount!)}',
-                            style: TextStyle(
-                              fontSize: TypeScale.caption,
-                              color: AppStyles.getSecondaryTextColor(ctx),
-                            ),
-                          ),
-                        ],
-                      ],
-                    );
-                  },
-                ),
               ],
             );
           },
@@ -2872,6 +2914,34 @@ class DashboardScreen extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
         ),
       ],
+    );
+  }
+
+  /// Tappable section header with label + chevron. Navigates via [onTap].
+  Widget _buildTappableSectionHeader(
+    BuildContext context,
+    String label,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Row(
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: TypeScale.micro,
+              letterSpacing: 1.2,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Icon(CupertinoIcons.chevron_right, size: 10, color: color),
+        ],
+      ),
     );
   }
 
