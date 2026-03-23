@@ -49,6 +49,11 @@ class DashboardController with ChangeNotifier {
           changed = _migrateToV3() || changed;
         }
 
+        // v4 migration: hide widgets merged into others
+        if (_config.configVersion < 4) {
+          changed = _migrateToV4() || changed;
+        }
+
         if (changed) {
           await saveConfig();
           return;
@@ -93,6 +98,28 @@ class DashboardController with ChangeNotifier {
     return true;
   }
 
+  /// v4: hide widgets whose content was merged into sibling widgets.
+  /// notifications_and_actions → transaction_history
+  /// monthly_summary (cash flow) → budgets_overview
+  /// savings_planners → goals_overview
+  /// ai_planner → sip_tracker
+  bool _migrateToV4() {
+    const hiddenIds = {
+      'notifications_and_actions',
+      'monthly_summary',
+      'savings_planners',
+      'ai_planner',
+    };
+    final updatedWidgets = _config.widgets.map((w) {
+      if (hiddenIds.contains(w.id) && w.isVisible) {
+        return w.copyWith(isVisible: false);
+      }
+      return w;
+    }).toList();
+    _config = _config.copyWith(widgets: updatedWidgets, configVersion: 4);
+    return true;
+  }
+
   /// v3: health_score content merged into net_worth widget — hide it.
   bool _migrateToV3() {
     final updatedWidgets = _config.widgets.map((w) {
@@ -132,7 +159,7 @@ class DashboardController with ChangeNotifier {
           id: 'notifications_and_actions',
           type: DashboardWidgetType.notificationsAndActions,
           title: 'Notifications and Actions',
-          isVisible: true,
+          isVisible: false, // merged into transaction_history (v4)
           gridRow: 5,
           gridColumn: 1,
           columnSpan: 3,

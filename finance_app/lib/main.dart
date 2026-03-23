@@ -1648,8 +1648,8 @@ class DashboardScreen extends StatelessWidget {
       case DashboardWidgetType.netWorth:
         return NetWorthWidget(config: widgetConfig);
       case DashboardWidgetType.goalsOverview:
-        return Consumer2<GoalsController, TransactionsController>(
-          builder: (context, goalsController, txController, child) {
+        return Consumer3<GoalsController, TransactionsController, BudgetsController>(
+          builder: (context, goalsController, txController, budgetsController, child) {
             final activeGoals = goalsController.activeGoals.length;
             final totalSaved = goalsController.totalSavedAmount;
             final totalTarget = goalsController.totalTargetAmount;
@@ -1873,12 +1873,101 @@ class DashboardScreen extends StatelessWidget {
                     );
                   }),
                 ],
+
+                // ── Savings Planners section (merged) ─────────────────────
+                if (budgetsController.savingsplanners.isNotEmpty) ...[
+                  const SizedBox(height: Spacing.md),
+                  const Divider(height: 1),
+                  const SizedBox(height: Spacing.sm),
+                  Text(
+                    'SAVINGS PLANNERS',
+                    style: TextStyle(
+                      fontSize: TypeScale.micro,
+                      letterSpacing: 1.2,
+                      fontWeight: FontWeight.w700,
+                      color: AppStyles.getSecondaryTextColor(context),
+                    ),
+                  ),
+                  const SizedBox(height: Spacing.sm),
+                  ...budgetsController.savingsplanners.take(3).map((p) {
+                    final pct = p.monthlyTarget > 0
+                        ? (p.currentMonthSaved / p.monthlyTarget).clamp(0.0, 1.0)
+                        : 0.0;
+                    final barColor = pct >= 1.0
+                        ? CupertinoColors.systemGreen
+                        : pct >= 0.5
+                            ? AppStyles.accentTeal
+                            : CupertinoColors.systemOrange;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  p.name,
+                                  style: TextStyle(
+                                    fontSize: TypeScale.caption,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppStyles.getTextColor(context),
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              Text(
+                                '₹${_fmtAmt(p.currentMonthSaved)} / ₹${_fmtAmt(p.monthlyTarget)}',
+                                style: TextStyle(
+                                  fontSize: TypeScale.caption,
+                                  color: barColor,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(3),
+                            child: LinearProgressIndicator(
+                              value: pct,
+                              minHeight: 4,
+                              backgroundColor: barColor.withValues(alpha: 0.12),
+                              valueColor: AlwaysStoppedAnimation<Color>(barColor),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                ],
               ],
             );
           },
         );
       case DashboardWidgetType.budgetsOverview:
-        return const BudgetDashboardWidget();
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const BudgetDashboardWidget(),
+            const SizedBox(height: Spacing.sm),
+            const Divider(height: 1),
+            const SizedBox(height: Spacing.sm),
+            Text(
+              'CASH FLOW',
+              style: TextStyle(
+                fontSize: TypeScale.micro,
+                letterSpacing: 1.2,
+                fontWeight: FontWeight.w700,
+                color: AppStyles.getSecondaryTextColor(context),
+              ),
+            ),
+            const SizedBox(height: Spacing.sm),
+            const CashFlowDashboardWidget(),
+          ],
+        );
       case DashboardWidgetType.savingsPlanners:
         return Consumer<BudgetsController>(
           builder: (context, budgetsController, child) {
@@ -2159,6 +2248,46 @@ class DashboardScreen extends StatelessWidget {
               }
             }
 
+            // Alerts (merged from notifications_and_actions widget)
+            final fdsMaturedTx = investmentsController.investments.where((inv) {
+              if (inv.type.name != 'fixedDeposit') return false;
+              final md = inv.metadata;
+              if (md == null || !md.containsKey('maturityDate')) return false;
+              final mat = DateTime.parse(md['maturityDate'] as String);
+              return mat.difference(DateTime.now()).inDays < 0;
+            }).toList();
+            final fdsNearTx = investmentsController.investments.where((inv) {
+              if (inv.type.name != 'fixedDeposit') return false;
+              final md = inv.metadata;
+              if (md == null || !md.containsKey('maturityDate')) return false;
+              final days = DateTime.parse(md['maturityDate'] as String)
+                  .difference(DateTime.now())
+                  .inDays;
+              return days >= 0 && days <= 10;
+            }).toList();
+            final sipAlerts = collectSipNotifications(investmentsController.investments);
+            final bondAlerts = collectBondPayoutNotifications(investmentsController.investments);
+            final hasAlerts = fdsMaturedTx.isNotEmpty ||
+                fdsNearTx.isNotEmpty ||
+                sipAlerts.isNotEmpty ||
+                bondAlerts.isNotEmpty;
+            final alertWidgets = <Widget>[
+              if (fdsMaturedTx.isNotEmpty)
+                _buildCompactDashboardAlert(context,
+                    icon: CupertinoIcons.exclamationmark_circle_fill,
+                    color: CupertinoColors.systemRed,
+                    title: '${fdsMaturedTx.length} FD${fdsMaturedTx.length > 1 ? 's' : ''} matured',
+                    subtitle: 'Action required'),
+              if (fdsNearTx.isNotEmpty)
+                _buildCompactDashboardAlert(context,
+                    icon: CupertinoIcons.bell_fill,
+                    color: CupertinoColors.systemOrange,
+                    title: '${fdsNearTx.length} FD${fdsNearTx.length > 1 ? 's' : ''} maturing soon',
+                    subtitle: 'Within 10 days'),
+              ...sipAlerts.take(2).map((e) => _buildDashboardSipNotification(context, e)),
+              ...bondAlerts.take(1).map((e) => _buildDashboardBondNotification(context, e)),
+            ];
+
             if (transactions.isEmpty) {
               return Center(
                 child: Column(
@@ -2220,7 +2349,7 @@ class DashboardScreen extends StatelessWidget {
                   const SizedBox(height: Spacing.sm),
                 ],
                 ...transactions.asMap().entries.map((entry) {
-                  final isLast = entry.key == transactions.length - 1;
+                  final isLast = entry.key == transactions.length - 1 && !hasAlerts;
                   final tx = entry.value;
                   final amount = tx.amount;
                   final isDebit = tx.type == TransactionType.expense ||
@@ -2307,6 +2436,24 @@ class DashboardScreen extends StatelessWidget {
                     ],
                   );
                 }),
+                // ── Alerts section (merged from notifications widget) ──────
+                if (hasAlerts) ...[
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: Spacing.sm),
+                    child: Divider(height: 1),
+                  ),
+                  Text(
+                    'ALERTS',
+                    style: TextStyle(
+                      fontSize: TypeScale.micro,
+                      letterSpacing: 1.2,
+                      fontWeight: FontWeight.w700,
+                      color: CupertinoColors.systemRed,
+                    ),
+                  ),
+                  const SizedBox(height: Spacing.xs),
+                  ...alertWidgets.take(3),
+                ],
               ],
             );
           },
@@ -2468,6 +2615,96 @@ class DashboardScreen extends StatelessWidget {
                     ],
                   ),
                 ],
+
+                // ── AI Planner section (merged) ───────────────────────────
+                const SizedBox(height: Spacing.md),
+                const Divider(height: 1),
+                const SizedBox(height: Spacing.sm),
+                Text(
+                  'AI PLANNER',
+                  style: TextStyle(
+                    fontSize: TypeScale.micro,
+                    letterSpacing: 1.2,
+                    fontWeight: FontWeight.w700,
+                    color: AppStyles.getSecondaryTextColor(context),
+                  ),
+                ),
+                const SizedBox(height: Spacing.sm),
+                FutureBuilder<AIPlannerContext?>(
+                  future: AIPlannerContext.load(),
+                  builder: (ctx, snapshot) {
+                    final plannerCtx = snapshot.data;
+                    if (plannerCtx == null) {
+                      return Row(
+                        children: [
+                          const Icon(CupertinoIcons.sparkles,
+                              size: 13, color: AppStyles.accentOrange),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              'Set your financial focus to get a personalised plan',
+                              style: TextStyle(
+                                fontSize: TypeScale.caption,
+                                color: AppStyles.getSecondaryTextColor(context),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(CupertinoIcons.sparkles,
+                                size: 12, color: AppStyles.accentOrange),
+                            const SizedBox(width: 5),
+                            Expanded(
+                              child: Text(
+                                plannerCtx.focusLabel,
+                                style: TextStyle(
+                                  fontSize: TypeScale.caption,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppStyles.getTextColor(ctx),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: AppStyles.accentOrange.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                plannerCtx.timelineLabel,
+                                style: const TextStyle(
+                                  fontSize: 9,
+                                  color: AppStyles.accentOrange,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (plannerCtx.targetAmount != null &&
+                            plannerCtx.targetAmount! > 0) ...[
+                          const SizedBox(height: 3),
+                          Text(
+                            'Target ₹${_fmtAmt(plannerCtx.targetAmount!)}',
+                            style: TextStyle(
+                              fontSize: TypeScale.caption,
+                              color: AppStyles.getSecondaryTextColor(ctx),
+                            ),
+                          ),
+                        ],
+                      ],
+                    );
+                  },
+                ),
               ],
             );
           },
