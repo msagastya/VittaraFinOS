@@ -15,16 +15,16 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 // ---------------------------------------------------------------------------
-// Data model
+// Data model (public — reused by NetWorthWidget)
 // ---------------------------------------------------------------------------
 
-class _HealthScoreData {
+class HealthScoreData {
   final int savingsScore;
   final int budgetScore;
   final int diversityScore;
   final int debtScore;
 
-  const _HealthScoreData({
+  const HealthScoreData({
     required this.savingsScore,
     required this.budgetScore,
     required this.diversityScore,
@@ -88,7 +88,7 @@ class _HealthScoreData {
 // Scoring computation
 // ---------------------------------------------------------------------------
 
-_HealthScoreData _computeHealthScore({
+HealthScoreData computeHealthScore({
   required List<Transaction> transactions,
   required List<Budget> budgets,
   required List<Investment> investments,
@@ -167,7 +167,7 @@ _HealthScoreData _computeHealthScore({
     else debtScore = 0;
   }
 
-  return _HealthScoreData(
+  return HealthScoreData(
     savingsScore: savingsScore,
     budgetScore: budgetScore,
     diversityScore: diversityScore,
@@ -404,17 +404,17 @@ class _AnimatedSubScoreBarState extends State<_AnimatedSubScoreBar> {
 // Animated body — StatefulWidget that drives all animations
 // ---------------------------------------------------------------------------
 
-class _AnimatedHealthScoreBody extends StatefulWidget {
-  final _HealthScoreData data;
+class HealthScoreBody extends StatefulWidget {
+  final HealthScoreData data;
   final bool isDark;
 
-  const _AnimatedHealthScoreBody({required this.data, required this.isDark});
+  const HealthScoreBody({required this.data, required this.isDark});
 
   @override
-  State<_AnimatedHealthScoreBody> createState() => _AnimatedHealthScoreBodyState();
+  State<HealthScoreBody> createState() => HealthScoreBodyState();
 }
 
-class _AnimatedHealthScoreBodyState extends State<_AnimatedHealthScoreBody>
+class HealthScoreBodyState extends State<HealthScoreBody>
     with TickerProviderStateMixin {
   late AnimationController _entryCtrl;
   late AnimationController _pulseCtrl;
@@ -494,7 +494,7 @@ class _AnimatedHealthScoreBodyState extends State<_AnimatedHealthScoreBody>
   }
 
   @override
-  void didUpdateWidget(_AnimatedHealthScoreBody oldWidget) {
+  void didUpdateWidget(HealthScoreBody oldWidget) {
     super.didUpdateWidget(oldWidget);
     // Re-animate if score changed
     if (oldWidget.data.total != widget.data.total) {
@@ -773,14 +773,14 @@ class HealthScoreWidget extends BaseDashboardWidget {
           InvestmentsController, AccountsController>(
         builder: (context, txController, budgetsController,
             investmentsController, accountsController, child) {
-          final data = _computeHealthScore(
+          final data = computeHealthScore(
             transactions: txController.transactions,
             budgets: budgetsController.budgets,
             investments: investmentsController.investments,
             accounts: accountsController.accounts,
           );
           final isDark = Theme.of(context).brightness == Brightness.dark;
-          return _AnimatedHealthScoreBody(data: data, isDark: isDark);
+          return HealthScoreBody(data: data, isDark: isDark);
         },
       ),
     );

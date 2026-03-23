@@ -5,10 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
+import 'package:vittara_fin_os/logic/budget_model.dart';
+import 'package:vittara_fin_os/logic/budgets_controller.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/ui/dashboard/base_dashboard_widget.dart';
+import 'package:vittara_fin_os/ui/dashboard/widgets/health_score_widget.dart'
+    show HealthScoreData, HealthScoreBody, computeHealthScore;
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
@@ -285,6 +289,7 @@ class _NetWorthBody extends StatefulWidget {
   final double totalNetWorth;
   final double momTrendPct;
   final bool isDark;
+  final HealthScoreData healthData;
 
   const _NetWorthBody({
     required this.accounts,
@@ -294,6 +299,7 @@ class _NetWorthBody extends StatefulWidget {
     required this.totalNetWorth,
     required this.momTrendPct,
     required this.isDark,
+    required this.healthData,
   });
 
   @override
@@ -605,6 +611,22 @@ class _NetWorthBodyState extends State<_NetWorthBody> {
             ),
           ],
         ],
+
+        // ── Section 4: Financial Health Score ──────────────────────────────
+        const SizedBox(height: Spacing.md),
+        const Divider(height: 1),
+        const SizedBox(height: Spacing.sm),
+        Text(
+          'FINANCIAL HEALTH',
+          style: TextStyle(
+            fontSize: TypeScale.micro,
+            letterSpacing: 1.2,
+            fontWeight: FontWeight.w700,
+            color: AppStyles.getSecondaryTextColor(context),
+          ),
+        ),
+        const SizedBox(height: Spacing.sm),
+        HealthScoreBody(data: widget.healthData, isDark: widget.isDark),
       ],
     );
   }
@@ -639,9 +661,9 @@ class NetWorthWidget extends BaseDashboardWidget {
     required double height,
   }) {
     return RepaintBoundary(
-      child: Consumer3<AccountsController, InvestmentsController,
-          TransactionsController>(
-        builder: (context, accCtrl, invCtrl, txCtrl, _) {
+      child: Consumer4<AccountsController, InvestmentsController,
+          TransactionsController, BudgetsController>(
+        builder: (context, accCtrl, invCtrl, txCtrl, budCtrl, _) {
           final accounts = accCtrl.accounts;
           final investments = invCtrl.investments;
           final transactions = txCtrl.transactions;
@@ -748,6 +770,13 @@ class NetWorthWidget extends BaseDashboardWidget {
             );
           }
 
+          final healthData = computeHealthScore(
+            transactions: transactions,
+            budgets: budCtrl.budgets,
+            investments: investments,
+            accounts: accounts,
+          );
+
           return SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
             child: _NetWorthBody(
@@ -758,6 +787,7 @@ class NetWorthWidget extends BaseDashboardWidget {
               totalNetWorth: totalNetWorth,
               momTrendPct: momTrendPct,
               isDark: isDark,
+              healthData: healthData,
             ),
           );
         },

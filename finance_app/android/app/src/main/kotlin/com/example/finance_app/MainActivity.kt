@@ -12,10 +12,9 @@ class MainActivity: FlutterFragmentActivity() {
         super.configureFlutterEngine(flutterEngine)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
             if (call.method == "enableSecure") {
-                window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
+                // FLAG_SECURE disabled — screenshots allowed for dev/personal use
                 result.success(true)
             } else if (call.method == "disableSecure") {
-                window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
                 result.success(true)
             } else {
                 result.notImplemented()

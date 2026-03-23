@@ -44,6 +44,11 @@ class DashboardController with ChangeNotifier {
           changed = _migrateToV2() || changed;
         }
 
+        // v3 migration: health_score merged into net_worth widget — hide it
+        if (_config.configVersion < 3) {
+          changed = _migrateToV3() || changed;
+        }
+
         if (changed) {
           await saveConfig();
           return;
@@ -85,6 +90,18 @@ class DashboardController with ChangeNotifier {
     }).toList();
 
     _config = _config.copyWith(widgets: withSpending, configVersion: 2);
+    return true;
+  }
+
+  /// v3: health_score content merged into net_worth widget — hide it.
+  bool _migrateToV3() {
+    final updatedWidgets = _config.widgets.map((w) {
+      if (w.id == 'health_score' && w.isVisible) {
+        return w.copyWith(isVisible: false);
+      }
+      return w;
+    }).toList();
+    _config = _config.copyWith(widgets: updatedWidgets, configVersion: 3);
     return true;
   }
 
@@ -185,7 +202,7 @@ class DashboardController with ChangeNotifier {
           id: 'health_score',
           type: DashboardWidgetType.healthScore,
           title: 'Financial Health Score',
-          isVisible: true,
+          isVisible: false, // merged into net_worth widget (v3)
           gridRow: 6,
           gridColumn: 1,
           columnSpan: 3,
