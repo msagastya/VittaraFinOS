@@ -1808,14 +1808,13 @@ class DashboardScreen extends StatelessWidget {
           },
         );
       case DashboardWidgetType.transactionHistory:
-        return Consumer2<TransactionsController, InvestmentsController>(
-          builder:
-              (context, transactionController, investmentsController, child) {
+        return Consumer<TransactionsController>(
+          builder: (context, transactionController, child) {
             final allTx = transactionController.transactions;
             final transactions = TransactionFeedBuilder.buildUnifiedFeed(
               transactions: allTx,
-              investments: investmentsController.investments,
-            ).take(5).toList();
+              investments: const [],
+            ).toList();
 
             // Month summary
             final now = DateTime.now();
@@ -1832,46 +1831,6 @@ class DashboardScreen extends StatelessWidget {
                 monthIncome += tx.amount.abs();
               }
             }
-
-            // Alerts (merged from notifications_and_actions widget)
-            final fdsMaturedTx = investmentsController.investments.where((inv) {
-              if (inv.type.name != 'fixedDeposit') return false;
-              final md = inv.metadata;
-              if (md == null || !md.containsKey('maturityDate')) return false;
-              final mat = DateTime.parse(md['maturityDate'] as String);
-              return mat.difference(DateTime.now()).inDays < 0;
-            }).toList();
-            final fdsNearTx = investmentsController.investments.where((inv) {
-              if (inv.type.name != 'fixedDeposit') return false;
-              final md = inv.metadata;
-              if (md == null || !md.containsKey('maturityDate')) return false;
-              final days = DateTime.parse(md['maturityDate'] as String)
-                  .difference(DateTime.now())
-                  .inDays;
-              return days >= 0 && days <= 10;
-            }).toList();
-            final sipAlerts = collectSipNotifications(investmentsController.investments);
-            final bondAlerts = collectBondPayoutNotifications(investmentsController.investments);
-            final hasAlerts = fdsMaturedTx.isNotEmpty ||
-                fdsNearTx.isNotEmpty ||
-                sipAlerts.isNotEmpty ||
-                bondAlerts.isNotEmpty;
-            final alertWidgets = <Widget>[
-              if (fdsMaturedTx.isNotEmpty)
-                _buildCompactDashboardAlert(context,
-                    icon: CupertinoIcons.exclamationmark_circle_fill,
-                    color: CupertinoColors.systemRed,
-                    title: '${fdsMaturedTx.length} FD${fdsMaturedTx.length > 1 ? 's' : ''} matured',
-                    subtitle: 'Action required'),
-              if (fdsNearTx.isNotEmpty)
-                _buildCompactDashboardAlert(context,
-                    icon: CupertinoIcons.bell_fill,
-                    color: CupertinoColors.systemOrange,
-                    title: '${fdsNearTx.length} FD${fdsNearTx.length > 1 ? 's' : ''} maturing soon',
-                    subtitle: 'Within 10 days'),
-              ...sipAlerts.take(2).map((e) => _buildDashboardSipNotification(context, e)),
-              ...bondAlerts.take(1).map((e) => _buildDashboardBondNotification(context, e)),
-            ];
 
             if (transactions.isEmpty) {
               return Center(
@@ -2031,33 +1990,6 @@ class DashboardScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                // ── ALERTS section ────────────────────────────────────────
-                if (hasAlerts) ...[
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: Spacing.sm),
-                    child: Divider(height: 1),
-                  ),
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => Navigator.of(context).push(
-                        FadeScalePageRoute(page: const InvestmentsScreen())),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildTappableSectionHeader(
-                          context,
-                          'ALERTS',
-                          CupertinoColors.systemRed,
-                          () => Navigator.of(context).push(
-                              FadeScalePageRoute(page: const InvestmentsScreen())),
-                        ),
-                        const SizedBox(height: Spacing.xs),
-                        ...alertWidgets.take(3),
-                      ],
-                    ),
-                  ),
-                ],
               ],
             );
           },
@@ -2065,11 +1997,49 @@ class DashboardScreen extends StatelessWidget {
       case DashboardWidgetType.sipTracker:
         return Consumer<InvestmentsController>(
           builder: (context, investmentsController, child) {
-            final activeSips = investmentsController.investments
+            final allInvestments = investmentsController.investments;
+            final activeSips = allInvestments
                 .where((inv) => inv.metadata?['sipActive'] == true)
                 .toList();
 
-            if (activeSips.isEmpty) {
+            // Alerts computation
+            final fdsMatured = allInvestments.where((inv) {
+              if (inv.type.name != 'fixedDeposit') return false;
+              final md = inv.metadata;
+              if (md == null || !md.containsKey('maturityDate')) return false;
+              return DateTime.parse(md['maturityDate'] as String)
+                  .difference(DateTime.now()).inDays < 0;
+            }).toList();
+            final fdsNear = allInvestments.where((inv) {
+              if (inv.type.name != 'fixedDeposit') return false;
+              final md = inv.metadata;
+              if (md == null || !md.containsKey('maturityDate')) return false;
+              final days = DateTime.parse(md['maturityDate'] as String)
+                  .difference(DateTime.now()).inDays;
+              return days >= 0 && days <= 10;
+            }).toList();
+            final sipAlerts = collectSipNotifications(allInvestments);
+            final bondAlerts = collectBondPayoutNotifications(allInvestments);
+            final hasAlerts = fdsMatured.isNotEmpty || fdsNear.isNotEmpty ||
+                sipAlerts.isNotEmpty || bondAlerts.isNotEmpty;
+            final alertWidgets = <Widget>[
+              if (fdsMatured.isNotEmpty)
+                _buildCompactDashboardAlert(context,
+                    icon: CupertinoIcons.exclamationmark_circle_fill,
+                    color: CupertinoColors.systemRed,
+                    title: '${fdsMatured.length} FD${fdsMatured.length > 1 ? 's' : ''} matured',
+                    subtitle: 'Action required'),
+              if (fdsNear.isNotEmpty)
+                _buildCompactDashboardAlert(context,
+                    icon: CupertinoIcons.bell_fill,
+                    color: CupertinoColors.systemOrange,
+                    title: '${fdsNear.length} FD${fdsNear.length > 1 ? 's' : ''} maturing soon',
+                    subtitle: 'Within 10 days'),
+              ...sipAlerts.take(2).map((e) => _buildDashboardSipNotification(context, e)),
+              ...bondAlerts.take(1).map((e) => _buildDashboardBondNotification(context, e)),
+            ];
+
+            if (activeSips.isEmpty && !hasAlerts) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -2111,113 +2081,137 @@ class DashboardScreen extends StatelessWidget {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '${activeSips.length} active SIP${activeSips.length == 1 ? '' : 's'}',
-                      style: TextStyle(
-                        fontSize: TypeScale.footnote,
-                        color: AppStyles.getSecondaryTextColor(context),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    Text(
-                      '~₹${totalMonthly.toStringAsFixed(0)}/mo',
-                      style: const TextStyle(
-                        fontSize: TypeScale.footnote,
-                        fontWeight: FontWeight.w700,
-                        color: CupertinoColors.activeBlue,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: Spacing.sm),
-                ...activeSips.take(4).map((inv) {
-                  final meta = inv.metadata ?? {};
-                  final sipData = meta['sipData'] as Map<String, dynamic>?;
-                  final freq = sipData?['frequency'] as String? ??
-                      meta['sipFrequency'] as String? ??
-                      'monthly';
-                  final amt = (sipData?['sipAmount'] as num?)?.toDouble() ??
-                      (meta['sipAmount'] as num?)?.toDouble() ??
-                      0.0;
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 6),
-                    child: Row(
+                if (activeSips.isNotEmpty) ...[
+                  // ── SIP section ─────────────────────────────────────────
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => Navigator.of(context).push(
+                        FadeScalePageRoute(page: const InvestmentsScreen())),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(CupertinoIcons.repeat,
-                            size: 12,
-                            color: CupertinoColors.activeBlue
-                                .withValues(alpha: 0.7)),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            inv.name,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: TypeScale.caption,
-                              color: AppStyles.getTextColor(context),
-                              fontWeight: FontWeight.w500,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '${activeSips.length} active SIP${activeSips.length == 1 ? '' : 's'}',
+                              style: TextStyle(
+                                fontSize: TypeScale.footnote,
+                                color: AppStyles.getSecondaryTextColor(context),
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
-                          ),
+                            Text(
+                              '~₹${totalMonthly.toStringAsFixed(0)}/mo',
+                              style: const TextStyle(
+                                fontSize: TypeScale.footnote,
+                                fontWeight: FontWeight.w700,
+                                color: CupertinoColors.activeBlue,
+                              ),
+                            ),
+                          ],
                         ),
-                        Text(
-                          amt > 0 ? '₹${amt.toStringAsFixed(0)} · $freq' : freq,
-                          style: TextStyle(
-                            fontSize: TypeScale.caption,
-                            color: AppStyles.getSecondaryTextColor(context),
+                        const SizedBox(height: Spacing.sm),
+                        ...activeSips.map((inv) {
+                          final meta = inv.metadata ?? {};
+                          final sipData = meta['sipData'] as Map<String, dynamic>?;
+                          final freq = sipData?['frequency'] as String? ??
+                              meta['sipFrequency'] as String? ??
+                              'monthly';
+                          final amt = (sipData?['sipAmount'] as num?)?.toDouble() ??
+                              (meta['sipAmount'] as num?)?.toDouble() ??
+                              0.0;
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 6),
+                            child: Row(
+                              children: [
+                                Icon(CupertinoIcons.repeat,
+                                    size: 12,
+                                    color: CupertinoColors.activeBlue
+                                        .withValues(alpha: 0.7)),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    inv.name,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: TypeScale.caption,
+                                      color: AppStyles.getTextColor(context),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  amt > 0 ? '₹${amt.toStringAsFixed(0)} · $freq' : freq,
+                                  style: TextStyle(
+                                    fontSize: TypeScale.caption,
+                                    color: AppStyles.getSecondaryTextColor(context),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
+                        if (totalMonthly > 0) ...[
+                          const SizedBox(height: Spacing.sm),
+                          const Divider(height: 1),
+                          const SizedBox(height: Spacing.sm),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildSipStat(context,
+                                    label: 'Per month',
+                                    value: '₹${_fmtAmt(totalMonthly)}',
+                                    color: CupertinoColors.activeBlue),
+                              ),
+                              Expanded(
+                                child: _buildSipStat(context,
+                                    label: 'Per year',
+                                    value: '₹${_fmtAmt(totalMonthly * 12)}',
+                                    color: AppStyles.accentTeal),
+                              ),
+                              Expanded(
+                                child: _buildSipStat(context,
+                                    label: 'Avg / SIP',
+                                    value: '₹${_fmtAmt(totalMonthly / activeSips.length)}',
+                                    color: AppStyles.accentOrange),
+                              ),
+                            ],
                           ),
-                        ),
+                        ],
                       ],
                     ),
-                  );
-                }),
-                if (activeSips.length > 4)
-                  Text(
-                    '+${activeSips.length - 4} more',
-                    style: TextStyle(
-                      fontSize: TypeScale.caption,
-                      color: AppStyles.getSecondaryTextColor(context),
-                    ),
-                  ),
-                // Total SIP corpus + yearly commitment
-                if (totalMonthly > 0) ...[
-                  const SizedBox(height: Spacing.sm),
-                  const Divider(height: 1),
-                  const SizedBox(height: Spacing.sm),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildSipStat(
-                          context,
-                          label: 'Per month',
-                          value: '₹${_fmtAmt(totalMonthly)}',
-                          color: CupertinoColors.activeBlue,
-                        ),
-                      ),
-                      Expanded(
-                        child: _buildSipStat(
-                          context,
-                          label: 'Per year',
-                          value: '₹${_fmtAmt(totalMonthly * 12)}',
-                          color: AppStyles.accentTeal,
-                        ),
-                      ),
-                      Expanded(
-                        child: _buildSipStat(
-                          context,
-                          label: 'Avg / SIP',
-                          value: activeSips.isNotEmpty
-                              ? '₹${_fmtAmt(totalMonthly / activeSips.length)}'
-                              : '—',
-                          color: AppStyles.accentOrange,
-                        ),
-                      ),
-                    ],
                   ),
                 ],
-
+                // ── ALERTS section ───────────────────────────────────────
+                if (hasAlerts) ...[
+                  if (activeSips.isNotEmpty) ...[
+                    const SizedBox(height: Spacing.sm),
+                    const Divider(height: 1),
+                    const SizedBox(height: Spacing.sm),
+                  ],
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => Navigator.of(context).push(
+                        FadeScalePageRoute(page: const InvestmentsScreen())),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildTappableSectionHeader(
+                          context,
+                          'ALERTS',
+                          CupertinoColors.systemRed,
+                          () => Navigator.of(context).push(
+                              FadeScalePageRoute(page: const InvestmentsScreen())),
+                        ),
+                        const SizedBox(height: Spacing.xs),
+                        ...alertWidgets,
+                      ],
+                    ),
+                  ),
+                ],
               ],
             );
           },
