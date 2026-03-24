@@ -204,8 +204,6 @@ class _DashboardSettingsModalState extends State<DashboardSettingsModal> {
         return 'Recent transactions';
       case DashboardWidgetType.budgetsOverview:
         return 'Monitor budget health';
-      case DashboardWidgetType.aiPlanner:
-        return 'Launch the AI monthly planner';
       case DashboardWidgetType.sipTracker:
         return 'Active SIPs with next due dates & amounts';
       default:

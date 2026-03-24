@@ -64,6 +64,11 @@ class DashboardController with ChangeNotifier {
           changed = _migrateToV6() || changed;
         }
 
+        // v7 migration: remove ai_planner widget (merged content moved into manage screen)
+        if (_config.configVersion < 7) {
+          changed = _migrateToV7() || changed;
+        }
+
         if (changed) {
           await saveConfig();
           return;
@@ -127,6 +132,15 @@ class DashboardController with ChangeNotifier {
       return w;
     }).toList();
     _config = _config.copyWith(widgets: updatedWidgets, configVersion: 4);
+    return true;
+  }
+
+  /// v7: ai_planner widget removed — navigate directly from Manage screen.
+  bool _migrateToV7() {
+    final updatedWidgets = _config.widgets
+        .where((w) => w.id != 'ai_planner')
+        .toList();
+    _config = _config.copyWith(widgets: updatedWidgets, configVersion: 7);
     return true;
   }
 
@@ -206,16 +220,6 @@ class DashboardController with ChangeNotifier {
           rowSpan: 1,
         ),
         DashboardWidgetConfig(
-          id: 'ai_planner',
-          type: DashboardWidgetType.aiPlanner,
-          title: 'AI Planner · Savings',
-          isVisible: true,
-          gridRow: 6,
-          gridColumn: 1,
-          columnSpan: 3,
-          rowSpan: 1,
-        ),
-        DashboardWidgetConfig(
           id: 'sip_tracker',
           type: DashboardWidgetType.sipTracker,
           title: 'SIP Tracker',
@@ -245,7 +249,6 @@ class DashboardController with ChangeNotifier {
     final updatedWidgets = [..._config.widgets];
     final defaults = _getDefaultConfig().widgets.where((w) =>
         w.id == 'budgets_overview' ||
-        w.id == 'ai_planner' ||
         w.id == 'sip_tracker' ||
         w.id == 'spending_insights');
 
