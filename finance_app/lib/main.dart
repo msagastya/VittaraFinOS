@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
-import 'package:vittara_fin_os/logic/account_model.dart';
 import 'package:vittara_fin_os/logic/banks_controller.dart';
 import 'package:vittara_fin_os/logic/brokers_controller.dart';
 import 'package:vittara_fin_os/logic/categories_controller.dart';
@@ -23,7 +22,6 @@ import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_feed_builder.dart';
 import 'package:vittara_fin_os/logic/goals_controller.dart';
-import 'package:vittara_fin_os/logic/goal_model.dart';
 import 'package:vittara_fin_os/logic/budgets_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_archive_controller.dart';
 import 'package:vittara_fin_os/logic/recurring_templates_controller.dart';
@@ -38,7 +36,6 @@ import 'package:vittara_fin_os/ui/spending_insights_screen.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/logic/notification_helpers.dart';
 import 'package:vittara_fin_os/ui/dashboard/dashboard_action_sheet.dart';
-import 'package:vittara_fin_os/ui/notifications_page.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/dashboard/dashboard_settings_modal.dart';
 import 'package:vittara_fin_os/ui/net_worth_page.dart';
@@ -63,7 +60,6 @@ import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/pin_recovery_screen.dart';
 import 'package:vittara_fin_os/ui/dashboard/widgets/budget_widget.dart';
 import 'package:vittara_fin_os/ui/dashboard/widgets/cash_flow_widget.dart';
-import 'package:vittara_fin_os/ui/dashboard/widgets/health_score_widget.dart';
 import 'package:vittara_fin_os/ui/dashboard/widgets/insights_widget.dart';
 import 'package:vittara_fin_os/ui/dashboard/widgets/net_worth_widget.dart';
 import 'package:vittara_fin_os/ui/widgets/global_search_overlay.dart';
@@ -1290,24 +1286,14 @@ class DashboardScreen extends StatelessWidget {
     switch (type) {
       case DashboardWidgetType.netWorth:
         return CupertinoIcons.chart_pie_fill;
-      case DashboardWidgetType.goalsOverview:
-        return CupertinoIcons.checkmark_seal_fill;
       case DashboardWidgetType.budgetsOverview:
         return CupertinoIcons.chart_bar_fill;
-      case DashboardWidgetType.savingsPlanners:
-        return CupertinoIcons.heart_fill;
       case DashboardWidgetType.aiPlanner:
         return CupertinoIcons.sparkles;
       case DashboardWidgetType.transactionHistory:
         return CupertinoIcons.arrow_right_arrow_left_circle_fill;
-      case DashboardWidgetType.notificationsAndActions:
-        return CupertinoIcons.bell_fill;
-      case DashboardWidgetType.monthlySummary:
-        return CupertinoIcons.calendar_circle_fill;
       case DashboardWidgetType.sipTracker:
         return CupertinoIcons.graph_circle_fill;
-      case DashboardWidgetType.healthScore:
-        return CupertinoIcons.heart_fill;
       case DashboardWidgetType.spendingInsights:
         return CupertinoIcons.lightbulb_fill;
     }
@@ -1317,24 +1303,14 @@ class DashboardScreen extends StatelessWidget {
     switch (type) {
       case DashboardWidgetType.netWorth:
         return AppStyles.accentBlue;
-      case DashboardWidgetType.goalsOverview:
-        return AppStyles.accentTeal;
       case DashboardWidgetType.budgetsOverview:
         return AppStyles.accentCoral;
-      case DashboardWidgetType.savingsPlanners:
-        return AppStyles.accentGreen;
       case DashboardWidgetType.aiPlanner:
         return AppStyles.accentOrange;
       case DashboardWidgetType.transactionHistory:
         return SemanticColors.info;
-      case DashboardWidgetType.notificationsAndActions:
-        return SemanticColors.warning;
-      case DashboardWidgetType.monthlySummary:
-        return AppStyles.accentGreen;
       case DashboardWidgetType.sipTracker:
         return CupertinoColors.activeBlue;
-      case DashboardWidgetType.healthScore:
-        return AppStyles.accentCoral;
       case DashboardWidgetType.spendingInsights:
         return AppStyles.aetherTeal;
     }
@@ -1647,237 +1623,6 @@ class DashboardScreen extends StatelessWidget {
     switch (widgetConfig.type) {
       case DashboardWidgetType.netWorth:
         return NetWorthWidget(config: widgetConfig);
-      case DashboardWidgetType.goalsOverview:
-        return Consumer2<GoalsController, TransactionsController>(
-          builder: (context, goalsController, txController, child) {
-            final activeGoals = goalsController.activeGoals.length;
-            final totalSaved = goalsController.totalSavedAmount;
-            final totalTarget = goalsController.totalTargetAmount;
-            final progress = totalTarget > 0
-                ? (totalSaved / totalTarget).clamp(0, 1).toDouble()
-                : 0.0;
-
-            // Empty state — no goals yet
-            final goals = goalsController.activeGoals;
-            if (goals.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: CupertinoColors.activeBlue.withValues(alpha: 0.10),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(CupertinoIcons.flag, size: 28, color: CupertinoColors.activeBlue),
-                    ),
-                    const SizedBox(height: Spacing.sm),
-                    Text(
-                      'No goals yet',
-                      style: TextStyle(
-                        fontSize: TypeScale.subhead,
-                        fontWeight: FontWeight.w600,
-                        color: AppStyles.getTextColor(context),
-                      ),
-                    ),
-                    const SizedBox(height: Spacing.xs),
-                    Text(
-                      'Set a savings goal to track\nyour progress here',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: TypeScale.caption,
-                        color: AppStyles.getSecondaryTextColor(context),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            // Find top goal (soonest deadline or highest current amount)
-            Goal? topGoal;
-            if (goals.isNotEmpty) {
-              topGoal = goals.reduce((a, b) =>
-                  a.targetDate.isBefore(b.targetDate) ? a : b);
-            }
-
-            // Estimate avg monthly contribution from transactions (last 3m)
-            String? paceLabel;
-            if (topGoal != null) {
-              final now = DateTime.now();
-              final threeMonthsAgo = DateTime(now.year, now.month - 3, 1);
-              double contributed = 0;
-              for (final tx in txController.transactions) {
-                if (tx.dateTime.isBefore(threeMonthsAgo)) continue;
-                if (tx.type == TransactionType.income || tx.type == TransactionType.cashback) {
-                  contributed += tx.amount.abs();
-                }
-              }
-              final avgMonthly = contributed / 3;
-              final remaining = (topGoal.targetAmount - topGoal.currentAmount).clamp(0, double.infinity);
-              if (avgMonthly > 0 && remaining > 0) {
-                final months = (remaining / avgMonthly).ceil();
-                final monthsLeft = topGoal.monthsRemaining;
-                final onTrack = months <= (monthsLeft > 0 ? monthsLeft : 9999);
-                if (onTrack) {
-                  paceLabel = '${topGoal.name} — on track, $monthsLeft month${monthsLeft == 1 ? '' : 's'} left';
-                } else {
-                  paceLabel = '${topGoal.name} — $months month${months == 1 ? '' : 's'} to go at current pace';
-                }
-              } else if (remaining == 0) {
-                paceLabel = '${topGoal.name} — complete!';
-              }
-            }
-
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        '$activeGoals Active Goal${activeGoals == 1 ? '' : 's'}',
-                        style: TextStyle(
-                          fontSize: TypeScale.subhead,
-                          fontWeight: FontWeight.w600,
-                          color: AppStyles.getTextColor(context),
-                        ),
-                      ),
-                    ),
-                    Text(
-                      '${(progress * 100).toStringAsFixed(0)}% Complete',
-                      style: TextStyle(
-                        fontSize: TypeScale.footnote,
-                        color: AppStyles.getSecondaryTextColor(context),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: Spacing.md),
-                LinearProgressIndicator(
-                  value: progress,
-                  minHeight: 6,
-                  backgroundColor:
-                      AppStyles.getBackground(context).withValues(alpha: 0.5),
-                  valueColor: const AlwaysStoppedAnimation<Color>(
-                      CupertinoColors.activeBlue),
-                ),
-                const SizedBox(height: Spacing.sm),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Saved ₹${totalSaved.toStringAsFixed(0)}',
-                      style: const TextStyle(
-                          fontSize: TypeScale.footnote,
-                          color: CupertinoColors.systemGreen),
-                    ),
-                    Text(
-                      'Goal ₹${totalTarget.toStringAsFixed(0)}',
-                      style: TextStyle(
-                        fontSize: TypeScale.footnote,
-                        color: AppStyles.getSecondaryTextColor(context),
-                      ),
-                    ),
-                  ],
-                ),
-                if (paceLabel != null) ...[
-                  const SizedBox(height: Spacing.sm),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: AppStyles.accentTeal.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppStyles.accentTeal.withValues(alpha: 0.2)),
-                    ),
-                    child: Text(
-                      paceLabel,
-                      style: TextStyle(
-                        fontSize: TypeScale.caption,
-                        color: AppStyles.accentTeal,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-                // Individual goal rows (up to 3)
-                if (goals.isNotEmpty) ...[
-                  const SizedBox(height: Spacing.md),
-                  const Divider(height: 1),
-                  const SizedBox(height: Spacing.sm),
-                  ...goals.take(3).map((g) {
-                    final pct = g.targetAmount > 0
-                        ? (g.currentAmount / g.targetAmount).clamp(0.0, 1.0)
-                        : 0.0;
-                    final daysLeft = g.targetDate.difference(DateTime.now()).inDays;
-                    final daysStr = daysLeft <= 0
-                        ? 'Due!'
-                        : daysLeft == 1
-                            ? '1 day left'
-                            : '$daysLeft days left';
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  g.name,
-                                  style: TextStyle(
-                                    fontSize: TypeScale.caption,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppStyles.getTextColor(context),
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              Text(
-                                daysStr,
-                                style: TextStyle(
-                                  fontSize: TypeScale.caption,
-                                  color: daysLeft <= 7
-                                      ? CupertinoColors.systemOrange
-                                      : AppStyles.getSecondaryTextColor(context),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(3),
-                            child: LinearProgressIndicator(
-                              value: pct,
-                              minHeight: 4,
-                              backgroundColor: g.color.withValues(alpha: 0.12),
-                              valueColor: AlwaysStoppedAnimation<Color>(g.color),
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            '₹${_fmtAmt(g.currentAmount)} of ₹${_fmtAmt(g.targetAmount)}',
-                            style: TextStyle(
-                              fontSize: 9,
-                              color: AppStyles.getSecondaryTextColor(context),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
-                ],
-
-              ],
-            );
-          },
-        );
       case DashboardWidgetType.budgetsOverview:
         return Consumer<GoalsController>(
           builder: (context, goalsCtrl, _) {
@@ -2023,154 +1768,6 @@ class DashboardScreen extends StatelessWidget {
                                   g.color.withValues(alpha: 0.12),
                               valueColor:
                                   AlwaysStoppedAnimation<Color>(g.color),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
-                ],
-              ],
-            );
-          },
-        );
-      case DashboardWidgetType.savingsPlanners:
-        return Consumer<BudgetsController>(
-          builder: (context, budgetsController, child) {
-            final plannerCount = budgetsController.savingsplanners.length;
-            final totalTarget = budgetsController.totalMonthlySavingsTarget;
-            final totalSaved = budgetsController.totalMonthlySaved;
-            final ratio = totalTarget > 0
-                ? (totalSaved / totalTarget).clamp(0, 1).toDouble()
-                : 0.0;
-
-            if (plannerCount == 0) {
-              return Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: CupertinoColors.systemGreen.withValues(alpha: 0.10),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(CupertinoIcons.money_dollar_circle, size: 28, color: CupertinoColors.systemGreen),
-                    ),
-                    const SizedBox(height: Spacing.sm),
-                    Text(
-                      'No savings planners',
-                      style: TextStyle(
-                        fontSize: TypeScale.subhead,
-                        fontWeight: FontWeight.w600,
-                        color: AppStyles.getTextColor(context),
-                      ),
-                    ),
-                    const SizedBox(height: Spacing.xs),
-                    Text(
-                      'Add a savings planner to\nmonitor your monthly targets',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: TypeScale.caption,
-                        color: AppStyles.getSecondaryTextColor(context),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  '$plannerCount Savings Planner${plannerCount == 1 ? '' : 's'}',
-                  style: TextStyle(
-                    fontSize: TypeScale.subhead,
-                    fontWeight: FontWeight.w600,
-                    color: AppStyles.getTextColor(context),
-                  ),
-                ),
-                const SizedBox(height: Spacing.md),
-                LinearProgressIndicator(
-                  value: ratio,
-                  minHeight: 6,
-                  backgroundColor:
-                      AppStyles.getBackground(context).withValues(alpha: 0.5),
-                  valueColor: const AlwaysStoppedAnimation<Color>(
-                      CupertinoColors.systemGreen),
-                ),
-                const SizedBox(height: Spacing.sm),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Saved ₹${totalSaved.toStringAsFixed(0)}',
-                      style: const TextStyle(
-                          fontSize: TypeScale.footnote,
-                          color: CupertinoColors.systemGreen),
-                    ),
-                    Text(
-                      'Target ₹${totalTarget.toStringAsFixed(0)}',
-                      style: TextStyle(
-                        fontSize: TypeScale.footnote,
-                        color: AppStyles.getSecondaryTextColor(context),
-                      ),
-                    ),
-                  ],
-                ),
-                // Individual planner rows
-                if (budgetsController.savingsplanners.isNotEmpty) ...[
-                  const SizedBox(height: Spacing.md),
-                  const Divider(height: 1),
-                  const SizedBox(height: Spacing.sm),
-                  ...budgetsController.savingsplanners.take(4).map((p) {
-                    final pct = p.monthlyTarget > 0
-                        ? (p.currentMonthSaved / p.monthlyTarget).clamp(0.0, 1.0)
-                        : 0.0;
-                    final over = p.currentMonthSaved >= p.monthlyTarget;
-                    final barColor = over
-                        ? CupertinoColors.systemGreen
-                        : pct >= 0.5
-                            ? AppStyles.accentTeal
-                            : CupertinoColors.systemOrange;
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  p.name,
-                                  style: TextStyle(
-                                    fontSize: TypeScale.caption,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppStyles.getTextColor(context),
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              Text(
-                                '₹${_fmtAmt(p.currentMonthSaved)} / ₹${_fmtAmt(p.monthlyTarget)}',
-                                style: TextStyle(
-                                  fontSize: TypeScale.caption,
-                                  color: barColor,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(3),
-                            child: LinearProgressIndicator(
-                              value: pct,
-                              minHeight: 4,
-                              backgroundColor: barColor.withValues(alpha: 0.12),
-                              valueColor: AlwaysStoppedAnimation<Color>(barColor),
                             ),
                           ),
                         ],
@@ -2589,8 +2186,6 @@ class DashboardScreen extends StatelessWidget {
             );
           },
         );
-      case DashboardWidgetType.monthlySummary:
-        return const CashFlowDashboardWidget();
       case DashboardWidgetType.sipTracker:
         return Consumer<InvestmentsController>(
           builder: (context, investmentsController, child) {
@@ -2751,121 +2346,6 @@ class DashboardScreen extends StatelessWidget {
             );
           },
         );
-      case DashboardWidgetType.notificationsAndActions:
-        return Consumer<InvestmentsController>(
-          builder: (context, investmentsController, child) {
-            final fdsNearMaturity =
-                investmentsController.investments.where((inv) {
-              if (inv.type.name != 'fixedDeposit') return false;
-              final metadata = inv.metadata;
-              if (metadata == null || !metadata.containsKey('maturityDate')) {
-                return false;
-              }
-              final maturityDate =
-                  DateTime.parse(metadata['maturityDate'] as String);
-              final daysUntil = maturityDate.difference(DateTime.now()).inDays;
-              return daysUntil <= 10 && daysUntil >= 0;
-            }).toList();
-
-            final fdsMatured = investmentsController.investments.where((inv) {
-              if (inv.type.name != 'fixedDeposit') return false;
-              final metadata = inv.metadata;
-              if (metadata == null || !metadata.containsKey('maturityDate')) {
-                return false;
-              }
-              final maturityDate =
-                  DateTime.parse(metadata['maturityDate'] as String);
-              final daysUntil = maturityDate.difference(DateTime.now()).inDays;
-              return daysUntil < 0;
-            }).toList();
-
-            final sipNotifications =
-                collectSipNotifications(investmentsController.investments);
-            final bondNotifications = collectBondPayoutNotifications(
-                investmentsController.investments);
-            final hasAnyNotification = fdsMatured.isNotEmpty ||
-                fdsNearMaturity.isNotEmpty ||
-                sipNotifications.isNotEmpty ||
-                bondNotifications.isNotEmpty;
-
-            if (!hasAnyNotification) {
-              return Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      CupertinoIcons.bell_slash,
-                      size: 30,
-                      color: AppStyles.getSecondaryTextColor(context),
-                    ),
-                    const SizedBox(height: Spacing.sm),
-                    Text(
-                      'No active notifications',
-                      style: TextStyle(
-                        fontSize: TypeScale.subhead,
-                        color: AppStyles.getSecondaryTextColor(context),
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            const maxPreviewItems = 3;
-            final alerts = <Widget>[
-              if (fdsMatured.isNotEmpty)
-                _buildCompactDashboardAlert(
-                  context,
-                  icon: CupertinoIcons.exclamationmark_circle_fill,
-                  color: CupertinoColors.systemRed,
-                  title:
-                      '${fdsMatured.length} FD${fdsMatured.length > 1 ? 's' : ''} matured',
-                  subtitle: 'Action required',
-                ),
-              if (fdsNearMaturity.isNotEmpty)
-                _buildCompactDashboardAlert(
-                  context,
-                  icon: CupertinoIcons.bell_fill,
-                  color: CupertinoColors.systemOrange,
-                  title:
-                      '${fdsNearMaturity.length} FD${fdsNearMaturity.length > 1 ? 's' : ''} maturing soon',
-                  subtitle: 'Within 10 days',
-                ),
-              ...sipNotifications.map(
-                  (entry) => _buildDashboardSipNotification(context, entry)),
-              ...bondNotifications.map(
-                  (entry) => _buildDashboardBondNotification(context, entry)),
-            ];
-            final previewAlerts = alerts.take(maxPreviewItems).toList();
-            final hiddenCount = alerts.length - previewAlerts.length;
-
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                ...previewAlerts,
-                if (hiddenCount > 0)
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      top: Spacing.xs,
-                      left: Spacing.xs,
-                    ),
-                    child: Text(
-                      '+$hiddenCount more alerts. Tap to view all',
-                      style: TextStyle(
-                        fontSize: TypeScale.caption,
-                        fontWeight: FontWeight.w600,
-                        color: AppStyles.getSecondaryTextColor(context),
-                      ),
-                    ),
-                  ),
-              ],
-            );
-          },
-        );
-      case DashboardWidgetType.healthScore:
-        return HealthScoreWidget(config: widgetConfig);
       case DashboardWidgetType.spendingInsights:
         return InsightsWidget(config: widgetConfig);
       default:
@@ -2992,19 +2472,9 @@ class DashboardScreen extends StatelessWidget {
           FadeScalePageRoute(page: const NetWorthPage()),
         );
         break;
-      case DashboardWidgetType.goalsOverview:
-        Navigator.of(context).push(
-          FadeScalePageRoute(page: const GoalsScreen()),
-        );
-        break;
       case DashboardWidgetType.budgetsOverview:
         Navigator.of(context).push(
           FadeScalePageRoute(page: const BudgetsScreen()),
-        );
-        break;
-      case DashboardWidgetType.savingsPlanners:
-        Navigator.of(context).push(
-          FadeScalePageRoute(page: const SavingsPlannersScreen()),
         );
         break;
       case DashboardWidgetType.aiPlanner:
@@ -3012,24 +2482,9 @@ class DashboardScreen extends StatelessWidget {
           FadeScalePageRoute(page: const AIMonthlyPlannerScreen()),
         );
         break;
-      case DashboardWidgetType.notificationsAndActions:
-        Navigator.of(context).push(
-          FadeScalePageRoute(page: const NotificationsPage()),
-        );
-        break;
-      case DashboardWidgetType.monthlySummary:
-        Navigator.of(context).push(
-          FadeScalePageRoute(page: const ReportsAnalysisScreen()),
-        );
-        break;
       case DashboardWidgetType.sipTracker:
         Navigator.of(context).push(
           FadeScalePageRoute(page: const InvestmentsScreen()),
-        );
-        break;
-      case DashboardWidgetType.healthScore:
-        Navigator.of(context).push(
-          FadeScalePageRoute(page: const ReportsAnalysisScreen()),
         );
         break;
       case DashboardWidgetType.spendingInsights:

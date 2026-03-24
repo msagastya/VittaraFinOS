@@ -59,6 +59,11 @@ class DashboardController with ChangeNotifier {
           changed = _migrateToV5() || changed;
         }
 
+        // v6 migration: remove obsolete merged widgets from stored config
+        if (_config.configVersion < 6) {
+          changed = _migrateToV6() || changed;
+        }
+
         if (changed) {
           await saveConfig();
           return;
@@ -125,6 +130,22 @@ class DashboardController with ChangeNotifier {
     return true;
   }
 
+  /// v6: remove obsolete widget entries that were merged into other widgets.
+  bool _migrateToV6() {
+    const removedIds = {
+      'goals_overview',
+      'monthly_summary',
+      'health_score',
+      'notifications_and_actions',
+      'savings_planners',
+    };
+    final updatedWidgets = _config.widgets
+        .where((w) => !removedIds.contains(w.id))
+        .toList();
+    _config = _config.copyWith(widgets: updatedWidgets, configVersion: 6);
+    return true;
+  }
+
   /// v5: ai_planner now hosts AI Monthly Planner + Savings Planners — make it visible.
   bool _migrateToV5() {
     final updatedWidgets = _config.widgets.map((w) {
@@ -175,41 +196,11 @@ class DashboardController with ChangeNotifier {
           rowSpan: 2,
         ),
         DashboardWidgetConfig(
-          id: 'notifications_and_actions',
-          type: DashboardWidgetType.notificationsAndActions,
-          title: 'Notifications and Actions',
-          isVisible: false, // merged into transaction_history (v4)
-          gridRow: 5,
-          gridColumn: 1,
-          columnSpan: 3,
-          rowSpan: 1,
-        ),
-        DashboardWidgetConfig(
-          id: 'goals_overview',
-          type: DashboardWidgetType.goalsOverview,
-          title: 'Goals',
-          isVisible: false,
-          gridRow: 9,
-          gridColumn: 1,
-          columnSpan: 3,
-          rowSpan: 1,
-        ),
-        DashboardWidgetConfig(
           id: 'budgets_overview',
           type: DashboardWidgetType.budgetsOverview,
           title: 'Budgets',
           isVisible: false,
           gridRow: 10,
-          gridColumn: 1,
-          columnSpan: 3,
-          rowSpan: 1,
-        ),
-        DashboardWidgetConfig(
-          id: 'savings_planners',
-          type: DashboardWidgetType.savingsPlanners,
-          title: 'Savings Planners',
-          isVisible: false,
-          gridRow: 11,
           gridColumn: 1,
           columnSpan: 3,
           rowSpan: 1,
@@ -225,16 +216,6 @@ class DashboardController with ChangeNotifier {
           rowSpan: 1,
         ),
         DashboardWidgetConfig(
-          id: 'monthly_summary',
-          type: DashboardWidgetType.monthlySummary,
-          title: 'Cash Flow',
-          isVisible: false,
-          gridRow: 13,
-          gridColumn: 1,
-          columnSpan: 3,
-          rowSpan: 1,
-        ),
-        DashboardWidgetConfig(
           id: 'sip_tracker',
           type: DashboardWidgetType.sipTracker,
           title: 'SIP Tracker',
@@ -243,16 +224,6 @@ class DashboardController with ChangeNotifier {
           gridColumn: 1,
           columnSpan: 3,
           rowSpan: 1,
-        ),
-        DashboardWidgetConfig(
-          id: 'health_score',
-          type: DashboardWidgetType.healthScore,
-          title: 'Financial Health Score',
-          isVisible: false, // merged into net_worth widget (v3)
-          gridRow: 6,
-          gridColumn: 1,
-          columnSpan: 3,
-          rowSpan: 2,
         ),
         DashboardWidgetConfig(
           id: 'spending_insights',
@@ -273,13 +244,9 @@ class DashboardController with ChangeNotifier {
     final existingIds = _config.widgets.map((w) => w.id).toSet();
     final updatedWidgets = [..._config.widgets];
     final defaults = _getDefaultConfig().widgets.where((w) =>
-        w.id == 'goals_overview' ||
         w.id == 'budgets_overview' ||
-        w.id == 'savings_planners' ||
         w.id == 'ai_planner' ||
-        w.id == 'monthly_summary' ||
         w.id == 'sip_tracker' ||
-        w.id == 'health_score' ||
         w.id == 'spending_insights');
 
     for (final optional in defaults) {

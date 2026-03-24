@@ -7,14 +7,10 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
-import 'package:vittara_fin_os/logic/budget_model.dart';
-import 'package:vittara_fin_os/logic/budgets_controller.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
-import 'package:vittara_fin_os/ui/dashboard/widgets/health_score_widget.dart'
-    show HealthScoreData, HealthScoreBody, computeHealthScore;
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/card_deck_view.dart';
@@ -378,10 +374,9 @@ class _NetWorthPageState extends State<NetWorthPage> {
               border: null,
             ),
       child: SafeArea(
-        child: Consumer4<AccountsController, InvestmentsController,
-            TransactionsController, BudgetsController>(
-          builder: (context, accountsController, investmentsController, txCtrl,
-              budgetsController, _) {
+        child: Consumer3<AccountsController, InvestmentsController,
+            TransactionsController>(
+          builder: (context, accountsController, investmentsController, txCtrl, _) {
             // Loading skeleton
             if (!accountsController.isLoaded ||
                 !investmentsController.isLoaded) {
@@ -458,10 +453,10 @@ class _NetWorthPageState extends State<NetWorthPage> {
                   Expanded(
                     child: CardDeckView(
                       cards: [
-                        // Card 1: Vault — headline net worth + momentum banner
+                        // Card 1: Vault + Trajectory — net worth + momentum + trend + forecast
                         _buildNwDeckCard(
                           context,
-                          label: 'VAULT',
+                          label: 'VAULT · TRAJECTORY',
                           icon: CupertinoIcons.lock_shield_fill,
                           accent: AppStyles.teal(context),
                           child: Column(
@@ -473,28 +468,18 @@ class _NetWorthPageState extends State<NetWorthPage> {
                                 const SizedBox(height: Spacing.md),
                                 _buildMotivationalBanner(
                                     context, totalNetWorth),
-                              ],
-                            ],
-                          ),
-                        ),
-                        // Card 2: Trajectory — trend + forecast
-                        _buildNwDeckCard(
-                          context,
-                          label: 'TRAJECTORY',
-                          icon: CupertinoIcons.chart_bar_alt_fill,
-                          accent: AppStyles.violet(context),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (_historySnapshots.length >= 2)
+                                const SizedBox(height: Spacing.lg),
+                                const Divider(height: 1),
+                                const SizedBox(height: Spacing.lg),
                                 _buildNetWorthTrendCard(context),
+                              ],
                               const SizedBox(height: Spacing.lg),
                               _buildForecastCard(
                                   context, txCtrl, totalNetWorth),
                             ],
                           ),
                         ),
-                        // Card 3: Liquid Assets — bank accounts
+                        // Card 2: Liquid Assets — bank accounts
                         _buildNwDeckCard(
                           context,
                           label: 'LIQUID ASSETS',
@@ -503,7 +488,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                           child: _buildBankAccountsSection(
                               context, accountsController),
                         ),
-                        // Card 4: Portfolio — demat + investments
+                        // Card 3: Portfolio — demat + investments
                         _buildNwDeckCard(
                           context,
                           label: 'PORTFOLIO',
@@ -520,7 +505,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                             ],
                           ),
                         ),
-                        // Card 5: Obligations — credit liabilities
+                        // Card 4: Obligations — credit liabilities
                         _buildNwDeckCard(
                           context,
                           label: 'OBLIGATIONS',
@@ -528,22 +513,6 @@ class _NetWorthPageState extends State<NetWorthPage> {
                           accent: AppStyles.loss(context),
                           child: _buildCreditLiabilitiesSection(
                               context, accountsController),
-                        ),
-                        // Card 6: Health Score — full animated gauge + sub-scores
-                        _buildNwDeckCard(
-                          context,
-                          label: 'HEALTH SCORE',
-                          icon: CupertinoIcons.heart_fill,
-                          accent: const Color(0xFF00C853),
-                          child: HealthScoreBody(
-                            data: computeHealthScore(
-                              transactions: txCtrl.transactions,
-                              budgets: budgetsController.budgets,
-                              investments: investmentsController.investments,
-                              accounts: accountsController.accounts,
-                            ),
-                            isDark: AppStyles.isDarkMode(context),
-                          ),
                         ),
                       ],
                     ),
@@ -1646,9 +1615,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
       return totalB.compareTo(totalA);
     });
 
-    final displayEntries =
-        _expandInvestments ? sortedEntries : sortedEntries.take(3).toList();
-    final hasMore = sortedEntries.length > 3;
+    final displayEntries = sortedEntries;
 
     return Container(
       decoration: AppStyles.cardDecoration(context),
@@ -1802,39 +1769,6 @@ class _NetWorthPageState extends State<NetWorthPage> {
                     ],
                   );
                 }),
-                if (hasMore)
-                  Padding(
-                    padding: const EdgeInsets.only(top: Spacing.md),
-                    child: CupertinoButton(
-                      padding: EdgeInsets.zero,
-                      onPressed: () {
-                        setState(() {
-                          _expandInvestments = !_expandInvestments;
-                        });
-                      },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            _expandInvestments ? 'Show Less' : 'Show All',
-                            style: TextStyle(
-                              fontSize: TypeScale.subhead,
-                              fontWeight: FontWeight.w600,
-                              color: AppStyles.gain(context),
-                            ),
-                          ),
-                          const SizedBox(width: Spacing.xs),
-                          Icon(
-                            _expandInvestments
-                                ? CupertinoIcons.chevron_up
-                                : CupertinoIcons.chevron_down,
-                            size: 14,
-                            color: AppStyles.gain(context),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
               ],
             ),
           ),

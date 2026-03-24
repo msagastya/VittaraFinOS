@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
-import 'package:vittara_fin_os/logic/budget_model.dart';
 import 'package:vittara_fin_os/logic/budgets_controller.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';

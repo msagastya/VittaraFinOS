@@ -1,14 +1,9 @@
 enum DashboardWidgetType {
   transactionHistory,
   netWorth,
-  goalsOverview,
   budgetsOverview,
-  savingsPlanners,
   aiPlanner,
-  notificationsAndActions,
-  monthlySummary,
   sipTracker,
-  healthScore,
   spendingInsights,
 }
 
@@ -112,7 +107,7 @@ class DashboardConfig {
   DashboardConfig({
     required this.widgets,
     DateTime? lastModified,
-    this.configVersion = 5,
+    this.configVersion = 6,
   }) : lastModified = lastModified ?? DateTime.now();
 
   DashboardConfig copyWith({
