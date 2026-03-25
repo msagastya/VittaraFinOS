@@ -36,6 +36,7 @@ import 'package:vittara_fin_os/ui/spending_insights_screen.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/logic/notification_helpers.dart';
 import 'package:vittara_fin_os/ui/dashboard/dashboard_action_sheet.dart';
+import 'package:vittara_fin_os/ui/notifications_page.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/dashboard/dashboard_settings_modal.dart';
 import 'package:vittara_fin_os/ui/net_worth_page.dart';
@@ -2194,7 +2195,7 @@ class DashboardScreen extends StatelessWidget {
                   GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: () => Navigator.of(context).push(
-                        FadeScalePageRoute(page: const InvestmentsScreen())),
+                        FadeScalePageRoute(page: const NotificationsPage())),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2204,7 +2205,7 @@ class DashboardScreen extends StatelessWidget {
                           'ALERTS',
                           CupertinoColors.systemRed,
                           () => Navigator.of(context).push(
-                              FadeScalePageRoute(page: const InvestmentsScreen())),
+                              FadeScalePageRoute(page: const NotificationsPage())),
                         ),
                         const SizedBox(height: Spacing.xs),
                         ...alertWidgets,
