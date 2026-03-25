@@ -4,6 +4,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/contacts_controller.dart';
 import 'package:vittara_fin_os/logic/contact_model.dart';
+import 'package:vittara_fin_os/logic/lending_borrowing_controller.dart';
+import 'package:vittara_fin_os/logic/lending_borrowing_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
@@ -162,7 +164,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
     return BouncyButton(
       onPressed: () {
         Haptics.light();
-        _showContactOptions(context, contact, controller);
+        _showPersonDetailsSheet(contact);
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: Spacing.md),
@@ -225,6 +227,371 @@ class _ContactsScreenState extends State<ContactsScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showPersonDetailsSheet(Contact contact) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (sheetContext) {
+        return Consumer<LendingBorrowingController>(
+          builder: (ctx, lbCtrl, _) {
+            final allRecords = lbCtrl.records
+                .where((r) =>
+                    r.personName.toLowerCase() == contact.name.toLowerCase())
+                .toList()
+              ..sort((a, b) => b.date.compareTo(a.date));
+
+            final activeRecords =
+                allRecords.where((r) => !r.isSettled).toList();
+            final settledRecords =
+                allRecords.where((r) => r.isSettled).toList();
+
+            final totalLent = activeRecords
+                .where((r) => r.type == LendingType.lent)
+                .fold<double>(0, (sum, r) => sum + r.amount);
+            final totalBorrowed = activeRecords
+                .where((r) => r.type == LendingType.borrowed)
+                .fold<double>(0, (sum, r) => sum + r.amount);
+
+            final initials = contact.name.isNotEmpty
+                ? contact.name.trim()[0].toUpperCase()
+                : '?';
+
+            return DraggableScrollableSheet(
+              expand: false,
+              initialChildSize: 0.75,
+              minChildSize: 0.4,
+              maxChildSize: 0.95,
+              builder: (dragCtx, scrollController) {
+                return Container(
+                  decoration: BoxDecoration(
+                    color: AppStyles.getCardColor(ctx),
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(24)),
+                  ),
+                  child: Column(
+                    children: [
+                      // Handle
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12, bottom: 4),
+                        child: Container(
+                          width: 40,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: AppStyles.getSecondaryTextColor(ctx)
+                                .withValues(alpha: 0.3),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: ListView(
+                          controller: scrollController,
+                          padding:
+                              const EdgeInsets.fromLTRB(20, 8, 20, 40),
+                          children: [
+                            // ── Contact header ────────────────────────────
+                            Row(
+                              children: [
+                                Container(
+                                  width: 56,
+                                  height: 56,
+                                  decoration: BoxDecoration(
+                                    color: CupertinoColors.systemBlue
+                                        .withValues(alpha: 0.15),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      initials,
+                                      style: const TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w700,
+                                        color: CupertinoColors.systemBlue,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(contact.name,
+                                          style: TextStyle(
+                                            fontSize: TypeScale.title2,
+                                            fontWeight: FontWeight.w700,
+                                            color:
+                                                AppStyles.getTextColor(ctx),
+                                          )),
+                                      if (contact.phoneNumber != null &&
+                                          contact.phoneNumber!.isNotEmpty)
+                                        Text(contact.phoneNumber!,
+                                            style: TextStyle(
+                                              fontSize: TypeScale.footnote,
+                                              color: AppStyles
+                                                  .getSecondaryTextColor(ctx),
+                                            )),
+                                    ],
+                                  ),
+                                ),
+                                CupertinoButton(
+                                  padding: EdgeInsets.zero,
+                                  onPressed: () {
+                                    Navigator.pop(sheetContext);
+                                    _showContactOptions(
+                                      context,
+                                      contact,
+                                      context.read<ContactsController>(),
+                                    );
+                                  },
+                                  child: Icon(
+                                    CupertinoIcons.ellipsis_circle,
+                                    color:
+                                        AppStyles.getSecondaryTextColor(ctx),
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 20),
+
+                            // ── Summary row ───────────────────────────────
+                            if (totalLent > 0 || totalBorrowed > 0) ...[
+                              Row(
+                                children: [
+                                  if (totalLent > 0)
+                                    Expanded(
+                                      child: Container(
+                                        padding: const EdgeInsets.all(Spacing.md),
+                                        decoration: BoxDecoration(
+                                          color: CupertinoColors.systemGreen
+                                              .withValues(alpha: 0.08),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          border: Border.all(
+                                              color: CupertinoColors
+                                                  .systemGreen
+                                                  .withValues(alpha: 0.2)),
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text('They Owe',
+                                                style: TextStyle(
+                                                  fontSize: TypeScale.caption,
+                                                  color: AppStyles
+                                                      .getSecondaryTextColor(ctx),
+                                                )),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              '₹${totalLent.toStringAsFixed(0)}',
+                                              style: const TextStyle(
+                                                fontSize: TypeScale.headline,
+                                                fontWeight: FontWeight.w700,
+                                                color: CupertinoColors
+                                                    .systemGreen,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  if (totalLent > 0 && totalBorrowed > 0)
+                                    const SizedBox(width: 12),
+                                  if (totalBorrowed > 0)
+                                    Expanded(
+                                      child: Container(
+                                        padding: const EdgeInsets.all(Spacing.md),
+                                        decoration: BoxDecoration(
+                                          color: CupertinoColors.systemRed
+                                              .withValues(alpha: 0.08),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          border: Border.all(
+                                              color: CupertinoColors.systemRed
+                                                  .withValues(alpha: 0.2)),
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text('You Owe',
+                                                style: TextStyle(
+                                                  fontSize: TypeScale.caption,
+                                                  color: AppStyles
+                                                      .getSecondaryTextColor(ctx),
+                                                )),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              '₹${totalBorrowed.toStringAsFixed(0)}',
+                                              style: const TextStyle(
+                                                fontSize: TypeScale.headline,
+                                                fontWeight: FontWeight.w700,
+                                                color: CupertinoColors.systemRed,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 20),
+                            ],
+
+                            // ── Active records ────────────────────────────
+                            if (activeRecords.isEmpty && settledRecords.isEmpty)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 32),
+                                child: Center(
+                                  child: Text(
+                                    'No lending or borrowing records\nwith ${contact.name}',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: AppStyles.getSecondaryTextColor(ctx),
+                                      fontSize: TypeScale.footnote,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            else ...[
+                              if (activeRecords.isNotEmpty) ...[
+                                Text('Active',
+                                    style: TextStyle(
+                                      fontSize: TypeScale.footnote,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 1.0,
+                                      color: AppStyles.getSecondaryTextColor(ctx),
+                                    )),
+                                const SizedBox(height: 8),
+                                ...activeRecords.map(
+                                    (r) => _buildLendingRecordCard(ctx, r)),
+                                const SizedBox(height: 16),
+                              ],
+                              if (settledRecords.isNotEmpty) ...[
+                                Text('Settled',
+                                    style: TextStyle(
+                                      fontSize: TypeScale.footnote,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 1.0,
+                                      color: AppStyles.getSecondaryTextColor(ctx),
+                                    )),
+                                const SizedBox(height: 8),
+                                ...settledRecords.map(
+                                    (r) => _buildLendingRecordCard(ctx, r)),
+                              ],
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildLendingRecordCard(BuildContext context, LendingBorrowing record) {
+    final isLent = record.type == LendingType.lent;
+    final color = isLent ? CupertinoColors.systemGreen : CupertinoColors.systemRed;
+    final label = isLent ? 'Lent' : 'Borrowed';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(Spacing.md),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.18)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              isLent ? CupertinoIcons.arrow_up_right : CupertinoIcons.arrow_down_left,
+              size: 16,
+              color: color,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  record.description?.isNotEmpty == true
+                      ? record.description!
+                      : label,
+                  style: TextStyle(
+                    fontSize: TypeScale.footnote,
+                    fontWeight: FontWeight.w600,
+                    color: AppStyles.getTextColor(context),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Row(
+                  children: [
+                    Text(
+                      '${record.date.day}/${record.date.month}/${record.date.year}',
+                      style: TextStyle(
+                        fontSize: TypeScale.caption,
+                        color: AppStyles.getSecondaryTextColor(context),
+                      ),
+                    ),
+                    if (record.dueDate != null) ...[
+                      Text(' · due ${record.dueDate!.day}/${record.dueDate!.month}/${record.dueDate!.year}',
+                          style: TextStyle(
+                            fontSize: TypeScale.caption,
+                            color: record.dueDate!.isBefore(DateTime.now()) && !record.isSettled
+                                ? CupertinoColors.systemOrange
+                                : AppStyles.getSecondaryTextColor(context),
+                          )),
+                    ],
+                    if (record.isSettled) ...[
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: CupertinoColors.systemGreen.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text('Settled',
+                            style: TextStyle(
+                                fontSize: 9,
+                                color: CupertinoColors.systemGreen,
+                                fontWeight: FontWeight.w600)),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Text(
+            '₹${record.amount.toStringAsFixed(0)}',
+            style: TextStyle(
+              fontSize: TypeScale.footnote,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+        ],
       ),
     );
   }
