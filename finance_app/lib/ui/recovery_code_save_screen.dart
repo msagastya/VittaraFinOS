@@ -21,17 +21,41 @@ class RecoveryCodeSaveScreen extends StatefulWidget {
   State<RecoveryCodeSaveScreen> createState() => _RecoveryCodeSaveScreenState();
 }
 
-class _RecoveryCodeSaveScreenState extends State<RecoveryCodeSaveScreen> {
+class _RecoveryCodeSaveScreenState extends State<RecoveryCodeSaveScreen>
+    with WidgetsBindingObserver {
   bool _copied = false;
   bool _confirmed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// Immediately wipe clipboard when the app moves to background so the
+  /// recovery code is never accessible to other apps via the system clipboard.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused && _copied) {
+      Clipboard.setData(const ClipboardData(text: ''));
+      if (mounted) setState(() => _copied = false);
+    }
+  }
 
   void _copy() {
     Clipboard.setData(ClipboardData(text: widget.recoveryCode));
     setState(() => _copied = true);
     Haptics.medium();
-    // Auto-clear clipboard after 60 seconds
+    // Auto-clear clipboard after 60 seconds (foreground fallback)
     Future.delayed(const Duration(seconds: 60), () {
       Clipboard.setData(const ClipboardData(text: ''));
+      if (mounted) setState(() => _copied = false);
     });
   }
 

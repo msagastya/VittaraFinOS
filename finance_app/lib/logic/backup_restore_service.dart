@@ -61,6 +61,10 @@ class BackupRestoreService {
   // keyVersion 2 = derived from per-device key in flutter_secure_storage.
   static const int _encryptionKeyVersion = 2;
 
+  /// Set to true after a restore that decrypted a v1 (legacy key) backup.
+  /// Callers should check this and prompt the user to create a new backup.
+  static bool lastRestoreUsedLegacyKey = false;
+
   /// Key used to store / retrieve the per-device backup master key.
   static const String _deviceKeyStorageKey = 'vittara_backup_device_master_key_v2';
   static const String _macAssociatedData =
@@ -1517,8 +1521,11 @@ class BackupRestoreService {
       // keyVersion 1 = legacy hardcoded seed; keyVersion 2 = device key.
       final Uint8List seed;
       if (keyVersion >= 2) {
+        lastRestoreUsedLegacyKey = false;
         seed = await _getOrCreateDeviceKey();
       } else {
+        // Legacy backup: flag so caller can prompt user to re-backup.
+        lastRestoreUsedLegacyKey = true;
         seed = Uint8List.fromList(_masterSecretSeed);
       }
 

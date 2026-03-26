@@ -107,6 +107,14 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
     });
     if (result.success) {
       toast.showSuccess('Backup restored');
+      if (BackupRestoreService.lastRestoreUsedLegacyKey) {
+        // Show a gentle security nudge — legacy backups used a weaker key.
+        await Future.delayed(const Duration(milliseconds: 800));
+        if (!mounted) return;
+        toast.showWarning(
+          'Legacy backup detected. Create a new backup to upgrade encryption.',
+        );
+      }
     } else {
       toast.showError(result.message);
     }

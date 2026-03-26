@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:math';
+import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -20,6 +22,7 @@ class SettingsController with ChangeNotifier {
     iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
   );
   static const _keyPinHash = 'vfos_pin_hash';
+  static const _keyPinSalt = 'vfos_pin_salt_v2';
 
   ThemeMode _themeMode = ThemeMode.system;
   bool _isBiometricEnabled = true;
@@ -32,6 +35,7 @@ class SettingsController with ChangeNotifier {
   bool _isArchivedTransactionsEnabled = false;
   bool _isSmsEnabled = false;
   String? _pinHash; // SHA-256 of the PIN
+  String? _pinSalt; // Per-user random salt (base64, v2+). Null for legacy users.
   bool _showPinFallback = false; // set to true after biometric fails
 
   ThemeMode get themeMode => _themeMode;
@@ -72,8 +76,9 @@ class SettingsController with ChangeNotifier {
         _prefs.getBool('showArchivedTransactions') ?? false;
     _isSmsEnabled = _prefs.getBool('isSmsEnabled') ?? false;
 
-    // Read PIN hash from secure storage (migrated from SharedPreferences)
+    // Read PIN hash + salt from secure storage
     _pinHash = await _secureStorage.read(key: _keyPinHash);
+    _pinSalt = await _secureStorage.read(key: _keyPinSalt);
     // One-time migration: move old pin hash from SharedPreferences → secure storage
     if (_pinHash == null) {
       final legacyHash = _prefs.getString('pinHash');
@@ -231,21 +236,35 @@ class SettingsController with ChangeNotifier {
     }
   }
 
-  static String _hashPin(String pin) {
-    final bytes = utf8.encode('vittara_pin_salt_$pin');
+  /// Hash PIN with optional per-user salt (v2). Falls back to legacy
+  /// hardcoded-salt hash if [salt] is null (for migrating existing users).
+  static String _hashPin(String pin, {String? salt}) {
+    final input = salt != null ? '$salt:$pin' : 'vittara_pin_salt_$pin';
+    final bytes = utf8.encode(input);
     return sha256.convert(bytes).toString();
   }
 
+  /// Generate a cryptographically random base64 salt (16 bytes = 128 bits).
+  static String _generateSalt() {
+    final rng = Random.secure();
+    final bytes = Uint8List.fromList(List.generate(16, (_) => rng.nextInt(256)));
+    return base64Encode(bytes);
+  }
+
   Future<void> setPin(String pin) async {
-    _pinHash = _hashPin(pin);
-    await _secureStorage.write(key: _keyPinHash, value: _pinHash);
+    _pinSalt = _generateSalt();
+    _pinHash = _hashPin(pin, salt: _pinSalt);
+    await _secureStorage.write(key: _keyPinHash, value: _pinHash!);
+    await _secureStorage.write(key: _keyPinSalt, value: _pinSalt!);
     await _prefs.remove('pinHash'); // remove any legacy plaintext copy
     notifyListeners();
   }
 
   Future<void> clearPin() async {
     _pinHash = null;
+    _pinSalt = null;
     await _secureStorage.delete(key: _keyPinHash);
+    await _secureStorage.delete(key: _keyPinSalt);
     await _prefs.remove('pinHash');
     notifyListeners();
   }
@@ -253,8 +272,10 @@ class SettingsController with ChangeNotifier {
   /// Called by PIN recovery flow after successful code verification.
   /// Resets PIN to new value without requiring the old PIN.
   Future<void> resetPinAfterRecovery(String newPin) async {
-    _pinHash = _hashPin(newPin);
-    await _secureStorage.write(key: _keyPinHash, value: _pinHash);
+    _pinSalt = _generateSalt();
+    _pinHash = _hashPin(newPin, salt: _pinSalt);
+    await _secureStorage.write(key: _keyPinHash, value: _pinHash!);
+    await _secureStorage.write(key: _keyPinSalt, value: _pinSalt!);
     await _prefs.remove('pinHash');
     notifyListeners();
   }
@@ -284,6 +305,7 @@ class SettingsController with ChangeNotifier {
     await _secureStorage.deleteAll();
     await _prefs.clear();
     _pinHash = null;
+    _pinSalt = null;
     _isBiometricEnabled = true;
     _lockOnMinimize = false;
     _lockTimeoutSeconds = 10;
@@ -296,7 +318,8 @@ class SettingsController with ChangeNotifier {
 
   bool verifyPin(String pin) {
     if (_pinHash == null) return false;
-    return _hashPin(pin) == _pinHash;
+    // Use per-user salt if available (v2); fall back to legacy hash for existing users.
+    return _hashPin(pin, salt: _pinSalt) == _pinHash;
   }
 
   void showPinEntryFallback() {
