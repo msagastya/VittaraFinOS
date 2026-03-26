@@ -169,7 +169,7 @@ class Budget {
       categoryName: map['categoryName'],
       limitAmount: (map['limitAmount'] as num).toDouble(),
       spentAmount: (map['spentAmount'] as num).toDouble(),
-      period: BudgetPeriod.values[map['period']],
+      period: BudgetPeriod.values[((map['period'] as num?)?.toInt() ?? 0).clamp(0, BudgetPeriod.values.length - 1)],
       startDate: DateTime.parse(map['startDate']),
       endDate: DateTime.parse(map['endDate']),
       color: Color(map['color']),

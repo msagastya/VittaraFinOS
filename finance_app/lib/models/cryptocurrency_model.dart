@@ -210,7 +210,7 @@ class Cryptocurrency {
     return Cryptocurrency(
       id: map['id'],
       name: map['name'],
-      cryptoType: CryptoCurrency.values[map['cryptoType'] as int],
+      cryptoType: CryptoCurrency.values[((map['cryptoType'] as num?)?.toInt() ?? 0).clamp(0, CryptoCurrency.values.length - 1)],
       symbol: map['symbol'],
       iconUrl: map['iconUrl'] as String?,
       totalQuantity: (map['totalQuantity'] as num).toDouble(),

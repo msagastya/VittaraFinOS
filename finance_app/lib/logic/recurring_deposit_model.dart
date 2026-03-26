@@ -225,8 +225,7 @@ class RecurringDeposit {
       monthlyAmount: (map['monthlyAmount'] as num).toDouble(),
       interestRate: (map['interestRate'] as num).toDouble(),
       totalInstallments: map['totalInstallments'] as int,
-      paymentFrequency:
-          RDPaymentFrequency.values[map['paymentFrequency'] as int],
+      paymentFrequency: RDPaymentFrequency.values[((map['paymentFrequency'] as num?)?.toInt() ?? 0).clamp(0, RDPaymentFrequency.values.length - 1)],
       linkedAccountId: map['linkedAccountId'],
       linkedAccountName: map['linkedAccountName'],
       autoPaymentEnabled: map['autoPaymentEnabled'] as bool,

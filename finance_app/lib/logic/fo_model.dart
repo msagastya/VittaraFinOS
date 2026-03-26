@@ -221,7 +221,7 @@ class FuturesOptions {
         id: map['id'],
         symbol: map['symbol'],
         name: map['name'],
-        type: FOType.values[map['type'] as int],
+        type: FOType.values[((map['type'] as num?)?.toInt() ?? 0).clamp(0, FOType.values.length - 1)],
         entryPrice: (map['entryPrice'] as num).toDouble(),
         currentPrice: (map['currentPrice'] as num).toDouble(),
         quantity: (map['quantity'] as num).toDouble(),

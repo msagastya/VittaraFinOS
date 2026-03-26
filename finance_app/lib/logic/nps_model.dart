@@ -157,10 +157,10 @@ class NPSAccount {
       prnNumber: map['prnNumber'],
       name: map['name'],
       nrn: map['nrn'],
-      tier: NPSTier.values[map['tier'] as int],
-      accountType: NPSAccountType.values[map['accountType'] as int],
-      npsManager: NPSManager.values[map['npsManager'] as int],
-      schemeType: NPSSchemeType.values[map['schemeType'] as int],
+      tier: NPSTier.values[((map['tier'] as num?)?.toInt() ?? 0).clamp(0, NPSTier.values.length - 1)],
+      accountType: NPSAccountType.values[((map['accountType'] as num?)?.toInt() ?? 0).clamp(0, NPSAccountType.values.length - 1)],
+      npsManager: NPSManager.values[((map['npsManager'] as num?)?.toInt() ?? 0).clamp(0, NPSManager.values.length - 1)],
+      schemeType: NPSSchemeType.values[((map['schemeType'] as num?)?.toInt() ?? 0).clamp(0, NPSSchemeType.values.length - 1)],
       panNumber: map['panNumber'],
       totalContributed: (map['totalContributed'] as num).toDouble(),
       currentValue: (map['currentValue'] as num).toDouble(),
@@ -169,7 +169,7 @@ class NPSAccount {
               .toList() ??
           [],
       estimatedReturns: (map['estimatedReturns'] as num).toDouble(),
-      withdrawalType: NPSWithdrawalType.values[map['withdrawalType'] as int],
+      withdrawalType: NPSWithdrawalType.values[((map['withdrawalType'] as num?)?.toInt() ?? 0).clamp(0, NPSWithdrawalType.values.length - 1)],
       plannedRetirementDate: map['plannedRetirementDate'] != null
           ? DateTime.parse(map['plannedRetirementDate'])
           : null,

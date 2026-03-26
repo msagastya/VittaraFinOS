@@ -153,7 +153,7 @@ class Goal {
     return Goal(
       id: map['id'],
       name: map['name'],
-      type: GoalType.values[map['type']],
+      type: GoalType.values[((map['type'] as num?)?.toInt() ?? 0).clamp(0, GoalType.values.length - 1)],
       targetAmount: (map['targetAmount'] as num).toDouble(),
       currentAmount: (map['currentAmount'] as num).toDouble(),
       createdDate: DateTime.parse(map['createdDate']),

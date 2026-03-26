@@ -68,15 +68,15 @@ class StockTransaction {
     return StockTransaction(
       id: map['id'],
       investmentId: map['investmentId'],
-      type: StockTransactionType.values[map['type'] as int],
-      qty: map['qty'] as double,
-      pricePerShare: map['pricePerShare'] as double,
+      type: StockTransactionType.values[((map['type'] as num?)?.toInt() ?? 0).clamp(0, StockTransactionType.values.length - 1)],
+      qty: (map['qty'] as num?)?.toDouble() ?? 0.0,
+      pricePerShare: (map['pricePerShare'] as num?)?.toDouble() ?? 0.0,
       transactionDate: DateTime.parse(map['transactionDate'] as String),
-      totalAmount: map['totalAmount'] as double,
-      extraCharges: map['extraCharges'] as double?,
+      totalAmount: (map['totalAmount'] as num?)?.toDouble() ?? 0.0,
+      extraCharges: (map['extraCharges'] as num?)?.toDouble(),
       linkedAccountId: map['linkedAccountId'] as String?,
       linkedAccountName: map['linkedAccountName'] as String?,
-      dividendAmount: map['dividendAmount'] as double?,
+      dividendAmount: (map['dividendAmount'] as num?)?.toDouble(),
       metadata: map['metadata'] as Map<String, dynamic>?,
     );
   }

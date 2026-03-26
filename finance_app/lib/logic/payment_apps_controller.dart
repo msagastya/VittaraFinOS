@@ -35,7 +35,7 @@ class PaymentAppsController with ChangeNotifier {
         return {
           'id': item['id'],
           'name': item['name'],
-          'color': Color(item['color'] as int),
+          'color': Color((item['color'] as num?)?.toInt() ?? 0xFF808080),
           'isEnabled': item['isEnabled'] ?? false,
           'hasWallet': item['hasWallet'] ?? false,
           'walletBalance': (item['walletBalance'] as num?)?.toDouble() ?? 0.0,

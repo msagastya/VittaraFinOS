@@ -169,7 +169,7 @@ notifyListeners();      // then update UI
 ---
 
 ## BATCH 4 — Model Type Safety & Enum Standardisation
-**Status:** `[ ]` Approve · `[ ]` Skip
+**Status:** `[x]` Done — committed
 **Complexity:** 🟡 Medium (many files, but mechanical pattern)
 **Issues:** MDL-01 through MDL-08
 

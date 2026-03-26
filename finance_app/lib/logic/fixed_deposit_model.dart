@@ -267,11 +267,11 @@ class FixedDeposit {
       createdDate: DateTime.parse(map['createdDate']),
       investmentDate: DateTime.parse(map['investmentDate']),
       maturityDate: DateTime.parse(map['maturityDate']),
-      status: FDStatus.values[map['status'] as int],
+      status: FDStatus.values[((map['status'] as num?)?.toInt() ?? 0).clamp(0, FDStatus.values.length - 1)],
       withdrawalDate: map['withdrawalDate'] != null
           ? DateTime.parse(map['withdrawalDate'])
           : null,
-      withdrawalAmount: map['withdrawalAmount'] as double?,
+      withdrawalAmount: (map['withdrawalAmount'] as num?)?.toDouble(),
       withdrawalReason: map['withdrawalReason'] as String?,
       pastPayouts: (map['pastPayouts'] as List?)
               ?.map((p) => PayoutRecord.fromMap(p as Map<String, dynamic>))

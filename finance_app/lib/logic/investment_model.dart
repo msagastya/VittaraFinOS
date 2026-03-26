@@ -111,8 +111,8 @@ class Investment {
     return Investment(
       id: map['id'],
       name: map['name'],
-      type: InvestmentType.values[map['type']],
-      amount: map['amount'],
+      type: InvestmentType.values[((map['type'] as num?)?.toInt() ?? 0).clamp(0, InvestmentType.values.length - 1)],
+      amount: (map['amount'] as num?)?.toDouble() ?? 0.0,
       color: Color(map['color']),
       notes: map['notes'],
       broker: map['broker'],

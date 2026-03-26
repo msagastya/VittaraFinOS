@@ -240,10 +240,10 @@ class Bond {
       id: map['id'],
       name: map['name'],
       issuer: map['issuer'],
-      bondType: BondType.values[map['bondType'] as int],
+      bondType: BondType.values[((map['bondType'] as num?)?.toInt() ?? 0).clamp(0, BondType.values.length - 1)],
       faceValue: (map['faceValue'] as num).toDouble(),
       couponRate: (map['couponRate'] as num).toDouble(),
-      couponFrequency: CouponFrequency.values[map['couponFrequency'] as int],
+      couponFrequency: CouponFrequency.values[((map['couponFrequency'] as num?)?.toInt() ?? 0).clamp(0, CouponFrequency.values.length - 1)],
       purchaseQuantity: map['purchaseQuantity'] as int,
       purchasePrice: (map['purchasePrice'] as num).toDouble(),
       linkedAccountId: map['linkedAccountId'],
@@ -251,11 +251,11 @@ class Bond {
       createdDate: DateTime.parse(map['createdDate']),
       purchaseDate: DateTime.parse(map['purchaseDate']),
       maturityDate: DateTime.parse(map['maturityDate']),
-      status: BondStatus.values[map['status'] as int],
+      status: BondStatus.values[((map['status'] as num?)?.toInt() ?? 0).clamp(0, BondStatus.values.length - 1)],
       redemptionDate: map['redemptionDate'] != null
           ? DateTime.parse(map['redemptionDate'])
           : null,
-      redemptionPrice: map['redemptionPrice'] as double?,
+      redemptionPrice: (map['redemptionPrice'] as num?)?.toDouble(),
       paidCoupons: (map['paidCoupons'] as List?)
               ?.map((c) => CouponPayment.fromMap(c as Map<String, dynamic>))
               .toList() ??
