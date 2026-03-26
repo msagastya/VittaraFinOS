@@ -232,7 +232,7 @@ Apply `safeEnum()` to:
 ---
 
 ## BATCH 5 — P0 Calculation Crashes
-**Status:** `[ ]` Approve · `[ ]` Skip
+**Status:** `[x]` Done — committed
 **Complexity:** 🟢 Easy (targeted guards)
 **Issues:** CALC-01, CALC-02, CALC-03, CALC-04, CALC-05
 

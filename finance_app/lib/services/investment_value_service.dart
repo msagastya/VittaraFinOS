@@ -205,6 +205,7 @@ class InvestmentValueService {
                 }
               }
 
+              if (compoundsPerYear <= 0) return principal;
               final daysPerCompound = 365 / compoundsPerYear;
               final compoundsElapsed = daysElapsed / daysPerCompound;
               final rate = interestRate / 100.0;

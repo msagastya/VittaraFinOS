@@ -39,11 +39,15 @@ class GoldPriceService {
       if (exchangeRate != null && exchangeRate > 0) {
         // (USD/oz) × (INR/USD) ÷ (31.1035 g/oz) × MCX markup
         final pricePerGram = (priceUsdPerOz * exchangeRate / 31.1035) * 1.185;
-        _logger.i(
-            '✓ Yahoo Finance + ExRate: ₹${pricePerGram.toStringAsFixed(2)}/gram '
-            '(gold=\$$priceUsdPerOz/oz, rate=₹$exchangeRate)');
-        await _cachePrice(pricePerGram);
-        return pricePerGram;
+        if (pricePerGram <= 0) {
+          _logger.w('[GoldPrice] Computed invalid price $pricePerGram, skipping cache');
+        } else {
+          _logger.i(
+              '✓ Yahoo Finance + ExRate: ₹${pricePerGram.toStringAsFixed(2)}/gram '
+              '(gold=\$$priceUsdPerOz/oz, rate=₹$exchangeRate)');
+          await _cachePrice(pricePerGram);
+          return pricePerGram;
+        }
       }
     }
 

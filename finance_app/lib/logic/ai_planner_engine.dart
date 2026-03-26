@@ -66,7 +66,7 @@ class AIPlannerEngine {
     // ── Income & expenses (last 3 months average for stability) ──────────
     double totalIncome3m = 0;
     double totalExpenses3m = 0;
-    final threeMonthsAgo = DateTime(now.year, now.month - 3, 1);
+    final threeMonthsAgo = DateTime(now.year, now.month, 1).subtract(const Duration(days: 90));
 
     for (final tx in transactions) {
       if (tx.dateTime.isBefore(threeMonthsAgo)) continue;
