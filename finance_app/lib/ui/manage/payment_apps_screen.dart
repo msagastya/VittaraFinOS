@@ -1196,7 +1196,9 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                                         context,
                                         CupertinoPageRoute(
                                           builder: (_) =>
-                                              const TransactionHistoryScreen(),
+                                              TransactionHistoryScreen(
+                                            filterPaymentAppName: appName,
+                                          ),
                                         ),
                                       );
                                     },

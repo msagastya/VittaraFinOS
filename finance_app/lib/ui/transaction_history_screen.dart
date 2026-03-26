@@ -65,14 +65,18 @@ enum _DateRangeFilter {
 class TransactionHistoryScreen extends StatefulWidget {
   /// When [filterAccountId] is provided, only transactions linked to that
   /// account are shown and the title is set to [filterAccountName].
+  /// When [filterPaymentAppName] is provided, only transactions made via that
+  /// payment app are shown.
   const TransactionHistoryScreen({
     super.key,
     this.filterAccountId,
     this.filterAccountName,
+    this.filterPaymentAppName,
   });
 
   final String? filterAccountId;
   final String? filterAccountName;
+  final String? filterPaymentAppName;
 
   @override
   State<TransactionHistoryScreen> createState() =>
@@ -164,6 +168,11 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
             t.sourceAccountId == id ||
             t.destinationAccountId == id;
       }).toList();
+    }
+    // Payment-app-scoped view: keep only transactions via this payment app.
+    if (widget.filterPaymentAppName != null) {
+      final appName = widget.filterPaymentAppName!;
+      result = result.where((t) => t.paymentAppName == appName).toList();
     }
     if (_searchQuery.isNotEmpty) {
       final q = _searchQuery.toLowerCase();
@@ -590,7 +599,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
       backgroundColor: AppStyles.getBackground(context),
       navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         middle: Text(
-            widget.filterAccountName ?? 'Transaction History',
+            widget.filterPaymentAppName ?? widget.filterAccountName ?? 'Transaction History',
             style: TextStyle(color: AppStyles.getTextColor(context))),
         previousPageTitle: 'Back',
         backgroundColor: AppStyles.getBackground(context),
@@ -1415,7 +1424,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           ),
           const SizedBox(width: 8),
           Text(
-            widget.filterAccountName?.toUpperCase() ?? 'TRANSACTIONS',
+            (widget.filterPaymentAppName ?? widget.filterAccountName)?.toUpperCase() ?? 'TRANSACTIONS',
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,
