@@ -158,12 +158,31 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
   DateTime? _selectedDay;
   CalendarEventType? _filterType; // null = show all
 
+  // Calendar collapse on scroll
+  bool _calendarCollapsed = false;
+  final ScrollController _eventsScrollCtrl = ScrollController();
+
   @override
   void initState() {
     super.initState();
     final now = DateTime.now();
     _focusedMonth = DateTime(now.year, now.month, 1);
     _selectedDay = DateTime(now.year, now.month, now.day);
+    _eventsScrollCtrl.addListener(_onEventsScroll);
+  }
+
+  @override
+  void dispose() {
+    _eventsScrollCtrl.dispose();
+    super.dispose();
+  }
+
+  void _onEventsScroll() {
+    if (_selectedDay == null) return;
+    final shouldCollapse = _eventsScrollCtrl.offset > 20;
+    if (shouldCollapse != _calendarCollapsed) {
+      setState(() => _calendarCollapsed = shouldCollapse);
+    }
   }
 
   void _prevMonth() {
@@ -171,6 +190,7 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
     setState(() {
       _focusedMonth = DateTime(_focusedMonth.year, _focusedMonth.month - 1, 1);
       _selectedDay = null;
+      _calendarCollapsed = false;
     });
   }
 
@@ -179,6 +199,7 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
     setState(() {
       _focusedMonth = DateTime(_focusedMonth.year, _focusedMonth.month + 1, 1);
       _selectedDay = null;
+      _calendarCollapsed = false;
     });
   }
 
@@ -280,7 +301,13 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
                 children: [
                   _buildMonthHeader(context),
                   _buildWeekdayRow(context),
-                  _buildCalendarGrid(context, eventsMap),
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 320),
+                    curve: Curves.easeInOutCubic,
+                    child: _calendarCollapsed
+                        ? _buildCollapsedWeekRow(context, eventsMap)
+                        : _buildCalendarGrid(context, eventsMap),
+                  ),
                   const SizedBox(height: Spacing.sm),
                 ],
               ),
@@ -633,6 +660,55 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
     );
   }
 
+  // ─── Collapsed week row (single week containing selected day) ───────────
+
+  Widget _buildCollapsedWeekRow(
+      BuildContext context, Map<String, List<CalendarEvent>> eventsMap) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final refDay = _selectedDay ?? today;
+
+    // Monday of the week containing refDay
+    final monday = refDay.subtract(Duration(days: refDay.weekday - 1));
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+          Spacing.md, 0, Spacing.md, Spacing.sm),
+      child: Row(
+        children: List.generate(7, (i) {
+          final date = monday.add(Duration(days: i));
+          final key = _dateKey(date);
+          final dayEvents = eventsMap[key] ?? [];
+          final isToday = date.year == today.year &&
+              date.month == today.month &&
+              date.day == today.day;
+          final isSelected = _selectedDay != null &&
+              _selectedDay!.year == date.year &&
+              _selectedDay!.month == date.month &&
+              _selectedDay!.day == date.day;
+          final isSunday = date.weekday == 7;
+
+          return Expanded(
+            child: _DayCell(
+              day: date.day,
+              events: dayEvents,
+              isToday: isToday,
+              isSelected: isSelected,
+              isSunday: isSunday,
+              onTap: () {
+                if (date.month != _focusedMonth.month) {
+                  setState(() => _focusedMonth =
+                      DateTime(date.year, date.month, 1));
+                }
+                _selectDay(date);
+              },
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
   // ─── Filter row ──────────────────────────────────────────────────────────
 
   Widget _buildFilterRow(
@@ -737,8 +813,19 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
                 const Spacer(),
                 CupertinoButton(
                   padding: EdgeInsets.zero,
-                  onPressed: () =>
-                      setState(() => _selectedDay = null),
+                  onPressed: () {
+                    setState(() {
+                      _selectedDay = null;
+                      _calendarCollapsed = false;
+                    });
+                    if (_eventsScrollCtrl.hasClients) {
+                      _eventsScrollCtrl.animateTo(
+                        0,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeOut,
+                      );
+                    }
+                  },
                   child: Text(
                     'Show month',
                     style: TextStyle(
@@ -756,6 +843,7 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
           child: events.isEmpty
               ? _buildEmptyEvents(context)
               : ListView.builder(
+                  controller: _eventsScrollCtrl,
                   padding: const EdgeInsets.fromLTRB(
                     Spacing.lg,
                     0,
