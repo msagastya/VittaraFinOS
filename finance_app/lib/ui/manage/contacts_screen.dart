@@ -596,6 +596,56 @@ class _ContactsScreenState extends State<ContactsScreen> {
     );
   }
 
+  void _confirmDeleteContact(
+    BuildContext context,
+    Contact contact,
+    ContactsController controller,
+  ) {
+    final lendingCtrl = context.read<LendingBorrowingController>();
+    final hasRecords =
+        lendingCtrl.records.any((r) => r.personName == contact.name);
+
+    if (hasRecords) {
+      showCupertinoDialog<bool>(
+        context: context,
+        builder: (ctx) => CupertinoAlertDialog(
+          title: const Text('Contact Has Records'),
+          content: Text(
+            '"${contact.name}" has active lending/borrowing records. '
+            'Deleting the contact will not remove those records.',
+          ),
+          actions: [
+            CupertinoDialogAction(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
+            ),
+            CupertinoDialogAction(
+              isDestructiveAction: true,
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Delete Anyway'),
+            ),
+          ],
+        ),
+      ).then((confirmed) {
+        if (confirmed != true || !mounted) return;
+        _doDeleteContact(contact, controller);
+      });
+    } else {
+      _doDeleteContact(contact, controller);
+    }
+  }
+
+  void _doDeleteContact(Contact contact, ContactsController controller) {
+    Haptics.delete();
+    final deletedContact = contact;
+    controller.removeContact(contact.id);
+    toast_lib.toast.showSuccess(
+      '"${contact.name}" removed',
+      actionLabel: 'Undo',
+      onAction: () => controller.addContact(deletedContact),
+    );
+  }
+
   void _showContactOptions(
     BuildContext context,
     Contact contact,
@@ -616,14 +666,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
             isDestructiveAction: true,
             onPressed: () {
               Navigator.pop(context);
-              final deletedContact = contact;
-              Haptics.delete();
-              controller.removeContact(contact.id);
-              toast_lib.toast.showSuccess(
-                '"${contact.name}" removed',
-                actionLabel: 'Undo',
-                onAction: () => controller.addContact(deletedContact),
-              );
+              _confirmDeleteContact(context, contact, controller);
             },
             child: const Text('Delete Contact'),
           ),
@@ -847,8 +890,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
                       ? phoneController.text.trim()
                       : null,
                 );
-                controller.removeContact(contact.id);
-                controller.addContact(updatedContact);
+                controller.updateContact(updatedContact);
                 Navigator.pop(context);
               }
             },

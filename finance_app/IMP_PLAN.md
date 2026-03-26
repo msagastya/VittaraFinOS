@@ -461,7 +461,7 @@ totalMonths = (maturityDate.year - purchaseDate.year) * 12 +
 ---
 
 ## BATCH 8 — CRUD Cascade & Orphan Prevention
-**Status:** `[ ]` Approve · `[ ]` Skip
+**Status:** `[x]` Done — committed
 **Complexity:** 🟡 Medium
 **Issues:** CRUD-01 through CRUD-08, NAV-03, NAV-06, NAV-07
 

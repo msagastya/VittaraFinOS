@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/banks_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
@@ -39,11 +40,21 @@ class _BanksScreenState extends State<BanksScreen> {
     );
     if (bank.isEmpty) return;
 
+    final accountsCtrl = context.read<AccountsController>();
+    final linkedAccounts = accountsCtrl.accounts
+        .where((a) => a.bankName == bank['name'])
+        .toList();
+    final String contentText = linkedAccounts.isNotEmpty
+        ? 'Remove "${bank['name']}"? '
+            '${linkedAccounts.length} account${linkedAccounts.length == 1 ? '' : 's'} '
+            'are linked to this bank.'
+        : 'Remove "${bank['name']}" from your list?';
+
     showCupertinoDialog<bool>(
       context: context,
       builder: (ctx) => CupertinoAlertDialog(
         title: const Text('Delete Bank'),
-        content: Text('Remove "${bank['name']}" from your list?'),
+        content: Text(contentText),
         actions: [
           CupertinoDialogAction(
             onPressed: () => Navigator.pop(ctx, false),

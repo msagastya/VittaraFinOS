@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:vittara_fin_os/logic/budgets_controller.dart';
 import 'package:vittara_fin_os/logic/categories_controller.dart';
 import 'package:vittara_fin_os/logic/category_model.dart';
 import 'package:vittara_fin_os/ui/manage/categories/category_creation_modal.dart';
@@ -56,7 +57,49 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     });
   }
 
-  void _deleteCategory(CategoriesController controller, Category category) {
+  void _deleteCategory(
+    BuildContext context,
+    CategoriesController controller,
+    Category category,
+  ) {
+    final budgetsCtrl = context.read<BudgetsController>();
+    final affectedBudgets = budgetsCtrl.budgets
+        .where((b) => b.categoryName == category.name)
+        .toList();
+
+    if (affectedBudgets.isNotEmpty) {
+      showCupertinoDialog<bool>(
+        context: context,
+        builder: (ctx) => CupertinoAlertDialog(
+          title: const Text('Category In Use'),
+          content: Text(
+            '${affectedBudgets.length} budget${affectedBudgets.length == 1 ? '' : 's'} '
+            'use "${category.name}". They will be reassigned to "Other". Continue?',
+          ),
+          actions: [
+            CupertinoDialogAction(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
+            ),
+            CupertinoDialogAction(
+              isDestructiveAction: true,
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Delete'),
+            ),
+          ],
+        ),
+      ).then((confirmed) {
+        if (confirmed != true || !mounted) return;
+        budgetsCtrl.reassignCategoryInBudgets(category.name);
+        _performCategoryDelete(controller, category);
+      });
+    } else {
+      _performCategoryDelete(controller, category);
+    }
+  }
+
+  void _performCategoryDelete(
+      CategoriesController controller, Category category) {
     Haptics.delete();
     final deletedName = category.name;
     final deletedCategory = category;
@@ -274,10 +317,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     CategoriesController controller,
   ) {
     return BouncyButton(
-      onPressed: () {
-        logger.info('Tapped category: ${category.name}',
-            context: 'CategoriesScreen');
-      },
+      onPressed: () => _showEditCategoryModal(context, category, controller),
       child: Container(
         decoration: BoxDecoration(
           color: AppStyles.getCardColor(context),
@@ -360,7 +400,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   _buildActionBadge(
                     icon: CupertinoIcons.trash,
                     color: SemanticColors.error,
-                    onTap: () => _deleteCategory(controller, category),
+                    onTap: () =>
+                        _deleteCategory(context, controller, category),
                   ),
                 ],
               ),

@@ -66,6 +66,16 @@ class ContactsController with ChangeNotifier {
     notifyListeners();
   }
 
+  void updateContact(Contact updated) {
+    final index = _contacts.indexWhere((c) => c.id == updated.id);
+    if (index != -1) {
+      _contacts[index] = updated;
+      _contacts.sort((a, b) => a.name.compareTo(b.name));
+      _saveContacts();
+      notifyListeners();
+    }
+  }
+
   Contact? getContactByName(String name) {
     return _contacts
         .where((c) => c.name.toLowerCase() == name.toLowerCase())

@@ -169,6 +169,37 @@ class BudgetsController with ChangeNotifier {
     }
   }
 
+  /// Reassign all budgets that reference [oldCategoryName] to 'Other'.
+  /// Called before deleting a category that budgets depend on.
+  Future<void> reassignCategoryInBudgets(String oldCategoryName) async {
+    bool changed = false;
+    for (int i = 0; i < _budgets.length; i++) {
+      if (_budgets[i].categoryName == oldCategoryName) {
+        _budgets[i] = Budget(
+          id: _budgets[i].id,
+          name: _budgets[i].name,
+          categoryId: null,
+          categoryName: 'Other',
+          limitAmount: _budgets[i].limitAmount,
+          spentAmount: _budgets[i].spentAmount,
+          period: _budgets[i].period,
+          startDate: _budgets[i].startDate,
+          endDate: _budgets[i].endDate,
+          color: _budgets[i].color,
+          isActive: _budgets[i].isActive,
+          excludedAccountIds: _budgets[i].excludedAccountIds,
+          rollover: _budgets[i].rollover,
+          warningThreshold: _budgets[i].warningThreshold,
+        );
+        changed = true;
+      }
+    }
+    if (changed) {
+      await _saveBudgets();
+      notifyListeners();
+    }
+  }
+
   double get totalMonthlySavingsTarget {
     return _planners.fold(0, (sum, planner) => sum + planner.monthlyTarget);
   }
