@@ -1228,7 +1228,7 @@ Plus all corresponding controllers for query filter updates.
 ---
 
 ## BATCH 17 — Empty States & UX Polish
-**Status:** `[ ]` Approve · `[ ]` Skip
+**Status:** `[x]` Done — committed
 **Complexity:** 🟢 Easy
 **Issues:** EMPTY-01 through EMPTY-04, UX-01 through UX-07
 

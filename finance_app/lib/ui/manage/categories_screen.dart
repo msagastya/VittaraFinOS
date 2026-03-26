@@ -193,6 +193,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                                   title: 'No categories found',
                                   subtitle: 'No results for "$_searchQuery"',
                                   showPulse: false,
+                                  actionLabel: 'Create "$_searchQuery"',
+                                  onAction: () =>
+                                      _showAddCategoryModal(context),
                                 ),
                               ),
                             ),

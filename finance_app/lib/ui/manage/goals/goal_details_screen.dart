@@ -37,12 +37,13 @@ class GoalDetailsScreen extends StatelessWidget {
               backgroundColor: AppStyles.getBackground(context),
               border: null,
             ),
-            child: const SafeArea(
+            child: SafeArea(
               child: EmptyStateView(
                 icon: CupertinoIcons.flag_slash,
                 title: 'Goal Not Found',
                 subtitle: 'This goal may have been deleted.',
-                actionLabel: null,
+                actionLabel: 'Go Back',
+                onAction: () => Navigator.of(context).pop(),
               ),
             ),
           );
