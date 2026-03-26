@@ -179,9 +179,10 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
 
   void _onEventsScroll() {
     if (_selectedDay == null) return;
-    final shouldCollapse = _eventsScrollCtrl.offset > 20;
-    if (shouldCollapse != _calendarCollapsed) {
-      setState(() => _calendarCollapsed = shouldCollapse);
+    // Only collapse — never auto-uncollapse on scroll.
+    // User must tap the collapsed chip to restore the full calendar.
+    if (!_calendarCollapsed && _eventsScrollCtrl.offset > 20) {
+      setState(() => _calendarCollapsed = true);
     }
   }
 
@@ -300,15 +301,20 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
               child: Column(
                 children: [
                   _buildMonthHeader(context),
-                  _buildWeekdayRow(context),
                   AnimatedSize(
                     duration: const Duration(milliseconds: 320),
                     curve: Curves.easeInOutCubic,
                     child: _calendarCollapsed
-                        ? _buildCollapsedWeekRow(context, eventsMap)
-                        : _buildCalendarGrid(context, eventsMap),
+                        ? _buildCollapsedDateChip(context)
+                        : Column(
+                            children: [
+                              _buildWeekdayRow(context),
+                              _buildCalendarGrid(context, eventsMap),
+                              const SizedBox(height: Spacing.sm),
+                            ],
+                          ),
                   ),
-                  const SizedBox(height: Spacing.sm),
+                  if (_calendarCollapsed) const SizedBox(height: Spacing.xs),
                 ],
               ),
             ),
@@ -660,51 +666,76 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
     );
   }
 
-  // ─── Collapsed week row (single week containing selected day) ───────────
+  // ─── Collapsed date chip — tapping expands calendar back ────────────────
 
-  Widget _buildCollapsedWeekRow(
-      BuildContext context, Map<String, List<CalendarEvent>> eventsMap) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final refDay = _selectedDay ?? today;
+  Widget _buildCollapsedDateChip(BuildContext context) {
+    final refDay = _selectedDay ?? DateTime.now();
+    final dayName =
+        ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'][refDay.weekday - 1];
+    final monthName = [
+      'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
+      'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'
+    ][refDay.month - 1];
+    final secondary = AppStyles.getSecondaryTextColor(context);
 
-    // Monday of the week containing refDay
-    final monday = refDay.subtract(Duration(days: refDay.weekday - 1));
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-          Spacing.md, 0, Spacing.md, Spacing.sm),
-      child: Row(
-        children: List.generate(7, (i) {
-          final date = monday.add(Duration(days: i));
-          final key = _dateKey(date);
-          final dayEvents = eventsMap[key] ?? [];
-          final isToday = date.year == today.year &&
-              date.month == today.month &&
-              date.day == today.day;
-          final isSelected = _selectedDay != null &&
-              _selectedDay!.year == date.year &&
-              _selectedDay!.month == date.month &&
-              _selectedDay!.day == date.day;
-          final isSunday = date.weekday == 7;
-
-          return Expanded(
-            child: _DayCell(
-              day: date.day,
-              events: dayEvents,
-              isToday: isToday,
-              isSelected: isSelected,
-              isSunday: isSunday,
-              onTap: () {
-                if (date.month != _focusedMonth.month) {
-                  setState(() => _focusedMonth =
-                      DateTime(date.year, date.month, 1));
-                }
-                _selectDay(date);
-              },
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => setState(() => _calendarCollapsed = false),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+            horizontal: Spacing.lg, vertical: Spacing.md),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              dayName,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: secondary,
+                letterSpacing: 1.5,
+              ),
             ),
-          );
-        }),
+            const SizedBox(width: 10),
+            Container(
+              width: 1,
+              height: 18,
+              color: secondary.withValues(alpha: 0.3),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              '${refDay.day}',
+              style: const TextStyle(
+                fontSize: 30,
+                fontWeight: FontWeight.w700,
+                color: AppStyles.aetherTeal,
+                height: 1.0,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Container(
+              width: 1,
+              height: 18,
+              color: secondary.withValues(alpha: 0.3),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              monthName,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: secondary,
+                letterSpacing: 1.5,
+              ),
+            ),
+            const SizedBox(width: Spacing.lg),
+            Icon(
+              CupertinoIcons.chevron_down,
+              size: 13,
+              color: secondary.withValues(alpha: 0.5),
+            ),
+          ],
+        ),
       ),
     );
   }
