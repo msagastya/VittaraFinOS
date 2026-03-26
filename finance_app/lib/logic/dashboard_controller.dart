@@ -69,6 +69,11 @@ class DashboardController with ChangeNotifier {
           changed = _migrateToV7() || changed;
         }
 
+        // v8 migration: remove budgets_overview widget (Budgets & Goals now in header)
+        if (_config.configVersion < 8) {
+          changed = _migrateToV8() || changed;
+        }
+
         if (changed) {
           await saveConfig();
           return;
@@ -135,6 +140,16 @@ class DashboardController with ChangeNotifier {
     return true;
   }
 
+  /// v8: budgets_overview removed; sip_tracker renamed to "Finance Pulse".
+  bool _migrateToV8() {
+    final updatedWidgets = _config.widgets
+        .where((w) => w.id != 'budgets_overview')
+        .map((w) => w.id == 'sip_tracker' ? w.copyWith(title: 'Finance Pulse') : w)
+        .toList();
+    _config = _config.copyWith(widgets: updatedWidgets, configVersion: 8);
+    return true;
+  }
+
   /// v7: ai_planner widget removed — navigate directly from Manage screen.
   bool _migrateToV7() {
     final updatedWidgets = _config.widgets
@@ -188,6 +203,7 @@ class DashboardController with ChangeNotifier {
 
   DashboardConfig _getDefaultConfig() {
     return DashboardConfig(
+      configVersion: 8,
       widgets: [
         DashboardWidgetConfig(
           id: 'net_worth',
@@ -210,21 +226,11 @@ class DashboardController with ChangeNotifier {
           rowSpan: 2,
         ),
         DashboardWidgetConfig(
-          id: 'budgets_overview',
-          type: DashboardWidgetType.budgetsOverview,
-          title: 'Budgets',
-          isVisible: false,
-          gridRow: 10,
-          gridColumn: 1,
-          columnSpan: 3,
-          rowSpan: 1,
-        ),
-        DashboardWidgetConfig(
           id: 'sip_tracker',
           type: DashboardWidgetType.sipTracker,
-          title: 'SIP Tracker',
+          title: 'Finance Pulse',
           isVisible: false,
-          gridRow: 14,
+          gridRow: 7,
           gridColumn: 1,
           columnSpan: 3,
           rowSpan: 1,
@@ -248,7 +254,6 @@ class DashboardController with ChangeNotifier {
     final existingIds = _config.widgets.map((w) => w.id).toSet();
     final updatedWidgets = [..._config.widgets];
     final defaults = _getDefaultConfig().widgets.where((w) =>
-        w.id == 'budgets_overview' ||
         w.id == 'sip_tracker' ||
         w.id == 'spending_insights');
 

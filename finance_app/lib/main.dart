@@ -1286,8 +1286,6 @@ class DashboardScreen extends StatelessWidget {
     switch (type) {
       case DashboardWidgetType.netWorth:
         return CupertinoIcons.chart_pie_fill;
-      case DashboardWidgetType.budgetsOverview:
-        return CupertinoIcons.chart_bar_fill;
       case DashboardWidgetType.transactionHistory:
         return CupertinoIcons.arrow_right_arrow_left_circle_fill;
       case DashboardWidgetType.sipTracker:
@@ -1301,8 +1299,6 @@ class DashboardScreen extends StatelessWidget {
     switch (type) {
       case DashboardWidgetType.netWorth:
         return AppStyles.accentBlue;
-      case DashboardWidgetType.budgetsOverview:
-        return AppStyles.accentCoral;
       case DashboardWidgetType.transactionHistory:
         return SemanticColors.info;
       case DashboardWidgetType.sipTracker:
@@ -1619,195 +1615,6 @@ class DashboardScreen extends StatelessWidget {
     switch (widgetConfig.type) {
       case DashboardWidgetType.netWorth:
         return NetWorthWidget(config: widgetConfig);
-      case DashboardWidgetType.budgetsOverview:
-        return Consumer<GoalsController>(
-          builder: (context, goalsCtrl, _) {
-            final goals = goalsCtrl.activeGoals;
-            final totalSaved = goalsCtrl.totalSavedAmount;
-            final totalTarget = goalsCtrl.totalTargetAmount;
-            final goalPct = totalTarget > 0
-                ? (totalSaved / totalTarget).clamp(0.0, 1.0)
-                : 0.0;
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ── BUDGETS section ──────────────────────────────────────
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () => Navigator.of(context).push(
-                      FadeScalePageRoute(page: const BudgetsScreen())),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildTappableSectionHeader(
-                        context,
-                        'BUDGETS',
-                        CupertinoColors.systemOrange,
-                        () => Navigator.of(context).push(
-                            FadeScalePageRoute(page: const BudgetsScreen())),
-                      ),
-                      const SizedBox(height: Spacing.sm),
-                      const BudgetDashboardWidget(),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: Spacing.sm),
-                const Divider(height: 1),
-                const SizedBox(height: Spacing.sm),
-
-                // ── CASH FLOW section ────────────────────────────────────
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () => Navigator.of(context).push(
-                      FadeScalePageRoute(page: const ReportsAnalysisScreen())),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildTappableSectionHeader(
-                        context,
-                        'CASH FLOW',
-                        AppStyles.accentTeal,
-                        () => Navigator.of(context).push(
-                            FadeScalePageRoute(page: const ReportsAnalysisScreen())),
-                      ),
-                      const SizedBox(height: Spacing.sm),
-                      const CashFlowDashboardWidget(),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: Spacing.sm),
-                const Divider(height: 1),
-                const SizedBox(height: Spacing.sm),
-
-                // ── GOALS section ────────────────────────────────────────
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () => Navigator.of(context).push(
-                      FadeScalePageRoute(page: const GoalsScreen())),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildTappableSectionHeader(
-                        context,
-                        'GOALS',
-                        CupertinoColors.activeBlue,
-                        () => Navigator.of(context).push(
-                            FadeScalePageRoute(page: const GoalsScreen())),
-                      ),
-                      const SizedBox(height: Spacing.sm),
-                      if (goals.isEmpty)
-                        Center(
-                          child: Text(
-                            'No goals yet — tap to add one',
-                            style: TextStyle(
-                              fontSize: TypeScale.caption,
-                              color: AppStyles.getSecondaryTextColor(context),
-                            ),
-                          ),
-                        )
-                      else ...[
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(3),
-                          child: LinearProgressIndicator(
-                            value: goalPct,
-                            minHeight: 5,
-                            backgroundColor: CupertinoColors.activeBlue
-                                .withValues(alpha: 0.12),
-                            valueColor: const AlwaysStoppedAnimation<Color>(
-                                CupertinoColors.activeBlue),
-                          ),
-                        ),
-                        const SizedBox(height: Spacing.xs),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              '${goals.length} goal${goals.length == 1 ? '' : 's'}',
-                              style: TextStyle(
-                                fontSize: TypeScale.caption,
-                                color: AppStyles.getSecondaryTextColor(context),
-                              ),
-                            ),
-                            Text(
-                              '${(goalPct * 100).toStringAsFixed(0)}% complete',
-                              style: const TextStyle(
-                                fontSize: TypeScale.caption,
-                                fontWeight: FontWeight.w600,
-                                color: CupertinoColors.activeBlue,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: Spacing.sm),
-                        ...goals.take(3).map((g) {
-                          final pct = g.targetAmount > 0
-                              ? (g.currentAmount / g.targetAmount).clamp(0.0, 1.0)
-                              : 0.0;
-                          final daysLeft =
-                              g.targetDate.difference(DateTime.now()).inDays;
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 7),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        g.name,
-                                        style: TextStyle(
-                                          fontSize: TypeScale.caption,
-                                          fontWeight: FontWeight.w600,
-                                          color: AppStyles.getTextColor(context),
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                    Text(
-                                      daysLeft <= 0
-                                          ? 'Due!'
-                                          : '$daysLeft days left',
-                                      style: TextStyle(
-                                        fontSize: TypeScale.caption,
-                                        color: daysLeft <= 7
-                                            ? CupertinoColors.systemOrange
-                                            : AppStyles.getSecondaryTextColor(context),
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 3),
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(3),
-                                  child: LinearProgressIndicator(
-                                    value: pct,
-                                    minHeight: 4,
-                                    backgroundColor:
-                                        g.color.withValues(alpha: 0.12),
-                                    valueColor:
-                                        AlwaysStoppedAnimation<Color>(g.color),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }),
-                      ],
-                    ],
-                  ),
-                ),
-              ],
-            );
-          },
-        );
       case DashboardWidgetType.transactionHistory:
         return Consumer<TransactionsController>(
           builder: (context, transactionController, child) {
@@ -2040,27 +1847,7 @@ class DashboardScreen extends StatelessWidget {
               ...bondAlerts.take(1).map((e) => _buildDashboardBondNotification(context, e)),
             ];
 
-            if (activeSips.isEmpty && !hasAlerts) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(CupertinoIcons.repeat,
-                        size: 28,
-                        color: AppStyles.getSecondaryTextColor(context)
-                            .withValues(alpha: 0.4)),
-                    const SizedBox(height: Spacing.sm),
-                    Text(
-                      'No active SIPs',
-                      style: TextStyle(
-                        fontSize: TypeScale.footnote,
-                        color: AppStyles.getSecondaryTextColor(context),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }
+            // No early return — Cash Flow is always shown even with no SIPs/alerts
 
             double totalMonthly = 0;
             for (final inv in activeSips) {
@@ -2213,6 +2000,33 @@ class DashboardScreen extends StatelessWidget {
                     ),
                   ),
                 ],
+
+                // ── CASH FLOW section ────────────────────────────────────
+                if (activeSips.isNotEmpty || hasAlerts) ...[
+                  const SizedBox(height: Spacing.sm),
+                  const Divider(height: 1),
+                  const SizedBox(height: Spacing.sm),
+                ],
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => Navigator.of(context).push(
+                      FadeScalePageRoute(page: const ReportsAnalysisScreen())),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildTappableSectionHeader(
+                        context,
+                        'CASH FLOW',
+                        AppStyles.accentTeal,
+                        () => Navigator.of(context).push(
+                            FadeScalePageRoute(page: const ReportsAnalysisScreen())),
+                      ),
+                      const SizedBox(height: Spacing.sm),
+                      const CashFlowDashboardWidget(),
+                    ],
+                  ),
+                ),
               ],
             );
           },
@@ -2341,11 +2155,6 @@ class DashboardScreen extends StatelessWidget {
       case DashboardWidgetType.netWorth:
         Navigator.of(context).push(
           FadeScalePageRoute(page: const NetWorthPage()),
-        );
-        break;
-      case DashboardWidgetType.budgetsOverview:
-        Navigator.of(context).push(
-          FadeScalePageRoute(page: const BudgetsScreen()),
         );
         break;
       case DashboardWidgetType.sipTracker:

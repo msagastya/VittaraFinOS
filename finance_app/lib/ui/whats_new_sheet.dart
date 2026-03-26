@@ -13,7 +13,7 @@ class WhatsNewSheet extends StatelessWidget {
     ('Financial Calendar', 'All SIP dates, FD maturities, and EMI dues in one place.'),
     ('Loan & EMI Tracker', 'Track principal, interest, tenure and amortization.'),
     ('Insurance Tracker', 'Manage health, life, and vehicle insurance renewals.'),
-    ('SIP Tracker Dashboard', 'Monitor SIP contributions and XIRR at a glance.'),
+    ('Finance Pulse', 'Active SIPs, investment alerts, and cash flow at a glance.'),
     ('Financial Health Score', 'A 0–100 score based on savings, budgets, investments and debt.'),
   ];
 

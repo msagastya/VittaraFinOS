@@ -1,7 +1,6 @@
 enum DashboardWidgetType {
   transactionHistory,
   netWorth,
-  budgetsOverview,
   sipTracker,
   spendingInsights,
 }

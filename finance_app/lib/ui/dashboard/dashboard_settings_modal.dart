@@ -202,12 +202,10 @@ class _DashboardSettingsModalState extends State<DashboardSettingsModal> {
         return 'Your total net worth & breakdown';
       case DashboardWidgetType.transactionHistory:
         return 'Recent transactions';
-      case DashboardWidgetType.budgetsOverview:
-        return 'Monitor budget health';
       case DashboardWidgetType.sipTracker:
-        return 'Active SIPs with next due dates & amounts';
-      default:
-        return '';
+        return 'Active SIPs · investment alerts · cash flow';
+      case DashboardWidgetType.spendingInsights:
+        return 'Spending patterns & insights';
     }
   }
 }
