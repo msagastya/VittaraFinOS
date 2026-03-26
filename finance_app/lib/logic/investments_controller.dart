@@ -153,13 +153,13 @@ class InvestmentsController with ChangeNotifier {
     _cachedTotalAmount = null;
   }
 
-  void reorderInvestments(int oldIndex, int newIndex) {
+  Future<void> reorderInvestments(int oldIndex, int newIndex) async {
     if (oldIndex < newIndex) {
       newIndex -= 1;
     }
     final investment = _investments.removeAt(oldIndex);
     _investments.insert(newIndex, investment);
-    _saveInvestments();
+    await _saveInvestments();
     _invalidateCache();
     notifyListeners();
   }

@@ -194,12 +194,13 @@ class CategoriesController with ChangeNotifier {
         current.description == originalDefault.description;
   }
 
-  void reorderCategories(int oldIndex, int newIndex) {
+  Future<void> reorderCategories(int oldIndex, int newIndex) async {
     if (oldIndex < newIndex) {
       newIndex -= 1;
     }
     final category = _categories.removeAt(oldIndex);
     _categories.insert(newIndex, category);
+    await _saveCustomCategories();
     notifyListeners();
   }
 

@@ -112,13 +112,13 @@ class AccountsController with ChangeNotifier {
     }
   }
 
-  void reorderAccounts(int oldIndex, int newIndex) {
+  Future<void> reorderAccounts(int oldIndex, int newIndex) async {
     if (oldIndex < newIndex) {
       newIndex -= 1;
     }
     final account = _accounts.removeAt(oldIndex);
     _accounts.insert(newIndex, account);
-    _saveAccounts();
+    await _saveAccounts();
     notifyListeners();
   }
 }

@@ -119,7 +119,7 @@ Navigator.of(context).pop();
 ---
 
 ## BATCH 3 — Save Reliability (fire-and-forget fixes)
-**Status:** `[ ]` Approve · `[ ]` Skip
+**Status:** `[x]` Done — committed
 **Complexity:** 🟢 Easy (mechanical, one pattern)
 **Issues:** SAVE-01 through SAVE-08
 

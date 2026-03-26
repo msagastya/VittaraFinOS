@@ -7,8 +7,10 @@ class TransactionsArchiveController with ChangeNotifier {
   static const String _storageKey = 'archived_transactions';
   late SharedPreferences _prefs;
   late List<Transaction> _archived;
+  bool _isLoaded = false;
 
   List<Transaction> get archived => List.unmodifiable(_archived);
+  bool get isLoaded => _isLoaded;
 
   TransactionsArchiveController() {
     _archived = [];
@@ -26,6 +28,7 @@ class TransactionsArchiveController with ChangeNotifier {
         .map((item) =>
             Transaction.fromMap(jsonDecode(item) as Map<String, dynamic>))
         .toList();
+    _isLoaded = true;
     notifyListeners();
   }
 

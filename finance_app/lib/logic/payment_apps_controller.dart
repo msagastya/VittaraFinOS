@@ -188,7 +188,7 @@ class PaymentAppsController with ChangeNotifier {
         (_paymentApps[index]['walletBalance'] as num?)?.toDouble() ?? 0.0;
     _paymentApps[index]['walletBalance'] =
         (current + delta).clamp(0.0, double.infinity);
-    notifyListeners();
     await _saveApps();
+    notifyListeners();
   }
 }

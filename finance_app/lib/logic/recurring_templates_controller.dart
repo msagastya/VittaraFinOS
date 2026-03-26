@@ -50,16 +50,16 @@ class RecurringTemplatesController with ChangeNotifier {
     }
   }
 
-  void addTemplate(RecurringTemplate template) {
+  Future<void> addTemplate(RecurringTemplate template) async {
     _templates.add(template);
+    await _save();
     notifyListeners();
-    _save();
   }
 
-  void deleteTemplate(String id) {
+  Future<void> deleteTemplate(String id) async {
     _templates.removeWhere((t) => t.id == id);
+    await _save();
     notifyListeners();
-    _save();
   }
 
   /// After a recurring template is used, advance its due date.

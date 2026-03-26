@@ -109,8 +109,8 @@ class BudgetsController with ChangeNotifier {
 
   Future<void> deleteBudget(String budgetId) async {
     _budgets.removeWhere((b) => b.id == budgetId);
-    notifyListeners();
     await _saveBudgets();
+    notifyListeners();
   }
 
   Future<void> updateBudgetSpending(String budgetId, double amount) async {
@@ -119,8 +119,8 @@ class BudgetsController with ChangeNotifier {
       _budgets[index] = _budgets[index].copyWith(
         spentAmount: _budgets[index].spentAmount + amount,
       );
-      notifyListeners();
       await _saveBudgets();
+      notifyListeners();
     }
   }
 

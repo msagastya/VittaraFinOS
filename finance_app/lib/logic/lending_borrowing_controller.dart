@@ -43,7 +43,7 @@ class LendingBorrowingController with ChangeNotifier {
     await prefs.setString('lending_borrowing_records', jsonString);
   }
 
-  void addRecord(LendingBorrowing record) {
+  Future<void> addRecord(LendingBorrowing record) async {
     final enriched = _appendHistory(
       _ensureHistorySeeded(record),
       type: LendingHistoryEventType.created,
@@ -53,18 +53,18 @@ class LendingBorrowingController with ChangeNotifier {
       skipIfDuplicateCreate: true,
     );
     _records.add(enriched);
-    _saveRecords();
+    await _saveRecords();
     notifyListeners();
   }
 
-  void updateRecord(
+  Future<void> updateRecord(
     String id,
     LendingBorrowing updatedRecord, {
     LendingHistoryEventType eventType = LendingHistoryEventType.edited,
     String? note,
     double? amountDelta,
     DateTime? eventTime,
-  }) {
+  }) async {
     final index = _records.indexWhere((r) => r.id == id);
     if (index != -1) {
       final previous = _records[index];
@@ -81,7 +81,7 @@ class LendingBorrowingController with ChangeNotifier {
         eventTime: eventTime,
       );
       _records[index] = withHistory;
-      _saveRecords();
+      await _saveRecords();
       notifyListeners();
     }
   }
