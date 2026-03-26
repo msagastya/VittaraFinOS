@@ -1663,7 +1663,9 @@ class DashboardScreen extends StatelessWidget {
               );
             }
 
-            return Column(
+            return FadeInAnimation(
+              duration: const Duration(milliseconds: 450),
+              child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1723,7 +1725,11 @@ class DashboardScreen extends StatelessWidget {
                                     ? 'Yesterday'
                                     : '${diff.inDays}d ago';
 
-                        return Column(
+                        return StaggeredItem(
+                          index: entry.key,
+                          baseDelay: const Duration(milliseconds: 80),
+                          itemDelay: const Duration(milliseconds: 45),
+                          child: Column(
                           children: [
                             Row(
                               children: [
@@ -1793,13 +1799,13 @@ class DashboardScreen extends StatelessWidget {
                                 child: Divider(height: 1),
                               ),
                           ],
-                        );
+                        ));
                       }),
                     ],
                   ),
                 ),
               ],
-            );
+            ));
           },
         );
       case DashboardWidgetType.sipTracker:
@@ -1866,7 +1872,9 @@ class DashboardScreen extends StatelessWidget {
               totalMonthly += amt;
             }
 
-            return Column(
+            return FadeInAnimation(
+              duration: const Duration(milliseconds: 450),
+              child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (activeSips.isNotEmpty) ...[
@@ -1890,8 +1898,11 @@ class DashboardScreen extends StatelessWidget {
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
-                            Text(
-                              '~₹${totalMonthly.toStringAsFixed(0)}/mo',
+                            AnimatedCounter(
+                              value: totalMonthly,
+                              prefix: '~₹',
+                              suffix: '/mo',
+                              duration: const Duration(milliseconds: 700),
                               style: const TextStyle(
                                 fontSize: TypeScale.footnote,
                                 fontWeight: FontWeight.w700,
@@ -1901,7 +1912,8 @@ class DashboardScreen extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: Spacing.sm),
-                        ...activeSips.map((inv) {
+                        ...activeSips.asMap().entries.map((entry) {
+                          final inv = entry.value;
                           final meta = inv.metadata ?? {};
                           final sipData = meta['sipData'] as Map<String, dynamic>?;
                           final freq = sipData?['frequency'] as String? ??
@@ -1910,7 +1922,11 @@ class DashboardScreen extends StatelessWidget {
                           final amt = (sipData?['sipAmount'] as num?)?.toDouble() ??
                               (meta['sipAmount'] as num?)?.toDouble() ??
                               0.0;
-                          return Padding(
+                          return StaggeredItem(
+                            index: entry.key,
+                            baseDelay: const Duration(milliseconds: 100),
+                            itemDelay: const Duration(milliseconds: 50),
+                            child: Padding(
                             padding: const EdgeInsets.only(bottom: 6),
                             child: Row(
                               children: [
@@ -1939,7 +1955,7 @@ class DashboardScreen extends StatelessWidget {
                                 ),
                               ],
                             ),
-                          );
+                          ));
                         }),
                         if (totalMonthly > 0) ...[
                           const SizedBox(height: Spacing.sm),
@@ -2028,11 +2044,14 @@ class DashboardScreen extends StatelessWidget {
                   ),
                 ),
               ],
-            );
+            ));
           },
         );
       case DashboardWidgetType.spendingInsights:
-        return InsightsWidget(config: widgetConfig);
+        return FadeInAnimation(
+          duration: const Duration(milliseconds: 500),
+          child: InsightsWidget(config: widgetConfig),
+        );
       default:
         return const SizedBox.shrink();
     }
