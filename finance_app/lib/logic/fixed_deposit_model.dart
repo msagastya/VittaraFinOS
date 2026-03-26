@@ -181,9 +181,10 @@ class FixedDeposit {
     return months > 0 ? months : 0;
   }
 
-  /// Get elapsed time as fraction of total tenure
+  /// Get elapsed time as fraction of total tenure (clamped 0.0–1.0)
   double get elapsedFraction {
-    return elapsedMonths / tenureMonths;
+    if (tenureMonths <= 0) return 1.0;
+    return (elapsedMonths / tenureMonths).clamp(0.0, 1.0);
   }
 
   /// Total interest earned till date

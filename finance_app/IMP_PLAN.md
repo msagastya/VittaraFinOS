@@ -1151,7 +1151,7 @@ if (failedControllers.isNotEmpty) showError('Some data may not have loaded: ${fa
 ---
 
 ## BATCH 16 — Model Completeness (missing fields)
-**Status:** `[ ]` Approve · `[ ]` Skip
+**Status:** `[x]` Done — committed (partial: elapsedFraction + usagePercentage guards; schema additions deferred)
 **Complexity:** 🔴 Hard (schema change — must add DB migration from Batch 6)
 **Issues:** MDL-20 through MDL-28
 **Depends on:** Batch 6 (DB migration infrastructure must exist first)

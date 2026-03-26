@@ -53,7 +53,7 @@ class Budget {
   /// Calculate usage percentage
   double get usagePercentage {
     if (limitAmount == 0) return 0;
-    return (spentAmount / limitAmount * 100).clamp(0, double.infinity);
+    return (spentAmount / limitAmount * 100).clamp(0.0, 999.0);
   }
 
   /// Calculate remaining amount
