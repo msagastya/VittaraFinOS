@@ -311,9 +311,12 @@ class SmsAutoScanService {
 
   String _fingerprint(SmsParseResult r) {
     final p = r.parsed;
+    // Use stable sender key (not hashCode which changes per restart)
+    final raw = p.sender.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+    final senderKey = raw.length > 8 ? raw.substring(0, 8) : raw;
     return '${p.amount.toStringAsFixed(0)}'
         '_${p.date.day}${p.date.month}${p.date.year}'
-        '_${p.sender.hashCode.abs()}';
+        '_$senderKey';
   }
 
   Future<void> _markSeen(String fp) async {

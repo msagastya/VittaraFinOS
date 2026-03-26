@@ -746,7 +746,7 @@ if (value > 0 && formatted == '0') return '< 0.01%';
 ---
 
 ## BATCH 11 — Navigation & UI State Bugs
-**Status:** `[ ]` Approve · `[ ]` Skip
+**Status:** `[x]` Done — committed
 **Complexity:** 🟡 Medium
 **Issues:** NAV-01, NAV-02, NAV-04, NAV-05, NAV-08, SAVE-related UI issues
 

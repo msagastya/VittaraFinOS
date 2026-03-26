@@ -422,7 +422,15 @@ class _GoalsScreenState extends State<GoalsScreen> {
 
   Widget _buildExpiringSoonBanner(List<Goal> goals) {
     return BouncyButton(
-      onPressed: () {},
+      onPressed: () {
+        if (goals.isNotEmpty) {
+          Navigator.of(context).push(
+            CupertinoPageRoute(
+              builder: (_) => GoalDetailsScreen(goal: goals.first),
+            ),
+          );
+        }
+      },
       child: GlassCard(
         backgroundColor: SemanticColors.warning.withValues(alpha: 0.15),
         child: Row(
