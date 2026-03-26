@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
+import 'package:vittara_fin_os/utils/async_mutex.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 
 final _accountsLogger = AppLogger();
@@ -10,6 +11,7 @@ class AccountsController with ChangeNotifier {
   late SharedPreferences _prefs;
   late List<Account> _accounts;
   static const String _storageKey = 'accounts';
+  static final _writeMutex = AsyncMutex();
 
   bool _isLoaded = false;
 
@@ -89,9 +91,11 @@ class AccountsController with ChangeNotifier {
   }
 
   Future<void> _saveAccounts() async {
-    final accountsJson =
-        _accounts.map((account) => jsonEncode(account.toMap())).toList();
-    await _prefs.setStringList(_storageKey, accountsJson);
+    await _writeMutex.protect(() async {
+      final accountsJson =
+          _accounts.map((account) => jsonEncode(account.toMap())).toList();
+      await _prefs.setStringList(_storageKey, accountsJson);
+    });
   }
 
   Future<void> hideAccount(String id) async {

@@ -293,7 +293,7 @@ if (totalTarget <= 0) return 0.0; // guard
 ---
 
 ## BATCH 6 — Database: Migration & Concurrent Write Protection
-**Status:** `[ ]` Approve · `[ ]` Skip
+**Status:** `[x]` Done — committed
 **Complexity:** 🔴 Hard (database changes, must not break existing data)
 **Issues:** DB-01, DB-02 (partial), DB-03, DB-04
 

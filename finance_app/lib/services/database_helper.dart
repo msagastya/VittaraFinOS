@@ -18,17 +18,41 @@ class DatabaseHelper {
     return _database!;
   }
 
+  static const int _kDbVersion = 2;
+
   Future<Database> _initDatabase() async {
     final databasesPath = await getDatabasesPath();
     final path = join(databasesPath, 'mutual_funds.db');
 
     return await openDatabase(
       path,
-      version: 1,
+      version: _kDbVersion,
       onCreate: (Database db, int version) async {
         await _createTables(db);
       },
+      onUpgrade: (Database db, int oldVersion, int newVersion) async {
+        await _runMigrations(db, oldVersion, newVersion);
+      },
     );
+  }
+
+  static Future<void> _runMigrations(
+      Database db, int oldV, int newV) async {
+    for (int v = oldV + 1; v <= newV; v++) {
+      switch (v) {
+        case 2:
+          await _migrateV1ToV2(db);
+          break;
+      }
+    }
+  }
+
+  static Future<void> _migrateV1ToV2(Database db) async {
+    // Add missing indexes that greatly speed up MF search
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_mf_is_active ON mutual_funds(is_active)');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_mf_scheme_code ON mutual_funds(scheme_code)');
   }
 
   Future<void> _createTables(Database db) async {
@@ -57,6 +81,14 @@ class DatabaseHelper {
 
     await db.execute('''
       CREATE INDEX IF NOT EXISTS idx_fund_house ON mutual_funds(fund_house)
+    ''');
+
+    await db.execute('''
+      CREATE INDEX IF NOT EXISTS idx_mf_is_active ON mutual_funds(is_active)
+    ''');
+
+    await db.execute('''
+      CREATE INDEX IF NOT EXISTS idx_mf_scheme_code ON mutual_funds(scheme_code)
     ''');
 
     await db.execute('''

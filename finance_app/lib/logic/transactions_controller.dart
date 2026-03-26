@@ -2,12 +2,14 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
+import 'package:vittara_fin_os/utils/async_mutex.dart';
 import 'package:vittara_fin_os/utils/id_generator.dart';
 
 class TransactionsController with ChangeNotifier {
   late SharedPreferences _prefs;
   late List<Transaction> _transactions;
   static const String _storageKey = 'transactions';
+  static final _writeMutex = AsyncMutex();
 
   List<Transaction> get transactions => _transactions;
 
@@ -95,10 +97,12 @@ class TransactionsController with ChangeNotifier {
   }
 
   Future<void> _saveTransactions() async {
-    final transactionsJson = _transactions
-        .map((transaction) => jsonEncode(transaction.toMap()))
-        .toList();
-    await _prefs.setStringList(_storageKey, transactionsJson);
+    await _writeMutex.protect(() async {
+      final transactionsJson = _transactions
+          .map((transaction) => jsonEncode(transaction.toMap()))
+          .toList();
+      await _prefs.setStringList(_storageKey, transactionsJson);
+    });
   }
 
   List<Transaction> getTransactionsByAccount(String accountId) {

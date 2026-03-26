@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/services/investment_value_service.dart';
+import 'package:vittara_fin_os/utils/async_mutex.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 
 final _investmentsLogger = AppLogger();
@@ -10,6 +11,7 @@ final _investmentsLogger = AppLogger();
 class InvestmentsController with ChangeNotifier {
   late SharedPreferences _prefs;
   late List<Investment> _investments;
+  static final _writeMutex = AsyncMutex();
   static const String _storageKey = 'investments';
   static const double _amountDeltaEpsilon = 0.01;
 
@@ -140,10 +142,12 @@ class InvestmentsController with ChangeNotifier {
   }
 
   Future<void> _saveInvestments() async {
-    final investmentsJson = _investments
-        .map((investment) => jsonEncode(investment.toMap()))
-        .toList();
-    await _prefs.setStringList(_storageKey, investmentsJson);
+    await _writeMutex.protect(() async {
+      final investmentsJson = _investments
+          .map((investment) => jsonEncode(investment.toMap()))
+          .toList();
+      await _prefs.setStringList(_storageKey, investmentsJson);
+    });
   }
 
   // Invalidates memoized caches when the investments list changes.
