@@ -1308,7 +1308,7 @@ if (_scrollController.offset > threshold) { /* show scroll-to-top */ }
 ---
 
 ## BATCH 18 — Animation Polish
-**Status:** `[ ]` Approve · `[ ]` Skip
+**Status:** `[x]` Done — committed
 **Complexity:** 🟢 Easy
 **Issues:** ANIM-01 through ANIM-04
 

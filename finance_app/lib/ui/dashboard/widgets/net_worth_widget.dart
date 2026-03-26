@@ -606,16 +606,17 @@ class _NetWorthBodyState extends State<_NetWorthBody>
                 final active = i == _carouselPage;
                 final color =
                     _accountTypeColor(widget.accounts[i].type, context);
-                return AnimatedContainer(
-                  duration: const Duration(milliseconds: 250),
-                  margin: const EdgeInsets.symmetric(horizontal: 2.5),
-                  width: active ? 18 : 5,
-                  height: 3,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(Radii.full),
-                    color: active
-                        ? color
-                        : color.withValues(alpha: 0.25),
+                return AnimatedOpacity(
+                  opacity: active ? 1.0 : 0.25,
+                  duration: const Duration(milliseconds: 200),
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 2.5),
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: color,
+                    ),
                   ),
                 );
               }),
