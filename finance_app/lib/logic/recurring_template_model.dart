@@ -138,7 +138,10 @@ class RecurringTemplate {
         next = DateTime(base.year + 1, base.month, base.day);
         break;
       default: // monthly
-        next = DateTime(base.year, base.month + 1, base.day);
+        final targetMonth = base.month == 12 ? 1 : base.month + 1;
+        final targetYear = base.month == 12 ? base.year + 1 : base.year;
+        final maxDay = DateTime(targetYear, targetMonth + 1, 0).day;
+        next = DateTime(targetYear, targetMonth, base.day.clamp(1, maxDay));
     }
     return RecurringTemplate(
       id: id,

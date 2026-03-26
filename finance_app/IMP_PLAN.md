@@ -637,7 +637,7 @@ case 3: return withdrawalType == NPSWithdrawalType.none || plannedRetirementDate
 ---
 
 ## BATCH 10 — Calculation Correctness
-**Status:** `[ ]` Approve · `[ ]` Skip
+**Status:** `[x]` Done — committed
 **Complexity:** 🟡 Medium (maths-heavy but isolated)
 **Issues:** CALC-10 through CALC-18
 

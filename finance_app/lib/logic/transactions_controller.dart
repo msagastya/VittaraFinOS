@@ -120,7 +120,7 @@ class TransactionsController with ChangeNotifier {
 
   List<Transaction> getTransactionsInDateRange(DateTime start, DateTime end) {
     return _transactions
-        .where((t) => t.dateTime.isAfter(start) && t.dateTime.isBefore(end))
+        .where((t) => !t.dateTime.isBefore(start) && !t.dateTime.isAfter(end))
         .toList();
   }
 

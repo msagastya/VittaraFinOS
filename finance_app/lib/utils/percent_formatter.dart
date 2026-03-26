@@ -15,8 +15,9 @@ class PercentFormatter {
   }
 
   /// Format as plain percentage: 5.0 → "5%", -2.5 → "-2.5%"
-  /// Trims trailing zeros.
+  /// Trims trailing zeros. Shows "< 0.01%" for very small positive values.
   static String plain(double value, {int decimals = 2}) {
+    if (value > 0 && value < 0.01) return '< 0.01%';
     final sign = value < 0 ? '-' : '';
     final formatted = value.abs().toStringAsFixed(decimals);
     final trimmed = formatted.contains('.')

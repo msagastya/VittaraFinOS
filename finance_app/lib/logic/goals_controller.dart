@@ -95,8 +95,8 @@ class GoalsController with ChangeNotifier {
       final updatedContributions = [...goal.contributions, contribution];
       final newCurrentAmount = goal.currentAmount + contribution.amount;
 
-      // Check if goal is completed
-      final isCompleted = newCurrentAmount >= goal.targetAmount;
+      // Check if goal is completed (FP tolerance: within 0.005 of target)
+      final isCompleted = newCurrentAmount >= goal.targetAmount - 0.005;
 
       _goals[index] = goal.copyWith(
         currentAmount: newCurrentAmount,
@@ -120,8 +120,7 @@ class GoalsController with ChangeNotifier {
     if (index != -1) {
       final goal = _goals[index];
       final newCurrentAmount =
-          ((goal.currentAmount - amount).clamp(0, goal.targetAmount))
-              .toDouble();
+          (goal.currentAmount - amount).clamp(0.0, double.infinity);
 
       _goals[index] = goal.copyWith(
         currentAmount: newCurrentAmount,

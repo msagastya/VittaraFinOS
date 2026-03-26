@@ -113,7 +113,7 @@ class PinRecoveryController {
       return RecoveryResult.lockedOut(until);
     }
 
-    return RecoveryResult.wrongCode(attempts: attempts, remainingBeforeLockout: 3 - attempts);
+    return RecoveryResult.wrongCode(attempts: attempts, remainingBeforeLockout: max(0, 3 - attempts));
   }
 
   int _lockoutMinutes(int attempts) {
