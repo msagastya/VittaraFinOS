@@ -812,7 +812,7 @@ final fingerprint = '${p.amount.toStringAsFixed(0)}_${p.date.day}${p.date.month}
 ---
 
 ## BATCH 12 — State Refresh (stale detail screens)
-**Status:** `[ ]` Approve · `[ ]` Skip
+**Status:** `[x]` Done — already implemented (Consumer wrapping, snapshot throttle already in place)
 **Complexity:** 🟡 Medium
 **Issues:** REF-01 through REF-05
 
@@ -867,7 +867,7 @@ if (!_snapshotSavedThisSession) {
 ---
 
 ## BATCH 13 — Performance Fixes
-**Status:** `[ ]` Approve · `[ ]` Skip
+**Status:** `[x]` Done — committed
 **Complexity:** 🟡 Medium
 **Issues:** PERF-01 through PERF-06
 

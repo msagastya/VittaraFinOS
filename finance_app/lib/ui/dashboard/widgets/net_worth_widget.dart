@@ -305,7 +305,8 @@ class _NetWorthBody extends StatefulWidget {
   State<_NetWorthBody> createState() => _NetWorthBodyState();
 }
 
-class _NetWorthBodyState extends State<_NetWorthBody> {
+class _NetWorthBodyState extends State<_NetWorthBody>
+    with WidgetsBindingObserver {
   int _carouselPage = 0;
   late final PageController _pageCtrl;
   Timer? _carouselTimer;
@@ -314,7 +315,17 @@ class _NetWorthBodyState extends State<_NetWorthBody> {
   void initState() {
     super.initState();
     _pageCtrl = PageController();
+    WidgetsBinding.instance.addObserver(this);
     _startCarouselTimer();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      _carouselTimer?.cancel();
+    } else if (state == AppLifecycleState.resumed) {
+      _startCarouselTimer();
+    }
   }
 
   void _startCarouselTimer() {
@@ -342,6 +353,7 @@ class _NetWorthBodyState extends State<_NetWorthBody> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _carouselTimer?.cancel();
     _pageCtrl.dispose();
     super.dispose();
