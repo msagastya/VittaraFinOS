@@ -44,6 +44,10 @@ class _AddBudgetModalState extends State<AddBudgetModal> {
       AlertService.showError(context, 'Please enter a valid limit amount');
       return;
     }
+    if (limit > 10000000) {
+      AlertService.showError(context, 'Budget limit seems too high (max ₹1 Cr)');
+      return;
+    }
 
     final now = DateTime.now();
     DateTime endDate;

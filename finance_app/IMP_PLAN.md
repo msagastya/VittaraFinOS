@@ -551,7 +551,7 @@ if (!deleteSucceeded) { showError('Failed to delete'); return; }
 ---
 
 ## BATCH 9 — Wizard Validation & Input Bounds
-**Status:** `[ ]` Approve · `[ ]` Skip
+**Status:** `[x]` Done — committed
 **Complexity:** 🟡 Medium
 **Issues:** VAL-01 through VAL-09
 

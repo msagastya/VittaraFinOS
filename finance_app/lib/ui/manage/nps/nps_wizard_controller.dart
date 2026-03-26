@@ -38,8 +38,9 @@ class NPSWizardController extends ChangeNotifier {
   }
 
   double get gainLossPercent {
-    if (totalContributed == null || totalContributed == 0) return 0;
-    return (estimatedReturns / totalContributed!) * 100;
+    if (totalContributed == null || totalContributed! <= 0) return 0;
+    final raw = (estimatedReturns / totalContributed!) * 100;
+    return raw.clamp(-100.0, 10000.0);
   }
 
   bool canProceed() {

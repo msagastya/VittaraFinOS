@@ -110,11 +110,17 @@ class _LendingWizardState extends State<LendingWizard> {
     final phoneNumber =
         _phoneController.text.isNotEmpty ? _phoneController.text : null;
 
+    final amount = double.tryParse(_amountController.text) ?? 0;
+    if (amount <= 0) {
+      setState(() => _isSaving = false);
+      return;
+    }
+
     final record = LendingBorrowing(
       id: widget.existingRecord?.id ??
           DateTime.now().millisecondsSinceEpoch.toString(),
       personName: personName,
-      amount: double.parse(_amountController.text),
+      amount: amount,
       type: widget.type,
       description: _descriptionController.text.isNotEmpty
           ? _descriptionController.text

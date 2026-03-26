@@ -46,6 +46,10 @@ class _AddGoalModalState extends State<AddGoalModal> {
       AlertService.showError(context, 'Please enter a valid target amount');
       return;
     }
+    if (targetAmount > 1000000000) {
+      AlertService.showError(context, 'Target amount seems too high (max ₹100 Cr)');
+      return;
+    }
 
     final goal = Goal(
       id: 'goal_${DateTime.now().millisecondsSinceEpoch}',

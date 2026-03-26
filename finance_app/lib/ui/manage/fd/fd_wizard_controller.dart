@@ -200,7 +200,7 @@ class FDWizardController extends ChangeNotifier {
       case 2:
         return principal > 0;
       case 3:
-        return interestRate > 0;
+        return interestRate > 0 && interestRate <= 50.0;
       case 4:
         return tenureMonths > 0;
       case 5:
