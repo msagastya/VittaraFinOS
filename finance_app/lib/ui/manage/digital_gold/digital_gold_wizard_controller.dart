@@ -62,7 +62,7 @@ class DigitalGoldWizardController extends ChangeNotifier {
   }
 
   void updateGSTRate(double value) {
-    gstRate = value;
+    gstRate = value.clamp(0.0, 28.0); // GST max 28% in India
     notifyListeners();
   }
 

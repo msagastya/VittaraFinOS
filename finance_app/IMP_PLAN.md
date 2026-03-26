@@ -936,7 +936,7 @@ if (state == AppLifecycleState.resumed) _startCarouselTimer();
 ---
 
 ## BATCH 14 — Wizard Quality & Edit Flows
-**Status:** `[ ]` Approve · `[ ]` Skip
+**Status:** `[x]` Done — committed (partial: GST clamp; edit pre-pop + stock qty already handled by UI; bond dead code deferred)
 **Complexity:** 🟡 Medium
 **Issues:** WIZ-01 through WIZ-08, INV-04, INV-08, INV-09, INV-10, INV-11
 
