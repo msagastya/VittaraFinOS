@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/budgets_controller.dart';
+import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/ui/dashboard/widgets/insights_widget.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -34,7 +35,11 @@ class SpendingInsightsScreen extends StatelessWidget {
       child: Consumer2<TransactionsController, BudgetsController>(
         builder: (context, txCtrl, budgetsCtrl, _) {
           final data = computeSpendIntel(txCtrl.transactions, budgetsCtrl.budgets);
-          return _SpendIntelBody(data: data, isDark: isDark);
+          return _SpendIntelBody(
+            data: data,
+            isDark: isDark,
+            transactions: txCtrl.transactions,
+          );
         },
       ),
     );
@@ -44,8 +49,13 @@ class SpendingInsightsScreen extends StatelessWidget {
 class _SpendIntelBody extends StatelessWidget {
   final SpendIntelData data;
   final bool isDark;
+  final List<Transaction> transactions;
 
-  const _SpendIntelBody({required this.data, required this.isDark});
+  const _SpendIntelBody({
+    required this.data,
+    required this.isDark,
+    required this.transactions,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +63,13 @@ class _SpendIntelBody extends StatelessWidget {
     final cardBg = isDark
         ? Colors.white.withValues(alpha: 0.04)
         : Colors.black.withValues(alpha: 0.025);
+    final now = DateTime.now();
+    final monthStart = DateTime(now.year, now.month, 1);
+    final thisMonthExp = transactions
+        .where((t) =>
+            t.type == TransactionType.expense &&
+            !t.dateTime.isBefore(monthStart))
+        .toList();
 
     return SafeArea(
       child: ListView(
@@ -85,41 +102,51 @@ class _SpendIntelBody extends StatelessWidget {
             const SizedBox(height: Spacing.lg),
           ],
 
-          // ── Category Breakdown (full list) ──────────────────────────────
+          // ── Category Breakdown (full list, expandable) ──────────────────
           if (data.categoryDrifts.isNotEmpty) ...[
-            SpendSectionLabel('CATEGORY PULSE  ·  this month vs last'),
+            SpendSectionLabel('CATEGORY PULSE  ·  tap to expand'),
             const SizedBox(height: Spacing.sm),
             Container(
               padding: const EdgeInsets.all(Spacing.md),
               decoration: BoxDecoration(color: cardBg, borderRadius: BorderRadius.circular(Radii.lg)),
-              child: _FullCategoryTable(drifts: data.categoryDrifts, total: data.totalThisMonth, isDark: isDark),
+              child: _ExpandableCategoryTable(
+                drifts: data.categoryDrifts,
+                total: data.totalThisMonth,
+                isDark: isDark,
+                transactions: thisMonthExp,
+              ),
             ),
             const SizedBox(height: Spacing.lg),
           ],
 
-          // ── Day-of-week rhythm (taller) ─────────────────────────────────
+          // ── Day-of-week rhythm (expandable) ─────────────────────────────
           if (data.hasData) ...[
-            SpendSectionLabel('SPEND RHYTHM  ·  by day of week'),
+            SpendSectionLabel('SPEND RHYTHM  ·  tap a day to expand'),
             const SizedBox(height: Spacing.sm),
             Container(
               padding: const EdgeInsets.all(Spacing.md),
               decoration: BoxDecoration(color: cardBg, borderRadius: BorderRadius.circular(Radii.lg)),
-              child: SpendDowHeatmap(dowSpend: data.dowSpend, isDark: isDark, barHeight: 80),
+              child: _ExpandableRhythm(
+                dowSpend: data.dowSpend,
+                isDark: isDark,
+                transactions: thisMonthExp,
+              ),
             ),
             const SizedBox(height: Spacing.lg),
           ],
 
-          // ── Top Merchants (full list) ───────────────────────────────────
+          // ── Top Merchants (expandable) ───────────────────────────────────
           if (data.topMerchants.isNotEmpty && data.totalThisMonth > 0) ...[
-            SpendSectionLabel('TOP MERCHANTS  ·  by share of wallet'),
+            SpendSectionLabel('TOP MERCHANTS  ·  tap to expand'),
             const SizedBox(height: Spacing.sm),
             Container(
               padding: const EdgeInsets.all(Spacing.md),
               decoration: BoxDecoration(color: cardBg, borderRadius: BorderRadius.circular(Radii.lg)),
-              child: SpendTopMerchantsSection(
+              child: _ExpandableMerchants(
                 merchants: data.topMerchants,
                 totalThisMonth: data.totalThisMonth,
                 isDark: isDark,
+                transactions: thisMonthExp,
               ),
             ),
             const SizedBox(height: Spacing.lg),
@@ -317,27 +344,94 @@ class _FullNarrativeCard extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Full category table (all categories, with share bar + MoM delta)
+// Shared transaction row helper
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _FullCategoryTable extends StatelessWidget {
+Widget _buildTxRow(BuildContext context, Transaction tx, bool isDark) {
+  final d = tx.dateTime;
+  final dateStr = '${d.day}/${d.month}';
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 3),
+    child: Row(
+      children: [
+        SizedBox(
+          width: 36,
+          child: Text(
+            dateStr,
+            style: TextStyle(fontSize: 10, color: AppStyles.getSecondaryTextColor(context)),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            tx.description.isNotEmpty ? tx.description : 'Transaction',
+            style: TextStyle(fontSize: TypeScale.caption, color: AppStyles.getTextColor(context)),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        Text(
+          spendFmt(tx.amount.abs()),
+          style: TextStyle(
+            fontSize: TypeScale.caption,
+            fontWeight: FontWeight.w600,
+            color: AppStyles.loss(context),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Expandable category table
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _ExpandableCategoryTable extends StatefulWidget {
   final List<SpendCategoryDrift> drifts;
   final double total;
   final bool isDark;
+  final List<Transaction> transactions;
 
-  const _FullCategoryTable({
+  const _ExpandableCategoryTable({
     required this.drifts,
     required this.total,
     required this.isDark,
+    required this.transactions,
   });
 
   @override
+  State<_ExpandableCategoryTable> createState() => _ExpandableCategoryTableState();
+}
+
+class _ExpandableCategoryTableState extends State<_ExpandableCategoryTable> {
+  String? _expandedName;
+
+  List<Transaction> _txsForCategory(String name) {
+    final txs = widget.transactions
+        .where((t) =>
+            ((t.metadata?['categoryName'] as String?) ?? 'Other') == name)
+        .toList()
+      ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
+    return txs;
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final isDark = widget.isDark;
+    final trackColor = isDark
+        ? Colors.white.withValues(alpha: 0.07)
+        : Colors.black.withValues(alpha: 0.05);
+    final divColor = isDark
+        ? Colors.white.withValues(alpha: 0.05)
+        : Colors.black.withValues(alpha: 0.05);
+
     return Column(
-      children: drifts.asMap().entries.map((entry) {
+      children: widget.drifts.asMap().entries.map((entry) {
         final drift = entry.value;
-        final share = total > 0 ? (drift.thisMonth / total).clamp(0.0, 1.0) : 0.0;
-        final isLast = entry.key == drifts.length - 1;
+        final share = widget.total > 0
+            ? (drift.thisMonth / widget.total).clamp(0.0, 1.0)
+            : 0.0;
+        final isLast = entry.key == widget.drifts.length - 1;
         final delta = drift.momDelta;
         final deltaColor = drift.isAnomalous
             ? AppStyles.loss(context)
@@ -346,115 +440,505 @@ class _FullCategoryTable extends StatelessWidget {
                 : delta < -5
                     ? AppStyles.gain(context)
                     : AppStyles.getSecondaryTextColor(context);
-        final trackColor = isDark
-            ? Colors.white.withValues(alpha: 0.07)
-            : Colors.black.withValues(alpha: 0.05);
+        final isExpanded = _expandedName == drift.name;
 
         return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: Spacing.sm),
-              child: Row(
-                children: [
-                  Text(drift.emoji, style: const TextStyle(fontSize: 16)),
-                  const SizedBox(width: Spacing.sm),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              drift.name,
-                              style: TextStyle(
-                                fontSize: TypeScale.caption,
-                                fontWeight: FontWeight.w600,
-                                color: AppStyles.getTextColor(context),
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                Text(
-                                  spendFmt(drift.thisMonth),
-                                  style: TextStyle(
-                                    fontSize: TypeScale.caption,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppStyles.getTextColor(context),
-                                  ),
-                                ),
-                                const SizedBox(width: Spacing.sm),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 5, vertical: 1),
-                                  decoration: BoxDecoration(
-                                    color: deltaColor.withValues(alpha: 0.12),
-                                    borderRadius:
-                                        BorderRadius.circular(Radii.full),
-                                  ),
-                                  child: Text(
-                                    delta == 0
-                                        ? '—'
-                                        : '${delta > 0 ? '↑' : '↓'}${delta.abs().toStringAsFixed(0)}%',
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => setState(
+                  () => _expandedName = isExpanded ? null : drift.name),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: Spacing.sm),
+                child: Row(
+                  children: [
+                    Text(drift.emoji, style: const TextStyle(fontSize: 16)),
+                    const SizedBox(width: Spacing.sm),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    drift.name,
                                     style: TextStyle(
-                                      fontSize: 9,
+                                      fontSize: TypeScale.caption,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppStyles.getTextColor(context),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Icon(
+                                    isExpanded
+                                        ? CupertinoIcons.chevron_up
+                                        : CupertinoIcons.chevron_down,
+                                    size: 10,
+                                    color: AppStyles.getSecondaryTextColor(context),
+                                  ),
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  Text(
+                                    spendFmt(drift.thisMonth),
+                                    style: TextStyle(
+                                      fontSize: TypeScale.caption,
                                       fontWeight: FontWeight.w700,
-                                      color: deltaColor,
+                                      color: AppStyles.getTextColor(context),
+                                    ),
+                                  ),
+                                  const SizedBox(width: Spacing.sm),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 5, vertical: 1),
+                                    decoration: BoxDecoration(
+                                      color: deltaColor.withValues(alpha: 0.12),
+                                      borderRadius:
+                                          BorderRadius.circular(Radii.full),
+                                    ),
+                                    child: Text(
+                                      delta == 0
+                                          ? '—'
+                                          : '${delta > 0 ? '↑' : '↓'}${delta.abs().toStringAsFixed(0)}%',
+                                      style: TextStyle(
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w700,
+                                        color: deltaColor,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 5),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(Radii.full),
+                            child: Stack(
+                              children: [
+                                Container(height: 4, color: trackColor),
+                                FractionallySizedBox(
+                                  widthFactor: share,
+                                  child: Container(
+                                    height: 4,
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(colors: [
+                                        AppStyles.teal(context)
+                                            .withValues(alpha: 0.6),
+                                        AppStyles.teal(context),
+                                      ]),
+                                      borderRadius:
+                                          BorderRadius.circular(Radii.full),
                                     ),
                                   ),
                                 ),
                               ],
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 5),
-                        // Share bar
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(Radii.full),
-                          child: Stack(
-                            children: [
-                              Container(height: 4, color: trackColor),
-                              FractionallySizedBox(
-                                widthFactor: share,
-                                child: Container(
-                                  height: 4,
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(colors: [
-                                      AppStyles.teal(context).withValues(alpha: 0.6),
-                                      AppStyles.teal(context),
-                                    ]),
-                                    borderRadius:
-                                        BorderRadius.circular(Radii.full),
-                                  ),
-                                ),
-                              ),
-                            ],
                           ),
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          '${(share * 100).toStringAsFixed(1)}% of total',
-                          style: TextStyle(
-                            fontSize: 9,
-                            color: AppStyles.getSecondaryTextColor(context),
+                          const SizedBox(height: 3),
+                          Text(
+                            '${(share * 100).toStringAsFixed(1)}% of total',
+                            style: TextStyle(
+                              fontSize: 9,
+                              color: AppStyles.getSecondaryTextColor(context),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-            if (!isLast)
-              Divider(
-                height: 1,
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.05)
-                    : Colors.black.withValues(alpha: 0.05),
-              ),
+            // Expanded transactions
+            AnimatedSize(
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeInOut,
+              child: isExpanded
+                  ? () {
+                      final all = _txsForCategory(drift.name);
+                      final txs = all.take(5).toList();
+                      if (txs.isEmpty) return const SizedBox.shrink();
+                      return Padding(
+                        padding: const EdgeInsets.only(
+                            left: 28, bottom: Spacing.sm),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Divider(height: 1, color: divColor),
+                            const SizedBox(height: Spacing.xs),
+                            ...txs.map(
+                                (t) => _buildTxRow(context, t, isDark)),
+                            if (all.length > 5)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Text(
+                                  '+${all.length - 5} more',
+                                  style: TextStyle(
+                                      fontSize: 10,
+                                      color: AppStyles.getSecondaryTextColor(
+                                          context)),
+                                ),
+                              ),
+                          ],
+                        ),
+                      );
+                    }()
+                  : const SizedBox.shrink(),
+            ),
+            if (!isLast) Divider(height: 1, color: divColor),
           ],
         );
       }).toList(),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Expandable spend rhythm (day-of-week)
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _ExpandableRhythm extends StatefulWidget {
+  final List<double> dowSpend;
+  final bool isDark;
+  final List<Transaction> transactions;
+
+  const _ExpandableRhythm({
+    required this.dowSpend,
+    required this.isDark,
+    required this.transactions,
+  });
+
+  @override
+  State<_ExpandableRhythm> createState() => _ExpandableRhythmState();
+}
+
+class _ExpandableRhythmState extends State<_ExpandableRhythm> {
+  int? _expanded;
+
+  List<Transaction> _txsForDow(int dow) {
+    return widget.transactions
+        .where((t) => t.dateTime.weekday - 1 == dow)
+        .toList()
+      ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = widget.isDark;
+    final maxVal = widget.dowSpend.isEmpty
+        ? 0.0
+        : widget.dowSpend.reduce(math.max);
+    if (maxVal == 0) {
+      return Text(
+        'No spending recorded this month yet.',
+        style: TextStyle(
+            fontSize: TypeScale.caption,
+            color: AppStyles.getSecondaryTextColor(context)),
+      );
+    }
+    const barH = 80.0;
+    final peakColor = AppStyles.violet(context);
+    final divColor = isDark
+        ? Colors.white.withValues(alpha: 0.07)
+        : Colors.black.withValues(alpha: 0.07);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: List.generate(7, (i) {
+            final fraction =
+                maxVal > 0 ? (widget.dowSpend[i] / maxVal).clamp(0.0, 1.0) : 0.0;
+            final isPeak = widget.dowSpend[i] == maxVal;
+            final isExpanded = _expanded == i;
+            final h = fraction * barH;
+            final color = isPeak
+                ? peakColor
+                : Color.lerp(
+                    peakColor.withValues(alpha: 0.25),
+                    peakColor.withValues(alpha: 0.7),
+                    fraction,
+                  )!;
+
+            return Expanded(
+              child: GestureDetector(
+                onTap: widget.dowSpend[i] > 0
+                    ? () => setState(
+                        () => _expanded = isExpanded ? null : i)
+                    : null,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (widget.dowSpend[i] > 0)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 2),
+                        child: Text(
+                          spendFmt(widget.dowSpend[i]),
+                          style: TextStyle(
+                            fontSize: 8,
+                            fontWeight:
+                                isPeak ? FontWeight.w700 : FontWeight.w500,
+                            color: (isPeak || isExpanded)
+                                ? peakColor
+                                : AppStyles.getSecondaryTextColor(context),
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    Container(
+                      height: h > 0 ? h : 2,
+                      margin: const EdgeInsets.symmetric(horizontal: 2),
+                      decoration: BoxDecoration(
+                        color: isExpanded ? peakColor : color,
+                        borderRadius:
+                            const BorderRadius.vertical(top: Radius.circular(3)),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      spendDowName(i).substring(0, 2),
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: (isPeak || isExpanded)
+                            ? FontWeight.w700
+                            : FontWeight.w500,
+                        color: (isPeak || isExpanded)
+                            ? peakColor
+                            : AppStyles.getSecondaryTextColor(context),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
+        ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeInOut,
+          child: _expanded != null && widget.dowSpend[_expanded!] > 0
+              ? () {
+                  final all = _txsForDow(_expanded!);
+                  final txs = all.take(5).toList();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: Spacing.sm),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Divider(height: 1, color: divColor),
+                        const SizedBox(height: Spacing.xs),
+                        Text(
+                          '${spendDowName(_expanded!)} transactions',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.5,
+                            color: AppStyles.getSecondaryTextColor(context),
+                          ),
+                        ),
+                        const SizedBox(height: Spacing.xs),
+                        ...txs.map((t) => _buildTxRow(context, t, isDark)),
+                        if (all.length > 5)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Text(
+                              '+${all.length - 5} more',
+                              style: TextStyle(
+                                  fontSize: 10,
+                                  color: AppStyles.getSecondaryTextColor(
+                                      context)),
+                            ),
+                          ),
+                      ],
+                    ),
+                  );
+                }()
+              : const SizedBox.shrink(),
+        ),
+      ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Expandable top merchants
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _ExpandableMerchants extends StatefulWidget {
+  final List<MapEntry<String, double>> merchants;
+  final double totalThisMonth;
+  final bool isDark;
+  final List<Transaction> transactions;
+
+  const _ExpandableMerchants({
+    required this.merchants,
+    required this.totalThisMonth,
+    required this.isDark,
+    required this.transactions,
+  });
+
+  @override
+  State<_ExpandableMerchants> createState() => _ExpandableMerchantsState();
+}
+
+class _ExpandableMerchantsState extends State<_ExpandableMerchants> {
+  String? _expanded;
+
+  List<Transaction> _txsForMerchant(String name) {
+    return widget.transactions.where((t) {
+      final m = (t.metadata?['merchant'] as String?) ??
+          (t.description.isNotEmpty ? t.description : 'Unknown');
+      return m == name;
+    }).toList()
+      ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.merchants.isEmpty || widget.totalThisMonth == 0) {
+      return const SizedBox.shrink();
+    }
+    final isDark = widget.isDark;
+    final colors = [
+      AppStyles.teal(context),
+      AppStyles.accentBlue,
+      AppStyles.gold(context)
+    ];
+    final divColor = isDark
+        ? Colors.white.withValues(alpha: 0.07)
+        : Colors.black.withValues(alpha: 0.07);
+
+    return Column(
+      children: List.generate(widget.merchants.length, (i) {
+        final m = widget.merchants[i];
+        final share = (m.value / widget.totalThisMonth).clamp(0.0, 1.0);
+        final color = colors[i % colors.length];
+        final isExpanded = _expanded == m.key;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => setState(
+                  () => _expanded = isExpanded ? null : m.key),
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: Spacing.xs),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 120,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              m.key,
+                              style: TextStyle(
+                                fontSize: TypeScale.caption,
+                                color: AppStyles.getTextColor(context),
+                                fontWeight: FontWeight.w500,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 2),
+                          Icon(
+                            isExpanded
+                                ? CupertinoIcons.chevron_up
+                                : CupertinoIcons.chevron_down,
+                            size: 10,
+                            color: AppStyles.getSecondaryTextColor(context),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: Spacing.sm),
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(Radii.full),
+                        child: Stack(
+                          children: [
+                            Container(
+                              height: 5,
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.07)
+                                  : Colors.black.withValues(alpha: 0.05),
+                            ),
+                            FractionallySizedBox(
+                              widthFactor: share,
+                              child: Container(height: 5, color: color),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: Spacing.sm),
+                    Text(
+                      '${(share * 100).toStringAsFixed(0)}%',
+                      style: TextStyle(
+                        fontSize: TypeScale.caption,
+                        fontWeight: FontWeight.w700,
+                        color: color,
+                      ),
+                    ),
+                    const SizedBox(width: Spacing.xs),
+                    Text(
+                      spendFmt(m.value),
+                      style: TextStyle(
+                        fontSize: TypeScale.caption,
+                        color: AppStyles.getSecondaryTextColor(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeInOut,
+              child: isExpanded
+                  ? () {
+                      final all = _txsForMerchant(m.key);
+                      final txs = all.take(5).toList();
+                      if (txs.isEmpty) return const SizedBox.shrink();
+                      return Padding(
+                        padding:
+                            const EdgeInsets.only(left: 8, bottom: Spacing.sm),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Divider(height: 1, color: divColor),
+                            const SizedBox(height: Spacing.xs),
+                            ...txs.map((t) => _buildTxRow(context, t, isDark)),
+                            if (all.length > 5)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Text(
+                                  '+${all.length - 5} more',
+                                  style: TextStyle(
+                                      fontSize: 10,
+                                      color: AppStyles.getSecondaryTextColor(
+                                          context)),
+                                ),
+                              ),
+                          ],
+                        ),
+                      );
+                    }()
+                  : const SizedBox.shrink(),
+            ),
+          ],
+        );
+      }),
     );
   }
 }

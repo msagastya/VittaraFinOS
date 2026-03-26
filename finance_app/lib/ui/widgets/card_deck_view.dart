@@ -111,7 +111,12 @@ class _CardDeckViewState extends State<CardDeckView>
 
   int get _cardCount => widget.cards.length;
 
-  int _indexAt(int depth) => (_frontIndex + depth) % _cardCount;
+  int _indexAt(int depth) {
+    if (_swipingRight && depth > 0) {
+      return (_frontIndex - depth + _cardCount) % _cardCount;
+    }
+    return (_frontIndex + depth) % _cardCount;
+  }
 
   void _advanceCard() {
     setState(() {

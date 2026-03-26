@@ -985,15 +985,17 @@ class SpendDowHeatmap extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (isPeak)
+              if (dowSpend[i] > 0)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 2),
                   child: Text(
                     spendFmt(dowSpend[i]),
                     style: TextStyle(
                       fontSize: 8,
-                      fontWeight: FontWeight.w700,
-                      color: peakColor,
+                      fontWeight: isPeak ? FontWeight.w700 : FontWeight.w500,
+                      color: isPeak
+                          ? peakColor
+                          : AppStyles.getSecondaryTextColor(context),
                     ),
                     textAlign: TextAlign.center,
                   ),
