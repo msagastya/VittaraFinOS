@@ -667,14 +667,42 @@ class _NarrativeCard extends StatelessWidget {
 // Month forecast bar
 // ─────────────────────────────────────────────────────────────────────────────
 
-class SpendForecastBar extends StatelessWidget {
+class SpendForecastBar extends StatefulWidget {
   final SpendIntelData data;
   final bool isDark;
 
   const SpendForecastBar({required this.data, required this.isDark});
 
   @override
+  State<SpendForecastBar> createState() => _SpendForecastBarState();
+}
+
+class _SpendForecastBarState extends State<SpendForecastBar>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _fillAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    );
+    _fillAnim =
+        CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic);
+    _ctrl.forward();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final data = widget.data;
     final elapsed = data.monthElapsedFraction.clamp(0.0, 1.0);
     final spendFrac = data.projectedMonthEnd > 0
         ? (data.totalThisMonth / data.projectedMonthEnd).clamp(0.0, 1.0)
@@ -686,11 +714,15 @@ class SpendForecastBar extends StatelessWidget {
             ? AppStyles.accentOrange
             : AppStyles.gain(context);
 
-    final trackColor = isDark
+    final trackColor = widget.isDark
         ? Colors.white.withValues(alpha: 0.08)
         : Colors.black.withValues(alpha: 0.06);
 
-    return Column(
+    return AnimatedBuilder(
+      animation: _fillAnim,
+      builder: (context, _) {
+        final animFrac = spendFrac * _fillAnim.value;
+        return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
@@ -736,9 +768,9 @@ class SpendForecastBar extends StatelessWidget {
                 borderRadius: BorderRadius.circular(Radii.full),
               ),
             ),
-            // spend fill
+            // spend fill — animated
             FractionallySizedBox(
-              widthFactor: spendFrac,
+              widthFactor: animFrac.clamp(0.0, 1.0),
               child: Container(
                 height: 6,
                 decoration: BoxDecoration(
@@ -781,6 +813,8 @@ class SpendForecastBar extends StatelessWidget {
           ),
         ),
       ],
+        );
+      },
     );
   }
 }
@@ -818,14 +852,41 @@ class SpendCategoryDriftRow extends StatelessWidget {
   }
 }
 
-class SpendCategoryDriftCard extends StatelessWidget {
+class SpendCategoryDriftCard extends StatefulWidget {
   final SpendCategoryDrift drift;
   final bool isDark;
 
   const SpendCategoryDriftCard({required this.drift, required this.isDark});
 
   @override
+  State<SpendCategoryDriftCard> createState() => _SpendCategoryDriftCardState();
+}
+
+class _SpendCategoryDriftCardState extends State<SpendCategoryDriftCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _anim;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 550),
+    );
+    _anim = CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic);
+    _ctrl.forward();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final drift = widget.drift;
     final delta = drift.momDelta;
     final isUp = delta >= 0;
     final barColor = drift.isAnomalous
@@ -839,11 +900,14 @@ class SpendCategoryDriftCard extends StatelessWidget {
     final lastFrac =
         maxForBar > 0 ? (drift.lastMonth / maxForBar).clamp(0.0, 1.0) : 0.0;
 
-    return Container(
+    return AnimatedBuilder(
+      animation: _anim,
+      builder: (context, _) {
+        return Container(
       width: 88,
       padding: const EdgeInsets.all(Spacing.sm),
       decoration: BoxDecoration(
-        color: isDark
+        color: widget.isDark
             ? Colors.white.withValues(alpha: 0.04)
             : Colors.black.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(Radii.md),
@@ -855,7 +919,6 @@ class SpendCategoryDriftCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Category label + delta
           Row(
             children: [
               Text(drift.emoji, style: const TextStyle(fontSize: 11)),
@@ -874,7 +937,6 @@ class SpendCategoryDriftCard extends StatelessWidget {
               ),
             ],
           ),
-          // Amount
           Text(
             spendFmt(drift.thisMonth),
             style: TextStyle(
@@ -883,17 +945,16 @@ class SpendCategoryDriftCard extends StatelessWidget {
               color: AppStyles.getTextColor(context),
             ),
           ),
-          // Mini twin bar
+          // Mini twin bar — animated heights
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              // this month bar
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      height: 14 * thisFrac + 2,
+                      height: (14 * thisFrac + 2) * _anim.value,
                       decoration: BoxDecoration(
                         color: barColor,
                         borderRadius: BorderRadius.circular(2),
@@ -903,13 +964,12 @@ class SpendCategoryDriftCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 2),
-              // last month bar
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      height: 14 * lastFrac + 2,
+                      height: (14 * lastFrac + 2) * _anim.value,
                       decoration: BoxDecoration(
                         color: barColor.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(2),
@@ -919,7 +979,6 @@ class SpendCategoryDriftCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 4),
-              // Delta badge
               Text(
                 delta == 0
                     ? '—'
@@ -934,6 +993,8 @@ class SpendCategoryDriftCard extends StatelessWidget {
           ),
         ],
       ),
+        );
+      },
     );
   }
 }
@@ -942,7 +1003,7 @@ class SpendCategoryDriftCard extends StatelessWidget {
 // Day-of-week heatmap
 // ─────────────────────────────────────────────────────────────────────────────
 
-class SpendDowHeatmap extends StatelessWidget {
+class SpendDowHeatmap extends StatefulWidget {
   final List<double> dowSpend; // 0=Mon..6=Sun
   final bool isDark;
   final double barHeight;
@@ -954,8 +1015,31 @@ class SpendDowHeatmap extends StatelessWidget {
   });
 
   @override
+  State<SpendDowHeatmap> createState() => _SpendDowHeatmapState();
+}
+
+class _SpendDowHeatmapState extends State<SpendDowHeatmap>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..forward();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final maxVal = dowSpend.reduce(math.max);
+    final maxVal = widget.dowSpend.reduce(math.max);
     if (maxVal == 0) {
       return Text(
         'No spending recorded this month yet.',
@@ -965,65 +1049,84 @@ class SpendDowHeatmap extends StatelessWidget {
         ),
       );
     }
-    final barH = barHeight;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: List.generate(7, (i) {
-        final fraction = maxVal > 0 ? (dowSpend[i] / maxVal).clamp(0.0, 1.0) : 0.0;
-        final isPeak = dowSpend[i] == maxVal;
-        final h = fraction * barH;
-        final peakColor = AppStyles.violet(context);
-        final color = isPeak
-            ? peakColor
-            : Color.lerp(
-                peakColor.withValues(alpha: 0.25),
-                peakColor.withValues(alpha: 0.7),
-                fraction,
-              )!;
+    final barH = widget.barHeight;
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (context, _) {
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: List.generate(7, (i) {
+            final fraction =
+                maxVal > 0 ? (widget.dowSpend[i] / maxVal).clamp(0.0, 1.0) : 0.0;
+            final isPeak = widget.dowSpend[i] == maxVal;
+            // Staggered: bar i starts at i/7 * 0.35 of total animation
+            final startT = (i / 7) * 0.35;
+            final barAnim = CurvedAnimation(
+              parent: _ctrl,
+              curve: Interval(startT, (startT + 0.65).clamp(0, 1),
+                  curve: Curves.easeOutCubic),
+            );
+            final h = fraction * barH * barAnim.value;
+            final peakColor = AppStyles.violet(context);
+            final color = isPeak
+                ? peakColor
+                : Color.lerp(
+                    peakColor.withValues(alpha: 0.25),
+                    peakColor.withValues(alpha: 0.7),
+                    fraction,
+                  )!;
 
-        return Expanded(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (dowSpend[i] > 0)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 2),
-                  child: Text(
-                    spendFmt(dowSpend[i]),
+            return Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (widget.dowSpend[i] > 0)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 2),
+                      child: Opacity(
+                        opacity: barAnim.value.clamp(0.0, 1.0),
+                        child: Text(
+                          spendFmt(widget.dowSpend[i]),
+                          style: TextStyle(
+                            fontSize: 8,
+                            fontWeight:
+                                isPeak ? FontWeight.w700 : FontWeight.w500,
+                            color: isPeak
+                                ? peakColor
+                                : AppStyles.getSecondaryTextColor(context),
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  Container(
+                    height: h > 0 ? h : 2,
+                    margin: const EdgeInsets.symmetric(horizontal: 2),
+                    decoration: BoxDecoration(
+                      color: color,
+                      borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(3)),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    spendDowName(i).substring(0, 2),
                     style: TextStyle(
-                      fontSize: 8,
-                      fontWeight: isPeak ? FontWeight.w700 : FontWeight.w500,
+                      fontSize: 9,
+                      fontWeight:
+                          isPeak ? FontWeight.w700 : FontWeight.w500,
                       color: isPeak
                           ? peakColor
                           : AppStyles.getSecondaryTextColor(context),
                     ),
                     textAlign: TextAlign.center,
                   ),
-                ),
-              Container(
-                height: h > 0 ? h : 2,
-                margin: const EdgeInsets.symmetric(horizontal: 2),
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(3)),
-                ),
+                ],
               ),
-              const SizedBox(height: 4),
-              Text(
-                spendDowName(i).substring(0, 2),
-                style: TextStyle(
-                  fontSize: 9,
-                  fontWeight: isPeak ? FontWeight.w700 : FontWeight.w500,
-                  color: isPeak
-                      ? peakColor
-                      : AppStyles.getSecondaryTextColor(context),
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
+            );
+          }),
         );
-      }),
+      },
     );
   }
 }
@@ -1032,7 +1135,7 @@ class SpendDowHeatmap extends StatelessWidget {
 // Top merchants minibar
 // ─────────────────────────────────────────────────────────────────────────────
 
-class SpendTopMerchantsSection extends StatelessWidget {
+class SpendTopMerchantsSection extends StatefulWidget {
   final List<MapEntry<String, double>> merchants;
   final double totalThisMonth;
   final bool isDark;
@@ -1044,67 +1147,111 @@ class SpendTopMerchantsSection extends StatelessWidget {
   });
 
   @override
+  State<SpendTopMerchantsSection> createState() =>
+      _SpendTopMerchantsSectionState();
+}
+
+class _SpendTopMerchantsSectionState extends State<SpendTopMerchantsSection>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    )..forward();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (merchants.isEmpty || totalThisMonth == 0) return const SizedBox.shrink();
-    final colors = [AppStyles.teal(context), AppStyles.accentBlue, AppStyles.gold(context)];
-    return Column(
-      children: List.generate(merchants.length, (i) {
-        final m = merchants[i];
-        final share = (m.value / totalThisMonth).clamp(0.0, 1.0);
-        final color = colors[i % colors.length];
-        return Padding(
-          padding: const EdgeInsets.only(bottom: Spacing.xs),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 120,
-                child: Text(
-                  m.key,
-                  style: TextStyle(
-                    fontSize: TypeScale.caption,
-                    color: AppStyles.getTextColor(context),
-                    fontWeight: FontWeight.w500,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(width: Spacing.sm),
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(Radii.full),
-                  child: Stack(
-                    children: [
-                      Container(
-                        height: 5,
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.07)
-                            : Colors.black.withValues(alpha: 0.05),
+    if (widget.merchants.isEmpty || widget.totalThisMonth == 0) {
+      return const SizedBox.shrink();
+    }
+    final colors = [
+      AppStyles.teal(context),
+      AppStyles.accentBlue,
+      AppStyles.gold(context)
+    ];
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (context, _) {
+        return Column(
+          children: List.generate(widget.merchants.length, (i) {
+            final m = widget.merchants[i];
+            final share = (m.value / widget.totalThisMonth).clamp(0.0, 1.0);
+            final color = colors[i % colors.length];
+            // Staggered: row i starts later
+            final startT = (i / widget.merchants.length) * 0.3;
+            final rowAnim = CurvedAnimation(
+              parent: _ctrl,
+              curve: Interval(startT, (startT + 0.7).clamp(0, 1),
+                  curve: Curves.easeOutCubic),
+            );
+            final animatedShare = share * rowAnim.value;
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: Spacing.xs),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 120,
+                    child: Text(
+                      m.key,
+                      style: TextStyle(
+                        fontSize: TypeScale.caption,
+                        color: AppStyles.getTextColor(context),
+                        fontWeight: FontWeight.w500,
                       ),
-                      FractionallySizedBox(
-                        widthFactor: share,
-                        child: Container(
-                          height: 5,
-                          color: color,
-                        ),
-                      ),
-                    ],
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                ),
+                  const SizedBox(width: Spacing.sm),
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(Radii.full),
+                      child: Stack(
+                        children: [
+                          Container(
+                            height: 5,
+                            color: widget.isDark
+                                ? Colors.white.withValues(alpha: 0.07)
+                                : Colors.black.withValues(alpha: 0.05),
+                          ),
+                          FractionallySizedBox(
+                            widthFactor: animatedShare.clamp(0.0, 1.0),
+                            child: Container(
+                              height: 5,
+                              color: color,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: Spacing.sm),
+                  Text(
+                    '${(share * 100).toStringAsFixed(0)}%',
+                    style: TextStyle(
+                      fontSize: TypeScale.caption,
+                      fontWeight: FontWeight.w700,
+                      color: color,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: Spacing.sm),
-              Text(
-                '${(share * 100).toStringAsFixed(0)}%',
-                style: TextStyle(
-                  fontSize: TypeScale.caption,
-                  fontWeight: FontWeight.w700,
-                  color: color,
-                ),
-              ),
-            ],
-          ),
+            );
+          }),
         );
-      }),
+      },
     );
   }
 }

@@ -1966,19 +1966,19 @@ class DashboardScreen extends StatelessWidget {
                               Expanded(
                                 child: _buildSipStat(context,
                                     label: 'Per month',
-                                    value: '₹${_fmtAmt(totalMonthly)}',
+                                    amount: totalMonthly,
                                     color: CupertinoColors.activeBlue),
                               ),
                               Expanded(
                                 child: _buildSipStat(context,
                                     label: 'Per year',
-                                    value: '₹${_fmtAmt(totalMonthly * 12)}',
+                                    amount: totalMonthly * 12,
                                     color: AppStyles.accentTeal),
                               ),
                               Expanded(
                                 child: _buildSipStat(context,
                                     label: 'Avg / SIP',
-                                    value: '₹${_fmtAmt(totalMonthly / activeSips.length)}',
+                                    amount: totalMonthly / activeSips.length,
                                     color: AppStyles.accentOrange),
                               ),
                             ],
@@ -2071,7 +2071,7 @@ class DashboardScreen extends StatelessWidget {
   Widget _buildSipStat(
     BuildContext context, {
     required String label,
-    required String value,
+    required double amount,
     required Color color,
   }) {
     return Column(
@@ -2087,15 +2087,15 @@ class DashboardScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 2),
-        Text(
-          value,
+        AnimatedCounter(
+          value: amount,
+          prefix: '₹',
+          duration: const Duration(milliseconds: 750),
           style: TextStyle(
             fontSize: TypeScale.caption,
             color: color,
             fontWeight: FontWeight.w700,
           ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
         ),
       ],
     );

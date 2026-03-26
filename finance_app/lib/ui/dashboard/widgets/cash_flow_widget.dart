@@ -145,6 +145,7 @@ class CashFlowDashboardWidget extends StatelessWidget {
                                     : 2,
                                 color: const Color(0xFF34C759),
                                 faded: incomeByWeek[i] == 0,
+                                delay: Duration(milliseconds: i * 70),
                               ),
                               const SizedBox(width: 3),
                               _Bar(
@@ -153,6 +154,7 @@ class CashFlowDashboardWidget extends StatelessWidget {
                                     : 2,
                                 color: const Color(0xFFFF6B6B),
                                 faded: expenseByWeek[i] == 0,
+                                delay: Duration(milliseconds: i * 70 + 30),
                               ),
                             ],
                           ),
@@ -219,26 +221,67 @@ class CashFlowDashboardWidget extends StatelessWidget {
   }
 }
 
-class _Bar extends StatelessWidget {
+class _Bar extends StatefulWidget {
   final double height;
   final Color color;
   final bool faded;
+  final Duration delay;
 
   const _Bar({
     required this.height,
     required this.color,
     this.faded = false,
+    this.delay = Duration.zero,
   });
 
   @override
+  State<_Bar> createState() => _BarState();
+}
+
+class _BarState extends State<_Bar> with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _anim;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 450),
+    );
+    _anim = CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic);
+    if (widget.delay == Duration.zero) {
+      _ctrl.forward();
+    } else {
+      Future.delayed(widget.delay, () {
+        if (mounted) _ctrl.forward();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 10,
-      height: height,
-      decoration: BoxDecoration(
-        color: faded ? color.withValues(alpha: 0.15) : color,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(3)),
-      ),
+    return AnimatedBuilder(
+      animation: _anim,
+      builder: (context, _) {
+        final h = widget.faded
+            ? widget.height
+            : (widget.height * _anim.value).clamp(2.0, widget.height + 1);
+        return Container(
+          width: 10,
+          height: h,
+          decoration: BoxDecoration(
+            color: widget.faded ? widget.color.withValues(alpha: 0.15) : widget.color,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(3)),
+          ),
+        );
+      },
     );
   }
 }
