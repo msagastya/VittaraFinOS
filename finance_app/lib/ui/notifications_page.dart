@@ -238,8 +238,32 @@ class NotificationsPage extends StatelessWidget {
                         ),
                       ),
                     ),
-                    // FD Maturity Notifications (upcoming)
-                    if (fdsNearMaturity.isNotEmpty)
+                    // ── SMS Transactions Section ──────────────────────────
+                    Consumer<SettingsController>(
+                      builder: (_, settings, __) {
+                        if (!settings.isSmsEnabled) return const SizedBox.shrink();
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildSectionHeader(context,
+                              title: 'SMS Transactions',
+                              icon: CupertinoIcons.chat_bubble_text_fill,
+                              color: AppStyles.accentBlue,
+                            ),
+                            const _SmsSectionWidget(),
+                          ],
+                        );
+                      },
+                    ),
+
+                    // ── FD Maturity Section ───────────────────────────────
+                    if (fdsNearMaturity.isNotEmpty || fdsMatured.isNotEmpty) ...[
+                      _buildSectionHeader(context,
+                        title: 'FD Maturity',
+                        icon: CupertinoIcons.lock_shield_fill,
+                        color: CupertinoColors.systemOrange,
+                        count: fdsNearMaturity.length + fdsMatured.length,
+                      ),
                       ...fdsNearMaturity.map((fd) {
                         final metadata = fd.metadata!;
                         final maturityDate =
@@ -390,9 +414,6 @@ class NotificationsPage extends StatelessWidget {
                           ),
                         );
                       }),
-
-                    // FD Maturity Confirmation (already matured)
-                    if (fdsMatured.isNotEmpty)
                       ...fdsMatured.map((fd) {
                         final metadata = fd.metadata!;
                         final maturityDate =
@@ -544,9 +565,16 @@ class NotificationsPage extends StatelessWidget {
                           ),
                         );
                       }),
+                    ],
 
-                    // RD Upcoming Installment Notifications
-                    if (rdsWithUpcomingInstallments.isNotEmpty)
+                    // ── Recurring Deposits Section ────────────────────────
+                    if (rdsWithUpcomingInstallments.isNotEmpty) ...[
+                      _buildSectionHeader(context,
+                        title: 'Recurring Deposits',
+                        icon: CupertinoIcons.arrow_clockwise_circle_fill,
+                        color: AppStyles.accentOrange,
+                        count: rdsWithUpcomingInstallments.length,
+                      ),
                       ...rdsWithUpcomingInstallments.map((rd) {
                         final metadata = rd.metadata;
                         final monthlyAmount =
@@ -569,30 +597,44 @@ class NotificationsPage extends StatelessWidget {
                           ),
                         );
                       }),
-                    if (rdsWithUpcomingInstallments.isNotEmpty &&
-                        sipNotifications.isNotEmpty)
-                      const SizedBox(height: Spacing.md),
+                    ],
 
-                    if (sipNotifications.isNotEmpty)
+                    // ── SIP Payments Section ──────────────────────────────
+                    if (sipNotifications.isNotEmpty) ...[
+                      _buildSectionHeader(context,
+                        title: 'SIP Payments',
+                        icon: CupertinoIcons.repeat,
+                        color: AppStyles.aetherTeal,
+                        count: sipNotifications.length,
+                      ),
                       ...sipNotifications.map(
                         (entry) => _buildSipNotificationWidget(context, entry),
                       ),
-                    if (sipNotifications.isNotEmpty &&
-                        bondNotifications.isNotEmpty)
-                      const SizedBox(height: Spacing.md),
-                    if (bondNotifications.isNotEmpty)
+                    ],
+
+                    // ── Bond Payouts Section ──────────────────────────────
+                    if (bondNotifications.isNotEmpty) ...[
+                      _buildSectionHeader(context,
+                        title: 'Bond Payouts',
+                        icon: CupertinoIcons.money_dollar,
+                        color: AppStyles.solarGold,
+                        count: bondNotifications.length,
+                      ),
                       ...bondNotifications
                           .map((entry) => _buildBondNotificationWidget(
                                 context,
                                 entry,
                               )),
+                    ],
 
-                    // Recurring Template Due Reminders
+                    // ── Bills & Recurring Section ─────────────────────────
                     if (dueTemplates.isNotEmpty) ...[
-                      if (bondNotifications.isNotEmpty ||
-                          sipNotifications.isNotEmpty ||
-                          rdsWithUpcomingInstallments.isNotEmpty)
-                        const SizedBox(height: Spacing.md),
+                      _buildSectionHeader(context,
+                        title: 'Bills & Recurring',
+                        icon: CupertinoIcons.doc_text_fill,
+                        color: AppStyles.loss(context),
+                        count: dueTemplates.length,
+                      ),
                       ...dueTemplates.map((t) {
                         final days = t.daysUntilDue()!;
                         final isOverdue = days < 0;
@@ -729,28 +771,14 @@ class NotificationsPage extends StatelessWidget {
                     // All Bills — payment tracker
                     _buildAllBillsSection(context, templatesController),
 
-                    // Budget Alerts
+                    // ── Budget Alerts Section ─────────────────────────────
                     if (exceededBudgets.isNotEmpty ||
                         warningBudgets.isNotEmpty) ...[
-                      Container(
-                        margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-                        child: Row(
-                          children: [
-                            Icon(
-                                CupertinoIcons.exclamationmark_circle_fill,
-                                size: 14,
-                                color: AppStyles.loss(context)),
-                            SizedBox(width: Spacing.sm),
-                            Text(
-                              'Budget Alerts',
-                              style: TextStyle(
-                                fontSize: TypeScale.footnote,
-                                fontWeight: FontWeight.w600,
-                                color: AppStyles.loss(context),
-                              ),
-                            ),
-                          ],
-                        ),
+                      _buildSectionHeader(context,
+                        title: 'Budget Alerts',
+                        icon: CupertinoIcons.exclamationmark_circle_fill,
+                        color: AppStyles.loss(context),
+                        count: exceededBudgets.length + warningBudgets.length,
                       ),
                       ...exceededBudgets.map((b) =>
                           _buildBudgetAlertCard(context, b, exceeded: true)),
@@ -758,25 +786,13 @@ class NotificationsPage extends StatelessWidget {
                           _buildBudgetAlertCard(context, b, exceeded: false)),
                     ],
 
-                    // Spending Insights
+                    // ── Spending Insights Section ─────────────────────────
                     if (spendingInsights.isNotEmpty) ...[
-                      Container(
-                        margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-                        child: const Row(
-                          children: [
-                            Icon(CupertinoIcons.chart_bar_alt_fill,
-                                size: 14, color: CupertinoColors.systemOrange),
-                            SizedBox(width: Spacing.sm),
-                            Text(
-                              'Spending Insights',
-                              style: TextStyle(
-                                fontSize: TypeScale.footnote,
-                                fontWeight: FontWeight.w600,
-                                color: CupertinoColors.systemOrange,
-                              ),
-                            ),
-                          ],
-                        ),
+                      _buildSectionHeader(context,
+                        title: 'Spending Insights',
+                        icon: CupertinoIcons.chart_bar_alt_fill,
+                        color: CupertinoColors.systemOrange,
+                        count: spendingInsights.length,
                       ),
                       ...spendingInsights.take(3).map((insight) {
                         final pct = ((insight.current - insight.last) /
@@ -862,14 +878,6 @@ class NotificationsPage extends StatelessWidget {
                       }),
                     ],
 
-                    // SMS — Unreviewed Transactions (last 7 days, only if SMS enabled)
-                    Consumer<SettingsController>(
-                      builder: (_, settings, __) {
-                        if (!settings.isSmsEnabled) return const SizedBox.shrink();
-                        return const _SmsSectionWidget();
-                      },
-                    ),
-
                     // Empty State
                     if (fdsNearMaturity.isEmpty &&
                         fdsMatured.isEmpty &&
@@ -951,6 +959,64 @@ class NotificationsPage extends StatelessWidget {
           Text('NOTIFICATIONS',
               style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
                   color: AppStyles.getTextColor(context), letterSpacing: 1.1)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(
+    BuildContext context, {
+    required String title,
+    required IconData icon,
+    required Color color,
+    int? count,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(7),
+            ),
+            child: Icon(icon, size: 13, color: color),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            title.toUpperCase(),
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: color,
+              letterSpacing: 1.1,
+            ),
+          ),
+          if (count != null && count > 0) ...[
+            const SizedBox(width: 6),
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                '$count',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                ),
+              ),
+            ),
+          ],
+          const SizedBox(width: 8),
+          Expanded(
+            child: Container(
+                height: 1, color: color.withValues(alpha: 0.2)),
+          ),
         ],
       ),
     );
