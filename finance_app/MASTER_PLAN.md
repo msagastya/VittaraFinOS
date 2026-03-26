@@ -1,418 +1,307 @@
-# VittaraFinOS — Bloomberg-Level Master Plan
-> Single source of truth. Update `[~]` (in progress), `[x]` (done) after every task.
-> Created: 2026-03-22 | Stack: Flutter + Provider + SQLite | ~95K LOC, 249 files
+# VittaraFinOS — Full App Audit & Master Plan
+> Complete deep audit: 289 files, 7 domains, ~294 issues found.
+> Created: 2026-03-25 | Update `[~]` (in progress), `[x]` (done) after every task.
+> Stack: Flutter + Provider + SQLite/SharedPreferences (~95K LOC)
 
 ---
 
 ## Legend
-- `[ ]` not started
-- `[~]` in progress
-- `[x]` done
-- **P0** = critical bug / must fix before release
-- **P1** = high-value UX/perf
-- **P2** = enhancement
-- **P3** = nice-to-have
+- `[ ]` not started · `[~]` in progress · `[x]` done
+- **P0** = crash / data-loss / security — fix before ANYTHING else
+- **P1** = wrong behaviour, broken feature
+- **P2** = important UX / correctness improvement
+- **P3** = polish, edge-case, nice-to-have
 
 ---
 
-## PHASE 0 — Completed Foundations (Previous Sessions)
+# PART A — P0: Critical Bugs & Security
 
-### Session 1–7 (complete)
-- [x] AMOLED dark theme (pure black, 0xFF000000)
-- [x] 11 Provider controllers wired at startup
-- [x] SMS scanning toggle (default OFF)
+## A1 — Security
+| ID | File | Issue | Fix |
+|----|------|-------|-----|
+| **SEC-01** | `logic/backup_restore_service.dart:121-147` | Hardcoded `_masterSecretSeed` bytes — any attacker with APK can derive master key and decrypt all user backups | Derive key from device ID + user secret, store salt in Keychain |
+| **SEC-02** | `logic/settings_controller.dart:235` | PIN salt is `'vittara_pin_salt_$pin'` — identical per PIN, enables rainbow table attack | Generate random per-user salt, store alongside hash |
+| **SEC-03** | `ui/recovery_code_save_screen.dart:33-35` | Recovery code persists in system clipboard after app backgrounds — accessible to other apps even after 60s timer | Clear clipboard in `AppLifecycleState.paused` hook |
+| **SEC-04** | `logic/backup_restore_service.dart:59,309` | Legacy v1 encryption path (`hmac-sha256-stream-xor-v1`) still silently accepted; users cannot migrate from v1 to v2 | Force migration prompt; reject v1 after migration window |
+
+## A2 — Database Architecture
+| ID | File | Issue | Fix |
+|----|------|-------|-----|
+| **DB-01** | `services/database_helper.dart:23` | DB version hardcoded to 1, `onUpgrade` is null — any schema change destroys existing user data | Add version history + `onUpgrade` migration runner |
+| **DB-02** | All controllers | Everything except MF uses SharedPreferences JSON blobs — no transactions, no indexes, O(n) scan for all queries, concurrent writes corrupt data | Migrate Transactions, Accounts, Budgets, Goals, Investments, Loans to SQLite tables |
+| **DB-03** | `logic/transactions_controller.dart:18-53` | Two concurrent writes (SMS scan + manual add) → last write wins, earlier data lost | Wrap all SharedPreferences writes in async mutex |
+| **DB-04** | `services/database_helper.dart:50-60` | Only 3 indexes on `mutual_funds` table; SharedPreferences models have zero indexes | Add indexes: `dateTime`, `accountId`, `categoryId`, `type` on transactions; `scheme_code`, `is_active` on MF |
+
+## A3 — Data Model Type Safety (crashes from DB)
+| ID | File | Issue | Fix |
+|----|------|-------|-----|
+| **MDL-01** | `logic/loan_model.dart:92` | `type.name` used for serialisation; if enum is reordered, all loans load wrong type | Standardise to `.index` across ALL models |
+| **MDL-02** | `logic/lending_borrowing_model.dart:91,106-107` | `type.toString().contains('lent')` — breaks if enum name ever changes | Use `.index` |
+| **MDL-03** | `logic/insurance_model.dart:117` | `type.name` vs `type.index` — dual serialisation patterns across codebase | Standardise to `.index` |
+| **MDL-04** | `logic/investment_model.dart:115` | `amount: map['amount']` — direct assign without `(map['amount'] as num).toDouble()` — crashes if stored as int | Fix all amount casts to `(map['x'] as num?)?.toDouble() ?? 0.0` |
+| **MDL-05** | `logic/fixed_deposit_model.dart:274` | `withdrawalAmount as double?` — throws if key missing | Safe cast |
+| **MDL-06** | `logic/bonds_model.dart:258` | `redemptionPrice as double?` — throws if missing | Safe cast |
+| **MDL-07** | `logic/transaction_model.dart:93-96` | `double.tryParse(map['amount'])` with `?? 0.0` — silently zeroes corrupt amounts | Log + mark record as suspect instead of silent zero |
+| **MDL-08** | All models with enum index access | `BudgetPeriod.values[map['period']]`, `GoalType.values[map['type']]`, `RDPaymentFrequency.values[...]`, `BondType/CouponFrequency/BondStatus/NPSTier/NPSManager/CryptoCurrency/FOType/CommodityType/TradePosition` — all crash on out-of-bounds index | Wrap every `EnumType.values[n]` with `n < EnumType.values.length ? EnumType.values[n] : EnumType.values.first` |
+
+## A4 — Calculation Crashes (division by zero / month underflow)
+| ID | File | Issue | Fix |
+|----|------|-------|-----|
+| **CALC-01** | `services/investment_value_service.dart:208-213` | `daysPerCompound = 365 / compoundsPerYear` — division by zero if `compoundsPerYear == 0` | Guard: `if (compoundsPerYear == 0) return principal` |
+| **CALC-02** | `logic/ai_planner_engine.dart:69` | `DateTime(now.year, now.month - 3, 1)` — month underflow crash in January (month-3 = -2) | Use `now.subtract(const Duration(days: 90))` |
+| **CALC-03** | `services/gold_price_service.dart:41` | Price returned if exchange rate or spot price is 0/negative — invalid cache entry | Validate `result > 0` before caching |
+| **CALC-04** | `ui/manage/budgets/budget_details_screen.dart:107-109` | `spentAmount / limitAmount` — division by zero if `limitAmount == 0` | Guard with `limitAmount > 0 ? ... : 0.0` |
+| **CALC-05** | `logic/goals_controller.dart:391` | `overallProgress` — NaN if all target amounts are 0 | Guard denominator |
+
+## A5 — Async Lifecycle (mounted check order)
+| ID | File | Issue | Fix |
+|----|------|-------|-----|
+| **ASYNC-01** | `ui/manage/fd/fd_wizard_screen.dart:138,144` | `showSuccess()` toast called BEFORE `if (mounted)` check — toasts on dead context | Check `mounted` first, THEN show toast/pop |
+| **ASYNC-02** | `ui/pin_recovery_screen.dart:208` | `popUntil()` called after long async nuclear reset without `mounted` check | Add `if (!mounted) return` before every post-await navigation |
+| **ASYNC-03** | `ui/manage/mf/mf_wizard.dart:163` | `setState(() => _isSubmitting = true)` without `mounted` check before network fetch | Add `if (!mounted) return` |
+| **ASYNC-04** | `ui/manage/nps/nps_wizard.dart:97-105` | `_saveInvestment()` never checks `mounted` before toast/nav | Add mounted check |
+| **ASYNC-05** | `ui/manage/stocks/stocks_wizard.dart:133-146` | `Navigator.pop()` THEN `context.mounted` check — wrong order, should check BEFORE using context | Reorder: check → pop → toast |
+
+---
+
+# PART B — P1: Broken Features & Wrong Behaviour
+
+## B1 — Investment Flow Bugs (money not balanced)
+| ID | File | Issue | Fix |
+|----|------|-------|-----|
+| **INV-01** | `ui/manage/investments/simple_investment_details_screen.dart:144-153` | Deleting investment does NOT reverse the account balance debit that was made at creation | On delete: find linked transaction or reverse debit manually |
+| **INV-02** | `ui/manage/stocks/stocks_wizard.dart:50-57` | Deleting stock after debit does NOT reverse account debit → account permanently short | Same: reverse debit on delete |
+| **INV-03** | `ui/manage/mf/mf_wizard.dart:165-172` | MF full sell removes investment but does NOT credit account back | Credit deduction account on sell |
+| **INV-04** | `ui/manage/mf/steps/mf_new_investment_details_step.dart:65-68` | Historical NAV fetch not implemented — silently uses current NAV for past-dated MF investments | Show manual NAV entry field when date is in past |
+| **INV-05** | `ui/manage/bonds/bonds_wizard_controller.dart:112` | YTM hardcoded to `yearsToMaturity = 5.0` — every bond shows same YTM regardless of tenure | Calculate from `maturityDate - purchaseDate` |
+| **INV-06** | `ui/manage/fd/fd_wizard_controller.dart:96-111` | FD tenure in days converted via `days * 12 / 365` — lossy, 100-day FD becomes 3 months | Store `tenureDays` separately; compute maturity date from actual days |
+| **INV-07** | `ui/manage/fd/fd_wizard_screen.dart:377-378` | `estimatedAccruedValue` set to `principal` at creation and never updated — FD details screen always shows wrong accrued value | Compute accrued value dynamically from principal + interest formula |
+| **INV-08** | `ui/manage/mf/mf_wizard_controller.dart:183-200` | NAV not re-fetched if user changes investment date after initial fetch — stale NAV used | Listen to date changes and refetch |
+| **INV-09** | `ui/manage/digital_gold/digital_gold_wizard_controller.dart:31-47` | `gstRate` has no bounds validation — negative GST makes `actualAmount` negative | Validate GST in range [0, 28] |
+| **INV-10** | `ui/manage/nps/nps_wizard_controller.dart:35-43` | `gainLossPercent` has no bounds — 0.0001 contribution + ₹100 current value = 999999% return | Clamp to reasonable bounds, add sanity check |
+| **INV-11** | `ui/manage/bonds/bonds_wizard_controller_v2.dart` vs `bonds_wizard_controller.dart` | Two bond wizard controllers exist — which is live? Dead code or dual logic? | Identify active one, delete the other |
+| **INV-12** | `logic/fd_calculations.dart:92-107` | Custom `pow()` helper drops integer part for non-integer exponents | Replace with `dart:math pow()` directly |
+| **INV-13** | `logic/fd_renewal_cycle.dart:39-43` | `getAccruedValue()` uses linear pro-rata but FD compounds — underestimates real accrued value | Use compound interest formula |
+| **INV-14** | `logic/bond_cashflow_model.dart:362-363` | `totalMonths = diff.inDays ~/ 30` — wrong, use actual calendar months | Use `DateTime` month arithmetic |
+
+## B2 — Persistence Bugs (saves not awaited)
+| ID | File | Issue | Fix |
+|----|------|-------|-----|
+| **SAVE-01** | `logic/accounts_controller.dart:115-123` | `reorderAccounts()` — `_saveAccounts()` not awaited; reorder lost on crash | `await _saveAccounts()` before `notifyListeners()` |
+| **SAVE-02** | `logic/investments_controller.dart:156-165` | `reorderInvestments()` — same pattern | `await _saveInvestments()` |
+| **SAVE-03** | `logic/categories_controller.dart:203` | `reorderCategories()` — never calls `_saveCustomCategories()` at all | Add save call |
+| **SAVE-04** | `logic/budgets_controller.dart:116-125` | `updateBudgetSpending()` — fire-and-forget save | Await |
+| **SAVE-05** | `logic/lending_borrowing_controller.dart:46,56` | `addRecord()` / `updateRecord()` — not awaited | Await all saves |
+| **SAVE-06** | `logic/payment_apps_controller.dart:184-193` | `adjustWalletBalanceByName()` — not awaited | Await |
+| **SAVE-07** | `logic/recurring_templates_controller.dart:53` | `notifyListeners()` called BEFORE `_save()` — UI updates before data is persisted | Reverse order: save then notify |
+| **SAVE-08** | `logic/transactions_archive_controller.dart:15` | Constructor loads async data without signalling when ready — first access may see empty list | Add `isLoaded` flag + notify on load complete |
+
+## B3 — CRUD Cascade & Orphan Bugs
+| ID | File | Issue | Fix |
+|----|------|-------|-----|
+| **CRUD-01** | `ui/manage/categories_screen.dart:59-73` | Deleting category leaves budgets referencing it — orphaned budgets | Check `budgetsController.budgets.any((b) => b.categoryName == cat.name)` before delete; show warning |
+| **CRUD-02** | `ui/manage/contacts_screen.dart:615-627` | Deleting contact leaves lending/borrowing records with stale contact name | Show warning / block delete if active records exist |
+| **CRUD-03** | `ui/manage/banks_screen.dart:35-69` | Deleting bank doesn't cascade to accounts tagged with that bank | Show warning / handle orphaned accounts |
+| **CRUD-04** | `ui/manage/contacts_screen.dart:843-854` | Contact edit = delete + add — non-atomic; if add fails, contact is lost | Use `updateContact()` atomic operation |
+| **CRUD-05** | `ui/manage/goals/modals/edit_goal_modal.dart:48-75` | `updateGoal()` called without await, Navigator.pop() immediate — data may not be saved if update fails | Await + show error if fails |
+| **CRUD-06** | `ui/manage/tags_screen.dart:492-498` | Delete tag has no confirmation dialog; swipe can delete accidentally | Add confirmation |
+| **CRUD-07** | `logic/contacts_controller.dart:47-60` | `addOrGetContact()` uses object identity `!_contacts.contains(existing)` on newly-created object — always adds duplicates | Use `.any((c) => c.name == name)` check |
+| **CRUD-08** | `ui/manage/goals/goals_screen.dart:497-530` | Undo after delete calls `addGoal(goal)` without checking if delete actually succeeded — could create duplicate | Verify delete success before showing undo |
+
+## B4 — Validation Gaps in Wizards
+| ID | File | Issue | Fix |
+|----|------|-------|-----|
+| **VAL-01** | `ui/manage/rd/rd_wizard_controller.dart:122-141` | Step 1 `canProceed` returns `true` unconditionally — no startDate validation | Add `startDate != null` check |
+| **VAL-02** | `ui/manage/fd/fd_wizard_controller.dart:193-213` | Interest rate has no upper bound (1000% accepted) | Validate `0 < rate <= 25` |
+| **VAL-03** | `ui/manage/stocks/stocks_wizard_controller.dart:91-104` | Step 3 (deduction) always returns `true` — allows negative account balance silently | Block proceed if account balance < 0 after deduct, or at minimum show error |
+| **VAL-04** | `ui/manage/budgets/modals/add_budget_modal.dart:42-46` | No upper bound on budget limit (₹10 billion accepted) | Cap at ₹1Cr with error message |
+| **VAL-05** | `ui/manage/goals/modals/add_goal_modal.dart:44-48` | No upper bound on goal target amount | Same cap |
+| **VAL-06** | `ui/manage/goals/modals/add_contribution_modal.dart:34-38` | Negative contribution not explicitly rejected | `if (amount <= 0) return` |
+| **VAL-07** | `ui/manage/lending_wizard.dart:816` | `double.tryParse()` can return null, coalesced to 0, accepted | Explicit `if (amount == null || amount <= 0)` guard |
+| **VAL-08** | `logic/payment_apps_controller.dart:38` | `item['color'] as int` crashes if null | `(item['color'] as int?) ?? 0xFF000000` |
+| **VAL-09** | `ui/manage/nps/nps_wizard_controller.dart:45-69` | Step 3 allows null `plannedRetirementDate` | Make date required for non-`none` withdrawal types |
+
+## B5 — State / Navigation Bugs
+| ID | File | Issue | Fix |
+|----|------|-------|-----|
+| **NAV-01** | `ui/settings_screen.dart:620-626` | After PIN setup, RecoveryCodeSaveScreen back button pops twice — leaves PIN setup in inconsistent state | Use `WillPopScope` or custom back logic on recovery screen |
+| **NAV-02** | `ui/notifications_page.dart:369-385` | `if (!context.mounted)` check after `Navigator.push` — should be before | Reorder |
+| **NAV-03** | `ui/manage/categories_screen.dart:277-280` | Category card tap calls `log()` but does nothing visible — user thinks app is broken | Open edit modal on tap |
+| **NAV-04** | `ui/manage/goals/goals_screen.dart:425` | "Expiring Soon" banner `onPressed: () {}` — does nothing | Scroll to/highlight expiring goals |
+| **NAV-05** | `ui/manage/loans/loan_tracker_screen.dart:232-253` | Long-press → action sheet, tap → detail: inconsistent mental model for same card | Unify: tap = detail, action sheet accessible via "⋮" button in detail header |
+| **NAV-06** | `main.dart:285-286` | Lock screen overlay (`Positioned.fill`) doesn't cover `CupertinoModalPopup` sheets — user can see data behind lock | Use `Navigator.overlay` or route-level lock guard |
+| **NAV-07** | `ui/manage/contacts_screen.dart:344-349` | Edit contact pops detail sheet → edit dialog; cancel leaves user at root contacts list, not back in person sheet | Re-open person sheet after edit dialog closes |
+| **NAV-08** | `services/sms_auto_scan_service.dart:312-316` | Transaction fingerprint uses `sender.hashCode` which is NOT stable across app restarts — inconsistent deduplication | Build fingerprint from `amount_day_month_year_senderString` (no hashCode) |
+
+## B6 — Calculation Bugs (wrong results)
+| ID | File | Issue | Fix |
+|----|------|-------|-----|
+| **CALC-10** | `logic/transactions_controller.dart:119-120` | `getTransactionsInDateRange()` excludes transactions at exact boundary times (uses strict `isAfter`/`isBefore`) | Use `!isBefore(start) && !isAfter(end)` |
+| **CALC-11** | `services/nav_service.dart:180-200` | XIRR is a simple ratio average, not time-weighted — SIP returns completely wrong | Implement proper Newton-Raphson XIRR iteration |
+| **CALC-12** | `logic/pin_recovery_controller.dart:116` | Remaining attempts counter off-by-one: shows 0 remaining before lockout triggers | Fix: `remainingBeforeLockout: max(0, 3 - attempts)` |
+| **CALC-13** | `logic/goals_controller.dart:99` | Floating-point: contribution of ₹999.9999999 on ₹1000 goal doesn't trigger completion | Use `>= target - 0.005` tolerance check |
+| **CALC-14** | `logic/goals_controller.dart:123` | `withdrawFromGoal()` clamps currentAmount to targetAmount — prevents overfunding | Clamp to `max(0, ...)` only, no upper cap |
+| **CALC-15** | `logic/fo_model.dart:102-103` | `getMaxProfit()` for put option calculates short-put profit, not long-put | Add `positionDirection` field and calculate correctly per direction |
+| **CALC-16** | `services/transaction_export_service.dart:556-560` | `>= 1e7` threshold for Crore display — ₹1,00,00,001 shows as "₹1.00Cr" | Use `> 1e7` |
+| **CALC-17** | `utils/percent_formatter.dart:7-15` | 0.001 formatted as "0%" — loses precision | Show "< 0.01%" for very small values |
+| **CALC-18** | `logic/recurring_template_model.dart:141` | `DateTime(base.year, base.month + 1, base.day)` — Jan 31 + 1 month = Feb 31 (invalid) | Use safe month-add helper |
+
+---
+
+# PART C — P2: Important Improvements
+
+## C1 — UX: Data Refresh (stale screens)
+| ID | File | Issue | Fix |
+|----|------|-------|-----|
+| **REF-01** | `ui/manage/goals/goal_details_screen.dart:121-122` | Contribution added in child modal — parent goal progress % doesn't update until re-open | Check modal result and refresh on pop |
+| **REF-02** | `ui/manage/budgets/budget_details_screen.dart:293-407` | Spending breakdown not refreshed when transactions added elsewhere | Listen to `TransactionsController` in budget details |
+| **REF-03** | `ui/manage/contacts_screen.dart:234-501` | Contact detail sheet shows stale lending/borrowing totals | Refresh on sheet open; listen to `LendingBorrowingController` |
+| **REF-04** | `ui/manage/goals/goals_screen.dart:77` | "Expiring soon" banner computed once per build — doesn't update if date crosses while screen is open | Use `Timer.periodic` or `ValueListenableBuilder` |
+| **REF-05** | `ui/net_worth_page.dart:445-446` | `_maybeSaveSnapshot()` called via `addPostFrameCallback` on EVERY rebuild, not just first | Add `_snapshotSavedThisSession` flag |
+
+## C2 — UX: Empty & Error States
+| ID | File | Issue | Fix |
+|----|------|-------|-----|
+| **EMPTY-01** | `ui/notifications_page.dart:162-240` | No "all caught up" message when all notification lists empty — page looks broken | Show icon + "You're all caught up" |
+| **EMPTY-02** | `ui/dashboard/widgets/budget_widget.dart:169-221` | No empty state when budgets have 0 spend — section renders blank | Show "No spending recorded yet" |
+| **EMPTY-03** | `ui/manage/categories_screen.dart:141-154` | Search "no results" state has no action — user stuck | Add "Create '[query]' category" CTA |
+| **EMPTY-04** | `ui/manage/goals/goal_details_screen.dart:29-30` | Goal deleted externally → "not found" with no back button | Add back button in empty state |
+
+## C3 — Performance
+| ID | File | Issue | Fix |
+|----|------|-------|-----|
+| **PERF-01** | `ui/notifications_page.dart:55-58` | `Consumer4` — any controller change rebuilds entire page including expensive spending calculations | Separate into child widgets, each with own Consumer |
+| **PERF-02** | `ui/widgets/liquid_progress_indicators.dart:114-122` | Wave path recalculated for every pixel every frame — CPU spike on 120Hz displays | Pre-calculate path, only recalculate on size change |
+| **PERF-03** | `ui/widgets/common_widgets.dart:348` | `SkeletonLoader` uses `shrinkWrap: true` without `NeverScrollableScrollPhysics` | Add `physics: const NeverScrollableScrollPhysics()` |
+| **PERF-04** | `ui/dashboard/widgets/net_worth_widget.dart:320-333` | Carousel auto-advance timer not cancelled when app goes to background | Cancel in `AppLifecycleState.paused`, restart on `resumed` |
+| **PERF-05** | `ui/widgets/global_search_overlay.dart:132` | Debounce timer not cancelled before creating new one — timer leak on rapid typing | `_debounce?.cancel()` before creating new |
+| **PERF-06** | `ui/manage/reports_analysis_screen.dart` | Heavy aggregation computed synchronously on main thread — UI freezes on large datasets | Move to `compute()` isolate |
+
+## C4 — Wizard & Edit Quality
+| ID | File | Issue | Fix |
+|----|------|-------|-----|
+| **WIZ-01** | `ui/manage/simple_investment_entry_wizard.dart:160-194` | Edit mode doesn't pre-populate all fields — user loses original values if they save without changing anything | Initialize all TextEditingControllers from `existingInvestment` |
+| **WIZ-02** | `ui/manage/fd/steps/review_step.dart:121-161` | Review shows "24 months" when user entered "2 years" | Show in user's original unit |
+| **WIZ-03** | `ui/manage/stocks/steps/stock_review_step.dart:61-86` | Quantity shows "100.5" — stocks are whole units | Round or validate integer-only for stocks |
+| **WIZ-04** | `ui/manage/mf/mf_wizard.dart:111-190` | Edit mode assumes `metadata` always exists — crashes on old investments without metadata | Null-coalesce all metadata reads |
+| **WIZ-05** | `ui/manage/bonds/bonds_wizard.dart:68` | Bond payout schedule frozen at creation — if maturity date was wrong, schedule is wrong forever | Allow regeneration on edit |
+| **WIZ-06** | `ui/manage/rd/rd_wizard_screen.dart` | No mid-tenure withdrawal flow — user can't break RD early | Add partial/full withdrawal modal (like FD) |
+| **WIZ-07** | `ui/manage/mf/mf_wizard.dart:231-237` | Changing MF type mid-wizard changes step count, causing page controller to jump to wrong step | Reinitialise PageController on type change |
+| **WIZ-08** | `ui/manage/loans/loan_tracker_screen.dart:727-768` | Prepayment >= outstanding shows "no savings" same as zero prepayment — ambiguous | Show "Loan will be paid off" message for full prepayment |
+
+## C5 — Services & Data Quality
+| ID | File | Issue | Fix |
+|----|------|-------|-----|
+| **SVC-01** | `services/nav_service.dart:39-40,51` | Fallback NAV HTTP call has no timeout — can hang indefinitely | Wrap fallback in `.timeout(Duration(seconds: 8))` |
+| **SVC-02** | `services/amfi_data_service.dart:29-49` | Parsing errors swallowed silently — if 90% of data is malformed, user sees incomplete MF list | Log count + surface warning if <50% parsed |
+| **SVC-03** | `services/mf_database_service.dart:60-61` | Sets `_isInitialized = true` even on init failure — all subsequent queries silently fail | Set `false` on error; expose error state |
+| **SVC-04** | `services/stock_api_service.dart:37,68` | Yahoo Finance v8 endpoint hardcoded — breaks silently if Yahoo changes API | Add version config + fallback endpoint |
+| **SVC-05** | `services/integrity_check_service.dart:14-26` | Orphaned record check reports count but provides no cleanup method | Add `cleanupOrphanedRecords()` exposed to Settings screen |
+| **SVC-06** | `services/sms_parser.dart:332-377` | Balance-only SMS (no transaction amount) scored as null — legitimate balance SMSes dropped | Separate balance-detection path from transaction-detection path |
+| **SVC-07** | `utils/merchant_normalizer.dart:27-34` | Title-case splits on space only — "McDonald's" → "Mcdonalds" | Use `RegExp(r"[\s\-']+")` split |
+| **SVC-08** | `utils/id_generator.dart:12-15` | Sequence resets to 0 on restart — ID collision possible within same microsecond | Add UUID v4 fallback or persist sequence to SharedPreferences |
+| **SVC-09** | `logic/backup_restore_service.dart` | No error handling in `_reloadAllControllers()` after restore — partial reload leaves app in inconsistent state | Catch per-controller, report which failed, offer retry |
+| **SVC-10** | `services/gold_price_service.dart:27-59` | No staleness warning — user may see hours-old gold price with no indicator | Show "as of [time]" label, highlight if >1h old |
+
+## C6 — Model Completeness
+| ID | Issue | Fix |
+|----|-------|-----|
+| **MDL-20** | All models missing `modifiedDate` — no audit trail for balance updates, loan payoffs | Add `modifiedDate` to Transaction, Account, Investment, Budget, Loan |
+| **MDL-21** | No `isDeleted` / soft-delete flag — hard deletions lose history | Add `isDeleted` + `deletedAt` to all primary models |
+| **MDL-22** | `goal_model.dart` — `contributions` list has no link to actual `Transaction` records — can't verify contribution amounts | Add `transactionId` field to `GoalContribution` |
+| **MDL-23** | `loan_model.dart` — no payment history — can't show "paid on time for 24 months" | Add `PaymentRecord` list to loan model |
+| **MDL-24** | `investment_metadata.dart:352-368` — `StockMetadata.fromMap()` no null checks on required fields | Add null guards with sensible fallbacks |
+| **MDL-25** | `mutual_fund_model.dart:49` — `nav` nullable with no default — UI must handle everywhere | Default to 0.0 with `isNavStale` flag |
+| **MDL-26** | `logic/budget_model.dart:56` — `usagePercentage` upper bound is `double.infinity` | Clamp to `[0, double.maxFinite]` and cap display at 999% |
+| **MDL-27** | `logic/fixed_deposit_model.dart:186` — `elapsedFraction` can exceed 1.0 for matured FDs | Clamp to [0, 1] |
+| **MDL-28** | `pension_model.dart:77-85` — contributions stored as inline JSON, no incremental append | Migrate to separate table / indexed list |
+
+---
+
+# PART D — P3: Polish & Edge Cases
+
+## D1 — Touch & Interaction Polish
+| ID | Issue | Fix |
+|----|-------|-----|
+| **UX-01** | `ui/dashboard/widgets/budget_widget.dart:178-221` — Budget bars not tappable; user can't drill into budget from dashboard | Make bars navigate to budget detail |
+| **UX-02** | `ui/dashboard/widgets/transaction_history_widget.dart:292-378` — No press feedback (scale/opacity) on transaction list items | Wrap in `GestureDetector` with `InkWell` or `Opacity` feedback |
+| **UX-03** | `ui/dashboard/widgets/health_score_widget.dart:696-730` — No congratulation state when score ≥ 90 | Show celebration message |
+| **UX-04** | `ui/dashboard/widgets/net_worth_widget.dart:545-569` — Account name truncated with no tooltip | Add long-press tooltip |
+| **UX-05** | `ui/dashboard/dashboard_settings_modal.dart:187-193` — CupertinoSwitch has no haptic | Add `HapticFeedback.selectionClick()` |
+| **UX-06** | `ui/transaction_history_screen.dart:127-131` — Type filter visually active but chip not highlighted | Set `isSelected: _typeFilter == type` |
+| **UX-07** | `ui/transaction_history_screen.dart:113-117` — Scroll-to-top threshold 400px hardcoded | Use `MediaQuery.of(context).size.height * 0.4` |
+
+## D2 — Animation Polish
+| ID | Issue | Fix |
+|----|-------|-----|
+| **ANIM-01** | `ui/dashboard/widgets/health_score_widget.dart:497-502` — Score re-animates from 0 on every rebuild | Only animate on initial build; use `ValueKey` |
+| **ANIM-02** | `ui/dashboard/widgets/net_worth_widget.dart:597-610` — Dot indicator `AnimatedContainer` runs every 2.5s auto-advance — jank on low-end | Use `AnimatedOpacity` instead (cheaper) |
+| **ANIM-03** | `ui/widgets/animations.dart:178-180` — Staggered `FadeInAnimation` has "pop" instead of smooth entrance | Use `CurvedAnimation` with `Interval` on each child |
+| **ANIM-04** | `ui/widgets/card_deck_view.dart:71-72` | `_swipeController` resets before `_promotionController` finishes — back cards snap | Wait for promotion animation before resetting |
+
+## D3 — Data Formatting Edge Cases
+| ID | Issue | Fix |
+|----|-------|-----|
+| **FMT-01** | `utils/date_formatter.dart:203-204` — FY 1900 → "FY 1900-00" (ambiguous) | Use 4-digit year for end: "FY 1900-1901" |
+| **FMT-02** | `logic/transaction_model.dart:113` — Description defaults to "Transaction" if empty | Default to category name, then merchant, then "Transaction" |
+| **FMT-03** | `services/sms_parser.dart:406-452` — Merchant name may contain formula-injection characters — unsafe for CSV export | Sanitize: prefix `=`, `+`, `-`, `@` with single quote in CSV cells |
+| **FMT-04** | `services/transaction_export_service.dart:102,130,149` — Metadata fields assumed String — may export "Instance of List" | Add `.toString()` guard with type check |
+
+## D4 — Error Handling Completeness
+| ID | Issue | Fix |
+|----|-------|-----|
+| **ERR-01** | `utils/alert_service.dart:263` — Crash reporting placeholder never implemented | Wire Sentry or Firebase Crashlytics |
+| **ERR-02** | `utils/user_error_mapper.dart:24-42` — Missing: `UnsupportedError`, `PlatformException`, `DioException` | Add mappings |
+| **ERR-03** | `services/remote_config_service.dart:13-20` — Malformed config JSON fails silently | Log warning + surface to settings debug panel |
+| **ERR-04** | `ui/settings/csv_import_screen.dart:29-51` — CSV parser breaks on quoted newlines (multiline bank descriptions) | Use proper RFC 4180 CSV parser |
+| **ERR-05** | `services/anomaly_detector.dart:8-33` — Flags seasonal spend as anomaly (summer vs winter shopping) | Use rolling 90-day baseline instead of all-time average |
+
+## D5 — Missing Small Features
+| ID | Issue | Fix |
+|----|-------|-----|
+| **FEAT-01** | `ui/global_search_overlay.dart:104-113` — Recent searches not deduplicated — same query saved 100 times | Deduplicate on save, keep last 10 unique |
+| **FEAT-02** | `ui/backup_restore_screen.dart:187-215` — Paste-JSON restore truncates large backups in TextEditingController | Use file picker for restore instead of paste |
+| **FEAT-03** | `ui/manage/stocks/steps/stock_review_step.dart` — SIP details not shown on MF review step before confirmation | Add SIP summary row to review if `sipActive = true` |
+| **FEAT-04** | `logic/nps_model.dart:126` — No validation that retirement date is after 60th birthday | Add age-based date validation |
+| **FEAT-05** | `services/integrity_check_service.dart` | No UI to run / view integrity check — only computed internally | Add "Data Integrity" section in Settings |
+
+---
+
+# PART E — Architecture Recommendations (non-blocking)
+
+| ID | Description |
+|----|-------------|
+| **ARCH-01** | **Full SQLite migration** — Move all SharedPreferences JSON blobs to SQLite tables. Highest ROI of any single change: enables queries, transactions, indexes, foreign keys, and eliminates the concurrent-write data loss risk. |
+| **ARCH-02** | **Enum serialisation standard** — Pick ONE: `.index` (fast, compact) OR `.name` (readable, stable across reorder). Apply across all 25+ models. Current mix causes silent corruption on enum reorder. |
+| **ARCH-03** | **Soft-delete everywhere** — Add `isDeleted + deletedAt` to all entities. Hard-deletes make orphan detection and undo impossible. |
+| **ARCH-04** | **Investment account reconciliation** — Every investment creation/deletion/sell should post a corresponding Transaction to maintain account balance integrity. Currently these are disconnected. |
+| **ARCH-05** | **Controller save pattern** — Standardise: `await _save(); notifyListeners();` everywhere. Current mix of awaited/unawaited breaks in subtle ways. |
+
+---
+
+# PART F — Already Done (Previous Sessions)
+
+- [x] AMOLED dark theme (pure black)
+- [x] 11 Provider controllers wired
+- [x] SMS scanning toggle
 - [x] Investment tracking toggle
-- [x] Onboarding navigation fixed
+- [x] Onboarding flow fixed
 - [x] Transaction wizard step-0 flash fixed
 - [x] SmoothScrollPhysics + cacheExtent on large lists
-- [x] CSV/PDF/Excel exports via share_plus system sheet
-- [x] Account details sheet: recent txns + per-account CSV export
+- [x] CSV/PDF/Excel exports via share_plus
+- [x] Account details sheet + per-account CSV
 - [x] Investment item tap → Add/Sell/Details action sheet
-- [x] SIP Tracker dashboard widget (F8/J9)
-- [x] RepaintBoundary on AnimatedCounter + haptic success on investment wizards
-- [x] Net worth monthly history snapshots + sparkline trend chart
-- [x] NPS ₹2L annual limit warning
-
-### Session 8 — Light Mode + Performance (complete)
-- [x] **L1/L2** — `AppStyles` theme-aware color helpers: `gain(ctx)`, `loss(ctx)`, `gold(ctx)`, `teal(ctx)`, `violet(ctx)` — WCAG AA in light, AMOLED neon in dark
-- [x] **L3** — Categories screen: SliverGrid replacing shrinkWrap GridView (P0 perf fix)
-- [x] **L4/L5** — Landscape helpers: `isLandscape()`, `landscapeContentConstraints()`, `sheetMaxHeight()` in AppStyles; replaced all hardcoded `size.height * 0.XX` sheet heights
-- [x] **L6** — TransactionTypeTheme.typeColor converted from getter to method with BuildContext
-- [x] **L7** — ~350 neon color usages across 60+ files replaced with theme-aware helpers
+- [x] Light mode WCAG AA color helpers
+- [x] Landscape nav bar hidden + swipe-back
+- [x] CardDeckView widget (swipe stack)
+- [x] Dashboard card deck (6 cards)
+- [x] Spending Insights — expandable category/rhythm/merchant sections (uncommitted, 3 files modified)
 
 ---
 
-## PHASE 1 — Core Infrastructure (Start Here)
+## Batch Tracking
 
-### D-01 — CardDeckView Widget Engine `[x]` P1
-**File:** `lib/ui/widgets/card_deck_view.dart` (new file)
-**Design:**
-- Stack of 3 visible cards, depth illusion: scale 1.0 / 0.95 / 0.90, translateY 0 / 10 / 20px, opacity 1.0 / 0.85 / 0.65
-- Swipe gesture: horizontal swipe threshold 80px sends current card to back (circular)
-- Spring physics on return: `SpringSimulation` with mass 1.0, stiffness 200, damping 20
-- `AnimationController` per card, duration 350ms, curve `Curves.easeOutBack`
-- API: `CardDeckView(cards: List<Widget>, onCardChanged: (int index) {})`
-- Haptic: `HapticFeedback.lightImpact()` on each swipe
+### Next Batch: Security + P0 Data Safety
+**IDs:** SEC-01, SEC-02, SEC-03, DB-03, ASYNC-01→05, SAVE-01→08, MDL-01→08 (enum + type safety)
 
-### D-02 — Dashboard Card Deck `[x]` P1
-**File:** `lib/ui/dashboard/` (main dashboard screen)
-**Cards (6 total):**
-1. Net Worth Vault — headline number, 30-day delta, sparkline
-2. Monthly Budget Radar — budget vs actual, top 3 overspend categories
-3. Cash Flow Pulse — income vs expense bar (MTD), trend arrow
-4. Investment Ticker — top mover (gain/loss), total portfolio delta today
-5. Lending Ledger — outstanding lent/borrowed, next expected return
-6. SIP Command — next SIP dates, MTD invested, projected year-end
-**Implementation:** Replace current `ReorderableListView` in dashboard with `CardDeckView`, keep quick-add FAB intact
-
-### NW-01 — Net Worth Page Card Deck `[x]` P1
-**File:** `lib/ui/net_worth/` (net worth screen)
-**Cards (6 total):**
-1. Vault — total net worth, absolute + % change (1M/3M/1Y tabs)
-2. Trajectory — line chart (12-month history), projection line (linear extrapolation)
-3. Liquid Assets — cash + savings + wallet breakdown, available-to-spend highlight
-4. Portfolio — investment breakdown donut: stocks/MF/FD/gold/crypto/NPS
-5. Obligations — loans outstanding, total EMI/month, payoff timeline
-6. Horizon — net worth goal progress, years to FI (Financial Independence) estimate
-**Implementation:** `CardDeckView` on net worth page
-
-### SYS-07 — Color Semantic Completeness `[x]` P1
-**File:** `lib/ui/styles/app_styles.dart`
-Add missing semantic helpers:
-- `AppStyles.neutral(context)` — zero/flat change: dark `Color(0xFF8E8E93)`, light `Color(0xFF6B6B6B)`
-- `AppStyles.warning(context)` — caution/80% budget: dark `Color(0xFFFF9F0A)`, light `Color(0xFF9A5700)`
-- `AppStyles.info(context)` — informational: dark `Color(0xFF0A84FF)`, light `Color(0xFF0062CC)`
-- `AppStyles.surface(context)` — card surface (replaces hardcoded darkCard/lightCard usages)
-
----
-
-## PHASE 2 — Landscape Mode + Data Surfaces
-
-### SYS-LAND-NAV — Fix Landscape Navigation Bar `[x]` **P0** (All 67 screens done — nav bar hidden in landscape, swipe-back for navigation)
-**Problem:** `CupertinoNavigationBar` / `AppBar` takes ~50% of screen height in landscape orientation on phones — unusable.
-**Fix:** In every screen that uses a nav bar:
-1. Wrap with `OrientationBuilder`
-2. In landscape: replace `CupertinoNavigationBar` with a compact 36px overlay header using `SliverPersistentHeader` or `PreferredSize(preferredSize: Size.fromHeight(36))`
-3. OR: completely hide the nav bar in landscape and add a back-chevron overlay `Positioned(top: 8, left: 8)` with `BackdropFilter` frosted pill
-**Priority screens:** All 19 main screens. Start with Dashboard, Transaction Wizard, Net Worth, Investments, Spending Insights.
-**Pattern to use:**
-```dart
-// In every CupertinoPageScaffold:
-navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(...),
-// Then in body, conditionally show compact back button overlay
-```
-
-### SYS-03 — Skeleton Loading States `[x]` P1
-**File:** `lib/ui/widgets/skeleton_loader.dart` (new)
-**Design:** Shimmer sweep animation (135° angle, 1.2s loop), color `Color(0xFF1A1A1A)` dark / `Color(0xFFE8E8E8)` light
-- `SkeletonBox(width, height, radius)` — base widget
-- `SkeletonCard()` — 3 lines + icon placeholder
-- `SkeletonListTile()` — standard list item shape
-- `SkeletonChart()` — bar chart placeholder (5 bars of varying height)
-Apply to: Investments screen (initial load), Transaction history (first paint), Budget screen
-
-### SYS-04 — LandscapeSplitView Widget `[x]` P1
-**File:** `lib/ui/widgets/landscape_split_view.dart` (new)
-**API:**
-```dart
-LandscapeSplitView(
-  leftPanelFlex: 2,
-  rightPanelFlex: 3,
-  leftPanel: Widget,
-  rightPanel: Widget,
-  portraitLayout: Widget, // fallback
-)
-```
-**Apply to (priority order):**
-1. Investments screen — left: category tabs + summary bar; right: holdings list
-2. Net Worth — left: vault + obligations; right: trajectory chart
-3. Budget screen — left: category radial; right: transaction drill-down
-4. Transaction History — left: filters + summary; right: transaction list
-5. Spending Insights — left: chart; right: category breakdown
-6. Loan Tracker — left: loan cards; right: amortization chart
-7. Lending & Borrowing — left: lent list; right: borrowed list
-8. Reports / Tax — left: filter/period picker; right: data table
-9. Dashboard — left: net worth + budget cards; right: cash flow + investments
-
-### INV-01 — Investments Portfolio Terminal `[x]` P1 (landscape nav done; LandscapeSplitView pending PageView extraction)
-**File:** `lib/ui/manage/investments_screen.dart`
-**Redesign:**
-- **Summary bar** (always visible, sticky): Total portfolio value | Day P&L (₹ + %) | Absolute return (%)
-- **Pill tabs** (horizontal scroll): All | Stocks | MF | FD | Gold | Crypto | NPS | Bonds
-- **Card redesign:** Each investment card = Bloomberg-style ticker row:
-  - Left: ticker symbol + full name (2 lines), category pill
-  - Center: current value (large), invested amount (small secondary)
-  - Right: P&L ₹ (colored), P&L % (colored badge), mini 7-day sparkline
-- **Sort bar:** Return % | Value | Name | Date Added (tap to toggle, arrow indicator)
-- **Aggregate footer:** Total invested | Total current | Absolute return | XIRR (if calculable)
-
-### BUD-01 — Budget Mission Control `[x]` P1
-**File:** `lib/ui/budget_screen.dart` (or equivalent)
-**Redesign:**
-- **Hero metric:** Big radial gauge (0–100%) showing MTD budget consumption
-- **Pace indicator:** "On track" / "Overpacing by ₹X" / "₹Y headroom" — colored pill
-- **Category spending pace:** Horizontal bar per category (budget vs actual), color shifts red at 80%
-- **Spending velocity chart:** Last 7 days daily spend vs daily budget line (area chart)
-- **Projection callout:** "At this pace, you'll exceed budget by ₹X on [date]"
-
-### TXN-01 — Transaction History Terminal `[x]` P1
-**File:** `lib/ui/transactions/transaction_history_screen.dart`
-**Redesign:**
-- **Sticky summary header:** Period income | Period expense | Net (colored) — collapses on scroll
-- **Smart filters bar:** Date range chip | Type chips | Category chips — horizontal scroll, active = accent fill
-- **Row redesign:** Date column (left, compact) | Icon+Name | Category pill | Amount (right, colored) — Bloomberg terminal row aesthetic
-- **Section headers:** Grouped by date, show day total (income - expense)
-- **Swipe actions:** Left = edit, Right = archive (with undo toast)
-
-### REP-01 — Reports & Analytics Terminal `[x]` P2
-**File:** `lib/ui/reports/` (reports screen)
-**Redesign:**
-- **Period selector:** Pill tabs: This Month | Last Month | Q1/Q2/Q3/Q4 | FY | Custom
-- **Key metrics grid (2x2):** Total spend | Avg daily spend | Biggest category | Savings rate
-- **Trend chart:** 12-month income vs expense area chart (two series, filled)
-- **Category treemap:** Area-proportional blocks, tap to drill down
-- **Export terminal:** Quick access to CSV/PDF/Excel — single tap, no confirmation needed
-
----
-
-## PHASE 3 — Screen-by-Screen Upgrades
-
-### FC-01 — Financial Calendar Terminal `[x]` P2
-**File:** `lib/ui/calendar/` (financial calendar screen)
-**Redesign:**
-- **Month grid:** Each day cell shows: dot indicators (income=green, expense=red, EMI=orange, SIP=blue)
-- **Day tap → bottom sheet:** Timeline view of all events that day, sorted by time
-- **Week strip mode:** Landscape → week strip at top (7 columns), rest = event list
-- **Upcoming bar:** Horizontal scroll strip showing next 7 days with event count badges
-- **Recurring events highlighted:** EMI, SIP, rent — shown with repeat icon overlay
-
-### GOL-01 — Goals Dashboard `[x]` P2
-**File:** `lib/ui/goals/` (goals screen)
-**Redesign:**
-- **Goal card redesign:** Progress ring (arc, not bar) + amount needed + target date countdown
-- **Milestone celebrations:** Confetti + haptic at 25%, 50%, 75%, 100%
-- **Projection overlay:** "You'll reach this goal on [date] at current save rate"
-- **Priority stacking:** Visual urgency — goals near deadline float to top
-- **Add contribution FAB:** Quick-add ₹ to any goal from list view
-
-### LB-01 — Lending & Borrowing Terminal `[x]` P2
-**File:** `lib/ui/manage/lending_borrowing_screen.dart`
-**Redesign:**
-- **Summary bar:** Total lent out (₹) | Total borrowed (₹) | Net exposure (₹)
-- **Contact grouping:** Group by person, show total balance per person (net: owed to you vs you owe)
-- **Status pills:** Active | Partially paid | Overdue | Settled
-- **Timeline per record:** Loan date → partial payments → expected return date
-- **Overdue alert:** Red banner for any record past expected return date
-
----
-
-## PHASE 4 — System Polish
-
-### NOT-01 — Notifications & Alerts Redesign `[x]` P2
-**File:** `lib/ui/notifications_page.dart`
-**Redesign:**
-- Group by type: Budget | Bill | Goal | Insight | System
-- Priority badges: P0 (red dot) | P1 (orange) | Info (gray)
-- Swipe to dismiss per item + "Clear all" in section header
-- Actionable CTAs inline: "View Budget" / "Pay Now" / "Add Transaction"
-
-### MNG-01 — Manage Screen Polish `[x]` P2
-**File:** `lib/ui/manage_screen.dart`
-- Add section grouping: ACCOUNTS | TRACKING | ORGANIZE
-- Visual separators between groups
-- Badge counts on relevant items (e.g., "Accounts (3)", "Categories (12)")
-- Animate cards on first load (staggered entrance, 30ms delay each)
-
-### HS-01 — Financial Health Score Widget `[x]` P2
-**File:** (dashboard or dedicated screen)
-**Redesign:**
-- Replace numeric score with a gauge + letter grade (A+/A/B/C/D)
-- 5 sub-dimensions shown as horizontal bars: Savings / Debt / Diversification / Budget / Goals
-- Trend line: score history (last 6 months)
-- Actionable insight: "Improve your score by: [top recommendation]"
-
-### SYS-01 — Global Search `[x]` P2
-**File:** `lib/ui/widgets/global_search_overlay.dart` (new)
-- Triggered by search icon in dashboard header or Cmd+F / pull-down gesture
-- Searches: transactions (name, amount, category) | accounts | investments | goals | contacts
-- Results grouped by type, tappable → navigate to record
-- Recent searches persisted in SharedPreferences (last 10)
-- Debounce 200ms, min 2 chars
-
-### DASH-EMPTY — Dashboard Widget Empty States `[x]` P2
-**Problem:** When dashboard widgets have no data (no transactions, no investments, etc.), they look blank, visually unbalanced, or awkward — especially when all widgets are the same height.
-**Fix:** Audit every dashboard widget for its empty-state appearance:
-- Each widget must have a non-blank, visually complete empty state: icon + short prompt text + optional CTA button ("Add your first transaction" / "Add investment")
-- Widget height must never collapse to near-zero in empty state — maintain minimum content height with a centered empty-state card
-- No widget should look "unfinished" — use a placeholder illustration or icon + text as visual filler
-- Test by temporarily clearing all data and checking each widget looks intentional and polished
-**Affected widgets:** (all dashboard widgets in `lib/ui/dashboard/widgets/`)
-
-### SYS-02 — Micro-Interaction Vocabulary `[x]` P3
-**File:** `lib/ui/widgets/animations.dart` (extend existing)
-- **NumberTicker:** Animate number changes (count up/down, 400ms, easeOut) — for all currency displays
-- **PulseIndicator:** Periodic subtle pulse on "live" data points
-- **SwipeDeleteIndicator:** Red/green sliding reveal on list items
-- **LoadingDots:** 3-dot wave for async operations (replaces CircularProgressIndicator)
-- **SuccessCheckmark:** Animated checkmark (path draw) for completion states
-
-### SYS-05 — Performance Audit `[x]` P3
-- Audit all `Consumer<>` widgets — replace with `context.select<>` where only 1-2 fields needed
-- Add `RepaintBoundary` to: chart widgets, avatar/icon components, animated counters
-- Audit `ListView` usages — ensure all are `ListView.builder`, never `ListView(children: [...])`
-- Reduce `setState` scope in all wizard screens — use local state not widget-level
-- Profile with Flutter DevTools, fix any jank above 16ms frame time
-
-### SYS-06 — Typography Audit `[x]` P3
-- Ensure all headers use Space Grotesk (not Plus Jakarta Sans)
-- Ensure all body text uses Plus Jakarta Sans
-- Standardize sizes to TypeScale tokens only (no hardcoded fontSize values outside design_tokens.dart)
-- Add `TypeScale.display` (36px) for hero numbers (net worth, budget total)
-- Add `TypeScale.micro` (10px) for labels/badges
-
----
-
-## PHASE 5 — Advanced Features
-
-### UTL-01 — CSV Smart Import `[x]` P3
-- Parse bank statement CSVs (HDFC, SBI, ICICI, Axis formats)
-- Auto-categorize using keyword matching
-- Duplicate detection (same amount + date ± 1 day)
-- Preview screen before committing import
-
-### UTL-02 — Recurring Transaction Engine `[x]` P3
-- Detect recurring patterns from history (same payee, similar amount, ~30 day gap)
-- Suggest "Mark as recurring" with confirmation
-- Auto-log recurring transactions + notification 1 day before
-
-### UTL-03 — Widgets (Home Screen) `[x]` P3
-- Net worth widget (2x1): current value + 30-day change
-- Budget widget (2x2): radial gauge + top 3 categories
-- Cash flow widget (4x2): income/expense bars current month
-
-### UTL-04 — Data Backup & Restore `[x]` P3
-**P0 security issue (AU5-02):** Move encryption key from hardcoded to device keychain
-- Encrypted SQLite backup export to Files app
-- Restore from backup file
-- Auto-backup on each app open (daily, keep last 7)
-
-### UTL-05 — PIN/Biometric Security `[x]` P0
-**P0 security issue (AU5-01):** Move PIN hash from SharedPreferences to iOS Keychain / Android Keystore
-- Biometric auth (FaceID/fingerprint) as primary, PIN as fallback
-- Session timeout: lock after N minutes background (configurable: 1/5/15/never)
-- Failed attempts: 5 strikes → 30 minute lockout
-
-### TAX-01 — Tax Summary Upgrade `[x]` P2
-- LTCG/STCG calculation for stocks and MF (based on holding period)
-- Tax-loss harvesting suggestions
-- Section 80C tracking (ELSS + PPF + NPS contributions)
-- FY selector (Apr–Mar)
-- Export to CA-ready PDF
-
-### SET-01 — Settings Screen Redesign `[x]` P3
-- Group: Privacy & Security | Data & Backup | Display | Notifications | About
-- Each group = card section with dividers
-- Toggles use CupertinoSwitch with immediate visual feedback
-- Dangerous actions (Reset, Delete) isolated in a "red zone" section at bottom
-
-### ONB-01 — Onboarding Enhancement `[x]` P3
-- Add interactive demo screen (5th page): tappable mock transaction, mock net worth chart
-- "Try it" CTA opens the real app in a pre-seeded demo mode
-- Skip demo → normal flow
-
-### AI-01 — Insight Engine (On-Device) `[x]` P3
-- Monthly "Your Money Story" summary: biggest change from last month
-- Anomaly detection: "This is 40% more than your usual grocery spend"
-- Goal nudge: "You're ₹500 behind your vacation goal"
-- All computed locally using SQLite aggregates — no cloud
-
-### LOAN-01 — Loan Tracker Upgrade `[x]` P2
-- Amortization table: full schedule of principal/interest per EMI
-- Prepayment calculator: "If you pay ₹X extra today, you save ₹Y interest and close N months early"
-- EMI calendar overlay: show all future EMI dates on financial calendar
-- Part-payment log: track actual vs scheduled payments
-
-### INS-01 — Insurance Tracker Upgrade `[x]` P2
-- Premium due reminder (30 days, 7 days, 1 day before)
-- Coverage summary: total life cover | total health cover | total premium/year
-- Claim tracker: log claim, track status, outcome
-- Renewal alert: policies expiring in next 90 days
-
----
-
-## Security Backlog (P0 — do before any public release)
-
-### AU5-01 — PIN Hash Migration `[x]` **P0** (already implemented in settings_controller.dart)
-Move PIN hash storage from SharedPreferences (readable by anyone with device access) to:
-- iOS: `flutter_secure_storage` → iOS Keychain
-- Android: `flutter_secure_storage` → Android Keystore
-File: `lib/logic/settings_controller.dart` + `lib/ui/pin_recovery_screen.dart`
-
-### AU5-02 — Encryption Key Security `[x]` **P0**
-Move hardcoded backup encryption key to device secure storage.
-File: wherever backup encryption is implemented (check `lib/utils/` or `lib/logic/`)
-
-### AU5-03 — Input Validation `[x]` P1
-Audit all text inputs for:
-- SQLite injection (use parameterized queries — verify all)
-- Amount fields: validate numeric, max ₹99,99,99,999
-- Name fields: max 100 chars, strip dangerous characters
-
----
-
-## Tracking
-
-| Phase | Total Items | Done | Remaining |
-|-------|-------------|------|-----------|
-| 0 (Foundations) | 20 | 20 | 0 |
-| 1 (Core Infra) | 5 | 5 | 0 |
-| 2 (Landscape + Data) | 5 | 5 | 0 |
-| 3 (Screen Upgrades) | 5 | 5 | 0 |
-| 4 (Polish) | 7 | 7 | 0 |
-| 5 (Advanced) | 11 | 11 | 0 |
-| Security | 3 | 3 | 0 |
-| **Total** | **56** | **56** | **0** |
-
----
-
-## Implementation Notes
-
-### Color System (implemented)
-```dart
-// Theme-aware (require BuildContext):
-AppStyles.gain(context)     // income/profit: bioGreen dark, #00875A light
-AppStyles.loss(context)     // expense/loss: plasmaRed dark, #CC1A35 light
-AppStyles.gold(context)     // gold/savings: solarGold dark, #9A6800 light
-AppStyles.teal(context)     // transfers: aetherTeal dark, #007A6E light
-AppStyles.violet(context)   // investments: novaPurple dark, #5B3FCC light
-
-// Static constants (no BuildContext — for const constructors):
-AppStyles.bioGreen          // 0xFF00E5A0
-AppStyles.plasmaRed         // 0xFFFF2D55
-AppStyles.solarGold         // 0xFFFFCC00
-AppStyles.aetherTeal        // 0xFF00E5CC
-AppStyles.novaPurple        // 0xFFBF5AF2
-AppStyles.accentBlue        // 0xFF0A84FF
-
-// Semantic (theme-adaptive, no context):
-SemanticColors.accounts     // safe green for both themes
-SemanticColors.liabilities  // safe red for both themes
-```
-
-### Landscape Pattern (implemented)
-```dart
-AppStyles.isLandscape(context)              // bool
-AppStyles.sheetMaxHeight(context)           // 0.95h landscape, 0.85h portrait
-AppStyles.landscapeContentConstraints(ctx)  // maxWidth: 560 landscape
-```
-
-### Architecture Rules
-- Never use `shrinkWrap: true` on ListView/GridView inside scrollable — use Sliver* instead
-- All currency displays must use AnimatedCounter (RepaintBoundary already applied)
-- Max stagger index = 8 (prevents accumulated animation delay)
-- Use `context.select<>` not `Consumer<>` when watching ≤2 fields
-- All list screens must use `ListView.builder` or `SliverList` with delegate
-
----
-
-*Last updated: 2026-03-23 — Session 10: ONB-01 (demo onboarding), UTL-03 (budget/cash-flow widgets), dashboard uniform card heights, swipe direction fix, SIP dates in Financial Calendar (MF + Stock, with type labels). All 56 items COMPLETE.*
+**Rule:** Commit + build APK after every batch.

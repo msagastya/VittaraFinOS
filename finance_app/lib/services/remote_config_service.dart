@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 /// AU3-06 — Local feature flag service.
@@ -15,7 +16,8 @@ class RemoteConfigService {
       final json =
           await rootBundle.loadString('assets/remote_config.json');
       _config = jsonDecode(json) as Map<String, dynamic>;
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[RemoteConfig] Failed to load config: $e. Using defaults.');
       _config = _defaults;
     }
   }

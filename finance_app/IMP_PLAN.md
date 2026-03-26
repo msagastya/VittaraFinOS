@@ -1365,7 +1365,7 @@ _promotionController.forward().then((_) {
 ---
 
 ## BATCH 19 — Formatting & Error Handling Edge Cases
-**Status:** `[ ]` Approve · `[ ]` Skip
+**Status:** `[x]` Done — committed
 **Complexity:** 🟢 Easy
 **Issues:** FMT-01 through FMT-04, ERR-01 through ERR-05
 
@@ -1425,7 +1425,7 @@ debugPrint('[RemoteConfig] Failed to load config: $e. Using defaults.');
 ---
 
 ## BATCH 20 — Missing Small Features
-**Status:** `[ ]` Approve · `[ ]` Skip
+**Status:** `[x]` Done — committed
 **Complexity:** 🟢 Easy
 **Issues:** FEAT-01 through FEAT-05, SVC-05 (integrity UI)
 

@@ -42,6 +42,10 @@ class UserErrorMapper {
       return 'Not enough storage space. Free up space and try again.';
     }
 
+    if (error is UnsupportedError) {
+      return 'Operation not supported on this device.';
+    }
+
     return 'Something went wrong. Please try again.';
   }
 }

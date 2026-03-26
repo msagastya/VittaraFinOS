@@ -1,8 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/pin_recovery_controller.dart';
 import 'package:vittara_fin_os/logic/settings_controller.dart';
+import 'package:vittara_fin_os/logic/transactions_controller.dart';
+import 'package:vittara_fin_os/services/integrity_check_service.dart';
 import 'package:vittara_fin_os/ui/backup_restore_screen.dart';
 import 'package:vittara_fin_os/ui/recovery_code_save_screen.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -177,6 +180,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                       ),
                       _buildDivider(context),
+                      _buildNavRow(
+                        context,
+                        icon: CupertinoIcons.checkmark_shield,
+                        title: 'Data Health',
+                        subtitle: 'Check for orphaned records',
+                        value: null,
+                        color: AppStyles.accentBlue,
+                        onTap: () => _runIntegrityCheck(context),
+                      ),
+                      _buildDivider(context),
                       _buildInfoRow(
                         context,
                         icon: CupertinoIcons.arrow_2_circlepath,
@@ -271,6 +284,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: AppStyles.getTextColor(context))),
           const Spacer(),
           const SizedBox(width: 60),
+        ],
+      ),
+    );
+  }
+
+  void _runIntegrityCheck(BuildContext context) {
+    final txCtrl = context.read<TransactionsController>();
+    final accCtrl = context.read<AccountsController>();
+    final issues = IntegrityCheckService.check(txCtrl: txCtrl, accCtrl: accCtrl);
+    final message = issues.isEmpty
+        ? 'No issues found. Your data looks healthy!'
+        : issues.join('\n');
+    showCupertinoDialog(
+      context: context,
+      builder: (ctx) => CupertinoAlertDialog(
+        title: Text(issues.isEmpty ? 'Data Health: OK' : 'Issues Found'),
+        content: Text(message),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('OK'),
+          ),
         ],
       ),
     );

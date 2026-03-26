@@ -77,6 +77,20 @@ class MFReviewStep extends StatelessWidget {
             'Investment Date',
             '${controller.investmentDate.day} ${_monthName(controller.investmentDate.month)} ${controller.investmentDate.year}',
           ),
+          if (controller.sipActive && controller.sipData != null) ...[
+            _buildRow(
+              context,
+              'SIP Amount',
+              '₹${((controller.sipData!['sipAmount'] as num?)?.toDouble() ?? 0).toStringAsFixed(0)}/month',
+            ),
+            _buildRow(
+              context,
+              'SIP Frequency',
+              (controller.sipData!['frequency'] as String? ?? 'monthly').toLowerCase() == 'monthly'
+                  ? 'Monthly'
+                  : (controller.sipData!['frequency'] as String? ?? ''),
+            ),
+          ],
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 16),
             child: Divider(),

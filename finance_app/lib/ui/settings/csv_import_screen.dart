@@ -27,27 +27,57 @@ const _csvColumnLabels = {
 // ---------------------------------------------------------------------------
 
 List<List<String>> _parseCsv(String raw) {
+  // State-machine parser: handles quoted fields containing commas and newlines,
+  // and RFC-4180 escaped quotes ("").
   final rows = <List<String>>[];
-  for (final line in raw.split('\n')) {
-    final trimmed = line.trim();
-    if (trimmed.isEmpty) continue;
-    final cols = <String>[];
-    var inQuotes = false;
-    var current = StringBuffer();
-    for (var i = 0; i < trimmed.length; i++) {
-      final c = trimmed[i];
+  final cols = <String>[];
+  var current = StringBuffer();
+  var inQuotes = false;
+
+  void finishField() {
+    cols.add(current.toString().trim());
+    current = StringBuffer();
+  }
+
+  void finishRow() {
+    finishField();
+    if (cols.isNotEmpty && cols.any((c) => c.isNotEmpty)) {
+      rows.add(List<String>.from(cols));
+    }
+    cols.clear();
+  }
+
+  for (var i = 0; i < raw.length; i++) {
+    final c = raw[i];
+    if (inQuotes) {
       if (c == '"') {
-        inQuotes = !inQuotes;
-      } else if (c == ',' && !inQuotes) {
-        cols.add(current.toString().trim());
-        current = StringBuffer();
+        // Peek ahead: "" is an escaped quote, otherwise end of quoted field
+        if (i + 1 < raw.length && raw[i + 1] == '"') {
+          current.write('"');
+          i++; // skip second quote
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        current.write(c); // newlines inside quotes are preserved
+      }
+    } else {
+      if (c == '"') {
+        inQuotes = true;
+      } else if (c == ',') {
+        finishField();
+      } else if (c == '\n') {
+        finishRow();
+      } else if (c == '\r') {
+        // skip carriage returns (Windows line endings)
       } else {
         current.write(c);
       }
     }
-    cols.add(current.toString().trim());
-    if (cols.isNotEmpty) rows.add(cols);
   }
+  // Flush last row
+  finishRow();
+
   return rows;
 }
 

@@ -25,6 +25,7 @@ class NPSWizardController extends ChangeNotifier {
   // Step 3: Retirement Planning
   NPSWithdrawalType withdrawalType = NPSWithdrawalType.none;
   DateTime? plannedRetirementDate;
+  String? retirementDateError;
 
   // Step 4: Review
   String? notes;
@@ -60,8 +61,7 @@ class NPSWizardController extends ChangeNotifier {
       case 2:
         return currentValue != null && currentValue! > 0;
       case 3:
-        return plannedRetirementDate == null ||
-            plannedRetirementDate!.isAfter(DateTime.now());
+        return plannedRetirementDate == null || retirementDateError == null;
       case 4:
         return true;
       default:
@@ -126,6 +126,12 @@ class NPSWizardController extends ChangeNotifier {
 
   void updateRetirementDate(DateTime date) {
     plannedRetirementDate = date;
+    final minDate = DateTime.now().add(const Duration(days: 365 * 5));
+    if (date.isBefore(minDate)) {
+      retirementDateError = 'Retirement date must be at least 5 years in the future';
+    } else {
+      retirementDateError = null;
+    }
     notifyListeners();
   }
 

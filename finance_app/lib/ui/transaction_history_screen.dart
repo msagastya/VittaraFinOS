@@ -558,10 +558,15 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   }
 
   String _escapeCsv(String value) {
-    if (value.contains(',') || value.contains('"') || value.contains('\n')) {
-      return '"${value.replaceAll('"', '""')}"';
+    // CSV injection prevention: prefix formula-starting chars with single quote
+    String safe = value;
+    if (safe.isNotEmpty && '=+-@\t\r'.contains(safe[0])) {
+      safe = "'$safe";
     }
-    return value;
+    if (safe.contains(',') || safe.contains('"') || safe.contains('\n')) {
+      return '"${safe.replaceAll('"', '""')}"';
+    }
+    return safe;
   }
 
   String _formatDate(DateTime dateTime) {
