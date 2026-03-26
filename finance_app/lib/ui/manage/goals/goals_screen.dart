@@ -426,7 +426,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
         if (goals.isNotEmpty) {
           Navigator.of(context).push(
             CupertinoPageRoute(
-              builder: (_) => GoalDetailsScreen(goal: goals.first),
+              builder: (_) => GoalDetailsScreen(goalId: goals.first.id),
             ),
           );
         }

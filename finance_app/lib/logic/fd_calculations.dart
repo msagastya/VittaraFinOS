@@ -29,7 +29,7 @@ class FDCalculations {
     final ratio = currentValue / originalInvested;
     final cagr = (math.pow(ratio, 1 / yearsElapsed) - 1) * 100;
 
-    return cagr.isFinite ? cagr : 0;
+    return cagr.isFinite ? cagr.toDouble() : 0.0;
   }
 
   /// Calculate total current value across all cycles
