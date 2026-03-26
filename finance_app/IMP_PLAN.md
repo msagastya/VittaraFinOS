@@ -364,7 +364,7 @@ if (totalTarget <= 0) return 0.0; // guard
 ---
 
 ## BATCH 7 — Investment Money Flow (balance integrity)
-**Status:** `[ ]` Approve · `[ ]` Skip
+**Status:** `[x]` Done — committed
 **Complexity:** 🔴 Hard (touches money — must be exactly right)
 **Issues:** INV-01, INV-02, INV-03, INV-05, INV-06, INV-07, INV-12, INV-13, INV-14
 

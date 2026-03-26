@@ -95,7 +95,8 @@ class FDWizardController extends ChangeNotifier {
     // Convert to months for internal storage
     switch (unit) {
       case TenureUnit.days:
-        tenureMonths = (duration * 12 / 365).toInt();
+        // Use 30.44 (365.25/12) for accurate month approximation; round not truncate
+        tenureMonths = (duration / 30.44).round().clamp(1, 12000);
         break;
       case TenureUnit.months:
         tenureMonths = duration;

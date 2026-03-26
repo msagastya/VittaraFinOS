@@ -27,7 +27,7 @@ class FDCalculations {
 
     // CAGR formula
     final ratio = currentValue / originalInvested;
-    final cagr = (pow(ratio, 1 / yearsElapsed) - 1) * 100;
+    final cagr = (math.pow(ratio, 1 / yearsElapsed) - 1) * 100;
 
     return cagr.isFinite ? cagr : 0;
   }
@@ -86,22 +86,4 @@ class FDCalculations {
         cycles.fold<double>(0, (sum, cycle) => sum + cycle.interestRate);
     return totalRate / cycles.length;
   }
-}
-
-// Helper function for power calculation (since dart:math pow might not be imported)
-double pow(double base, double exponent) {
-  if (base == 0) return 0;
-  if (exponent == 0) return 1;
-
-  double result = 1;
-  for (int i = 0; i < exponent.toInt(); i++) {
-    result *= base;
-  }
-
-  // Handle fractional exponent by using logarithms
-  if (exponent != exponent.toInt()) {
-    result = double.parse((math.pow(base, exponent)).toString());
-  }
-
-  return result;
 }

@@ -108,8 +108,9 @@ class BondsWizardController extends ChangeNotifier {
     }
 
     final now = DateTime.now();
-    const yearsToMaturity =
-        5.0; // Placeholder, should be calculated from maturity date
+    if (maturityDate == null) return null;
+    final yearsToMaturity = maturityDate!.difference(now).inDays / 365.25;
+    if (yearsToMaturity <= 0) return 0.0; // already matured
     final annualCoupon = (couponRate! / 100) * faceValue!;
 
     try {
@@ -117,7 +118,7 @@ class BondsWizardController extends ChangeNotifier {
         currentPrice: purchasePrice!,
         faceValue: faceValue!,
         annualCoupon: annualCoupon,
-        yearsToMaturity: yearsToMaturity.toInt(),
+        yearsToMaturity: yearsToMaturity.toInt().clamp(1, 100),
       );
     } catch (e) {
       return null;

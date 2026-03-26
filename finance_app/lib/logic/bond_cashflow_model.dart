@@ -359,7 +359,8 @@ class CashFlowGenerator {
 
     // Calculate payment schedule
     final monthsPerPeriod = 12 ~/ paymentsPerYear;
-    final totalMonths = maturityDate.difference(purchaseDate).inDays ~/ 30;
+    final totalMonths = (maturityDate.year - purchaseDate.year) * 12 +
+        (maturityDate.month - purchaseDate.month);
     final totalPeriods = (totalMonths / (monthsPerPeriod)).ceil();
     final principalPerPeriod = faceValue / totalPeriods;
     final interestRatePerPeriod = annualInterestRate / paymentsPerYear;
