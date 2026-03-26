@@ -251,6 +251,9 @@ class NotificationsPage extends StatelessWidget {
                                     ?.toDouble() ??
                                 fd.amount;
 
+                        final accentColor = daysUntil <= 3
+                            ? AppStyles.loss(context)
+                            : CupertinoColors.systemOrange;
                         return Container(
                           margin: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 8),
@@ -262,38 +265,128 @@ class NotificationsPage extends StatelessWidget {
                             amount: '₹${maturityValue.toStringAsFixed(2)}',
                             timeInfo:
                                 'In $daysUntil day${daysUntil > 1 ? 's' : ''}',
-                            badgeColor: daysUntil <= 3
-                                ? AppStyles.loss(context)
-                                : CupertinoColors.systemOrange,
+                            badgeColor: accentColor,
                             icon: CupertinoIcons.bell_fill,
                             statusWidget: Container(
                               padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
-                                color: AppStyles.getCardColor(context),
+                                color: accentColor.withValues(alpha: 0.08),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Row(
                                 children: [
                                   Icon(
-                                    CupertinoIcons.info,
+                                    CupertinoIcons.clock,
                                     size: 14,
-                                    color: AppStyles.getSecondaryTextColor(
-                                        context),
+                                    color: accentColor,
                                   ),
                                   const SizedBox(width: Spacing.sm),
                                   Expanded(
                                     child: Text(
-                                      'Choose to renew or withdraw',
+                                      'Decide now — renew or withdraw',
                                       style: TextStyle(
-                                        color: AppStyles.getSecondaryTextColor(
-                                            context),
+                                        color: accentColor,
                                         fontSize: TypeScale.footnote,
+                                        fontWeight: FontWeight.w500,
                                       ),
                                     ),
                                   ),
                                 ],
                               ),
                             ),
+                            actionButtons: [
+                              Expanded(
+                                child: CupertinoButton(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 8, horizontal: 12),
+                                  color: accentColor,
+                                  onPressed: () async {
+                                    try {
+                                      final fdObj =
+                                          _buildFixedDepositFromInvestment(fd);
+                                      final investmentsController =
+                                          Provider.of<InvestmentsController>(
+                                              context,
+                                              listen: false);
+                                      if (!context.mounted) return;
+                                      Navigator.of(context).push(
+                                        FadeScalePageRoute(
+                                          page: FDRenewalModal(
+                                            fd: fdObj,
+                                            investmentController:
+                                                investmentsController,
+                                            originalInvestment: fd,
+                                            onRenew: () async {
+                                              if (context.mounted) {
+                                                Navigator.of(context).pop();
+                                              }
+                                            },
+                                          ),
+                                        ),
+                                      );
+                                    } catch (e) {
+                                      if (context.mounted) {
+                                        toast_lib.toast.showError('Error: $e');
+                                      }
+                                    }
+                                  },
+                                  child: const Text(
+                                    'Renew',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: TypeScale.footnote,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: Spacing.sm),
+                              Expanded(
+                                child: CupertinoButton(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 8, horizontal: 12),
+                                  color: CupertinoColors.systemGrey,
+                                  onPressed: () async {
+                                    try {
+                                      final fdObj =
+                                          _buildFixedDepositFromInvestment(fd);
+                                      final investmentsController =
+                                          Provider.of<InvestmentsController>(
+                                              context,
+                                              listen: false);
+                                      if (!context.mounted) return;
+                                      Navigator.of(context).push(
+                                        FadeScalePageRoute(
+                                          page: FDWithdrawalModal(
+                                            fd: fdObj,
+                                            investmentController:
+                                                investmentsController,
+                                            originalInvestment: fd,
+                                            onWithdraw: () async {
+                                              if (context.mounted) {
+                                                Navigator.of(context).pop();
+                                              }
+                                            },
+                                          ),
+                                        ),
+                                      );
+                                    } catch (e) {
+                                      if (context.mounted) {
+                                        toast_lib.toast.showError('Error: $e');
+                                      }
+                                    }
+                                  },
+                                  child: const Text(
+                                    'Withdraw',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: TypeScale.footnote,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         );
                       }),
