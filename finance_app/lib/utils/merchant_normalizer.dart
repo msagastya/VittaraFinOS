@@ -27,9 +27,17 @@ class MerchantNormalizer {
     for (final entry in _aliases.entries) {
       if (lower.contains(entry.key)) return entry.value;
     }
-    // Title case
-    return raw.trim().split(' ').map((w) {
+    // Title case — split on spaces, hyphens, and dashes
+    return raw.trim().split(RegExp(r'[\s\-–]++')).map((w) {
       if (w.isEmpty) return w;
+      // Preserve apostrophes: "mcdonald's" → "McDonald's" not "Mcdonald'S"
+      final apostrophe = w.indexOf("'");
+      if (apostrophe > 0) {
+        return w[0].toUpperCase() +
+            w.substring(1, apostrophe).toLowerCase() +
+            "'" +
+            w.substring(apostrophe + 1);
+      }
       return w[0].toUpperCase() + w.substring(1).toLowerCase();
     }).join(' ');
   }

@@ -29,18 +29,31 @@ class AMFIDataService {
   static List<MutualFund> _parseAMFIData(String rawData) {
     final List<MutualFund> mutualFunds = [];
     final lines = rawData.split('\n');
+    int failCount = 0;
+    int totalDataLines = 0;
 
     for (String line in lines) {
       if (line.trim().isEmpty) continue;
+      totalDataLines++;
 
       try {
         final mf = _parseLine(line);
         if (mf != null) {
           mutualFunds.add(mf);
+        } else {
+          failCount++;
         }
       } catch (e) {
+        failCount++;
         _logger.w('Error parsing AMFI line: $line, Error: $e');
         continue;
+      }
+    }
+
+    if (totalDataLines > 0) {
+      final failRate = failCount / totalDataLines;
+      if (failRate > 0.5) {
+        _logger.w('[AMFI] WARNING: ${(failRate * 100).round()}% of lines failed to parse');
       }
     }
 

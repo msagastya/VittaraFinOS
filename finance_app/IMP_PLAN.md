@@ -1042,7 +1042,7 @@ double get gainLossPercent {
 ---
 
 ## BATCH 15 — Services & Data Quality
-**Status:** `[ ]` Approve · `[ ]` Skip
+**Status:** `[x]` Done — committed
 **Complexity:** 🟡 Medium
 **Issues:** SVC-01 through SVC-10, CALC-11 (XIRR) already in Batch 10
 
