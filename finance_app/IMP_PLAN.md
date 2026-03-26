@@ -61,7 +61,7 @@
 ---
 
 ## BATCH 2 — Async Lifecycle Safety (mounted checks)
-**Status:** `[ ]` Approve · `[ ]` Skip
+**Status:** `[x]` Done — committed
 **Complexity:** 🟢 Easy (mechanical fix, low risk)
 **Issues:** ASYNC-01, ASYNC-02, ASYNC-03, ASYNC-04, ASYNC-05
 

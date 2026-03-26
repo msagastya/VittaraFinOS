@@ -37,6 +37,7 @@ class _NPSWizardContent extends StatefulWidget {
 class _NPSWizardContentState extends State<_NPSWizardContent> {
   late PageController _pageController;
   int _previousStep = 0;
+  bool _isSubmitting = false;
 
   @override
   void initState() {
@@ -54,6 +55,8 @@ class _NPSWizardContentState extends State<_NPSWizardContent> {
     BuildContext context,
     NPSWizardController ctrl,
   ) async {
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
     final investmentsController =
         Provider.of<InvestmentsController>(context, listen: false);
 
@@ -103,6 +106,8 @@ class _NPSWizardContentState extends State<_NPSWizardContent> {
       if (context.mounted) {
         toast.showError('Failed to save investment: $e');
       }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
@@ -189,7 +194,7 @@ class _NPSWizardContentState extends State<_NPSWizardContent> {
               child: SizedBox(
                 width: double.infinity,
                 child: CupertinoButton.filled(
-                  onPressed: ctrl.canProceed()
+                  onPressed: ctrl.canProceed() && !_isSubmitting
                       ? () async {
                           if (ctrl.currentStep < 4) {
                             ctrl.nextPage();
@@ -198,8 +203,11 @@ class _NPSWizardContentState extends State<_NPSWizardContent> {
                           }
                         }
                       : null,
-                  child: Text(
-                      ctrl.currentStep >= 4 ? 'Confirm & Save' : 'Continue'),
+                  child: _isSubmitting
+                      ? const CupertinoActivityIndicator(
+                          color: CupertinoColors.white)
+                      : Text(
+                          ctrl.currentStep >= 4 ? 'Confirm & Save' : 'Continue'),
                 ),
               ),
             ),

@@ -138,7 +138,7 @@ class _RDWizardScreenState extends State<RDWizardScreen> {
         toast.showError('Error creating RD: $e');
       }
     } finally {
-      setState(() => _isSubmitting = false);
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 

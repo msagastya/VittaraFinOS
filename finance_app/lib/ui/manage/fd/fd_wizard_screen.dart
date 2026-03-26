@@ -145,7 +145,7 @@ class _FDWizardScreenState extends State<FDWizardScreen> {
         toast.showError('Error creating FD: $e');
       }
     } finally {
-      setState(() => _isSubmitting = false);
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
