@@ -25,7 +25,7 @@ class Contact {
       id: map['id'],
       name: map['name'],
       phoneNumber: map['phoneNumber'],
-      createdDate: DateTime.parse(map['createdDate']),
+      createdDate: DateTime.tryParse(map['createdDate']?.toString() ?? '') ?? DateTime.now(),
     );
   }
 

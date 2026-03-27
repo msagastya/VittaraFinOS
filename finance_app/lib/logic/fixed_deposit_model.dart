@@ -258,16 +258,15 @@ class FixedDeposit {
       principal: (map['principal'] as num).toDouble(),
       interestRate: (map['interestRate'] as num).toDouble(),
       tenureMonths: map['tenureMonths'] as int,
-      compoundingFrequency:
-          FDCompoundingFrequency.values[map['compoundingFrequency'] as int],
-      payoutFrequency: FDPayoutFrequency.values[map['payoutFrequency'] as int],
+      compoundingFrequency: FDCompoundingFrequency.values[((map['compoundingFrequency'] as num?)?.toInt() ?? 0).clamp(0, FDCompoundingFrequency.values.length - 1)],
+      payoutFrequency: FDPayoutFrequency.values[((map['payoutFrequency'] as num?)?.toInt() ?? 0).clamp(0, FDPayoutFrequency.values.length - 1)],
       isCumulative: map['isCumulative'] as bool,
       linkedAccountId: map['linkedAccountId'],
       linkedAccountName: map['linkedAccountName'],
       autoLinkEnabled: map['autoLinkEnabled'] as bool,
-      createdDate: DateTime.parse(map['createdDate']),
-      investmentDate: DateTime.parse(map['investmentDate']),
-      maturityDate: DateTime.parse(map['maturityDate']),
+      createdDate: DateTime.tryParse(map['createdDate']?.toString() ?? '') ?? DateTime.now(),
+      investmentDate: DateTime.tryParse(map['investmentDate']?.toString() ?? '') ?? DateTime.now(),
+      maturityDate: DateTime.tryParse(map['maturityDate']?.toString() ?? '') ?? DateTime.now().add(const Duration(days: 365)),
       status: FDStatus.values[((map['status'] as num?)?.toInt() ?? 0).clamp(0, FDStatus.values.length - 1)],
       withdrawalDate: map['withdrawalDate'] != null
           ? DateTime.parse(map['withdrawalDate'])
@@ -600,7 +599,8 @@ class FDCalculator {
     }
 
     // Handle day overflow (e.g., Jan 31 + 1 month = Feb 28/29)
-    final lastDayOfMonth = DateTime(newYear, newMonth + 1, 0).day;
+    // Guard: newMonth + 1 would be 13 when newMonth == 12, which is invalid
+    final lastDayOfMonth = newMonth == 12 ? 31 : DateTime(newYear, newMonth + 1, 0).day;
     final newDay = date.day > lastDayOfMonth ? lastDayOfMonth : date.day;
 
     return DateTime(newYear, newMonth, newDay);

@@ -27,7 +27,7 @@ class Tag {
       id: map['id'],
       name: map['name'],
       color: Color(map['colorValue']),
-      createdDate: DateTime.parse(map['createdDate']),
+      createdDate: DateTime.tryParse(map['createdDate']?.toString() ?? '') ?? DateTime.now(),
     );
   }
 

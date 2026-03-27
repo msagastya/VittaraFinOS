@@ -128,7 +128,7 @@ class Budget {
   DateTime getNextPeriodStart() {
     switch (period) {
       case BudgetPeriod.daily:
-        return DateTime(endDate.year, endDate.month, endDate.day + 1);
+        return endDate.add(const Duration(days: 1));
       case BudgetPeriod.weekly:
         return endDate.add(const Duration(days: 1));
       case BudgetPeriod.monthly:
@@ -170,8 +170,8 @@ class Budget {
       limitAmount: (map['limitAmount'] as num).toDouble(),
       spentAmount: (map['spentAmount'] as num).toDouble(),
       period: BudgetPeriod.values[((map['period'] as num?)?.toInt() ?? 0).clamp(0, BudgetPeriod.values.length - 1)],
-      startDate: DateTime.parse(map['startDate']),
-      endDate: DateTime.parse(map['endDate']),
+      startDate: DateTime.tryParse(map['startDate']?.toString() ?? '') ?? DateTime.now(),
+      endDate: DateTime.tryParse(map['endDate']?.toString() ?? '') ?? DateTime.now(),
       color: Color(map['color']),
       isActive: map['isActive'] ?? true,
       excludedAccountIds: List<String>.from(map['excludedAccountIds'] ?? []),

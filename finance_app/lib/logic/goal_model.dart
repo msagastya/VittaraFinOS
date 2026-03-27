@@ -156,8 +156,8 @@ class Goal {
       type: GoalType.values[((map['type'] as num?)?.toInt() ?? 0).clamp(0, GoalType.values.length - 1)],
       targetAmount: (map['targetAmount'] as num).toDouble(),
       currentAmount: (map['currentAmount'] as num).toDouble(),
-      createdDate: DateTime.parse(map['createdDate']),
-      targetDate: DateTime.parse(map['targetDate']),
+      createdDate: DateTime.tryParse(map['createdDate']?.toString() ?? '') ?? DateTime.now(),
+      targetDate: DateTime.tryParse(map['targetDate']?.toString() ?? '') ?? DateTime.now().add(const Duration(days: 365)),
       color: Color(map['color']),
       notes: map['notes'],
       linkedAccountId: map['linkedAccountId'],
@@ -167,7 +167,7 @@ class Goal {
           [],
       isCompleted: map['isCompleted'] ?? false,
       completedDate: map['completedDate'] != null
-          ? DateTime.parse(map['completedDate'])
+          ? DateTime.tryParse(map['completedDate'].toString())
           : null,
     );
   }

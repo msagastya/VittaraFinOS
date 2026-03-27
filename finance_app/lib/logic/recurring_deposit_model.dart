@@ -229,10 +229,10 @@ class RecurringDeposit {
       linkedAccountId: map['linkedAccountId'],
       linkedAccountName: map['linkedAccountName'],
       autoPaymentEnabled: map['autoPaymentEnabled'] as bool,
-      createdDate: DateTime.parse(map['createdDate']),
-      startDate: DateTime.parse(map['startDate']),
-      maturityDate: DateTime.parse(map['maturityDate']),
-      status: RDStatus.values[map['status'] as int],
+      createdDate: DateTime.tryParse(map['createdDate']?.toString() ?? '') ?? DateTime.now(),
+      startDate: DateTime.tryParse(map['startDate']?.toString() ?? '') ?? DateTime.now(),
+      maturityDate: DateTime.tryParse(map['maturityDate']?.toString() ?? '') ?? DateTime.now().add(const Duration(days: 365)),
+      status: RDStatus.values[((map['status'] as num?)?.toInt() ?? 0).clamp(0, RDStatus.values.length - 1)],
       completionDate: map['completionDate'] != null
           ? DateTime.parse(map['completionDate'])
           : null,

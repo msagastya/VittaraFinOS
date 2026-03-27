@@ -149,11 +149,11 @@ class Bond {
   factory Bond.fromMap(Map<String, dynamic> map) => Bond(
         id: map['id'],
         name: map['name'],
-        type: BondType.values[map['type'] as int],
+        type: BondType.values[((map['type'] as num?)?.toInt() ?? 0).clamp(0, BondType.values.length - 1)],
         faceValue: (map['faceValue'] as num).toDouble(),
-        issueDate: DateTime.parse(map['issueDate']),
-        maturityDate: DateTime.parse(map['maturityDate']),
-        purchaseDate: DateTime.parse(map['purchaseDate']),
+        issueDate: DateTime.tryParse(map['issueDate']?.toString() ?? '') ?? DateTime.now(),
+        maturityDate: DateTime.tryParse(map['maturityDate']?.toString() ?? '') ?? DateTime.now().add(const Duration(days: 365)),
+        purchaseDate: DateTime.tryParse(map['purchaseDate']?.toString() ?? '') ?? DateTime.now(),
         purchasePrice: (map['purchasePrice'] as num).toDouble(),
         fixedCouponRate: map['fixedCouponRate'] as double?,
         referenceRate: map['referenceRate'] as double?,
@@ -163,7 +163,7 @@ class Bond {
             .map((cf) => BondCashFlow.fromMap(cf as Map<String, dynamic>))
             .toList(),
         yieldToMaturity: map['yieldToMaturity'] as double?,
-        createdDate: DateTime.parse(map['createdDate']),
+        createdDate: DateTime.tryParse(map['createdDate']?.toString() ?? '') ?? DateTime.now(),
         notes: map['notes'] as String?,
       );
 }

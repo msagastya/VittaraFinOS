@@ -75,7 +75,7 @@ class PensionScheme {
   factory PensionScheme.fromMap(Map<String, dynamic> map) => PensionScheme(
         id: map['id'],
         accountNumber: map['accountNumber'],
-        type: PensionSchemeType.values[map['type'] as int],
+        type: PensionSchemeType.values[((map['type'] as num?)?.toInt() ?? 0).clamp(0, PensionSchemeType.values.length - 1)],
         principalContributed: (map['principalContributed'] as num).toDouble(),
         currentValue: (map['currentValue'] as num).toDouble(),
         contributions: (map['contributions'] as List?)
@@ -83,7 +83,7 @@ class PensionScheme {
                     PensionContribution.fromMap(c as Map<String, dynamic>))
                 .toList() ??
             [],
-        createdDate: DateTime.parse(map['createdDate']),
+        createdDate: DateTime.tryParse(map['createdDate']?.toString() ?? '') ?? DateTime.now(),
         notes: map['notes'] as String?,
       );
 }

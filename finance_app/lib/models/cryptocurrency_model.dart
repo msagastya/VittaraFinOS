@@ -75,8 +75,8 @@ class CryptoTransaction {
   factory CryptoTransaction.fromMap(Map<String, dynamic> map) {
     return CryptoTransaction(
       id: map['id'],
-      type: CryptoTransactionType.values[map['type'] as int],
-      date: DateTime.parse(map['date']),
+      type: CryptoTransactionType.values[((map['type'] as num?)?.toInt() ?? 0).clamp(0, CryptoTransactionType.values.length - 1)],
+      date: DateTime.tryParse(map['date']?.toString() ?? '') ?? DateTime.now(),
       quantity: (map['quantity'] as num).toDouble(),
       pricePerUnit: (map['pricePerUnit'] as num).toDouble(),
       totalValue: (map['totalValue'] as num).toDouble(),
@@ -217,20 +217,20 @@ class Cryptocurrency {
       averageBuyPrice: (map['averageBuyPrice'] as num).toDouble(),
       totalInvested: (map['totalInvested'] as num).toDouble(),
       currentPrice: (map['currentPrice'] as num).toDouble(),
-      lastPriceUpdate: DateTime.parse(map['lastPriceUpdate']),
+      lastPriceUpdate: DateTime.tryParse(map['lastPriceUpdate']?.toString() ?? '') ?? DateTime.now(),
       transactions: (map['transactions'] as List?)
               ?.map((t) => CryptoTransaction.fromMap(t as Map<String, dynamic>))
               .toList() ??
           [],
-      walletType: CryptoWalletType.values[map['walletType'] as int],
+      walletType: CryptoWalletType.values[((map['walletType'] as num?)?.toInt() ?? 0).clamp(0, CryptoWalletType.values.length - 1)],
       walletAddress: map['walletAddress'],
       exchange: map['exchange'] != null
-          ? CryptoExchange.values[map['exchange'] as int]
+          ? CryptoExchange.values[((map['exchange'] as num?)?.toInt() ?? 0).clamp(0, CryptoExchange.values.length - 1)]
           : null,
       exchangeAccount: map['exchangeAccount'] as String?,
       linkedAccountId: map['linkedAccountId'] as String?,
       linkedAccountName: map['linkedAccountName'] as String?,
-      createdDate: DateTime.parse(map['createdDate']),
+      createdDate: DateTime.tryParse(map['createdDate']?.toString() ?? '') ?? DateTime.now(),
       notes: map['notes'] as String?,
       metadata: map['metadata'] as Map<String, dynamic>?,
     );
