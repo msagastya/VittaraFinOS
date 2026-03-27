@@ -33,13 +33,13 @@ class ContactsController with ChangeNotifier {
     await prefs.setString('contacts', jsonString);
   }
 
-  void addContact(Contact contact) {
+  Future<void> addContact(Contact contact) async {
     // Check if contact already exists
     if (!_contacts
         .any((c) => c.name.toLowerCase() == contact.name.toLowerCase())) {
       _contacts.add(contact);
       _contacts.sort((a, b) => a.name.compareTo(b.name));
-      _saveContacts();
+      await _saveContacts();
       notifyListeners();
     }
   }
@@ -60,18 +60,18 @@ class ContactsController with ChangeNotifier {
     }
   }
 
-  void removeContact(String id) {
+  Future<void> removeContact(String id) async {
     _contacts.removeWhere((c) => c.id == id);
-    _saveContacts();
+    await _saveContacts();
     notifyListeners();
   }
 
-  void updateContact(Contact updated) {
+  Future<void> updateContact(Contact updated) async {
     final index = _contacts.indexWhere((c) => c.id == updated.id);
     if (index != -1) {
       _contacts[index] = updated;
       _contacts.sort((a, b) => a.name.compareTo(b.name));
-      _saveContacts();
+      await _saveContacts();
       notifyListeners();
     }
   }

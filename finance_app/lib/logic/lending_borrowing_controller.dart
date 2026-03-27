@@ -106,9 +106,9 @@ class LendingBorrowingController with ChangeNotifier {
     );
   }
 
-  void removeRecord(String id) {
+  Future<void> removeRecord(String id) async {
     _records.removeWhere((r) => r.id == id);
-    _saveRecords();
+    await _saveRecords();
     notifyListeners();
   }
 

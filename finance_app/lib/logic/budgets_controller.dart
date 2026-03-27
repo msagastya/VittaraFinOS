@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/logic/budget_model.dart';
 import 'package:vittara_fin_os/logic/notification_helpers.dart';
+import 'package:vittara_fin_os/utils/async_mutex.dart';
 
 /// Controller for managing budgets and savings planners
 class BudgetsController with ChangeNotifier {
@@ -12,6 +13,7 @@ class BudgetsController with ChangeNotifier {
   List<Budget> _budgets = [];
   List<SavingsPlanner> _planners = [];
   bool _isInitialized = false;
+  final _spendingMutex = AsyncMutex();
 
   List<Budget> get budgets => _budgets;
   List<Budget> get activeBudgets => _budgets.where((b) => b.isActive).toList();
@@ -114,14 +116,16 @@ class BudgetsController with ChangeNotifier {
   }
 
   Future<void> updateBudgetSpending(String budgetId, double amount) async {
-    final index = _budgets.indexWhere((b) => b.id == budgetId);
-    if (index != -1) {
-      _budgets[index] = _budgets[index].copyWith(
-        spentAmount: _budgets[index].spentAmount + amount,
-      );
-      await _saveBudgets();
-      notifyListeners();
-    }
+    await _spendingMutex.protect(() async {
+      final index = _budgets.indexWhere((b) => b.id == budgetId);
+      if (index != -1) {
+        _budgets[index] = _budgets[index].copyWith(
+          spentAmount: _budgets[index].spentAmount + amount,
+        );
+        await _saveBudgets();
+        notifyListeners();
+      }
+    });
   }
 
   List<Budget> getBudgetsExceedingLimit() {

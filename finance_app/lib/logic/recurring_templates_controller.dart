@@ -63,29 +63,29 @@ class RecurringTemplatesController with ChangeNotifier {
   }
 
   /// After a recurring template is used, advance its due date.
-  void markUsed(String id) {
+  Future<void> markUsed(String id) async {
     final idx = _templates.indexWhere((t) => t.id == id);
     if (idx < 0) return;
     _templates[idx] = _templates[idx].withAdvancedDueDate();
+    await _save();
     notifyListeners();
-    _save();
   }
 
-  void updateTemplate(RecurringTemplate updated) {
+  Future<void> updateTemplate(RecurringTemplate updated) async {
     final idx = _templates.indexWhere((t) => t.id == updated.id);
     if (idx < 0) return;
     _templates[idx] = updated;
+    await _save();
     notifyListeners();
-    _save();
   }
 
   /// Records today as the payment date for the current month.
-  void markBillAsPaid(String id) {
+  Future<void> markBillAsPaid(String id) async {
     final idx = _templates.indexWhere((t) => t.id == id);
     if (idx < 0) return;
     _templates[idx] = _templates[idx].withPaymentRecorded();
+    await _save();
     notifyListeners();
-    _save();
   }
 
   /// Analyses [transactions] and returns up to [limit] suggested patterns
@@ -101,7 +101,7 @@ class RecurringTemplatesController with ChangeNotifier {
   }
 
   /// Removes the payment record for the current month (undo).
-  void unmarkBillAsPaid(String id) {
+  Future<void> unmarkBillAsPaid(String id) async {
     final idx = _templates.indexWhere((t) => t.id == id);
     if (idx < 0) return;
     final t = _templates[idx];
@@ -126,7 +126,7 @@ class RecurringTemplatesController with ChangeNotifier {
       createdAt: t.createdAt,
       paymentHistory: updated,
     );
+    await _save();
     notifyListeners();
-    _save();
   }
 }
