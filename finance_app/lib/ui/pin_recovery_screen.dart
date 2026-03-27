@@ -77,6 +77,7 @@ class _PinRecoveryScreenState extends State<PinRecoveryScreen> {
     _lockoutTimer?.cancel();
     _lockoutTimer = Timer.periodic(const Duration(seconds: 1), (_) async {
       final remaining = await PinRecoveryController.instance.lockoutRemaining();
+      if (!mounted) { _.cancel(); return; }
       if (remaining == null) {
         setState(() => _lockedOut = false);
         _lockoutTimer?.cancel();

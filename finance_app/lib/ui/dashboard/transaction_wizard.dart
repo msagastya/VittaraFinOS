@@ -87,6 +87,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
   }
 
   void _selectBranch(TransactionWizardBranch branch) {
+    if (!mounted) return;
     if (branch == TransactionWizardBranch.transfer) {
       // Use push (not pushReplacement) so back from TransferWizard
       // returns to the wizard branch selector, not the previous screen.

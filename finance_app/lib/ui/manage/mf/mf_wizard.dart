@@ -104,7 +104,7 @@ class _MFWizardContentState extends State<_MFWizardContent> {
         toast.showError('Failed to save investment: $e');
       }
     } finally {
-      if (mounted) setState(() => _isSubmitting = false);
+      if (context.mounted) setState(() => _isSubmitting = false);
     }
   }
 

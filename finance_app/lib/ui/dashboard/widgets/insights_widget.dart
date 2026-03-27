@@ -482,7 +482,8 @@ class SpendNarrativeCarousel extends StatefulWidget {
   State<SpendNarrativeCarousel> createState() => SpendNarrativeCarouselState();
 }
 
-class SpendNarrativeCarouselState extends State<SpendNarrativeCarousel> {
+class SpendNarrativeCarouselState extends State<SpendNarrativeCarousel>
+    with WidgetsBindingObserver {
   int _page = 0;
   late final PageController _ctrl;
   Timer? _timer;
@@ -491,21 +492,36 @@ class SpendNarrativeCarouselState extends State<SpendNarrativeCarousel> {
   void initState() {
     super.initState();
     _ctrl = PageController();
-    if (widget.insights.length > 1) {
-      _timer = Timer.periodic(const Duration(seconds: 4), (_) {
-        if (!mounted) return;
-        final next = (_page + 1) % widget.insights.length;
-        _ctrl.animateToPage(
-          next,
-          duration: const Duration(milliseconds: 400),
-          curve: Curves.easeInOut,
-        );
-      });
+    WidgetsBinding.instance.addObserver(this);
+    _startTimer();
+  }
+
+  void _startTimer() {
+    if (widget.insights.length <= 1) return;
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (!mounted) return;
+      final next = (_page + 1) % widget.insights.length;
+      _ctrl.animateToPage(
+        next,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOut,
+      );
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      _timer?.cancel();
+    } else if (state == AppLifecycleState.resumed && mounted) {
+      _startTimer();
     }
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
     _ctrl.dispose();
     super.dispose();
