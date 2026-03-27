@@ -1721,10 +1721,14 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
             isDestructiveAction: true,
             onPressed: () async {
               if (!mounted) return;
-              // Delete FD from investments controller
               final investmentsController =
                   Provider.of<InvestmentsController>(context, listen: false);
-              await investmentsController.deleteInvestment(widget.fd.id);
+              final accountsController =
+                  Provider.of<AccountsController>(context, listen: false);
+              await investmentsController.deleteInvestment(
+                widget.fd.id,
+                accountsController: accountsController,
+              );
 
               if (mounted) {
                 // Close dialog

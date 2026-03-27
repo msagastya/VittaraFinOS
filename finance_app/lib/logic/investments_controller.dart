@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/services/investment_value_service.dart';
 import 'package:vittara_fin_os/utils/async_mutex.dart';
@@ -83,7 +84,32 @@ class InvestmentsController with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> deleteInvestment(String investmentId) async {
+  /// Deletes an investment. If [accountsController] is provided and the
+  /// investment metadata records `debitedFromAccount: true`, the original
+  /// debit amount is credited back to the linked account.
+  Future<void> deleteInvestment(
+    String investmentId, {
+    AccountsController? accountsController,
+  }) async {
+    if (accountsController != null) {
+      final inv =
+          _investments.where((i) => i.id == investmentId).firstOrNull;
+      if (inv != null && inv.metadata?['debitedFromAccount'] == true) {
+        final accountId = inv.metadata?['linkedAccountId'] as String?;
+        final debitAmount =
+            (inv.metadata?['debitAmount'] as num?)?.toDouble();
+        if (accountId != null && debitAmount != null && debitAmount > 0) {
+          final account = accountsController.accounts
+              .where((a) => a.id == accountId)
+              .firstOrNull;
+          if (account != null) {
+            await accountsController.updateAccount(
+              account.copyWith(balance: account.balance + debitAmount),
+            );
+          }
+        }
+      }
+    }
     await removeInvestment(investmentId);
   }
 

@@ -89,20 +89,7 @@ class _FDWizardScreenState extends State<FDWizardScreen> {
       final accountsController =
           Provider.of<AccountsController>(context, listen: false);
 
-      // Debit principal from linked account if enabled.
-      // If debit fails, abort — do not create FD with inconsistent state.
-      if (_controller.debitFromAccount) {
-        final account = accountsController.accounts.firstWhere(
-          (a) => a.id == fd.linkedAccountId,
-          orElse: () => throw Exception('Linked account not found'),
-        );
-        final updatedAccount = account.copyWith(
-          balance: account.balance - fd.principal,
-        );
-        await accountsController.updateAccount(updatedAccount);
-      }
-
-      // Save FD as Investment
+      // Save FD as Investment FIRST. If save fails, no account change is made.
       final investment = Investment(
         id: fd.id,
         name: fd.name,
@@ -127,13 +114,30 @@ class _FDWizardScreenState extends State<FDWizardScreen> {
           'compoundingFrequency': fd.compoundingFrequency.toString(),
           'payoutFrequency': fd.payoutFrequency.toString(),
           'isCumulative': fd.isCumulative,
-          'originalPrincipal':
-              fd.principal, // Store original principal for display on renewal
+          'originalPrincipal': fd.principal,
           'debitedFromAccount': _controller.debitFromAccount,
+          'debitAmount': fd.principal,
         },
       );
 
       await investmentController.addInvestment(investment);
+
+      // Debit principal AFTER investment is saved. Rollback investment if debit fails.
+      if (_controller.debitFromAccount) {
+        try {
+          final account = accountsController.accounts.firstWhere(
+            (a) => a.id == fd.linkedAccountId,
+            orElse: () => throw Exception('Linked account not found'),
+          );
+          final updatedAccount = account.copyWith(
+            balance: account.balance - fd.principal,
+          );
+          await accountsController.updateAccount(updatedAccount);
+        } catch (debitError) {
+          await investmentController.removeInvestment(investment.id);
+          rethrow;
+        }
+      }
 
       if (mounted) {
         Haptics.success();

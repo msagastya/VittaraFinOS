@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/recurring_deposit_model.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
+import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
@@ -837,10 +838,14 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
             isDestructiveAction: true,
             onPressed: () async {
               if (!mounted) return;
-              // Delete RD from investments controller
               final investmentsController =
                   Provider.of<InvestmentsController>(context, listen: false);
-              await investmentsController.deleteInvestment(widget.rd.id);
+              final accountsController =
+                  Provider.of<AccountsController>(context, listen: false);
+              await investmentsController.deleteInvestment(
+                widget.rd.id,
+                accountsController: accountsController,
+              );
 
               if (mounted) {
                 // Close dialog

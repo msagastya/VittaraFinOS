@@ -93,20 +93,7 @@ class _RDWizardScreenState extends State<RDWizardScreen> {
       final accountsController =
           Provider.of<AccountsController>(context, listen: false);
 
-      // Debit first installment from linked account if enabled
-      // If debit fails, abort investment creation
-      if (_controller.debitFromAccount) {
-        final account = accountsController.accounts.firstWhere(
-          (a) => a.id == rd.linkedAccountId,
-          orElse: () => throw Exception('Linked account not found'),
-        );
-        final updatedAccount = account.copyWith(
-          balance: account.balance - rd.monthlyAmount,
-        );
-        await accountsController.updateAccount(updatedAccount);
-      }
-
-      // Save RD as Investment
+      // Save RD as Investment FIRST. If save fails, no account change is made.
       final investment = Investment(
         id: rd.id,
         name: rd.name,
@@ -123,10 +110,29 @@ class _RDWizardScreenState extends State<RDWizardScreen> {
           'maturityDate': rd.maturityDate.toIso8601String(),
           'completedInstallments': rd.completedInstallments,
           'pendingInstallments': rd.pendingInstallments,
+          'debitedFromAccount': _controller.debitFromAccount,
+          'debitAmount': rd.monthlyAmount,
         },
       );
 
       await investmentController.addInvestment(investment);
+
+      // Debit first installment AFTER investment is saved. Rollback if debit fails.
+      if (_controller.debitFromAccount) {
+        try {
+          final account = accountsController.accounts.firstWhere(
+            (a) => a.id == rd.linkedAccountId,
+            orElse: () => throw Exception('Linked account not found'),
+          );
+          final updatedAccount = account.copyWith(
+            balance: account.balance - rd.monthlyAmount,
+          );
+          await accountsController.updateAccount(updatedAccount);
+        } catch (debitError) {
+          await investmentController.removeInvestment(investment.id);
+          rethrow;
+        }
+      }
 
       if (mounted) {
         Haptics.success();

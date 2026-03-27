@@ -50,6 +50,15 @@ class _StocksWizardContent extends StatelessWidget {
       if (controller.deductFromAccount && controller.selectedAccount != null) {
         final account = controller.selectedAccount!;
         final newBalance = account.balance - controller.totalDeduction;
+        if (newBalance < (account.creditLimit ?? 0)) {
+          controller.isSubmitting = false;
+          controller.notifyListeners();
+          if (context.mounted) {
+            final toast = ToastNotification.of(context);
+            toast.showError('Insufficient balance in selected account');
+          }
+          return;
+        }
         balanceAfter = newBalance;
         creditLimit = account.creditLimit;
         final updatedAccount = account.copyWith(balance: newBalance);
