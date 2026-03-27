@@ -118,12 +118,16 @@ class SkeletonLoader extends StatefulWidget {
   final double width;
   final double height;
   final double borderRadius;
+  final Duration maxDuration;
+  final VoidCallback? onTimeout;
 
   const SkeletonLoader({
     super.key,
     this.width = double.infinity,
     this.height = 16,
     this.borderRadius = 8,
+    this.maxDuration = const Duration(seconds: 30),
+    this.onTimeout,
   });
 
   @override
@@ -131,8 +135,43 @@ class SkeletonLoader extends StatefulWidget {
 }
 
 class _SkeletonLoaderState extends State<SkeletonLoader> {
+  bool _timedOut = false;
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(widget.maxDuration, () {
+      if (mounted) setState(() => _timedOut = true);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_timedOut) {
+      return GestureDetector(
+        onTap: () {
+          setState(() => _timedOut = false);
+          widget.onTimeout?.call();
+          // Re-arm timeout
+          Future.delayed(widget.maxDuration, () {
+            if (mounted) setState(() => _timedOut = true);
+          });
+        },
+        child: SizedBox(
+          width: widget.width,
+          height: widget.height,
+          child: const Center(
+            child: Text(
+              'Tap to retry',
+              style: TextStyle(
+                fontSize: 12,
+                color: CupertinoColors.systemGrey,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
     final shared = SkeletonAnimationProvider.maybeOf(context);
     final isDark = AppStyles.isDarkMode(context);
 

@@ -52,10 +52,21 @@ class _AccountsScreenState extends State<AccountsScreen> {
     super.initState();
     _searchQuery = _persistedSearchQuery;
     _searchController = TextEditingController(text: _persistedSearchQuery);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<AccountsController>(context, listen: false)
+          .addListener(_onAccountsChanged);
+    });
+  }
+
+  void _onAccountsChanged() {
+    _filterSortCache.clear();
+    _lastCacheKey = '';
   }
 
   @override
   void dispose() {
+    Provider.of<AccountsController>(context, listen: false)
+        .removeListener(_onAccountsChanged);
     _categoryPageController.dispose();
     _searchController.dispose();
     super.dispose();

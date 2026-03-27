@@ -240,9 +240,14 @@ class _ContactsScreenState extends State<ContactsScreen> {
       builder: (sheetContext) {
         return Consumer2<LendingBorrowingController, TransactionsController>(
           builder: (ctx, lbCtrl, txCtrl, _) {
+            // Reload contact from controller to pick up any edits since tap.
+            final freshContact = Provider.of<ContactsController>(ctx, listen: false)
+                .contacts
+                .where((c) => c.id == contact.id)
+                .firstOrNull ?? contact;
             final allRecords = lbCtrl.records
                 .where((r) =>
-                    r.personName.toLowerCase() == contact.name.toLowerCase())
+                    r.personName.toLowerCase() == freshContact.name.toLowerCase())
                 .toList()
               ..sort((a, b) => b.date.compareTo(a.date));
 
@@ -262,13 +267,13 @@ class _ContactsScreenState extends State<ContactsScreen> {
                 .where((tx) {
                   final merchant = tx.metadata?['merchant'] as String?;
                   return merchant != null &&
-                      merchant.toLowerCase() == contact.name.toLowerCase();
+                      merchant.toLowerCase() == freshContact.name.toLowerCase();
                 })
                 .toList()
               ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
 
-            final initials = contact.name.isNotEmpty
-                ? contact.name.trim()[0].toUpperCase()
+            final initials = freshContact.name.isNotEmpty
+                ? freshContact.name.trim()[0].toUpperCase()
                 : '?';
 
             return DraggableScrollableSheet(

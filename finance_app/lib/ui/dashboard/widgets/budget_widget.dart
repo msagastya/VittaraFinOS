@@ -3,8 +3,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/budgets_controller.dart';
+import 'package:vittara_fin_os/ui/manage/budgets/budgets_screen.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/widgets/animations.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Budget Dashboard Widget (2×2) — radial gauge + top 3 category bars
@@ -49,6 +51,24 @@ class BudgetDashboardWidget extends StatelessWidget {
                   style: TextStyle(
                     fontSize: TypeScale.caption,
                     color: AppStyles.getSecondaryTextColor(context),
+                  ),
+                ),
+                const SizedBox(height: Spacing.md),
+                CupertinoButton(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: Spacing.lg, vertical: Spacing.xs),
+                  color: CupertinoColors.systemOrange,
+                  borderRadius: BorderRadius.circular(Radii.md),
+                  onPressed: () => Navigator.of(context).push(
+                    FadeScalePageRoute(page: const BudgetsScreen()),
+                  ),
+                  child: const Text(
+                    'Create your first budget',
+                    style: TextStyle(
+                      fontSize: TypeScale.caption,
+                      color: CupertinoColors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],

@@ -145,9 +145,12 @@ class _DashboardActionSheetState extends State<_DashboardActionSheet> {
       });
 
   void _launch(Widget screen) {
-    final nav = widget.navigator;
+    // Pop the sheet first, then push on next frame to avoid race where the
+    // sheet's pop and the new route's push happen in the same frame.
     Navigator.pop(context);
-    nav.push(FadeScalePageRoute(page: screen));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.navigator.push(FadeScalePageRoute(page: screen));
+    });
   }
 
   // ── Wizard router ───────────────────────────────────────────────────────────

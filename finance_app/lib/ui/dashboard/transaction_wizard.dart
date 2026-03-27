@@ -104,6 +104,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
 
   void _navigateToStep(int step, {bool record = true}) {
     FocusManager.instance.primaryFocus?.unfocus();
+    if (step < 0) return; // lower-bounds guard
     if (step >= _totalSteps) {
       _completeTransaction();
       return;

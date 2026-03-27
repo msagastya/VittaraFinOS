@@ -29,6 +29,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
   final AppLogger logger = AppLogger();
   GoalType? _filterType;
   String _searchQuery = '';
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -38,11 +39,31 @@ class _GoalsScreenState extends State<GoalsScreen> {
     });
   }
 
-  void _showAddGoalModal() {
-    showCupertinoModalPopup(
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _showAddGoalModal() async {
+    await showCupertinoModalPopup(
       context: context,
       builder: (context) => const AddGoalModal(),
     );
+    // Refresh controller after modal closes to pick up any new goals.
+    if (mounted) {
+      Provider.of<GoalsController>(context, listen: false).initialize();
+    }
+  }
+
+  void _scrollToExpiringSoon() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOut,
+      );
+    }
   }
 
   @override
@@ -85,6 +106,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                     ? _buildEmptyState()
                     : CustomScrollView(
                         key: const PageStorageKey('goals_list'),
+                        controller: _scrollController,
                         slivers: [
                           if (AppStyles.isLandscape(context))
                             SliverToBoxAdapter(
@@ -424,11 +446,8 @@ class _GoalsScreenState extends State<GoalsScreen> {
     return BouncyButton(
       onPressed: () {
         if (goals.isNotEmpty) {
-          Navigator.of(context).push(
-            CupertinoPageRoute(
-              builder: (_) => GoalDetailsScreen(goalId: goals.first.id),
-            ),
-          );
+          // Scroll to the top of the list where expiring goals appear.
+          _scrollToExpiringSoon();
         }
       },
       child: GlassCard(
