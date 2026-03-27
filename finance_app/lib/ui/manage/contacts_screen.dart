@@ -735,17 +735,18 @@ class _ContactsScreenState extends State<ContactsScreen> {
     ContactsController controller,
   ) {
     final lendingCtrl = context.read<LendingBorrowingController>();
-    final hasRecords =
-        lendingCtrl.records.any((r) => r.personName == contact.name);
+    final linkedRecords =
+        lendingCtrl.records.where((r) => r.personName == contact.name).toList();
 
-    if (hasRecords) {
+    if (linkedRecords.isNotEmpty) {
       showCupertinoDialog<bool>(
         context: context,
         builder: (ctx) => CupertinoAlertDialog(
           title: const Text('Contact Has Records'),
           content: Text(
-            '"${contact.name}" has active lending/borrowing records. '
-            'Deleting the contact will not remove those records.',
+            '"${contact.name}" has ${linkedRecords.length} '
+            'lending/borrowing record${linkedRecords.length == 1 ? '' : 's'}. '
+            'Deleting the contact will also delete all associated records.',
           ),
           actions: [
             CupertinoDialogAction(
@@ -755,12 +756,16 @@ class _ContactsScreenState extends State<ContactsScreen> {
             CupertinoDialogAction(
               isDestructiveAction: true,
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Delete Anyway'),
+              child: const Text('Delete All'),
             ),
           ],
         ),
       ).then((confirmed) {
         if (confirmed != true || !mounted) return;
+        // Cascade: delete linked lending records first
+        for (final record in linkedRecords) {
+          lendingCtrl.removeRecord(record.id);
+        }
         _doDeleteContact(contact, controller);
       });
     } else {

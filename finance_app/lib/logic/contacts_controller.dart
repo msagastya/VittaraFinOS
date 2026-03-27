@@ -45,18 +45,15 @@ class ContactsController with ChangeNotifier {
   }
 
   void addOrGetContact(String name, {String? phoneNumber}) {
-    final existing = _contacts.firstWhere(
-      (c) => c.name.toLowerCase() == name.toLowerCase(),
-      orElse: () => Contact(
+    final alreadyExists =
+        _contacts.any((c) => c.name.toLowerCase() == name.toLowerCase());
+    if (!alreadyExists) {
+      addContact(Contact(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         name: name,
         phoneNumber: phoneNumber,
         createdDate: DateTime.now(),
-      ),
-    );
-
-    if (!_contacts.contains(existing)) {
-      addContact(existing);
+      ));
     }
   }
 

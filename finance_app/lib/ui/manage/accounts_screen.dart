@@ -2066,8 +2066,15 @@ class _AccountsScreenState extends State<AccountsScreen> {
       builder: (dialogContext) {
         return CupertinoAlertDialog(
           title: const Text('Delete Account'),
-          content: Text(
-              'Are you sure you want to delete "${account.name}"? This action cannot be undone.'),
+          content: Builder(builder: (ctx) {
+            final txController =
+                Provider.of<TransactionsController>(ctx, listen: false);
+            final linkedCount =
+                txController.getTransactionsByAccount(account.id).length;
+            return Text(linkedCount > 0
+                ? 'Delete "${account.name}"? $linkedCount linked transaction${linkedCount == 1 ? '' : 's'} will be marked as deleted. This cannot be undone.'
+                : 'Are you sure you want to delete "${account.name}"? This action cannot be undone.');
+          }),
           actions: [
             CupertinoDialogAction(
               child: const Text('Cancel'),

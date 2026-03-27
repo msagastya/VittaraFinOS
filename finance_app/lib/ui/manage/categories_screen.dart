@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/budgets_controller.dart';
 import 'package:vittara_fin_os/logic/categories_controller.dart';
 import 'package:vittara_fin_os/logic/category_model.dart';
+import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/ui/manage/categories/category_creation_modal.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
@@ -63,18 +64,29 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     Category category,
   ) {
     final budgetsCtrl = context.read<BudgetsController>();
+    final txCtrl = context.read<TransactionsController>();
     final affectedBudgets = budgetsCtrl.budgets
         .where((b) => b.categoryName == category.name)
         .toList();
+    final txCount =
+        txCtrl.filter(categoryId: category.id).length;
 
-    if (affectedBudgets.isNotEmpty) {
+    if (affectedBudgets.isNotEmpty || txCount > 0) {
+      final parts = <String>[];
+      if (txCount > 0) {
+        parts.add(
+            '$txCount transaction${txCount == 1 ? '' : 's'} will be reassigned to "Other"');
+      }
+      if (affectedBudgets.isNotEmpty) {
+        parts.add(
+            '${affectedBudgets.length} budget${affectedBudgets.length == 1 ? '' : 's'} will be reassigned to "Other"');
+      }
       showCupertinoDialog<bool>(
         context: context,
         builder: (ctx) => CupertinoAlertDialog(
           title: const Text('Category In Use'),
           content: Text(
-            '${affectedBudgets.length} budget${affectedBudgets.length == 1 ? '' : 's'} '
-            'use "${category.name}". They will be reassigned to "Other". Continue?',
+            '"${category.name}" is in use: ${parts.join(' and ')}. Continue?',
           ),
           actions: [
             CupertinoDialogAction(
@@ -84,13 +96,15 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             CupertinoDialogAction(
               isDestructiveAction: true,
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Delete'),
+              child: const Text('Reassign & Delete'),
             ),
           ],
         ),
       ).then((confirmed) {
         if (confirmed != true || !mounted) return;
-        budgetsCtrl.reassignCategoryInBudgets(category.name);
+        if (affectedBudgets.isNotEmpty) {
+          budgetsCtrl.reassignCategoryInBudgets(category.name);
+        }
         _performCategoryDelete(controller, category);
       });
     } else {
