@@ -144,7 +144,7 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage> {
 
     // Transactions
     for (final tx in txCtrl.transactions) {
-      if (results.where((r) => r.type == _ResultType.transaction).length >= 5)
+      if (results.where((r) => r.type == _ResultType.transaction).length >= 10)
         break;
       final desc = tx.description.toLowerCase();
       final amt = tx.amount.toString();
@@ -166,7 +166,7 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage> {
 
     // Accounts
     for (final acc in accCtrl.accounts) {
-      if (results.where((r) => r.type == _ResultType.account).length >= 3) break;
+      if (results.where((r) => r.type == _ResultType.account).length >= 10) break;
       if (acc.name.toLowerCase().contains(query) ||
           acc.bankName.toLowerCase().contains(query)) {
         results.add(_SearchResult(
@@ -183,7 +183,7 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage> {
 
     // Investments
     for (final inv in invCtrl.investments) {
-      if (results.where((r) => r.type == _ResultType.investment).length >= 5)
+      if (results.where((r) => r.type == _ResultType.investment).length >= 10)
         break;
       if (inv.name.toLowerCase().contains(query) ||
           (inv.broker ?? '').toLowerCase().contains(query) ||
@@ -202,7 +202,7 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage> {
 
     // Goals
     for (final goal in goalCtrl.goals) {
-      if (results.where((r) => r.type == _ResultType.goal).length >= 3) break;
+      if (results.where((r) => r.type == _ResultType.goal).length >= 10) break;
       if (goal.name.toLowerCase().contains(query)) {
         results.add(_SearchResult(
           type: _ResultType.goal,
@@ -218,7 +218,7 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage> {
 
     // Contacts
     for (final contact in contactCtrl.contacts) {
-      if (results.where((r) => r.type == _ResultType.contact).length >= 3) break;
+      if (results.where((r) => r.type == _ResultType.contact).length >= 10) break;
       if (contact.name.toLowerCase().contains(query)) {
         results.add(_SearchResult(
           type: _ResultType.contact,

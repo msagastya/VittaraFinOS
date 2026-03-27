@@ -98,20 +98,32 @@ class LiquidCircularPainter extends CustomPainter {
     required this.color,
   });
 
+  // Cached clip path — only depends on size, recomputed when size changes.
+  static Path? _cachedPath;
+  static Size? _cachedSize;
+
+  static Path _getClipPath(Size size) {
+    if (_cachedSize != size) {
+      final radius = size.width / 2;
+      final center = Offset(size.width / 2, size.height / 2);
+      _cachedPath = Path()..addOval(Rect.fromCircle(center: center, radius: radius));
+      _cachedSize = size;
+    }
+    return _cachedPath!;
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
-    final radius = size.width / 2;
-    final center = Offset(size.width / 2, size.height / 2);
     final fillHeight = size.height * (1 - progress);
 
+    // Wave path — must be recomputed each frame because wavePhase animates.
     final path = Path();
     const waveHeight = 8.0;
+    // Step size 4 (vs 2) halves path points with no visible quality loss.
+    const step = 4.0;
 
-    // Start from left edge
     path.moveTo(0, fillHeight);
-
-    // Draw wave
-    for (double x = 0; x <= size.width; x += 2) {
+    for (double x = 0; x <= size.width; x += step) {
       final normalized = x / size.width;
       final wave1 =
           math.sin((normalized * math.pi * 2) + (wavePhase * math.pi * 2)) *
@@ -121,44 +133,38 @@ class LiquidCircularPainter extends CustomPainter {
               (waveHeight * 0.5);
       path.lineTo(x, fillHeight + wave1 + wave2);
     }
-
-    // Complete the path
     path.lineTo(size.width, size.height);
     path.lineTo(0, size.height);
     path.close();
 
-    // Clip to circle
-    canvas.clipPath(
-        Path()..addOval(Rect.fromCircle(center: center, radius: radius)));
+    // Clip to circle (cached).
+    canvas.clipPath(_getClipPath(size));
 
-    // Draw liquid
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.fill;
-
     canvas.drawPath(path, paint);
 
-    // Draw lighter overlay wave
+    // Overlay wave
     final overlayPath = Path();
     overlayPath.moveTo(0, fillHeight - 3);
-
-    for (double x = 0; x <= size.width; x += 2) {
+    for (double x = 0; x <= size.width; x += step) {
       final normalized = x / size.width;
       final wave =
           math.sin((normalized * math.pi * 2.5) + (wavePhase * math.pi * 2.5)) *
               (waveHeight * 0.7);
       overlayPath.lineTo(x, fillHeight - 3 + wave);
     }
-
     overlayPath.lineTo(size.width, size.height);
     overlayPath.lineTo(0, size.height);
     overlayPath.close();
 
-    final overlayPaint = Paint()
-      ..color = color.withValues(alpha: 0.3)
-      ..style = PaintingStyle.fill;
-
-    canvas.drawPath(overlayPath, overlayPaint);
+    canvas.drawPath(
+      overlayPath,
+      Paint()
+        ..color = color.withValues(alpha: 0.3)
+        ..style = PaintingStyle.fill,
+    );
   }
 
   @override
@@ -265,8 +271,8 @@ class LiquidLinearPainter extends CustomPainter {
 
     path.moveTo(0, 0);
 
-    // Draw top wave
-    for (double x = 0; x <= progressWidth; x += 2) {
+    // Draw top wave (step 4 halves path points vs step 2)
+    for (double x = 0; x <= progressWidth; x += 4) {
       final normalized = x / size.width;
       final wave =
           math.sin((normalized * math.pi * 4) + (wavePhase * math.pi * 2)) *

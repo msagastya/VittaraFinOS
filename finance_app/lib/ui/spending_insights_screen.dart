@@ -32,13 +32,24 @@ class SpendingInsightsScreen extends StatelessWidget {
           ),
         ),
       ),
-      child: Consumer2<TransactionsController, BudgetsController>(
-        builder: (context, txCtrl, budgetsCtrl, _) {
-          final data = computeSpendIntel(txCtrl.transactions, budgetsCtrl.budgets);
+      // Use Selector2 so the body only rebuilds when transaction/budget
+      // counts change — avoids full recompute on unrelated state updates.
+      child: Selector2<TransactionsController, BudgetsController,
+          ({List<Transaction> txns, int budgetCount})>(
+        selector: (_, txCtrl, budgetsCtrl) => (
+          txns: txCtrl.transactions,
+          budgetCount: budgetsCtrl.budgets.length,
+        ),
+        shouldRebuild: (prev, next) =>
+            prev.txns.length != next.txns.length ||
+            prev.budgetCount != next.budgetCount,
+        builder: (context, sel, _) {
+          final budgets = context.read<BudgetsController>().budgets;
+          final data = computeSpendIntel(sel.txns, budgets);
           return _SpendIntelBody(
             data: data,
             isDark: isDark,
-            transactions: txCtrl.transactions,
+            transactions: sel.txns,
           );
         },
       ),

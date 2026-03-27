@@ -408,7 +408,7 @@ class HealthScoreBody extends StatefulWidget {
   final HealthScoreData data;
   final bool isDark;
 
-  const HealthScoreBody({required this.data, required this.isDark});
+  const HealthScoreBody({super.key, required this.data, required this.isDark});
 
   @override
   State<HealthScoreBody> createState() => HealthScoreBodyState();
@@ -780,7 +780,7 @@ class HealthScoreWidget extends BaseDashboardWidget {
             accounts: accountsController.accounts,
           );
           final isDark = Theme.of(context).brightness == Brightness.dark;
-          return HealthScoreBody(data: data, isDark: isDark);
+          return HealthScoreBody(key: ValueKey(data.total), data: data, isDark: isDark);
         },
       ),
     );
