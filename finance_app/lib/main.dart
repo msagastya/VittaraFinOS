@@ -80,64 +80,70 @@ void main() {
     runApp(
       MultiProvider(
         providers: [
-          ChangeNotifierProvider(
-            create: (_) => SettingsController()..loadSettings(),
-          ),
-          ChangeNotifierProvider(
-            create: (_) => AccountsController()..loadAccounts(),
-          ),
-          ChangeNotifierProvider(
-            create: (_) => BanksController(),
-          ),
-          ChangeNotifierProvider(
-            create: (_) => BrokersController(),
-          ),
-          ChangeNotifierProvider(
-            create: (_) => PaymentAppsController()..loadApps(),
-          ),
-          ChangeNotifierProvider(
-            create: (_) => InvestmentsController()..loadInvestments(),
-          ),
-          ChangeNotifierProvider(
-            create: (_) =>
-                InvestmentTypePreferencesController()..loadPreferences(),
-          ),
-          ChangeNotifierProvider(
-            create: (_) => CategoriesController()..loadCategories(),
-          ),
-          ChangeNotifierProvider(
-            create: (_) => LendingBorrowingController()..loadRecords(),
-          ),
-          ChangeNotifierProvider(
-            create: (_) => ContactsController()..loadContacts(),
-          ),
-          ChangeNotifierProvider(
-            create: (_) => TagsController()..loadTags(),
-          ),
-          ChangeNotifierProvider(
-            create: (_) => TransactionsController()..loadTransactions(),
-          ),
-          ChangeNotifierProvider(
-            create: (_) => TransactionsArchiveController(),
-          ),
-          ChangeNotifierProvider(
-            create: (_) => DashboardController()..initialize(),
-          ),
-          ChangeNotifierProvider(
-            create: (_) => GoalsController()..initialize(),
-          ),
-          ChangeNotifierProvider(
-            create: (_) => BudgetsController()..initialize(),
-          ),
-          ChangeNotifierProvider(
-            create: (_) => RecurringTemplatesController(),
-          ),
-          ChangeNotifierProvider(
-            create: (_) => LoanController()..load(),
-          ),
-          ChangeNotifierProvider(
-            create: (_) => InsuranceController()..load(),
-          ),
+          ChangeNotifierProvider(create: (_) {
+            try { return SettingsController()..loadSettings(); }
+            catch (e) { logger.error('SettingsController init failed', error: e); return SettingsController(); }
+          }),
+          ChangeNotifierProvider(create: (_) {
+            try { return AccountsController()..loadAccounts(); }
+            catch (e) { logger.error('AccountsController init failed', error: e); return AccountsController(); }
+          }),
+          ChangeNotifierProvider(create: (_) => BanksController()),
+          ChangeNotifierProvider(create: (_) => BrokersController()),
+          ChangeNotifierProvider(create: (_) {
+            try { return PaymentAppsController()..loadApps(); }
+            catch (e) { logger.error('PaymentAppsController init failed', error: e); return PaymentAppsController(); }
+          }),
+          ChangeNotifierProvider(create: (_) {
+            try { return InvestmentsController()..loadInvestments(); }
+            catch (e) { logger.error('InvestmentsController init failed', error: e); return InvestmentsController(); }
+          }),
+          ChangeNotifierProvider(create: (_) {
+            try { return InvestmentTypePreferencesController()..loadPreferences(); }
+            catch (e) { logger.error('InvestmentTypePreferencesController init failed', error: e); return InvestmentTypePreferencesController(); }
+          }),
+          ChangeNotifierProvider(create: (_) {
+            try { return CategoriesController()..loadCategories(); }
+            catch (e) { logger.error('CategoriesController init failed', error: e); return CategoriesController(); }
+          }),
+          ChangeNotifierProvider(create: (_) {
+            try { return LendingBorrowingController()..loadRecords(); }
+            catch (e) { logger.error('LendingBorrowingController init failed', error: e); return LendingBorrowingController(); }
+          }),
+          ChangeNotifierProvider(create: (_) {
+            try { return ContactsController()..loadContacts(); }
+            catch (e) { logger.error('ContactsController init failed', error: e); return ContactsController(); }
+          }),
+          ChangeNotifierProvider(create: (_) {
+            try { return TagsController()..loadTags(); }
+            catch (e) { logger.error('TagsController init failed', error: e); return TagsController(); }
+          }),
+          ChangeNotifierProvider(create: (_) {
+            try { return TransactionsController()..loadTransactions(); }
+            catch (e) { logger.error('TransactionsController init failed', error: e); return TransactionsController(); }
+          }),
+          ChangeNotifierProvider(create: (_) => TransactionsArchiveController()),
+          ChangeNotifierProvider(create: (_) {
+            try { return DashboardController()..initialize(); }
+            catch (e) { logger.error('DashboardController init failed', error: e); return DashboardController(); }
+          }),
+          ChangeNotifierProvider(create: (_) {
+            try { return GoalsController()..initialize(); }
+            catch (e) { logger.error('GoalsController init failed', error: e); return GoalsController(); }
+          }),
+          ChangeNotifierProvider(create: (_) {
+            try { return BudgetsController()..initialize(); }
+            catch (e) { logger.error('BudgetsController init failed', error: e); return BudgetsController(); }
+          }),
+          ChangeNotifierProvider(create: (_) => RecurringTemplatesController()),
+          ChangeNotifierProvider(create: (_) {
+            try { return LoanController()..load(); }
+            catch (e) { logger.error('LoanController init failed', error: e); return LoanController(); }
+          }),
+          ChangeNotifierProvider(create: (_) {
+            try { return InsuranceController()..load(); }
+            catch (e) { logger.error('InsuranceController init failed', error: e); return InsuranceController(); }
+          }),
         ],
         child: const MyApp(),
       ),
@@ -175,7 +181,23 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       settings.appPaused();
     } else if (state == AppLifecycleState.resumed) {
       settings.appResumed();
+      // Re-show lock screen if lock is active.
+      if (settings.lockOnMinimize && settings.isLocked && settings.appLoaded && !kIsWeb) {
+        _showLockDialog();
+      }
     }
+  }
+
+  void _showLockDialog() {
+    final nav = appNavigatorKey.currentState;
+    if (nav == null) return;
+    nav.push(
+      PageRouteBuilder(
+        opaque: false,
+        barrierDismissible: false,
+        pageBuilder: (_, __, ___) => const _LockDialog(),
+      ),
+    );
   }
 
   @override
@@ -281,9 +303,16 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                   ),
                   child: child!,
                 ),
-                // LOCK SCREEN OVERLAY (disabled on web)
+                // Lock screen is shown via _LockDialog (dialog route) on resume.
+                // Kept as fallback Positioned.fill only during initial cold start.
                 if (settings.isLocked && settings.appLoaded && !kIsWeb)
-                  const Positioned.fill(child: LockScreen()),
+                  Positioned.fill(
+                    child: GestureDetector(
+                      // Absorb horizontal swipes to prevent iOS edge-swipe bypass.
+                      onHorizontalDragUpdate: (_) {},
+                      child: const LockScreen(),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -593,10 +622,31 @@ class _SplashScreenState extends State<SplashScreen> {
     // Initialize MFDatabaseService in background (non-blocking)
     MFDatabaseService().initialize();
 
-    Timer(const Duration(milliseconds: 3500), () async {
-      if (!mounted) return;
-      logger.info("Navigating from SplashScreen", context: 'SplashScreen');
-      Provider.of<SettingsController>(context, listen: false).setAppLoaded();
+    _waitForReadyThenNavigate();
+  }
+
+  Future<void> _waitForReadyThenNavigate() async {
+    // Wait for minimum splash duration AND DashboardController to be ready.
+    // Cap the wait at 5s to avoid hanging indefinitely on slow devices.
+    final dashCtrl = Provider.of<DashboardController>(context, listen: false);
+    const minWait = Duration(milliseconds: 1200);
+    const maxWait = Duration(seconds: 5);
+
+    await Future.any([
+      Future.wait([
+        Future.delayed(minWait),
+        Future.doWhile(() async {
+          if (dashCtrl.isInitialized) return false;
+          await Future.delayed(const Duration(milliseconds: 100));
+          return true;
+        }),
+      ]),
+      Future.delayed(maxWait),
+    ]);
+
+    if (!mounted) return;
+    logger.info("Navigating from SplashScreen", context: 'SplashScreen');
+    Provider.of<SettingsController>(context, listen: false).setAppLoaded();
 
       final done = await hasCompletedOnboarding();
       if (!mounted) return;
@@ -623,7 +673,6 @@ class _SplashScreenState extends State<SplashScreen> {
           ),
         );
       }
-    });
   }
 
   /// AU20-02 — Show "What's New" once on first launch after an app update.
@@ -2357,4 +2406,29 @@ class _DotGridPainter extends CustomPainter {
   @override
   bool shouldRepaint(_DotGridPainter oldDelegate) =>
       oldDelegate.isDark != isDark;
+}
+
+/// Full-screen lock dialog shown via Navigator push (covers all overlays).
+/// Pops itself when the underlying [SettingsController.isLocked] goes false.
+class _LockDialog extends StatelessWidget {
+  const _LockDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<SettingsController>(
+      builder: (context, settings, _) {
+        if (!settings.isLocked) {
+          // Dismiss self when unlock succeeds.
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (Navigator.of(context).canPop()) Navigator.of(context).pop();
+          });
+        }
+        // Absorb horizontal swipes to prevent iOS edge-swipe bypass.
+        return GestureDetector(
+          onHorizontalDragUpdate: (_) {},
+          child: const LockScreen(),
+        );
+      },
+    );
+  }
 }
