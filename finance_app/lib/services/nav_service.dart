@@ -48,7 +48,7 @@ class NAVService {
     // Fallback endpoint: historical feed, take first record
     final fallbackUrl = Uri.parse('${AppConfig.mfSchemeLatestUrl}/$schemeCode');
     final fallbackResponse =
-        await http.get(fallbackUrl).timeout(const Duration(seconds: 12));
+        await http.get(fallbackUrl).timeout(const Duration(seconds: 10));
     if (fallbackResponse.statusCode != 200) return null;
 
     final fallbackPayload = json.decode(fallbackResponse.body);
