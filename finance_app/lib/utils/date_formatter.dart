@@ -201,7 +201,7 @@ class DateFormatter {
 
   /// Format "FY YYYY-YY" label for a given year start (e.g., 2024 → "FY 2024-25")
   static String formatFinancialYear(int fyStartYear) {
-    return 'FY $fyStartYear-${(fyStartYear + 1) % 100}';
+    return 'FY $fyStartYear-${((fyStartYear + 1) % 100).toString().padLeft(2, '0')}';
   }
 
   /// Group a list of items by date label (Today / Yesterday / DD MMM YYYY).

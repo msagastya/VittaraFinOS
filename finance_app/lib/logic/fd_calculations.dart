@@ -7,20 +7,20 @@ class FDCalculations {
   ///
   /// CAGR = (Current Value / Original Invested)^(1 / Years Elapsed) - 1
   /// Where Years Elapsed = Total Days / 365.25
-  static double calculateCAGR(
+  static double? calculateCAGR(
     double originalInvested,
     double currentValue,
     DateTime originalInvestmentDate,
     DateTime asOfDate,
   ) {
-    if (originalInvested <= 0 || currentValue <= 0) return 0;
-    if (originalInvestmentDate.isAfter(asOfDate)) return 0;
+    if (originalInvested <= 0 || currentValue <= 0) return null;
+    if (originalInvestmentDate.isAfter(asOfDate)) return null;
 
     // Calculate exact days elapsed
     final daysDifference = asOfDate.difference(originalInvestmentDate).inDays;
 
-    // If less than 1 day, return 0
-    if (daysDifference == 0) return 0;
+    // Too early to calculate a meaningful rate
+    if (daysDifference == 0) return null;
 
     // Convert days to years (365.25 accounts for leap years)
     final yearsElapsed = daysDifference / 365.25;
@@ -29,7 +29,7 @@ class FDCalculations {
     final ratio = currentValue / originalInvested;
     final cagr = (math.pow(ratio, 1 / yearsElapsed) - 1) * 100;
 
-    return cagr.isFinite ? cagr.toDouble() : 0.0;
+    return cagr.isFinite ? cagr.toDouble() : null;
   }
 
   /// Calculate total current value across all cycles

@@ -27,18 +27,15 @@ class MerchantNormalizer {
     for (final entry in _aliases.entries) {
       if (lower.contains(entry.key)) return entry.value;
     }
-    // Title case — split on spaces, hyphens, and dashes
-    return raw.trim().split(RegExp(r'[\s\-–]++')).map((w) {
-      if (w.isEmpty) return w;
-      // Preserve apostrophes: "mcdonald's" → "McDonald's" not "Mcdonald'S"
+    // Title case — split on spaces, hyphens, and dashes; filter empty tokens
+    return raw.trim().split(RegExp(r'[\s\-–]+')).where((w) => w.isNotEmpty).map((w) {
+      // Preserve apostrophes: "mcdonald's" → "McDonald's"
       final apostrophe = w.indexOf("'");
       if (apostrophe > 0) {
-        return w[0].toUpperCase() +
-            w.substring(1, apostrophe).toLowerCase() +
-            "'" +
-            w.substring(apostrophe + 1);
+        return '${w[0].toUpperCase()}${w.substring(1, apostrophe).toLowerCase()}'
+            "'${w.substring(apostrophe + 1)}";
       }
-      return w[0].toUpperCase() + w.substring(1).toLowerCase();
+      return '${w[0].toUpperCase()}${w.substring(1).toLowerCase()}';
     }).join(' ');
   }
 

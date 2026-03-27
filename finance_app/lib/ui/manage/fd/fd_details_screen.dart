@@ -140,7 +140,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                         _buildMetric(
                           context,
                           'CAGR',
-                          '${_calculateCAGR(widget.fd).toStringAsFixed(2)}%',
+                          _calculateCAGR(widget.fd) != null ? '${_calculateCAGR(widget.fd)!.toStringAsFixed(2)}%' : 'Too early',
                           AppStyles.gain(context),
                         ),
                       ],
@@ -1958,22 +1958,14 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
     };
   }
 
-  /// Calculate CAGR for the FD based on current state
-  double _calculateCAGR(FixedDeposit fd) {
-    final principal = fd.principal;
-    final currentValue = _getCurrentValue();
-    final investDate = fd.investmentDate;
-    final today = DateTime.now();
-    final daysElapsed = today.difference(investDate).inDays;
-    final yearsElapsed = daysElapsed / 365.25;
-
-    final cagr = FDCalculations.calculateCAGR(
-      principal,
-      currentValue,
-      investDate,
-      today,
+  /// Calculate CAGR for the FD based on current state. Returns null if too early.
+  double? _calculateCAGR(FixedDeposit fd) {
+    return FDCalculations.calculateCAGR(
+      fd.principal,
+      _getCurrentValue(),
+      fd.investmentDate,
+      DateTime.now(),
     );
-    return cagr;
   }
 
   Widget _buildMaturityAlert(BuildContext context) {

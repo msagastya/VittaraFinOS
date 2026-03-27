@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -176,23 +177,50 @@ class NAVService {
     }
   }
 
-  /// Calculate XIRR (Extended Internal Rate of Return) for SIP investments
+  /// Calculate XIRR (Extended Internal Rate of Return) for SIP investments.
+  /// Uses Newton-Raphson on actual cashflow dates for a proper annualized IRR.
   Future<double?> calculateXIRR(List<SIPTransaction> transactions) async {
-    // Simple XIRR calculation (can be enhanced with more accurate algorithm)
     try {
       if (transactions.isEmpty) return null;
 
-      double totalInvested = 0;
-      double totalValue = 0;
+      // Build cashflows: outflows (-) on each purchase date,
+      // single inflow (+) today for total current market value.
+      final today = DateTime.now();
+      final List<({DateTime date, double amount})> cashflows = [];
+      double totalCurrentValue = 0;
 
-      for (final transaction in transactions) {
-        totalInvested += transaction.amount;
-        totalValue += transaction.amount *
-            (transaction.currentNAV / transaction.purchaseNAV);
+      for (final tx in transactions) {
+        if (tx.purchaseNAV <= 0) continue;
+        final units = tx.amount / tx.purchaseNAV;
+        totalCurrentValue += units * tx.currentNAV;
+        cashflows.add((date: tx.date, amount: -tx.amount));
       }
 
-      final returns = ((totalValue - totalInvested) / totalInvested) * 100;
-      return returns;
+      if (cashflows.isEmpty || totalCurrentValue <= 0) return null;
+      cashflows.add((date: today, amount: totalCurrentValue));
+
+      // Newton-Raphson: solve NPV(rate) = 0.
+      final t0 = cashflows.first.date;
+      double rate = 0.1; // initial guess 10%
+      const maxIter = 100;
+      const tol = 1e-7;
+
+      for (int i = 0; i < maxIter; i++) {
+        double npv = 0, dnpv = 0;
+        for (final cf in cashflows) {
+          final t = cf.date.difference(t0).inDays / 365.0;
+          final denom = math.pow(1 + rate, t).toDouble();
+          npv += cf.amount / denom;
+          dnpv -= t * cf.amount / (denom * (1 + rate));
+        }
+        if (dnpv.abs() < 1e-12) break;
+        final delta = npv / dnpv;
+        rate -= delta;
+        if (delta.abs() < tol) break;
+      }
+
+      if (!rate.isFinite || rate <= -1) return null;
+      return rate * 100; // return as percentage
     } catch (e) {
       debugPrint('Error calculating XIRR: $e');
       return null;
