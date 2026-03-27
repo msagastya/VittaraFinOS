@@ -58,8 +58,7 @@ class _BondsWizardContent extends StatelessWidget {
         metadata: {
           'purchaseDate': DateTime.now().toIso8601String(),
           'maturityDate': controller.maturityDate.toIso8601String(),
-          'payoutFrequency':
-              controller.payoutFrequency.toString().split('.').last,
+          'payoutFrequency': controller.payoutFrequency.name,
           'firstPayoutMonth': controller.firstPayoutMonth,
           'firstPayoutDay': controller.firstPayoutDay,
           'linkedAccountId': controller.linkedAccountId,

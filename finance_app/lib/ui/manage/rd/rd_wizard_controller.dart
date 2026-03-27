@@ -150,7 +150,7 @@ class RDWizardController extends ChangeNotifier {
 
   void _updateMaturityDate() {
     final monthsPerInstallment = _getMonthsForFrequency(paymentFrequency);
-    final totalMonths = (totalInstallments - 1) * monthsPerInstallment;
+    final totalMonths = totalInstallments * monthsPerInstallment;
 
     var newMonth = startDate.month + totalMonths;
     var newYear = startDate.year;

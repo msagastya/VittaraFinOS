@@ -6,11 +6,14 @@ import 'package:vittara_fin_os/logic/contacts_controller.dart';
 import 'package:vittara_fin_os/logic/contact_model.dart';
 import 'package:vittara_fin_os/logic/lending_borrowing_controller.dart';
 import 'package:vittara_fin_os/logic/lending_borrowing_model.dart';
+import 'package:vittara_fin_os/logic/transactions_controller.dart';
+import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
+import 'package:vittara_fin_os/ui/transaction_history_screen.dart';
 
 class ContactsScreen extends StatefulWidget {
   const ContactsScreen({super.key});
@@ -235,8 +238,8 @@ class _ContactsScreenState extends State<ContactsScreen> {
     showCupertinoModalPopup(
       context: context,
       builder: (sheetContext) {
-        return Consumer<LendingBorrowingController>(
-          builder: (ctx, lbCtrl, _) {
+        return Consumer2<LendingBorrowingController, TransactionsController>(
+          builder: (ctx, lbCtrl, txCtrl, _) {
             final allRecords = lbCtrl.records
                 .where((r) =>
                     r.personName.toLowerCase() == contact.name.toLowerCase())
@@ -254,6 +257,15 @@ class _ContactsScreenState extends State<ContactsScreen> {
             final totalBorrowed = activeRecords
                 .where((r) => r.type == LendingType.borrowed)
                 .fold<double>(0, (sum, r) => sum + r.amount);
+
+            final contactTxs = txCtrl.transactions
+                .where((tx) {
+                  final merchant = tx.metadata?['merchant'] as String?;
+                  return merchant != null &&
+                      merchant.toLowerCase() == contact.name.toLowerCase();
+                })
+                .toList()
+              ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
 
             final initials = contact.name.isNotEmpty
                 ? contact.name.trim()[0].toUpperCase()
@@ -486,6 +498,127 @@ class _ContactsScreenState extends State<ContactsScreen> {
                                     (r) => _buildLendingRecordCard(ctx, r)),
                               ],
                             ],
+
+                            // ── Recent Transactions ───────────────────────
+                            const SizedBox(height: 20),
+                            Row(
+                              children: [
+                                Text('Recent Transactions',
+                                    style: TextStyle(
+                                      fontSize: TypeScale.footnote,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 1.0,
+                                      color: AppStyles.getSecondaryTextColor(ctx),
+                                    )),
+                                const Spacer(),
+                                if (contactTxs.isNotEmpty)
+                                  CupertinoButton(
+                                    padding: EdgeInsets.zero,
+                                    minSize: 0,
+                                    onPressed: () {
+                                      Navigator.pop(sheetContext);
+                                      Navigator.push(
+                                        context,
+                                        CupertinoPageRoute(
+                                          builder: (_) =>
+                                              TransactionHistoryScreen(
+                                            filterContactName: contact.name,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    child: const Text('View All',
+                                        style: TextStyle(
+                                            fontSize: TypeScale.footnote,
+                                            color: CupertinoColors.systemBlue)),
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            if (contactTxs.isEmpty)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                child: Center(
+                                  child: Text(
+                                    'No transactions with ${contact.name}',
+                                    style: TextStyle(
+                                      color: AppStyles.getSecondaryTextColor(ctx),
+                                      fontSize: TypeScale.footnote,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              )
+                            else
+                              ...contactTxs.take(5).map((tx) {
+                                final isDebit =
+                                    tx.type == TransactionType.expense ||
+                                        tx.type == TransactionType.investment ||
+                                        tx.type == TransactionType.lending;
+                                final color = isDebit
+                                    ? CupertinoColors.systemRed
+                                    : CupertinoColors.systemGreen;
+                                return Container(
+                                  margin: const EdgeInsets.only(bottom: 8),
+                                  padding: const EdgeInsets.all(Spacing.md),
+                                  decoration: AppStyles.cardDecoration(ctx),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 36,
+                                        height: 36,
+                                        decoration: BoxDecoration(
+                                          color: color.withValues(alpha: 0.15),
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                        child: Icon(
+                                          isDebit
+                                              ? CupertinoIcons.arrow_up
+                                              : CupertinoIcons.arrow_down,
+                                          size: 16,
+                                          color: color,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              tx.description,
+                                              style: TextStyle(
+                                                fontSize: TypeScale.footnote,
+                                                fontWeight: FontWeight.w600,
+                                                color: AppStyles.getTextColor(ctx),
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            Text(
+                                              '${tx.dateTime.day}/${tx.dateTime.month}/${tx.dateTime.year}',
+                                              style: TextStyle(
+                                                fontSize: TypeScale.caption,
+                                                color: AppStyles
+                                                    .getSecondaryTextColor(ctx),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Text(
+                                        '${isDebit ? '−' : '+'}₹${tx.amount.abs().toStringAsFixed(0)}',
+                                        style: TextStyle(
+                                          fontSize: TypeScale.footnote,
+                                          fontWeight: FontWeight.w700,
+                                          color: color,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }),
                           ],
                         ),
                       ),

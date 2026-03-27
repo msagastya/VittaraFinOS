@@ -54,7 +54,9 @@ class _MFWizardContentState extends State<_MFWizardContent> {
       double nav = 0;
 
       if (controller.selectedMFType == MFType.existing) {
-        units = controller.investmentAmount / controller.averageNAV;
+        units = controller.averageNAV > 0
+            ? controller.investmentAmount / controller.averageNAV
+            : 0;
         nav = controller.averageNAV;
       } else {
         units = controller.calculatedUnits;

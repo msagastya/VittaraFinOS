@@ -67,16 +67,20 @@ class TransactionHistoryScreen extends StatefulWidget {
   /// account are shown and the title is set to [filterAccountName].
   /// When [filterPaymentAppName] is provided, only transactions made via that
   /// payment app are shown.
+  /// When [filterContactName] is provided, only transactions whose merchant
+  /// matches that contact name are shown.
   const TransactionHistoryScreen({
     super.key,
     this.filterAccountId,
     this.filterAccountName,
     this.filterPaymentAppName,
+    this.filterContactName,
   });
 
   final String? filterAccountId;
   final String? filterAccountName;
   final String? filterPaymentAppName;
+  final String? filterContactName;
 
   @override
   State<TransactionHistoryScreen> createState() =>
@@ -173,6 +177,14 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     if (widget.filterPaymentAppName != null) {
       final appName = widget.filterPaymentAppName!;
       result = result.where((t) => t.paymentAppName == appName).toList();
+    }
+    // Contact-scoped view: keep only transactions where merchant == contact name.
+    if (widget.filterContactName != null) {
+      final name = widget.filterContactName!.toLowerCase();
+      result = result.where((t) {
+        final merchant = t.metadata?['merchant'] as String?;
+        return merchant != null && merchant.toLowerCase() == name;
+      }).toList();
     }
     if (_searchQuery.isNotEmpty) {
       final q = _searchQuery.toLowerCase();
@@ -599,7 +611,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
       backgroundColor: AppStyles.getBackground(context),
       navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
         middle: Text(
-            widget.filterPaymentAppName ?? widget.filterAccountName ?? 'Transaction History',
+            widget.filterPaymentAppName ?? widget.filterContactName ?? widget.filterAccountName ?? 'Transaction History',
             style: TextStyle(color: AppStyles.getTextColor(context))),
         previousPageTitle: 'Back',
         backgroundColor: AppStyles.getBackground(context),
@@ -1424,7 +1436,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           ),
           const SizedBox(width: 8),
           Text(
-            (widget.filterPaymentAppName ?? widget.filterAccountName)?.toUpperCase() ?? 'TRANSACTIONS',
+            (widget.filterPaymentAppName ?? widget.filterContactName ?? widget.filterAccountName)?.toUpperCase() ?? 'TRANSACTIONS',
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,

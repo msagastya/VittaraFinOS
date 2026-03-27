@@ -135,6 +135,10 @@ class _LoanWizardState extends State<LoanWizard> {
           _showError('Enter a valid outstanding amount.');
           return false;
         }
+        if (principal != null && outstanding > principal) {
+          _showError('Outstanding cannot exceed principal amount.');
+          return false;
+        }
         if (emi == null || emi <= 0) {
           _showError('Enter a valid EMI amount.');
           return false;

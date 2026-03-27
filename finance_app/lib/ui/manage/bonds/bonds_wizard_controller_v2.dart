@@ -93,9 +93,9 @@ class BondsWizardControllerV2 extends ChangeNotifier {
       case 4:
         // Dates validation
         if (payoutFrequency == PayoutFrequency.atMaturity) {
-          return maturityDate.isAfter(DateTime.now());
+          return maturityDate.isAfter(DateTime.now().add(const Duration(days: 1)));
         } else {
-          return maturityDate.isAfter(DateTime.now()) &&
+          return maturityDate.isAfter(DateTime.now().add(const Duration(days: 1))) &&
               firstPayoutDay >= 1 &&
               firstPayoutDay <= 31 &&
               firstPayoutMonth >= 1 &&

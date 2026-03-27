@@ -38,7 +38,8 @@ class FOWizardController extends ChangeNotifier {
         return entryPrice != null &&
             entryPrice! > 0 &&
             quantity != null &&
-            quantity! > 0;
+            quantity! > 0 &&
+            entryDate.isBefore(expiryDate);
       case 2:
         // Position details (current price)
         return currentPrice != null && currentPrice! > 0;
