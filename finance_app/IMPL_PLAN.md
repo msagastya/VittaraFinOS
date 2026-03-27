@@ -22,7 +22,7 @@
 | B12 | Startup, Lock Screen, Lifecycle | 5 | `[x]` | b834f75 |
 | B13 | UX: Empty States + Stale Data + Nav | 14 | `[x]` | 183666b |
 | B14 | Performance | 6 | `[x]` | 3d8792d |
-| B15 | P3 Polish | 15 | `[x]` | — |
+| B15 | P3 Polish | 15 | `[x]` | 9677d9c |
 
 ---
 
