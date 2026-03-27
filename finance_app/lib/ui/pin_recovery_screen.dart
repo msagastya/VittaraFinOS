@@ -37,6 +37,7 @@ class _PinRecoveryScreenState extends State<PinRecoveryScreen> {
   bool _pinSuccess = false;
 
   // Nuclear reset flow
+  bool _isGenerating = false; // guards against double-tap during code generation
   bool _showNuclearReset = false;
   int _nuclearStep = 0; // 0=warn, 1=type confirm, 2=countdown
   final _nuclearController = TextEditingController();
@@ -156,29 +157,35 @@ class _PinRecoveryScreenState extends State<PinRecoveryScreen> {
   }
 
   Future<void> _finalizeReset() async {
-    final settings =
-        Provider.of<SettingsController>(context, listen: false);
-    await settings.resetPinAfterRecovery(_newPinDigits.join());
-    // Generate new recovery code
-    final newCode =
-        await PinRecoveryController.instance.generateAndStoreRecoveryCode();
-    if (!mounted) return;
-    Haptics.success();
-    setState(() => _pinSuccess = true);
-    await Future.delayed(const Duration(milliseconds: 600));
-    if (!mounted) return;
-    // Show new recovery code save screen, then unlock
-    Navigator.of(context).pushReplacement(
-      CupertinoPageRoute(
-        builder: (_) => _NewCodeAfterRecoveryScreen(
-          recoveryCode: newCode,
-          onDone: () {
-            settings.authenticateAndUnlockWithPin();
-            Navigator.of(context).popUntil((r) => r.isFirst);
-          },
+    if (_isGenerating) return;
+    setState(() => _isGenerating = true);
+    try {
+      final settings =
+          Provider.of<SettingsController>(context, listen: false);
+      await settings.resetPinAfterRecovery(_newPinDigits.join());
+      // Generate new recovery code
+      final newCode =
+          await PinRecoveryController.instance.generateAndStoreRecoveryCode();
+      if (!mounted) return;
+      Haptics.success();
+      setState(() => _pinSuccess = true);
+      await Future.delayed(const Duration(milliseconds: 600));
+      if (!mounted) return;
+      // Show new recovery code save screen, then unlock
+      Navigator.of(context).pushReplacement(
+        CupertinoPageRoute(
+          builder: (_) => _NewCodeAfterRecoveryScreen(
+            recoveryCode: newCode,
+            onDone: () {
+              settings.authenticateAndUnlockWithPin();
+              Navigator.of(context).popUntil((r) => r.isFirst);
+            },
+          ),
         ),
-      ),
-    );
+      );
+    } finally {
+      if (mounted) setState(() => _isGenerating = false);
+    }
   }
 
   void _startNuclearCountdown() {

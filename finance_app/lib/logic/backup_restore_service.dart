@@ -121,7 +121,11 @@ class BackupRestoreService {
     'showArchivedTransactions',
   };
 
-  // Obfuscated app-level secret used to derive encryption keys.
+  // LEGACY KEY (v1 backups only) — this seed is baked into the app binary and
+  // provides weaker security than the per-device key used in v2+ backups.
+  // If [lastRestoreUsedLegacyKey] is true after a restore, prompt the user
+  // to create a fresh backup so it gets encrypted with the v2 device key.
+  // DO NOT remove or change this constant — it is needed to decrypt existing v1 backups.
   static const List<int> _masterSecretSeed = [
     0x76,
     0x69,

@@ -66,13 +66,19 @@ class PinRecoveryController {
     final normalized = input.replaceAll(RegExp(r'[\s\-]'), '').toUpperCase();
 
     final storedHash = await _storage.read(key: _keyRecoveryHash);
-    if (storedHash == null) return RecoveryResult.noCodeSet();
+    final usedFlag = await _storage.read(key: '${_keyRecoveryHash}_used');
+    if (storedHash == null || usedFlag != null) return RecoveryResult.noCodeSet();
 
     if (_hashCode(normalized) == storedHash) {
       // Success — clear rate limiting, invalidate used code
       await _storage.delete(key: _keyFailedAttempts);
       await _storage.delete(key: _keyLockoutUntil);
       await _storage.delete(key: _keyRecoveryHash); // code is single-use
+      // Verify deletion succeeded; if not, write a used-flag as fallback.
+      final verifyGone = await _storage.read(key: _keyRecoveryHash);
+      if (verifyGone != null) {
+        await _storage.write(key: '${_keyRecoveryHash}_used', value: 'true');
+      }
       return RecoveryResult.success();
     }
 

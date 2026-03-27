@@ -48,6 +48,14 @@ class _RecoveryCodeSaveScreenState extends State<RecoveryCodeSaveScreen>
     }
   }
 
+  void _confirmAndClearClipboard() {
+    if (_copied) {
+      Clipboard.setData(const ClipboardData(text: ''));
+      setState(() => _copied = false);
+    }
+    widget.onConfirmed();
+  }
+
   void _copy() {
     Clipboard.setData(ClipboardData(text: widget.recoveryCode));
     setState(() => _copied = true);
@@ -280,7 +288,7 @@ class _RecoveryCodeSaveScreenState extends State<RecoveryCodeSaveScreen>
 
               // Continue button
               BouncyButton(
-                onPressed: _confirmed ? widget.onConfirmed : () {},
+                onPressed: _confirmed ? _confirmAndClearClipboard : () {},
                 child: AnimatedContainer(
                   duration: AppDurations.fast,
                   width: double.infinity,

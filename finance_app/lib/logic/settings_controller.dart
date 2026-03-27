@@ -319,7 +319,22 @@ class SettingsController with ChangeNotifier {
   bool verifyPin(String pin) {
     if (_pinHash == null) return false;
     // Use per-user salt if available (v2); fall back to legacy hash for existing users.
-    return _hashPin(pin, salt: _pinSalt) == _pinHash;
+    final match = _hashPin(pin, salt: _pinSalt) == _pinHash;
+    if (match && _pinSalt == null) {
+      // Migrate legacy user to per-user salt now that we have the plain PIN.
+      _migrateLegacySalt(pin);
+    }
+    return match;
+  }
+
+  /// Upgrades a legacy (hardcoded-salt) PIN hash to a per-user random salt.
+  /// Called transparently on first successful verification for legacy users.
+  void _migrateLegacySalt(String pin) {
+    _pinSalt = _generateSalt();
+    _pinHash = _hashPin(pin, salt: _pinSalt);
+    // Fire-and-forget — if this save fails the user just migrates again next login.
+    _secureStorage.write(key: _keyPinHash, value: _pinHash!);
+    _secureStorage.write(key: _keyPinSalt, value: _pinSalt!);
   }
 
   void showPinEntryFallback() {
