@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/budgets_controller.dart';
 import 'package:vittara_fin_os/ui/manage/budgets/budgets_screen.dart';
+import 'package:vittara_fin_os/ui/manage/budgets/budget_details_screen.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
@@ -195,7 +196,11 @@ class BudgetDashboardWidget extends StatelessWidget {
                   : pct >= 0.8
                       ? CupertinoColors.systemOrange
                       : AppStyles.accentGreen;
-              return Padding(
+              return GestureDetector(
+              onTap: () => Navigator.of(context).push(
+                FadeScalePageRoute(page: BudgetDetailsScreen(budgetId: b.id)),
+              ),
+              child: Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -237,7 +242,8 @@ class BudgetDashboardWidget extends StatelessWidget {
                     ),
                   ],
                 ),
-              );
+              ),
+            );
             }),
           ],
         );

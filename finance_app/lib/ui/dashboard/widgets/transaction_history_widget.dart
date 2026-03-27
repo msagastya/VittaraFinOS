@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
@@ -222,7 +223,9 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
 
     if (compact) {
       // Vertical compact layout
-      return Container(
+      return GestureDetector(
+        onTap: () => HapticFeedback.selectionClick(),
+        child: Container(
         padding: const EdgeInsets.all(Spacing.sm),
         decoration: BoxDecoration(
           color: AppStyles.getCardColor(context),
@@ -285,11 +288,14 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
             ),
           ],
         ),
+      ),
       );
     }
 
     // Horizontal layout - Enhanced
-    return Container(
+    return GestureDetector(
+      onTap: () => HapticFeedback.selectionClick(),
+      child: Container(
       padding: const EdgeInsets.all(Spacing.md),
       decoration: BoxDecoration(
         color: AppStyles.getCardColor(context),
@@ -374,6 +380,7 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }

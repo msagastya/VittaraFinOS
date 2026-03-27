@@ -13,7 +13,7 @@ import 'package:vittara_fin_os/ui/manage/stocks/steps/stock_review_step.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
-import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
+import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
 
 class StocksWizard extends StatelessWidget {
   const StocksWizard({super.key, this.existingInvestment});
@@ -54,8 +54,7 @@ class _StocksWizardContent extends StatelessWidget {
           controller.isSubmitting = false;
           controller.notifyListeners();
           if (context.mounted) {
-            final toast = ToastNotification.of(context);
-            toast.showError('Insufficient balance in selected account');
+            toast_lib.toast.showError('Insufficient balance in selected account');
           }
           return;
         }
@@ -141,14 +140,14 @@ class _StocksWizardContent extends StatelessWidget {
 
       if (context.mounted) {
         Haptics.success();
-        toast.showSuccess(controller.existingInvestment != null
+        toast_lib.toast.showSuccess(controller.existingInvestment != null
             ? 'Position updated successfully!'
             : 'Investment added successfully!');
         Navigator.of(context).pop();
       }
     } catch (e) {
       if (context.mounted) {
-        toast.showError('Failed to save investment: $e');
+        toast_lib.toast.showError('Failed to save investment: $e');
       }
     } finally {
       controller.isSubmitting = false;

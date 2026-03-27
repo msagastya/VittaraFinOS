@@ -68,9 +68,9 @@ class _CardDeckViewState extends State<CardDeckView>
     )..addStatusListener((status) {
         if (status == AnimationStatus.completed) {
           _advanceCard();
-          _swipeController.reset();
-          _promotionController.reset();
-          _promotionController.forward();
+          _promotionController
+            ..reset()
+            ..forward().whenComplete(_swipeController.reset);
         }
       });
 
@@ -304,9 +304,12 @@ class _CardDeckViewState extends State<CardDeckView>
             ),
           );
         },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: widget.cards[_indexAt(depth)],
+        child: Semantics(
+          label: 'Card ${depth + 1} of $_cardCount',
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: widget.cards[_indexAt(depth)],
+          ),
         ),
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/dashboard_controller.dart';
 import 'package:vittara_fin_os/logic/dashboard_widget_model.dart';
@@ -188,6 +189,7 @@ class _DashboardSettingsModalState extends State<DashboardSettingsModal> {
           CupertinoSwitch(
             value: widget.isVisible,
             onChanged: (value) {
+              HapticFeedback.selectionClick();
               controller.toggleWidgetVisibility(widget.id);
             },
           ),

@@ -38,6 +38,7 @@ class PrefKeys {
 
   // ── Security ──────────────────────────────────────────────────────────────
   /// Legacy PIN hash key (migrated to flutter_secure_storage).
+  @Deprecated('Migrated to flutter_secure_storage. Use vfosPinHash instead.')
   static const String pinHashLegacy = 'pinHash';
   static const String vfosPinHash = 'vfos_pin_hash';
   static const String vfosRecoveryHash = 'vfos_recovery_hash';

@@ -13,16 +13,16 @@
 | B03 | HTTP Timeouts + Export Security | 6 | `[x]` | f589cdd |
 | B04 | Async / Mounted Checks | 9 | `[x]` | f5dd684 |
 | B05 | Transactional Integrity | 4 | `[x]` | e506f86 |
-| B06 | Wizard Controller Fixes | 15 | `[ ]` | — |
-| B07 | Security Layer | 7 | `[ ]` | — |
-| B08 | CRUD Cascade + Delete Safety | 4 | `[ ]` | — |
-| B09 | Memory & Resource Leaks | 5 | `[ ]` | — |
-| B10 | Services + SMS | 7 | `[ ]` | — |
-| B11 | Calculation Correctness | 7 | `[ ]` | — |
-| B12 | Startup, Lock Screen, Lifecycle | 5 | `[ ]` | — |
-| B13 | UX: Empty States + Stale Data + Nav | 14 | `[ ]` | — |
-| B14 | Performance | 6 | `[ ]` | — |
-| B15 | P3 Polish | 15 | `[ ]` | — |
+| B06 | Wizard Controller Fixes | 15 | `[x]` | 89d30da |
+| B07 | Security Layer | 7 | `[x]` | bd0fa04 |
+| B08 | CRUD Cascade + Delete Safety | 4 | `[x]` | 4eb79e0 |
+| B09 | Memory & Resource Leaks | 5 | `[x]` | caa73aa |
+| B10 | Services + SMS | 7 | `[x]` | df94c55 |
+| B11 | Calculation Correctness | 7 | `[x]` | 84076af |
+| B12 | Startup, Lock Screen, Lifecycle | 5 | `[x]` | b834f75 |
+| B13 | UX: Empty States + Stale Data + Nav | 14 | `[x]` | 183666b |
+| B14 | Performance | 6 | `[x]` | 3d8792d |
+| B15 | P3 Polish | 15 | `[x]` | — |
 
 ---
 
@@ -922,7 +922,7 @@ perf: cache wave path, isolate report aggregation, reduce rebuilds
 ---
 
 # BATCH 15 — P3 Polish
-**Status:** `[ ]`
+**Status:** `[x]`
 **Risk:** Low — visual and interaction improvements
 **Goal:** Haptic feedback, delete confirmations, animation quality, accessibility
 **MASTER_PLAN IDs:** UX-01→06, DEL-01→03, ANIM-01→03, FMT-01→04, STATE-01→03
@@ -930,31 +930,31 @@ perf: cache wave path, isolate report aggregation, reduce rebuilds
 ### Files to touch (~12 files)
 
 #### Delete Confirmations
-- [ ] `ui/manage/goals/goals_screen.dart`: Show `showCupertinoDialog` before swipe-delete; undo toast for 5s
-- [ ] `ui/manage/budgets/budgets_screen.dart`: Same
-- [ ] `ui/manage/tags_screen.dart`: Same
+- [x] `ui/manage/goals/goals_screen.dart`: Show `showCupertinoDialog` before swipe-delete; undo toast for 5s (was already done)
+- [x] `ui/manage/budgets/budgets_screen.dart`: Same (was already done)
+- [x] `ui/manage/tags_screen.dart`: Added `_deleteTagWithConfirmation` with dialog + undo toast
 
 #### Haptic Feedback
-- [ ] `ui/dashboard/dashboard_settings_modal.dart`: `HapticFeedback.selectionClick()` on `CupertinoSwitch` toggle
-- [ ] `ui/onboarding_screen.dart`: `HapticFeedback.lightImpact()` on Next / Get Started buttons
-- [ ] `ui/dashboard/widgets/transaction_history_widget.dart`: Tap feedback on transaction items
+- [x] `ui/dashboard/dashboard_settings_modal.dart`: `HapticFeedback.selectionClick()` on `CupertinoSwitch` toggle
+- [x] `ui/onboarding_screen.dart`: `HapticFeedback.lightImpact()` added to `_goToPage` and `_finish`
+- [x] `ui/dashboard/widgets/transaction_history_widget.dart`: `GestureDetector` + `HapticFeedback.selectionClick()` on items
 
 #### Dashboard Interactivity
-- [ ] `ui/dashboard/widgets/budget_widget.dart`: Budget bars tappable → navigate to budget detail
-- [ ] `ui/transaction_history_screen.dart`: Highlight active type filter chip with `isSelected: true`
+- [x] `ui/dashboard/widgets/budget_widget.dart`: Budget bars wrapped in `GestureDetector` → `BudgetDetailsScreen`
+- [x] `ui/transaction_history_screen.dart`: Filter chips already highlight via `selected` bool (verified)
 
 #### Animation Quality
-- [ ] `ui/dashboard/widgets/health_score_widget.dart`: `ValueKey(score)` to control re-animation
-- [ ] `ui/widgets/card_deck_view.dart`: Wait for promotion animation before resetting swipe controller
-- [ ] `ui/widgets/animated_counter.dart` line 575: Fix particle direction bias using `(random.nextDouble() - 0.5) * 2`
+- [x] `ui/dashboard/widgets/health_score_widget.dart`: `ValueKey(score)` done in B14
+- [x] `ui/widgets/card_deck_view.dart`: `_promotionController.forward().whenComplete(_swipeController.reset)`
+- [x] `ui/widgets/animated_counter.dart` line 575: Fixed — `(_rng.nextDouble() - 0.5) * 2` with shared `_rng`
 
 #### Formatting & Accessibility
-- [ ] `ui/widgets/card_deck_view.dart`: Add `semanticLabel: 'Card ${index + 1} of $total'`
-- [ ] `utils/pref_keys.dart`: Add `@deprecated` comments above legacy keys
+- [x] `ui/widgets/card_deck_view.dart`: `Semantics(label: 'Card N of total')` on each depth slot
+- [x] `utils/pref_keys.dart`: `@Deprecated` annotation on `pinHashLegacy`
 
 #### State Persistence
-- [ ] `ui/manage/goals/goals_screen.dart`: Save search query to `PageStorage`
-- [ ] `ui/manage/budgets/budgets_screen.dart`: Save filter period to `PageStorage`
+- [x] `ui/manage/goals/goals_screen.dart`: PageStorage read/write for `_searchQuery`
+- [x] `ui/manage/budgets/budgets_screen.dart`: PageStorage read/write for `_filterPeriod`
 
 ### Commit message
 ```

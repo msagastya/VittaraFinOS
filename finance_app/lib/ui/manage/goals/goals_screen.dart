@@ -30,18 +30,29 @@ class _GoalsScreenState extends State<GoalsScreen> {
   GoalType? _filterType;
   String _searchQuery = '';
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchTextController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<GoalsController>(context, listen: false).initialize();
+      // Restore search query from PageStorage.
+      final saved = PageStorage.of(context).readState(context,
+          identifier: const ValueKey('goals_search')) as String?;
+      if (saved != null && saved.isNotEmpty) {
+        setState(() {
+          _searchQuery = saved;
+          _searchTextController.text = saved;
+        });
+      }
     });
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
+    _searchTextController.dispose();
     super.dispose();
   }
 
@@ -137,6 +148,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                               child: GlassCard(
                                 padding: EdgeInsets.zero,
                                 child: CupertinoSearchTextField(
+                                  controller: _searchTextController,
                                   backgroundColor: Colors.transparent,
                                   style: TextStyle(
                                       color: AppStyles.getTextColor(context)),
@@ -144,8 +156,12 @@ class _GoalsScreenState extends State<GoalsScreen> {
                                   placeholderStyle: TextStyle(
                                       color: AppStyles.getSecondaryTextColor(
                                           context)),
-                                  onChanged: (value) =>
-                                      setState(() => _searchQuery = value),
+                                  onChanged: (value) {
+                                    setState(() => _searchQuery = value);
+                                    PageStorage.of(context).writeState(context,
+                                        value,
+                                        identifier: const ValueKey('goals_search'));
+                                  },
                                 ),
                               ),
                             ),

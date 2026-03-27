@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
@@ -568,10 +569,12 @@ class _ParticleCounterState extends State<ParticleCounter>
 }
 
 class _Particle {
+  static final _rng = math.Random();
+
   final double dx;
   final double dy;
 
   _Particle()
-      : dx = (0.5 - (0.5 * (1.0 - 0.5))) * 2,
-        dy = (0.5 - (0.5 * (1.0 - 0.5))) * 2;
+      : dx = (_rng.nextDouble() - 0.5) * 2,
+        dy = (_rng.nextDouble() - 0.5) * 2;
 }

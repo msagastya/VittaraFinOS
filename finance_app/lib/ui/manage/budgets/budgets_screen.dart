@@ -33,6 +33,15 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<BudgetsController>(context, listen: false).initialize();
+      // Restore filter period from PageStorage.
+      final saved = PageStorage.of(context).readState(context,
+          identifier: const ValueKey('budgets_filter_period')) as String?;
+      if (saved != null) {
+        final match = BudgetPeriod.values
+            .where((p) => p.name == saved)
+            .firstOrNull;
+        if (match != null) setState(() => _filterPeriod = match);
+      }
     });
   }
 
@@ -161,8 +170,13 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                                           ),
                                           const SizedBox(width: Spacing.sm),
                                           GestureDetector(
-                                            onTap: () => setState(
-                                                () => _filterPeriod = null),
+                                            onTap: () {
+                                              setState(() => _filterPeriod = null);
+                                              PageStorage.of(context).writeState(
+                                                  context, null,
+                                                  identifier: const ValueKey(
+                                                      'budgets_filter_period'));
+                                            },
                                             child: Icon(
                                                 CupertinoIcons
                                                     .xmark_circle_fill,
@@ -929,6 +943,8 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
             return CupertinoActionSheetAction(
               onPressed: () {
                 setState(() => _filterPeriod = period);
+                PageStorage.of(context).writeState(context, period.name,
+                    identifier: const ValueKey('budgets_filter_period'));
                 Navigator.pop(context);
               },
               child: Row(
@@ -944,6 +960,8 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
             CupertinoActionSheetAction(
               onPressed: () {
                 setState(() => _filterPeriod = null);
+                PageStorage.of(context).writeState(context, null,
+                    identifier: const ValueKey('budgets_filter_period'));
                 Navigator.pop(context);
               },
               isDestructiveAction: true,

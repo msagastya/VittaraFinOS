@@ -8,6 +8,7 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
+import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
 
 class TagsScreen extends StatefulWidget {
   const TagsScreen({super.key});
@@ -492,8 +493,7 @@ class _TagsScreenState extends State<TagsScreen> {
             isDestructiveAction: true,
             onPressed: () {
               Navigator.pop(context);
-              Haptics.delete();
-              controller.removeTag(tag.id);
+              _deleteTagWithConfirmation(tag, controller);
             },
             child: const Text('Delete Tag'),
           ),
@@ -503,6 +503,40 @@ class _TagsScreenState extends State<TagsScreen> {
           onPressed: () => Navigator.pop(context),
           child: const Text('Close'),
         ),
+      ),
+    );
+  }
+
+  void _deleteTagWithConfirmation(Tag tag, TagsController controller) {
+    Haptics.warning();
+    showCupertinoDialog<void>(
+      context: context,
+      builder: (dialogCtx) => CupertinoAlertDialog(
+        title: const Text('Delete Tag'),
+        content: Text('Delete "${tag.name}"? This cannot be undone.'),
+        actions: [
+          CupertinoDialogAction(
+            child: const Text('Cancel'),
+            onPressed: () => Navigator.pop(dialogCtx),
+          ),
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            child: const Text('Delete'),
+            onPressed: () {
+              controller.removeTag(tag.id);
+              Navigator.pop(dialogCtx);
+              Haptics.delete();
+              toast_lib.toast.showSuccess(
+                '"${tag.name}" deleted',
+                actionLabel: 'Undo',
+                onAction: () {
+                  controller.addTag(tag);
+                  toast_lib.toast.showInfo('Tag restored');
+                },
+              );
+            },
+          ),
+        ],
       ),
     );
   }

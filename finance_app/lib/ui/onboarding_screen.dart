@@ -155,6 +155,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   }
 
   void _goToPage(int index) {
+    HapticFeedback.lightImpact();
     _pageController.animateToPage(
       index,
       duration: const Duration(milliseconds: 400),
@@ -169,6 +170,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   }
 
   Future<void> _finish() async {
+    HapticFeedback.lightImpact();
     await markOnboardingComplete();
     if (!mounted) return;
     widget.onComplete(context);
