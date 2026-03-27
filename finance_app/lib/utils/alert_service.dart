@@ -405,6 +405,7 @@ class _ToastNotificationState extends State<_ToastNotification>
 
   @override
   void dispose() {
+    _controller.stop();
     _controller.dispose();
     super.dispose();
   }

@@ -327,6 +327,7 @@ class _LiquidMiniFABState extends State<LiquidMiniFAB>
 
   @override
   void dispose() {
+    _pulseController.stop();
     _pulseController.dispose();
     super.dispose();
   }

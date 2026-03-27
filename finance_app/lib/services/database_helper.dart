@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
@@ -10,12 +11,19 @@ class DatabaseHelper {
 
   DatabaseHelper._internal();
 
-  static Database? _database;
+  static Completer<Database>? _initCompleter;
 
   Future<Database> get database async {
-    if (_database != null) return _database!;
-    _database = await _initDatabase();
-    return _database!;
+    if (_initCompleter != null) return _initCompleter!.future;
+    _initCompleter = Completer<Database>();
+    try {
+      final db = await _initDatabase();
+      _initCompleter!.complete(db);
+    } catch (e) {
+      _initCompleter = null; // allow retry on failure
+      rethrow;
+    }
+    return _initCompleter!.future;
   }
 
   static const int _kDbVersion = 2;
