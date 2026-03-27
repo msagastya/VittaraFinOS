@@ -532,9 +532,9 @@ class SmsParser {
       RegExp(
           r'available\s+bal(?:ance)?\s*(?:is|:)?\s*(?:rs\.?|inr|₹)?\s*([\d,]+(?:\.\d{2})?)',
           caseSensitive: false),
-      // "Bal: Rs 5000" — only if NOT preceded by "outstanding", "due", "total"
+      // "Bal: Rs 5000" — only if NOT preceded by "outstanding", "due", "total", "minimum"
       RegExp(
-          r'(?<![outstanding|due|total|minimum]\s)(?:^|\s)bal(?:ance)?\s*(?:is|:)\s*(?:rs\.?|inr|₹)?\s*([\d,]+(?:\.\d{2})?)',
+          r'(?<!outstanding\s)(?<!due\s)(?<!total\s)(?<!minimum\s)(?:^|\s)bal(?:ance)?\s*(?:is|:)\s*(?:rs\.?|inr|₹)?\s*([\d,]+(?:\.\d{2})?)',
           caseSensitive: false),
     ];
     for (final p in patterns) {

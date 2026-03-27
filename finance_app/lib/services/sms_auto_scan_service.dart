@@ -168,7 +168,7 @@ class SmsAutoScanService {
       final p = r.parsed;
       final matchedId = r.matchedAccount?.id;
       for (final t in txns) {
-        if ((t.amount - p.amount).abs() > 1.0) continue;
+        if ((t.amount - p.amount).abs() > 2.0) continue;
         if (t.dateTime.difference(p.date).inDays.abs() > 1) continue;
         final tId = (t.metadata ?? {})['accountId'] as String?;
         if (matchedId != null && tId == matchedId) return false; // 80% match
@@ -311,12 +311,12 @@ class SmsAutoScanService {
 
   String _fingerprint(SmsParseResult r) {
     final p = r.parsed;
-    // Use stable sender key (not hashCode which changes per restart)
-    final raw = p.sender.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
-    final senderKey = raw.length > 8 ? raw.substring(0, 8) : raw;
-    return '${p.amount.toStringAsFixed(0)}'
-        '_${p.date.day}${p.date.month}${p.date.year}'
-        '_$senderKey';
+    // Sender-independent fingerprint: amount + date + last 4 chars of account.
+    // Using amount with 2dp and full date YYYYMMDD for stability across restarts.
+    final digits = p.accountLast4 ?? '';
+    return '${p.amount.toStringAsFixed(2)}'
+        '_${p.date.year}${p.date.month.toString().padLeft(2, '0')}${p.date.day.toString().padLeft(2, '0')}'
+        '_$digits';
   }
 
   Future<void> _markSeen(String fp) async {

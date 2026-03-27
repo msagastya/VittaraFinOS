@@ -4,7 +4,8 @@ class IdGenerator {
   IdGenerator._();
 
   static final Random _random = Random();
-  static int _sequence = 0;
+  // Start from a random offset so sequences from different app sessions don't collide.
+  static int _sequence = Random().nextInt(1000000);
 
   static String next({
     String prefix = 'id',

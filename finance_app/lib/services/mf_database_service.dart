@@ -13,6 +13,7 @@ class MFDatabaseService {
 
   bool _isInitializing = false;
   bool _isInitialized = false;
+  String? _lastRefreshError;
 
   factory MFDatabaseService() {
     return _instance;
@@ -21,6 +22,9 @@ class MFDatabaseService {
   MFDatabaseService._internal();
 
   bool get isInitialized => _isInitialized;
+
+  /// Last error message from a failed refresh attempt, or null if no error.
+  String? get lastRefreshError => _lastRefreshError;
 
   Future<void> initialize() async {
     if (_isInitialized || _isInitializing) return;
@@ -65,24 +69,34 @@ class MFDatabaseService {
   }
 
   Future<void> _fetchAndStoreAMFIData() async {
-    try {
-      _logger.i('Fetching AMFI data...');
-      final mfs = await AMFIDataService.fetchAndParseAMFIData();
-      _logger.i('Fetched ${mfs.length} mutual funds, storing in database...');
+    const maxRetries = 3;
+    int attempt = 0;
+    while (true) {
+      attempt++;
+      try {
+        _logger.i('Fetching AMFI data (attempt $attempt)...');
+        final mfs = await AMFIDataService.fetchAndParseAMFIData();
+        _logger.i('Fetched ${mfs.length} mutual funds, storing in database...');
 
-      await _dbHelper.insertMutualFunds(
-        mfs.map((mf) => mf.toMap()).toList(),
-      );
+        await _dbHelper.insertMutualFunds(
+          mfs.map((mf) => mf.toMap()).toList(),
+        );
 
-      await _dbHelper.setMetadata(
-        _lastUpdateKey,
-        DateTime.now().toIso8601String(),
-      );
+        await _dbHelper.setMetadata(
+          _lastUpdateKey,
+          DateTime.now().toIso8601String(),
+        );
 
-      _logger.i('Successfully stored ${mfs.length} mutual funds in database');
-    } catch (e) {
-      _logger.e('Error fetching and storing AMFI data: $e');
-      rethrow;
+        _lastRefreshError = null;
+        _logger.i('Successfully stored ${mfs.length} mutual funds in database');
+        return;
+      } catch (e) {
+        _lastRefreshError = e.toString();
+        _logger.e('Error fetching AMFI data (attempt $attempt): $e');
+        if (attempt >= maxRetries) rethrow;
+        // Exponential backoff: 2s, 4s
+        await Future.delayed(Duration(seconds: 1 << attempt));
+      }
     }
   }
 

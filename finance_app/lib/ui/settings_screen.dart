@@ -302,6 +302,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: Text(issues.isEmpty ? 'Data Health: OK' : 'Issues Found'),
         content: Text(message),
         actions: [
+          if (issues.isNotEmpty)
+            CupertinoDialogAction(
+              isDestructiveAction: true,
+              onPressed: () async {
+                Navigator.pop(ctx);
+                final cleaned = await IntegrityCheckService.cleanupOrphanedRecords(
+                  txCtrl: txCtrl,
+                  accCtrl: accCtrl,
+                );
+                if (context.mounted) {
+                  showCupertinoDialog(
+                    context: context,
+                    builder: (c) => CupertinoAlertDialog(
+                      title: const Text('Cleanup Complete'),
+                      content: Text('$cleaned record(s) fixed.'),
+                      actions: [
+                        CupertinoDialogAction(
+                          onPressed: () => Navigator.pop(c),
+                          child: const Text('OK'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+              },
+              child: const Text('Clean Up'),
+            ),
           CupertinoDialogAction(
             onPressed: () => Navigator.pop(ctx),
             child: const Text('OK'),
