@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/budget_model.dart';
@@ -180,14 +179,9 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
 
   void _onEventsScroll() {
     if (_selectedDay == null) return;
+    // Only collapse — expanding is via chip tap or overscroll pull-down.
     if (!_calendarCollapsed && _eventsScrollCtrl.offset > 20) {
       setState(() => _calendarCollapsed = true);
-    } else if (_calendarCollapsed &&
-        _eventsScrollCtrl.hasClients &&
-        _eventsScrollCtrl.offset <= 0 &&
-        _eventsScrollCtrl.position.userScrollDirection ==
-            ScrollDirection.forward) {
-      setState(() => _calendarCollapsed = false);
     }
   }
 
@@ -317,7 +311,22 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
             // ── Upcoming 7-day strip ───────────────────────────────────────
             _buildUpcomingStrip(context, eventsMap),
             // ── Calendar card ──────────────────────────────────────────────
-            Container(
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onHorizontalDragEnd: (details) {
+                final vel = details.primaryVelocity ?? 0;
+                if (vel.abs() < 200) return; // ignore slow drags
+                if (_calendarCollapsed && _selectedDay != null) {
+                  // Collapsed chip: swipe navigates days
+                  if (vel < 0) { _navigateDay(1); }   // swipe left → next day
+                  else { _navigateDay(-1); }            // swipe right → prev day
+                } else {
+                  // Full calendar: swipe navigates months
+                  if (vel < 0) { _nextMonth(); }  // swipe left → next month
+                  else { _prevMonth(); }            // swipe right → prev month
+                }
+              },
+              child: Container(
               margin: const EdgeInsets.fromLTRB(
                   Spacing.lg, Spacing.md, Spacing.lg, 0),
               decoration: BoxDecoration(
@@ -350,6 +359,7 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
                 ],
               ),
             ),
+            ), // end GestureDetector (calendar card)
 
             const SizedBox(height: Spacing.md),
 
@@ -362,7 +372,7 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
             Expanded(
               child: NotificationListener<OverscrollNotification>(
                 onNotification: (n) {
-                  // Pulling past the top (overscroll up) → expand calendar
+                  // Pull down past top while collapsed → expand calendar
                   if (n.overscroll < 0 &&
                       _calendarCollapsed &&
                       _selectedDay != null) {
@@ -373,22 +383,7 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
                   }
                   return false;
                 },
-                child: GestureDetector(
-                  behavior: HitTestBehavior.translucent,
-                  onHorizontalDragEnd: (details) {
-                    if (_selectedDay == null) return;
-                    final vel = details.primaryVelocity ?? 0;
-                    if (vel.abs() < 150) return; // ignore slow drags
-                    if (vel < 0) {
-                      // Swipe left → next day
-                      _navigateDay(1);
-                    } else {
-                      // Swipe right → prev day
-                      _navigateDay(-1);
-                    }
-                  },
-                  child: _buildEventSection(context, filteredEvents, isDark),
-                ),
+                child: _buildEventSection(context, filteredEvents, isDark),
               ),
             ),
           ],
