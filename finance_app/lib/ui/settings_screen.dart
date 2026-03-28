@@ -189,41 +189,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         color: AppStyles.accentBlue,
                         onTap: () => _runIntegrityCheck(context),
                       ),
-                      _buildDivider(context),
-                      _buildInfoRow(
-                        context,
-                        icon: CupertinoIcons.arrow_2_circlepath,
-                        title: 'Auto-backup',
-                        value: 'Daily · last 7 kept',
-                        color: AppStyles.accentGreen,
-                      ),
                     ]),
 
                     // ── ABOUT ────────────────────────────────────────────
                     _buildHeader('About'),
                     _buildModernSection(context, [
-                      _buildInfoRow(
+                      _buildNavRow(
                         context,
                         icon: CupertinoIcons.info_circle_fill,
-                        title: 'VittaraFinOS',
+                        title: 'About VittaraFinOS',
+                        subtitle: null,
                         value: 'v1.0.0',
                         color: AppStyles.getPrimaryColor(context),
-                      ),
-                      _buildDivider(context),
-                      _buildInfoRow(
-                        context,
-                        icon: CupertinoIcons.lock_fill,
-                        title: 'Data Storage',
-                        value: '100% local',
-                        color: AppStyles.gain(context),
-                      ),
-                      _buildDivider(context),
-                      _buildInfoRow(
-                        context,
-                        icon: CupertinoIcons.shield_fill,
-                        title: 'Privacy',
-                        value: 'No cloud sync',
-                        color: AppStyles.teal(context),
+                        onTap: () => _showAboutDialog(context),
                       ),
                     ]),
 
@@ -848,6 +826,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       ));
     }
+  }
+
+  void _showAboutDialog(BuildContext context) {
+    showCupertinoDialog(
+      context: context,
+      builder: (ctx) => CupertinoAlertDialog(
+        title: const Text('VittaraFinOS'),
+        content: const Text(
+          'Version 1.0.0\n\n'
+          'All your financial data is stored 100% on-device — '
+          'no cloud sync, no servers, no third-party access.',
+        ),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showThemeOptions(BuildContext context, SettingsController settings) {
