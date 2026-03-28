@@ -214,6 +214,54 @@ class TransactionDetailsContent extends StatelessWidget {
     maybeAdd('Description', transaction.description);
     maybeAdd('Category', metadata['categoryName'] as String?);
     maybeAdd('Investment', metadata['investmentName'] as String?);
+
+    // ── Investment-specific fields ────────────────────────────────────────
+    final showInvestmentFields =
+        metadata['isDerivedInvestmentEvent'] == true ||
+            transaction.type == TransactionType.investment;
+    if (showInvestmentFields) {
+      // Event type
+      final rawEventType = metadata['investmentEventType'] as String?;
+      if (rawEventType != null) {
+        final prettyEventType = _prettifyEventType(rawEventType);
+        maybeAdd('Event Type', prettyEventType);
+      }
+
+      // Quantity / Units
+      final rawQty = metadata['quantity'] ?? metadata['units'];
+      final qty = rawQty is num ? rawQty.toDouble() : null;
+      if (qty != null) {
+        final qtyStr = qty == qty.truncateToDouble()
+            ? qty.toStringAsFixed(0)
+            : qty.toStringAsFixed(4).replaceAll(RegExp(r'0+$'), '');
+        maybeAdd('Quantity / Units', qtyStr);
+      }
+
+      // Price / NAV per unit
+      final rawPrice = metadata['pricePerUnit'] ??
+          metadata['navValue'] ??
+          metadata['purchaseNav'];
+      final price = rawPrice is num ? rawPrice.toDouble() : null;
+      if (price != null) {
+        maybeAdd('Price / NAV', '₹${price.toStringAsFixed(4)}');
+      }
+
+      // Current Value in Demat
+      final rawCv = metadata['currentValue'];
+      final cv = rawCv is num ? rawCv.toDouble() : null;
+      if (cv != null && cv > 0) {
+        maybeAdd('Current Value', '₹${cv.toStringAsFixed(2)}',
+            forceColor: CupertinoColors.systemIndigo);
+      }
+
+      // Current NAV
+      final rawCnav = metadata['currentNAV'];
+      final cnav = rawCnav is num ? rawCnav.toDouble() : null;
+      if (cnav != null) {
+        maybeAdd('Current NAV', '₹${cnav.toStringAsFixed(4)}');
+      }
+    }
+
     final merchant = metadata['merchant'] as String?;
     if (merchant != null && merchant.isNotEmpty) maybeAdd('Merchant', merchant);
     maybeAdd('Payment App', transaction.paymentAppName);
@@ -249,9 +297,13 @@ class TransactionDetailsContent extends StatelessWidget {
       maybeAdd('Transfer Flow', flowLabel);
     }
 
-    if (transaction.type == TransactionType.transfer &&
-        transaction.charges != null &&
-        transaction.charges! > 0) {
+    // Metadata charges (investment events)
+    final rawMetaCharges = metadata['charges'];
+    final metaCharges = rawMetaCharges is num ? rawMetaCharges.toDouble() : null;
+    if (metaCharges != null && metaCharges > 0) {
+      maybeAdd('Charges', '₹${metaCharges.toStringAsFixed(2)}',
+          forceColor: AppStyles.loss(context));
+    } else if (transaction.charges != null && transaction.charges! > 0) {
       maybeAdd('Charges', '₹${transaction.charges!.toStringAsFixed(2)}',
           forceColor: AppStyles.loss(context));
     }
@@ -299,6 +351,30 @@ class TransactionDetailsContent extends StatelessWidget {
 
   // ── Helpers ──────────────────────────────────────────────────────────────
 
+  String _prettifyEventType(String raw) {
+    switch (raw.toLowerCase().trim()) {
+      case 'sip':
+        return 'SIP';
+      case 'nav':
+        return 'NAV';
+      case 'create':
+        return 'Purchase';
+      case 'buy':
+        return 'Buy';
+      case 'sell':
+        return 'Sell';
+      case 'dividend':
+        return 'Dividend';
+      case 'redeem':
+        return 'Redeem';
+      case 'maturity':
+        return 'Maturity';
+      default:
+        if (raw.isEmpty) return raw;
+        return raw[0].toUpperCase() + raw.substring(1);
+    }
+  }
+
   IconData _getTransactionIcon() {
     switch (transaction.type) {
       case TransactionType.transfer:
@@ -329,7 +405,7 @@ class TransactionDetailsContent extends StatelessWidget {
       case TransactionType.borrowing:
         return CupertinoColors.systemPurple;
       case TransactionType.investment:
-        return AppStyles.loss(context);
+        return CupertinoColors.systemIndigo;
       case TransactionType.expense:
         return AppStyles.loss(context);
       case TransactionType.income:

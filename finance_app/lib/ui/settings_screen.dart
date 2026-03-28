@@ -858,7 +858,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           _buildActionSheetItem(
               context, 'Light', () => settings.setThemeMode(ThemeMode.light)),
-          _buildActionSheetItem(context, 'Dark — True AMOLED (Pure Black)',
+          _buildActionSheetItem(context, 'Dark',
               () => settings.setThemeMode(ThemeMode.dark)),
           _buildActionSheetItem(context, 'System Default',
               () => settings.setThemeMode(ThemeMode.system)),

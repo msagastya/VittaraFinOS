@@ -6,7 +6,7 @@ extension TransactionTypeTheme on TransactionType {
   Color typeColor(BuildContext context) {
     switch (this) {
       case TransactionType.transfer:
-        return AppStyles.teal(context);
+        return CupertinoColors.systemBlue;
       case TransactionType.cashback:
         return AppStyles.gain(context);
       case TransactionType.lending:

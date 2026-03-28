@@ -490,12 +490,12 @@ class AppStyles {
                 const Color(0xFF050B15),
               ]
             : [
-                Color.lerp(Colors.white, accent, 0.04)!,
+                Color.lerp(Colors.white, accent, 0.08)!,
                 Colors.white,
               ],
       ),
       border: Border.all(
-        color: accent.withValues(alpha: isDark ? 0.32 : 0.18),
+        color: accent.withValues(alpha: isDark ? 0.32 : 0.28),
         width: 1.0,
       ),
       borderRadius: BorderRadius.circular(Radii.xxl),
@@ -511,8 +511,8 @@ class AppStyles {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          color.withValues(alpha: isDark ? 0.28 : 0.16),
-          color.withValues(alpha: isDark ? 0.42 : 0.26),
+          color.withValues(alpha: isDark ? 0.28 : 0.24),
+          color.withValues(alpha: isDark ? 0.42 : 0.40),
         ],
       ),
       border: Border.all(

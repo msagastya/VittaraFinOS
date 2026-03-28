@@ -42,6 +42,13 @@ class TransactionFeedBuilder {
         final amount =
             _asDouble(metadata['investmentAmount']) ?? investment.amount;
         if (initialDate != null && amount > 0) {
+          final fallbackExtraMeta = <String, dynamic>{};
+          void addFallbackIfPresent(String key, dynamic value) {
+            if (value != null) fallbackExtraMeta[key] = value;
+          }
+          addFallbackIfPresent('currentValue', metadata['currentValue']);
+          addFallbackIfPresent('currentNAV', metadata['currentNAV']);
+
           derived.add(
             Transaction(
               id: 'inv_${investment.id}_initial',
@@ -63,6 +70,7 @@ class TransactionFeedBuilder {
                 'investmentType': investment.type.name,
                 'investmentEventType': 'create',
                 derivedInvestmentFlag: true,
+                ...fallbackExtraMeta,
               },
             ),
           );
@@ -97,6 +105,18 @@ class TransactionFeedBuilder {
               metadata['deductionAccountName'],
         );
 
+        final extraMeta = <String, dynamic>{};
+        void addIfPresent(String key, dynamic value) {
+          if (value != null) extraMeta[key] = value;
+        }
+        addIfPresent('currentValue', metadata['currentValue']);
+        addIfPresent('currentNAV', metadata['currentNAV']);
+        addIfPresent('quantity', event['quantity']);
+        addIfPresent('units', event['units']);
+        addIfPresent('pricePerUnit', event['price'] ?? event['pricePerUnit']);
+        addIfPresent('navValue', event['nav'] ?? event['navValue']);
+        addIfPresent('charges', event['charges']);
+
         derived.add(
           Transaction(
             id: 'inv_${investment.id}_${event['id'] ?? i}',
@@ -115,6 +135,7 @@ class TransactionFeedBuilder {
               'investmentType': investment.type.name,
               'investmentEventType': eventType,
               derivedInvestmentFlag: true,
+              ...extraMeta,
             },
           ),
         );
