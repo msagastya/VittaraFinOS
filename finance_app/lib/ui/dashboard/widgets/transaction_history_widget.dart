@@ -68,10 +68,29 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
 
     return Consumer2<TransactionsController, InvestmentsController>(
       builder: (context, transactionController, investmentsController, child) {
-        final transactions = TransactionFeedBuilder.buildUnifiedFeed(
+        final allFeed = TransactionFeedBuilder.buildUnifiedFeed(
           transactions: transactionController.transactions,
           investments: investmentsController.investments,
-        ).take(txCount).toList();
+        );
+        var transactions = allFeed.take(txCount).toList();
+
+        // If no investment event is in the visible set, inject the most recent
+        // one — investment events are often older than daily transactions and
+        // would otherwise always be hidden by take(txCount).
+        final hasInvestment = transactions
+            .any(TransactionFeedBuilder.isDerivedInvestmentEvent);
+        if (!hasInvestment) {
+          final mostRecentInv = allFeed
+              .where(TransactionFeedBuilder.isDerivedInvestmentEvent)
+              .firstOrNull;
+          if (mostRecentInv != null) {
+            if (transactions.length >= txCount) {
+              transactions = [...transactions.take(txCount - 1), mostRecentInv];
+            } else {
+              transactions = [...transactions, mostRecentInv];
+            }
+          }
+        }
 
         // Micro summary: this month spent & income
         final now = DateTime.now();
