@@ -11,6 +11,8 @@ import 'package:vittara_fin_os/logic/account_model.dart';
 import 'package:vittara_fin_os/ui/widgets/animated_counter.dart' as counter_widgets;
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
+import 'package:vittara_fin_os/logic/investments_controller.dart';
+import 'package:vittara_fin_os/logic/transaction_feed_builder.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/logic/settings_controller.dart';
 import 'package:vittara_fin_os/ui/manage/account_wizard.dart';
@@ -1224,14 +1226,23 @@ class _AccountsScreenState extends State<AccountsScreen> {
           minChildSize: 0.4,
           maxChildSize: 0.95,
           builder: (dragContext, scrollController) {
-            // Consumer ensures the sheet rebuilds when accounts or transactions change
-            return Consumer2<AccountsController, TransactionsController>(
-              builder: (ctx, acctCtrl, txCtrl, _) {
+            // Consumer ensures the sheet rebuilds when accounts, transactions or investments change
+            return Consumer3<AccountsController, TransactionsController, InvestmentsController>(
+              builder: (ctx, acctCtrl, txCtrl, invCtrl, _) {
                 // Always use the freshest account data by ID
                 final freshAccount = acctCtrl.accounts
                     .firstWhere((a) => a.id == account.id, orElse: () => account);
                 final balanceHistory = _computeBalanceHistory(freshAccount);
-                final recentTxs = _getAccountTransactions(freshAccount).take(3).toList();
+                // Use unified feed so investment events (dividends, SIPs etc.) are included
+                final recentTxs = TransactionFeedBuilder.buildUnifiedFeed(
+                  transactions: txCtrl.transactions,
+                  investments: invCtrl.investments,
+                ).where((tx) {
+                  final metaId = tx.metadata?['accountId'] as String?;
+                  return metaId == freshAccount.id ||
+                      tx.sourceAccountId == freshAccount.id ||
+                      tx.destinationAccountId == freshAccount.id;
+                }).take(3).toList();
             return Container(
               decoration: AppStyles.bottomSheetDecoration(dragContext),
               child: SingleChildScrollView(
@@ -1502,28 +1513,27 @@ class _AccountsScreenState extends State<AccountsScreen> {
                           else
                             ...recentTxs.map((tx) {
                               final meta = tx.metadata ?? {};
-                              final isSend =
-                                  tx.sourceAccountId == account.id;
-                              final isReceive =
-                                  tx.destinationAccountId == account.id;
-                              final isExpense =
-                                  tx.type == TransactionType.expense ||
-                                      tx.type == TransactionType.investment ||
-                                      tx.type == TransactionType.lending;
                               Color amtColor;
                               String prefix;
-                              if (isSend) {
-                                amtColor = AppStyles.loss(dragContext);
-                                prefix = '−';
-                              } else if (isReceive) {
+                              if (tx.type == TransactionType.transfer) {
+                                // For transfers use account direction
+                                final isSend = tx.sourceAccountId == account.id;
+                                if (isSend) {
+                                  amtColor = AppStyles.loss(dragContext);
+                                  prefix = '−';
+                                } else {
+                                  amtColor = AppStyles.gain(dragContext);
+                                  prefix = '+';
+                                }
+                              } else if (tx.type == TransactionType.income ||
+                                  tx.type == TransactionType.cashback ||
+                                  tx.type == TransactionType.borrowing) {
                                 amtColor = AppStyles.gain(dragContext);
                                 prefix = '+';
-                              } else if (isExpense) {
-                                amtColor = AppStyles.loss(dragContext);
-                                prefix = '−';
                               } else {
-                                amtColor = AppStyles.gain(dragContext);
-                                prefix = '+';
+                                // expense, investment, lending
+                                amtColor = AppStyles.loss(dragContext);
+                                prefix = '−';
                               }
                               final label = (meta['categoryName'] as String?) ??
                                   tx.getTypeLabel();
