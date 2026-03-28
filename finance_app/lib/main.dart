@@ -1665,12 +1665,12 @@ class DashboardScreen extends StatelessWidget {
       case DashboardWidgetType.netWorth:
         return NetWorthWidget(config: widgetConfig);
       case DashboardWidgetType.transactionHistory:
-        return Consumer<TransactionsController>(
-          builder: (context, transactionController, child) {
+        return Consumer2<TransactionsController, InvestmentsController>(
+          builder: (context, transactionController, investmentsController, child) {
             final allTx = transactionController.transactions;
             final transactions = TransactionFeedBuilder.buildUnifiedFeed(
               transactions: allTx,
-              investments: const [],
+              investments: investmentsController.investments,
             ).toList();
 
             // Month summary
