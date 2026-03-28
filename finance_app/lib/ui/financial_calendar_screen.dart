@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/budget_model.dart';
@@ -179,15 +180,20 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
 
   void _onEventsScroll() {
     if (_selectedDay == null) return;
-    // Only collapse — never auto-uncollapse on scroll.
-    // User must tap the collapsed chip to restore the full calendar.
     if (!_calendarCollapsed && _eventsScrollCtrl.offset > 20) {
       setState(() => _calendarCollapsed = true);
+    } else if (_calendarCollapsed &&
+        _eventsScrollCtrl.hasClients &&
+        _eventsScrollCtrl.offset <= 0 &&
+        _eventsScrollCtrl.position.userScrollDirection ==
+            ScrollDirection.forward) {
+      setState(() => _calendarCollapsed = false);
     }
   }
 
   void _prevMonth() {
     HapticFeedback.selectionClick();
+    if (_eventsScrollCtrl.hasClients) _eventsScrollCtrl.jumpTo(0);
     setState(() {
       _focusedMonth = DateTime(_focusedMonth.year, _focusedMonth.month - 1, 1);
       _selectedDay = null;
@@ -197,6 +203,7 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
 
   void _nextMonth() {
     HapticFeedback.selectionClick();
+    if (_eventsScrollCtrl.hasClients) _eventsScrollCtrl.jumpTo(0);
     setState(() {
       _focusedMonth = DateTime(_focusedMonth.year, _focusedMonth.month + 1, 1);
       _selectedDay = null;
@@ -211,11 +218,36 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
           _selectedDay!.year == day.year &&
           _selectedDay!.month == day.month &&
           _selectedDay!.day == day.day) {
-        _selectedDay = null; // tap again to deselect
+        _selectedDay = null;
+        _calendarCollapsed = false; // deselecting day always expands
       } else {
         _selectedDay = day;
+        // Don't change _calendarCollapsed — keep user's current state
       }
     });
+    // Reset scroll to top when changing day
+    if (_eventsScrollCtrl.hasClients) {
+      _eventsScrollCtrl.jumpTo(0);
+    }
+  }
+
+  void _navigateDay(int delta) {
+    if (_selectedDay == null) return;
+    HapticFeedback.selectionClick();
+    final newDay = _selectedDay!.add(Duration(days: delta));
+    setState(() {
+      _selectedDay = newDay;
+      // Sync focused month if we crossed a month boundary
+      if (newDay.year != _focusedMonth.year ||
+          newDay.month != _focusedMonth.month) {
+        _focusedMonth = DateTime(newDay.year, newDay.month, 1);
+        // Keep collapsed state as-is when navigating days
+      }
+    });
+    // Reset scroll to top for the new day's events
+    if (_eventsScrollCtrl.hasClients) {
+      _eventsScrollCtrl.jumpTo(0);
+    }
   }
 
   @override
@@ -328,8 +360,36 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
 
             // ── Event section ──────────────────────────────────────────────
             Expanded(
-              child: _buildEventSection(
-                  context, filteredEvents, isDark),
+              child: NotificationListener<OverscrollNotification>(
+                onNotification: (n) {
+                  // Pulling past the top (overscroll up) → expand calendar
+                  if (n.overscroll < 0 &&
+                      _calendarCollapsed &&
+                      _selectedDay != null) {
+                    if (_eventsScrollCtrl.hasClients) {
+                      _eventsScrollCtrl.jumpTo(0);
+                    }
+                    setState(() => _calendarCollapsed = false);
+                  }
+                  return false;
+                },
+                child: GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onHorizontalDragEnd: (details) {
+                    if (_selectedDay == null) return;
+                    final vel = details.primaryVelocity ?? 0;
+                    if (vel.abs() < 150) return; // ignore slow drags
+                    if (vel < 0) {
+                      // Swipe left → next day
+                      _navigateDay(1);
+                    } else {
+                      // Swipe right → prev day
+                      _navigateDay(-1);
+                    }
+                  },
+                  child: _buildEventSection(context, filteredEvents, isDark),
+                ),
+              ),
             ),
           ],
         ),
@@ -680,7 +740,12 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () => setState(() => _calendarCollapsed = false),
+      onTap: () {
+        if (_eventsScrollCtrl.hasClients) {
+          _eventsScrollCtrl.jumpTo(0);
+        }
+        setState(() => _calendarCollapsed = false);
+      },
       child: Padding(
         padding: const EdgeInsets.symmetric(
             horizontal: Spacing.lg, vertical: Spacing.md),
@@ -872,7 +937,16 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
         ),
         Expanded(
           child: events.isEmpty
-              ? _buildEmptyEvents(context)
+              ? CustomScrollView(
+                  controller: _eventsScrollCtrl,
+                  physics: const BouncingScrollPhysics(),
+                  slivers: [
+                    SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: _buildEmptyEvents(context),
+                    ),
+                  ],
+                )
               : ListView.builder(
                   controller: _eventsScrollCtrl,
                   padding: const EdgeInsets.fromLTRB(
