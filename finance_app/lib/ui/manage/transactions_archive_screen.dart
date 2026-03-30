@@ -331,12 +331,12 @@ class _ArchivedTransactionCard extends StatelessWidget {
       context: context,
       builder: (actionContext) {
         return CupertinoActionSheet(
-          title: const Text('Permanent delete options'),
+          title: const Text('Delete Permanently'),
           message: const Text(
-              'Choose whether to keep account balances or reverse the amounts'),
+              'The transaction will be gone forever. Do you want to also reverse the account balance, or leave balances unchanged?'),
           actions: [
             CupertinoActionSheetAction(
-              child: const Text('Keep balances as-is'),
+              child: const Text('Delete — Keep balances unchanged'),
               onPressed: () async {
                 await archiveController.removeFromArchive(transaction.id);
                 toast_lib.toast.showSuccess('Transaction removed permanently');
@@ -347,7 +347,7 @@ class _ArchivedTransactionCard extends StatelessWidget {
             ),
             CupertinoActionSheetAction(
               isDestructiveAction: true,
-              child: const Text('Reverse balances'),
+              child: const Text('Delete & Reverse account balance'),
               onPressed: () async {
                 await TransactionAccountAdjuster.reverseTransaction(
                   accountsController,

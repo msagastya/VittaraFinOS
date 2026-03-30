@@ -35,15 +35,6 @@ class _LoanTrackerScreenState extends State<LoanTrackerScreen> {
             ? Colors.black
             : Colors.white.withValues(alpha: 0.95),
         border: null,
-        trailing: CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: () => _openAddLoan(context),
-          child: Icon(
-            CupertinoIcons.add_circled_solid,
-            color: AppStyles.getPrimaryColor(context),
-            size: 26,
-          ),
-        ),
       ),
       child: Consumer<LoanController>(
         builder: (context, controller, _) {
@@ -91,11 +82,13 @@ class _LoanTrackerScreenState extends State<LoanTrackerScreen> {
                   ],
                 ),
               ),
-              // FAB
               Positioned(
                 right: Spacing.lg,
                 bottom: Spacing.xxl + MediaQuery.of(context).padding.bottom,
-                child: _AddLoanFab(onPressed: () => _openAddLoan(context)),
+                child: FadingFAB(
+                  onPressed: () => _openAddLoan(context),
+                  color: AppStyles.loss(context),
+                ),
               ),
             ],
           );
@@ -651,34 +644,6 @@ class _LoanTypeIcon extends StatelessWidget {
   }
 }
 
-// ─── Add FAB ─────────────────────────────────────────────────────────────────
-
-class _AddLoanFab extends StatelessWidget {
-  final VoidCallback onPressed;
-
-  const _AddLoanFab({required this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    return BouncyButton(
-      onPressed: onPressed,
-      child: Container(
-        width: 56,
-        height: 56,
-        decoration: BoxDecoration(
-          color: AppStyles.loss(context),
-          shape: BoxShape.circle,
-          boxShadow: Shadows.fab(AppStyles.plasmaRed),
-        ),
-        child: const Icon(
-          CupertinoIcons.add,
-          color: Colors.white,
-          size: 26,
-        ),
-      ),
-    );
-  }
-}
 
 // ─── Loan Detail Sheet ───────────────────────────────────────────────────────
 

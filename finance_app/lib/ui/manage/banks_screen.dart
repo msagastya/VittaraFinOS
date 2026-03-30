@@ -388,9 +388,9 @@ class _BanksScreenState extends State<BanksScreen> {
               onPressed: () => _sortBanks(banksController),
               child: Icon(
                 _isAscending
-                    ? CupertinoIcons.sort_down
-                    : CupertinoIcons.sort_up,
-                size: 24,
+                    ? CupertinoIcons.sort_down_circle_fill
+                    : CupertinoIcons.sort_down_circle,
+                size: 22,
                 color: AppStyles.accentBlue,
               ),
             ),

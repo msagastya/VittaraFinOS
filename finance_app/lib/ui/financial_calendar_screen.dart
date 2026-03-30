@@ -178,8 +178,7 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
   }
 
   void _onEventsScroll() {
-    if (_selectedDay == null) return;
-    // Only collapse — expanding is via chip tap or overscroll pull-down.
+    // Collapse when scrolling down on events list.
     if (!_calendarCollapsed && _eventsScrollCtrl.offset > 20) {
       setState(() => _calendarCollapsed = true);
     }
@@ -313,17 +312,36 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
             // ── Calendar card ──────────────────────────────────────────────
             GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onHorizontalDragEnd: (details) {
-                final vel = details.primaryVelocity ?? 0;
-                if (vel.abs() < 200) return; // ignore slow drags
-                if (_calendarCollapsed && _selectedDay != null) {
-                  // Collapsed chip: swipe navigates days
-                  if (vel < 0) { _navigateDay(1); }   // swipe left → next day
-                  else { _navigateDay(-1); }            // swipe right → prev day
-                } else {
-                  // Full calendar: swipe navigates months
-                  if (vel < 0) { _nextMonth(); }  // swipe left → next month
-                  else { _prevMonth(); }            // swipe right → prev month
+              onPanEnd: (details) {
+                final vx = details.velocity.pixelsPerSecond.dx;
+                final vy = details.velocity.pixelsPerSecond.dy;
+                // Only fire if clearly horizontal (vx dominates by 50%)
+                final isHorizontal = vx.abs() > vy.abs() * 1.5 && vx.abs() > 300;
+                // Only fire if clearly vertical (vy dominates by 50%)
+                final isVertical = vy.abs() > vx.abs() * 1.5 && vy.abs() > 200;
+
+                if (isHorizontal) {
+                  if (_calendarCollapsed && _selectedDay != null) {
+                    if (vx < 0) _navigateDay(1);
+                    else _navigateDay(-1);
+                  } else {
+                    if (vx < 0) _nextMonth();
+                    else _prevMonth();
+                  }
+                } else if (isVertical) {
+                  if (vy < 0) {
+                    // Swipe up → collapse
+                    if (!_calendarCollapsed) {
+                      if (_eventsScrollCtrl.hasClients) _eventsScrollCtrl.jumpTo(0);
+                      setState(() => _calendarCollapsed = true);
+                    }
+                  } else {
+                    // Swipe down → expand
+                    if (_calendarCollapsed) {
+                      if (_eventsScrollCtrl.hasClients) _eventsScrollCtrl.jumpTo(0);
+                      setState(() => _calendarCollapsed = false);
+                    }
+                  }
                 }
               },
               child: Container(

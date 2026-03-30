@@ -34,6 +34,8 @@ class SettingsController with ChangeNotifier {
   bool _appLoaded = false;
   bool _isArchivedTransactionsEnabled = false;
   bool _isSmsEnabled = false;
+  String? _defaultAccountId;
+  String? _defaultPaymentAppName;
   String? _pinHash; // SHA-256 of the PIN
   String? _pinSalt; // Per-user random salt (base64, v2+). Null for legacy users.
   bool _showPinFallback = false; // set to true after biometric fails
@@ -47,6 +49,8 @@ class SettingsController with ChangeNotifier {
   bool get appLoaded => _appLoaded;
   bool get isArchivedTransactionsEnabled => _isArchivedTransactionsEnabled;
   bool get isSmsEnabled => _isSmsEnabled;
+  String? get defaultAccountId => _defaultAccountId;
+  String? get defaultPaymentAppName => _defaultPaymentAppName;
   bool get isPinEnabled => _pinHash != null && _pinHash!.isNotEmpty;
   bool get showPinFallback => _showPinFallback;
 
@@ -75,6 +79,8 @@ class SettingsController with ChangeNotifier {
     _isArchivedTransactionsEnabled =
         _prefs.getBool('showArchivedTransactions') ?? false;
     _isSmsEnabled = _prefs.getBool('isSmsEnabled') ?? false;
+    _defaultAccountId = _prefs.getString('quickEntryDefaultAccountId');
+    _defaultPaymentAppName = _prefs.getString('quickEntryDefaultPaymentApp');
 
     // Read PIN hash + salt from secure storage
     _pinHash = await _secureStorage.read(key: _keyPinHash);
@@ -153,6 +159,26 @@ class SettingsController with ChangeNotifier {
   Future<void> toggleSmsScanning(bool value) async {
     _isSmsEnabled = value;
     await _prefs.setBool('isSmsEnabled', value);
+    notifyListeners();
+  }
+
+  Future<void> setDefaultAccountId(String? id) async {
+    _defaultAccountId = id;
+    if (id == null) {
+      await _prefs.remove('quickEntryDefaultAccountId');
+    } else {
+      await _prefs.setString('quickEntryDefaultAccountId', id);
+    }
+    notifyListeners();
+  }
+
+  Future<void> setDefaultPaymentApp(String? name) async {
+    _defaultPaymentAppName = name;
+    if (name == null) {
+      await _prefs.remove('quickEntryDefaultPaymentApp');
+    } else {
+      await _prefs.setString('quickEntryDefaultPaymentApp', name);
+    }
     notifyListeners();
   }
 
@@ -289,6 +315,8 @@ class SettingsController with ChangeNotifier {
     await _prefs.remove('isInvestmentTrackingEnabled');
     await _prefs.remove('showArchivedTransactions');
     await _prefs.remove('isSmsEnabled');
+    await _prefs.remove('quickEntryDefaultAccountId');
+    await _prefs.remove('quickEntryDefaultPaymentApp');
     _themeMode = ThemeMode.system;
     _isBiometricEnabled = true;
     _lockOnMinimize = false;
@@ -296,6 +324,8 @@ class SettingsController with ChangeNotifier {
     _isInvestmentTrackingEnabled = false;
     _isArchivedTransactionsEnabled = false;
     _isSmsEnabled = false;
+    _defaultAccountId = null;
+    _defaultPaymentAppName = null;
     notifyListeners();
   }
 

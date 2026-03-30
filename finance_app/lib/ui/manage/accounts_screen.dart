@@ -128,6 +128,19 @@ class _AccountsScreenState extends State<AccountsScreen> {
                           },
                         ),
                       ),
+                      const SizedBox(width: Spacing.lg),
+                      Expanded(
+                        child: _buildOptionCard(
+                          context,
+                          title: 'Cash\nin Hand',
+                          icon: CupertinoIcons.money_dollar_circle_fill,
+                          color: CupertinoColors.systemGreen,
+                          onTap: () {
+                            Navigator.pop(context);
+                            _showAddCashModal();
+                          },
+                        ),
+                      ),
                       if (showInvestment) ...[
                         const SizedBox(width: Spacing.lg),
                         Expanded(
@@ -211,6 +224,161 @@ class _AccountsScreenState extends State<AccountsScreen> {
       await accountsController.addAccount(result);
       logger.info('Added account: ${result.name}', context: 'AccountsScreen');
     }
+  }
+
+  void _showAddCashModal() {
+    final nameCtrl = TextEditingController(text: 'Cash in Hand');
+    final balanceCtrl = TextEditingController();
+
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) {
+          final canSave = balanceCtrl.text.isNotEmpty;
+          final isDark = AppStyles.isDarkMode(ctx);
+          return Container(
+            decoration: AppStyles.bottomSheetDecoration(ctx),
+            padding: EdgeInsets.only(
+              left: Spacing.xxl,
+              right: Spacing.xxl,
+              top: Spacing.xxl,
+              bottom: MediaQuery.of(ctx).viewInsets.bottom + Spacing.xxl,
+            ),
+            child: SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: CupertinoColors.systemGrey3,
+                        borderRadius: BorderRadius.circular(2.5),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: Spacing.xl),
+                  Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: CupertinoColors.systemGreen.withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            CupertinoIcons.money_dollar_circle_fill,
+                            color: CupertinoColors.systemGreen,
+                            size: 24,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: Spacing.md),
+                      Text(
+                        'Cash in Hand',
+                        style: AppStyles.titleStyle(ctx).copyWith(fontSize: TypeScale.title2),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: Spacing.xl),
+                  Text('Account Name', style: TextStyle(
+                    fontSize: TypeScale.footnote,
+                    fontWeight: FontWeight.w600,
+                    color: AppStyles.getSecondaryTextColor(ctx),
+                  )),
+                  const SizedBox(height: Spacing.sm),
+                  CupertinoTextField(
+                    controller: nameCtrl,
+                    placeholder: 'e.g. Cash in Hand',
+                    padding: const EdgeInsets.all(Spacing.md),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF1C1C1E) : CupertinoColors.systemGrey6,
+                      borderRadius: BorderRadius.circular(Radii.md),
+                    ),
+                    style: TextStyle(color: AppStyles.getTextColor(ctx)),
+                  ),
+                  const SizedBox(height: Spacing.lg),
+                  Text('Cash Balance', style: TextStyle(
+                    fontSize: TypeScale.footnote,
+                    fontWeight: FontWeight.w600,
+                    color: AppStyles.getSecondaryTextColor(ctx),
+                  )),
+                  const SizedBox(height: Spacing.sm),
+                  CupertinoTextField(
+                    controller: balanceCtrl,
+                    placeholder: '0.00',
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    prefix: Padding(
+                      padding: const EdgeInsets.only(left: Spacing.md),
+                      child: Text('₹', style: TextStyle(
+                        color: AppStyles.getTextColor(ctx),
+                        fontWeight: FontWeight.w600,
+                      )),
+                    ),
+                    padding: const EdgeInsets.all(Spacing.md),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF1C1C1E) : CupertinoColors.systemGrey6,
+                      borderRadius: BorderRadius.circular(Radii.md),
+                    ),
+                    style: TextStyle(color: AppStyles.getTextColor(ctx)),
+                    onChanged: (_) => setModalState(() {}),
+                  ),
+                  const SizedBox(height: Spacing.xl),
+                  BouncyButton(
+                    onPressed: canSave
+                        ? () {
+                            final balance = double.tryParse(balanceCtrl.text) ?? 0.0;
+                            final name = nameCtrl.text.trim().isEmpty ? 'Cash in Hand' : nameCtrl.text.trim();
+                            final account = Account(
+                              id: DateTime.now().millisecondsSinceEpoch.toString(),
+                              name: name,
+                              bankName: 'Cash',
+                              type: AccountType.cash,
+                              balance: balance,
+                              color: CupertinoColors.systemGreen,
+                            );
+                            Navigator.pop(ctx);
+                            Provider.of<AccountsController>(context, listen: false)
+                                .addAccount(account);
+                            logger.info('Added cash account: $name', context: 'AccountsScreen');
+                          }
+                        : () {},
+                    child: Opacity(
+                      opacity: canSave ? 1.0 : 0.45,
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        decoration: BoxDecoration(
+                          color: CupertinoColors.systemGreen,
+                          borderRadius: BorderRadius.circular(Radii.lg),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'Add Cash Account',
+                            style: TextStyle(
+                              color: CupertinoColors.white,
+                              fontWeight: FontWeight.w700,
+                              fontSize: TypeScale.body,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    ).whenComplete(() {
+      nameCtrl.dispose();
+      balanceCtrl.dispose();
+    });
   }
 
   List<Account> _getAccountsByType(List<Account> accounts, AccountType type) {
@@ -342,7 +510,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
             _buildSummaryColumn(
                 'Liabilities', liabilities, AppStyles.loss(context)),
             _buildDivider(),
-            _buildSummaryColumn('Net Worth', net,
+            _buildSummaryColumn('Scorecard', net,
                 net >= 0 ? AppStyles.accentBlue : AppStyles.loss(context)),
           ],
         ),
@@ -1987,19 +2155,23 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                 id: DateTime.now()
                                     .millisecondsSinceEpoch
                                     .toString(),
-                                type: TransactionType.transfer,
+                                type: isAdding
+                                    ? TransactionType.income
+                                    : TransactionType.expense,
                                 description:
-                                    '${isAdding ? "Added" : "Deducted"} ₹${amount.toStringAsFixed(2)}',
+                                    '${isAdding ? "Balance credit" : "Balance debit"} — ${account.name}',
                                 dateTime: DateTime.now(),
                                 amount: amount,
                                 sourceAccountId: account.id,
                                 sourceAccountName: account.name,
-                                destinationAccountId: account.id,
-                                destinationAccountName: account.name,
                                 metadata: {
+                                  'categoryName': 'Balance Adjustment',
                                   'type': 'balance_adjustment',
                                   'adjustment_type':
                                       isAdding ? 'credit' : 'debit',
+                                  'accountId': account.id,
+                                  'accountName': account.name,
+                                  'sourceBalanceAfter': newBalance,
                                 },
                               );
                               transactionsController

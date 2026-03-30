@@ -35,35 +35,18 @@ class _ContactsScreenState extends State<ContactsScreen> {
           'People',
           style: TextStyle(color: AppStyles.getTextColor(context)),
         ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CupertinoButton(
-              padding: EdgeInsets.zero,
-              onPressed: () => setState(() => _sortAlpha = !_sortAlpha),
-              child: Icon(
-                _sortAlpha
-                    ? CupertinoIcons.sort_down_circle_fill
-                    : CupertinoIcons.sort_down_circle,
-                color: _sortAlpha
-                    ? AppStyles.accentBlue
-                    : AppStyles.getSecondaryTextColor(context),
-                size: 22,
-              ),
-            ),
-            CupertinoButton(
-              padding: EdgeInsets.zero,
-              onPressed: () => _showAddContactOptions(
-                context,
-                context.read<ContactsController>(),
-              ),
-              child: const Icon(
-                CupertinoIcons.plus_circle_fill,
-                color: AppStyles.accentBlue,
-                size: 24,
-              ),
-            ),
-          ],
+        trailing: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: () => setState(() => _sortAlpha = !_sortAlpha),
+          child: Icon(
+            _sortAlpha
+                ? CupertinoIcons.sort_down_circle_fill
+                : CupertinoIcons.sort_down_circle,
+            color: _sortAlpha
+                ? AppStyles.accentBlue
+                : AppStyles.getSecondaryTextColor(context),
+            size: 22,
+          ),
         ),
         previousPageTitle: 'Back',
         backgroundColor: AppStyles.getBackground(context),

@@ -74,6 +74,11 @@ class DashboardController with ChangeNotifier {
           changed = _migrateToV8() || changed;
         }
 
+        // v9 migration: rename net_worth widget title to 'Scorecard'
+        if (_config.configVersion < 9) {
+          changed = _migrateToV9() || changed;
+        }
+
         if (changed) {
           await saveConfig();
           return;
@@ -189,6 +194,18 @@ class DashboardController with ChangeNotifier {
     return true;
   }
 
+  /// v9: rename net_worth widget title from 'Net Worth' to 'Scorecard'.
+  bool _migrateToV9() {
+    final updatedWidgets = _config.widgets.map((w) {
+      if (w.id == 'net_worth' && w.title == 'Net Worth') {
+        return w.copyWith(title: 'Scorecard');
+      }
+      return w;
+    }).toList();
+    _config = _config.copyWith(widgets: updatedWidgets, configVersion: 9);
+    return true;
+  }
+
   /// v3: health_score content merged into net_worth widget — hide it.
   bool _migrateToV3() {
     final updatedWidgets = _config.widgets.map((w) {
@@ -203,12 +220,12 @@ class DashboardController with ChangeNotifier {
 
   DashboardConfig _getDefaultConfig() {
     return DashboardConfig(
-      configVersion: 8,
+      configVersion: 9,
       widgets: [
         DashboardWidgetConfig(
           id: 'net_worth',
           type: DashboardWidgetType.netWorth,
-          title: 'Net Worth',
+          title: 'Scorecard',
           isVisible: true,
           gridRow: 1,
           gridColumn: 1,

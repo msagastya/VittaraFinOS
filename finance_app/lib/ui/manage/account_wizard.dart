@@ -859,77 +859,11 @@ class _AccountWizardState extends State<AccountWizard> {
               ),
               const SizedBox(height: Spacing.sm),
               Text(
-                'Where do you keep your money? You can also track cash in hand.',
+                'Which bank do you use?',
                 style:
                     TextStyle(color: AppStyles.getSecondaryTextColor(context)),
               ),
               const SizedBox(height: Spacing.xxxl),
-              BouncyButton(
-                onPressed: () {
-                  setState(() {
-                    _selectedBank = _cashBankName;
-                    _selectedColor = AppStyles.gain(context);
-                  });
-                  _nextStep();
-                },
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(Spacing.lg),
-                  decoration: BoxDecoration(
-                    color: AppStyles.gain(context).withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(Radii.md),
-                    border: Border.all(
-                      color: AppStyles.gain(context).withValues(alpha: 0.5),
-                      width: 1.2,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: AppStyles.gain(context)
-                              .withValues(alpha: 0.2),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: Icon(
-                            CupertinoIcons.money_dollar_circle_fill,
-                            color: AppStyles.gain(context),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: Spacing.md),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Cash in Hand',
-                              style: AppStyles.titleStyle(context),
-                            ),
-                            const SizedBox(height: Spacing.xxs),
-                            Text(
-                              'Track your physical cash balance',
-                              style: TextStyle(
-                                color: AppStyles.getSecondaryTextColor(context),
-                                fontSize: TypeScale.footnote,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Icon(
-                        CupertinoIcons.chevron_right,
-                        size: 16,
-                        color: AppStyles.gain(context),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: Spacing.lg),
               if (enabledBanks.isEmpty)
                 Center(
                   child: Column(
@@ -1486,11 +1420,6 @@ class _AccountWizardState extends State<AccountWizard> {
         'label': 'Digital Wallet',
         'icon': CupertinoIcons.square_stack_3d_down_right_fill
       },
-      {
-        'type': AccountType.cash,
-        'label': 'Cash in Hand',
-        'icon': CupertinoIcons.money_dollar_circle_fill
-      },
     ];
 
     return SingleChildScrollView(
@@ -1678,6 +1607,7 @@ class _AccountWizardState extends State<AccountWizard> {
                       style: AppStyles.titleStyle(context).copyWith(
                           fontSize: TypeScale.display,
                           fontWeight: FontWeight.bold),
+                      onChanged: (_) => setState(() {}),
                       onSubmitted: (value) {
                         // Auto-proceed when user taps Done on keyboard
                         if (_balanceController.text.isNotEmpty) {
@@ -1779,9 +1709,7 @@ class _AccountWizardState extends State<AccountWizard> {
               _selectedAccountType == AccountType.investment ||
               _selectedAccountType == AccountType.cash) ...[
             Text(
-              _selectedAccountType == AccountType.cash
-                  ? 'Cash in Hand Balance'
-                  : 'Opening Balance',
+              'Opening Balance',
               style: AppStyles.headerStyle(context),
             ),
             const SizedBox(height: Spacing.sm),
@@ -1806,6 +1734,7 @@ class _AccountWizardState extends State<AccountWizard> {
                       style: AppStyles.titleStyle(context).copyWith(
                           fontSize: TypeScale.display,
                           fontWeight: FontWeight.bold),
+                      onChanged: (_) => setState(() {}),
                       onSubmitted: (value) {
                         // Auto-proceed when user taps Done on keyboard
                         if (_balanceController.text.isNotEmpty) {

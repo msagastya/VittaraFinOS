@@ -8,7 +8,6 @@ import 'package:vittara_fin_os/logic/fixed_deposit_model.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/recurring_deposit_model.dart';
-import 'package:vittara_fin_os/ui/dashboard/transaction_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/bonds/bonds_details_screen.dart';
 import 'package:vittara_fin_os/ui/manage/commodities/commodities_details_screen.dart';
 import 'package:vittara_fin_os/ui/manage/commodities/commodities_wizard.dart';
@@ -34,6 +33,7 @@ import 'package:vittara_fin_os/ui/manage/simple_investment_entry_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/stocks/stock_details_screen.dart';
 import 'package:vittara_fin_os/ui/manage/stocks/stocks_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/transfer_wizard.dart';
+import 'package:vittara_fin_os/ui/dashboard/quick_entry_sheet.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
@@ -393,22 +393,16 @@ class _DashboardActionSheetState extends State<_DashboardActionSheet> {
           ),
           const SizedBox(height: 16),
           _homeRow(
-            icon: CupertinoIcons.arrow_up_circle_fill,
-            label: 'Expense',
-            subtitle: 'Record a payment or purchase',
-            color: const Color(0xFFFF3B30),
-            onTap: () => _launch(const TransactionWizard(
-              initialBranch: TransactionWizardBranch.expense,
-            )),
-          ),
-          _homeRow(
-            icon: CupertinoIcons.arrow_down_circle_fill,
-            label: 'Income',
-            subtitle: 'Log a salary, freelance or any credit',
-            color: const Color(0xFF34C759),
-            onTap: () => _launch(const TransactionWizard(
-              initialBranch: TransactionWizardBranch.income,
-            )),
+            icon: CupertinoIcons.arrow_up_arrow_down_circle_fill,
+            label: 'Transaction',
+            subtitle: 'Record an expense or income quickly',
+            color: const Color(0xFF5E6AD2),
+            onTap: () {
+              Navigator.pop(context);
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                showQuickEntrySheet(widget.navigator.context);
+              });
+            },
           ),
           _homeRow(
             icon: CupertinoIcons.arrow_right_arrow_left_circle_fill,

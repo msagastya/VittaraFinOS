@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' show Divider;
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
@@ -9,6 +9,7 @@ import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/ui/dashboard/base_dashboard_widget.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/transaction_type_theme.dart';
 
 class TransactionHistoryWidget extends BaseDashboardWidget {
   const TransactionHistoryWidget({
@@ -215,30 +216,10 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
     final amountPrefix = _getAmountPrefix(type);
     final leadingIcon = _getTransactionIcon(type);
 
-    // Get category color
-    Color getCategoryColor(String categoryName) {
-      switch (categoryName.toLowerCase()) {
-        case 'groceries':
-        case 'food':
-          return AppStyles.gain(context);
-        case 'transport':
-        case 'fuel':
-          return CupertinoColors.systemOrange;
-        case 'entertainment':
-          return Colors.purple;
-        case 'shopping':
-          return Colors.pink;
-        case 'utilities':
-          return AppStyles.teal(context);
-        case 'salary':
-        case 'income':
-          return AppStyles.gain(context);
-        default:
-          return CupertinoColors.systemGrey;
-      }
-    }
-
-    final categoryColor = getCategoryColor(category);
+    // Category color: use the transaction type's canonical color so every type
+    // (transfer, investment, cashback, lending, borrowing…) gets its own colour
+    // instead of falling back to grey for anything not in a hardcoded list.
+    final categoryColor = type.typeColor(context);
 
     if (compact) {
       // Vertical compact layout

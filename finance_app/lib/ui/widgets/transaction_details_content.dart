@@ -260,6 +260,33 @@ class TransactionDetailsContent extends StatelessWidget {
       if (cnav != null) {
         maybeAdd('Current NAV', '₹${cnav.toStringAsFixed(4)}');
       }
+
+      // FD / RD specific
+      final rawRate = metadata['interestRate'];
+      final rate = rawRate is num ? rawRate.toDouble() : null;
+      if (rate != null && rate > 0) {
+        maybeAdd('Interest Rate', '${rate.toStringAsFixed(2)}% p.a.');
+      }
+      final tenure = metadata['tenure'];
+      if (tenure != null) {
+        maybeAdd('Tenure', '$tenure months');
+      }
+      final maturityDate = metadata['maturityDate'] as String?;
+      if (maturityDate != null && maturityDate.isNotEmpty) {
+        final parsed = DateTime.tryParse(maturityDate);
+        if (parsed != null) {
+          final months = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+              'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          maybeAdd('Maturity Date',
+              '${parsed.day} ${months[parsed.month]} ${parsed.year}');
+        }
+      }
+      final rawMv = metadata['maturityValue'];
+      final mv = rawMv is num ? rawMv.toDouble() : null;
+      if (mv != null && mv > 0) {
+        maybeAdd('Est. Maturity Value', '₹${mv.toStringAsFixed(2)}',
+            forceColor: CupertinoColors.systemGreen);
+      }
     }
 
     final merchant = metadata['merchant'] as String?;

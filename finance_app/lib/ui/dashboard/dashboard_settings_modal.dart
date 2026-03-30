@@ -201,7 +201,7 @@ class _DashboardSettingsModalState extends State<DashboardSettingsModal> {
   String _getWidgetDescription(DashboardWidgetType type) {
     switch (type) {
       case DashboardWidgetType.netWorth:
-        return 'Your total net worth & breakdown';
+        return 'Your scorecard — assets, liabilities & total';
       case DashboardWidgetType.transactionHistory:
         return 'Recent transactions';
       case DashboardWidgetType.sipTracker:

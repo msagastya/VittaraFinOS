@@ -8,6 +8,7 @@ import 'package:vittara_fin_os/ui/manage/insurance/insurance_wizard.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
+import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/widgets/animated_counter.dart' as counter_widgets;
@@ -34,15 +35,6 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
             ? Colors.black
             : Colors.white.withValues(alpha: 0.95),
         border: null,
-        trailing: CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: () => _openAddPolicy(context),
-          child: const Icon(
-            CupertinoIcons.add_circled_solid,
-            color: AppStyles.accentBlue,
-            size: 26,
-          ),
-        ),
       ),
       child: Consumer<InsuranceController>(
         builder: (context, controller, _) {
@@ -94,13 +86,13 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                   ],
                 ),
               ),
-              // FAB
               Positioned(
                 right: Spacing.lg,
-                bottom:
-                    Spacing.xxl + MediaQuery.of(context).padding.bottom,
-                child: _AddPolicyFab(
-                    onPressed: () => _openAddPolicy(context)),
+                bottom: Spacing.xxl + MediaQuery.of(context).padding.bottom,
+                child: FadingFAB(
+                  onPressed: () => _openAddPolicy(context),
+                  color: AppStyles.accentBlue,
+                ),
               ),
             ],
           );
@@ -537,7 +529,7 @@ class _PolicyCard extends StatelessWidget {
     return GestureDetector(
       onLongPress: () => _showActions(context),
       child: BouncyButton(
-        onPressed: onTap,
+        onPressed: () => _showActions(context),
         child: Container(
           decoration: AppStyles.cardDecoration(context),
           padding: const EdgeInsets.all(Spacing.lg),
@@ -693,31 +685,3 @@ class _PolicyCard extends StatelessWidget {
   }
 }
 
-// ─── FAB ─────────────────────────────────────────────────────────────────────
-
-class _AddPolicyFab extends StatelessWidget {
-  final VoidCallback onPressed;
-
-  const _AddPolicyFab({required this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    return BouncyButton(
-      onPressed: onPressed,
-      child: Container(
-        width: 56,
-        height: 56,
-        decoration: BoxDecoration(
-          color: AppStyles.accentBlue,
-          shape: BoxShape.circle,
-          boxShadow: Shadows.fab(AppStyles.accentBlue),
-        ),
-        child: const Icon(
-          CupertinoIcons.add,
-          color: Colors.white,
-          size: 26,
-        ),
-      ),
-    );
-  }
-}

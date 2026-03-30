@@ -46,8 +46,31 @@ class TransactionFeedBuilder {
           void addFallbackIfPresent(String key, dynamic value) {
             if (value != null) fallbackExtraMeta[key] = value;
           }
+
+          // Common snapshot fields
+          addFallbackIfPresent('sourceBalanceAfter', metadata['sourceBalanceAfter']);
+          addFallbackIfPresent('sourceCreditLimit', metadata['sourceCreditLimit']);
           addFallbackIfPresent('currentValue', metadata['currentValue']);
           addFallbackIfPresent('currentNAV', metadata['currentNAV']);
+
+          // Stocks/ETF: qty → quantity, pricePerShare → pricePerUnit, extraCharges → charges
+          addFallbackIfPresent('quantity',
+              metadata['qty'] ?? metadata['quantity']);
+          addFallbackIfPresent('pricePerUnit',
+              metadata['pricePerShare'] ?? metadata['pricePerUnit']);
+          addFallbackIfPresent('charges',
+              metadata['extraCharges'] ?? metadata['charges']);
+
+          // MF: units, investmentNAV → navValue
+          addFallbackIfPresent('units', metadata['units']);
+          addFallbackIfPresent('navValue',
+              metadata['investmentNAV'] ?? metadata['navValue'] ?? metadata['purchaseNAV']);
+
+          // FD / RD: interest rate, maturity info
+          addFallbackIfPresent('interestRate', metadata['interestRate']);
+          addFallbackIfPresent('maturityDate', metadata['maturityDate']);
+          addFallbackIfPresent('maturityValue', metadata['maturityValue']);
+          addFallbackIfPresent('tenure', metadata['tenure'] ?? metadata['tenureMonths']);
 
           derived.add(
             Transaction(
@@ -111,11 +134,23 @@ class TransactionFeedBuilder {
         }
         addIfPresent('currentValue', metadata['currentValue']);
         addIfPresent('currentNAV', metadata['currentNAV']);
-        addIfPresent('quantity', event['quantity']);
+        // Balance snapshot — prefer per-event value, fall back to investment-level
+        addIfPresent('sourceBalanceAfter',
+            event['sourceBalanceAfter'] ?? metadata['sourceBalanceAfter']);
+        addIfPresent('sourceCreditLimit',
+            event['sourceCreditLimit'] ?? metadata['sourceCreditLimit']);
+        // Quantity: event key first, then stocks key mapping
+        addIfPresent('quantity',
+            event['quantity'] ?? event['qty']);
         addIfPresent('units', event['units']);
-        addIfPresent('pricePerUnit', event['price'] ?? event['pricePerUnit']);
-        addIfPresent('navValue', event['nav'] ?? event['navValue']);
-        addIfPresent('charges', event['charges']);
+        // Price / NAV: event key first, then stocks key mapping
+        addIfPresent('pricePerUnit',
+            event['price'] ?? event['pricePerUnit'] ?? event['pricePerShare']);
+        addIfPresent('navValue',
+            event['nav'] ?? event['navValue'] ?? event['investmentNAV'] ?? event['purchaseNAV']);
+        // Charges: event key first, then stocks key mapping
+        addIfPresent('charges',
+            event['charges'] ?? event['extraCharges']);
 
         derived.add(
           Transaction(

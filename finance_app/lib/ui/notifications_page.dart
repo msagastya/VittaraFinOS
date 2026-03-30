@@ -33,9 +33,33 @@ import 'package:vittara_fin_os/logic/categories_controller.dart';
 import 'package:vittara_fin_os/logic/category_model.dart';
 import 'package:vittara_fin_os/services/sms_auto_scan_service.dart';
 import 'package:vittara_fin_os/services/sms_service.dart';
+import 'package:vittara_fin_os/logic/insurance_controller.dart';
+import 'package:vittara_fin_os/logic/insurance_model.dart';
 
-class NotificationsPage extends StatelessWidget {
+class _NotifTab {
+  final String label;
+  final IconData icon;
+  final Color color;
+  final int count;
+  const _NotifTab({required this.label, required this.icon, required this.color, required this.count});
+}
+
+class NotificationsPage extends StatefulWidget {
   const NotificationsPage({super.key});
+
+  @override
+  State<NotificationsPage> createState() => _NotificationsPageState();
+}
+
+class _NotificationsPageState extends State<NotificationsPage> {
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,10 +76,10 @@ class NotificationsPage extends StatelessWidget {
         child: Container(
           color:
               isDark ? Colors.black : CupertinoColors.systemGroupedBackground,
-          child: Consumer4<InvestmentsController, RecurringTemplatesController,
-              TransactionsController, BudgetsController>(
+          child: Consumer5<InvestmentsController, RecurringTemplatesController,
+              TransactionsController, BudgetsController, InsuranceController>(
             builder: (context, investmentsController, templatesController,
-                txController, budgetsController, child) {
+                txController, budgetsController, insuranceController, child) {
               final investments = investmentsController.investments;
               final dueTemplates = templatesController.templates.where((t) {
                 final days = t.daysUntilDue();
@@ -153,790 +177,986 @@ class NotificationsPage extends StatelessWidget {
               final bondNotifications =
                   collectBondPayoutNotifications(investments);
 
-              return SingleChildScrollView(
-                child: Column(
-                  children: [
-                    if (AppStyles.isLandscape(context))
-                      _buildLandscapeNavBar(context),
-                    // Financial Calendar shortcut
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-                      child: GestureDetector(
-                        onTap: () => Navigator.of(context).push(
-                          CupertinoPageRoute(
-                            builder: (_) => const FinancialCalendarScreen(),
-                          ),
-                        ),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 14),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                AppStyles.teal(context).withValues(alpha: 0.18),
-                                AppStyles.violet(context).withValues(alpha: 0.12),
-                              ],
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                            ),
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(
-                              color:
-                                  AppStyles.teal(context).withValues(alpha: 0.3),
-                              width: 1,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 36,
-                                height: 36,
-                                decoration: BoxDecoration(
-                                  color: AppStyles.teal(context)
-                                      .withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Icon(
-                                  CupertinoIcons.calendar,
-                                  color: AppStyles.teal(context),
-                                  size: 20,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Financial Calendar',
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppStyles.teal(context),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      'FDs, SIPs, bills, goals & budget resets',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: isDark
-                                            ? Colors.white54
-                                            : Colors.black45,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Icon(
-                                CupertinoIcons.chevron_right,
-                                color: AppStyles.teal(context),
-                                size: 16,
-                              ),
-                            ],
-                          ),
+              // Insurance renewals
+              final insuranceRenewing = insuranceController.activePolicies
+                  .where((p) => p.isExpiringSoon && !p.isExpired)
+                  .toList()
+                ..sort((a, b) => a.daysUntilRenewal.compareTo(b.daysUntilRenewal));
+              final insuranceExpired = insuranceController.activePolicies
+                  .where((p) => p.isExpired)
+                  .toList();
+
+              final upcomingCount = fdsNearMaturity.length + fdsMatured.length +
+                  rdsWithUpcomingInstallments.length + sipNotifications.length +
+                  bondNotifications.length + insuranceRenewing.length + insuranceExpired.length;
+              final billsCount = dueTemplates.length;
+              final budgetCount = exceededBudgets.length + warningBudgets.length + spendingInsights.length;
+
+              final tabs = [
+                _NotifTab(label: 'Upcoming', icon: CupertinoIcons.bell_fill,
+                    color: CupertinoColors.systemOrange, count: upcomingCount),
+                _NotifTab(label: 'Bills', icon: CupertinoIcons.doc_text_fill,
+                    color: CupertinoColors.systemRed, count: billsCount),
+                _NotifTab(label: 'Budget', icon: CupertinoIcons.chart_bar_alt_fill,
+                    color: CupertinoColors.systemOrange, count: budgetCount),
+                _NotifTab(label: 'SMS', icon: CupertinoIcons.chat_bubble_text_fill,
+                    color: AppStyles.accentBlue, count: 0),
+              ];
+
+              return Column(
+                children: [
+                  if (AppStyles.isLandscape(context))
+                    _buildLandscapeNavBar(context),
+                  // Calendar shortcut (persistent)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                    child: GestureDetector(
+                      onTap: () => Navigator.of(context).push(
+                        CupertinoPageRoute(
+                          builder: (_) => const FinancialCalendarScreen(),
                         ),
                       ),
-                    ),
-                    // ── SMS Transactions Section ──────────────────────────
-                    Consumer<SettingsController>(
-                      builder: (_, settings, __) {
-                        if (!settings.isSmsEnabled) return const SizedBox.shrink();
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 14),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              AppStyles.teal(context).withValues(alpha: 0.18),
+                              AppStyles.violet(context).withValues(alpha: 0.12),
+                            ],
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                          ),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color:
+                                AppStyles.teal(context).withValues(alpha: 0.3),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
                           children: [
-                            _buildSectionHeader(context,
-                              title: 'SMS Transactions',
-                              icon: CupertinoIcons.chat_bubble_text_fill,
-                              color: AppStyles.accentBlue,
+                            Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: AppStyles.teal(context)
+                                    .withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Icon(
+                                CupertinoIcons.calendar,
+                                color: AppStyles.teal(context),
+                                size: 20,
+                              ),
                             ),
-                            const _SmsSectionWidget(),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Financial Calendar',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppStyles.teal(context),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'FDs, SIPs, bills, goals & budget resets',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: isDark
+                                          ? Colors.white54
+                                          : Colors.black45,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(
+                              CupertinoIcons.chevron_right,
+                              color: AppStyles.teal(context),
+                              size: 16,
+                            ),
                           ],
-                        );
-                      },
+                        ),
+                      ),
                     ),
-
-                    // ── FD Maturity Section ───────────────────────────────
-                    if (fdsNearMaturity.isNotEmpty || fdsMatured.isNotEmpty) ...[
-                      _buildSectionHeader(context,
-                        title: 'FD Maturity',
-                        icon: CupertinoIcons.lock_shield_fill,
-                        color: CupertinoColors.systemOrange,
-                        count: fdsNearMaturity.length + fdsMatured.length,
-                      ),
-                      ...fdsNearMaturity.map((fd) {
-                        final metadata = fd.metadata!;
-                        final maturityDate =
-                            DateTime.parse(metadata['maturityDate'] as String);
-                        final daysUntil =
-                            maturityDate.difference(DateTime.now()).inDays;
-                        final maturityValue =
-                            (metadata['estimatedAccruedValue'] as num?)
-                                    ?.toDouble() ??
-                                fd.amount;
-
-                        final accentColor = daysUntil <= 3
-                            ? AppStyles.loss(context)
-                            : CupertinoColors.systemOrange;
-                        return Container(
-                          margin: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8),
-                          child: NotificationWidget(
-                            type: NotificationType.fdPayout,
-                            title: fd.name,
-                            subtitle:
-                                'Maturity on ${_formatDashboardDate(maturityDate)}',
-                            amount: '₹${maturityValue.toStringAsFixed(2)}',
-                            timeInfo:
-                                'In $daysUntil day${daysUntil > 1 ? 's' : ''}',
-                            badgeColor: accentColor,
-                            icon: CupertinoIcons.bell_fill,
-                            statusWidget: Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: accentColor.withValues(alpha: 0.08),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    CupertinoIcons.clock,
-                                    size: 14,
-                                    color: accentColor,
-                                  ),
-                                  const SizedBox(width: Spacing.sm),
-                                  Expanded(
-                                    child: Text(
-                                      'Decide now — renew or withdraw',
-                                      style: TextStyle(
-                                        color: accentColor,
-                                        fontSize: TypeScale.footnote,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            actionButtons: [
-                              Expanded(
-                                child: CupertinoButton(
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 8, horizontal: 12),
-                                  color: accentColor,
-                                  onPressed: () async {
-                                    try {
-                                      final fdObj =
-                                          _buildFixedDepositFromInvestment(fd);
-                                      final investmentsController =
-                                          Provider.of<InvestmentsController>(
-                                              context,
-                                              listen: false);
-                                      if (!context.mounted) return;
-                                      Navigator.of(context).push(
-                                        FadeScalePageRoute(
-                                          page: FDRenewalModal(
-                                            fd: fdObj,
-                                            investmentController:
-                                                investmentsController,
-                                            originalInvestment: fd,
-                                            onRenew: () async {
-                                              if (context.mounted) {
-                                                Navigator.of(context).pop();
-                                              }
-                                            },
-                                          ),
-                                        ),
-                                      );
-                                    } catch (e) {
-                                      if (context.mounted) {
-                                        toast_lib.toast.showError('Error: $e');
-                                      }
-                                    }
-                                  },
-                                  child: const Text(
-                                    'Renew',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: TypeScale.footnote,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
+                  ),
+                  // Tab chips
+                  _buildTabBar(context, tabs),
+                  // Divider
+                  Divider(height: 1, color: AppStyles.getDividerColor(context)),
+                  // Tab pages
+                  Expanded(
+                    child: PageView(
+                      controller: _pageController,
+                      onPageChanged: (i) => setState(() => _currentPage = i),
+                      children: [
+                        // Tab 0: Upcoming
+                        SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          child: Column(
+                            children: [
+                              // ── FD Maturity Section ───────────────────────────────
+                              if (fdsNearMaturity.isNotEmpty || fdsMatured.isNotEmpty) ...[
+                                _buildSectionHeader(context,
+                                  title: 'FD Maturity',
+                                  icon: CupertinoIcons.lock_shield_fill,
+                                  color: CupertinoColors.systemOrange,
+                                  count: fdsNearMaturity.length + fdsMatured.length,
                                 ),
-                              ),
-                              const SizedBox(width: Spacing.sm),
-                              Expanded(
-                                child: CupertinoButton(
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 8, horizontal: 12),
-                                  color: CupertinoColors.systemGrey,
-                                  onPressed: () async {
-                                    try {
-                                      final fdObj =
-                                          _buildFixedDepositFromInvestment(fd);
-                                      final investmentsController =
-                                          Provider.of<InvestmentsController>(
-                                              context,
-                                              listen: false);
-                                      if (!context.mounted) return;
-                                      Navigator.of(context).push(
-                                        FadeScalePageRoute(
-                                          page: FDWithdrawalModal(
-                                            fd: fdObj,
-                                            investmentController:
-                                                investmentsController,
-                                            originalInvestment: fd,
-                                            onWithdraw: () async {
-                                              if (context.mounted) {
-                                                Navigator.of(context).pop();
-                                              }
-                                            },
-                                          ),
+                                ...fdsNearMaturity.map((fd) {
+                                  final metadata = fd.metadata!;
+                                  final maturityDate =
+                                      DateTime.parse(metadata['maturityDate'] as String);
+                                  final daysUntil =
+                                      maturityDate.difference(DateTime.now()).inDays;
+                                  final maturityValue =
+                                      (metadata['estimatedAccruedValue'] as num?)
+                                              ?.toDouble() ??
+                                          fd.amount;
+
+                                  final accentColor = daysUntil <= 3
+                                      ? AppStyles.loss(context)
+                                      : CupertinoColors.systemOrange;
+                                  return Container(
+                                    margin: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 8),
+                                    child: NotificationWidget(
+                                      type: NotificationType.fdPayout,
+                                      title: fd.name,
+                                      subtitle:
+                                          'Maturity on ${_formatDashboardDate(maturityDate)}',
+                                      amount: '₹${maturityValue.toStringAsFixed(2)}',
+                                      timeInfo:
+                                          'In $daysUntil day${daysUntil > 1 ? 's' : ''}',
+                                      badgeColor: accentColor,
+                                      icon: CupertinoIcons.bell_fill,
+                                      statusWidget: Container(
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          color: accentColor.withValues(alpha: 0.08),
+                                          borderRadius: BorderRadius.circular(8),
                                         ),
-                                      );
-                                    } catch (e) {
-                                      if (context.mounted) {
-                                        toast_lib.toast.showError('Error: $e');
-                                      }
-                                    }
-                                  },
-                                  child: const Text(
-                                    'Withdraw',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: TypeScale.footnote,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }),
-                      ...fdsMatured.map((fd) {
-                        final metadata = fd.metadata!;
-                        final maturityDate =
-                            DateTime.parse(metadata['maturityDate'] as String);
-                        final maturityValue =
-                            (metadata['estimatedAccruedValue'] as num?)
-                                    ?.toDouble() ??
-                                fd.amount;
-                        final daysOverdue =
-                            DateTime.now().difference(maturityDate).inDays;
-
-                        return Container(
-                          margin: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8),
-                          child: NotificationWidget(
-                            type: NotificationType.fdAutoRenew,
-                            title: fd.name,
-                            subtitle:
-                                'MATURED on ${_formatDashboardDate(maturityDate)}',
-                            amount: '₹${maturityValue.toStringAsFixed(2)}',
-                            timeInfo:
-                                '$daysOverdue day${daysOverdue > 1 ? 's' : ''} ago',
-                            badgeColor: Colors.purple,
-                            icon: CupertinoIcons.checkmark_alt_circle_fill,
-                            statusWidget: Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: Colors.purple.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Row(
-                                children: [
-                                  Icon(
-                                    CupertinoIcons.exclamationmark_circle,
-                                    size: 14,
-                                    color: Colors.purple,
-                                  ),
-                                  SizedBox(width: Spacing.sm),
-                                  Expanded(
-                                    child: Text(
-                                      'Confirm renewal or withdraw funds',
-                                      style: TextStyle(
-                                        color: Colors.purple,
-                                        fontSize: TypeScale.footnote,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            actionButtons: [
-                              Expanded(
-                                child: CupertinoButton(
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 8, horizontal: 12),
-                                  color: Colors.purple,
-                                  onPressed: () async {
-                                    try {
-                                      // Construct FixedDeposit from Investment metadata
-                                      final fdObj =
-                                          _buildFixedDepositFromInvestment(fd);
-                                      final investmentsController =
-                                          Provider.of<InvestmentsController>(
-                                              context,
-                                              listen: false);
-                                      if (!context.mounted) return;
-                                      Navigator.of(context).push(
-                                        FadeScalePageRoute(
-                                          page: FDRenewalModal(
-                                            fd: fdObj,
-                                            investmentController:
-                                                investmentsController,
-                                            originalInvestment: fd,
-                                            onRenew: () async {
-                                              // Renewal completed, go back
-                                              if (context.mounted) {
-                                                Navigator.of(context).pop();
-                                              }
-                                            },
-                                          ),
-                                        ),
-                                      );
-                                    } catch (e) {
-                                      if (context.mounted) {
-                                        toast_lib.toast.showError('Error: $e');
-                                      }
-                                    }
-                                  },
-                                  child: const Text(
-                                    'Renew',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: TypeScale.footnote,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: Spacing.sm),
-                              Expanded(
-                                child: CupertinoButton(
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 8, horizontal: 12),
-                                  color: CupertinoColors.systemGrey,
-                                  onPressed: () async {
-                                    try {
-                                      // Construct FixedDeposit from Investment metadata
-                                      final fdObj =
-                                          _buildFixedDepositFromInvestment(fd);
-                                      final investmentsController =
-                                          Provider.of<InvestmentsController>(
-                                              context,
-                                              listen: false);
-                                      if (!context.mounted) return;
-                                      Navigator.of(context).push(
-                                        FadeScalePageRoute(
-                                          page: FDWithdrawalModal(
-                                            fd: fdObj,
-                                            investmentController:
-                                                investmentsController,
-                                            originalInvestment: fd,
-                                            onWithdraw: () async {
-                                              // Withdrawal completed, go back
-                                              if (context.mounted) {
-                                                Navigator.of(context).pop();
-                                              }
-                                            },
-                                          ),
-                                        ),
-                                      );
-                                    } catch (e) {
-                                      if (context.mounted) {
-                                        toast_lib.toast.showError('Error: $e');
-                                      }
-                                    }
-                                  },
-                                  child: const Text(
-                                    'Withdraw',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: TypeScale.footnote,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }),
-                    ],
-
-                    // ── Recurring Deposits Section ────────────────────────
-                    if (rdsWithUpcomingInstallments.isNotEmpty) ...[
-                      _buildSectionHeader(context,
-                        title: 'Recurring Deposits',
-                        icon: CupertinoIcons.arrow_clockwise_circle_fill,
-                        color: AppStyles.accentOrange,
-                        count: rdsWithUpcomingInstallments.length,
-                      ),
-                      ...rdsWithUpcomingInstallments.map((rd) {
-                        final metadata = rd.metadata;
-                        final monthlyAmount =
-                            (metadata?['monthlyAmount'] as num?)?.toDouble() ??
-                                rd.amount;
-                        final linkedAccountName =
-                            metadata?['linkedAccountName'] as String? ??
-                                'Account';
-
-                        return Container(
-                          margin: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8),
-                          child: NotificationWidget.rdInstallment(
-                            context: context,
-                            rdName: rd.name,
-                            accountName: linkedAccountName,
-                            amount: monthlyAmount,
-                            dueDate:
-                                DateTime.now().add(const Duration(days: 5)),
-                          ),
-                        );
-                      }),
-                    ],
-
-                    // ── SIP Payments Section ──────────────────────────────
-                    if (sipNotifications.isNotEmpty) ...[
-                      _buildSectionHeader(context,
-                        title: 'SIP Payments',
-                        icon: CupertinoIcons.repeat,
-                        color: AppStyles.aetherTeal,
-                        count: sipNotifications.length,
-                      ),
-                      ...sipNotifications.map(
-                        (entry) => _buildSipNotificationWidget(context, entry),
-                      ),
-                    ],
-
-                    // ── Bond Payouts Section ──────────────────────────────
-                    if (bondNotifications.isNotEmpty) ...[
-                      _buildSectionHeader(context,
-                        title: 'Bond Payouts',
-                        icon: CupertinoIcons.money_dollar,
-                        color: AppStyles.solarGold,
-                        count: bondNotifications.length,
-                      ),
-                      ...bondNotifications
-                          .map((entry) => _buildBondNotificationWidget(
-                                context,
-                                entry,
-                              )),
-                    ],
-
-                    // ── Bills & Recurring Section ─────────────────────────
-                    if (dueTemplates.isNotEmpty) ...[
-                      _buildSectionHeader(context,
-                        title: 'Bills & Recurring',
-                        icon: CupertinoIcons.doc_text_fill,
-                        color: AppStyles.loss(context),
-                        count: dueTemplates.length,
-                      ),
-                      ...dueTemplates.map((t) {
-                        final days = t.daysUntilDue()!;
-                        final isOverdue = days < 0;
-                        final color = t.branch == 'income'
-                            ? AppStyles.gain(context)
-                            : AppStyles.loss(context);
-                        final timeInfo = isOverdue
-                            ? 'Overdue by ${days.abs()} day${days.abs() > 1 ? 's' : ''}'
-                            : days == 0
-                                ? 'Due today'
-                                : 'Due in $days day${days > 1 ? 's' : ''}';
-                        final isPaid =
-                            t.isPaidForMonth(DateTime.now());
-                        return Container(
-                          margin: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8),
-                          child: NotificationWidget(
-                            type: NotificationType.fdPayout,
-                            title: t.name,
-                            subtitle:
-                                '${t.branch[0].toUpperCase()}${t.branch.substring(1)} • ${t.frequency}',
-                            amount:
-                                '₹${t.amount % 1 == 0 ? t.amount.toStringAsFixed(0) : t.amount.toStringAsFixed(2)}',
-                            timeInfo: isPaid ? 'Paid this month' : timeInfo,
-                            badgeColor: isPaid
-                                ? AppStyles.gain(context)
-                                : isOverdue || days == 0
-                                    ? AppStyles.loss(context)
-                                    : color,
-                            icon: isPaid
-                                ? CupertinoIcons.checkmark_circle_fill
-                                : CupertinoIcons.repeat,
-                            statusWidget: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: AppStyles.getCardColor(context),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  if (!isPaid) ...[
-                                    CupertinoButton(
-                                      padding: EdgeInsets.zero,
-                                      minimumSize: Size.zero,
-                                      onPressed: () {
-                                        Navigator.push(
-                                          context,
-                                          FadeScalePageRoute(
-                                            page: const TransactionWizard(),
-                                          ),
-                                        );
-                                      },
-                                      child: const Text(
-                                        'Use Template',
-                                        style: TextStyle(
-                                          fontSize: TypeScale.footnote,
-                                          color: AppStyles.accentBlue,
-                                          fontWeight: FontWeight.w600,
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              CupertinoIcons.clock,
+                                              size: 14,
+                                              color: accentColor,
+                                            ),
+                                            const SizedBox(width: Spacing.sm),
+                                            Expanded(
+                                              child: Text(
+                                                'Decide now — renew or withdraw',
+                                                style: TextStyle(
+                                                  color: accentColor,
+                                                  fontSize: TypeScale.footnote,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                    ),
-                                    const SizedBox(width: Spacing.md),
-                                    CupertinoButton(
-                                      padding: EdgeInsets.zero,
-                                      minimumSize: Size.zero,
-                                      onPressed: () {
-                                        templatesController
-                                            .markBillAsPaid(t.id);
-                                      },
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            CupertinoIcons
-                                                .checkmark_circle_fill,
-                                            size: 14,
-                                            color: AppStyles.gain(context),
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            'Mark Paid',
-                                            style: TextStyle(
-                                              fontSize: TypeScale.footnote,
-                                              color: AppStyles.gain(context),
-                                              fontWeight: FontWeight.w600,
+                                      actionButtons: [
+                                        Expanded(
+                                          child: CupertinoButton(
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 8, horizontal: 12),
+                                            color: accentColor,
+                                            onPressed: () async {
+                                              try {
+                                                final fdObj =
+                                                    _buildFixedDepositFromInvestment(fd);
+                                                final investmentsController =
+                                                    Provider.of<InvestmentsController>(
+                                                        context,
+                                                        listen: false);
+                                                if (!context.mounted) return;
+                                                Navigator.of(context).push(
+                                                  FadeScalePageRoute(
+                                                    page: FDRenewalModal(
+                                                      fd: fdObj,
+                                                      investmentController:
+                                                          investmentsController,
+                                                      originalInvestment: fd,
+                                                      onRenew: () async {
+                                                        if (context.mounted) {
+                                                          Navigator.of(context).pop();
+                                                        }
+                                                      },
+                                                    ),
+                                                  ),
+                                                );
+                                              } catch (e) {
+                                                if (context.mounted) {
+                                                  toast_lib.toast.showError('Error: $e');
+                                                }
+                                              }
+                                            },
+                                            child: const Text(
+                                              'Renew',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: TypeScale.footnote,
+                                                fontWeight: FontWeight.w600,
+                                              ),
                                             ),
                                           ),
-                                        ],
+                                        ),
+                                        const SizedBox(width: Spacing.sm),
+                                        Expanded(
+                                          child: CupertinoButton(
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 8, horizontal: 12),
+                                            color: CupertinoColors.systemGrey,
+                                            onPressed: () async {
+                                              try {
+                                                final fdObj =
+                                                    _buildFixedDepositFromInvestment(fd);
+                                                final investmentsController =
+                                                    Provider.of<InvestmentsController>(
+                                                        context,
+                                                        listen: false);
+                                                if (!context.mounted) return;
+                                                Navigator.of(context).push(
+                                                  FadeScalePageRoute(
+                                                    page: FDWithdrawalModal(
+                                                      fd: fdObj,
+                                                      investmentController:
+                                                          investmentsController,
+                                                      originalInvestment: fd,
+                                                      onWithdraw: () async {
+                                                        if (context.mounted) {
+                                                          Navigator.of(context).pop();
+                                                        }
+                                                      },
+                                                    ),
+                                                  ),
+                                                );
+                                              } catch (e) {
+                                                if (context.mounted) {
+                                                  toast_lib.toast.showError('Error: $e');
+                                                }
+                                              }
+                                            },
+                                            child: const Text(
+                                              'Withdraw',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: TypeScale.footnote,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }),
+                                ...fdsMatured.map((fd) {
+                                  final metadata = fd.metadata!;
+                                  final maturityDate =
+                                      DateTime.parse(metadata['maturityDate'] as String);
+                                  final maturityValue =
+                                      (metadata['estimatedAccruedValue'] as num?)
+                                              ?.toDouble() ??
+                                          fd.amount;
+                                  final daysOverdue =
+                                      DateTime.now().difference(maturityDate).inDays;
+
+                                  return Container(
+                                    margin: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 8),
+                                    child: NotificationWidget(
+                                      type: NotificationType.fdAutoRenew,
+                                      title: fd.name,
+                                      subtitle:
+                                          'MATURED on ${_formatDashboardDate(maturityDate)}',
+                                      amount: '₹${maturityValue.toStringAsFixed(2)}',
+                                      timeInfo:
+                                          '$daysOverdue day${daysOverdue > 1 ? 's' : ''} ago',
+                                      badgeColor: Colors.purple,
+                                      icon: CupertinoIcons.checkmark_alt_circle_fill,
+                                      statusWidget: Container(
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          color: Colors.purple.withValues(alpha: 0.1),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: const Row(
+                                          children: [
+                                            Icon(
+                                              CupertinoIcons.exclamationmark_circle,
+                                              size: 14,
+                                              color: Colors.purple,
+                                            ),
+                                            SizedBox(width: Spacing.sm),
+                                            Expanded(
+                                              child: Text(
+                                                'Confirm renewal or withdraw funds',
+                                                style: TextStyle(
+                                                  color: Colors.purple,
+                                                  fontSize: TypeScale.footnote,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
+                                      actionButtons: [
+                                        Expanded(
+                                          child: CupertinoButton(
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 8, horizontal: 12),
+                                            color: Colors.purple,
+                                            onPressed: () async {
+                                              try {
+                                                // Construct FixedDeposit from Investment metadata
+                                                final fdObj =
+                                                    _buildFixedDepositFromInvestment(fd);
+                                                final investmentsController =
+                                                    Provider.of<InvestmentsController>(
+                                                        context,
+                                                        listen: false);
+                                                if (!context.mounted) return;
+                                                Navigator.of(context).push(
+                                                  FadeScalePageRoute(
+                                                    page: FDRenewalModal(
+                                                      fd: fdObj,
+                                                      investmentController:
+                                                          investmentsController,
+                                                      originalInvestment: fd,
+                                                      onRenew: () async {
+                                                        // Renewal completed, go back
+                                                        if (context.mounted) {
+                                                          Navigator.of(context).pop();
+                                                        }
+                                                      },
+                                                    ),
+                                                  ),
+                                                );
+                                              } catch (e) {
+                                                if (context.mounted) {
+                                                  toast_lib.toast.showError('Error: $e');
+                                                }
+                                              }
+                                            },
+                                            child: const Text(
+                                              'Renew',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: TypeScale.footnote,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: Spacing.sm),
+                                        Expanded(
+                                          child: CupertinoButton(
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 8, horizontal: 12),
+                                            color: CupertinoColors.systemGrey,
+                                            onPressed: () async {
+                                              try {
+                                                // Construct FixedDeposit from Investment metadata
+                                                final fdObj =
+                                                    _buildFixedDepositFromInvestment(fd);
+                                                final investmentsController =
+                                                    Provider.of<InvestmentsController>(
+                                                        context,
+                                                        listen: false);
+                                                if (!context.mounted) return;
+                                                Navigator.of(context).push(
+                                                  FadeScalePageRoute(
+                                                    page: FDWithdrawalModal(
+                                                      fd: fdObj,
+                                                      investmentController:
+                                                          investmentsController,
+                                                      originalInvestment: fd,
+                                                      onWithdraw: () async {
+                                                        // Withdrawal completed, go back
+                                                        if (context.mounted) {
+                                                          Navigator.of(context).pop();
+                                                        }
+                                                      },
+                                                    ),
+                                                  ),
+                                                );
+                                              } catch (e) {
+                                                if (context.mounted) {
+                                                  toast_lib.toast.showError('Error: $e');
+                                                }
+                                              }
+                                            },
+                                            child: const Text(
+                                              'Withdraw',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: TypeScale.footnote,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ] else ...[
-                                    Icon(
-                                      CupertinoIcons.checkmark_circle_fill,
-                                      size: 14,
-                                      color: AppStyles.gain(context),
+                                  );
+                                }),
+                              ],
+
+                              // ── Recurring Deposits Section ────────────────────────
+                              if (rdsWithUpcomingInstallments.isNotEmpty) ...[
+                                _buildSectionHeader(context,
+                                  title: 'Recurring Deposits',
+                                  icon: CupertinoIcons.arrow_clockwise_circle_fill,
+                                  color: AppStyles.accentOrange,
+                                  count: rdsWithUpcomingInstallments.length,
+                                ),
+                                ...rdsWithUpcomingInstallments.map((rd) {
+                                  final metadata = rd.metadata;
+                                  final monthlyAmount =
+                                      (metadata?['monthlyAmount'] as num?)?.toDouble() ??
+                                          rd.amount;
+                                  final linkedAccountName =
+                                      metadata?['linkedAccountName'] as String? ??
+                                          'Account';
+
+                                  return Container(
+                                    margin: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 8),
+                                    child: NotificationWidget.rdInstallment(
+                                      context: context,
+                                      rdName: rd.name,
+                                      accountName: linkedAccountName,
+                                      amount: monthlyAmount,
+                                      dueDate:
+                                          DateTime.now().add(const Duration(days: 5)),
                                     ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      'Paid this month',
-                                      style: TextStyle(
-                                        fontSize: TypeScale.footnote,
-                                        color: AppStyles.gain(context),
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    const SizedBox(width: Spacing.md),
-                                    CupertinoButton(
-                                      padding: EdgeInsets.zero,
-                                      minimumSize: Size.zero,
-                                      onPressed: () {
-                                        templatesController
-                                            .unmarkBillAsPaid(t.id);
-                                      },
-                                      child: Text(
-                                        'Undo',
-                                        style: TextStyle(
-                                          fontSize: TypeScale.caption,
-                                          color: AppStyles
-                                              .getSecondaryTextColor(context),
+                                  );
+                                }),
+                              ],
+
+                              // ── SIP Payments Section ──────────────────────────────
+                              if (sipNotifications.isNotEmpty) ...[
+                                _buildSectionHeader(context,
+                                  title: 'SIP Payments',
+                                  icon: CupertinoIcons.repeat,
+                                  color: AppStyles.aetherTeal,
+                                  count: sipNotifications.length,
+                                ),
+                                ...sipNotifications.map(
+                                  (entry) => _buildSipNotificationWidget(context, entry),
+                                ),
+                              ],
+
+                              // ── Bond Payouts Section ──────────────────────────────
+                              if (bondNotifications.isNotEmpty) ...[
+                                _buildSectionHeader(context,
+                                  title: 'Bond Payouts',
+                                  icon: CupertinoIcons.money_dollar,
+                                  color: AppStyles.solarGold,
+                                  count: bondNotifications.length,
+                                ),
+                                ...bondNotifications
+                                    .map((entry) => _buildBondNotificationWidget(
+                                          context,
+                                          entry,
+                                        )),
+                              ],
+
+                              // ── Insurance Renewals Section ────────────────────────
+                              if (insuranceRenewing.isNotEmpty || insuranceExpired.isNotEmpty) ...[
+                                _buildSectionHeader(context,
+                                  title: 'Insurance Renewals',
+                                  icon: CupertinoIcons.shield_fill,
+                                  color: AppStyles.accentBlue,
+                                  count: insuranceRenewing.length + insuranceExpired.length,
+                                ),
+                                ...insuranceRenewing.map((policy) {
+                                  final days = policy.daysUntilRenewal;
+                                  final accentColor = days <= 7 ? AppStyles.loss(context) : CupertinoColors.systemOrange;
+                                  return Container(
+                                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                    child: NotificationWidget(
+                                      type: NotificationType.fdPayout,
+                                      title: policy.name,
+                                      subtitle: '${policy.type.displayName} · ${policy.insurer}',
+                                      amount: '₹${policy.premiumAmount.toStringAsFixed(0)} / ${policy.premiumFrequency}',
+                                      timeInfo: '${policy.type.dateConcept} in ${days}d',
+                                      badgeColor: accentColor,
+                                      icon: CupertinoIcons.shield_fill,
+                                      statusWidget: Container(
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          color: accentColor.withValues(alpha: 0.08),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Icon(CupertinoIcons.bell_fill, size: 14, color: accentColor),
+                                            const SizedBox(width: Spacing.sm),
+                                            Expanded(
+                                              child: Text(
+                                                'Renew before ${policy.type.dateConcept.toLowerCase()} date',
+                                                style: TextStyle(
+                                                  color: accentColor,
+                                                  fontSize: TypeScale.footnote,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ),
-                                  ],
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      }),
-                    ],
-
-                    // All Bills — payment tracker
-                    _buildAllBillsSection(context, templatesController),
-
-                    // ── Budget Alerts Section ─────────────────────────────
-                    if (exceededBudgets.isNotEmpty ||
-                        warningBudgets.isNotEmpty) ...[
-                      _buildSectionHeader(context,
-                        title: 'Budget Alerts',
-                        icon: CupertinoIcons.exclamationmark_circle_fill,
-                        color: AppStyles.loss(context),
-                        count: exceededBudgets.length + warningBudgets.length,
-                      ),
-                      ...exceededBudgets.map((b) =>
-                          _buildBudgetAlertCard(context, b, exceeded: true)),
-                      ...warningBudgets.map((b) =>
-                          _buildBudgetAlertCard(context, b, exceeded: false)),
-                    ],
-
-                    // ── Spending Insights Section ─────────────────────────
-                    if (spendingInsights.isNotEmpty) ...[
-                      _buildSectionHeader(context,
-                        title: 'Spending Insights',
-                        icon: CupertinoIcons.chart_bar_alt_fill,
-                        color: CupertinoColors.systemOrange,
-                        count: spendingInsights.length,
-                      ),
-                      ...spendingInsights.take(3).map((insight) {
-                        final pct = ((insight.current - insight.last) /
-                                insight.last *
-                                100)
-                            .round();
-                        return Container(
-                          margin: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 6),
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: AppStyles.getCardColor(context),
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(
-                              color: CupertinoColors.systemOrange
-                                  .withValues(alpha: 0.3),
-                              width: 1,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: CupertinoColors.systemOrange
-                                      .withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(
-                                  CupertinoIcons.arrow_up_circle_fill,
-                                  size: 20,
-                                  color: CupertinoColors.systemOrange,
-                                ),
-                              ),
-                              const SizedBox(width: Spacing.md),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      insight.category,
-                                      style: TextStyle(
-                                        fontSize: TypeScale.subhead,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppStyles.getTextColor(context),
+                                  );
+                                }),
+                                ...insuranceExpired.map((policy) {
+                                  return Container(
+                                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                    child: NotificationWidget(
+                                      type: NotificationType.fdAutoRenew,
+                                      title: policy.name,
+                                      subtitle: '${policy.type.displayName} · ${policy.insurer}',
+                                      amount: '₹${policy.premiumAmount.toStringAsFixed(0)} / ${policy.premiumFrequency}',
+                                      timeInfo: '${(-policy.daysUntilRenewal)}d ago',
+                                      badgeColor: AppStyles.loss(context),
+                                      icon: CupertinoIcons.exclamationmark_shield_fill,
+                                      statusWidget: Container(
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          color: AppStyles.loss(context).withValues(alpha: 0.08),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Icon(CupertinoIcons.exclamationmark_circle, size: 14, color: AppStyles.loss(context)),
+                                            const SizedBox(width: Spacing.sm),
+                                            Expanded(
+                                              child: Text(
+                                                'Policy has expired — renew immediately',
+                                                style: TextStyle(
+                                                  color: AppStyles.loss(context),
+                                                  fontSize: TypeScale.footnote,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      'Up $pct% vs last month',
-                                      style: const TextStyle(
-                                        fontSize: TypeScale.footnote,
-                                        color: CupertinoColors.systemOrange,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Text(
-                                    CurrencyFormatter.compact(insight.current),
-                                    style: TextStyle(
-                                      fontSize: TypeScale.subhead,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppStyles.getTextColor(context),
-                                    ),
-                                  ),
-                                  Text(
-                                    'was ${CurrencyFormatter.compact(insight.last)}',
-                                    style: TextStyle(
-                                      fontSize: TypeScale.caption,
-                                      color: AppStyles.getSecondaryTextColor(
-                                          context),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                  );
+                                }),
+                              ],
+
+                              if (upcomingCount == 0)
+                                _buildTabEmptyState(context, 'No upcoming alerts.\nYou\'re all caught up!'),
+                              const SizedBox(height: Spacing.massive),
                             ],
                           ),
-                        );
-                      }),
-                    ],
+                        ),
 
-                    // Empty State
-                    if (fdsNearMaturity.isEmpty &&
-                        fdsMatured.isEmpty &&
-                        rdsWithUpcomingInstallments.isEmpty &&
-                        sipNotifications.isEmpty &&
-                        bondNotifications.isEmpty &&
-                        dueTemplates.isEmpty &&
-                        exceededBudgets.isEmpty &&
-                        warningBudgets.isEmpty &&
-                        spendingInsights.isEmpty &&
-                        (SmsAutoScanService.instance.pendingResults?.isEmpty ??
-                            true))
-                      Padding(
-                        padding: const EdgeInsets.only(top: Spacing.xxxl),
-                        child: FadeInAnimation(
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                FloatingAnimation(
-                                  child: Icon(
-                                    CupertinoIcons.bell_slash,
-                                    size: 80,
-                                    color: isDark
-                                        ? CupertinoColors.systemGrey
-                                        : CupertinoColors.systemGrey,
-                                  ),
+                        // Tab 1: Bills
+                        SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          child: Column(
+                            children: [
+                              // ── Bills & Recurring Section ─────────────────────────
+                              if (dueTemplates.isNotEmpty) ...[
+                                _buildSectionHeader(context,
+                                  title: 'Bills & Recurring',
+                                  icon: CupertinoIcons.doc_text_fill,
+                                  color: AppStyles.loss(context),
+                                  count: dueTemplates.length,
                                 ),
-                                const SizedBox(height: Spacing.lg),
-                                Text(
-                                  'No Notifications',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w600,
-                                    color: isDark
-                                        ? Colors.white
-                                        : CupertinoColors.label,
-                                  ),
-                                ),
-                                const SizedBox(height: Spacing.sm),
-                                Text(
-                                  'You\'re all caught up!',
-                                  style: TextStyle(
-                                    fontSize: TypeScale.body,
-                                    color: AppStyles.getSecondaryTextColor(
-                                        context),
-                                  ),
-                                ),
+                                ...dueTemplates.map((t) {
+                                  final days = t.daysUntilDue()!;
+                                  final isOverdue = days < 0;
+                                  final color = t.branch == 'income'
+                                      ? AppStyles.gain(context)
+                                      : AppStyles.loss(context);
+                                  final timeInfo = isOverdue
+                                      ? 'Overdue by ${days.abs()} day${days.abs() > 1 ? 's' : ''}'
+                                      : days == 0
+                                          ? 'Due today'
+                                          : 'Due in $days day${days > 1 ? 's' : ''}';
+                                  final isPaid =
+                                      t.isPaidForMonth(DateTime.now());
+                                  return Container(
+                                    margin: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 8),
+                                    child: NotificationWidget(
+                                      type: NotificationType.fdPayout,
+                                      title: t.name,
+                                      subtitle:
+                                          '${t.branch[0].toUpperCase()}${t.branch.substring(1)} • ${t.frequency}',
+                                      amount:
+                                          '₹${t.amount % 1 == 0 ? t.amount.toStringAsFixed(0) : t.amount.toStringAsFixed(2)}',
+                                      timeInfo: isPaid ? 'Paid this month' : timeInfo,
+                                      badgeColor: isPaid
+                                          ? AppStyles.gain(context)
+                                          : isOverdue || days == 0
+                                              ? AppStyles.loss(context)
+                                              : color,
+                                      icon: isPaid
+                                          ? CupertinoIcons.checkmark_circle_fill
+                                          : CupertinoIcons.repeat,
+                                      statusWidget: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 10, vertical: 8),
+                                        decoration: BoxDecoration(
+                                          color: AppStyles.getCardColor(context),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.end,
+                                          children: [
+                                            if (!isPaid) ...[
+                                              CupertinoButton(
+                                                padding: EdgeInsets.zero,
+                                                minimumSize: Size.zero,
+                                                onPressed: () {
+                                                  Navigator.push(
+                                                    context,
+                                                    FadeScalePageRoute(
+                                                      page: const TransactionWizard(),
+                                                    ),
+                                                  );
+                                                },
+                                                child: const Text(
+                                                  'Use Template',
+                                                  style: TextStyle(
+                                                    fontSize: TypeScale.footnote,
+                                                    color: AppStyles.accentBlue,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: Spacing.md),
+                                              CupertinoButton(
+                                                padding: EdgeInsets.zero,
+                                                minimumSize: Size.zero,
+                                                onPressed: () {
+                                                  templatesController
+                                                      .markBillAsPaid(t.id);
+                                                },
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    Icon(
+                                                      CupertinoIcons
+                                                          .checkmark_circle_fill,
+                                                      size: 14,
+                                                      color: AppStyles.gain(context),
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    Text(
+                                                      'Mark Paid',
+                                                      style: TextStyle(
+                                                        fontSize: TypeScale.footnote,
+                                                        color: AppStyles.gain(context),
+                                                        fontWeight: FontWeight.w600,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ] else ...[
+                                              Icon(
+                                                CupertinoIcons.checkmark_circle_fill,
+                                                size: 14,
+                                                color: AppStyles.gain(context),
+                                              ),
+                                              const SizedBox(width: 6),
+                                              Text(
+                                                'Paid this month',
+                                                style: TextStyle(
+                                                  fontSize: TypeScale.footnote,
+                                                  color: AppStyles.gain(context),
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                              const SizedBox(width: Spacing.md),
+                                              CupertinoButton(
+                                                padding: EdgeInsets.zero,
+                                                minimumSize: Size.zero,
+                                                onPressed: () {
+                                                  templatesController
+                                                      .unmarkBillAsPaid(t.id);
+                                                },
+                                                child: Text(
+                                                  'Undo',
+                                                  style: TextStyle(
+                                                    fontSize: TypeScale.caption,
+                                                    color: AppStyles
+                                                        .getSecondaryTextColor(context),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }),
                               ],
-                            ),
+
+                              // All Bills — payment tracker
+                              _buildAllBillsSection(context, templatesController),
+
+                              if (billsCount == 0 && templatesController.templates.isEmpty)
+                                _buildTabEmptyState(context, 'No bills tracked.'),
+                              const SizedBox(height: Spacing.massive),
+                            ],
                           ),
                         ),
-                      ),
-                    const SizedBox(height: Spacing.lg),
-                  ],
-                ),
+
+                        // Tab 2: Budget & Insights
+                        SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          child: Column(
+                            children: [
+                              // ── Budget Alerts Section ─────────────────────────────
+                              if (exceededBudgets.isNotEmpty ||
+                                  warningBudgets.isNotEmpty) ...[
+                                _buildSectionHeader(context,
+                                  title: 'Budget Alerts',
+                                  icon: CupertinoIcons.exclamationmark_circle_fill,
+                                  color: AppStyles.loss(context),
+                                  count: exceededBudgets.length + warningBudgets.length,
+                                ),
+                                ...exceededBudgets.map((b) =>
+                                    _buildBudgetAlertCard(context, b, exceeded: true)),
+                                ...warningBudgets.map((b) =>
+                                    _buildBudgetAlertCard(context, b, exceeded: false)),
+                              ],
+
+                              // ── Spending Insights Section ─────────────────────────
+                              if (spendingInsights.isNotEmpty) ...[
+                                _buildSectionHeader(context,
+                                  title: 'Spending Insights',
+                                  icon: CupertinoIcons.chart_bar_alt_fill,
+                                  color: CupertinoColors.systemOrange,
+                                  count: spendingInsights.length,
+                                ),
+                                ...spendingInsights.take(3).map((insight) {
+                                  final pct = ((insight.current - insight.last) /
+                                          insight.last *
+                                          100)
+                                      .round();
+                                  return Container(
+                                    margin: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 6),
+                                    padding: const EdgeInsets.all(14),
+                                    decoration: BoxDecoration(
+                                      color: AppStyles.getCardColor(context),
+                                      borderRadius: BorderRadius.circular(14),
+                                      border: Border.all(
+                                        color: CupertinoColors.systemOrange
+                                            .withValues(alpha: 0.3),
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color: CupertinoColors.systemOrange
+                                                .withValues(alpha: 0.15),
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: const Icon(
+                                            CupertinoIcons.arrow_up_circle_fill,
+                                            size: 20,
+                                            color: CupertinoColors.systemOrange,
+                                          ),
+                                        ),
+                                        const SizedBox(width: Spacing.md),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                insight.category,
+                                                style: TextStyle(
+                                                  fontSize: TypeScale.subhead,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: AppStyles.getTextColor(context),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                'Up $pct% vs last month',
+                                                style: const TextStyle(
+                                                  fontSize: TypeScale.footnote,
+                                                  color: CupertinoColors.systemOrange,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.end,
+                                          children: [
+                                            Text(
+                                              CurrencyFormatter.compact(insight.current),
+                                              style: TextStyle(
+                                                fontSize: TypeScale.subhead,
+                                                fontWeight: FontWeight.w700,
+                                                color: AppStyles.getTextColor(context),
+                                              ),
+                                            ),
+                                            Text(
+                                              'was ${CurrencyFormatter.compact(insight.last)}',
+                                              style: TextStyle(
+                                                fontSize: TypeScale.caption,
+                                                color: AppStyles.getSecondaryTextColor(
+                                                    context),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }),
+                              ],
+
+                              if (budgetCount == 0)
+                                _buildTabEmptyState(context, 'No budget alerts or\nspending insights.'),
+                              const SizedBox(height: Spacing.massive),
+                            ],
+                          ),
+                        ),
+
+                        // Tab 3: SMS
+                        Consumer<SettingsController>(
+                          builder: (_, settings, __) {
+                            if (!settings.isSmsEnabled) {
+                              return _buildTabEmptyState(context, 'SMS scanning is disabled.\nEnable it in Settings to see SMS-based transactions.');
+                            }
+                            return const SingleChildScrollView(
+                              physics: AlwaysScrollableScrollPhysics(),
+                              child: Column(children: [
+                                _SmsSectionWidget(),
+                                SizedBox(height: Spacing.massive),
+                              ]),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               );
             },
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTabBar(BuildContext context, List<_NotifTab> tabs) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      child: Row(
+        children: tabs.asMap().entries.map((entry) {
+          final i = entry.key;
+          final tab = entry.value;
+          final isActive = _currentPage == i;
+          return GestureDetector(
+            onTap: () {
+              _pageController.animateToPage(i,
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut);
+              setState(() => _currentPage = i);
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              margin: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: isActive ? tab.color : tab.color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isActive ? tab.color : tab.color.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(tab.icon, size: 13,
+                      color: isActive ? Colors.white : tab.color),
+                  const SizedBox(width: 6),
+                  Text(
+                    tab.label,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: isActive ? Colors.white : tab.color,
+                    ),
+                  ),
+                  if (tab.count > 0) ...[
+                    const SizedBox(width: 5),
+                    Container(
+                      width: 18,
+                      height: 18,
+                      decoration: BoxDecoration(
+                        color: isActive
+                            ? Colors.white.withValues(alpha: 0.3)
+                            : tab.color.withValues(alpha: 0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        '${tab.count}',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: isActive ? Colors.white : tab.color,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildTabEmptyState(BuildContext context, String message) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(Spacing.xxxl),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(CupertinoIcons.checkmark_circle,
+                size: 64, color: AppStyles.getSecondaryTextColor(context)),
+            const SizedBox(height: Spacing.lg),
+            Text(message,
+                style: TextStyle(
+                  fontSize: TypeScale.body,
+                  color: AppStyles.getSecondaryTextColor(context),
+                ),
+                textAlign: TextAlign.center),
+          ],
         ),
       ),
     );

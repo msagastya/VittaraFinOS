@@ -61,9 +61,13 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
               padding: EdgeInsets.zero,
               onPressed: () => _showSortSheet(),
               child: Icon(
-                CupertinoIcons.arrow_up_arrow_down,
-                color: AppStyles.getPrimaryColor(context),
-                size: 20,
+                (_sortBy != 'date' || _sortAscending)
+                    ? CupertinoIcons.sort_down_circle_fill
+                    : CupertinoIcons.sort_down_circle,
+                color: (_sortBy != 'date' || _sortAscending)
+                    ? AppStyles.accentBlue
+                    : AppStyles.getSecondaryTextColor(context),
+                size: 22,
               ),
             ),
           ],

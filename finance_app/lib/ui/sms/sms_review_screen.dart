@@ -634,6 +634,19 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
               const Spacer(),
               CupertinoButton(
                 padding: EdgeInsets.zero,
+                onPressed: _dismissAll,
+                child: Text(
+                  'Dismiss All',
+                  style: TextStyle(
+                    fontSize: TypeScale.footnote,
+                    color: AppStyles.loss(context),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
+              CupertinoButton(
+                padding: EdgeInsets.zero,
                 onPressed: () => setState(() {
                   _scanDone = false;
                   _results = [];
@@ -662,6 +675,40 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
 
       ],
     );
+  }
+
+  void _dismissAll() {
+    showCupertinoDialog<bool>(
+      context: context,
+      builder: (ctx) => CupertinoAlertDialog(
+        title: const Text('Dismiss All?'),
+        content: Text(
+          'Mark all ${_results.length} detected transaction${_results.length == 1 ? '' : 's'} as seen. You can re-scan anytime.',
+        ),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Dismiss All'),
+          ),
+        ],
+      ),
+    ).then((confirmed) async {
+      if (confirmed != true || !mounted) return;
+      final svc = SmsAutoScanService.instance;
+      for (final r in _results) {
+        await svc.markSeen(svc.fingerprint(r));
+      }
+      if (!mounted) return;
+      setState(() {
+        _results = [];
+        _scanDone = false;
+      });
+    });
   }
 
   Widget _buildResultCard(int i, bool isDark) {

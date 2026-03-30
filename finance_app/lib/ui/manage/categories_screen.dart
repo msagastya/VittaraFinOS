@@ -149,6 +149,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             color: _sortAlpha
                 ? AppStyles.accentBlue
                 : AppStyles.getSecondaryTextColor(context),
+            size: 22,
           ),
         ),
       ),

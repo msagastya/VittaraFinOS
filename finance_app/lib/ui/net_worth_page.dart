@@ -369,7 +369,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
       navigationBar: isLandscape
           ? null
           : const CupertinoNavigationBar(
-              middle: Text('Net Worth'),
+              middle: Text('Scorecard'),
               previousPageTitle: 'Back',
               border: null,
             ),
@@ -410,7 +410,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                       ),
                       const SizedBox(height: Spacing.xl),
                       Text(
-                        'Your Net Worth Awaits',
+                        'Your Scorecard Awaits',
                         style: TextStyle(
                           fontSize: TypeScale.title1,
                           fontWeight: FontWeight.bold,
@@ -420,7 +420,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                       ),
                       const SizedBox(height: Spacing.md),
                       Text(
-                        'Add your first account or investment to see your net worth here.',
+                        'Add your first account or investment to see your scorecard here.',
                         style: TextStyle(
                           fontSize: TypeScale.callout,
                           color: AppStyles.getSecondaryTextColor(context),
@@ -535,7 +535,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                     ),
                     const SizedBox(height: Spacing.lg),
                     Text(
-                      'Error Loading Net Worth',
+                      'Error Loading Scorecard',
                       style: TextStyle(
                         fontSize: TypeScale.headline,
                         fontWeight: FontWeight.w600,
@@ -2130,7 +2130,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Net Worth Trend',
+                'Scorecard Trend',
                 style: TextStyle(
                   fontSize: TypeScale.headline,
                   fontWeight: FontWeight.w600,

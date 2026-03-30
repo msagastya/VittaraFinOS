@@ -143,13 +143,17 @@ class _GoalsScreenState extends State<GoalsScreen> {
                           // Search Bar
                           SliverToBoxAdapter(
                             child: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: Spacing.lg),
-                              child: GlassCard(
-                                padding: EdgeInsets.zero,
+                              padding: const EdgeInsets.fromLTRB(
+                                  Spacing.lg, 0, Spacing.lg, Spacing.sm),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: AppStyles.getCardColor(context),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                                 child: CupertinoSearchTextField(
                                   controller: _searchTextController,
-                                  backgroundColor: Colors.transparent,
+                                  backgroundColor: CupertinoColors.systemFill
+                                      .resolveFrom(context),
                                   style: TextStyle(
                                       color: AppStyles.getTextColor(context)),
                                   placeholder: 'Search Goals',

@@ -54,7 +54,7 @@ const _pages = [
   ),
   _OnboardingPage(
     title: 'Track Everything',
-    subtitle: 'Accounts, investments, net worth — live.',
+    subtitle: 'Accounts, investments, scorecard — live.',
     emoji: '◈',
     accent: AppStyles.novaPurple,
     bullets: [
@@ -591,7 +591,7 @@ class _DemoOnboardingPage extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Net Worth',
+                        'Scorecard',
                         style: TextStyle(
                           color: secondaryColor,
                           fontSize: TypeScale.footnote,

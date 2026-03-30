@@ -769,7 +769,7 @@ class NetWorthWidget extends BaseDashboardWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Add accounts to track your net worth',
+                    'Add accounts to track your scorecard',
                     style: TextStyle(
                       fontSize: TypeScale.caption,
                       color: AppStyles.getSecondaryTextColor(context)

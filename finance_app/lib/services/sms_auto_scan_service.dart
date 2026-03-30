@@ -168,7 +168,7 @@ class SmsAutoScanService {
       final p = r.parsed;
       final matchedId = r.matchedAccount?.id;
       for (final t in txns) {
-        if ((t.amount - p.amount).abs() > 2.0) continue;
+        if ((t.amount - p.amount).abs() > 1.0) continue; // unified with UI threshold
         if (t.dateTime.difference(p.date).inDays.abs() > 1) continue;
         final tId = (t.metadata ?? {})['accountId'] as String?;
         if (matchedId != null && tId == matchedId) return false; // 80% match

@@ -510,9 +510,9 @@ class FAQsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final faqs = <_FaqEntry>[
       const _FaqEntry(
-        question: 'How is net worth calculated?',
+        question: 'How is Scorecard calculated?',
         answer:
-            'Net worth combines positive assets and subtracts credit liabilities. Cash, banks, and investments contribute positively while used credit reduces net worth.',
+            'Your Scorecard combines all positive assets and subtracts credit liabilities. Cash, banks, and investments contribute positively while used credit reduces the total.',
       ),
       const _FaqEntry(
         question: 'How do transfers affect reports?',

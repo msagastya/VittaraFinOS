@@ -117,10 +117,22 @@ class SmsService {
       ));
     }
 
+    // Within-scan deduplication: same amount + same date + same sender → keep first
+    final deduped = <SmsParseResult>[];
+    final seenInScan = <String>{};
+    for (final r in results) {
+      final p = r.parsed;
+      final key =
+          '${p.amount.toStringAsFixed(2)}_${p.date.year}${p.date.month.toString().padLeft(2, '0')}${p.date.day.toString().padLeft(2, '0')}_${(p.accountLast4 ?? '')}';
+      if (seenInScan.add(key)) {
+        deduped.add(r);
+      }
+    }
+
     final failCount = parseAttempted - results.length;
     onProgress?.call(
-        100, 'Done — ${results.length} found|$failCount unreadable');
-    return results;
+        100, 'Done — ${deduped.length} found|$failCount unreadable');
+    return deduped;
   }
 
   bool _senderMatchesAny(String sender, Map<String, List<String>> senderMap) {
@@ -183,6 +195,7 @@ class SmsService {
     'amount blocked',
   ];
   static const _spamKeywords = [
+    // General promo triggers
     'offer valid',
     'limited time offer',
     'apply now',
@@ -198,6 +211,40 @@ class SmsService {
     'pre-approved loan',
     'instant loan',
     'upgrade your card',
+    // Cashback / reward triggers (Jio Pay, PhonePe, Paytm promo pattern)
+    'cashback',
+    'earn reward',
+    'earn cashback',
+    'get cashback',
+    'refer and earn',
+    'win a prize',
+    'free voucher',
+    'scratch card',
+    'use code',
+    'promo code',
+    'coupon code',
+    'activate now',
+    'upgrade now',
+    'get rewarded',
+    'special offer',
+    'bonus points',
+    'reward points',
+    'collect points',
+    'avail offer',
+    'avail now',
+    'enjoy offer',
+    'upto % off',
+    '% cashback',
+    // Marketing patterns
+    'tap to pay',
+    'scan to pay and earn',
+    'pay and earn',
+    'shop and earn',
+    'use jiopay',
+    'use jiomoney',
+    'use phonepay',
+    'make your first',
+    'your first payment',
   ];
   static const _mfSenders = [
     'MUTFND',
@@ -211,35 +258,54 @@ class SmsService {
     'ICICIMF',
   ];
 
+  /// Senders that exclusively send promotional/marketing messages —
+  /// never genuine debit/credit confirmations.
+  static const _promotionalSenders = [
+    'JIOPAY',
+    'JIOFIN',
+    'JIOMNY',
+    'JIOADV',
+    'RELJIO',
+    'JIOPMN',
+    'AIRPAY', // Airtel Money promotional
+    'AIRTLM',
+    'VILFIN',
+    'FRNKFT', // Freecharge
+    'FCHARGE',
+    'LAZYPAY',
+    'LAZADV',
+    'SNAPDL', // Snapdeal Pay
+    'FLIPKR', // Flipkart Pay promotional
+  ];
+
   bool _isNoise(String sender, String body) {
     final b = body.toLowerCase();
     final s = sender.toUpperCase();
     if (_otpKeywords.any((k) => b.contains(k))) return true;
     if (_mfSenders.any((k) => s.contains(k))) return true;
+    if (_promotionalSenders.any((k) => s.contains(k))) return true;
     if (_mfKeywords.any((k) => b.contains(k))) return true;
     if (_statementKeywords.any((k) => b.contains(k))) return true;
     if (_mandateKeywords.any((k) => b.contains(k))) return true;
 
-    // Count spam keywords — 2+ → reject
+    // Count spam keywords — 1+ → reject (promotional content is clearly not a txn)
     int hits = 0;
     for (final k in _spamKeywords) {
-      if (b.contains(k) && ++hits >= 2) return true;
+      if (b.contains(k) && ++hits >= 1) return true;
     }
 
-    // No transaction context at all
-    final hasTxn = b.contains('debited') ||
+    // No strong transaction verb → not a debit/credit notification
+    final hasStrongTxn = b.contains('debited') ||
         b.contains('credited') ||
-        b.contains('paid') ||
-        b.contains('received') ||
         b.contains(' dr ') ||
         b.contains(' cr ') ||
         b.contains('withdrawn') ||
         b.contains('transferred');
-    if (!hasTxn && hits >= 1) return true;
+    if (!hasStrongTxn) return true;
 
-    // Multiple URLs = promotional
+    // Any URL = promotional (genuine debit/credit SMSes never embed links)
     final urlCount = RegExp(r'https?://|www\.').allMatches(b).length;
-    if (urlCount >= 2) return true;
+    if (urlCount >= 1) return true;
 
     return false;
   }
