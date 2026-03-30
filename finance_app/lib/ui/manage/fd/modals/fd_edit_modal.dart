@@ -213,9 +213,9 @@ class _FDEditModalState extends State<FDEditModal> {
                     _buildReadOnlyRow(
                         'Tenure', '${widget.fd.tenureMonths} months'),
                     _buildReadOnlyRow('Investment Date',
-                        _formatDate(widget.fd.investmentDate)),
+                        DateFormatter.format(widget.fd.investmentDate)),
                     _buildReadOnlyRow(
-                        'Maturity Date', _formatDate(widget.fd.maturityDate)),
+                        'Maturity Date', DateFormatter.format(widget.fd.maturityDate)),
                   ],
                 ),
               ),
@@ -308,22 +308,4 @@ class _FDEditModalState extends State<FDEditModal> {
     }
   }
 
-  String _formatDate(DateTime date) {
-    final months = [
-      '',
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
-    return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
-  }
 }

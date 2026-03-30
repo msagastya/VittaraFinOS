@@ -590,20 +590,6 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     return safe;
   }
 
-  String _formatDate(DateTime dateTime) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final yesterday = today.subtract(const Duration(days: 1));
-    final txnDate = DateTime(dateTime.year, dateTime.month, dateTime.day);
-
-    if (txnDate == today) {
-      return 'Today ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
-    } else if (txnDate == yesterday) {
-      return 'Yesterday';
-    } else {
-      return '${dateTime.day} ${DateFormatter.getMonthName(dateTime.month)}';
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -1373,7 +1359,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                               ],
                               const SizedBox(height: 2),
                               Text(
-                                _formatDate(transaction.dateTime),
+                                DateFormatter.format(transaction.dateTime),
                                 style: TextStyle(
                                   fontSize: TypeScale.caption,
                                   color: AppStyles.getSecondaryTextColor(

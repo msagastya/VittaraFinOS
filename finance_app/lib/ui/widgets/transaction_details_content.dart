@@ -55,7 +55,7 @@ class TransactionDetailsContent extends StatelessWidget {
                 ),
                 const SizedBox(height: Spacing.xs),
                 Text(
-                  _formatDate(transaction.dateTime),
+                  DateFormatter.formatWithTime(transaction.dateTime),
                   style: TextStyle(
                     color: AppStyles.getSecondaryTextColor(context),
                     fontSize: TypeScale.body,
@@ -440,17 +440,6 @@ class TransactionDetailsContent extends StatelessWidget {
     }
   }
 
-  String _formatDate(DateTime dateTime) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final txnDate = DateTime(dateTime.year, dateTime.month, dateTime.day);
-    if (txnDate == today) {
-      return 'Today ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
-    }
-    final yesterday = today.subtract(const Duration(days: 1));
-    if (txnDate == yesterday) return 'Yesterday';
-    return '${dateTime.day} ${DateFormatter.getMonthName(dateTime.month)}';
-  }
 }
 
 // ── Balance snapshot card ─────────────────────────────────────────────────────

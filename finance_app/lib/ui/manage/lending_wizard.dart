@@ -1028,7 +1028,7 @@ class _LendingWizardState extends State<LendingWizard> {
                   ),
                   child: Center(
                     child: Text(
-                      _formatDate(_selectedDate),
+                      DateFormatter.format(_selectedDate),
                       style: const TextStyle(
                         color: AppStyles.accentBlue,
                         fontSize: 24,
@@ -1081,7 +1081,7 @@ class _LendingWizardState extends State<LendingWizard> {
                         Text(
                           _selectedDueDate == null
                               ? '📅 Tap to set'
-                              : _formatDate(_selectedDueDate!),
+                              : DateFormatter.format(_selectedDueDate!),
                           style: TextStyle(
                             color: _selectedDueDate == null
                                 ? AppStyles.getSecondaryTextColor(context)
@@ -1137,10 +1137,10 @@ class _LendingWizardState extends State<LendingWizard> {
           const SizedBox(height: Spacing.xxxl),
           _buildReviewItem(context, 'Person', personName),
           _buildReviewItem(context, 'Amount', '₹${_amountController.text}'),
-          _buildReviewItem(context, 'Date', _formatDate(_selectedDate)),
+          _buildReviewItem(context, 'Date', DateFormatter.format(_selectedDate)),
           if (_selectedDueDate != null)
             _buildReviewItem(
-                context, 'Due Date', _formatDate(_selectedDueDate!)),
+                context, 'Due Date', DateFormatter.format(_selectedDueDate!)),
           if (_descriptionController.text.isNotEmpty)
             _buildReviewItem(
                 context, 'Description', _descriptionController.text),
@@ -1263,21 +1263,4 @@ class _LendingWizardState extends State<LendingWizard> {
     );
   }
 
-  String _formatDate(DateTime date) {
-    final months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
-    return '${date.day.toString().padLeft(2, '0')} ${DateFormatter.getMonthName(date.month)} ${date.year}';
-  }
 }

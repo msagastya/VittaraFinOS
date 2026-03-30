@@ -240,7 +240,7 @@ class _ArchivedTransactionCard extends StatelessWidget {
                     ),
                     const SizedBox(height: Spacing.xs),
                     Text(
-                      _formatDate(transaction.dateTime),
+                      DateFormatter.format(transaction.dateTime),
                       style: TextStyle(
                         color: AppStyles.getSecondaryTextColor(context),
                         fontSize: TypeScale.caption,
@@ -372,20 +372,4 @@ class _ArchivedTransactionCard extends StatelessWidget {
     );
   }
 
-  String _formatDate(DateTime dateTime) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final txnDate = DateTime(dateTime.year, dateTime.month, dateTime.day);
-
-    if (txnDate == today) {
-      return 'Today';
-    }
-
-    final yesterday = today.subtract(const Duration(days: 1));
-    if (txnDate == yesterday) {
-      return 'Yesterday';
-    }
-
-    return '${dateTime.day} ${DateFormatter.getMonthName(dateTime.month)}';
-  }
 }

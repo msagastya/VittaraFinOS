@@ -148,13 +148,13 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                     _buildTimelineItem(
                       context,
                       'Started',
-                      _formatDate(widget.rd.startDate),
+                      DateFormatter.format(widget.rd.startDate),
                       CupertinoIcons.checkmark_circle,
                     ),
                     _buildTimelineItem(
                       context,
                       'Maturity',
-                      _formatDate(widget.rd.maturityDate),
+                      DateFormatter.format(widget.rd.maturityDate),
                       widget.rd.daysUntilMaturity <= 0
                           ? CupertinoIcons.checkmark_circle
                           : CupertinoIcons.clock,
@@ -729,7 +729,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                       _buildHistoryItem(
                         context,
                         'Started',
-                        _formatDate(widget.rd.startDate),
+                        DateFormatter.format(widget.rd.startDate),
                         'RD account created',
                         CupertinoIcons.checkmark_circle,
                       ),
@@ -743,7 +743,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                       _buildHistoryItem(
                         context,
                         'Maturity Date',
-                        _formatDate(widget.rd.maturityDate),
+                        DateFormatter.format(widget.rd.maturityDate),
                         widget.rd.daysUntilMaturity <= 0
                             ? 'RD matured'
                             : '${widget.rd.daysUntilMaturity} days remaining',
@@ -874,22 +874,4 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
     }
   }
 
-  String _formatDate(DateTime date) {
-    final months = [
-      '',
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
-    return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
-  }
 }

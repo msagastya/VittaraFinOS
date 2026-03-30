@@ -113,7 +113,7 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                     _buildDetailRow(context, 'Principal',
                         '₹${widget.fd.principal.toStringAsFixed(2)}'),
                     _buildDetailRow(context, 'Maturity Date',
-                        _formatDate(widget.fd.maturityDate)),
+                        DateFormatter.format(widget.fd.maturityDate)),
                     _buildDetailRow(context, 'Maturity Value',
                         '₹${widget.fd.maturityValue.toStringAsFixed(2)}'),
                   ],
@@ -147,7 +147,7 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        _formatDate(_withdrawalDate),
+                        DateFormatter.format(_withdrawalDate),
                         style: TextStyle(
                           color: AppStyles.getTextColor(context),
                           fontSize: TypeScale.headline,
@@ -400,7 +400,7 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
 
                         if (mounted) {
                           toast.showSuccess(
-                            'Withdrawal confirmed for ${_formatDate(_withdrawalDate)}. Amount: ₹${_withdrawalValue.toStringAsFixed(2)}',
+                            'Withdrawal confirmed for ${DateFormatter.format(_withdrawalDate)}. Amount: ₹${_withdrawalValue.toStringAsFixed(2)}',
                           );
                           widget.onWithdraw();
                           Navigator.of(context).pop();
@@ -411,7 +411,7 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                     } else {
                       // Fallback to old behavior if controller not provided
                       toast.showSuccess(
-                        'Withdrawal confirmed for ${_formatDate(_withdrawalDate)}',
+                        'Withdrawal confirmed for ${DateFormatter.format(_withdrawalDate)}',
                       );
                       widget.onWithdraw();
                       Navigator.of(context).pop();
@@ -496,22 +496,4 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
     );
   }
 
-  String _formatDate(DateTime date) {
-    final months = [
-      '',
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
-    return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
-  }
 }

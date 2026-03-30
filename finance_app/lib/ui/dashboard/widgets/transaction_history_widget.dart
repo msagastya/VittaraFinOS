@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:flutter/material.dart' show Divider;
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -148,7 +149,7 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  'This month: ₹${_compact(monthSpent)} spent · ₹${_compact(monthIncome)} income',
+                  'This month: \${CurrencyFormatter.compact(monthSpent)} spent · \${CurrencyFormatter.compact(monthIncome)} income',
                   style: TextStyle(
                     fontSize: TypeScale.caption,
                     color: AppStyles.getSecondaryTextColor(context),
@@ -176,12 +177,6 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
         );
       },
     );
-  }
-
-  String _compact(double v) {
-    if (v >= 100000) return '${(v / 100000).toStringAsFixed(1)}L';
-    if (v >= 1000) return '${(v / 1000).toStringAsFixed(0)}K';
-    return v.toStringAsFixed(0);
   }
 
   String _relativeTime(DateTime dt) {

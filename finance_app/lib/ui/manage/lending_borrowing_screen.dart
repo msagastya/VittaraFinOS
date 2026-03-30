@@ -1339,29 +1339,9 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
     );
   }
 
-  String _formatDate(DateTime date) {
-    final months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
-    return '${date.day.toString().padLeft(2, '0')} ${DateFormatter.getMonthName(date.month)} ${date.year}';
-  }
+  String _formatDate(DateTime date) => DateFormatter.format(date);
 
-  String _formatDateTime(DateTime date) {
-    final hh = date.hour.toString().padLeft(2, '0');
-    final mm = date.minute.toString().padLeft(2, '0');
-    return '${_formatDate(date)} $hh:$mm';
-  }
+  String _formatDateTime(DateTime date) => DateFormatter.formatWithTime(date);
 
   void _showPayoffCalculator(BuildContext context, LendingBorrowing record) {
     final monthlyController =

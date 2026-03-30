@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
@@ -229,7 +230,7 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
                   analysis.context.targetAmount! > 0) ...[
                 const SizedBox(width: Spacing.sm),
                 _buildChip(
-                    '₹${_compact(analysis.context.targetAmount!)} target',
+                    '${CurrencyFormatter.compact(analysis.context.targetAmount!)} target',
                     CupertinoIcons.flag_fill,
                     AppStyles.accentBlue),
               ],
@@ -290,13 +291,13 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
         Expanded(
             child: _buildMetricCard(
                 'Monthly Income',
-                '₹${_compact(analysis.monthlyIncome)}',
+                CurrencyFormatter.compact(analysis.monthlyIncome),
                 CupertinoColors.systemGreen)),
         const SizedBox(width: Spacing.sm),
         Expanded(
             child: _buildMetricCard(
                 'Monthly Savings',
-                '₹${_compact(analysis.monthlySavings)}',
+                CurrencyFormatter.compact(analysis.monthlySavings),
                 AppStyles.accentBlue)),
         const SizedBox(width: Spacing.sm),
         Expanded(
@@ -394,7 +395,7 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Progress toward ₹${_compact(target)}',
+              'Progress toward ${CurrencyFormatter.compact(target)}',
               style: TextStyle(
                 fontSize: TypeScale.footnote,
                 fontWeight: FontWeight.w600,
@@ -532,12 +533,6 @@ class _AIMonthlyPlannerScreenState extends State<AIMonthlyPlannerScreen> {
     );
   }
 
-  String _compact(double v) {
-    if (v >= 10000000) return '${(v / 10000000).toStringAsFixed(1)}Cr';
-    if (v >= 100000) return '${(v / 100000).toStringAsFixed(1)}L';
-    if (v >= 1000) return '${(v / 1000).toStringAsFixed(0)}K';
-    return v.toStringAsFixed(0);
-  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

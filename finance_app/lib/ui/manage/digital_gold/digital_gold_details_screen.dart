@@ -430,12 +430,8 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
 
   String _formatDate(String? isoDate) {
     if (isoDate == null) return '-';
-    try {
-      final date = DateTime.parse(isoDate);
-      return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
-    } catch (e) {
-      return isoDate;
-    }
+    final date = DateTime.tryParse(isoDate);
+    return date != null ? DateFormatter.format(date) : isoDate;
   }
 
   Widget _buildActionButton(

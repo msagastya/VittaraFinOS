@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
@@ -1540,9 +1541,7 @@ class _TransferWizardState extends State<TransferWizard> {
     }
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
-  }
+  String _formatDate(DateTime date) => DateFormatter.formatSlash(date);
 
   Widget _buildReviewRow(
     String label,

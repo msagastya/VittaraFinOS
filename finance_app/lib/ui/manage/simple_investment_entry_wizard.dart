@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
@@ -208,11 +209,7 @@ class _SimpleInvestmentEntryWizardState
     }
   }
 
-  String _formatDate(DateTime date) {
-    final day = date.day.toString().padLeft(2, '0');
-    final month = date.month.toString().padLeft(2, '0');
-    return '$day/$month/${date.year}';
-  }
+  String _formatDate(DateTime date) => DateFormatter.formatSlash(date);
 
   @override
   Widget build(BuildContext context) {

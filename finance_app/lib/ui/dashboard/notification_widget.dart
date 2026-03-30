@@ -343,32 +343,5 @@ class NotificationWidget extends StatelessWidget {
     }
   }
 
-  static String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final targetDay = DateTime(date.year, date.month, date.day);
-
-    if (targetDay == today) {
-      return 'Today';
-    } else if (targetDay == today.add(const Duration(days: 1))) {
-      return 'Tomorrow';
-    } else {
-      final months = [
-        '',
-        'Jan',
-        'Feb',
-        'Mar',
-        'Apr',
-        'May',
-        'Jun',
-        'Jul',
-        'Aug',
-        'Sep',
-        'Oct',
-        'Nov',
-        'Dec'
-      ];
-      return '${date.day} ${DateFormatter.getMonthName(date.month)}';
-    }
-  }
+  static String _formatDate(DateTime date) => DateFormatter.formatRelative(date);
 }

@@ -577,9 +577,7 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
     );
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
-  }
+  String _formatDate(DateTime date) => DateFormatter.format(date);
 }
 
 // Buy More Modal - Detailed multi-step flow
@@ -1382,9 +1380,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
     );
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
-  }
+  String _formatDate(DateTime date) => DateFormatter.format(date);
 }
 
 // Sell Modal - Similar detailed flow
@@ -1978,9 +1974,7 @@ class _SellModalState extends State<_SellModal> {
     );
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
-  }
+  String _formatDate(DateTime date) => DateFormatter.format(date);
 }
 
 // SIP Modal - Detailed setup with account selection
@@ -2041,9 +2035,7 @@ class _SIPModalState extends State<_SIPModal> {
     );
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
-  }
+  String _formatDate(DateTime date) => DateFormatter.format(date);
 
   @override
   void dispose() {
@@ -3120,9 +3112,7 @@ class _DividendModalState extends State<_DividendModal> {
     );
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
-  }
+  String _formatDate(DateTime date) => DateFormatter.format(date);
 }
 
 // Account Selector Widget

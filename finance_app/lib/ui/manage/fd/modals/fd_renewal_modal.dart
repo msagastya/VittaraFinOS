@@ -165,7 +165,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          _formatDate(_controller.investmentDate),
+                          DateFormatter.format(_controller.investmentDate),
                           style: TextStyle(
                             color: AppStyles.getTextColor(context),
                             fontSize: TypeScale.headline,
@@ -395,7 +395,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                       ),
                       const SizedBox(height: Spacing.sm),
                       Text(
-                        _formatDate(_calculateMaturityDate()),
+                        DateFormatter.format(_calculateMaturityDate()),
                         style: TextStyle(
                           color: AppStyles.getPrimaryColor(context),
                           fontSize: 18,
@@ -404,7 +404,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                       ),
                       const SizedBox(height: Spacing.sm),
                       Text(
-                        'Based on ${_controller.tenureMonths} months from ${_formatDate(_controller.investmentDate)}',
+                        'Based on ${_controller.tenureMonths} months from ${DateFormatter.format(_controller.investmentDate)}',
                         style: TextStyle(
                           color: AppStyles.getSecondaryTextColor(context),
                           fontSize: TypeScale.caption,
@@ -631,25 +631,6 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
         ),
       ),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    final months = [
-      '',
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
-    return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
   }
 
   DateTime _calculateMaturityDate() {

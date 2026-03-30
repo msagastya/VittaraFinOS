@@ -264,9 +264,9 @@ class _RDEditModalState extends State<RDEditModal> {
                     _buildReadOnlyRow(
                         'Total Installments', '${widget.rd.totalInstallments}'),
                     _buildReadOnlyRow(
-                        'Start Date', _formatDate(widget.rd.startDate)),
+                        'Start Date', DateFormatter.format(widget.rd.startDate)),
                     _buildReadOnlyRow(
-                        'Maturity Date', _formatDate(widget.rd.maturityDate)),
+                        'Maturity Date', DateFormatter.format(widget.rd.maturityDate)),
                   ],
                 ),
               ),
@@ -361,22 +361,4 @@ class _RDEditModalState extends State<RDEditModal> {
     }
   }
 
-  String _formatDate(DateTime date) {
-    final months = [
-      '',
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
-    return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
-  }
 }

@@ -2170,22 +2170,5 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
     );
   }
 
-  String _formatDate(DateTime date) {
-    final months = [
-      '',
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
-    return '${date.day} ${DateFormatter.getMonthName(date.month)} ${date.year}';
-  }
+  String _formatDate(DateTime date) => DateFormatter.format(date);
 }
