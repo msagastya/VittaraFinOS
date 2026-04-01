@@ -18,16 +18,21 @@ import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
+import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/utils/id_generator.dart';
 import 'package:intl/intl.dart';
 
 // ── Entry point ───────────────────────────────────────────────────────────────
 
 void showQuickEntrySheet(BuildContext context,
-    {TransactionWizardBranch branch = TransactionWizardBranch.expense}) {
+    {TransactionWizardBranch branch = TransactionWizardBranch.expense,
+    Transaction? existingTransaction}) {
   showCupertinoModalPopup<void>(
     context: context,
-    builder: (ctx) => _QuickEntrySheet(initialBranch: branch),
+    builder: (ctx) => _QuickEntrySheet(
+      initialBranch: branch,
+      existingTransaction: existingTransaction,
+    ),
   );
 }
 
@@ -35,7 +40,11 @@ void showQuickEntrySheet(BuildContext context,
 
 class _QuickEntrySheet extends StatefulWidget {
   final TransactionWizardBranch initialBranch;
-  const _QuickEntrySheet({required this.initialBranch});
+  final Transaction? existingTransaction;
+  const _QuickEntrySheet({
+    required this.initialBranch,
+    this.existingTransaction,
+  });
 
   @override
   State<_QuickEntrySheet> createState() => _QuickEntrySheetState();
@@ -64,6 +73,8 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
   bool _showTagPicker = false;
   bool _showNewTagInput = false;
 
+  DateTime _selectedDate = DateTime.now();
+
   @override
   void initState() {
     super.initState();
@@ -72,34 +83,93 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
     final settings = context.read<SettingsController>();
     final accounts = context.read<AccountsController>();
     final paymentApps = context.read<PaymentAppsController>();
+    final categories = context.read<CategoriesController>();
 
-    // Resolve default account
-    final defaultAccountId = settings.defaultAccountId;
-    if (defaultAccountId != null) {
-      final acc = accounts.getAccountById(defaultAccountId);
-      if (acc != null && !acc.isHidden && acc.type != AccountType.investment) {
-        _selectedAccountId = acc.id;
-        _selectedAccountName = acc.name;
-      }
-    }
-    if (_selectedAccountId == null) {
-      final nonCash = accounts.accounts
-          .where((a) => !a.isHidden && a.type != AccountType.investment && a.type != AccountType.cash)
-          .toList();
-      if (nonCash.isNotEmpty) {
-        _selectedAccountId = nonCash.first.id;
-        _selectedAccountName = nonCash.first.name;
-      }
-    }
+    // If editing an existing transaction, pre-fill the form
+    if (widget.existingTransaction != null) {
+      final tx = widget.existingTransaction!;
+      _amountCtrl.text = tx.amount.toStringAsFixed(2);
+      _descCtrl.text = tx.description;
+      _selectedDate = tx.dateTime;
 
-    // Resolve default payment app
-    final defaultApp = settings.defaultPaymentAppName;
-    if (defaultApp != null) {
-      final found = paymentApps.enabledApps.where((a) => a['name'] == defaultApp).isNotEmpty;
-      if (found) _selectedPaymentApp = defaultApp;
-    }
-    if (_selectedPaymentApp == null && paymentApps.enabledApps.isNotEmpty) {
-      _selectedPaymentApp = paymentApps.enabledApps.first['name'] as String?;
+      // Set branch based on transaction type
+      if (tx.type == TransactionType.expense) {
+        _branch = TransactionWizardBranch.expense;
+      } else if (tx.type == TransactionType.income) {
+        _branch = TransactionWizardBranch.income;
+      }
+
+      // Pre-fill category
+      final catId = tx.metadata?['categoryId'] as String?;
+      if (catId != null) {
+        _selectedCategory = categories.getCategoryById(catId);
+      }
+
+      // Pre-fill account
+      if (tx.sourceAccountId != null) {
+        _selectedAccountId = tx.sourceAccountId;
+        _selectedAccountName = tx.sourceAccountName;
+      }
+
+      // Pre-fill merchant if available
+      final merchant = tx.metadata?['merchant'] as String?;
+      if (merchant != null) {
+        _merchantCtrl.text = merchant;
+        _showMerchantField = true;
+      }
+
+      // Pre-fill cashback if available
+      if (tx.cashbackAmount != null && tx.cashbackAmount! > 0) {
+        _cashbackCtrl.text = tx.cashbackAmount!.toStringAsFixed(2);
+        _showCashbackField = true;
+      }
+
+      // Pre-fill app wallet amount if available
+      if (tx.appWalletAmount != null && tx.appWalletAmount! > 0) {
+        _paymentAppAmountCtrl.text = tx.appWalletAmount!.toStringAsFixed(2);
+      }
+
+      // Pre-fill payment app if available
+      if (tx.paymentAppName != null) {
+        _selectedPaymentApp = tx.paymentAppName;
+      }
+
+      // Pre-fill tags if available
+      final tags = tx.metadata?['tags'] as List?;
+      if (tags != null) {
+        _selectedTags = List<String>.from(tags);
+        _showTagPicker = _selectedTags.isNotEmpty;
+      }
+    } else {
+      // New transaction - use defaults
+      // Resolve default account
+      final defaultAccountId = settings.defaultAccountId;
+      if (defaultAccountId != null) {
+        final acc = accounts.getAccountById(defaultAccountId);
+        if (acc != null && !acc.isHidden && acc.type != AccountType.investment) {
+          _selectedAccountId = acc.id;
+          _selectedAccountName = acc.name;
+        }
+      }
+      if (_selectedAccountId == null) {
+        final nonCash = accounts.accounts
+            .where((a) => !a.isHidden && a.type != AccountType.investment && a.type != AccountType.cash)
+            .toList();
+        if (nonCash.isNotEmpty) {
+          _selectedAccountId = nonCash.first.id;
+          _selectedAccountName = nonCash.first.name;
+        }
+      }
+
+      // Resolve default payment app
+      final defaultApp = settings.defaultPaymentAppName;
+      if (defaultApp != null) {
+        final found = paymentApps.enabledApps.where((a) => a['name'] == defaultApp).isNotEmpty;
+        if (found) _selectedPaymentApp = defaultApp;
+      }
+      if (_selectedPaymentApp == null && paymentApps.enabledApps.isNotEmpty) {
+        _selectedPaymentApp = paymentApps.enabledApps.first['name'] as String?;
+      }
     }
   }
 
@@ -125,6 +195,38 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
       _amountCtrl.text.trim().isNotEmpty &&
       (double.tryParse(_amountCtrl.text) ?? 0) > 0 &&
       _selectedCategory != null;
+
+  /// Ranks categories by usage in the last 100 transactions (most used first).
+  List<Category> _rankedCategories(List<Category> all) {
+    final recent = context.read<TransactionsController>().transactions.reversed.take(100);
+    final counts = <String, int>{};
+    for (final tx in recent) {
+      final catId = tx.metadata?['categoryId'] as String?;
+      if (catId != null) counts[catId] = (counts[catId] ?? 0) + 1;
+    }
+    final sorted = List<Category>.from(all);
+    sorted.sort((a, b) => (counts[b.id] ?? 0).compareTo(counts[a.id] ?? 0));
+    return sorted;
+  }
+
+  String _accountTypeLabel(AccountType type) {
+    switch (type) {
+      case AccountType.savings: return 'Savings';
+      case AccountType.current: return 'Current';
+      case AccountType.credit: return 'Credit Card';
+      case AccountType.payLater: return 'Pay Later';
+      case AccountType.wallet: return 'Wallet';
+      case AccountType.cash: return 'Cash';
+      case AccountType.investment: return 'Investment';
+    }
+  }
+
+  bool get _selectedPaymentAppHasWallet {
+    if (_selectedPaymentApp == null) return false;
+    final apps = context.read<PaymentAppsController>().enabledApps;
+    final app = apps.where((a) => a['name'] == _selectedPaymentApp).firstOrNull;
+    return (app?['hasWallet'] as bool?) ?? false;
+  }
 
   List<String> get _recentMerchants {
     final all = context.read<TransactionsController>().transactions;
@@ -161,39 +263,6 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
             ? (amount - appWalletUsed).clamp(0.0, amount).toDouble()
             : amount;
 
-    // ── Update account balance ────────────────────────────────────────────────
-    Account? account;
-    if (_selectedAccountId != null) {
-      account = accountsCtrl.getAccountById(_selectedAccountId!);
-    }
-    if (account != null) {
-      final balanceDelta =
-          _branch == TransactionWizardBranch.expense ? -accountPortion : amount;
-      await accountsCtrl
-          .updateAccount(account.copyWith(balance: account.balance + balanceDelta));
-    }
-
-    // ── Deduct from payment app wallet ───────────────────────────────────────
-    if (_branch == TransactionWizardBranch.expense &&
-        appWalletUsed > 0 &&
-        _selectedPaymentApp != null) {
-      await paymentAppsCtrl.adjustWalletBalanceByName(
-          _selectedPaymentApp!, -appWalletUsed);
-    }
-
-    // ── Apply cashback ────────────────────────────────────────────────────────
-    if (cashbackAmount > 0) {
-      if (_cashbackToApp && _selectedPaymentApp != null) {
-        await paymentAppsCtrl.adjustWalletBalanceByName(
-            _selectedPaymentApp!, cashbackAmount);
-      } else if (account != null) {
-        // Re-fetch after previous update
-        final refreshed = accountsCtrl.getAccountById(account.id) ?? account;
-        await accountsCtrl.updateAccount(
-            refreshed.copyWith(balance: refreshed.balance + cashbackAmount));
-      }
-    }
-
     // ── Build metadata identical to full wizard ───────────────────────────────
     final meta = <String, dynamic>{
       'categoryId': _selectedCategory!.id,
@@ -209,6 +278,11 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
       'appWalletAmount': appWalletUsed,
     };
 
+    Account? account;
+    if (_selectedAccountId != null) {
+      account = accountsCtrl.getAccountById(_selectedAccountId!);
+    }
+
     if (account != null) {
       final snapped =
           accountsCtrl.getAccountById(account.id) ?? account;
@@ -219,14 +293,14 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
     }
 
     final tx = Transaction(
-      id: IdGenerator.next(),
+      id: widget.existingTransaction?.id ?? IdGenerator.next(),
       type: _branch == TransactionWizardBranch.expense
           ? TransactionType.expense
           : TransactionType.income,
       description: _descCtrl.text.trim().isEmpty
           ? (_selectedCategory?.name ?? 'Transaction')
           : _descCtrl.text.trim(),
-      dateTime: DateTime.now(),
+      dateTime: _selectedDate,
       amount: amount,
       sourceAccountId: _selectedAccountId,
       sourceAccountName: _selectedAccountName,
@@ -242,10 +316,57 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
       metadata: meta,
     );
 
-    await transactionsCtrl.addTransaction(tx);
-    HapticFeedback.heavyImpact();
-    if (mounted) Navigator.pop(context);
-    toast_lib.toast.showSuccess('Transaction saved');
+    // Handle edit vs new transaction
+    if (widget.existingTransaction != null) {
+      // Edit mode: use cascade-aware editTransaction
+      final editSuccess = await transactionsCtrl.editTransaction(
+        tx,
+        accountsCtrl,
+        paymentAppsCtrl,
+      );
+      if (!editSuccess) {
+        toast_lib.toast.showError('Edit window expired (24h limit)');
+        return;
+      }
+      HapticFeedback.heavyImpact();
+      if (mounted) Navigator.pop(context);
+      toast_lib.toast.showSuccess('Transaction updated');
+    } else {
+      // New transaction mode: manual balance updates
+      // ── Update account balance ────────────────────────────────────────────────
+      if (account != null) {
+        final balanceDelta =
+            _branch == TransactionWizardBranch.expense ? -accountPortion : amount;
+        await accountsCtrl
+            .updateAccount(account.copyWith(balance: account.balance + balanceDelta));
+      }
+
+      // ── Deduct from payment app wallet ───────────────────────────────────────
+      if (_branch == TransactionWizardBranch.expense &&
+          appWalletUsed > 0 &&
+          _selectedPaymentApp != null) {
+        await paymentAppsCtrl.adjustWalletBalanceByName(
+            _selectedPaymentApp!, -appWalletUsed);
+      }
+
+      // ── Apply cashback ────────────────────────────────────────────────────────
+      if (cashbackAmount > 0) {
+        if (_cashbackToApp && _selectedPaymentApp != null) {
+          await paymentAppsCtrl.adjustWalletBalanceByName(
+              _selectedPaymentApp!, cashbackAmount);
+        } else if (account != null) {
+          // Re-fetch after previous update
+          final refreshed = accountsCtrl.getAccountById(account.id) ?? account;
+          await accountsCtrl.updateAccount(
+              refreshed.copyWith(balance: refreshed.balance + cashbackAmount));
+        }
+      }
+
+      await transactionsCtrl.addTransaction(tx);
+      HapticFeedback.heavyImpact();
+      if (mounted) Navigator.pop(context);
+      toast_lib.toast.showSuccess('Transaction saved');
+    }
   }
 
   // ── Account picker ───────────────────────────────────────────────────────────
@@ -258,40 +379,211 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
 
     showCupertinoModalPopup<void>(
       context: context,
-      builder: (ctx) => CupertinoActionSheet(
-        title: const Text('Select Account'),
-        actions: [
-          for (final acc in accounts)
-            CupertinoActionSheetAction(
-              onPressed: () {
-                setState(() {
-                  _selectedAccountId = acc.id;
-                  _selectedAccountName = acc.name;
-                });
-                Navigator.pop(ctx);
-              },
-              child: Text(acc.name),
+      builder: (ctx) {
+        final isDark = AppStyles.isDarkMode(ctx);
+        final bgColor = isDark ? const Color(0xFF0D0D0D) : CupertinoColors.systemBackground.resolveFrom(ctx);
+        final cardColor = isDark ? const Color(0xFF141414) : const Color(0xFFF7F7F7);
+        final secondaryText = AppStyles.getSecondaryTextColor(ctx);
+        final primaryText = AppStyles.getTextColor(ctx);
+
+        return Container(
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          padding: const EdgeInsets.only(bottom: 32),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const ModalHandle(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                  child: Row(
+                    children: [
+                      Text(
+                        'Select Account',
+                        style: TextStyle(
+                          fontFamily: 'SpaceGrotesk',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 17,
+                          color: primaryText,
+                        ),
+                      ),
+                      const Spacer(),
+                      CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: () => Navigator.pop(ctx),
+                        child: Icon(CupertinoIcons.xmark_circle_fill,
+                            color: secondaryText.withValues(alpha: 0.3), size: 26),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(ctx).size.height * 0.5,
+                  ),
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: accounts.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    itemBuilder: (_, i) {
+                      final acc = accounts[i];
+                      final isSelected = acc.id == _selectedAccountId;
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _selectedAccountId = acc.id;
+                            _selectedAccountName = acc.name;
+                          });
+                          Navigator.pop(ctx);
+                        },
+                        child: AnimatedContainer(
+                          duration: AppDurations.fast,
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? acc.color.withValues(alpha: 0.12)
+                                : cardColor,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: isSelected
+                                  ? acc.color.withValues(alpha: 0.6)
+                                  : (isDark ? const Color(0xFF1E1E1E) : const Color(0xFFE0E0E0)),
+                              width: isSelected ? 1.5 : 1,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 38,
+                                height: 38,
+                                decoration: BoxDecoration(
+                                  color: acc.color.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Center(
+                                  child: Container(
+                                    width: 12,
+                                    height: 12,
+                                    decoration: BoxDecoration(
+                                      color: acc.color,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      acc.name,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: primaryText,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '${acc.bankName} · ${_accountTypeLabel(acc.type)}',
+                                      style: TextStyle(fontSize: 11, color: secondaryText),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    CurrencyFormatter.compact(acc.balance),
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: acc.balance >= 0
+                                          ? const Color(0xFF34C759)
+                                          : const Color(0xFFFF3B30),
+                                    ),
+                                  ),
+                                  if (isSelected) ...[
+                                    const SizedBox(height: 2),
+                                    Icon(CupertinoIcons.checkmark_circle_fill,
+                                        size: 14, color: acc.color),
+                                  ],
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => Navigator.pop(ctx),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            decoration: BoxDecoration(
+                              color: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFEEEEEE),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Center(
+                              child: Text('Cancel',
+                                  style: TextStyle(fontSize: 14, color: secondaryText)),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            if (_selectedAccountId != null) {
+                              settings.setDefaultAccountId(_selectedAccountId);
+                              toast_lib.toast.showSuccess('Default account saved');
+                            }
+                            Navigator.pop(ctx);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            decoration: BoxDecoration(
+                              color: AppStyles.accentBlue.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppStyles.accentBlue.withValues(alpha: 0.3)),
+                            ),
+                            child: Center(
+                              child: Text(
+                                'Set as default',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: AppStyles.accentBlue,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-        ],
-        cancelButton: Column(
-          children: [
-            CupertinoButton(
-              onPressed: () {
-                if (_selectedAccountId != null) {
-                  settings.setDefaultAccountId(_selectedAccountId);
-                  toast_lib.toast.showSuccess('Default account saved');
-                }
-                Navigator.pop(ctx);
-              },
-              child: const Text('Set as default'),
-            ),
-            CupertinoButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -303,47 +595,217 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
 
     showCupertinoModalPopup<void>(
       context: context,
-      builder: (ctx) => CupertinoActionSheet(
-        title: const Text('Select Payment App'),
-        actions: [
-          for (final app in apps)
-            CupertinoActionSheetAction(
-              onPressed: () {
-                setState(() {
-                  _selectedPaymentApp = app['name'] as String?;
-                });
-                Navigator.pop(ctx);
-              },
-              child: Text(app['name'] as String? ?? ''),
-            ),
-          CupertinoActionSheetAction(
-            onPressed: () {
-              setState(() {
-                _selectedPaymentApp = null;
-                _paymentAppAmountCtrl.clear();
-              });
-              Navigator.pop(ctx);
-            },
-            child: const Text('None'),
+      builder: (ctx) {
+        final isDark = AppStyles.isDarkMode(ctx);
+        final bgColor = isDark ? const Color(0xFF0D0D0D) : CupertinoColors.systemBackground.resolveFrom(ctx);
+        final cardColor = isDark ? const Color(0xFF141414) : const Color(0xFFF7F7F7);
+        final secondaryText = AppStyles.getSecondaryTextColor(ctx);
+        final primaryText = AppStyles.getTextColor(ctx);
+
+        // "None" is appended at the end
+        final allItems = [...apps, null];
+
+        return Container(
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           ),
-        ],
-        cancelButton: Column(
-          children: [
-            CupertinoButton(
-              onPressed: () {
-                settings.setDefaultPaymentApp(_selectedPaymentApp);
-                toast_lib.toast.showSuccess('Default payment app saved');
-                Navigator.pop(ctx);
-              },
-              child: const Text('Set as default'),
+          padding: const EdgeInsets.only(bottom: 32),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const ModalHandle(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                  child: Row(
+                    children: [
+                      Text(
+                        'Pay via',
+                        style: TextStyle(
+                          fontFamily: 'SpaceGrotesk',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 17,
+                          color: primaryText,
+                        ),
+                      ),
+                      const Spacer(),
+                      CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: () => Navigator.pop(ctx),
+                        child: Icon(CupertinoIcons.xmark_circle_fill,
+                            color: secondaryText.withValues(alpha: 0.3), size: 26),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(ctx).size.height * 0.5,
+                  ),
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: allItems.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    itemBuilder: (_, i) {
+                      final app = allItems[i];
+                      final appName = app?['name'] as String?;
+                      final appColor = (app?['color'] as Color?) ?? secondaryText;
+                      final hasWallet = (app?['hasWallet'] as bool?) ?? false;
+                      final walletBal = (app?['walletBalance'] as double?) ?? 0.0;
+                      final isSelected = appName == _selectedPaymentApp ||
+                          (appName == null && _selectedPaymentApp == null);
+
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _selectedPaymentApp = appName;
+                            if (appName == null || !hasWallet) {
+                              _paymentAppAmountCtrl.clear();
+                            }
+                          });
+                          Navigator.pop(ctx);
+                        },
+                        child: AnimatedContainer(
+                          duration: AppDurations.fast,
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? appColor.withValues(alpha: 0.12)
+                                : cardColor,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: isSelected
+                                  ? appColor.withValues(alpha: 0.6)
+                                  : (isDark ? const Color(0xFF1E1E1E) : const Color(0xFFE0E0E0)),
+                              width: isSelected ? 1.5 : 1,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 38,
+                                height: 38,
+                                decoration: BoxDecoration(
+                                  color: appColor.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Center(
+                                  child: appName == null
+                                      ? Icon(CupertinoIcons.xmark, size: 16, color: secondaryText)
+                                      : Text(
+                                          appName[0],
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: appColor,
+                                          ),
+                                        ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      appName ?? 'None',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: appName == null ? secondaryText : primaryText,
+                                      ),
+                                    ),
+                                    if (hasWallet && walletBal > 0) ...[
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        'Wallet: ${CurrencyFormatter.compact(walletBal)}',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: const Color(0xFF34C759),
+                                        ),
+                                      ),
+                                    ] else if (hasWallet) ...[
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        'Wallet enabled',
+                                        style: TextStyle(fontSize: 11, color: secondaryText),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                              if (isSelected)
+                                Icon(CupertinoIcons.checkmark_circle_fill,
+                                    size: 18,
+                                    color: appName == null ? secondaryText : appColor),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => Navigator.pop(ctx),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            decoration: BoxDecoration(
+                              color: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFEEEEEE),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Center(
+                              child: Text('Cancel',
+                                  style: TextStyle(fontSize: 14, color: secondaryText)),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            settings.setDefaultPaymentApp(_selectedPaymentApp);
+                            toast_lib.toast.showSuccess('Default payment app saved');
+                            Navigator.pop(ctx);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            decoration: BoxDecoration(
+                              color: AppStyles.accentBlue.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppStyles.accentBlue.withValues(alpha: 0.3)),
+                            ),
+                            child: Center(
+                              child: Text(
+                                'Set as default',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: AppStyles.accentBlue,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            CupertinoButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -437,26 +899,18 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
                         _buildDetailsDivider(isDark, secondaryText),
                         const SizedBox(height: Spacing.md),
 
+                        // ── Defaults ─────────────────────────────────────────────
+                        _buildDefaultsRow(isDark, secondaryText, primaryText),
+                        const SizedBox(height: Spacing.md),
+
                         // ── Optional detail rows ─────────────────────────────────
                         _buildMerchantRow(isDark, secondaryText, primaryText),
                         _buildCashbackRow(isDark, secondaryText, primaryText),
                         _buildTagsRow(tags, isDark, secondaryText, primaryText),
-                        const SizedBox(height: Spacing.md),
-
-                        // ── Defaults ─────────────────────────────────────────────
-                        _buildDefaultsRow(isDark, secondaryText, primaryText),
                         const SizedBox(height: Spacing.sm),
 
-                        // ── Date ─────────────────────────────────────────────────
-                        Center(
-                          child: Text(
-                            'Today · ${DateFormat('dd MMM yyyy').format(DateTime.now())}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: secondaryText,
-                            ),
-                          ),
-                        ),
+                        // ── Date (tappable) ───────────────────────────────────────
+                        _buildDateRow(isDark, secondaryText, primaryText),
                         const SizedBox(height: Spacing.lg),
 
                         // ── Save button ───────────────────────────────────────────
@@ -610,7 +1064,7 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
             itemCount: categories.length,
             separatorBuilder: (_, __) => const SizedBox(width: Spacing.sm),
             itemBuilder: (ctx, i) {
-              final cat = categories[i];
+              final cat = _rankedCategories(categories)[i];
               final isSelected = _selectedCategory?.id == cat.id;
               return GestureDetector(
                 onTap: () => setState(() => _selectedCategory = cat),
@@ -1152,8 +1606,8 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
             ),
           ],
         ),
-        // Wallet amount field (shown when a payment app is selected)
-        if (_selectedPaymentApp != null) ...[
+        // Wallet amount field (shown only when selected app has wallet feature)
+        if (_selectedPaymentApp != null && _selectedPaymentAppHasWallet) ...[
           const SizedBox(height: Spacing.xs),
           Row(
             children: [
@@ -1177,6 +1631,75 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
           ),
         ],
       ],
+    );
+  }
+
+  Widget _buildDateRow(bool isDark, Color secondaryText, Color primaryText) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final selected = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
+    final isToday = selected == today;
+    final isYesterday = selected == today.subtract(const Duration(days: 1));
+
+    String label;
+    if (isToday) {
+      label = 'Today · ${DateFormat('dd MMM yyyy').format(_selectedDate)}';
+    } else if (isYesterday) {
+      label = 'Yesterday · ${DateFormat('dd MMM yyyy').format(_selectedDate)}';
+    } else {
+      label = DateFormat('EEE, dd MMM yyyy').format(_selectedDate);
+    }
+
+    return GestureDetector(
+      onTap: () {
+        showCupertinoModalPopup<void>(
+          context: context,
+          builder: (ctx) => Container(
+            height: 280,
+            color: isDark ? const Color(0xFF1C1C1E) : CupertinoColors.systemBackground.resolveFrom(ctx),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CupertinoButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text('Cancel'),
+                    ),
+                    CupertinoButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text('Done', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+                Expanded(
+                  child: CupertinoDatePicker(
+                    mode: CupertinoDatePickerMode.date,
+                    initialDateTime: _selectedDate,
+                    maximumDate: DateTime.now(),
+                    onDateTimeChanged: (picked) => setState(() => _selectedDate = picked),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+      child: Center(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(CupertinoIcons.calendar, size: 13, color: secondaryText),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: TextStyle(fontSize: 12, color: secondaryText),
+            ),
+            const SizedBox(width: 4),
+            Icon(CupertinoIcons.pencil, size: 11, color: secondaryText.withValues(alpha: 0.5)),
+          ],
+        ),
+      ),
     );
   }
 
