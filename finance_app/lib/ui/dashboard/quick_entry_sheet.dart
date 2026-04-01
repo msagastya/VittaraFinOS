@@ -1578,12 +1578,15 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
               width: 72,
               child: Text('Account:', style: TextStyle(fontSize: 12, color: secondaryText)),
             ),
-            GestureDetector(
-              onTap: _pickAccount,
-              child: _smallChip(
-                label: _selectedAccountName ?? 'Tap to select',
-                isDark: isDark,
-                primaryText: _selectedAccountName != null ? primaryText : secondaryText,
+            Expanded(
+              child: GestureDetector(
+                onTap: _pickAccount,
+                child: _editableChip(
+                  label: _selectedAccountName ?? 'Tap to select',
+                  isDark: isDark,
+                  primaryText: _selectedAccountName != null ? primaryText : secondaryText,
+                  isSelected: _selectedAccountName != null,
+                ),
               ),
             ),
           ],
@@ -1596,12 +1599,15 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
               width: 72,
               child: Text('Pay via:', style: TextStyle(fontSize: 12, color: secondaryText)),
             ),
-            GestureDetector(
-              onTap: _pickPaymentApp,
-              child: _smallChip(
-                label: _selectedPaymentApp ?? 'None',
-                isDark: isDark,
-                primaryText: primaryText,
+            Expanded(
+              child: GestureDetector(
+                onTap: _pickPaymentApp,
+                child: _editableChip(
+                  label: _selectedPaymentApp ?? 'None',
+                  isDark: isDark,
+                  primaryText: primaryText,
+                  isSelected: _selectedPaymentApp != null,
+                ),
               ),
             ),
           ],
@@ -1714,6 +1720,45 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
         ),
       ),
       child: Text(label, style: TextStyle(fontSize: 12, color: primaryText)),
+    );
+  }
+
+  Widget _editableChip({
+    required String label,
+    required bool isDark,
+    required Color primaryText,
+    required bool isSelected,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.xs),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF0D1829) : const Color(0xFFEEF4FF),
+        borderRadius: BorderRadius.circular(Radii.full),
+        border: Border.all(
+          color: isSelected
+              ? AppStyles.accentBlue.withValues(alpha: 0.5)
+              : (isDark ? const Color(0xFF2A3A55) : const Color(0xFFBBCCEE)),
+          width: isSelected ? 1.5 : 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Flexible(
+            child: Text(
+              label,
+              style: TextStyle(fontSize: 12, color: primaryText),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: Spacing.xs),
+          Icon(
+            CupertinoIcons.pencil,
+            size: 10,
+            color: AppStyles.accentBlue.withValues(alpha: 0.7),
+          ),
+        ],
+      ),
     );
   }
 
