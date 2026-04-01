@@ -22,6 +22,7 @@ import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/dashboard/transaction_wizard.dart';
 import 'package:vittara_fin_os/ui/widgets/transaction_details_content.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
+import 'package:vittara_fin_os/ui/dashboard/quick_entry_sheet.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -1479,6 +1480,11 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                     TransactionDetailsContent(
                       transaction: transaction,
                       actionButtons: [
+                        _buildEditAction(
+                          context,
+                          modalContext,
+                          transaction,
+                        ),
                         CupertinoButton(
                           onPressed: () {
                             Navigator.pop(modalContext);
@@ -1508,6 +1514,87 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           },
         );
       },
+    );
+  }
+
+  Widget _buildEditAction(
+    BuildContext context,
+    BuildContext modalContext,
+    Transaction transaction,
+  ) {
+    // Check if transaction is within 24h edit window
+    final createdAt = transaction.createdAt;
+    final isEditableWindow = createdAt != null &&
+        DateTime.now().difference(createdAt).inHours <= 24;
+
+    if (!isEditableWindow) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              CupertinoIcons.pencil_slash,
+              size: 16,
+              color: AppStyles.getSecondaryTextColor(context),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              'Edit window expired (24h limit)',
+              style: TextStyle(
+                color: AppStyles.getSecondaryTextColor(context),
+                fontSize: TypeScale.body,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return BouncyButton(
+      onPressed: () {
+        Navigator.pop(modalContext);
+        showQuickEntrySheet(
+          context,
+          branch: transaction.type == TransactionType.expense
+              ? TransactionWizardBranch.expense
+              : TransactionWizardBranch.income,
+          existingTransaction: transaction,
+        );
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: AppStyles.accentBlue.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              CupertinoIcons.pencil,
+              size: 16,
+              color: AppStyles.accentBlue,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              'Edit Transaction',
+              style: TextStyle(
+                color: AppStyles.accentBlue,
+                fontSize: TypeScale.body,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
