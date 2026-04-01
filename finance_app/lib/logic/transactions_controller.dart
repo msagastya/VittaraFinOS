@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vittara_fin_os/logic/accounts_controller.dart';
+import 'package:vittara_fin_os/logic/payment_apps_controller.dart';
+import 'package:vittara_fin_os/logic/transaction_account_adjuster.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/utils/async_mutex.dart';
 import 'package:vittara_fin_os/utils/id_generator.dart';
@@ -81,6 +84,168 @@ class TransactionsController with ChangeNotifier {
     _transactions[idx] = updated;
     await _saveTransactions();
     notifyListeners();
+  }
+
+  /// Edit a transaction within 24 hours of creation, with cascade balance snapshot updates.
+  /// Returns true if edit was successful, false if outside 24h window.
+  Future<bool> editTransaction(
+    Transaction updated,
+    AccountsController accountsController,
+    PaymentAppsController paymentAppsController,
+  ) async {
+    final idx = _transactions.indexWhere((t) => t.id == updated.id);
+    if (idx < 0) return false;
+
+    final oldTransaction = _transactions[idx];
+
+    // Check 24h edit window
+    final createdAt = oldTransaction.createdAt;
+    if (createdAt == null) {
+      // Fallback: if createdAt not set, disallow edit
+      return false;
+    }
+    final now = DateTime.now();
+    if (now.difference(createdAt).inHours > 24) {
+      return false;
+    }
+
+    // Reverse old transaction effects and apply new effects
+    await TransactionAccountAdjuster.reverseTransaction(
+      accountsController,
+      oldTransaction,
+      paymentAppsController,
+    );
+    await TransactionAccountAdjuster.applyTransaction(
+      accountsController,
+      updated,
+      paymentAppsController,
+    );
+
+    // Calculate delta for balance snapshot updates
+    // This is used to update all subsequent transaction snapshots
+    _updateBalanceSnapshotsCascade(idx, oldTransaction, updated);
+
+    _transactions[idx] = updated;
+    await _saveTransactions();
+    notifyListeners();
+    return true;
+  }
+
+  /// Update balance snapshots for all transactions after the edited one.
+  /// When a transaction is edited, the delta affects all subsequent transactions
+  /// that touch the same account(s).
+  void _updateBalanceSnapshotsCascade(
+    int editedIndex,
+    Transaction oldTx,
+    Transaction newTx,
+  ) {
+    // Get affected account IDs
+    final affectedAccounts = <String>{};
+    if (oldTx.sourceAccountId != null) affectedAccounts.add(oldTx.sourceAccountId!);
+    if (oldTx.destinationAccountId != null) {
+      affectedAccounts.add(oldTx.destinationAccountId!);
+    }
+    if (oldTx.cashbackAccountId != null) affectedAccounts.add(oldTx.cashbackAccountId!);
+    if (newTx.sourceAccountId != null) affectedAccounts.add(newTx.sourceAccountId!);
+    if (newTx.destinationAccountId != null) {
+      affectedAccounts.add(newTx.destinationAccountId!);
+    }
+    if (newTx.cashbackAccountId != null) affectedAccounts.add(newTx.cashbackAccountId!);
+
+    // For each account, calculate the delta
+    for (final accountId in affectedAccounts) {
+      _updateAccountSnapshotsDelta(editedIndex, accountId, oldTx, newTx);
+    }
+  }
+
+  /// For a specific account, update balance snapshots in all subsequent transactions.
+  void _updateAccountSnapshotsDelta(
+    int editedIndex,
+    String accountId,
+    Transaction oldTx,
+    Transaction newTx,
+  ) {
+    // Calculate the delta impact on this account
+    final oldDelta = _getAccountDelta(oldTx, accountId);
+    final newDelta = _getAccountDelta(newTx, accountId);
+    final snapDelta = newDelta - oldDelta;
+
+    if (snapDelta == 0) return; // No change, skip
+
+    // Update all subsequent transactions' snapshots
+    for (int i = editedIndex + 1; i < _transactions.length; i++) {
+      final tx = _transactions[i];
+      final metadata = Map<String, dynamic>.from(tx.metadata ?? {});
+
+      // Update source balance snapshot if this account is the source
+      if (tx.sourceAccountId == accountId) {
+        final sourceBalanceAfter =
+            (metadata['sourceBalanceAfter'] as num?)?.toDouble() ?? 0.0;
+        metadata['sourceBalanceAfter'] = sourceBalanceAfter + snapDelta;
+      }
+
+      // Update destination balance snapshot if this account is the destination
+      if (tx.destinationAccountId == accountId) {
+        final destBalanceAfter =
+            (metadata['destBalanceAfter'] as num?)?.toDouble() ?? 0.0;
+        metadata['destBalanceAfter'] = destBalanceAfter + snapDelta;
+      }
+
+      // Update cashback account snapshot if this account is the cashback dest
+      if (tx.cashbackAccountId == accountId) {
+        final cashbackBalanceAfter =
+            (metadata['cashbackBalanceAfter'] as num?)?.toDouble() ?? 0.0;
+        metadata['cashbackBalanceAfter'] = cashbackBalanceAfter + snapDelta;
+      }
+
+      _transactions[i] = tx.copyWith(metadata: metadata);
+    }
+  }
+
+  /// Get the net balance delta for an account from a transaction.
+  double _getAccountDelta(Transaction tx, String accountId) {
+    final amount = tx.amount;
+    final appWalletAmount =
+        tx.appWalletAmount ?? (tx.metadata?['appWalletAmount'] as num?)?.toDouble() ?? 0.0;
+    final cashbackAmount = tx.cashbackAmount ?? 0.0;
+    final charges = tx.charges ?? 0.0;
+    final cashbackFlow = tx.metadata?['cashbackFlow'] as String? ?? 'bank';
+
+    double delta = 0;
+
+    switch (tx.type) {
+      case TransactionType.expense:
+        if (tx.sourceAccountId == accountId) {
+          delta = -(amount - appWalletAmount);
+        }
+        if (cashbackFlow != 'paymentApp' && tx.cashbackAccountId == accountId) {
+          delta += cashbackAmount;
+        }
+        break;
+      case TransactionType.income:
+        if (tx.sourceAccountId == accountId) {
+          delta = amount;
+        }
+        if (cashbackFlow != 'paymentApp' && tx.cashbackAccountId == accountId) {
+          delta += cashbackAmount;
+        }
+        break;
+      case TransactionType.transfer:
+        if (tx.sourceAccountId == accountId) {
+          delta = -(amount - appWalletAmount + charges);
+        }
+        if (tx.destinationAccountId == accountId) {
+          delta = amount;
+        }
+        if (cashbackFlow != 'paymentApp' && tx.cashbackAccountId == accountId) {
+          delta += cashbackAmount;
+        }
+        break;
+      default:
+        break;
+    }
+
+    return delta;
   }
 
   /// Adds multiple transactions at once and calls [notifyListeners] only once
