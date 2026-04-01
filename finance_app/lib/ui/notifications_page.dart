@@ -26,15 +26,18 @@ import 'package:vittara_fin_os/ui/manage/stocks/stock_details_screen.dart';
 import 'package:vittara_fin_os/logic/budget_model.dart';
 import 'package:vittara_fin_os/logic/budgets_controller.dart';
 import 'package:vittara_fin_os/logic/recurring_templates_controller.dart';
+import 'package:vittara_fin_os/logic/recurring_pattern_detector.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/ui/dashboard/transaction_wizard.dart';
+import 'package:vittara_fin_os/ui/dashboard/quick_entry_sheet.dart';
 import 'package:vittara_fin_os/logic/categories_controller.dart';
 import 'package:vittara_fin_os/logic/category_model.dart';
 import 'package:vittara_fin_os/services/sms_auto_scan_service.dart';
 import 'package:vittara_fin_os/services/sms_service.dart';
 import 'package:vittara_fin_os/logic/insurance_controller.dart';
 import 'package:vittara_fin_os/logic/insurance_model.dart';
+import 'package:vittara_fin_os/utils/id_generator.dart';
 
 class _NotifTab {
   final String label;
@@ -176,6 +179,17 @@ class _NotificationsPageState extends State<NotificationsPage> {
               final sipNotifications = collectSipNotifications(investments);
               final bondNotifications =
                   collectBondPayoutNotifications(investments);
+              final mandateNotifications = collectInsuranceMandateNotifications(
+                insuranceController.policiesWithActiveMandate,
+              );
+
+              // Detect recurring transaction patterns
+              final recurringTemplatesCtrl = context.read<RecurringTemplatesController>();
+              final recurringPatterns = RecurringPatternDetector.detect(
+                txController.transactions,
+                existing: recurringTemplatesCtrl.templates,
+                minOccurrences: 3,
+              ).take(5).toList(); // Show top 5 detected patterns
 
               // Insurance renewals
               final insuranceRenewing = insuranceController.activePolicies
@@ -188,7 +202,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
               final upcomingCount = fdsNearMaturity.length + fdsMatured.length +
                   rdsWithUpcomingInstallments.length + sipNotifications.length +
-                  bondNotifications.length + insuranceRenewing.length + insuranceExpired.length;
+                  bondNotifications.length + insuranceRenewing.length + insuranceExpired.length +
+                  mandateNotifications.length + recurringPatterns.length;
               final billsCount = dueTemplates.length;
               final budgetCount = exceededBudgets.length + warningBudgets.length + spendingInsights.length;
 
@@ -673,6 +688,18 @@ class _NotificationsPageState extends State<NotificationsPage> {
                                         )),
                               ],
 
+                              // ── Insurance Mandates Section ────────────────────────
+                              if (mandateNotifications.isNotEmpty) ...[
+                                _buildSectionHeader(context,
+                                  title: 'Insurance Premiums Due',
+                                  icon: CupertinoIcons.arrow_right_arrow_left_circle_fill,
+                                  color: AppStyles.teal(context),
+                                  count: mandateNotifications.length,
+                                ),
+                                ...mandateNotifications.map((entry) =>
+                                    _buildInsuranceMandateWidget(context, entry)),
+                              ],
+
                               // ── Insurance Renewals Section ────────────────────────
                               if (insuranceRenewing.isNotEmpty || insuranceExpired.isNotEmpty) ...[
                                 _buildSectionHeader(context,
@@ -755,6 +782,23 @@ class _NotificationsPageState extends State<NotificationsPage> {
                                         ),
                                       ),
                                     ),
+                                  );
+                                }),
+                              ],
+
+                              // ── Detected Recurring Patterns Section ────────────────
+                              if (recurringPatterns.isNotEmpty) ...[
+                                _buildSectionHeader(context,
+                                  title: 'Detected Recurring',
+                                  icon: CupertinoIcons.arrow_clockwise,
+                                  color: AppStyles.accentOrange,
+                                  count: recurringPatterns.length,
+                                ),
+                                ...recurringPatterns.map((pattern) {
+                                  return _buildDetectedRecurringWidget(
+                                    context,
+                                    pattern,
+                                    txController,
                                   );
                                 }),
                               ],
@@ -1332,6 +1376,134 @@ class _NotificationsPageState extends State<NotificationsPage> {
     );
   }
 
+  Widget _buildInsuranceMandateWidget(
+      BuildContext context, InsuranceMandateNotificationInfo entry) {
+    final policy = entry.policy;
+    final timeInfo = entry.daysUntil == 0
+        ? 'Due today'
+        : entry.daysUntil == 1
+            ? 'Due tomorrow'
+            : 'In ${entry.daysUntil} days';
+    final accentColor = entry.daysUntil <= 2 ? AppStyles.loss(context) : AppStyles.teal(context);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: NotificationWidget(
+        type: NotificationType.fdPayout,
+        title: policy.name,
+        subtitle: '${policy.type.displayName} · ${policy.insurer}',
+        amount: '${CurrencyFormatter.compact(policy.premiumAmount)} / ${policy.premiumFrequency}',
+        timeInfo: timeInfo,
+        badgeColor: accentColor,
+        icon: CupertinoIcons.arrow_right_arrow_left_circle_fill,
+        statusWidget: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: accentColor.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              Icon(CupertinoIcons.creditcard_fill, size: 13, color: accentColor),
+              const SizedBox(width: Spacing.sm),
+              Expanded(
+                child: Text(
+                  'Pay ${CurrencyFormatter.compact(policy.premiumAmount)} from ${policy.mandateLinkedAccountName ?? "linked account"}',
+                  style: TextStyle(
+                    color: accentColor,
+                    fontSize: TypeScale.footnote,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actionButtons: [
+          Expanded(
+            child: CupertinoButton(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              color: accentColor,
+              onPressed: () => _payInsuranceMandate(context, entry),
+              child: const Text(
+                'Pay Now',
+                style: TextStyle(color: Colors.white, fontSize: TypeScale.footnote, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ),
+          const SizedBox(width: Spacing.sm),
+          Expanded(
+            child: CupertinoButton(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              color: CupertinoColors.systemGrey,
+              onPressed: () => _skipInsuranceMandate(context, entry),
+              child: const Text(
+                'Skip',
+                style: TextStyle(color: Colors.white, fontSize: TypeScale.footnote),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _payInsuranceMandate(
+      BuildContext context, InsuranceMandateNotificationInfo entry) async {
+    final policy = entry.policy;
+    final accountId = policy.mandateLinkedAccountId;
+    if (accountId == null) {
+      toast_lib.toast.showError('No account linked to this mandate');
+      return;
+    }
+
+    final accountsCtrl = context.read<AccountsController>();
+    final txCtrl = context.read<TransactionsController>();
+    final insuranceCtrl = context.read<InsuranceController>();
+
+    final account = accountsCtrl.getAccountById(accountId);
+    if (account == null) {
+      toast_lib.toast.showError('Linked account not found');
+      return;
+    }
+
+    // Deduct from account
+    await accountsCtrl.updateAccount(
+      account.copyWith(balance: account.balance - policy.premiumAmount),
+    );
+
+    // Create expense transaction
+    final refreshed = accountsCtrl.getAccountById(accountId) ?? account;
+    final tx = Transaction(
+      id: IdGenerator.next(),
+      type: TransactionType.expense,
+      description: '${policy.name} — Insurance Premium',
+      dateTime: DateTime.now(),
+      amount: policy.premiumAmount,
+      sourceAccountId: accountId,
+      sourceAccountName: account.name,
+      metadata: {
+        'categoryName': 'Insurance',
+        'accountId': accountId,
+        'accountName': account.name,
+        'insurancePolicyId': policy.id,
+        'sourceBalanceAfter': refreshed.balance,
+      },
+    );
+    await txCtrl.addTransaction(tx);
+
+    // Advance mandate date
+    await insuranceCtrl.advanceMandateDate(policy.id);
+
+    toast_lib.toast.showSuccess('Premium paid · ₹${policy.premiumAmount.toStringAsFixed(0)} deducted');
+  }
+
+  Future<void> _skipInsuranceMandate(
+      BuildContext context, InsuranceMandateNotificationInfo entry) async {
+    await context.read<InsuranceController>().advanceMandateDate(entry.policy.id);
+    toast_lib.toast.showSuccess('Skipped — next reminder scheduled');
+  }
+
   Widget _buildBondNotificationWidget(
     BuildContext context,
     BondPayoutNotificationInfo entry,
@@ -1431,6 +1603,117 @@ class _NotificationsPageState extends State<NotificationsPage> {
     if (context.mounted) {
       toast_lib.toast.showInfo('Skipped next SIP for ${investment.name}');
     }
+  }
+
+  Widget _buildDetectedRecurringWidget(
+    BuildContext context,
+    RecurringPattern pattern,
+    TransactionsController txController,
+  ) {
+    final varianceLabel = pattern.amountVariancePct > 15
+        ? '±${pattern.amountVariancePct.toStringAsFixed(0)}%'
+        : 'Consistent';
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: NotificationWidget(
+        type: NotificationType.fdPayout,
+        title: pattern.payee,
+        subtitle: '${pattern.occurrences} occurrences · Every ${pattern.suggestedFrequency}',
+        amount: '₹${pattern.avgAmount.toStringAsFixed(2)}',
+        timeInfo: varianceLabel,
+        badgeColor: AppStyles.accentOrange,
+        icon: CupertinoIcons.arrow_clockwise,
+        statusWidget: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: AppStyles.getCardColor(context),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            'Last on ${_formatDashboardDate(pattern.latestDate)}',
+            style: TextStyle(
+              color: AppStyles.getSecondaryTextColor(context),
+              fontSize: TypeScale.footnote,
+            ),
+          ),
+        ),
+        actionButtons: [
+          Expanded(
+            child: CupertinoButton(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              color: AppStyles.accentOrange,
+              onPressed: () => _executeDetectedRecurring(context, pattern),
+              child: const Text(
+                'Execute',
+                style: TextStyle(
+                    color: Colors.white, fontSize: TypeScale.footnote, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ),
+          const SizedBox(width: Spacing.sm),
+          Expanded(
+            child: CupertinoButton(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              color: CupertinoColors.systemGrey,
+              onPressed: () {
+                toast_lib.toast.showInfo('Dismissed ${pattern.payee}');
+              },
+              child: const Text(
+                'Skip',
+                style: TextStyle(
+                    color: Colors.white, fontSize: TypeScale.footnote),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _executeDetectedRecurring(
+    BuildContext context,
+    RecurringPattern pattern,
+  ) {
+    // Get category from matching transactions if available
+    String? categoryId;
+    String? categoryName;
+    if (pattern.matchingTransactions.isNotEmpty) {
+      final tx = pattern.matchingTransactions.last;
+      categoryId = tx.metadata?['categoryId'] as String?;
+      categoryName = tx.metadata?['categoryName'] as String?;
+    }
+
+    // Get account from matching transactions if available
+    String? accountId;
+    String? accountName;
+    if (pattern.matchingTransactions.isNotEmpty) {
+      final tx = pattern.matchingTransactions.last;
+      accountId = tx.sourceAccountId;
+      accountName = tx.sourceAccountName;
+    }
+
+    // Close notification and open quick entry with pre-filled data
+    Navigator.of(context).pop();
+
+    showQuickEntrySheet(
+      context,
+      branch: TransactionWizardBranch.expense,
+      existingTransaction: Transaction(
+        id: '', // Will be generated
+        type: TransactionType.expense,
+        description: pattern.payee,
+        dateTime: DateTime.now(),
+        amount: pattern.avgAmount,
+        sourceAccountId: accountId,
+        sourceAccountName: accountName,
+        metadata: {
+          if (categoryId != null) 'categoryId': categoryId,
+          if (categoryName != null) 'categoryName': categoryName,
+          'merchant': pattern.payee,
+        },
+      ),
+    );
   }
 
   Future<void> _skipBondPayout(
