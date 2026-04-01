@@ -15,6 +15,7 @@ class Transaction {
   final TransactionType type;
   final String description;
   final DateTime dateTime;
+  final DateTime? createdAt; // Timestamp when tx was logged (for 24h edit gate)
   final double amount;
 
   // For transfers
@@ -47,6 +48,7 @@ class Transaction {
     required this.description,
     required this.dateTime,
     required this.amount,
+    this.createdAt,
     this.sourceAccountId,
     this.sourceAccountName,
     this.destinationAccountId,
@@ -66,6 +68,7 @@ class Transaction {
       'type': type.index,
       'description': description,
       'dateTime': dateTime.toIso8601String(),
+      'createdAt': createdAt?.toIso8601String(),
       'amount': amount,
       'sourceAccountId': sourceAccountId,
       'sourceAccountName': sourceAccountName,
@@ -102,6 +105,13 @@ class Transaction {
             ? rawDate
             : null;
 
+    final rawCreatedAt = map['createdAt'];
+    final resolvedCreatedAt = rawCreatedAt is String
+        ? DateTime.tryParse(rawCreatedAt)
+        : rawCreatedAt is DateTime
+            ? rawCreatedAt
+            : null;
+
     return Transaction(
       id: (map['id']?.toString().trim().isNotEmpty ?? false)
           ? map['id'].toString()
@@ -111,6 +121,7 @@ class Transaction {
           ? map['description'] as String
           : 'Transaction',
       dateTime: resolvedDate ?? DateTime.now(),
+      createdAt: resolvedCreatedAt,
       amount: resolvedAmount,
       sourceAccountId: map['sourceAccountId'],
       sourceAccountName: map['sourceAccountName'],
@@ -134,6 +145,7 @@ class Transaction {
     String? description,
     DateTime? dateTime,
     double? amount,
+    DateTime? createdAt,
     String? sourceAccountId,
     String? sourceAccountName,
     String? destinationAccountId,
@@ -152,6 +164,7 @@ class Transaction {
       description: description ?? this.description,
       dateTime: dateTime ?? this.dateTime,
       amount: amount ?? this.amount,
+      createdAt: createdAt ?? this.createdAt,
       sourceAccountId: sourceAccountId ?? this.sourceAccountId,
       sourceAccountName: sourceAccountName ?? this.sourceAccountName,
       destinationAccountId: destinationAccountId ?? this.destinationAccountId,

@@ -60,6 +60,10 @@ class TransactionsController with ChangeNotifier {
     if (id.isEmpty || _transactions.any((item) => item.id == id)) {
       normalized = transaction.copyWith(id: IdGenerator.next(prefix: 'txn'));
     }
+    // Ensure createdAt is set to now if not already set
+    if (normalized.createdAt == null) {
+      normalized = normalized.copyWith(createdAt: DateTime.now());
+    }
     _transactions.insert(0, normalized); // Add to beginning (newest first)
     await _saveTransactions();
     notifyListeners();
@@ -87,6 +91,10 @@ class TransactionsController with ChangeNotifier {
       final id = transaction.id.trim();
       if (id.isEmpty || _transactions.any((item) => item.id == id)) {
         normalized = transaction.copyWith(id: IdGenerator.next(prefix: 'txn'));
+      }
+      // Ensure createdAt is set to now if not already set
+      if (normalized.createdAt == null) {
+        normalized = normalized.copyWith(createdAt: DateTime.now());
       }
       _transactions.insert(0, normalized);
     }
