@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/logic/bond_payout_generator.dart';
 import 'package:vittara_fin_os/logic/budget_model.dart';
+import 'package:vittara_fin_os/logic/insurance_model.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/recurring_template_model.dart';
 
@@ -286,7 +287,42 @@ class BondPayoutNotificationInfo {
   });
 }
 
+class InsuranceMandateNotificationInfo {
+  final InsurancePolicy policy;
+  final DateTime dueDate;
+  final int daysUntil;
+
+  InsuranceMandateNotificationInfo({
+    required this.policy,
+    required this.dueDate,
+    required this.daysUntil,
+  });
+}
+
+/// Collect insurance policies whose mandate next due date is within [daysAhead] days.
+List<InsuranceMandateNotificationInfo> collectInsuranceMandateNotifications(
+  List<InsurancePolicy> policies, {
+  int daysAhead = 7,
+}) {
+  final now = DateTime.now();
+  final result = <InsuranceMandateNotificationInfo>[];
+  for (final policy in policies) {
+    if (!policy.mandateEnabled) continue;
+    final due = policy.mandateNextDueDate;
+    if (due == null) continue;
+    final days = due.difference(now).inDays;
+    if (days < 0 || days > daysAhead) continue;
+    result.add(InsuranceMandateNotificationInfo(
+      policy: policy,
+      dueDate: due,
+      daysUntil: days,
+    ));
+  }
+  return result;
+}
+
 /// Collect SIP notifications for investments that have an active SIP coming due within [daysAhead] days.
+/// Also includes overdue SIPs that haven't been acted upon yet (Execute, Skip, Renew, Withdraw, Dismiss).
 List<SipNotificationInfo> collectSipNotifications(List<Investment> investments,
     {int daysAhead = 5}) {
   final now = DateTime.now();
@@ -300,15 +336,29 @@ List<SipNotificationInfo> collectSipNotifications(List<Investment> investments,
     if (nextDue == null) continue;
 
     final daysUntil = nextDue.difference(now).inDays;
-    if (daysUntil > daysAhead) continue;
 
-    notifications.add(SipNotificationInfo(
-      investment: inv,
-      dueDate: nextDue,
-      daysUntil: daysUntil,
-      amount: _sipAmount(inv),
-      frequencyLabel: _sipFrequencyLabel(inv),
-    ));
+    // Include if coming due within daysAhead days (future)
+    if (daysUntil >= 0 && daysUntil <= daysAhead) {
+      notifications.add(SipNotificationInfo(
+        investment: inv,
+        dueDate: nextDue,
+        daysUntil: daysUntil,
+        amount: _sipAmount(inv),
+        frequencyLabel: _sipFrequencyLabel(inv),
+      ));
+      continue;
+    }
+
+    // Also include if overdue (past due date) - show until user takes action
+    if (daysUntil < 0) {
+      notifications.add(SipNotificationInfo(
+        investment: inv,
+        dueDate: nextDue,
+        daysUntil: daysUntil,
+        amount: _sipAmount(inv),
+        frequencyLabel: _sipFrequencyLabel(inv),
+      ));
+    }
   }
 
   return notifications;
@@ -365,6 +415,45 @@ DateTime? _nextSipDueDate(Investment investment) {
     return _nextSipDateFromStock(metadata);
   }
   return _nextSipDateFromMF(metadata);
+}
+
+/// Get the previous SIP due date by subtracting one frequency period from nextDue.
+/// Used to check if the last execution was for the current cycle.
+DateTime? _getPreviousSipDueDate(Investment investment, DateTime nextDue) {
+  final metadata = investment.metadata ?? {};
+  final frequency = (metadata['sipFrequency'] as String?)?.toLowerCase() ?? 'monthly';
+
+  switch (frequency) {
+    case 'daily':
+      return nextDue.subtract(const Duration(days: 1));
+    case 'weekly':
+      return nextDue.subtract(const Duration(days: 7));
+    case 'monthly':
+      return _subtractMonths(nextDue, 1);
+    case 'quarterly':
+      return _subtractMonths(nextDue, 3);
+    case 'yearly':
+    case 'annual':
+      return _subtractMonths(nextDue, 12);
+    case 'monthlyauto':
+    case 'dailyauto':
+      return nextDue.subtract(const Duration(days: 1));
+    default:
+      return nextDue.subtract(const Duration(days: 30));
+  }
+}
+
+DateTime _subtractMonths(DateTime date, int months) {
+  var newMonth = date.month - months;
+  final newYear = date.year + (newMonth - 1) ~/ 12;
+  newMonth = ((newMonth - 1) % 12) + 1;
+  if (newMonth < 1) {
+    newMonth += 12;
+  }
+  final day = date.day;
+  final lastDayOfMonth = _daysInMonth(newYear, newMonth);
+  final targetDay = day > lastDayOfMonth ? lastDayOfMonth : day;
+  return DateTime(newYear, newMonth, targetDay);
 }
 
 DateTime? _nextSipDateFromStock(Map<String, dynamic> metadata) {
