@@ -330,6 +330,7 @@ class FadeScalePageRoute<T> extends PageRouteBuilder<T> {
 
   FadeScalePageRoute({required this.page})
       : super(
+          opaque: false,
           pageBuilder: (context, animation, secondaryAnimation) => page,
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             final scaleTween = Tween(begin: 0.94, end: 1.0)
