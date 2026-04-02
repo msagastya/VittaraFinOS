@@ -232,12 +232,8 @@ class _MFWizardContentState extends State<_MFWizardContent> {
     final controller = Provider.of<MFWizardController>(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // Determine progress steps based on MF type
-    int totalSteps =
-        5; // Default for Existing MF (Search, Type, Account, Details, Review/SIP)
-    if (controller.selectedMFType == MFType.newMF) {
-      totalSteps = 6; // New MF has deduction step (Search, Type, Account, Details, Deduction, Review)
-    }
+    // Both new and existing MF have deduction step: Search, Type, Account, Details, Deduction, Review
+    const int totalSteps = 6;
 
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
@@ -300,14 +296,10 @@ class _MFWizardContentState extends State<_MFWizardContent> {
                     const MFTransactionDetailsStep()
                   else
                     const MFNewInvestmentDetailsStep(),
-                  // Step 4: Deduction (New MF) or Review (Existing MF)
-                  if (controller.selectedMFType == MFType.newMF)
-                    const MFDeductionStep()
-                  else
-                    const MFReviewStep(),
-                  // Step 5: Review (New MF only)
-                  if (controller.selectedMFType == MFType.newMF)
-                    const MFReviewStep(),
+                  // Step 4: Deduction (for both new and existing MF)
+                  const MFDeductionStep(),
+                  // Step 5: Review (for both new and existing MF)
+                  const MFReviewStep(),
                 ],
               ),
             ),
@@ -318,39 +310,29 @@ class _MFWizardContentState extends State<_MFWizardContent> {
                 child: CupertinoButton.filled(
                   onPressed: controller.canProceed() && !_isSubmitting
                       ? () async {
-                          final isNewMF = controller.selectedMFType == MFType.newMF;
-                          if (isNewMF) {
-                            // New MF: Step 5 is Review, Step 4 is Deduction
-                            if (controller.currentStep == 5) {
-                              await _saveOrUpdateInvestment(context, controller);
-                            } else {
-                              controller.nextPage();
-                            }
+                          // Both new and existing MF follow same flow: Details → Deduction → Review
+                          if (controller.currentStep == 5) {
+                            // At Review step, save the investment
+                            await _saveOrUpdateInvestment(context, controller);
+                          } else if (controller.currentStep == 3 &&
+                              controller.selectedMFType == MFType.existing &&
+                              controller.sipActive) {
+                            // For existing MF with active SIP, skip SIP dialog and go to deduction
+                            controller.nextPage();
+                          } else if (controller.currentStep == 3 &&
+                              controller.selectedMFType == MFType.existing &&
+                              !controller.sipActive) {
+                            // For existing MF without SIP, ask if user wants to add SIP
+                            _showSIPDialog(context);
                           } else {
-                            // Existing MF: Step 4 could be Review or SIP
-                            if (controller.currentStep == 3) {
-                              // From Investment Details, ask about SIP
-                              _showSIPDialog(context);
-                            } else if (controller.currentStep == 4) {
-                              // From Review/SIP, save
-                              await _saveOrUpdateInvestment(context, controller);
-                            } else {
-                              controller.nextPage();
-                            }
+                            controller.nextPage();
                           }
                         }
                       : null,
                   child: _isSubmitting
                       ? const CupertinoActivityIndicator(
                           color: CupertinoColors.white)
-                      : Text(
-                          (controller.selectedMFType == MFType.newMF &&
-                                  controller.currentStep == 5) ||
-                              (controller.selectedMFType != MFType.newMF &&
-                                  controller.currentStep == 4)
-                              ? 'Confirm & Save'
-                              : 'Continue',
-                        ),
+                      : Text(controller.currentStep == 5 ? 'Confirm & Save' : 'Continue'),
                 ),
               ),
             ),

@@ -1,3 +1,5 @@
+import 'package:vittara_fin_os/logic/insurance_rider_model.dart';
+
 enum InsuranceType { health, life, term, vehicle, travel, home, other }
 
 extension InsuranceTypeExtension on InsuranceType {
@@ -62,6 +64,15 @@ class InsurancePolicy {
   final int? policyTermYears;          // term — policy duration in years
   final int? premiumPayingTermYears;   // life — premium paying term (can differ from policy term)
 
+  // Mandate / auto-pay fields
+  final bool mandateEnabled;
+  final String? mandateLinkedAccountId;
+  final String? mandateLinkedAccountName;
+  final DateTime? mandateNextDueDate;
+
+  // Riders / add-ons
+  final List<InsuranceRider> riders;
+
   InsurancePolicy({
     required this.id,
     required this.name,
@@ -79,6 +90,11 @@ class InsurancePolicy {
     this.maturityDate,
     this.policyTermYears,
     this.premiumPayingTermYears,
+    this.mandateEnabled = false,
+    this.mandateLinkedAccountId,
+    this.mandateLinkedAccountName,
+    this.mandateNextDueDate,
+    this.riders = const [],
   });
 
   /// The date used for expiry calculations — type-specific.
@@ -110,6 +126,13 @@ class InsurancePolicy {
     }
   }
 
+  /// Total annual rider premium for active riders.
+  double get totalRiderPremium =>
+      riders.where((r) => r.isActive).fold(0.0, (sum, r) => sum + r.annualCost);
+
+  /// Total annual cost including all active riders.
+  double get totalAnnualCostWithRiders => annualPremium + totalRiderPremium;
+
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -128,6 +151,11 @@ class InsurancePolicy {
       'maturityDate': maturityDate?.toIso8601String(),
       'policyTermYears': policyTermYears,
       'premiumPayingTermYears': premiumPayingTermYears,
+      'mandateEnabled': mandateEnabled,
+      'mandateLinkedAccountId': mandateLinkedAccountId,
+      'mandateLinkedAccountName': mandateLinkedAccountName,
+      'mandateNextDueDate': mandateNextDueDate?.toIso8601String(),
+      'riders': riders.map((r) => r.toMap()).toList(),
     };
   }
 
@@ -155,6 +183,15 @@ class InsurancePolicy {
       maturityDate: maturityRaw != null ? DateTime.parse(maturityRaw) : null,
       policyTermYears: map['policyTermYears'] as int?,
       premiumPayingTermYears: map['premiumPayingTermYears'] as int?,
+      mandateEnabled: (map['mandateEnabled'] as bool?) ?? false,
+      mandateLinkedAccountId: map['mandateLinkedAccountId'] as String?,
+      mandateLinkedAccountName: map['mandateLinkedAccountName'] as String?,
+      mandateNextDueDate: (map['mandateNextDueDate'] as String?) != null
+          ? DateTime.parse(map['mandateNextDueDate'] as String)
+          : null,
+      riders: ((map['riders'] as List?)?.cast<Map<String, dynamic>>() ?? [])
+          .map(InsuranceRider.fromMap)
+          .toList(),
     );
   }
 
@@ -175,6 +212,11 @@ class InsurancePolicy {
     Object? maturityDate = _sentinel,
     Object? policyTermYears = _sentinel,
     Object? premiumPayingTermYears = _sentinel,
+    bool? mandateEnabled,
+    Object? mandateLinkedAccountId = _sentinel,
+    Object? mandateLinkedAccountName = _sentinel,
+    Object? mandateNextDueDate = _sentinel,
+    List<InsuranceRider>? riders,
   }) {
     return InsurancePolicy(
       id: id ?? this.id,
@@ -202,6 +244,17 @@ class InsurancePolicy {
       premiumPayingTermYears: premiumPayingTermYears == _sentinel
           ? this.premiumPayingTermYears
           : premiumPayingTermYears as int?,
+      mandateEnabled: mandateEnabled ?? this.mandateEnabled,
+      mandateLinkedAccountId: mandateLinkedAccountId == _sentinel
+          ? this.mandateLinkedAccountId
+          : mandateLinkedAccountId as String?,
+      mandateLinkedAccountName: mandateLinkedAccountName == _sentinel
+          ? this.mandateLinkedAccountName
+          : mandateLinkedAccountName as String?,
+      mandateNextDueDate: mandateNextDueDate == _sentinel
+          ? this.mandateNextDueDate
+          : mandateNextDueDate as DateTime?,
+      riders: riders ?? this.riders,
     );
   }
 }

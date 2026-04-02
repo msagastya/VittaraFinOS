@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:vittara_fin_os/logic/account_model.dart';
+import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/payment_apps_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
@@ -9,6 +11,8 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
+import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
+import 'package:vittara_fin_os/utils/id_generator.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 
 class PaymentAppsScreen extends StatefulWidget {
@@ -141,6 +145,419 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
         );
       },
     ).whenComplete(controller.dispose);
+  }
+
+  void _showWalletTransferSheet(
+    BuildContext context,
+    PaymentAppsController appsController,
+    Map<String, dynamic> app,
+  ) {
+    final balance = (app['walletBalance'] as num?)?.toDouble() ?? 0.0;
+    if (balance <= 0) {
+      toast.showError('Wallet balance is zero — nothing to transfer');
+      return;
+    }
+
+    final amountCtrl = TextEditingController();
+    final notesCtrl = TextEditingController(
+      text: 'Wallet transfer from ${app['name']}',
+    );
+    Account? selectedAccount;
+
+    showCupertinoModalPopup(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(builder: (ctx, setSheetState) {
+          final keyboardInset = MediaQuery.of(ctx).viewInsets.bottom;
+          final accountsCtrl = ctx.read<AccountsController>();
+          final accounts = accountsCtrl.accounts
+              .where((a) => !a.isHidden)
+              .toList();
+
+          return AnimatedPadding(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOut,
+            padding: EdgeInsets.only(bottom: keyboardInset),
+            child: SafeArea(
+              top: false,
+              child: Container(
+                constraints: BoxConstraints(
+                  maxHeight: AppStyles.sheetMaxHeight(ctx),
+                ),
+                decoration: BoxDecoration(
+                  color: AppStyles.getCardColor(ctx),
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(24)),
+                ),
+                child: SingleChildScrollView(
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  child: Padding(
+                    padding: const EdgeInsets.all(Spacing.xxl),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Handle
+                        Center(
+                          child: Container(
+                            width: 40, height: 4,
+                            margin: const EdgeInsets.only(bottom: 16),
+                            decoration: BoxDecoration(
+                              color: AppStyles.getSecondaryTextColor(ctx)
+                                  .withValues(alpha: 0.3),
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                        ),
+
+                        // Title
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: CupertinoColors.systemIndigo
+                                    .withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Icon(
+                                CupertinoIcons.arrow_right_arrow_left_circle_fill,
+                                color: CupertinoColors.systemIndigo,
+                                size: 20,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Transfer to Account',
+                                      style: AppStyles.titleStyle(ctx)),
+                                  Text(
+                                    '${app['name']} Wallet · ₹${balance.toStringAsFixed(2)} available',
+                                    style: TextStyle(
+                                      fontSize: TypeScale.caption,
+                                      color: AppStyles.getSecondaryTextColor(ctx),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: Spacing.xl),
+
+                        // Amount field
+                        Text('Amount (₹)',
+                            style: TextStyle(
+                              fontSize: TypeScale.footnote,
+                              fontWeight: FontWeight.w600,
+                              color: AppStyles.getSecondaryTextColor(ctx),
+                            )),
+                        const SizedBox(height: Spacing.xs),
+                        CupertinoTextField(
+                          controller: amountCtrl,
+                          autofocus: true,
+                          keyboardType:
+                              const TextInputType.numberWithOptions(decimal: true),
+                          prefix: const Padding(
+                            padding: EdgeInsets.only(left: 14),
+                            child: Text('₹',
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.w600)),
+                          ),
+                          placeholder: '0.00',
+                          padding: const EdgeInsets.all(14),
+                          style: TextStyle(
+                            color: AppStyles.getTextColor(ctx),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppStyles.getBackground(ctx),
+                            borderRadius: BorderRadius.circular(Radii.md),
+                          ),
+                          onChanged: (_) => setSheetState(() {}),
+                        ),
+
+                        const SizedBox(height: Spacing.md),
+
+                        // Destination account
+                        Text('To Account',
+                            style: TextStyle(
+                              fontSize: TypeScale.footnote,
+                              fontWeight: FontWeight.w600,
+                              color: AppStyles.getSecondaryTextColor(ctx),
+                            )),
+                        const SizedBox(height: Spacing.xs),
+
+                        if (accounts.isEmpty)
+                          Container(
+                            padding: const EdgeInsets.all(Spacing.md),
+                            decoration: BoxDecoration(
+                              color: AppStyles.getBackground(ctx),
+                              borderRadius: BorderRadius.circular(Radii.md),
+                            ),
+                            child: Text(
+                              'No accounts found. Add an account first.',
+                              style: TextStyle(
+                                color: AppStyles.getSecondaryTextColor(ctx),
+                                fontSize: TypeScale.footnote,
+                              ),
+                            ),
+                          )
+                        else
+                          GestureDetector(
+                            onTap: () {
+                              showCupertinoModalPopup<void>(
+                                context: ctx,
+                                builder: (pickerCtx) => Container(
+                                  height: 300,
+                                  color: AppStyles.isDarkMode(pickerCtx)
+                                      ? const Color(0xFF1C1C1E)
+                                      : CupertinoColors.systemBackground
+                                          .resolveFrom(pickerCtx),
+                                  child: Column(
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          CupertinoButton(
+                                            onPressed: () =>
+                                                Navigator.pop(pickerCtx),
+                                            child: const Text('Cancel'),
+                                          ),
+                                          CupertinoButton(
+                                            onPressed: () =>
+                                                Navigator.pop(pickerCtx),
+                                            child: const Text('Done',
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold)),
+                                          ),
+                                        ],
+                                      ),
+                                      Expanded(
+                                        child: CupertinoPicker(
+                                          scrollController:
+                                              FixedExtentScrollController(
+                                            initialItem: selectedAccount != null
+                                                ? accounts.indexWhere(
+                                                    (a) =>
+                                                        a.id ==
+                                                        selectedAccount!.id)
+                                                : 0,
+                                          ),
+                                          itemExtent: 44,
+                                          onSelectedItemChanged: (i) {
+                                            setSheetState(() =>
+                                                selectedAccount = accounts[i]);
+                                          },
+                                          children: accounts
+                                              .map((a) => Center(
+                                                    child: Text(
+                                                      '${a.name} (${a.bankName})',
+                                                      style: TextStyle(
+                                                        color: AppStyles
+                                                            .getTextColor(
+                                                                pickerCtx),
+                                                        fontSize:
+                                                            TypeScale.body,
+                                                      ),
+                                                    ),
+                                                  ))
+                                              .toList(),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ).then((_) {
+                                selectedAccount ??= accounts.isNotEmpty
+                                    ? accounts.first
+                                    : null;
+                                setSheetState(() {});
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 13),
+                              decoration: BoxDecoration(
+                                color: AppStyles.getBackground(ctx),
+                                borderRadius: BorderRadius.circular(Radii.md),
+                                border: Border.all(
+                                  color: selectedAccount != null
+                                      ? CupertinoColors.systemIndigo
+                                          .withValues(alpha: 0.5)
+                                      : Colors.transparent,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  if (selectedAccount != null) ...[
+                                    Container(
+                                      width: 8,
+                                      height: 8,
+                                      decoration: BoxDecoration(
+                                        color: selectedAccount!.color,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                  ],
+                                  Expanded(
+                                    child: Text(
+                                      selectedAccount != null
+                                          ? '${selectedAccount!.name}  ·  ${selectedAccount!.bankName}'
+                                          : 'Tap to select account',
+                                      style: TextStyle(
+                                        color: selectedAccount != null
+                                            ? AppStyles.getTextColor(ctx)
+                                            : AppStyles
+                                                .getSecondaryTextColor(ctx),
+                                        fontSize: TypeScale.body,
+                                      ),
+                                    ),
+                                  ),
+                                  Icon(CupertinoIcons.chevron_down,
+                                      size: 14,
+                                      color:
+                                          AppStyles.getSecondaryTextColor(ctx)),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                        const SizedBox(height: Spacing.md),
+
+                        // Notes field
+                        Text('Note',
+                            style: TextStyle(
+                              fontSize: TypeScale.footnote,
+                              fontWeight: FontWeight.w600,
+                              color: AppStyles.getSecondaryTextColor(ctx),
+                            )),
+                        const SizedBox(height: Spacing.xs),
+                        CupertinoTextField(
+                          controller: notesCtrl,
+                          placeholder: 'Add a note...',
+                          padding: const EdgeInsets.all(14),
+                          style: TextStyle(
+                              color: AppStyles.getTextColor(ctx),
+                              fontSize: TypeScale.body),
+                          decoration: BoxDecoration(
+                            color: AppStyles.getBackground(ctx),
+                            borderRadius: BorderRadius.circular(Radii.md),
+                          ),
+                        ),
+
+                        const SizedBox(height: Spacing.xl),
+
+                        // Confirm button
+                        Row(
+                          children: [
+                            Expanded(
+                              child: CupertinoButton(
+                                color: CupertinoColors.systemGrey4,
+                                onPressed: () => Navigator.pop(ctx),
+                                child: Text('Cancel',
+                                    style: TextStyle(
+                                        color: AppStyles.getTextColor(ctx))),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: CupertinoButton(
+                                color: CupertinoColors.systemIndigo,
+                                onPressed: accounts.isEmpty
+                                    ? null
+                                    : () async {
+                                        final amt = double.tryParse(
+                                            amountCtrl.text.trim());
+                                        if (amt == null || amt <= 0) {
+                                          toast.showError(
+                                              'Enter a valid amount');
+                                          return;
+                                        }
+                                        if (amt > balance) {
+                                          toast.showError(
+                                              'Amount exceeds wallet balance');
+                                          return;
+                                        }
+                                        final dest = selectedAccount ??
+                                            (accounts.isNotEmpty
+                                                ? accounts.first
+                                                : null);
+                                        if (dest == null) {
+                                          toast.showError(
+                                              'Select a destination account');
+                                          return;
+                                        }
+
+                                        // 1. Deduct from wallet
+                                        await appsController.setWalletBalance(
+                                          app['id'] as String,
+                                          balance - amt,
+                                        );
+
+                                        // 2. Credit destination account
+                                        final accountsController =
+                                            context.read<AccountsController>();
+                                        final updated = dest.copyWith(
+                                            balance: dest.balance + amt);
+                                        await accountsController
+                                            .updateAccount(updated);
+
+                                        // 3. Record transaction
+                                        final txCtrl =
+                                            context
+                                                .read<TransactionsController>();
+                                        final note = notesCtrl.text.trim();
+                                        await txCtrl.addTransaction(
+                                          Transaction(
+                                            id: IdGenerator.next(),
+                                            type: TransactionType.transfer,
+                                            description: note.isNotEmpty
+                                                ? note
+                                                : 'Wallet transfer from ${app['name']}',
+                                            dateTime: DateTime.now(),
+                                            amount: amt,
+                                            sourceAccountName:
+                                                '${app['name']} Wallet',
+                                            destinationAccountId: dest.id,
+                                            destinationAccountName: dest.name,
+                                            paymentAppName:
+                                                app['name'] as String,
+                                            appWalletAmount: amt,
+                                          ),
+                                        );
+
+                                        if (ctx.mounted) Navigator.pop(ctx);
+                                        toast.showSuccess(
+                                            '₹${amt.toStringAsFixed(0)} transferred to ${dest.name}');
+                                      },
+                                child: const Text('Transfer',
+                                    style: TextStyle(color: Colors.white)),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        });
+      },
+    ).whenComplete(() {
+      amountCtrl.dispose();
+      notesCtrl.dispose();
+    });
   }
 
   @override
@@ -578,31 +995,73 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                 ],
               ),
             ),
-            BouncyButton(
-              onPressed: () =>
-                  _showSetWalletBalanceModal(context, ctrl, app),
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                      color: color.withValues(alpha: 0.35), width: 1),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Transfer button
+                if (balance > 0)
+                  BouncyButton(
+                    onPressed: () =>
+                        _showWalletTransferSheet(context, ctrl, app),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: CupertinoColors.systemIndigo
+                            .withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                            color: CupertinoColors.systemIndigo
+                                .withValues(alpha: 0.3),
+                            width: 1),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                              CupertinoIcons
+                                  .arrow_right_arrow_left_circle_fill,
+                              size: 14,
+                              color: CupertinoColors.systemIndigo),
+                          SizedBox(width: 4),
+                          Text('Transfer',
+                              style: TextStyle(
+                                  color: CupertinoColors.systemIndigo,
+                                  fontSize: TypeScale.footnote,
+                                  fontWeight: FontWeight.w600)),
+                        ],
+                      ),
+                    ),
+                  ),
+                if (balance > 0) const SizedBox(width: 8),
+                // Edit button
+                BouncyButton(
+                  onPressed: () =>
+                      _showSetWalletBalanceModal(context, ctrl, app),
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                          color: color.withValues(alpha: 0.35), width: 1),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(CupertinoIcons.pencil, size: 14, color: color),
+                        const SizedBox(width: 4),
+                        Text('Edit',
+                            style: TextStyle(
+                                color: color,
+                                fontSize: TypeScale.footnote,
+                                fontWeight: FontWeight.w600)),
+                      ],
+                    ),
+                  ),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(CupertinoIcons.pencil, size: 14, color: color),
-                    const SizedBox(width: 4),
-                    Text('Edit',
-                        style: TextStyle(
-                            color: color,
-                            fontSize: TypeScale.footnote,
-                            fontWeight: FontWeight.w600)),
-                  ],
-                ),
-              ),
+              ],
             ),
           ],
         ),
@@ -1091,6 +1550,50 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                                   ],
                                 ),
                               ),
+                              // Transfer to Account button
+                              if (balance > 0) ...[
+                                const SizedBox(height: 8),
+                                BouncyButton(
+                                  onPressed: () {
+                                    Navigator.pop(sheetContext);
+                                    _showWalletTransferSheet(
+                                        context, appsController, app);
+                                  },
+                                  child: Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 12),
+                                    decoration: BoxDecoration(
+                                      color: CupertinoColors.systemIndigo
+                                          .withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                          color: CupertinoColors.systemIndigo
+                                              .withValues(alpha: 0.35)),
+                                    ),
+                                    child: const Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                            CupertinoIcons
+                                                .arrow_right_arrow_left_circle_fill,
+                                            size: 15,
+                                            color:
+                                                CupertinoColors.systemIndigo),
+                                        SizedBox(width: 8),
+                                        Text('Transfer to Account',
+                                            style: TextStyle(
+                                              color:
+                                                  CupertinoColors.systemIndigo,
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: TypeScale.footnote,
+                                            )),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
                               const SizedBox(height: 16),
                             ],
 

@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/insurance_controller.dart';
 import 'package:vittara_fin_os/logic/insurance_model.dart';
+import 'package:vittara_fin_os/ui/manage/insurance/insurance_details_sheet.dart';
+import 'package:vittara_fin_os/ui/manage/insurance/insurance_mandate_sheet.dart';
 import 'package:vittara_fin_os/ui/manage/insurance/insurance_wizard.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
@@ -11,6 +13,7 @@ import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
+import 'package:vittara_fin_os/logic/insurance_rider_model.dart';
 import 'package:vittara_fin_os/ui/widgets/animated_counter.dart' as counter_widgets;
 
 class InsuranceScreen extends StatefulWidget {
@@ -74,7 +77,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                               child: _PolicyCard(
                                 policy: active[index],
                                 onTap: () =>
-                                    _openEditPolicy(context, active[index]),
+                                    showInsuranceDetailsSheet(context, active[index]),
                                 onDelete: () => _confirmDelete(
                                     context, controller, active[index]),
                               ),
@@ -498,9 +501,23 @@ class _PolicyCard extends StatelessWidget {
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.of(ctx).pop();
+              showInsuranceDetailsSheet(context, policy);
+            },
+            child: const Text('View Full Details'),
+          ),
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.of(ctx).pop();
               onTap();
             },
             child: const Text('Edit Policy'),
+          ),
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              showInsuranceMandateSheet(context, policy);
+            },
+            child: const Text('Set Up Auto-Pay'),
           ),
           CupertinoActionSheetAction(
             isDestructiveAction: true,
@@ -675,6 +692,41 @@ class _PolicyCard extends StatelessWidget {
                         AppStyles.getSecondaryTextColor(context)
                             .withValues(alpha: 0.7),
                   ),
+                ),
+              ],
+              if (policy.mandateEnabled) ...[
+                const SizedBox(height: Spacing.xs),
+                Row(
+                  children: [
+                    Icon(CupertinoIcons.arrow_right_arrow_left_circle_fill,
+                        size: 12, color: AppStyles.teal(context)),
+                    const SizedBox(width: 4),
+                    Text(
+                      policy.mandateNextDueDate != null
+                          ? 'Auto-pay: ${DateFormatter.format(policy.mandateNextDueDate!)}'
+                          : 'Auto-pay active',
+                      style: TextStyle(fontSize: 11, color: AppStyles.teal(context)),
+                    ),
+                  ],
+                ),
+              ],
+              if (policy.riders.isNotEmpty) ...[
+                const SizedBox(height: Spacing.xs),
+                Row(
+                  children: [
+                    Icon(CupertinoIcons.shield_lefthalf_fill,
+                        size: 12, color: AppStyles.accentBlue),
+                    const SizedBox(width: 4),
+                    Text(
+                      () {
+                        final activeRiders = policy.riders.where((r) => r.isActive).toList();
+                        final count = activeRiders.length;
+                        final label = count == 1 ? 'rider' : 'riders';
+                        return '$count $label · +${CurrencyFormatter.compact(policy.totalRiderPremium)}/yr';
+                      }(),
+                      style: TextStyle(fontSize: 11, color: AppStyles.accentBlue),
+                    ),
+                  ],
                 ),
               ],
             ],

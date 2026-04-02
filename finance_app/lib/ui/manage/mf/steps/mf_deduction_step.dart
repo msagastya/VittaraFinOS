@@ -31,13 +31,23 @@ class _MFDeductionStepState extends State<MFDeductionStep> {
   void _updateController(bool value) {
     final controller = Provider.of<MFWizardController>(context, listen: false);
     final charges = double.tryParse(_chargesController.text) ?? 0;
-    controller.updateNewMFDetails(
-      amount: controller.investmentAmount,
-      date: controller.investmentDate,
-      deduct: value,
-      deductAccount: value ? controller.deductionAccount : null,
-      fetchedNav: controller.fetchedNAV,
-    );
+
+    // Update deduction settings based on MF type
+    if (controller.selectedMFType == MFType.newMF) {
+      controller.updateNewMFDetails(
+        amount: controller.investmentAmount,
+        date: controller.investmentDate,
+        deduct: value,
+        deductAccount: value ? controller.deductionAccount : null,
+        fetchedNav: controller.fetchedNAV,
+      );
+    } else {
+      // For existing MF, use generic deduction update
+      controller.updateDeduction(
+        deduct: value,
+        deductAccount: value ? controller.deductionAccount : null,
+      );
+    }
     controller.updateCharges(charges);
   }
 

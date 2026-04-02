@@ -837,6 +837,7 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
     final nav = _extractNav(metadata);
     final units = (metadata['units'] as num?)?.toDouble();
     final account = _resolveLinkedAccount(context, metadata);
+    final sipActive = metadata['sipActive'] == true;
 
     final intent = MFWizardIntent(
       mode: mode,
@@ -848,6 +849,7 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
       account: account,
       transactionUnits: mode == MFWizardMode.sell ? units : null,
       initialStep: 3,
+      sipActive: sipActive,
     );
 
     await Navigator.of(context).push(

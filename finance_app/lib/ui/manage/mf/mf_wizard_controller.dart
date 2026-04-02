@@ -17,6 +17,7 @@ class MFWizardIntent {
   final DateTime transactionDate;
   final double? transactionUnits;
   final int initialStep;
+  final bool sipActive;
 
   const MFWizardIntent({
     required this.mode,
@@ -28,6 +29,7 @@ class MFWizardIntent {
     this.account,
     this.transactionUnits,
     this.initialStep = 3,
+    this.sipActive = false,
   });
 }
 
@@ -151,6 +153,7 @@ class MFWizardController extends ChangeNotifier {
         (intent.transactionNav > 0
             ? intent.transactionAmount / intent.transactionNav
             : 0);
+    sipActive = intent.sipActive;
     if (intent.mode == MFWizardMode.sip) {
       sipActive = true;
     }
@@ -185,6 +188,15 @@ class MFWizardController extends ChangeNotifier {
   void setSIPData(Map<String, dynamic>? data) {
     sipData = data;
     sipActive = data != null;
+    notifyListeners();
+  }
+
+  void updateDeduction({
+    required bool deduct,
+    Account? deductAccount,
+  }) {
+    deductFromAccount = deduct;
+    deductionAccount = deduct ? deductAccount : null;
     notifyListeners();
   }
 

@@ -74,4 +74,28 @@ class InsuranceController with ChangeNotifier {
       return null;
     }
   }
+
+  List<InsurancePolicy> get policiesWithActiveMandate =>
+      activePolicies
+          .where((p) => p.mandateEnabled && p.mandateNextDueDate != null)
+          .toList();
+
+  Future<void> advanceMandateDate(String policyId) async {
+    final policy = getPolicyById(policyId);
+    if (policy == null || policy.mandateNextDueDate == null) return;
+    final cur = policy.mandateNextDueDate!;
+    final DateTime next;
+    switch (policy.premiumFrequency) {
+      case 'monthly':
+        next = DateTime(cur.year, cur.month + 1, cur.day);
+        break;
+      case 'quarterly':
+        next = DateTime(cur.year, cur.month + 3, cur.day);
+        break;
+      case 'annual':
+      default:
+        next = DateTime(cur.year + 1, cur.month, cur.day);
+    }
+    await updatePolicy(policy.copyWith(mandateNextDueDate: next));
+  }
 }
