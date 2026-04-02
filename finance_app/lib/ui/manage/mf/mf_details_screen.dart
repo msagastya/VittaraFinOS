@@ -55,7 +55,13 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
   }
 
   Future<void> _refreshNAV() async {
-    final metadata = investment.metadata ?? {};
+    // Always read LATEST investment from controller before refreshing
+    // This ensures edits aren't lost if save was still pending
+    final investmentsController = Provider.of<InvestmentsController>(context, listen: false);
+    final latestInvestment = investmentsController.investments
+        .firstWhere((i) => i.id == investment.id, orElse: () => investment);
+
+    final metadata = latestInvestment.metadata ?? {};
     final schemeCode = metadata['schemeCode'] as String?;
     if (schemeCode == null) {
       toast.showError('Scheme code not found');
@@ -76,9 +82,8 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
         ..['currentValue'] = navData.nav * units
         ..['navDate'] = navData.date.toIso8601String();
       final updatedInvestment =
-          investment.copyWith(metadata: updatedMeta);
-      await Provider.of<InvestmentsController>(context, listen: false)
-          .updateInvestment(updatedInvestment);
+          latestInvestment.copyWith(metadata: updatedMeta);
+      await investmentsController.updateInvestment(updatedInvestment);
       toast.showSuccess('NAV updated: ₹${navData.nav.toStringAsFixed(4)}');
     } catch (e) {
       if (mounted) toast.showError('Failed to refresh NAV');
