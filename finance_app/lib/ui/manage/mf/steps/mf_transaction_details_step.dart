@@ -17,7 +17,6 @@ class MFTransactionDetailsStep extends StatefulWidget {
 class _MFTransactionDetailsStepState extends State<MFTransactionDetailsStep> {
   late TextEditingController _amountController;
   late TextEditingController _navController;
-  late TextEditingController _chargesController;
 
   @override
   void initState() {
@@ -33,23 +32,16 @@ class _MFTransactionDetailsStepState extends State<MFTransactionDetailsStep> {
           ? controller.averageNAV.toStringAsFixed(2)
           : '',
     );
-    _chargesController = TextEditingController(
-      text: controller.extraCharges > 0
-          ? controller.extraCharges.toString()
-          : '',
-    );
   }
 
   void _updateController() {
     final controller = Provider.of<MFWizardController>(context, listen: false);
     final amount = double.tryParse(_amountController.text) ?? 0;
     final nav = double.tryParse(_navController.text) ?? 0;
-    final charges = double.tryParse(_chargesController.text) ?? 0;
     controller.updateExistingMFDetails(
       amount: amount,
       nav: nav,
     );
-    controller.updateCharges(charges);
   }
 
   Future<void> _showDatePicker() async {
@@ -69,7 +61,6 @@ class _MFTransactionDetailsStepState extends State<MFTransactionDetailsStep> {
   void dispose() {
     _amountController.dispose();
     _navController.dispose();
-    _chargesController.dispose();
     super.dispose();
   }
 
@@ -149,44 +140,6 @@ class _MFTransactionDetailsStepState extends State<MFTransactionDetailsStep> {
             style: TextStyle(color: AppStyles.getTextColor(context)),
             onChanged: (_) => _updateController(),
           ),
-          const SizedBox(height: Spacing.xl),
-          // Transaction Charges
-          Text(
-            'Transaction Charges (optional)',
-            style: TextStyle(
-              color: AppStyles.getTextColor(context),
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: Spacing.sm),
-          CupertinoTextField(
-            controller: _chargesController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            placeholder: '0.00',
-            padding: const EdgeInsets.all(Spacing.lg),
-            decoration: BoxDecoration(
-              color: AppStyles.getCardColor(context),
-              borderRadius: BorderRadius.circular(Radii.md),
-            ),
-            prefix: Padding(
-              padding: const EdgeInsets.only(left: 16),
-              child: Text(
-                '₹',
-                style: TextStyle(color: AppStyles.getTextColor(context)),
-              ),
-            ),
-            style: TextStyle(color: AppStyles.getTextColor(context)),
-            onChanged: (_) => _updateController(),
-          ),
-          const SizedBox(height: Spacing.sm),
-          if (controller.extraCharges > 0)
-            Text(
-              'Net Invested: ₹${controller.netInvestmentAmount.toStringAsFixed(2)}',
-              style: TextStyle(
-                color: AppStyles.getSecondaryTextColor(context),
-                fontSize: 12,
-              ),
-            ),
           const SizedBox(height: Spacing.xl),
           // Date of Purchase
           Text(

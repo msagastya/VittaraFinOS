@@ -11,6 +11,7 @@ import 'package:vittara_fin_os/ui/manage/mf/steps/mf_type_selection_step.dart';
 import 'package:vittara_fin_os/ui/manage/mf/steps/mf_account_selection_step.dart';
 import 'package:vittara_fin_os/ui/manage/mf/steps/mf_transaction_details_step.dart';
 import 'package:vittara_fin_os/ui/manage/mf/steps/mf_new_investment_details_step.dart';
+import 'package:vittara_fin_os/ui/manage/mf/steps/mf_deduction_step.dart';
 import 'package:vittara_fin_os/ui/manage/mf/steps/mf_review_step.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
@@ -233,9 +234,9 @@ class _MFWizardContentState extends State<_MFWizardContent> {
 
     // Determine progress steps based on MF type
     int totalSteps =
-        5; // Default for Existing MF (Search, Type, Account, Details, SIP/Review)
+        5; // Default for Existing MF (Search, Type, Account, Details, Review/SIP)
     if (controller.selectedMFType == MFType.newMF) {
-      totalSteps = 6; // New MF has an extra step (different details)
+      totalSteps = 6; // New MF has deduction step (Search, Type, Account, Details, Deduction, Review)
     }
 
     return CupertinoPageScaffold(
@@ -294,13 +295,19 @@ class _MFWizardContentState extends State<_MFWizardContent> {
                   const MFTypeSelectionStep(),
                   // Step 2: Account Selection
                   const MFAccountSelectionStep(),
-                  // Step 3: Investment Details (Dynamic based on type)
+                  // Step 3: Investment Details
                   if (controller.selectedMFType == MFType.existing)
                     const MFTransactionDetailsStep()
                   else
                     const MFNewInvestmentDetailsStep(),
-                  // Step 4: SIP or Review
-                  const MFReviewStep(),
+                  // Step 4: Deduction (New MF) or Review (Existing MF)
+                  if (controller.selectedMFType == MFType.newMF)
+                    const MFDeductionStep()
+                  else
+                    const MFReviewStep(),
+                  // Step 5: Review (New MF only)
+                  if (controller.selectedMFType == MFType.newMF)
+                    const MFReviewStep(),
                 ],
               ),
             ),
@@ -311,19 +318,25 @@ class _MFWizardContentState extends State<_MFWizardContent> {
                 child: CupertinoButton.filled(
                   onPressed: controller.canProceed() && !_isSubmitting
                       ? () async {
-                          // Step 4: SIP Active toggle
-                          if (controller.currentStep == 4 &&
-                              controller.selectedMFType != MFType.newMF) {
-                            // For Existing MF, ask about SIP before review
-                            _showSIPDialog(context);
-                          } else if (controller.currentStep == 4) {
-                            // For New MF (Step 4 is Review), save directly
-                            await _saveOrUpdateInvestment(context, controller);
-                          } else if (controller.currentStep == 5) {
-                            // After SIP, save
-                            await _saveOrUpdateInvestment(context, controller);
+                          final isNewMF = controller.selectedMFType == MFType.newMF;
+                          if (isNewMF) {
+                            // New MF: Step 5 is Review, Step 4 is Deduction
+                            if (controller.currentStep == 5) {
+                              await _saveOrUpdateInvestment(context, controller);
+                            } else {
+                              controller.nextPage();
+                            }
                           } else {
-                            controller.nextPage();
+                            // Existing MF: Step 4 could be Review or SIP
+                            if (controller.currentStep == 3) {
+                              // From Investment Details, ask about SIP
+                              _showSIPDialog(context);
+                            } else if (controller.currentStep == 4) {
+                              // From Review/SIP, save
+                              await _saveOrUpdateInvestment(context, controller);
+                            } else {
+                              controller.nextPage();
+                            }
                           }
                         }
                       : null,
@@ -331,10 +344,11 @@ class _MFWizardContentState extends State<_MFWizardContent> {
                       ? const CupertinoActivityIndicator(
                           color: CupertinoColors.white)
                       : Text(
-                          controller.currentStep >= 4
-                              ? (controller.sipActive
-                                  ? 'Configure SIP'
-                                  : 'Confirm & Save')
+                          (controller.selectedMFType == MFType.newMF &&
+                                  controller.currentStep == 5) ||
+                              (controller.selectedMFType != MFType.newMF &&
+                                  controller.currentStep == 4)
+                              ? 'Confirm & Save'
                               : 'Continue',
                         ),
                 ),

@@ -22,7 +22,6 @@ class MFNewInvestmentDetailsStep extends StatefulWidget {
 class _MFNewInvestmentDetailsStepState
     extends State<MFNewInvestmentDetailsStep> {
   late TextEditingController _amountController;
-  late TextEditingController _chargesController;
   bool _isFetchingNAV = false;
   String _navError = '';
 
@@ -35,17 +34,11 @@ class _MFNewInvestmentDetailsStepState
           ? controller.investmentAmount.toString()
           : '',
     );
-    _chargesController = TextEditingController(
-      text: controller.extraCharges > 0
-          ? controller.extraCharges.toString()
-          : '',
-    );
   }
 
   void _updateAmount() {
     final controller = Provider.of<MFWizardController>(context, listen: false);
     final amount = double.tryParse(_amountController.text) ?? 0;
-    final charges = double.tryParse(_chargesController.text) ?? 0;
     controller.updateNewMFDetails(
       amount: amount,
       date: controller.investmentDate,
@@ -53,7 +46,6 @@ class _MFNewInvestmentDetailsStepState
       deductAccount: controller.deductionAccount,
       fetchedNav: controller.fetchedNAV,
     );
-    controller.updateCharges(charges);
   }
 
   Future<void> _fetchNAVForDate() async {
@@ -115,7 +107,6 @@ class _MFNewInvestmentDetailsStepState
   @override
   void dispose() {
     _amountController.dispose();
-    _chargesController.dispose();
     super.dispose();
   }
 
@@ -168,45 +159,6 @@ class _MFNewInvestmentDetailsStepState
             style: TextStyle(color: AppStyles.getTextColor(context)),
             onChanged: (_) => _updateAmount(),
           ),
-          const SizedBox(height: Spacing.xl),
-
-          // Transaction Charges
-          Text(
-            'Transaction Charges (optional)',
-            style: TextStyle(
-              color: AppStyles.getTextColor(context),
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: Spacing.sm),
-          CupertinoTextField(
-            controller: _chargesController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            placeholder: '0.00',
-            padding: const EdgeInsets.all(Spacing.lg),
-            decoration: BoxDecoration(
-              color: AppStyles.getCardColor(context),
-              borderRadius: BorderRadius.circular(Radii.md),
-            ),
-            prefix: Padding(
-              padding: const EdgeInsets.only(left: 16),
-              child: Text(
-                '₹',
-                style: TextStyle(color: AppStyles.getTextColor(context)),
-              ),
-            ),
-            style: TextStyle(color: AppStyles.getTextColor(context)),
-            onChanged: (_) => _updateAmount(),
-          ),
-          const SizedBox(height: Spacing.sm),
-          if (mfController.extraCharges > 0)
-            Text(
-              'Net Invested: ₹${mfController.netInvestmentAmount.toStringAsFixed(2)}',
-              style: TextStyle(
-                color: AppStyles.getSecondaryTextColor(context),
-                fontSize: 12,
-              ),
-            ),
           const SizedBox(height: Spacing.xl),
 
           // Date of Investment
@@ -293,203 +245,6 @@ class _MFNewInvestmentDetailsStepState
             ),
           ],
 
-          const SizedBox(height: 30),
-
-          // Deduct from Bank Account Toggle
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Deduct from Bank Account?',
-                style: TextStyle(
-                  color: AppStyles.getTextColor(context),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              CupertinoSwitch(
-                value: mfController.deductFromAccount,
-                onChanged: (value) {
-                  mfController.updateNewMFDetails(
-                    amount: mfController.investmentAmount,
-                    date: mfController.investmentDate,
-                    deduct: value,
-                    deductAccount: value ? mfController.deductionAccount : null,
-                    fetchedNav: mfController.fetchedNAV,
-                  );
-                },
-              ),
-            ],
-          ),
-
-          if (mfController.deductFromAccount) ...[
-            const SizedBox(height: Spacing.xl),
-            Text(
-              'Select Bank Account',
-              style: TextStyle(
-                color: AppStyles.getTextColor(context),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: Spacing.md),
-            Consumer<AccountsController>(
-              builder: (context, accountsController, child) {
-                final bankAccounts = accountsController.accounts
-                    .where((acc) =>
-                        acc.type == AccountType.savings ||
-                        acc.type == AccountType.current)
-                    .toList();
-
-                return Column(
-                  children: [
-                    if (bankAccounts.isEmpty)
-                      Container(
-                        padding: const EdgeInsets.all(Spacing.lg),
-                        decoration: BoxDecoration(
-                          color: CupertinoColors.systemOrange
-                              .withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(Radii.md),
-                        ),
-                        child: Text(
-                          'No bank accounts found',
-                          style: TextStyle(
-                            color: AppStyles.getSecondaryTextColor(context),
-                            fontSize: TypeScale.footnote,
-                          ),
-                        ),
-                      )
-                    else
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: bankAccounts.length,
-                        itemBuilder: (context, index) {
-                          final account = bankAccounts[index];
-                          final isSelected =
-                              mfController.deductionAccount?.id == account.id;
-
-                          return GestureDetector(
-                            onTap: () {
-                              mfController.updateNewMFDetails(
-                                amount: mfController.investmentAmount,
-                                date: mfController.investmentDate,
-                                deduct: true,
-                                deductAccount: account,
-                                fetchedNav: mfController.fetchedNAV,
-                              );
-                            },
-                            child: Container(
-                              margin: const EdgeInsets.only(bottom: 8),
-                              padding: const EdgeInsets.all(Spacing.md),
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? SemanticColors.investments
-                                        .withValues(alpha: 0.1)
-                                    : AppStyles.getCardColor(context),
-                                border: isSelected
-                                    ? Border.all(
-                                        color: SemanticColors.investments,
-                                      )
-                                    : null,
-                                borderRadius: BorderRadius.circular(Radii.md),
-                              ),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(Spacing.sm),
-                                    decoration: BoxDecoration(
-                                      color:
-                                          account.color.withValues(alpha: 0.2),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      CupertinoIcons.money_dollar_circle,
-                                      color: account.color,
-                                      size: 20,
-                                    ),
-                                  ),
-                                  const SizedBox(width: Spacing.md),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          account.name,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: TypeScale.body,
-                                          ),
-                                        ),
-                                        Text(
-                                          '₹${account.balance.toStringAsFixed(2)}',
-                                          style: TextStyle(
-                                            color:
-                                                AppStyles.getSecondaryTextColor(
-                                                    context),
-                                            fontSize: TypeScale.footnote,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  if (isSelected)
-                                    const Icon(
-                                      CupertinoIcons.check_mark_circled_solid,
-                                      color: SemanticColors.investments,
-                                    ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    const SizedBox(height: Spacing.md),
-                    CupertinoButton(
-                      color: isDark ? Colors.grey[800] : Colors.grey[200],
-                      onPressed: () {
-                        final accountsController =
-                            Provider.of<AccountsController>(context,
-                                listen: false);
-                        Navigator.push<Account>(
-                          context,
-                          FadeScalePageRoute(
-                            page: const AccountWizard(isInvestment: false),
-                          ),
-                        ).then((result) {
-                          if (result != null) {
-                            accountsController.addAccount(result);
-                            mfController.updateNewMFDetails(
-                              amount: mfController.investmentAmount,
-                              date: mfController.investmentDate,
-                              deduct: true,
-                              deductAccount: result,
-                              fetchedNav: mfController.fetchedNAV,
-                            );
-                          }
-                        });
-                      },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            CupertinoIcons.add,
-                            color: AppStyles.getTextColor(context),
-                          ),
-                          const SizedBox(width: Spacing.sm),
-                          Text(
-                            'Add Bank Account',
-                            style: TextStyle(
-                              color: AppStyles.getTextColor(context),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ],
 
           const SizedBox(height: 30),
 
