@@ -475,7 +475,7 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
                 physics: const NeverScrollableScrollPhysics(),
                 mainAxisSpacing: Spacing.lg,
                 crossAxisSpacing: Spacing.lg,
-                childAspectRatio: 1.1,
+                childAspectRatio: 1.3,
                 children: [
                   _buildActionButton(
                     context,
@@ -1137,7 +1137,7 @@ class _EditMFModalState extends State<_EditMFModal> {
     super.dispose();
   }
 
-  void _saveChanges() {
+  Future<void> _saveChanges() async {
     final investmentAmount =
         double.tryParse(_amountController.text) ?? widget.investment.amount;
     final investmentNav = double.tryParse(_navController.text) ??
@@ -1157,10 +1157,17 @@ class _EditMFModalState extends State<_EditMFModal> {
     final updatedInvestment = widget.investment
         .copyWith(amount: investmentAmount, metadata: metadata);
 
-    Provider.of<InvestmentsController>(context, listen: false)
-        .updateInvestment(updatedInvestment);
-    toast.showSuccess('Mutual fund updated');
-    Navigator.of(context).pop();
+    try {
+      await Provider.of<InvestmentsController>(context, listen: false)
+          .updateInvestment(updatedInvestment);
+      if (!mounted) return;
+      toast.showSuccess('Mutual fund updated');
+      Navigator.of(context).pop();
+    } catch (e) {
+      if (mounted) {
+        toast.showError('Failed to save changes: $e');
+      }
+    }
   }
 
   @override
