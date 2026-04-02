@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
+import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/ui/manage/mf/mf_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/manage/mf/sip_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/mf/steps/mf_search_step.dart';
@@ -47,21 +48,15 @@ class _MFWizardContentState extends State<_MFWizardContent> {
     setState(() => _isSubmitting = true);
     final investmentsController =
         Provider.of<InvestmentsController>(context, listen: false);
+    final accountsController =
+        Provider.of<AccountsController>(context, listen: false);
 
     try {
-      // Calculate units based on path
-      double units = 0;
-      double nav = 0;
-
-      if (controller.selectedMFType == MFType.existing) {
-        units = controller.averageNAV > 0
-            ? controller.investmentAmount / controller.averageNAV
-            : 0;
-        nav = controller.averageNAV;
-      } else {
-        units = controller.calculatedUnits;
-        nav = controller.fetchedNAV ?? 0;
-      }
+      // Use controller's calculatedUnits (already accounts for charges)
+      final units = controller.calculatedUnits;
+      final nav = controller.selectedMFType == MFType.existing
+          ? controller.averageNAV
+          : controller.fetchedNAV ?? 0;
 
       // Create Investment with MF metadata
       final investment = Investment(
@@ -89,12 +84,25 @@ class _MFWizardContentState extends State<_MFWizardContent> {
           'deductionAccountId': controller.deductFromAccount
               ? controller.deductionAccount?.id
               : null,
+          'extraCharges': controller.extraCharges,
+          'netInvestmentAmount': controller.netInvestmentAmount,
           'sipActive': controller.sipActive,
           'sipData': controller.sipData,
         },
       );
 
       await investmentsController.addInvestment(investment);
+
+      // Deduct full amount from bank account if toggle is enabled
+      if (controller.deductFromAccount &&
+          controller.deductionAccount != null &&
+          controller.selectedMFType == MFType.newMF) {
+        final accountToDeduct = controller.deductionAccount!;
+        final updatedAccount = accountToDeduct.copyWith(
+          balance: accountToDeduct.balance - controller.investmentAmount,
+        );
+        accountsController.updateAccount(updatedAccount);
+      }
 
       if (context.mounted) {
         Haptics.success();
@@ -128,6 +136,8 @@ class _MFWizardContentState extends State<_MFWizardContent> {
   ) async {
     final investmentsController =
         Provider.of<InvestmentsController>(context, listen: false);
+    final accountsController =
+        Provider.of<AccountsController>(context, listen: false);
 
     final target = controller.targetInvestment!;
     final metadata = Map<String, dynamic>.from(target.metadata ?? {});
@@ -136,10 +146,7 @@ class _MFWizardContentState extends State<_MFWizardContent> {
         (metadata['investmentAmount'] as num?)?.toDouble() ?? target.amount;
 
     final transactionAmount = controller.investmentAmount;
-    final transactionUnits = controller.selectedMFType == MFType.existing &&
-            controller.averageNAV > 0
-        ? transactionAmount / controller.averageNAV
-        : controller.calculatedUnits;
+    final transactionUnits = controller.calculatedUnits;
 
     final sign = controller.mode == MFWizardMode.sell ? -1 : 1;
     final unitsDelta = sign * transactionUnits;
@@ -158,6 +165,8 @@ class _MFWizardContentState extends State<_MFWizardContent> {
     metadata['investmentNAV'] = avgNav;
     metadata['currentNAV'] = currentMarketNav;
     metadata['currentValue'] = currentMarketNav * freshUnits;
+    metadata['extraCharges'] = controller.extraCharges;
+    metadata['netInvestmentAmount'] = controller.netInvestmentAmount;
     if (controller.mode == MFWizardMode.sip) {
       metadata['sipActive'] = true;
     }
@@ -176,6 +185,18 @@ class _MFWizardContentState extends State<_MFWizardContent> {
         final updatedInvestment =
             target.copyWith(amount: freshAmount, metadata: metadata);
         await investmentsController.updateInvestment(updatedInvestment);
+
+        // Deduct amount from bank account for buyMore transactions
+        if (controller.mode == MFWizardMode.buyMore &&
+            controller.deductFromAccount &&
+            controller.deductionAccount != null) {
+          final accountToDeduct = controller.deductionAccount!;
+          final updatedAccount = accountToDeduct.copyWith(
+            balance: accountToDeduct.balance - controller.investmentAmount,
+          );
+          accountsController.updateAccount(updatedAccount);
+        }
+
         if (context.mounted) {
           Haptics.success();
           toast.showSuccess('Mutual Fund investment updated!');

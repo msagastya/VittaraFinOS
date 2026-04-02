@@ -22,6 +22,7 @@ class MFNewInvestmentDetailsStep extends StatefulWidget {
 class _MFNewInvestmentDetailsStepState
     extends State<MFNewInvestmentDetailsStep> {
   late TextEditingController _amountController;
+  late TextEditingController _chargesController;
   bool _isFetchingNAV = false;
   String _navError = '';
 
@@ -34,11 +35,17 @@ class _MFNewInvestmentDetailsStepState
           ? controller.investmentAmount.toString()
           : '',
     );
+    _chargesController = TextEditingController(
+      text: controller.extraCharges > 0
+          ? controller.extraCharges.toString()
+          : '',
+    );
   }
 
   void _updateAmount() {
     final controller = Provider.of<MFWizardController>(context, listen: false);
     final amount = double.tryParse(_amountController.text) ?? 0;
+    final charges = double.tryParse(_chargesController.text) ?? 0;
     controller.updateNewMFDetails(
       amount: amount,
       date: controller.investmentDate,
@@ -46,6 +53,7 @@ class _MFNewInvestmentDetailsStepState
       deductAccount: controller.deductionAccount,
       fetchedNav: controller.fetchedNAV,
     );
+    controller.updateCharges(charges);
   }
 
   Future<void> _fetchNAVForDate() async {
@@ -107,6 +115,7 @@ class _MFNewInvestmentDetailsStepState
   @override
   void dispose() {
     _amountController.dispose();
+    _chargesController.dispose();
     super.dispose();
   }
 
@@ -159,6 +168,45 @@ class _MFNewInvestmentDetailsStepState
             style: TextStyle(color: AppStyles.getTextColor(context)),
             onChanged: (_) => _updateAmount(),
           ),
+          const SizedBox(height: Spacing.xl),
+
+          // Transaction Charges
+          Text(
+            'Transaction Charges (optional)',
+            style: TextStyle(
+              color: AppStyles.getTextColor(context),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: Spacing.sm),
+          CupertinoTextField(
+            controller: _chargesController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            placeholder: '0.00',
+            padding: const EdgeInsets.all(Spacing.lg),
+            decoration: BoxDecoration(
+              color: AppStyles.getCardColor(context),
+              borderRadius: BorderRadius.circular(Radii.md),
+            ),
+            prefix: Padding(
+              padding: const EdgeInsets.only(left: 16),
+              child: Text(
+                '₹',
+                style: TextStyle(color: AppStyles.getTextColor(context)),
+              ),
+            ),
+            style: TextStyle(color: AppStyles.getTextColor(context)),
+            onChanged: (_) => _updateAmount(),
+          ),
+          const SizedBox(height: Spacing.sm),
+          if (mfController.extraCharges > 0)
+            Text(
+              'Net Invested: ₹${mfController.netInvestmentAmount.toStringAsFixed(2)}',
+              style: TextStyle(
+                color: AppStyles.getSecondaryTextColor(context),
+                fontSize: 12,
+              ),
+            ),
           const SizedBox(height: Spacing.xl),
 
           // Date of Investment

@@ -60,6 +60,7 @@ class MFWizardController extends ChangeNotifier {
   // Step 4: Investment Details
   // Common
   double investmentAmount = 0;
+  double extraCharges = 0; // Transaction charges/fees deducted from invested amount
   DateTime investmentDate = DateTime.now();
   Account? deductionAccount; // For New MF only
   bool deductFromAccount = false; // For New MF only
@@ -85,12 +86,14 @@ class MFWizardController extends ChangeNotifier {
     }
   }
 
+  double get netInvestmentAmount => (investmentAmount - extraCharges).clamp(0, double.infinity);
+
   double get calculatedUnits {
     if (selectedMFType == MFType.existing) {
-      return averageNAV > 0 ? investmentAmount / averageNAV : 0;
+      return averageNAV > 0 ? netInvestmentAmount / averageNAV : 0;
     } else {
       return fetchedNAV != null && fetchedNAV! > 0
-          ? investmentAmount / fetchedNAV!
+          ? netInvestmentAmount / fetchedNAV!
           : 0;
     }
   }
@@ -119,6 +122,11 @@ class MFWizardController extends ChangeNotifier {
     investmentAmount = amount;
     averageNAV = nav;
     if (date != null) investmentDate = date;
+    notifyListeners();
+  }
+
+  void updateCharges(double charges) {
+    extraCharges = charges.clamp(0, double.infinity);
     notifyListeners();
   }
 

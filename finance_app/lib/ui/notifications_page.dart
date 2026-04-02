@@ -2080,6 +2080,7 @@ class _SipExecutionModalState extends State<_SipExecutionModal> {
   late DateTime _executionDate;
   late TextEditingController _amountController;
   late TextEditingController _auxController;
+  late TextEditingController _chargesController;
   late TextEditingController _dateController;
   Account? _selectedAccount;
 
@@ -2101,6 +2102,9 @@ class _SipExecutionModalState extends State<_SipExecutionModal> {
     _auxController = TextEditingController(
       text: aux > 0 ? aux.toStringAsFixed(_isStock ? 4 : 2) : '',
     );
+    _chargesController = TextEditingController(
+      text: '',
+    );
     _dateController = TextEditingController(text: _formatDate(_executionDate));
 
     final accountsController =
@@ -2119,6 +2123,7 @@ class _SipExecutionModalState extends State<_SipExecutionModal> {
   void dispose() {
     _amountController.dispose();
     _auxController.dispose();
+    _chargesController.dispose();
     _dateController.dispose();
     super.dispose();
   }
@@ -2321,6 +2326,9 @@ class _SipExecutionModalState extends State<_SipExecutionModal> {
     }
 
     final auxValue = double.tryParse(_auxController.text.trim()) ?? 0;
+    final charges = !_isStock ? (double.tryParse(_chargesController.text.trim()) ?? 0) : 0;
+    final netAmount = amount - charges;
+
     if (_isStock) {
       var qtyDelta = auxValue;
       if (qtyDelta <= 0) {
@@ -2347,11 +2355,14 @@ class _SipExecutionModalState extends State<_SipExecutionModal> {
         return;
       }
       final currentUnits = _asDouble(metadata['units']) ?? 0;
-      metadata['units'] = currentUnits + (amount / nav);
+      metadata['units'] = currentUnits + (netAmount > 0 ? netAmount / nav : 0);
       metadata['investmentNAV'] = nav;
       final currentInvestmentAmount =
           _asDouble(metadata['investmentAmount']) ?? widget.investment.amount;
-      metadata['investmentAmount'] = currentInvestmentAmount + amount;
+      metadata['investmentAmount'] = currentInvestmentAmount + netAmount;
+      if (charges > 0) {
+        metadata['lastSipCharges'] = charges;
+      }
     }
 
     final updatedMetadata =
@@ -2365,11 +2376,15 @@ class _SipExecutionModalState extends State<_SipExecutionModal> {
       updatedInvestment,
       trackDelta: false,
     );
+    final description = !_isStock && charges > 0
+        ? 'SIP executed for ${widget.investment.name} (charges: ₹${charges.toStringAsFixed(2)})'
+        : 'SIP executed for ${widget.investment.name}';
+
     await investmentsController.recordInvestmentActivity(
       investmentId: widget.investment.id,
       type: 'sip',
       amount: amount,
-      description: 'SIP executed for ${widget.investment.name}',
+      description: description,
       dateTime: _executionDate,
       accountId: debitAccountId,
       accountName: debitAccountName,
@@ -2445,6 +2460,14 @@ class _SipExecutionModalState extends State<_SipExecutionModal> {
                 controller: _auxController,
               ),
               const SizedBox(height: Spacing.md),
+              if (!_isStock)
+                _buildInputField(
+                  context: context,
+                  label: 'Transaction Charges (optional)',
+                  controller: _chargesController,
+                  prefix: '₹',
+                ),
+              if (!_isStock) const SizedBox(height: Spacing.md),
               GestureDetector(
                 onTap: _showDatePicker,
                 child: _buildPickerTile(

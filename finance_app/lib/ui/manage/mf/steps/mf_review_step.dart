@@ -95,9 +95,21 @@ class MFReviewStep extends StatelessWidget {
             padding: EdgeInsets.symmetric(vertical: 16),
             child: Divider(),
           ),
+          if (controller.extraCharges > 0)
+            _buildRow(
+              context,
+              'Transaction Charges',
+              '₹${controller.extraCharges.toStringAsFixed(2)}',
+            ),
+          if (controller.extraCharges > 0)
+            _buildRow(
+              context,
+              'Net Invested',
+              '₹${controller.netInvestmentAmount.toStringAsFixed(2)}',
+            ),
           _buildRow(
             context,
-            'Total Investment Amount',
+            'Account Deduction',
             '₹${controller.totalAmount.toStringAsFixed(2)}',
             isBold: true,
           ),
