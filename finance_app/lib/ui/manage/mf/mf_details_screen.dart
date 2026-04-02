@@ -596,13 +596,19 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(label,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: TypeScale.subhead,
-                          color: AppStyles.getTextColor(context),
-                        )),
+                    Flexible(
+                      child: Text(label,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 2,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: TypeScale.subhead,
+                            color: AppStyles.getTextColor(context),
+                          )),
+                    ),
+                    const SizedBox(width: Spacing.sm),
                     Text(
                       '${isSell || isDividend ? '+' : '-'}₹${amount.toStringAsFixed(2)}',
                       style: TextStyle(
@@ -630,11 +636,14 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
                       Icon(CupertinoIcons.creditcard_fill,
                           size: 12, color: AppStyles.getSecondaryTextColor(context)),
                       const SizedBox(width: 4),
-                      Text(accountName,
-                          style: TextStyle(
-                            color: AppStyles.getSecondaryTextColor(context),
-                            fontSize: TypeScale.footnote,
-                          )),
+                      Flexible(
+                        child: Text(accountName,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: AppStyles.getSecondaryTextColor(context),
+                              fontSize: TypeScale.footnote,
+                            )),
+                      ),
                     ],
                   ),
                 ],
