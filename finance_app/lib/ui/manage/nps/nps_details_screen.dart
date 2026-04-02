@@ -18,17 +18,25 @@ class NPSDetailsScreen extends StatefulWidget {
 }
 
 class _NPSDetailsScreenState extends State<NPSDetailsScreen> {
+  late Investment _investment;
   late NPSAccount nps;
 
   @override
   void initState() {
     super.initState();
-    final meta = widget.investment.metadata ?? {};
+    _investment = investment;
+    final meta = _investment.metadata ?? {};
     nps = NPSAccount.fromMap(meta['npsData'] as Map<String, dynamic>? ?? {});
   }
 
+  Investment get investment => _investment;
+
   @override
   Widget build(BuildContext context) {
+    // Keep investment in sync with controller for real-time updates
+    _investment = context.watch<InvestmentsController>().investments
+        .firstWhere((i) => i.id == investment.id, orElse: () => _investment);
+
     final investmentsCtrl =
         Provider.of<InvestmentsController>(context, listen: false);
     final isPositive = nps.gainLoss >= 0;
@@ -147,7 +155,7 @@ class _NPSDetailsScreenState extends State<NPSDetailsScreen> {
                             onPressed: () async {
                               Navigator.pop(ctx);
                               await investmentsCtrl
-                                  .deleteInvestment(widget.investment.id);
+                                  .deleteInvestment(investment.id);
                               if (context.mounted) {
                                 toast.showSuccess('NPS account deleted!');
                                 Navigator.pop(context);
@@ -254,10 +262,10 @@ class _NPSDetailsScreenState extends State<NPSDetailsScreen> {
                             updatedMap['notes'] = newNotes;
                             final updatedNps = NPSAccount.fromMap(updatedMap);
                             final updatedMeta = Map<String, dynamic>.from(
-                                widget.investment.metadata ?? {});
+                                investment.metadata ?? {});
                             updatedMeta['npsData'] = updatedNps.toMap();
                             final updatedInvestment =
-                                widget.investment.copyWith(
+                                investment.copyWith(
                               amount: newValue,
                               metadata: updatedMeta,
                             );

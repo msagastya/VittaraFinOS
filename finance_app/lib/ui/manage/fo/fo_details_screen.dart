@@ -18,17 +18,25 @@ class FODetailsScreen extends StatefulWidget {
 }
 
 class _FODetailsScreenState extends State<FODetailsScreen> {
+  late Investment _investment;
   late FuturesOptions fo;
 
   @override
   void initState() {
     super.initState();
-    final meta = widget.investment.metadata ?? {};
+    _investment = _investment;
+    final meta = investment.metadata ?? {};
     fo = FuturesOptions.fromMap(meta['foData'] as Map<String, dynamic>? ?? {});
   }
 
+  Investment get investment => _investment;
+
   @override
   Widget build(BuildContext context) {
+    // Keep investment in sync with controller for real-time updates
+    _investment = context.watch<InvestmentsController>().investments
+        .firstWhere((i) => i.id == investment.id, orElse: () => _investment);
+
     final investmentsCtrl =
         Provider.of<InvestmentsController>(context, listen: false);
     final isPositive = fo.gainLoss >= 0;
@@ -154,7 +162,7 @@ class _FODetailsScreenState extends State<FODetailsScreen> {
                             onPressed: () async {
                               Navigator.pop(ctx);
                               await investmentsCtrl
-                                  .deleteInvestment(widget.investment.id);
+                                  .deleteInvestment(_investment.id);
                               if (context.mounted) {
                                 toast.showSuccess('F&O investment deleted!');
                                 Navigator.pop(context);
@@ -274,10 +282,10 @@ class _FODetailsScreenState extends State<FODetailsScreen> {
                             final updatedFo =
                                 FuturesOptions.fromMap(updatedMap);
                             final updatedMeta = Map<String, dynamic>.from(
-                                widget.investment.metadata ?? {});
+                                _investment.metadata ?? {});
                             updatedMeta['foData'] = updatedFo.toMap();
                             final updatedInvestment =
-                                widget.investment.copyWith(
+                                _investment.copyWith(
                               amount: updatedFo.currentValue,
                               metadata: updatedMeta,
                             );

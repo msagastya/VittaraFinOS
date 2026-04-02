@@ -19,18 +19,26 @@ class CommoditiesDetailsScreen extends StatefulWidget {
 }
 
 class _CommoditiesDetailsScreenState extends State<CommoditiesDetailsScreen> {
+  late Investment _investment;
   late Commodity commodity;
 
   @override
   void initState() {
     super.initState();
-    final meta = widget.investment.metadata ?? {};
+    _investment = widget.investment;
+    final meta = investment.metadata ?? {};
     commodity =
         Commodity.fromMap(meta['commodityData'] as Map<String, dynamic>? ?? {});
   }
 
+  Investment get investment => _investment;
+
   @override
   Widget build(BuildContext context) {
+    // Keep investment in sync with controller for real-time updates
+    _investment = context.watch<InvestmentsController>().investments
+        .firstWhere((i) => i.id == investment.id, orElse: () => _investment);
+
     final investmentsCtrl =
         Provider.of<InvestmentsController>(context, listen: false);
     final isPositive = commodity.gainLoss >= 0;
@@ -146,7 +154,7 @@ class _CommoditiesDetailsScreenState extends State<CommoditiesDetailsScreen> {
                             onPressed: () async {
                               Navigator.pop(ctx);
                               await investmentsCtrl
-                                  .deleteInvestment(widget.investment.id);
+                                  .deleteInvestment(investment.id);
                               if (context.mounted) {
                                 toast.showSuccess(
                                     'Commodity investment deleted!');
@@ -273,11 +281,11 @@ class _CommoditiesDetailsScreenState extends State<CommoditiesDetailsScreen> {
                                   : notesCtrl.text.trim(),
                             );
                             final updatedMeta = Map<String, dynamic>.from(
-                                widget.investment.metadata ?? {});
+                                investment.metadata ?? {});
                             updatedMeta['commodityData'] =
                                 updatedCommodity.toMap();
                             final updatedInvestment =
-                                widget.investment.copyWith(
+                                investment.copyWith(
                               amount: updatedCommodity.currentValue,
                               metadata: updatedMeta,
                             );

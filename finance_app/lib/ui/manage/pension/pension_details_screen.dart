@@ -18,18 +18,26 @@ class PensionDetailsScreen extends StatefulWidget {
 }
 
 class _PensionDetailsScreenState extends State<PensionDetailsScreen> {
+  late Investment _investment;
   late PensionScheme pension;
 
   @override
   void initState() {
     super.initState();
-    final meta = widget.investment.metadata ?? {};
+    _investment = _investment;
+    final meta = investment.metadata ?? {};
     pension = PensionScheme.fromMap(
         meta['pensionData'] as Map<String, dynamic>? ?? {});
   }
 
+  Investment get investment => _investment;
+
   @override
   Widget build(BuildContext context) {
+    // Keep investment in sync with controller for real-time updates
+    _investment = context.watch<InvestmentsController>().investments
+        .firstWhere((i) => i.id == investment.id, orElse: () => _investment);
+
     final investmentsCtrl =
         Provider.of<InvestmentsController>(context, listen: false);
     final isPositive = pension.gainLoss >= 0;
@@ -123,7 +131,7 @@ class _PensionDetailsScreenState extends State<PensionDetailsScreen> {
                             onPressed: () async {
                               Navigator.pop(ctx);
                               await investmentsCtrl
-                                  .deleteInvestment(widget.investment.id);
+                                  .deleteInvestment(_investment.id);
                               if (context.mounted) {
                                 toast.showSuccess('Pension account deleted!');
                                 Navigator.pop(context);
@@ -231,10 +239,10 @@ class _PensionDetailsScreenState extends State<PensionDetailsScreen> {
                             final updatedPension =
                                 PensionScheme.fromMap(updatedMap);
                             final updatedMeta = Map<String, dynamic>.from(
-                                widget.investment.metadata ?? {});
+                                _investment.metadata ?? {});
                             updatedMeta['pensionData'] = updatedPension.toMap();
                             final updatedInvestment =
-                                widget.investment.copyWith(
+                                _investment.copyWith(
                               amount: newValue,
                               metadata: updatedMeta,
                             );

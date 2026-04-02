@@ -41,13 +41,13 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    _investment = widget.investment;
+    _investment = _investment;
     if (widget.autoOpenDividend) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _showDividendModal(context);
       });
     }
-    final schemeCode = widget.investment.metadata?['schemeCode'] as String?;
+    final schemeCode = _investment.metadata?['schemeCode'] as String?;
     if (schemeCode != null) {
       _navHistoryFuture =
           _navService.getHistoricalNAV(schemeCode, lastNDays: 90);
@@ -91,7 +91,7 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
   Widget build(BuildContext context) {
     // Refresh from controller on every rebuild so edits/buy-more reflect immediately
     _investment = context.watch<InvestmentsController>().investments
-        .firstWhere((i) => i.id == widget.investment.id, orElse: () => _investment);
+        .firstWhere((i) => i.id == _investment.id, orElse: () => _investment);
     final investment = _investment;
     final metadata = investment.metadata ?? {};
     final investedAmount =

@@ -22,23 +22,31 @@ class BondsDetailsScreen extends StatefulWidget {
 }
 
 class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
+  late Investment _investment;
   late String? _bondNotes;
 
   @override
   void initState() {
     super.initState();
-    final meta = widget.investment.metadata ?? {};
+    _investment = investment;
+    final meta = _investment.metadata ?? {};
     _bondNotes = meta['notes'] as String?;
   }
 
+  Investment get investment => _investment;
+
   @override
   Widget build(BuildContext context) {
+    // Keep investment in sync with controller for real-time updates
+    _investment = context.watch<InvestmentsController>().investments
+        .firstWhere((i) => i.id == investment.id, orElse: () => _investment);
+
     final investmentsController =
         Provider.of<InvestmentsController>(context, listen: false);
-    final metadata = widget.investment.metadata ?? {};
+    final metadata = investment.metadata ?? {};
 
     // Extract bond data from metadata
-    final bondName = widget.investment.name;
+    final bondName = investment.name;
     final bondType = metadata['bondType'] as String? ?? 'Unknown';
     final faceValue = (metadata['faceValue'] as num?)?.toDouble() ?? 0;
     final purchasePrice = (metadata['purchasePrice'] as num?)?.toDouble() ?? 0;
@@ -433,7 +441,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                             onPressed: () async {
                               Navigator.pop(context);
                               await investmentsController
-                                  .deleteInvestment(widget.investment.id);
+                                  .deleteInvestment(investment.id);
                               if (context.mounted) {
                                 toast.showSuccess(
                                   'Bond investment deleted successfully!',
@@ -523,9 +531,9 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                                 ? null
                                 : notesCtrl.text.trim();
                             final updatedMeta = Map<String, dynamic>.from(
-                                widget.investment.metadata ?? {});
+                                investment.metadata ?? {});
                             updatedMeta['notes'] = newNotes;
-                            final updatedInvestment = widget.investment
+                            final updatedInvestment = investment
                                 .copyWith(metadata: updatedMeta);
                             await investmentsCtrl
                                 .updateInvestment(updatedInvestment);

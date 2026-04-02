@@ -51,7 +51,7 @@ class _SimpleInvestmentDetailsScreenState
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
       navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
-        middle: Text(widget.investment.name,
+        middle: Text(fresh.name,
             style: TextStyle(color: AppStyles.getTextColor(context))),
         backgroundColor: AppStyles.getBackground(context),
         leading: CupertinoButton(
@@ -144,7 +144,7 @@ class _SimpleInvestmentDetailsScreenState
                             onPressed: () async {
                               Navigator.pop(ctx);
                               await investmentsCtrl
-                                  .deleteInvestment(widget.investment.id);
+                                  .deleteInvestment(fresh.id);
                               if (context.mounted) {
                                 toast.showSuccess('Investment deleted!');
                                 Navigator.pop(context);
@@ -316,7 +316,7 @@ class _SimpleInvestmentDetailsScreenState
                   const ModalHandle(),
                   const SizedBox(height: 16),
                   Text(
-                    'Edit ${widget.investment.name}',
+                    'Edit ${fresh.name}',
                     style: TextStyle(
                         color: AppStyles.getTextColor(ctx),
                         fontSize: TypeScale.title2,

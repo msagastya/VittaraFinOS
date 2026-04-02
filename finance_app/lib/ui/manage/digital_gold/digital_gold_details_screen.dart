@@ -30,7 +30,7 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    _investment = widget.investment;
+    _investment = _investment;
     _fetchCurrentGoldPrice();
   }
 
@@ -110,7 +110,11 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final investment = widget.investment;
+    // Keep investment in sync with controller for real-time updates
+    _investment = context.watch<InvestmentsController>().investments
+        .firstWhere((i) => i.id == _investment.id, orElse: () => _investment);
+
+    final investment = _investment;
     final metadata = investment.metadata ?? {};
     final investedAmount =
         (metadata['investedAmount'] as num?)?.toDouble() ?? investment.amount;

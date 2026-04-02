@@ -21,16 +21,20 @@ class CryptoDetailsScreen extends StatefulWidget {
 }
 
 class _CryptoDetailsScreenState extends State<CryptoDetailsScreen> {
+  late Investment _investment;
   late Cryptocurrency crypto;
 
   @override
   void initState() {
     super.initState();
+    _investment = widget.investment;
     _reconstructCrypto();
   }
 
+  Investment get investment => _investment;
+
   void _reconstructCrypto() {
-    final metadata = widget.investment.metadata ?? {};
+    final metadata = investment.metadata ?? {};
 
     // Reconstruct transactions from metadata
     final transactions = (metadata['transactions'] as List?)
@@ -39,7 +43,7 @@ class _CryptoDetailsScreenState extends State<CryptoDetailsScreen> {
         [];
 
     crypto = Cryptocurrency(
-      id: widget.investment.id,
+      id: investment.id,
       name: metadata['name'] as String? ?? 'Unknown',
       cryptoType: CryptoCurrency.values.asMap()[0] ?? CryptoCurrency.bitcoin,
       symbol: metadata['symbol'] as String? ?? 'N/A',
@@ -70,6 +74,10 @@ class _CryptoDetailsScreenState extends State<CryptoDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Keep investment in sync with controller for real-time updates
+    _investment = context.watch<InvestmentsController>().investments
+        .firstWhere((i) => i.id == investment.id, orElse: () => _investment);
+
     final investmentsController =
         Provider.of<InvestmentsController>(context, listen: false);
     final isProfit = crypto.gainLoss >= 0;
@@ -300,7 +308,7 @@ class _CryptoDetailsScreenState extends State<CryptoDetailsScreen> {
                             onPressed: () async {
                               Navigator.pop(context);
                               await investmentsController
-                                  .deleteInvestment(widget.investment.id);
+                                  .deleteInvestment(investment.id);
                               if (context.mounted) {
                                 toast.showSuccess(
                                   'Cryptocurrency investment deleted successfully!',
@@ -409,13 +417,13 @@ class _CryptoDetailsScreenState extends State<CryptoDetailsScreen> {
                             final updatedCrypto = crypto.copyWith(
                                 currentPrice: newPrice, notes: newNotes);
                             final updatedMeta = Map<String, dynamic>.from(
-                                widget.investment.metadata ?? {});
+                                investment.metadata ?? {});
                             updatedMeta['currentPrice'] = newPrice;
                             updatedMeta['notes'] = newNotes;
                             updatedMeta['lastUpdated'] =
                                 DateTime.now().toIso8601String();
                             final updatedInvestment =
-                                widget.investment.copyWith(
+                                investment.copyWith(
                               amount: updatedCrypto.currentValue,
                               metadata: updatedMeta,
                             );
