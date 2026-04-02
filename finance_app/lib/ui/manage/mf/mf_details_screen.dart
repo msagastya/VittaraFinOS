@@ -55,7 +55,7 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
   }
 
   Future<void> _refreshNAV() async {
-    final metadata = widget.investment.metadata ?? {};
+    final metadata = investment.metadata ?? {};
     final schemeCode = metadata['schemeCode'] as String?;
     if (schemeCode == null) {
       toast.showError('Scheme code not found');
@@ -76,7 +76,7 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
         ..['currentValue'] = navData.nav * units
         ..['navDate'] = navData.date.toIso8601String();
       final updatedInvestment =
-          widget.investment.copyWith(metadata: updatedMeta);
+          investment.copyWith(metadata: updatedMeta);
       await Provider.of<InvestmentsController>(context, listen: false)
           .updateInvestment(updatedInvestment);
       toast.showSuccess('NAV updated: ₹${navData.nav.toStringAsFixed(4)}');
