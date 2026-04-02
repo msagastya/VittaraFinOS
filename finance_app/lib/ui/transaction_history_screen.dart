@@ -1201,33 +1201,30 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
             ? CupertinoIcons.arrow_up_circle_fill
             : transaction.type.typeIcon;
 
-    final isDerived = TransactionFeedBuilder.isDerivedInvestmentEvent(transaction);
     final archiveCtrl = Provider.of<TransactionsArchiveController>(context, listen: false);
 
     return Slidable(
       key: ValueKey('slide_${transaction.id}'),
-      endActionPane: isDerived
-          ? null
-          : ActionPane(
-              motion: const DrawerMotion(),
-              extentRatio: 0.22,
-              children: [
-                SlidableAction(
-                  onPressed: (_) =>
-                      _archiveTransaction(transaction, controller, archiveCtrl),
-                  backgroundColor: AppStyles.teal(context),
-                  foregroundColor: CupertinoColors.white,
-                  icon: CupertinoIcons.archivebox_fill,
-                  borderRadius: BorderRadius.circular(Radii.lg),
-                ),
-              ],
-            ),
+      endActionPane: ActionPane(
+        motion: const DrawerMotion(),
+        extentRatio: 0.22,
+        children: [
+          SlidableAction(
+            onPressed: (_) =>
+                _archiveTransaction(transaction, controller, archiveCtrl),
+            backgroundColor: AppStyles.teal(context),
+            foregroundColor: CupertinoColors.white,
+            icon: CupertinoIcons.archivebox_fill,
+            borderRadius: BorderRadius.circular(Radii.lg),
+          ),
+        ],
+      ),
       child: BouncyButton(
         onPressed: () => _showTransactionDetails(
           context,
           transaction,
           controller,
-          allowArchive: !isDerived,
+          allowArchive: true,
         ),
         child: Container(
           margin: const EdgeInsets.only(bottom: Spacing.md),
@@ -1522,39 +1519,6 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     BuildContext modalContext,
     Transaction transaction,
   ) {
-    // Check if this is a derived investment event (read-only)
-    final isDerivedInvestment =
-        TransactionFeedBuilder.isDerivedInvestmentEvent(transaction);
-    if (isDerivedInvestment) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              CupertinoIcons.info_circle,
-              size: 16,
-              color: AppStyles.getSecondaryTextColor(context),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              'Investment transactions are read-only',
-              style: TextStyle(
-                color: AppStyles.getSecondaryTextColor(context),
-                fontSize: TypeScale.body,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
     // Check if transaction is within 24h edit window
     final createdAt = transaction.createdAt;
     final isEditableWindow = createdAt != null &&
