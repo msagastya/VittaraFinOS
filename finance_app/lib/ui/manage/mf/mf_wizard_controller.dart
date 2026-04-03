@@ -194,17 +194,23 @@ class MFWizardController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void selectDeductionAccount(Account account) {
+  void selectDeductionAccount(Account account) =>
+      _applyDeduction(deduct: true, account: account);
+
+  void toggleDeduction(bool value) =>
+      _applyDeduction(deduct: value, account: value ? deductionAccount : null);
+
+  void _applyDeduction({required bool deduct, Account? account}) {
     if (selectedMFType == MFType.newMF) {
       updateNewMFDetails(
         amount: investmentAmount,
         date: investmentDate,
-        deduct: true,
+        deduct: deduct,
         deductAccount: account,
         fetchedNav: fetchedNAV,
       );
     } else {
-      updateDeduction(deduct: true, deductAccount: account);
+      updateDeduction(deduct: deduct, deductAccount: account);
     }
   }
 
