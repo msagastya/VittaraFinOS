@@ -221,7 +221,15 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       _lastFilterSortKey = key;
     }
 
-    final filtered = _filterBySearch(_filterByCategory(all, categoryType));
+    final active = all.where((inv) {
+      if (inv.type != InvestmentType.fixedDeposit) return true;
+      final fdData = inv.metadata?['fdData'];
+      if (fdData is! Map) return true;
+      final statusIndex = (fdData['status'] as num?)?.toInt() ?? 0;
+      return statusIndex != FDStatus.prematurelyWithdrawn.index &&
+          statusIndex != FDStatus.completed.index;
+    }).toList();
+    final filtered = _filterBySearch(_filterByCategory(active, categoryType));
     final sorted = List<Investment>.from(filtered)
       ..sort((a, b) {
         int comparison = 0;

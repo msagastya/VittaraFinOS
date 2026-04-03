@@ -351,15 +351,31 @@ class _FDWithdrawalModalState extends State<FDWithdrawalModal> {
                         final safeMetadata =
                             Map<String, dynamic>.from(existingMetadata);
 
+                        // Update fdData status so the FD no longer shows as Active
+                        final isEarly = _withdrawalDate.isBefore(widget.fd.maturityDate);
+                        final newFDStatus = isEarly
+                            ? FDStatus.prematurelyWithdrawn
+                            : FDStatus.completed;
+                        Map<String, dynamic>? updatedFDData;
+                        if (safeMetadata['fdData'] is Map) {
+                          final fdMap = Map<String, dynamic>.from(
+                              safeMetadata['fdData'] as Map);
+                          fdMap['status'] = newFDStatus.index;
+                          fdMap['withdrawalDate'] = _withdrawalDate.toIso8601String();
+                          fdMap['withdrawalAmount'] = withdrawalAmount;
+                          updatedFDData = fdMap;
+                        }
+
                         final updatedInvestment = originalInvestment.copyWith(
                           metadata: {
                             ...safeMetadata,
+                            if (updatedFDData != null) 'fdData': updatedFDData,
                             'renewalCycles':
                                 existingCycles.map((c) => c.toMap()).toList(),
                             'withdrawalDate': _withdrawalDate.toIso8601String(),
                             'withdrawalAmount': withdrawalAmount,
                             'withdrawalReason': 'Withdrawal from notification',
-                            'status': 'withdrawn',
+                            'status': newFDStatus.index,
                           },
                         );
 
