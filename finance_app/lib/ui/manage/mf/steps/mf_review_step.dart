@@ -12,9 +12,10 @@ class MFReviewStep extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Provider.of<MFWizardController>(context);
     final mf = controller.selectedMF;
-    final account = controller.selectedAccount;
 
-    if (mf == null || account == null) return const SizedBox();
+    if (mf == null) return const SizedBox();
+
+    final account = controller.selectedAccount;
 
     final displayNAV = controller.selectedMFType == MFType.existing
         ? controller.averageNAV
@@ -68,7 +69,7 @@ class MFReviewStep extends StatelessWidget {
           const SizedBox(height: Spacing.xxxl),
           _buildRow(context, 'Scheme Type', mf.schemeType ?? 'N/A'),
           _buildRow(context, 'Scheme Code', mf.schemeCode),
-          _buildRow(context, 'Account', account.name),
+          _buildRow(context, 'Account', account?.name ?? 'Not linked'),
           _buildRow(
               context, 'Units', controller.calculatedUnits.toStringAsFixed(4)),
           _buildRow(context, 'NAV', '₹${displayNAV.toStringAsFixed(2)}'),
