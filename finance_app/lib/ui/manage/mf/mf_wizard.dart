@@ -80,8 +80,7 @@ class _MFWizardContentState extends State<_MFWizardContent> {
           'currentNAV': controller.selectedMF!.nav,
           'currentValue': (controller.selectedMF!.nav ?? 0) * units,
           'investmentType': controller.selectedMFType?.name,
-          'deductedFromAccount': controller.deductFromAccount &&
-              controller.selectedMFType == MFType.newMF,
+          'deductedFromAccount': controller.deductFromAccount,
           'deductionAccountId': controller.deductFromAccount
               ? controller.deductionAccount?.id
               : null,
@@ -96,8 +95,7 @@ class _MFWizardContentState extends State<_MFWizardContent> {
 
       // Deduct full amount from bank account if toggle is enabled
       if (controller.deductFromAccount &&
-          controller.deductionAccount != null &&
-          controller.selectedMFType == MFType.newMF) {
+          controller.deductionAccount != null) {
         final accountToDeduct = controller.deductionAccount!;
         final updatedAccount = accountToDeduct.copyWith(
           balance: accountToDeduct.balance - controller.investmentAmount,
@@ -222,8 +220,7 @@ class _MFWizardContentState extends State<_MFWizardContent> {
 
     if (result != null && context.mounted) {
       controller.setSIPData(result);
-      // Save investment with SIP data
-      await _saveInvestment(context, controller);
+      controller.nextPage();
     }
   }
 
@@ -321,7 +318,8 @@ class _MFWizardContentState extends State<_MFWizardContent> {
                             controller.nextPage();
                           } else if (controller.currentStep == 3 &&
                               controller.selectedMFType == MFType.existing &&
-                              !controller.sipActive) {
+                              !controller.sipActive &&
+                              controller.mode != MFWizardMode.sell) {
                             // For existing MF without SIP, ask if user wants to add SIP
                             _showSIPDialog(context);
                           } else {
@@ -355,13 +353,10 @@ class _MFWizardContentState extends State<_MFWizardContent> {
         actions: [
           CupertinoDialogAction(
             child: const Text('No'),
-            onPressed: () async {
-              Navigator.pop(dialogContext); // Close dialog
-              controller.setSIPData(null); // No SIP
-              // Save investment without SIP (use main context)
-              if (context.mounted) {
-                await _saveOrUpdateInvestment(context, controller);
-              }
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              controller.setSIPData(null);
+              if (context.mounted) controller.nextPage();
             },
           ),
           CupertinoDialogAction(

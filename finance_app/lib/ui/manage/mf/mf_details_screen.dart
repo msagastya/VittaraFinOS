@@ -41,7 +41,7 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    _investment = _investment;
+    _investment = widget.investment;
     if (widget.autoOpenDividend) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _showDividendModal(context);

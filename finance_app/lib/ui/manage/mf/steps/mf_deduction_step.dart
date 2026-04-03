@@ -187,13 +187,20 @@ class _MFDeductionStepState extends State<MFDeductionStep> {
 
                           return GestureDetector(
                             onTap: () {
-                              controller.updateNewMFDetails(
-                                amount: controller.investmentAmount,
-                                date: controller.investmentDate,
-                                deduct: true,
-                                deductAccount: account,
-                                fetchedNav: controller.fetchedNAV,
-                              );
+                              if (controller.selectedMFType == MFType.newMF) {
+                                controller.updateNewMFDetails(
+                                  amount: controller.investmentAmount,
+                                  date: controller.investmentDate,
+                                  deduct: true,
+                                  deductAccount: account,
+                                  fetchedNav: controller.fetchedNAV,
+                                );
+                              } else {
+                                controller.updateDeduction(
+                                  deduct: true,
+                                  deductAccount: account,
+                                );
+                              }
                             },
                             child: Container(
                               margin: const EdgeInsets.only(bottom: 8),
@@ -273,13 +280,20 @@ class _MFDeductionStepState extends State<MFDeductionStep> {
                         ).then((result) {
                           if (result != null) {
                             accountsController.addAccount(result);
-                            controller.updateNewMFDetails(
-                              amount: controller.investmentAmount,
-                              date: controller.investmentDate,
-                              deduct: true,
-                              deductAccount: result,
-                              fetchedNav: controller.fetchedNAV,
-                            );
+                            if (controller.selectedMFType == MFType.newMF) {
+                              controller.updateNewMFDetails(
+                                amount: controller.investmentAmount,
+                                date: controller.investmentDate,
+                                deduct: true,
+                                deductAccount: result,
+                                fetchedNav: controller.fetchedNAV,
+                              );
+                            } else {
+                              controller.updateDeduction(
+                                deduct: true,
+                                deductAccount: result,
+                              );
+                            }
                           }
                         });
                       },
