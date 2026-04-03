@@ -5,7 +5,6 @@ import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/ui/manage/mf/mf_wizard_controller.dart';
-import 'package:vittara_fin_os/ui/manage/mf/sip_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/mf/steps/mf_search_step.dart';
 import 'package:vittara_fin_os/ui/manage/mf/steps/mf_type_selection_step.dart';
 import 'package:vittara_fin_os/ui/manage/mf/steps/mf_account_selection_step.dart';
@@ -211,18 +210,6 @@ class _MFWizardContentState extends State<_MFWizardContent> {
     }
   }
 
-  Future<void> _openSIPWizard(BuildContext context) async {
-    final controller = Provider.of<MFWizardController>(context, listen: false);
-
-    final result = await Navigator.of(context).push<Map<String, dynamic>>(
-      FadeScalePageRoute(page: const SIPWizard()),
-    );
-
-    if (result != null && context.mounted) {
-      controller.setSIPData(result);
-      controller.nextPage();
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -307,21 +294,8 @@ class _MFWizardContentState extends State<_MFWizardContent> {
                 child: CupertinoButton.filled(
                   onPressed: controller.canProceed() && !_isSubmitting
                       ? () async {
-                          // Both new and existing MF follow same flow: Details → Deduction → Review
                           if (controller.currentStep == 5) {
-                            // At Review step, save the investment
                             await _saveOrUpdateInvestment(context, controller);
-                          } else if (controller.currentStep == 3 &&
-                              controller.selectedMFType == MFType.existing &&
-                              controller.sipActive) {
-                            // For existing MF with active SIP, skip SIP dialog and go to deduction
-                            controller.nextPage();
-                          } else if (controller.currentStep == 3 &&
-                              controller.selectedMFType == MFType.existing &&
-                              !controller.sipActive &&
-                              controller.mode != MFWizardMode.sell) {
-                            // For existing MF without SIP, ask if user wants to add SIP
-                            _showSIPDialog(context);
                           } else {
                             controller.nextPage();
                           }
@@ -340,36 +314,4 @@ class _MFWizardContentState extends State<_MFWizardContent> {
     );
   }
 
-  void _showSIPDialog(BuildContext context) {
-    final controller = Provider.of<MFWizardController>(context, listen: false);
-
-    showCupertinoDialog(
-      context: context,
-      builder: (dialogContext) => CupertinoAlertDialog(
-        title: const Text('Add SIP?'),
-        content: const Text(
-          'Do you want to set up a Systematic Investment Plan (SIP) for this mutual fund?',
-        ),
-        actions: [
-          CupertinoDialogAction(
-            child: const Text('No'),
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              controller.setSIPData(null);
-              if (context.mounted) controller.nextPage();
-            },
-          ),
-          CupertinoDialogAction(
-            isDefaultAction: true,
-            child: const Text('Yes'),
-            onPressed: () {
-              Navigator.pop(dialogContext); // Close dialog
-              // Open SIP Wizard (use main context, not dialog context)
-              _openSIPWizard(context);
-            },
-          ),
-        ],
-      ),
-    );
-  }
 }
