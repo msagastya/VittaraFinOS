@@ -101,41 +101,39 @@ class _MFDeductionStepState extends State<MFDeductionStep> {
                     ),
                   ],
                 ),
-                if (controller.deductFromAccount) ...[
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    child: Divider(height: 1),
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'Transaction Charges',
-                          style:
-                              TextStyle(color: AppStyles.getTextColor(context)),
-                        ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  child: Divider(height: 1),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Extra Charges',
+                        style:
+                            TextStyle(color: AppStyles.getTextColor(context)),
                       ),
-                      SizedBox(
-                        width: 100,
-                        child: CupertinoTextField(
-                          controller: _chargesController,
-                          keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true),
-                          placeholder: '0.00',
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 8, horizontal: 12),
-                          decoration: BoxDecoration(
-                            color: isDark ? Colors.grey[800] : Colors.grey[200],
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          style:
-                              TextStyle(color: AppStyles.getTextColor(context)),
-                          onChanged: _onChargesChanged,
+                    ),
+                    SizedBox(
+                      width: 100,
+                      child: CupertinoTextField(
+                        controller: _chargesController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
+                        placeholder: '0.00',
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 8, horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: isDark ? Colors.grey[800] : Colors.grey[200],
+                          borderRadius: BorderRadius.circular(8),
                         ),
+                        style:
+                            TextStyle(color: AppStyles.getTextColor(context)),
+                        onChanged: _onChargesChanged,
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ],
             ),
           ),

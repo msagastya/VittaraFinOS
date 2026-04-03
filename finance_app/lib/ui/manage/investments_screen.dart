@@ -3339,6 +3339,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
       transactionDate: DateTime.now(),
       targetInvestment: investment,
       initialStep: 3,
+      sipActive: meta['sipActive'] == true,
     );
 
     return MFWizard(intent: intent);
