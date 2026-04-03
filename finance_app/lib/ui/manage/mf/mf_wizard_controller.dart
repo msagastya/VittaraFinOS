@@ -80,13 +80,7 @@ class MFWizardController extends ChangeNotifier {
 
   int get currentStep => _currentStep;
 
-  double get totalAmount {
-    if (selectedMFType == MFType.existing) {
-      return investmentAmount;
-    } else {
-      return investmentAmount;
-    }
-  }
+  double get totalAmount => investmentAmount;
 
   double get netInvestmentAmount => (investmentAmount - extraCharges).clamp(0, double.infinity);
 
@@ -198,6 +192,20 @@ class MFWizardController extends ChangeNotifier {
     deductFromAccount = deduct;
     deductionAccount = deduct ? deductAccount : null;
     notifyListeners();
+  }
+
+  void selectDeductionAccount(Account account) {
+    if (selectedMFType == MFType.newMF) {
+      updateNewMFDetails(
+        amount: investmentAmount,
+        date: investmentDate,
+        deduct: true,
+        deductAccount: account,
+        fetchedNav: fetchedNAV,
+      );
+    } else {
+      updateDeduction(deduct: true, deductAccount: account);
+    }
   }
 
   bool canProceed() {

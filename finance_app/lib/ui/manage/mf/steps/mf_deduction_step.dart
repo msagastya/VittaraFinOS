@@ -184,22 +184,7 @@ class _MFDeductionStepState extends State<MFDeductionStep> {
                               controller.deductionAccount?.id == account.id;
 
                           return GestureDetector(
-                            onTap: () {
-                              if (controller.selectedMFType == MFType.newMF) {
-                                controller.updateNewMFDetails(
-                                  amount: controller.investmentAmount,
-                                  date: controller.investmentDate,
-                                  deduct: true,
-                                  deductAccount: account,
-                                  fetchedNav: controller.fetchedNAV,
-                                );
-                              } else {
-                                controller.updateDeduction(
-                                  deduct: true,
-                                  deductAccount: account,
-                                );
-                              }
-                            },
+                            onTap: () => controller.selectDeductionAccount(account),
                             child: Container(
                               margin: const EdgeInsets.only(bottom: 8),
                               padding: const EdgeInsets.all(Spacing.md),
@@ -278,20 +263,7 @@ class _MFDeductionStepState extends State<MFDeductionStep> {
                         ).then((result) {
                           if (result != null) {
                             accountsController.addAccount(result);
-                            if (controller.selectedMFType == MFType.newMF) {
-                              controller.updateNewMFDetails(
-                                amount: controller.investmentAmount,
-                                date: controller.investmentDate,
-                                deduct: true,
-                                deductAccount: result,
-                                fetchedNav: controller.fetchedNAV,
-                              );
-                            } else {
-                              controller.updateDeduction(
-                                deduct: true,
-                                deductAccount: result,
-                              );
-                            }
+                            controller.selectDeductionAccount(result);
                           }
                         });
                       },
