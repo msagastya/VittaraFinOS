@@ -30,7 +30,7 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    _investment = _investment;
+    _investment = widget.investment;
     _fetchCurrentGoldPrice();
   }
 

@@ -24,7 +24,7 @@ class _FODetailsScreenState extends State<FODetailsScreen> {
   @override
   void initState() {
     super.initState();
-    _investment = _investment;
+    _investment = widget.investment;
     final meta = investment.metadata ?? {};
     fo = FuturesOptions.fromMap(meta['foData'] as Map<String, dynamic>? ?? {});
   }

@@ -24,7 +24,7 @@ class _PensionDetailsScreenState extends State<PensionDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    _investment = _investment;
+    _investment = widget.investment;
     final meta = investment.metadata ?? {};
     pension = PensionScheme.fromMap(
         meta['pensionData'] as Map<String, dynamic>? ?? {});
