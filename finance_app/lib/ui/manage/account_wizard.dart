@@ -39,12 +39,21 @@ class _AccountWizardState extends State<AccountWizard> {
   // Step 3: Account Details (type-specific)
   final TextEditingController _accountNumberController =
       TextEditingController();
+  final TextEditingController _ifscController = TextEditingController();
   final TextEditingController _debitCardNumberController =
       TextEditingController();
+  final TextEditingController _debitCardExpiryController =
+      TextEditingController();
+  final TextEditingController _debitCardCvvController = TextEditingController();
+  final TextEditingController _debitCardNameController = TextEditingController();
   final TextEditingController _creditLimitController = TextEditingController();
   final TextEditingController _amountUsedController = TextEditingController();
   final TextEditingController _creditCardNumberController =
       TextEditingController();
+  final TextEditingController _creditCardExpiryController =
+      TextEditingController();
+  final TextEditingController _creditCardCvvController = TextEditingController();
+  final TextEditingController _creditCardNameController = TextEditingController();
   final TextEditingController _balanceController = TextEditingController();
 
   @override
@@ -63,6 +72,7 @@ class _AccountWizardState extends State<AccountWizard> {
       _nameController.text = account.name;
       _balanceController.text = account.balance.toStringAsFixed(2);
 
+      final meta = account.metadata ?? {};
       if (account.type == AccountType.credit ||
           account.type == AccountType.payLater) {
         _creditLimitController.text =
@@ -72,6 +82,22 @@ class _AccountWizardState extends State<AccountWizard> {
         if (account.creditCardNumber != null) {
           _creditCardNumberController.text = account.creditCardNumber!;
         }
+        _creditCardExpiryController.text =
+            (meta['cardExpiry'] as String?) ?? '';
+        _creditCardCvvController.text = (meta['cardCvv'] as String?) ?? '';
+        _creditCardNameController.text = (meta['nameOnCard'] as String?) ?? '';
+      } else if (account.type == AccountType.savings ||
+          account.type == AccountType.current) {
+        _accountNumberController.text =
+            (meta['accountNumber'] as String?) ?? '';
+        _ifscController.text = (meta['ifscCode'] as String?) ?? '';
+        _debitCardNumberController.text =
+            (meta['debitCardNumber'] as String?) ?? '';
+        _debitCardExpiryController.text =
+            (meta['debitCardExpiry'] as String?) ?? '';
+        _debitCardCvvController.text = (meta['debitCardCvv'] as String?) ?? '';
+        _debitCardNameController.text =
+            (meta['debitCardNameOnCard'] as String?) ?? '';
       }
     }
 
@@ -205,21 +231,44 @@ class _AccountWizardState extends State<AccountWizard> {
 
       // Build metadata with account/debit card numbers for SMS matching
       final Map<String, dynamic> acctMeta = {};
-      final rawAcctNum = _accountNumberController.text.trim();
-      if (rawAcctNum.isNotEmpty) {
-        acctMeta['accountNumber'] = rawAcctNum;
-        final digitsOnly = rawAcctNum.replaceAll(RegExp(r'\D'), '');
-        if (digitsOnly.length >= 4) {
-          acctMeta['accountLast4'] = digitsOnly.substring(digitsOnly.length - 4);
+
+      if (_selectedAccountType == AccountType.savings ||
+          _selectedAccountType == AccountType.current) {
+        final rawAcctNum = _accountNumberController.text.trim();
+        if (rawAcctNum.isNotEmpty) {
+          acctMeta['accountNumber'] = rawAcctNum;
+          final digitsOnly = rawAcctNum.replaceAll(RegExp(r'\D'), '');
+          if (digitsOnly.length >= 4) {
+            acctMeta['accountLast4'] =
+                digitsOnly.substring(digitsOnly.length - 4);
+          }
         }
-      }
-      final rawDebitCard = _debitCardNumberController.text.trim();
-      if (rawDebitCard.isNotEmpty) {
-        acctMeta['debitCardNumber'] = rawDebitCard;
-        final digitsOnly = rawDebitCard.replaceAll(RegExp(r'\D'), '');
-        if (digitsOnly.length >= 4) {
-          acctMeta['debitCardLast4'] = digitsOnly.substring(digitsOnly.length - 4);
+        final rawIfsc = _ifscController.text.trim();
+        if (rawIfsc.isNotEmpty) acctMeta['ifscCode'] = rawIfsc.toUpperCase();
+
+        final rawDebitCard = _debitCardNumberController.text.trim();
+        if (rawDebitCard.isNotEmpty) {
+          acctMeta['debitCardNumber'] = rawDebitCard;
+          final digitsOnly = rawDebitCard.replaceAll(RegExp(r'\D'), '');
+          if (digitsOnly.length >= 4) {
+            acctMeta['debitCardLast4'] =
+                digitsOnly.substring(digitsOnly.length - 4);
+          }
         }
+        final rawDebitExpiry = _debitCardExpiryController.text.trim();
+        if (rawDebitExpiry.isNotEmpty) acctMeta['debitCardExpiry'] = rawDebitExpiry;
+        final rawDebitCvv = _debitCardCvvController.text.trim();
+        if (rawDebitCvv.isNotEmpty) acctMeta['debitCardCvv'] = rawDebitCvv;
+        final rawDebitName = _debitCardNameController.text.trim();
+        if (rawDebitName.isNotEmpty) acctMeta['debitCardNameOnCard'] = rawDebitName;
+      } else if (_selectedAccountType == AccountType.credit ||
+          _selectedAccountType == AccountType.payLater) {
+        final rawExpiry = _creditCardExpiryController.text.trim();
+        if (rawExpiry.isNotEmpty) acctMeta['cardExpiry'] = rawExpiry;
+        final rawCvv = _creditCardCvvController.text.trim();
+        if (rawCvv.isNotEmpty) acctMeta['cardCvv'] = rawCvv;
+        final rawName = _creditCardNameController.text.trim();
+        if (rawName.isNotEmpty) acctMeta['nameOnCard'] = rawName;
       }
 
       final account = Account(
@@ -1563,10 +1612,40 @@ class _AccountWizardState extends State<AccountWizard> {
               style: TextStyle(color: AppStyles.getTextColor(context)),
             ),
             const SizedBox(height: Spacing.xl),
-            Text('Debit Card Number', style: AppStyles.headerStyle(context)),
+            Text('IFSC Code', style: AppStyles.headerStyle(context)),
             const SizedBox(height: Spacing.xs),
             Text(
-              '(Optional - full or last 4 digits)',
+              '(Optional)',
+              style: TextStyle(
+                  fontSize: TypeScale.footnote,
+                  color: AppStyles.getSecondaryTextColor(context)),
+            ),
+            const SizedBox(height: Spacing.sm),
+            CupertinoTextField(
+              controller: _ifscController,
+              placeholder: 'e.g. HDFC0001234',
+              textCapitalization: TextCapitalization.characters,
+              padding: const EdgeInsets.all(Spacing.lg),
+              decoration: BoxDecoration(
+                color: AppStyles.getCardColor(context),
+                borderRadius: BorderRadius.circular(Radii.md),
+              ),
+              style: TextStyle(color: AppStyles.getTextColor(context)),
+            ),
+            const SizedBox(height: Spacing.xxxl),
+            Text('Debit Card', style: AppStyles.titleStyle(context).copyWith(fontSize: 18)),
+            const SizedBox(height: Spacing.xs),
+            Text(
+              'Optional — leave blank if no debit card',
+              style: TextStyle(
+                  fontSize: TypeScale.footnote,
+                  color: AppStyles.getSecondaryTextColor(context)),
+            ),
+            const SizedBox(height: Spacing.lg),
+            Text('Card Number', style: AppStyles.headerStyle(context)),
+            const SizedBox(height: Spacing.xs),
+            Text(
+              '(Full or last 4 digits)',
               style: TextStyle(
                   fontSize: TypeScale.footnote,
                   color: AppStyles.getSecondaryTextColor(context)),
@@ -1576,6 +1655,66 @@ class _AccountWizardState extends State<AccountWizard> {
               controller: _debitCardNumberController,
               placeholder: 'Enter debit card number',
               keyboardType: TextInputType.number,
+              padding: const EdgeInsets.all(Spacing.lg),
+              decoration: BoxDecoration(
+                color: AppStyles.getCardColor(context),
+                borderRadius: BorderRadius.circular(Radii.md),
+              ),
+              style: TextStyle(color: AppStyles.getTextColor(context)),
+            ),
+            const SizedBox(height: Spacing.xl),
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Expiry', style: AppStyles.headerStyle(context)),
+                      const SizedBox(height: Spacing.sm),
+                      CupertinoTextField(
+                        controller: _debitCardExpiryController,
+                        placeholder: 'MM/YY',
+                        keyboardType: TextInputType.number,
+                        padding: const EdgeInsets.all(Spacing.lg),
+                        decoration: BoxDecoration(
+                          color: AppStyles.getCardColor(context),
+                          borderRadius: BorderRadius.circular(Radii.md),
+                        ),
+                        style: TextStyle(color: AppStyles.getTextColor(context)),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: Spacing.lg),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('CVV', style: AppStyles.headerStyle(context)),
+                      const SizedBox(height: Spacing.sm),
+                      CupertinoTextField(
+                        controller: _debitCardCvvController,
+                        placeholder: '•••',
+                        keyboardType: TextInputType.number,
+                        padding: const EdgeInsets.all(Spacing.lg),
+                        decoration: BoxDecoration(
+                          color: AppStyles.getCardColor(context),
+                          borderRadius: BorderRadius.circular(Radii.md),
+                        ),
+                        style: TextStyle(color: AppStyles.getTextColor(context)),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: Spacing.xl),
+            Text('Name on Card', style: AppStyles.headerStyle(context)),
+            const SizedBox(height: Spacing.sm),
+            CupertinoTextField(
+              controller: _debitCardNameController,
+              placeholder: 'As printed on card',
+              textCapitalization: TextCapitalization.words,
               padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),
@@ -1698,6 +1837,66 @@ class _AccountWizardState extends State<AccountWizard> {
               controller: _creditCardNumberController,
               placeholder: 'Enter credit card number',
               keyboardType: TextInputType.number,
+              padding: const EdgeInsets.all(Spacing.lg),
+              decoration: BoxDecoration(
+                color: AppStyles.getCardColor(context),
+                borderRadius: BorderRadius.circular(Radii.md),
+              ),
+              style: TextStyle(color: AppStyles.getTextColor(context)),
+            ),
+            const SizedBox(height: Spacing.xl),
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Expiry', style: AppStyles.headerStyle(context)),
+                      const SizedBox(height: Spacing.sm),
+                      CupertinoTextField(
+                        controller: _creditCardExpiryController,
+                        placeholder: 'MM/YY',
+                        keyboardType: TextInputType.number,
+                        padding: const EdgeInsets.all(Spacing.lg),
+                        decoration: BoxDecoration(
+                          color: AppStyles.getCardColor(context),
+                          borderRadius: BorderRadius.circular(Radii.md),
+                        ),
+                        style: TextStyle(color: AppStyles.getTextColor(context)),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: Spacing.lg),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('CVV', style: AppStyles.headerStyle(context)),
+                      const SizedBox(height: Spacing.sm),
+                      CupertinoTextField(
+                        controller: _creditCardCvvController,
+                        placeholder: '•••',
+                        keyboardType: TextInputType.number,
+                        padding: const EdgeInsets.all(Spacing.lg),
+                        decoration: BoxDecoration(
+                          color: AppStyles.getCardColor(context),
+                          borderRadius: BorderRadius.circular(Radii.md),
+                        ),
+                        style: TextStyle(color: AppStyles.getTextColor(context)),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: Spacing.xl),
+            Text('Name on Card', style: AppStyles.headerStyle(context)),
+            const SizedBox(height: Spacing.sm),
+            CupertinoTextField(
+              controller: _creditCardNameController,
+              placeholder: 'As printed on card',
+              textCapitalization: TextCapitalization.words,
               padding: const EdgeInsets.all(Spacing.lg),
               decoration: BoxDecoration(
                 color: AppStyles.getCardColor(context),

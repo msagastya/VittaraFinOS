@@ -191,6 +191,14 @@ class SettingsController with ChangeNotifier {
     return await _authenticate(reason: reason);
   }
 
+  /// Authenticate to reveal a sensitive card/account field.
+  /// If biometric is disabled, returns true immediately (tap-to-reveal).
+  Future<bool> authenticateSensitiveField(
+      {String reason = 'Authenticate to view sensitive details'}) async {
+    if (!_isBiometricEnabled || kIsWeb) return true;
+    return await _authenticate(reason: reason);
+  }
+
   Future<void> toggleLockOnMinimize(bool value) async {
     if (kIsWeb) return; // Skip on web
 

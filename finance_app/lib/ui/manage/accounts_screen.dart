@@ -1462,62 +1462,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
                             ),
                           ),
 
-                          // Credit Card Number (if exists)
-                          if (freshAccount.creditCardNumber != null &&
-                              freshAccount.creditCardNumber!.isNotEmpty) ...[
-                            const SizedBox(height: Spacing.lg),
-                            Text(
-                              'Card Number',
-                              style: TextStyle(
-                                color: AppStyles.getSecondaryTextColor(
-                                    dragContext),
-                                fontSize: TypeScale.footnote,
-                              ),
-                            ),
-                            const SizedBox(height: Spacing.xs),
-                            GestureDetector(
-                              onLongPress: () {
-                                Clipboard.setData(ClipboardData(
-                                    text: freshAccount.creditCardNumber!));
-                                HapticFeedback.lightImpact();
-                                toast.showSuccess('Card number copied — clears in 30s');
-                                Future.delayed(const Duration(seconds: 30), () {
-                                  Clipboard.setData(const ClipboardData(text: ''));
-                                });
-                              },
-                              child: Row(
-                                children: [
-                                  Text(
-                                    freshAccount.creditCardNumber!,
-                                    style: TextStyle(
-                                      color: AppStyles.getTextColor(dragContext),
-                                      fontSize: TypeScale.headline,
-                                      fontWeight: FontWeight.w600,
-                                      letterSpacing: 2,
-                                    ),
-                                  ),
-                                  const SizedBox(width: Spacing.sm),
-                                  CupertinoButton(
-                                    padding: EdgeInsets.zero,
-                                    onPressed: () {
-                                      Clipboard.setData(ClipboardData(
-                                          text: freshAccount.creditCardNumber!));
-                                      HapticFeedback.lightImpact();
-                                      toast.showSuccess('Card number copied — clears in 30s');
-                                      Future.delayed(const Duration(seconds: 30), () {
-                                        Clipboard.setData(const ClipboardData(text: ''));
-                                      });
-                                    }, minimumSize: const Size(28, 28),
-                                    child: Icon(
-                                      CupertinoIcons.doc_on_doc,
-                                      size: 18,
-                                      color: AppStyles.teal(dragContext),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+                          // Sensitive card / account fields
+                          _SensitiveFieldsSection(account: freshAccount),
 
                           // Credit Card/Pay Later - Show Credit Limit and Amount Used
                           if (freshAccount.type == AccountType.credit ||
@@ -2392,4 +2338,179 @@ class _BalanceSparklinePainter extends CustomPainter {
   @override
   bool shouldRepaint(_BalanceSparklinePainter old) =>
       old.values != values || old.lineColor != lineColor;
+}
+
+// ── Sensitive fields widget (card number, expiry, CVV, IFSC, etc.) ────────────
+
+class _SensitiveFieldsSection extends StatefulWidget {
+  final Account account;
+  const _SensitiveFieldsSection({required this.account});
+
+  @override
+  State<_SensitiveFieldsSection> createState() =>
+      _SensitiveFieldsSectionState();
+}
+
+class _SensitiveFieldsSectionState extends State<_SensitiveFieldsSection> {
+  // Which field index is currently revealed: null = none
+  int? _revealedIndex;
+
+  void _copyToClipboard(BuildContext context, String value, String label) {
+    Clipboard.setData(ClipboardData(text: value));
+    HapticFeedback.lightImpact();
+    toast.showSuccess('$label copied — clears in 30s');
+    Future.delayed(const Duration(seconds: 30), () {
+      Clipboard.setData(const ClipboardData(text: ''));
+    });
+  }
+
+  Future<void> _toggleReveal(BuildContext context, int index) async {
+    if (_revealedIndex == index) {
+      setState(() => _revealedIndex = null);
+      return;
+    }
+    final settings =
+        Provider.of<SettingsController>(context, listen: false);
+    final ok = await settings.authenticateSensitiveField(
+        reason: 'Authenticate to view sensitive details');
+    if (!mounted) return;
+    if (ok) setState(() => _revealedIndex = index);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final account = widget.account;
+    final meta = account.metadata ?? {};
+    final isCredit = account.type == AccountType.credit ||
+        account.type == AccountType.payLater;
+    final isBankAccount = account.type == AccountType.savings ||
+        account.type == AccountType.current;
+
+    // Build the list of fields to show
+    final fields = <_SensitiveField>[];
+
+    if (isCredit) {
+      if (account.creditCardNumber != null &&
+          account.creditCardNumber!.isNotEmpty) {
+        fields.add(_SensitiveField(
+            label: 'Card Number', value: account.creditCardNumber!));
+      }
+      final expiry = meta['cardExpiry'] as String?;
+      if (expiry != null && expiry.isNotEmpty) {
+        fields.add(_SensitiveField(label: 'Expiry', value: expiry));
+      }
+      final cvv = meta['cardCvv'] as String?;
+      if (cvv != null && cvv.isNotEmpty) {
+        fields.add(_SensitiveField(label: 'CVV', value: cvv));
+      }
+      final name = meta['nameOnCard'] as String?;
+      if (name != null && name.isNotEmpty) {
+        fields.add(_SensitiveField(label: 'Name on Card', value: name));
+      }
+    } else if (isBankAccount) {
+      final acctNum = meta['accountNumber'] as String?;
+      if (acctNum != null && acctNum.isNotEmpty) {
+        fields.add(_SensitiveField(label: 'Account Number', value: acctNum));
+      }
+      final ifsc = meta['ifscCode'] as String?;
+      if (ifsc != null && ifsc.isNotEmpty) {
+        fields.add(_SensitiveField(label: 'IFSC Code', value: ifsc));
+      }
+      final debitNum = meta['debitCardNumber'] as String?;
+      if (debitNum != null && debitNum.isNotEmpty) {
+        fields.add(
+            _SensitiveField(label: 'Debit Card Number', value: debitNum));
+      }
+      final debitExpiry = meta['debitCardExpiry'] as String?;
+      if (debitExpiry != null && debitExpiry.isNotEmpty) {
+        fields.add(
+            _SensitiveField(label: 'Debit Card Expiry', value: debitExpiry));
+      }
+      final debitCvv = meta['debitCardCvv'] as String?;
+      if (debitCvv != null && debitCvv.isNotEmpty) {
+        fields.add(_SensitiveField(label: 'Debit Card CVV', value: debitCvv));
+      }
+      final debitName = meta['debitCardNameOnCard'] as String?;
+      if (debitName != null && debitName.isNotEmpty) {
+        fields.add(
+            _SensitiveField(label: 'Name on Debit Card', value: debitName));
+      }
+    }
+
+    if (fields.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: Spacing.xl),
+        ...List.generate(fields.length, (i) {
+          final field = fields[i];
+          final isRevealed = _revealedIndex == i;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: Spacing.md),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  field.label,
+                  style: TextStyle(
+                    color: AppStyles.getSecondaryTextColor(context),
+                    fontSize: TypeScale.footnote,
+                  ),
+                ),
+                const SizedBox(height: Spacing.xs),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        isRevealed ? field.value : '••••••••',
+                        style: TextStyle(
+                          color: AppStyles.getTextColor(context),
+                          fontSize: TypeScale.headline,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: isRevealed ? 1.5 : 2,
+                        ),
+                      ),
+                    ),
+                    // Eye toggle
+                    CupertinoButton(
+                      padding: EdgeInsets.zero,
+                      minimumSize: const Size(32, 32),
+                      onPressed: () => _toggleReveal(context, i),
+                      child: Icon(
+                        isRevealed
+                            ? CupertinoIcons.eye_slash_fill
+                            : CupertinoIcons.eye_fill,
+                        size: 18,
+                        color: AppStyles.getSecondaryTextColor(context),
+                      ),
+                    ),
+                    // Copy button (only when revealed)
+                    if (isRevealed)
+                      CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        minimumSize: const Size(32, 32),
+                        onPressed: () =>
+                            _copyToClipboard(context, field.value, field.label),
+                        child: Icon(
+                          CupertinoIcons.doc_on_doc,
+                          size: 18,
+                          color: AppStyles.teal(context),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        }),
+      ],
+    );
+  }
+}
+
+class _SensitiveField {
+  final String label;
+  final String value;
+  const _SensitiveField({required this.label, required this.value});
 }
