@@ -2352,8 +2352,42 @@ class _SensitiveFieldsSection extends StatefulWidget {
 }
 
 class _SensitiveFieldsSectionState extends State<_SensitiveFieldsSection> {
-  // Which field index is currently revealed: null = none
-  int? _revealedIndex;
+  bool _revealed = false;
+
+  List<_SensitiveField> _buildFields() {
+    final account = widget.account;
+    final meta = account.metadata ?? {};
+    final fields = <_SensitiveField>[];
+
+    if (account.type == AccountType.credit ||
+        account.type == AccountType.payLater) {
+      if (account.creditCardNumber?.isNotEmpty == true) {
+        fields.add(_SensitiveField('Card Number', account.creditCardNumber!));
+      }
+      final expiry = meta['cardExpiry'] as String?;
+      if (expiry?.isNotEmpty == true) fields.add(_SensitiveField('Expiry', expiry!));
+      final cvv = meta['cardCvv'] as String?;
+      if (cvv?.isNotEmpty == true) fields.add(_SensitiveField('CVV', cvv!));
+      final name = meta['nameOnCard'] as String?;
+      if (name?.isNotEmpty == true) fields.add(_SensitiveField('Name on Card', name!));
+    } else if (account.type == AccountType.savings ||
+        account.type == AccountType.current) {
+      final acctNum = meta['accountNumber'] as String?;
+      if (acctNum?.isNotEmpty == true) fields.add(_SensitiveField('Account Number', acctNum!));
+      final ifsc = meta['ifscCode'] as String?;
+      if (ifsc?.isNotEmpty == true) fields.add(_SensitiveField('IFSC Code', ifsc!));
+      final debitNum = meta['debitCardNumber'] as String?;
+      if (debitNum?.isNotEmpty == true) fields.add(_SensitiveField('Debit Card Number', debitNum!));
+      final debitExpiry = meta['debitCardExpiry'] as String?;
+      if (debitExpiry?.isNotEmpty == true) fields.add(_SensitiveField('Debit Expiry', debitExpiry!));
+      final debitCvv = meta['debitCardCvv'] as String?;
+      if (debitCvv?.isNotEmpty == true) fields.add(_SensitiveField('Debit CVV', debitCvv!));
+      final debitName = meta['debitCardNameOnCard'] as String?;
+      if (debitName?.isNotEmpty == true) fields.add(_SensitiveField('Name on Debit Card', debitName!));
+    }
+
+    return fields;
+  }
 
   void _copyToClipboard(BuildContext context, String value, String label) {
     Clipboard.setData(ClipboardData(text: value));
@@ -2364,146 +2398,97 @@ class _SensitiveFieldsSectionState extends State<_SensitiveFieldsSection> {
     });
   }
 
-  Future<void> _toggleReveal(BuildContext context, int index) async {
-    if (_revealedIndex == index) {
-      setState(() => _revealedIndex = null);
+  Future<void> _toggleReveal(BuildContext context) async {
+    if (_revealed) {
+      setState(() => _revealed = false);
       return;
     }
-    final settings =
-        Provider.of<SettingsController>(context, listen: false);
+    final settings = Provider.of<SettingsController>(context, listen: false);
     final ok = await settings.authenticateSensitiveField(
-        reason: 'Authenticate to view sensitive details');
+        reason: 'Authenticate to view account details');
     if (!mounted) return;
-    if (ok) setState(() => _revealedIndex = index);
+    if (ok) setState(() => _revealed = true);
   }
 
   @override
   Widget build(BuildContext context) {
-    final account = widget.account;
-    final meta = account.metadata ?? {};
-    final isCredit = account.type == AccountType.credit ||
-        account.type == AccountType.payLater;
-    final isBankAccount = account.type == AccountType.savings ||
-        account.type == AccountType.current;
-
-    // Build the list of fields to show
-    final fields = <_SensitiveField>[];
-
-    if (isCredit) {
-      if (account.creditCardNumber != null &&
-          account.creditCardNumber!.isNotEmpty) {
-        fields.add(_SensitiveField(
-            label: 'Card Number', value: account.creditCardNumber!));
-      }
-      final expiry = meta['cardExpiry'] as String?;
-      if (expiry != null && expiry.isNotEmpty) {
-        fields.add(_SensitiveField(label: 'Expiry', value: expiry));
-      }
-      final cvv = meta['cardCvv'] as String?;
-      if (cvv != null && cvv.isNotEmpty) {
-        fields.add(_SensitiveField(label: 'CVV', value: cvv));
-      }
-      final name = meta['nameOnCard'] as String?;
-      if (name != null && name.isNotEmpty) {
-        fields.add(_SensitiveField(label: 'Name on Card', value: name));
-      }
-    } else if (isBankAccount) {
-      final acctNum = meta['accountNumber'] as String?;
-      if (acctNum != null && acctNum.isNotEmpty) {
-        fields.add(_SensitiveField(label: 'Account Number', value: acctNum));
-      }
-      final ifsc = meta['ifscCode'] as String?;
-      if (ifsc != null && ifsc.isNotEmpty) {
-        fields.add(_SensitiveField(label: 'IFSC Code', value: ifsc));
-      }
-      final debitNum = meta['debitCardNumber'] as String?;
-      if (debitNum != null && debitNum.isNotEmpty) {
-        fields.add(
-            _SensitiveField(label: 'Debit Card Number', value: debitNum));
-      }
-      final debitExpiry = meta['debitCardExpiry'] as String?;
-      if (debitExpiry != null && debitExpiry.isNotEmpty) {
-        fields.add(
-            _SensitiveField(label: 'Debit Card Expiry', value: debitExpiry));
-      }
-      final debitCvv = meta['debitCardCvv'] as String?;
-      if (debitCvv != null && debitCvv.isNotEmpty) {
-        fields.add(_SensitiveField(label: 'Debit Card CVV', value: debitCvv));
-      }
-      final debitName = meta['debitCardNameOnCard'] as String?;
-      if (debitName != null && debitName.isNotEmpty) {
-        fields.add(
-            _SensitiveField(label: 'Name on Debit Card', value: debitName));
-      }
-    }
-
+    final fields = _buildFields();
     if (fields.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: Spacing.xl),
-        ...List.generate(fields.length, (i) {
-          final field = fields[i];
-          final isRevealed = _revealedIndex == i;
-          return Padding(
-            padding: const EdgeInsets.only(bottom: Spacing.md),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  field.label,
-                  style: TextStyle(
-                    color: AppStyles.getSecondaryTextColor(context),
-                    fontSize: TypeScale.footnote,
-                  ),
+        // Header row: "Details" label + eye toggle
+        GestureDetector(
+          onTap: () => _toggleReveal(context),
+          child: Row(
+            children: [
+              Text(
+                'Details',
+                style: TextStyle(
+                  color: AppStyles.getSecondaryTextColor(context),
+                  fontSize: TypeScale.footnote,
+                  fontWeight: FontWeight.w600,
                 ),
-                const SizedBox(height: Spacing.xs),
-                Row(
+              ),
+              const SizedBox(width: Spacing.xs),
+              Icon(
+                _revealed
+                    ? CupertinoIcons.eye_slash_fill
+                    : CupertinoIcons.eye_fill,
+                size: 14,
+                color: AppStyles.getSecondaryTextColor(context),
+              ),
+            ],
+          ),
+        ),
+        if (_revealed) ...[
+          const SizedBox(height: Spacing.md),
+          ...fields.map((field) => Padding(
+                padding: const EdgeInsets.only(bottom: Spacing.md),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Expanded(
-                      child: Text(
-                        isRevealed ? field.value : '••••••••',
-                        style: TextStyle(
-                          color: AppStyles.getTextColor(context),
-                          fontSize: TypeScale.headline,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: isRevealed ? 1.5 : 2,
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            field.label,
+                            style: TextStyle(
+                              color: AppStyles.getSecondaryTextColor(context),
+                              fontSize: TypeScale.caption,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            field.value,
+                            style: TextStyle(
+                              color: AppStyles.getTextColor(context),
+                              fontSize: TypeScale.body,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 1,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    // Eye toggle
                     CupertinoButton(
                       padding: EdgeInsets.zero,
                       minimumSize: const Size(32, 32),
-                      onPressed: () => _toggleReveal(context, i),
+                      onPressed: () =>
+                          _copyToClipboard(context, field.value, field.label),
                       child: Icon(
-                        isRevealed
-                            ? CupertinoIcons.eye_slash_fill
-                            : CupertinoIcons.eye_fill,
-                        size: 18,
-                        color: AppStyles.getSecondaryTextColor(context),
+                        CupertinoIcons.doc_on_doc,
+                        size: 16,
+                        color: AppStyles.teal(context),
                       ),
                     ),
-                    // Copy button (only when revealed)
-                    if (isRevealed)
-                      CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        minimumSize: const Size(32, 32),
-                        onPressed: () =>
-                            _copyToClipboard(context, field.value, field.label),
-                        child: Icon(
-                          CupertinoIcons.doc_on_doc,
-                          size: 18,
-                          color: AppStyles.teal(context),
-                        ),
-                      ),
                   ],
                 ),
-              ],
-            ),
-          );
-        }),
+              )),
+        ],
       ],
     );
   }
@@ -2512,5 +2497,5 @@ class _SensitiveFieldsSectionState extends State<_SensitiveFieldsSection> {
 class _SensitiveField {
   final String label;
   final String value;
-  const _SensitiveField({required this.label, required this.value});
+  const _SensitiveField(this.label, this.value);
 }
