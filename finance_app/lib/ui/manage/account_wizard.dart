@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
 import 'package:vittara_fin_os/logic/banks_controller.dart';
@@ -1675,6 +1676,8 @@ class _AccountWizardState extends State<AccountWizard> {
                         controller: _debitCardExpiryController,
                         placeholder: 'MM/YY',
                         keyboardType: TextInputType.number,
+                        inputFormatters: [_ExpiryInputFormatter()],
+                        maxLength: 5,
                         padding: const EdgeInsets.all(Spacing.lg),
                         decoration: BoxDecoration(
                           color: AppStyles.getCardColor(context),
@@ -1857,6 +1860,8 @@ class _AccountWizardState extends State<AccountWizard> {
                         controller: _creditCardExpiryController,
                         placeholder: 'MM/YY',
                         keyboardType: TextInputType.number,
+                        inputFormatters: [_ExpiryInputFormatter()],
+                        maxLength: 5,
                         padding: const EdgeInsets.all(Spacing.lg),
                         decoration: BoxDecoration(
                           color: AppStyles.getCardColor(context),
@@ -2116,6 +2121,30 @@ class _AccountWizardState extends State<AccountWizard> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Auto-inserts "/" after the first two digits so expiry is formatted MM/YY.
+class _ExpiryInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    final digits = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
+
+    // Cap at 4 digits (MMYY)
+    final capped = digits.length > 4 ? digits.substring(0, 4) : digits;
+
+    String formatted;
+    if (capped.length <= 2) {
+      formatted = capped;
+    } else {
+      formatted = '${capped.substring(0, 2)}/${capped.substring(2)}';
+    }
+
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
     );
   }
 }
