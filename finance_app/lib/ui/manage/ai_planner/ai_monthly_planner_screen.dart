@@ -712,6 +712,8 @@ class _DetailBody extends StatelessWidget {
         const SizedBox(height: Spacing.lg),
         _buildThisMonthCard(context),
         const SizedBox(height: Spacing.lg),
+        _buildMLIntelligence(context),
+        const SizedBox(height: Spacing.lg),
         _buildRecommendations(context),
       ],
     );
@@ -1270,6 +1272,303 @@ class _DetailBody extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  // ── ML Intelligence section ───────────────────────────────────────────────
+
+  Widget _buildMLIntelligence(BuildContext context) {
+    final ml = analysis.ml;
+    const headerColor = AppStyles.novaPurple;
+
+    return Container(
+      padding: const EdgeInsets.all(Spacing.lg),
+      decoration: BoxDecoration(
+        color: AppStyles.getCardColor(context),
+        borderRadius: BorderRadius.circular(Radii.lg),
+        border: Border.all(color: headerColor.withValues(alpha: 0.20)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: headerColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(CupertinoIcons.sparkles,
+                    size: 15, color: headerColor),
+              ),
+              const SizedBox(width: Spacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('ML Intelligence',
+                        style: TextStyle(
+                          fontSize: TypeScale.callout,
+                          fontWeight: FontWeight.w700,
+                          color: headerColor,
+                        )),
+                    Text(
+                      ml.dataSufficient
+                          ? 'Based on ${ml.dataMonths} months of your data'
+                          : 'Learns from your transaction history',
+                      style: TextStyle(
+                        fontSize: TypeScale.caption,
+                        color: AppStyles.getSecondaryTextColor(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          if (!ml.dataSufficient) ...[
+            const SizedBox(height: Spacing.lg),
+            _mlLockedState(context),
+          ] else ...[
+            const SizedBox(height: Spacing.lg),
+            // Predicted savings
+            if (ml.predictedSavings != null)
+              _mlRow(
+                context,
+                icon: CupertinoIcons.arrow_right_circle_fill,
+                color: AppStyles.accentBlue,
+                label: 'Predicted next-month savings',
+                value: CurrencyFormatter.compact(ml.predictedSavings!),
+                detail: ml.predictedSavings! > analysis.monthlySavings
+                    ? '↑ above your recent average'
+                    : ml.predictedSavings! < analysis.monthlySavings
+                        ? '↓ below your recent average'
+                        : '≈ in line with your average',
+              ),
+
+            // Trend
+            if (ml.trendInsight != null) ...[
+              const SizedBox(height: Spacing.md),
+              _mlRow(
+                context,
+                icon: ml.trendSlope != null && ml.trendSlope! >= 0
+                    ? CupertinoIcons.arrow_up_right
+                    : CupertinoIcons.arrow_down_right,
+                color: ml.trendSlope != null && ml.trendSlope! >= 0
+                    ? AppStyles.accentGreen
+                    : AppStyles.accentOrange,
+                label: 'Savings trend',
+                value: ml.trendRSquared != null
+                    ? 'R²=${ml.trendRSquared!.toStringAsFixed(2)}'
+                    : '',
+                detail: ml.trendInsight!,
+              ),
+            ],
+
+            // Goal probability
+            if (ml.goalCompletionProbability != null) ...[
+              const SizedBox(height: Spacing.md),
+              _mlProbabilityRow(context, ml.goalCompletionProbability!,
+                  ml.completionMonthsRange),
+            ],
+
+            // Seasonal warning
+            if (ml.seasonalWarning != null) ...[
+              const SizedBox(height: Spacing.md),
+              _mlRow(
+                context,
+                icon: CupertinoIcons.calendar_badge_minus,
+                color: AppStyles.accentAmber,
+                label: 'Seasonal pattern detected',
+                value: '',
+                detail: ml.seasonalWarning!,
+              ),
+            ],
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _mlLockedState(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(Spacing.md),
+      decoration: BoxDecoration(
+        color: AppStyles.novaPurple.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(Radii.md),
+      ),
+      child: Row(
+        children: [
+          const Icon(CupertinoIcons.lock_fill,
+              size: 16, color: AppStyles.novaPurple),
+          const SizedBox(width: Spacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Unlocks with more data',
+                    style: TextStyle(
+                      fontSize: TypeScale.footnote,
+                      fontWeight: FontWeight.w600,
+                      color: AppStyles.novaPurple,
+                    )),
+                const SizedBox(height: 2),
+                Text(
+                  'ML predictions activate after 3 months of transactions. '
+                  'You currently have ${analysis.ml.dataMonths} month${analysis.ml.dataMonths == 1 ? '' : 's'}.',
+                  style: TextStyle(
+                    fontSize: TypeScale.caption,
+                    color: AppStyles.getSecondaryTextColor(context),
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _mlRow(
+    BuildContext context, {
+    required IconData icon,
+    required Color color,
+    required String label,
+    required String value,
+    required String detail,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 26,
+          height: 26,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.12),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, size: 12, color: color),
+        ),
+        const SizedBox(width: Spacing.sm),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(label,
+                      style: TextStyle(
+                        fontSize: TypeScale.footnote,
+                        fontWeight: FontWeight.w600,
+                        color: AppStyles.getTextColor(context),
+                      )),
+                  if (value.isNotEmpty)
+                    Text(value,
+                        style: TextStyle(
+                          fontSize: TypeScale.footnote,
+                          fontWeight: FontWeight.w700,
+                          color: color,
+                        )),
+                ],
+              ),
+              const SizedBox(height: 2),
+              Text(detail,
+                  style: TextStyle(
+                    fontSize: TypeScale.caption,
+                    color: AppStyles.getSecondaryTextColor(context),
+                    height: 1.4,
+                  )),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _mlProbabilityRow(
+    BuildContext context,
+    double probability,
+    ({int low, int mid, int high})? range,
+  ) {
+    final pct = (probability * 100).round();
+    final Color probColor;
+    if (pct >= 75) probColor = AppStyles.accentGreen;
+    else if (pct >= 50) probColor = AppStyles.accentAmber;
+    else probColor = AppStyles.accentOrange;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 26,
+                  height: 26,
+                  decoration: BoxDecoration(
+                    color: probColor.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(CupertinoIcons.gauge,
+                      size: 12, color: probColor),
+                ),
+                const SizedBox(width: Spacing.sm),
+                Text('On-time probability',
+                    style: TextStyle(
+                      fontSize: TypeScale.footnote,
+                      fontWeight: FontWeight.w600,
+                      color: AppStyles.getTextColor(context),
+                    )),
+              ],
+            ),
+            Text('$pct%',
+                style: TextStyle(
+                  fontSize: TypeScale.subhead,
+                  fontWeight: FontWeight.w800,
+                  color: probColor,
+                )),
+          ],
+        ),
+        const SizedBox(height: Spacing.sm),
+        // Probability bar
+        Padding(
+          padding: const EdgeInsets.only(left: 34),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(3),
+                child: LinearProgressIndicator(
+                  value: probability,
+                  minHeight: 6,
+                  backgroundColor:
+                      probColor.withValues(alpha: 0.12),
+                  valueColor: AlwaysStoppedAnimation<Color>(probColor),
+                ),
+              ),
+              if (range != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  'Expected: ${range.mid} months  '
+                  '(best: ${range.low} mo · worst: ${range.high} mo)',
+                  style: TextStyle(
+                    fontSize: TypeScale.caption,
+                    color: AppStyles.getSecondaryTextColor(context),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
     );
   }
 

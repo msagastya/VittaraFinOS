@@ -1,4 +1,5 @@
 import 'package:vittara_fin_os/logic/ai_planner_context.dart';
+import 'package:vittara_fin_os/logic/ml_planner_engine.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
@@ -63,6 +64,8 @@ class PlannerAnalysis {
   final double? scenarioFasterSaveAmount;   // save this much more/month...
   final int? scenarioFasterGainMonths;      // ...to complete goal X months earlier
   final List<PlannerMilestone> milestones;  // 25/50/75/100% waypoints
+  // ── ML fields (null when dataSufficient == false) ──────────────────────
+  final MLAnalysis ml;
 
   const PlannerAnalysis({
     required this.plan,
@@ -85,6 +88,7 @@ class PlannerAnalysis {
     required this.scenarioFasterSaveAmount,
     required this.scenarioFasterGainMonths,
     required this.milestones,
+    required this.ml,
   });
 }
 
@@ -377,6 +381,14 @@ class AIPlannerEngine {
       ));
     }
 
+    // ── ML layer ──────────────────────────────────────────────────────────
+    final ml = MLPlannerEngine.analyze(
+      transactions: transactions,
+      currentSaved: plan.currentSaved,
+      targetAmount: plan.targetAmount,
+      monthsRemaining: plan.targetAmount != null ? monthsToTarget : null,
+    );
+
     // ── Summary ───────────────────────────────────────────────────────────
     final summary = _buildSummary(plan, isOnTrack, savingsRate, savingsGap,
         monthsToTarget, monthlyIncome, effectiveMonthlySavings,
@@ -403,6 +415,7 @@ class AIPlannerEngine {
       scenarioFasterSaveAmount: scenarioFasterSaveAmount,
       scenarioFasterGainMonths: scenarioFasterGainMonths,
       milestones: milestones,
+      ml: ml,
     );
   }
 
