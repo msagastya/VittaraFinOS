@@ -25,6 +25,7 @@ import 'package:vittara_fin_os/logic/goals_controller.dart';
 import 'package:vittara_fin_os/logic/budgets_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_archive_controller.dart';
 import 'package:vittara_fin_os/logic/recurring_templates_controller.dart';
+import 'package:vittara_fin_os/logic/ai_planner_context.dart';
 import 'package:vittara_fin_os/logic/backup_restore_service.dart';
 import 'package:vittara_fin_os/logic/loan_controller.dart';
 import 'package:vittara_fin_os/logic/insurance_controller.dart';
@@ -137,6 +138,7 @@ void main() {
             catch (e) { logger.error('BudgetsController init failed', error: e); return BudgetsController(); }
           }),
           ChangeNotifierProvider(create: (_) => RecurringTemplatesController()),
+          ChangeNotifierProvider(create: (_) => FinancialPlansController()),
           ChangeNotifierProvider(create: (_) {
             try { return LoanController()..load(); }
             catch (e) { logger.error('LoanController init failed', error: e); return LoanController(); }
@@ -1744,7 +1746,7 @@ class DashboardScreen extends StatelessWidget {
                               const SizedBox(width: 5),
                               Expanded(
                                 child: Text(
-                                  'This month: $txCount tx · ₹${_fmtAmt(monthSpent)} out · ₹${_fmtAmt(monthIncome)} in',
+                                  'This month: $txCount tx · ${_fmtAmt(monthSpent)} out · ${_fmtAmt(monthIncome)} in',
                                   style: TextStyle(
                                     fontSize: TypeScale.caption,
                                     color: AppStyles.getSecondaryTextColor(context),
