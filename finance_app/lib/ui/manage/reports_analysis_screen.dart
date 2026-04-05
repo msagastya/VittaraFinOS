@@ -21,6 +21,7 @@ import 'package:vittara_fin_os/ui/manage/tax_summary_screen.dart';
 import 'package:vittara_fin_os/ui/widgets/floating_particle_background.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
+import 'package:vittara_fin_os/logic/ml_planner_engine.dart';
 
 const String _reportAppName = 'VittaraFinOS';
 const String _reportTagline = 'Track Wealth, Master Life';
@@ -266,6 +267,9 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
 
   bool _isExportingPdf = false;
   bool _isExportingExcel = false;
+
+  bool _showAdvancedFilters = false;
+  int _selectedChartIndex = 0; // 0=Monthly MoM, 1=Category Trend, 2=Distribution, 3=Net Trend
 
   // Memoization cache — avoids recomputing expensive aggregations on every rebuild
   String? _lastCacheKey;
@@ -827,6 +831,8 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
           const SizedBox(height: Spacing.lg),
           _buildOverviewCard(summary, groupedMetrics, strategyEvaluation),
           const SizedBox(height: Spacing.lg),
+          _buildMLInsightsCard(),
+          const SizedBox(height: Spacing.lg),
           _buildBreakdownTable(
             groupedMetrics,
             maxGroups: 8,
@@ -853,13 +859,12 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
       case _ReportWorkspaceTab.charts:
         return [
           const SizedBox(height: Spacing.lg),
-          _buildMonthlyComparisonCard(),
+          _buildChartSwitcher(),
           const SizedBox(height: Spacing.lg),
-          _buildCategoryTrendCard(),
-          const SizedBox(height: Spacing.lg),
-          _buildChartsCard(groupedMetrics, trendPoints),
-          const SizedBox(height: Spacing.lg),
-          _buildBreakdownTable(groupedMetrics),
+          if (_selectedChartIndex == 0) _buildMonthlyComparisonCard(),
+          if (_selectedChartIndex == 1) _buildCategoryTrendCard(),
+          if (_selectedChartIndex == 2) _buildChartsCard(groupedMetrics, trendPoints),
+          if (_selectedChartIndex == 3) _buildBreakdownTable(groupedMetrics),
         ];
       case _ReportWorkspaceTab.export:
         return [
@@ -913,18 +918,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
               ),
             ),
             const SizedBox(height: Spacing.xs),
-            ...topGroups.map(
-              (group) => Padding(
-                padding: const EdgeInsets.only(bottom: Spacing.xs),
-                child: Text(
-                  '• ${group.label}: Net ₹${group.net.toStringAsFixed(0)} (${group.transactionCount} txns)',
-                  style: TextStyle(
-                    color: AppStyles.getSecondaryTextColor(context),
-                    fontSize: TypeScale.caption,
-                  ),
-                ),
-              ),
-            ),
+            ..._buildTopDriverBars(topGroups),
           ],
           if (recommendations.isNotEmpty) ...[
             const SizedBox(height: Spacing.sm),
@@ -990,6 +984,14 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
     required List<String> availableTags,
     required List<String> availableApps,
   }) {
+    final hasAdvancedFilters = _selectedCategoryIds.isNotEmpty ||
+        _selectedAccountIds.isNotEmpty ||
+        _selectedAccountTypes.isNotEmpty ||
+        _selectedTags.isNotEmpty ||
+        _selectedPaymentApps.isNotEmpty ||
+        !_includeTransfers ||
+        !_includeInvestments ||
+        !_includeCashbackFlows;
     return Container(
       padding: const EdgeInsets.all(Spacing.lg),
       decoration: AppStyles.sectionDecoration(
@@ -1006,6 +1008,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
             subtitle: 'Customize by date, account, category, type, and tags',
           ),
           const SizedBox(height: Spacing.md),
+          // Date presets
           Wrap(
             spacing: Spacing.sm,
             runSpacing: Spacing.sm,
@@ -1042,6 +1045,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
             ),
           ],
           const SizedBox(height: Spacing.md),
+          // Transaction type chips
           Wrap(
             spacing: Spacing.sm,
             runSpacing: Spacing.sm,
@@ -1064,160 +1068,205 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
             }).toList(),
           ),
           const SizedBox(height: Spacing.md),
-          _buildSwitchRow(
-            label: 'Include transfers in analysis',
-            value: _includeTransfers,
-            onChanged: (value) => setState(() => _includeTransfers = value),
+          // More Filters toggle
+          GestureDetector(
+            onTap: () => setState(() => _showAdvancedFilters = !_showAdvancedFilters),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'More Filters',
+                    style: TextStyle(
+                      color: AppStyles.getPrimaryColor(context),
+                      fontSize: TypeScale.footnote,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                if (hasAdvancedFilters)
+                  Container(
+                    margin: const EdgeInsets.only(right: Spacing.xs),
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: SemanticColors.warning.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      'active',
+                      style: const TextStyle(
+                        fontSize: TypeScale.caption,
+                        fontWeight: FontWeight.w700,
+                        color: SemanticColors.warning,
+                      ),
+                    ),
+                  ),
+                Icon(
+                  _showAdvancedFilters
+                      ? CupertinoIcons.chevron_up
+                      : CupertinoIcons.chevron_down,
+                  size: 14,
+                  color: AppStyles.getPrimaryColor(context),
+                ),
+              ],
+            ),
           ),
-          _buildSwitchRow(
-            label: 'Include investment outflows',
-            value: _includeInvestments,
-            onChanged: (value) => setState(() => _includeInvestments = value),
-          ),
-          _buildSwitchRow(
-            label: 'Include cashback credits',
-            value: _includeCashbackFlows,
-            onChanged: (value) => setState(() => _includeCashbackFlows = value),
-          ),
-          const SizedBox(height: Spacing.md),
-          Row(
-            children: [
-              Expanded(
-                child: _buildPickerButton(
-                  label: 'Primary Group',
-                  value: _primaryGroupBy.label,
-                  onTap: () => _pickGroupBy(isPrimary: true),
+          if (_showAdvancedFilters) ...[
+            const SizedBox(height: Spacing.md),
+            _buildSwitchRow(
+              label: 'Include transfers in analysis',
+              value: _includeTransfers,
+              onChanged: (value) => setState(() => _includeTransfers = value),
+            ),
+            _buildSwitchRow(
+              label: 'Include investment outflows',
+              value: _includeInvestments,
+              onChanged: (value) => setState(() => _includeInvestments = value),
+            ),
+            _buildSwitchRow(
+              label: 'Include cashback credits',
+              value: _includeCashbackFlows,
+              onChanged: (value) => setState(() => _includeCashbackFlows = value),
+            ),
+            const SizedBox(height: Spacing.sm),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildPickerButton(
+                    label: 'Primary Group',
+                    value: _primaryGroupBy.label,
+                    onTap: () => _pickGroupBy(isPrimary: true),
+                  ),
                 ),
-              ),
-              const SizedBox(width: Spacing.sm),
-              Expanded(
-                child: _buildPickerButton(
-                  label: 'Secondary Group',
-                  value: _secondaryGroupBy.label,
-                  onTap: () => _pickGroupBy(isPrimary: false),
+                const SizedBox(width: Spacing.sm),
+                Expanded(
+                  child: _buildPickerButton(
+                    label: 'Secondary Group',
+                    value: _secondaryGroupBy.label,
+                    onTap: () => _pickGroupBy(isPrimary: false),
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: Spacing.sm),
-          Row(
-            children: [
-              Expanded(
-                child: _buildPickerButton(
-                  label: 'Sort By',
-                  value: _sortMetric.label,
-                  onTap: _pickSortMetric,
+              ],
+            ),
+            const SizedBox(height: Spacing.sm),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildPickerButton(
+                    label: 'Sort By',
+                    value: _sortMetric.label,
+                    onTap: _pickSortMetric,
+                  ),
                 ),
-              ),
-              const SizedBox(width: Spacing.sm),
-              Expanded(
-                child: _buildPickerButton(
-                  label: 'Order',
-                  value: _sortDescending ? 'Descending' : 'Ascending',
-                  onTap: () =>
-                      setState(() => _sortDescending = !_sortDescending),
+                const SizedBox(width: Spacing.sm),
+                Expanded(
+                  child: _buildPickerButton(
+                    label: 'Order',
+                    value: _sortDescending ? 'Descending' : 'Ascending',
+                    onTap: () =>
+                        setState(() => _sortDescending = !_sortDescending),
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: Spacing.md),
-          Wrap(
-            spacing: Spacing.sm,
-            runSpacing: Spacing.sm,
-            children: [
-              _buildFilterActionButton(
-                label: 'Categories',
-                count: _selectedCategoryIds.length,
-                onTap: () => _showMultiSelectSheet<String>(
-                  title: 'Filter Categories',
-                  options: categories
-                      .map((c) => _SelectableOption<String>(
-                            value: c.id,
-                            label: c.name,
-                          ))
-                      .toList(),
-                  selected: _selectedCategoryIds,
-                  onApply: (selected) => setState(() => _selectedCategoryIds
-                    ..clear()
-                    ..addAll(selected)),
+              ],
+            ),
+            const SizedBox(height: Spacing.md),
+            Wrap(
+              spacing: Spacing.sm,
+              runSpacing: Spacing.sm,
+              children: [
+                _buildFilterActionButton(
+                  label: 'Categories',
+                  count: _selectedCategoryIds.length,
+                  onTap: () => _showMultiSelectSheet<String>(
+                    title: 'Filter Categories',
+                    options: categories
+                        .map((c) => _SelectableOption<String>(
+                              value: c.id,
+                              label: c.name,
+                            ))
+                        .toList(),
+                    selected: _selectedCategoryIds,
+                    onApply: (selected) => setState(() => _selectedCategoryIds
+                      ..clear()
+                      ..addAll(selected)),
+                  ),
                 ),
-              ),
-              _buildFilterActionButton(
-                label: 'Accounts',
-                count: _selectedAccountIds.length,
-                onTap: () => _showMultiSelectSheet<String>(
-                  title: 'Filter Accounts',
-                  options: accounts
-                      .map((a) => _SelectableOption<String>(
-                            value: a.id,
-                            label: a.name,
-                          ))
-                      .toList(),
-                  selected: _selectedAccountIds,
-                  onApply: (selected) => setState(() => _selectedAccountIds
-                    ..clear()
-                    ..addAll(selected)),
+                _buildFilterActionButton(
+                  label: 'Accounts',
+                  count: _selectedAccountIds.length,
+                  onTap: () => _showMultiSelectSheet<String>(
+                    title: 'Filter Accounts',
+                    options: accounts
+                        .map((a) => _SelectableOption<String>(
+                              value: a.id,
+                              label: a.name,
+                            ))
+                        .toList(),
+                    selected: _selectedAccountIds,
+                    onApply: (selected) => setState(() => _selectedAccountIds
+                      ..clear()
+                      ..addAll(selected)),
+                  ),
                 ),
-              ),
-              _buildFilterActionButton(
-                label: 'Account Types',
-                count: _selectedAccountTypes.length,
-                onTap: () => _showMultiSelectSheet<AccountType>(
-                  title: 'Filter Account Types',
-                  options: AccountType.values
-                      .map((type) => _SelectableOption<AccountType>(
-                            value: type,
-                            label: _accountTypeLabel(type),
-                          ))
-                      .toList(),
-                  selected: _selectedAccountTypes,
-                  onApply: (selected) => setState(() => _selectedAccountTypes
-                    ..clear()
-                    ..addAll(selected)),
+                _buildFilterActionButton(
+                  label: 'Account Types',
+                  count: _selectedAccountTypes.length,
+                  onTap: () => _showMultiSelectSheet<AccountType>(
+                    title: 'Filter Account Types',
+                    options: AccountType.values
+                        .map((type) => _SelectableOption<AccountType>(
+                              value: type,
+                              label: _accountTypeLabel(type),
+                            ))
+                        .toList(),
+                    selected: _selectedAccountTypes,
+                    onApply: (selected) => setState(() => _selectedAccountTypes
+                      ..clear()
+                      ..addAll(selected)),
+                  ),
                 ),
-              ),
-              _buildFilterActionButton(
-                label: 'Tags',
-                count: _selectedTags.length,
-                onTap: () => _showMultiSelectSheet<String>(
-                  title: 'Filter Tags',
-                  options: availableTags
-                      .map((tag) => _SelectableOption<String>(
-                            value: tag,
-                            label: tag,
-                          ))
-                      .toList(),
-                  selected: _selectedTags,
-                  onApply: (selected) => setState(() => _selectedTags
-                    ..clear()
-                    ..addAll(selected)),
+                _buildFilterActionButton(
+                  label: 'Tags',
+                  count: _selectedTags.length,
+                  onTap: () => _showMultiSelectSheet<String>(
+                    title: 'Filter Tags',
+                    options: availableTags
+                        .map((tag) => _SelectableOption<String>(
+                              value: tag,
+                              label: tag,
+                            ))
+                        .toList(),
+                    selected: _selectedTags,
+                    onApply: (selected) => setState(() => _selectedTags
+                      ..clear()
+                      ..addAll(selected)),
+                  ),
                 ),
-              ),
-              _buildFilterActionButton(
-                label: 'Payment Apps',
-                count: _selectedPaymentApps.length,
-                onTap: () => _showMultiSelectSheet<String>(
-                  title: 'Filter Payment Apps',
-                  options: availableApps
-                      .map((app) => _SelectableOption<String>(
-                            value: app,
-                            label: app,
-                          ))
-                      .toList(),
-                  selected: _selectedPaymentApps,
-                  onApply: (selected) => setState(() => _selectedPaymentApps
-                    ..clear()
-                    ..addAll(selected)),
+                _buildFilterActionButton(
+                  label: 'Payment Apps',
+                  count: _selectedPaymentApps.length,
+                  onTap: () => _showMultiSelectSheet<String>(
+                    title: 'Filter Payment Apps',
+                    options: availableApps
+                        .map((app) => _SelectableOption<String>(
+                              value: app,
+                              label: app,
+                            ))
+                        .toList(),
+                    selected: _selectedPaymentApps,
+                    onApply: (selected) => setState(() => _selectedPaymentApps
+                      ..clear()
+                      ..addAll(selected)),
+                  ),
                 ),
-              ),
-              _buildFilterActionButton(
-                label: 'Reset Filters',
-                count: 0,
-                onTap: _resetFilters,
-                color: SemanticColors.warning,
-              ),
-            ],
-          ),
+                _buildFilterActionButton(
+                  label: 'Reset All',
+                  count: 0,
+                  onTap: _resetFilters,
+                  color: SemanticColors.warning,
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -1563,11 +1612,11 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
     if (allVals.isEmpty) return const SizedBox.shrink();
     final maxVal = allVals.reduce((a, b) => a > b ? a : b);
 
-    const catColors = [
-      Color(0xFF007AFF),
-      Color(0xFFFF9500),
-      Color(0xFF34C759),
-      Color(0xFFAF52DE),
+    final catColors = [
+      AppStyles.accentBlue,
+      AppStyles.accentOrange,
+      AppStyles.accentGreen,
+      AppStyles.accentPurple,
     ];
     const monthNames = [
       'Jan',
@@ -1680,19 +1729,21 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
     final values = months.map((m) => monthlyExpenses[m] ?? 0.0).toList();
     final maxVal = values.reduce((a, b) => a > b ? a : b);
     const monthNames = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
     ];
+
+    // Compute average and IQR-based outlier threshold
+    final nonZero = values.where((v) => v > 0).toList()..sort();
+    final avgVal = nonZero.isEmpty ? 0.0 : nonZero.reduce((a, b) => a + b) / nonZero.length;
+    double outlierThreshold = double.infinity;
+    if (nonZero.length >= 4) {
+      final q1 = nonZero[(nonZero.length * 0.25).floor()];
+      final q3 = nonZero[(nonZero.length * 0.75).floor()];
+      outlierThreshold = q3 + 1.5 * (q3 - q1);
+    }
+
+    const chartMaxHeight = 140.0;
 
     return Container(
       padding: const EdgeInsets.all(Spacing.lg),
@@ -1710,64 +1761,126 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
             subtitle: 'Expense totals for the last 6 months',
           ),
           const SizedBox(height: Spacing.lg),
-          AspectRatio(
-            aspectRatio: 16 / 9,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: List.generate(months.length, (i) {
-                final val = values[i];
-                final barHeight = maxVal > 0 ? (val / maxVal) * 140 : 0.0;
-                final isCurrentMonth =
-                    months[i].month == now.month && months[i].year == now.year;
-                final label = monthNames[months[i].month - 1];
-                return Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
+          SizedBox(
+            height: chartMaxHeight + 40,
+            child: Stack(
+              children: [
+                // Average line
+                if (avgVal > 0 && maxVal > 0)
+                  Positioned(
+                    top: chartMaxHeight - (avgVal / maxVal * chartMaxHeight).clamp(0, chartMaxHeight) + 4,
+                    left: 0,
+                    right: 0,
+                    child: Row(
                       children: [
-                        if (val > 0)
-                          Text(
-                            '₹${val >= 1000 ? '${(val / 1000).toStringAsFixed(0)}K' : val.toStringAsFixed(0)}',
-                            style: TextStyle(
-                              fontSize: 9,
-                              color: AppStyles.getSecondaryTextColor(context),
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        const SizedBox(height: 4),
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 400),
-                          height: barHeight.clamp(4.0, 140.0),
-                          decoration: BoxDecoration(
-                            color: isCurrentMonth
-                                ? SemanticColors.error
-                                : SemanticColors.error.withValues(alpha: 0.5),
-                            borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(4),
-                            ),
+                        Expanded(
+                          child: Container(
+                            height: 1,
+                            color: SemanticColors.warning.withValues(alpha: 0.55),
                           ),
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(width: 4),
                         Text(
-                          label,
+                          'avg',
                           style: TextStyle(
-                            fontSize: TypeScale.caption,
-                            fontWeight: isCurrentMonth
-                                ? FontWeight.w700
-                                : FontWeight.w400,
-                            color: isCurrentMonth
-                                ? AppStyles.getTextColor(context)
-                                : AppStyles.getSecondaryTextColor(context),
+                            fontSize: 8,
+                            color: SemanticColors.warning,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ],
                     ),
                   ),
-                );
-              }),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: List.generate(months.length, (i) {
+                    final val = values[i];
+                    final barHeight = maxVal > 0 ? (val / maxVal) * chartMaxHeight : 0.0;
+                    final isCurrentMonth =
+                        months[i].month == now.month && months[i].year == now.year;
+                    final isOutlier = val > outlierThreshold;
+                    final label = monthNames[months[i].month - 1];
+                    final barColor = isOutlier
+                        ? SemanticColors.warning
+                        : isCurrentMonth
+                            ? SemanticColors.error
+                            : SemanticColors.error.withValues(alpha: 0.5);
+                    return Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            if (val > 0)
+                              Text(
+                                '₹${val >= 1000 ? '${(val / 1000).toStringAsFixed(0)}K' : val.toStringAsFixed(0)}',
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  color: isOutlier
+                                      ? SemanticColors.warning
+                                      : AppStyles.getSecondaryTextColor(context),
+                                  fontWeight: isOutlier ? FontWeight.w700 : FontWeight.w400,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            const SizedBox(height: 4),
+                            AnimatedContainer(
+                              duration: const Duration(milliseconds: 400),
+                              height: barHeight.clamp(4.0, chartMaxHeight),
+                              decoration: BoxDecoration(
+                                color: barColor,
+                                borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(4),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              label,
+                              style: TextStyle(
+                                fontSize: TypeScale.caption,
+                                fontWeight: (isCurrentMonth || isOutlier)
+                                    ? FontWeight.w700
+                                    : FontWeight.w400,
+                                color: isOutlier
+                                    ? SemanticColors.warning
+                                    : isCurrentMonth
+                                        ? AppStyles.getTextColor(context)
+                                        : AppStyles.getSecondaryTextColor(context),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+              ],
             ),
           ),
+          if (nonZero.length >= 4 && values.any((v) => v > outlierThreshold)) ...[
+            const SizedBox(height: Spacing.xs),
+            Row(
+              children: [
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: SemanticColors.warning,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'Outlier month — unusually high spend',
+                  style: TextStyle(
+                    fontSize: TypeScale.caption,
+                    color: SemanticColors.warning,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -1869,6 +1982,319 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
           color: AppStyles.getSecondaryTextColor(context),
           fontSize: TypeScale.footnote,
         ),
+      ),
+    );
+  }
+
+  // ── Chart tab: switcher chips ─────────────────────────────────────────────
+
+  Widget _buildChartSwitcher() {
+    const labels = ['Monthly', 'Categories', 'Distribution', 'Net Trend'];
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: List.generate(labels.length, (i) {
+          final selected = _selectedChartIndex == i;
+          return Padding(
+            padding: EdgeInsets.only(right: i < labels.length - 1 ? Spacing.sm : 0),
+            child: _buildChip(
+              label: labels[i],
+              selected: selected,
+              color: SemanticColors.info,
+              onTap: () => setState(() => _selectedChartIndex = i),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  // ── Overview: top drivers mini bar rows ───────────────────────────────────
+
+  List<Widget> _buildTopDriverBars(List<_GroupedMetric> topGroups) {
+    final maxAbs = topGroups
+        .map((g) => g.outflow > 0 ? g.outflow : g.inflow)
+        .fold(0.0, (a, b) => b > a ? b : a);
+    if (maxAbs == 0) return [];
+    const driverColors = [
+      AppStyles.accentBlue,
+      AppStyles.accentOrange,
+      AppStyles.accentPurple,
+    ];
+    return List.generate(topGroups.length, (i) {
+      final g = topGroups[i];
+      final spending = g.outflow > 0 ? g.outflow : g.inflow;
+      final fraction = spending / maxAbs;
+      final color = driverColors[i % driverColors.length];
+      return Padding(
+        padding: const EdgeInsets.only(bottom: Spacing.sm),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    g.label,
+                    style: TextStyle(
+                      color: AppStyles.getTextColor(context),
+                      fontSize: TypeScale.caption,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Text(
+                  '₹${spending >= 1000 ? '${(spending / 1000).toStringAsFixed(1)}K' : spending.toStringAsFixed(0)}',
+                  style: TextStyle(
+                    color: color,
+                    fontSize: TypeScale.caption,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 3),
+            LayoutBuilder(
+              builder: (ctx, box) => Stack(
+                children: [
+                  Container(
+                    height: 4,
+                    width: box.maxWidth,
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  Container(
+                    height: 4,
+                    width: box.maxWidth * fraction,
+                    decoration: BoxDecoration(
+                      color: color,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
+  // ── ML Insights card ──────────────────────────────────────────────────────
+
+  Widget _buildMLInsightsCard() {
+    final allTransactions = context.read<TransactionsController>().transactions;
+    final ml = MLPlannerEngine.analyze(
+      transactions: allTransactions,
+      currentSaved: 0,
+      targetAmount: null,
+      monthsRemaining: null,
+    );
+
+    if (!ml.dataSufficient) {
+      return Container(
+        padding: const EdgeInsets.all(Spacing.lg),
+        decoration: AppStyles.sectionDecoration(
+          context,
+          tint: SemanticColors.primary.withValues(alpha: 0.5),
+          radius: Radii.xl,
+        ),
+        child: Row(
+          children: [
+            const Icon(CupertinoIcons.waveform_path, color: SemanticColors.primary, size: 18),
+            const SizedBox(width: Spacing.sm),
+            Expanded(
+              child: Text(
+                'ML Intelligence — add at least 3 months of transactions to unlock spending predictions & anomaly detection.',
+                style: TextStyle(
+                  color: AppStyles.getSecondaryTextColor(context),
+                  fontSize: TypeScale.caption,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Detect outlier months: months where expense > Q3 + 1.5*IQR
+    final monthlyMap = <String, double>{};
+    for (final tx in allTransactions) {
+      if (tx.type != TransactionType.expense) continue;
+      final key = '${tx.dateTime.year}-${tx.dateTime.month.toString().padLeft(2, '0')}';
+      monthlyMap[key] = (monthlyMap[key] ?? 0) + tx.amount;
+    }
+    final sortedMonthlyVals = monthlyMap.values.toList()..sort();
+    List<String> outlierMonths = [];
+    if (sortedMonthlyVals.length >= 4) {
+      final q1 = sortedMonthlyVals[(sortedMonthlyVals.length * 0.25).floor()];
+      final q3 = sortedMonthlyVals[(sortedMonthlyVals.length * 0.75).floor()];
+      final threshold = q3 + 1.5 * (q3 - q1);
+      outlierMonths = monthlyMap.entries
+          .where((e) => e.value > threshold)
+          .map((e) {
+            final parts = e.key.split('-');
+            final month = int.parse(parts[1]);
+            const names = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                           'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return '${names[month]} ${parts[0]}';
+          })
+          .toList();
+    }
+
+    // Detect unusual transactions (amount > mean + 2σ per category)
+    final catAmounts = <String, List<double>>{};
+    for (final tx in allTransactions) {
+      if (tx.type != TransactionType.expense) continue;
+      final cat = (tx.metadata?['categoryName'] as String?)?.trim() ?? 'Other';
+      catAmounts.putIfAbsent(cat, () => []).add(tx.amount);
+    }
+    int unusualTxCount = 0;
+    for (final entry in catAmounts.entries) {
+      if (entry.value.length < 3) continue;
+      final mean = entry.value.reduce((a, b) => a + b) / entry.value.length;
+      final variance = entry.value.map((v) => (v - mean) * (v - mean)).reduce((a, b) => a + b) / (entry.value.length - 1);
+      final stdDev = math.sqrt(variance);
+      final threshold = mean + 2 * stdDev;
+      unusualTxCount += entry.value.where((v) => v > threshold).length;
+    }
+
+    final predictedSavings = ml.predictedSavings ?? 0.0;
+    final hasTrend = ml.trendInsight != null;
+
+    return Container(
+      padding: const EdgeInsets.all(Spacing.lg),
+      decoration: AppStyles.sectionDecoration(
+        context,
+        tint: SemanticColors.primary.withValues(alpha: 0.7),
+        radius: Radii.xl,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionTitle(
+            icon: CupertinoIcons.waveform_path,
+            title: 'ML Intelligence',
+            subtitle: 'On-device pattern analysis · ${ml.dataMonths} months of data',
+          ),
+          const SizedBox(height: Spacing.md),
+          // Predicted savings row
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
+            decoration: BoxDecoration(
+              color: (predictedSavings >= 0 ? SemanticColors.success : SemanticColors.error)
+                  .withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(Radii.md),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  predictedSavings >= 0 ? CupertinoIcons.arrow_up_right : CupertinoIcons.arrow_down_right,
+                  size: 14,
+                  color: predictedSavings >= 0 ? SemanticColors.success : SemanticColors.error,
+                ),
+                const SizedBox(width: Spacing.xs),
+                Expanded(
+                  child: Text(
+                    'Predicted next month savings: ₹${predictedSavings.abs().toStringAsFixed(0)}${predictedSavings < 0 ? ' (deficit)' : ''}',
+                    style: TextStyle(
+                      color: predictedSavings >= 0 ? SemanticColors.success : SemanticColors.error,
+                      fontSize: TypeScale.footnote,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (hasTrend) ...[
+            const SizedBox(height: Spacing.sm),
+            Row(
+              children: [
+                const Icon(CupertinoIcons.chart_bar_alt_fill, size: 13, color: SemanticColors.info),
+                const SizedBox(width: 5),
+                Expanded(
+                  child: Text(
+                    ml.trendInsight!,
+                    style: const TextStyle(
+                      color: SemanticColors.info,
+                      fontSize: TypeScale.caption,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          if (ml.seasonalWarning != null) ...[
+            const SizedBox(height: Spacing.sm),
+            Row(
+              children: [
+                const Icon(CupertinoIcons.calendar_badge_plus, size: 13, color: SemanticColors.warning),
+                const SizedBox(width: 5),
+                Expanded(
+                  child: Text(
+                    ml.seasonalWarning!,
+                    style: const TextStyle(
+                      color: SemanticColors.warning,
+                      fontSize: TypeScale.caption,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          if (outlierMonths.isNotEmpty) ...[
+            const SizedBox(height: Spacing.sm),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(CupertinoIcons.exclamationmark_circle, size: 13, color: SemanticColors.warning),
+                const SizedBox(width: 5),
+                Expanded(
+                  child: Text(
+                    'Outlier months (unusually high spend): ${outlierMonths.join(', ')}',
+                    style: const TextStyle(
+                      color: SemanticColors.warning,
+                      fontSize: TypeScale.caption,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          if (unusualTxCount > 0) ...[
+            const SizedBox(height: Spacing.sm),
+            Row(
+              children: [
+                const Icon(CupertinoIcons.exclamationmark_triangle, size: 13, color: AppStyles.accentOrange),
+                const SizedBox(width: 5),
+                Expanded(
+                  child: Text(
+                    '$unusualTxCount transaction${unusualTxCount == 1 ? '' : 's'} detected as unusually large in their category',
+                    style: const TextStyle(
+                      color: AppStyles.accentOrange,
+                      fontSize: TypeScale.caption,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          if (outlierMonths.isEmpty && unusualTxCount == 0 && !hasTrend) ...[
+            const SizedBox(height: Spacing.sm),
+            Text(
+              'No anomalies detected — your spending looks consistent.',
+              style: TextStyle(
+                color: SemanticColors.success,
+                fontSize: TypeScale.caption,
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
