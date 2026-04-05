@@ -689,8 +689,13 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                 _buildDateChips(),
                 // UTL-02 — recurring pattern suggestions
                 if (_searchQuery.isEmpty && _dateFilter == _DateRangeFilter.all)
-                  _buildRecurringSuggestions(
-                      transactionsController.transactions),
+                  Consumer<RecurringTemplatesController>(
+                    builder: (_, recurringCtrl, __) =>
+                        _buildRecurringSuggestions(
+                      transactionsController.transactions,
+                      recurringCtrl,
+                    ),
+                  ),
                 if (_hasActiveFilter)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(
@@ -1696,8 +1701,10 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
 
   // ── UTL-02: Recurring pattern suggestion banner ───────────────────────────
 
-  Widget _buildRecurringSuggestions(List<Transaction> transactions) {
-    final recurringCtrl = context.read<RecurringTemplatesController>();
+  Widget _buildRecurringSuggestions(
+    List<Transaction> transactions,
+    RecurringTemplatesController recurringCtrl,
+  ) {
     final patterns = recurringCtrl
         .detectSuggestions(transactions)
         .where((p) => !_dismissedSuggestions.contains(p.payee))
