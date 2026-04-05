@@ -288,12 +288,14 @@ class NetWorthPage extends StatefulWidget {
 class _NetWorthPageState extends State<NetWorthPage> {
   bool _expandInvestments = false;
   List<_NetWorthSnapshot> _historySnapshots = [];
+  List<_NetWorthSnapshot> _dailySnapshots = [];
   bool _snapshotSavedThisSession = false;
 
   @override
   void initState() {
     super.initState();
     _loadNetWorthHistory();
+    _loadDailyHistory();
   }
 
   Future<void> _loadNetWorthHistory() async {
@@ -326,15 +328,48 @@ class _NetWorthPageState extends State<NetWorthPage> {
     if (mounted) setState(() => _historySnapshots = trimmed);
   }
 
+  Future<void> _loadDailyHistory() async {
+    final prefs = await SharedPreferences.getInstance();
+    final now = DateTime.now();
+    final cutoff = DateTime(now.year, now.month, now.day).subtract(const Duration(days: 29));
+    final keys = prefs
+        .getKeys()
+        .where((k) => k.startsWith('nw_daily_'))
+        .toList()
+      ..sort();
+    final snapshots = <_NetWorthSnapshot>[];
+    for (final key in keys) {
+      final value = prefs.getDouble(key);
+      if (value == null) continue;
+      // key format: nw_daily_YYYY_MM_DD
+      final datePart = key.substring('nw_daily_'.length);
+      final parts = datePart.split('_');
+      if (parts.length == 3) {
+        final year = int.tryParse(parts[0]);
+        final month = int.tryParse(parts[1]);
+        final day = int.tryParse(parts[2]);
+        if (year != null && month != null && day != null) {
+          final date = DateTime(year, month, day);
+          if (!date.isBefore(cutoff)) {
+            snapshots.add(_NetWorthSnapshot(date: date, value: value));
+          }
+        }
+      }
+    }
+    if (mounted) setState(() => _dailySnapshots = snapshots);
+  }
+
   void _maybeSaveSnapshot(double netWorth) {
     if (_snapshotSavedThisSession) return;
     _snapshotSavedThisSession = true;
     final now = DateTime.now();
-    final key =
-        'nw_history_${now.year}_${now.month.toString().padLeft(2, '0')}';
+    final monthKey = 'nw_history_${now.year}_${now.month.toString().padLeft(2, '0')}';
+    final dailyKey = 'nw_daily_${now.year}_${now.month.toString().padLeft(2, '0')}_${now.day.toString().padLeft(2, '0')}';
     SharedPreferences.getInstance().then((prefs) {
-      prefs.setDouble(key, netWorth);
+      prefs.setDouble(monthKey, netWorth);
+      prefs.setDouble(dailyKey, netWorth);
       _loadNetWorthHistory();
+      _loadDailyHistory();
     });
   }
 
@@ -468,6 +503,8 @@ class _NetWorthPageState extends State<NetWorthPage> {
                                 const SizedBox(height: Spacing.md),
                                 _buildMotivationalBanner(
                                     context, totalNetWorth),
+                              ],
+                              if (_dailySnapshots.length >= 2) ...[
                                 const SizedBox(height: Spacing.lg),
                                 const Divider(height: 1),
                                 const SizedBox(height: Spacing.lg),
@@ -1878,23 +1915,39 @@ class _NetWorthPageState extends State<NetWorthPage> {
       'Dec',
     ];
 
-    // Build projected balance list (month 0 = current, 1..6 = future)
-    final projectedValues = List.generate(
+    // Weekly chart: ~26 weeks per 6 months for denser chart line
+    const weeksPerMonth = 52.0 / 12.0;
+    const forecastWeeks = 26;
+    final weeklyAvg = monthlyAvg / weeksPerMonth;
+    final projectedWeeklyValues = List.generate(
+      forecastWeeks + 1,
+      (i) => currentNetWorth + weeklyAvg * i,
+    );
+
+    // Monthly values used only for projection table (rows 1–6)
+    final projectedMonthlyValues = List.generate(
       forecastMonths + 1,
       (i) => currentNetWorth + monthlyAvg * i,
     );
 
-    final endValue = projectedValues.last;
+    final endValue = projectedMonthlyValues.last;
     final delta = endValue - currentNetWorth;
     final isPositiveDelta = delta >= 0;
     final deltaColor =
         isPositiveDelta ? AppStyles.gain(context) : AppStyles.loss(context);
 
-    // Build month labels for x-axis (current month + next 6)
+    // Build month labels for x-axis (current month + next 6) — used by table
     final xLabels = List.generate(forecastMonths + 1, (i) {
       final d = DateTime(now.year, now.month + i);
       return months[d.month - 1];
     });
+
+    // X-axis labels for weekly chart: Now / mid-point month / end month
+    final chartXLabels = [
+      'Now',
+      months[DateTime(now.year, now.month + 3).month - 1],
+      months[DateTime(now.year, now.month + 6).month - 1],
+    ];
 
     return Container(
       padding: const EdgeInsets.all(Spacing.lg),
@@ -1977,12 +2030,12 @@ class _NetWorthPageState extends State<NetWorthPage> {
 
           const SizedBox(height: Spacing.lg),
 
-          // Forecast chart
+          // Forecast chart — weekly points for smoother curve
           SizedBox(
             height: 130,
             child: CustomPaint(
               painter: _ForecastPainter(
-                values: projectedValues,
+                values: projectedWeeklyValues,
                 actualColor: AppStyles.teal(context),
                 forecastColor: AppStyles.violet(context),
                 gridColor: AppStyles.getSecondaryTextColor(context),
@@ -1993,16 +2046,12 @@ class _NetWorthPageState extends State<NetWorthPage> {
 
           const SizedBox(height: Spacing.sm),
 
-          // X-axis labels
+          // X-axis labels (Now / ~3mo / ~6mo)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: xLabels
+            children: chartXLabels
                 .asMap()
                 .entries
-                .where((e) =>
-                    e.key == 0 ||
-                    e.key == forecastMonths ~/ 2 ||
-                    e.key == forecastMonths)
                 .map(
                   (e) => Text(
                     e.value,
@@ -2010,7 +2059,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                       fontSize: TypeScale.label,
                       color: e.key == 0
                           ? AppStyles.teal(context)
-                          : e.key == forecastMonths
+                          : e.key == 2
                               ? AppStyles.violet(context)
                               : AppStyles.getSecondaryTextColor(context),
                       fontWeight: FontWeight.w500,
@@ -2022,9 +2071,9 @@ class _NetWorthPageState extends State<NetWorthPage> {
 
           const SizedBox(height: Spacing.lg),
 
-          // Projection table
+          // Projection table — monthly rows (unchanged)
           _buildProjectionTable(
-              context, projectedValues, xLabels, months, now, deltaColor),
+              context, projectedMonthlyValues, xLabels, months, now, deltaColor),
         ],
       ),
     );
@@ -2094,7 +2143,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
   }
 
   Widget _buildNetWorthTrendCard(BuildContext context) {
-    final snapshots = _historySnapshots;
+    final snapshots = _dailySnapshots;
     final first = snapshots.first.value;
     final last = snapshots.last.value;
     final change = last - first;
@@ -2102,7 +2151,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
     final isPositive = change >= 0;
     final trendColor =
         isPositive ? AppStyles.gain(context) : AppStyles.loss(context);
-    final monthCount = snapshots.length;
+    final dayCount = snapshots.length;
     final months = [
       'Jan',
       'Feb',
@@ -2169,7 +2218,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
           ),
           const SizedBox(height: Spacing.xs),
           Text(
-            'Last $monthCount month${monthCount == 1 ? '' : 's'}',
+            'Last $dayCount day${dayCount == 1 ? '' : 's'}',
             style: TextStyle(
               fontSize: TypeScale.footnote,
               color: AppStyles.getSecondaryTextColor(context),
@@ -2189,27 +2238,27 @@ class _NetWorthPageState extends State<NetWorthPage> {
             ),
           ),
           const SizedBox(height: Spacing.sm),
-          // X-axis month labels
+          // X-axis day labels
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                months[snapshots.first.date.month - 1],
+                '${months[snapshots.first.date.month - 1]} ${snapshots.first.date.day}',
                 style: TextStyle(
                   fontSize: TypeScale.label,
                   color: AppStyles.getSecondaryTextColor(context),
                 ),
               ),
-              if (monthCount > 2)
+              if (dayCount > 2)
                 Text(
-                  months[snapshots[monthCount ~/ 2].date.month - 1],
+                  '${months[snapshots[dayCount ~/ 2].date.month - 1]} ${snapshots[dayCount ~/ 2].date.day}',
                   style: TextStyle(
                     fontSize: TypeScale.label,
                     color: AppStyles.getSecondaryTextColor(context),
                   ),
                 ),
               Text(
-                months[snapshots.last.date.month - 1],
+                '${months[snapshots.last.date.month - 1]} ${snapshots.last.date.day}',
                 style: TextStyle(
                   fontSize: TypeScale.label,
                   color: AppStyles.getSecondaryTextColor(context),
