@@ -96,13 +96,22 @@ abstract class BaseDashboardWidget extends StatelessWidget {
                                     height: 12, width: double.infinity),
                               ],
                             )
-                          : SingleChildScrollView(
-                              child: buildContent(
-                                context,
-                                columnSpan: config.columnSpan,
-                                rowSpan: config.rowSpan,
-                                width: double.infinity,
-                                height: double.infinity,
+                          : LayoutBuilder(
+                              builder: (ctx, constraints) =>
+                                  SingleChildScrollView(
+                                physics: const BouncingScrollPhysics(),
+                                child: ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    minHeight: constraints.maxHeight,
+                                  ),
+                                  child: buildContent(
+                                    ctx,
+                                    columnSpan: config.columnSpan,
+                                    rowSpan: config.rowSpan,
+                                    width: double.infinity,
+                                    height: double.infinity,
+                                  ),
+                                ),
                               ),
                             ),
                     ),

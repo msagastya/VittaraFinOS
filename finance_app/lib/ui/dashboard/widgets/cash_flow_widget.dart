@@ -115,9 +115,9 @@ class CashFlowDashboardWidget extends StatelessWidget {
             ),
             const SizedBox(height: Spacing.md),
 
-            // Bar chart
-            SizedBox(
-              height: 80,
+            // Bar chart — flexible height so it fills available card space
+            Flexible(
+              flex: 3,
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: List.generate(5, (i) {

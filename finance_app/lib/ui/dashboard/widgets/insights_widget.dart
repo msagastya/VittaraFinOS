@@ -1334,48 +1334,49 @@ class InsightsWidget extends BaseDashboardWidget {
             );
           }
 
-          return SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ── AI Insight Carousel ────────────────────────────────
-                SpendNarrativeCarousel(insights: data.narratives, isDark: isDark),
+          // Outer _buildDashboardWidgetCard in main.dart provides
+          // LayoutBuilder + ConstrainedBox(minHeight) + SingleChildScrollView.
+          // Return Column directly to avoid double-nested scrollers.
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── AI Insight Carousel ────────────────────────────────
+              SpendNarrativeCarousel(insights: data.narratives, isDark: isDark),
 
+              const SizedBox(height: Spacing.md),
+
+              // ── Month Forecast ─────────────────────────────────────
+              if (data.hasData && data.projectedMonthEnd > 0) ...[
+                SpendSectionLabel('MONTH FORECAST'),
+                SpendForecastBar(data: data, isDark: isDark),
                 const SizedBox(height: Spacing.md),
-
-                // ── Month Forecast ─────────────────────────────────────
-                if (data.hasData && data.projectedMonthEnd > 0) ...[
-                  SpendSectionLabel('MONTH FORECAST'),
-                  SpendForecastBar(data: data, isDark: isDark),
-                  const SizedBox(height: Spacing.md),
-                ],
-
-                // ── Category Pulse ─────────────────────────────────────
-                if (data.categoryDrifts.isNotEmpty) ...[
-                  SpendSectionLabel('CATEGORY PULSE  ·  this month vs last'),
-                  SpendCategoryDriftRow(drifts: data.categoryDrifts, isDark: isDark),
-                  const SizedBox(height: Spacing.md),
-                ],
-
-                // ── Spend Rhythm ───────────────────────────────────────
-                if (data.hasData) ...[
-                  SpendSectionLabel('SPEND RHYTHM  ·  by day of week'),
-                  SpendDowHeatmap(dowSpend: data.dowSpend, isDark: isDark),
-                  const SizedBox(height: Spacing.md),
-                ],
-
-                // ── Top Merchants ──────────────────────────────────────
-                if (data.topMerchants.isNotEmpty && data.totalThisMonth > 0) ...[
-                  SpendSectionLabel('TOP MERCHANTS  ·  by share'),
-                  SpendTopMerchantsSection(
-                    merchants: data.topMerchants,
-                    totalThisMonth: data.totalThisMonth,
-                    isDark: isDark,
-                  ),
-                ],
               ],
-            ),
+
+              // ── Category Pulse ─────────────────────────────────────
+              if (data.categoryDrifts.isNotEmpty) ...[
+                SpendSectionLabel('CATEGORY PULSE  ·  this month vs last'),
+                SpendCategoryDriftRow(drifts: data.categoryDrifts, isDark: isDark),
+                const SizedBox(height: Spacing.md),
+              ],
+
+              // ── Spend Rhythm ───────────────────────────────────────
+              if (data.hasData) ...[
+                SpendSectionLabel('SPEND RHYTHM  ·  by day of week'),
+                SpendDowHeatmap(dowSpend: data.dowSpend, isDark: isDark),
+                const SizedBox(height: Spacing.md),
+              ],
+
+              // ── Top Merchants ──────────────────────────────────────
+              if (data.topMerchants.isNotEmpty && data.totalThisMonth > 0) ...[
+                SpendSectionLabel('TOP MERCHANTS  ·  by share'),
+                SpendTopMerchantsSection(
+                  merchants: data.topMerchants,
+                  totalThisMonth: data.totalThisMonth,
+                  isDark: isDark,
+                ),
+              ],
+            ],
           );
         },
       ),
