@@ -352,7 +352,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
                             '₹${controller.maturityValue.toStringAsFixed(2)}',
                             style: TextStyle(
                               color: AppStyles.getPrimaryColor(context),
-                              fontSize: 24,
+                              fontSize: RT.largeTitle(context),
                               fontWeight: FontWeight.bold,
                             ),
                           ),

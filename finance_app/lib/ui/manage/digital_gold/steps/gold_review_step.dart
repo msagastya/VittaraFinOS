@@ -5,6 +5,7 @@ import 'package:vittara_fin_os/ui/manage/digital_gold/digital_gold_wizard_contro
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 import 'package:vittara_fin_os/services/gold_price_service.dart';
 
 class GoldReviewStep extends StatefulWidget {
@@ -123,10 +124,10 @@ class _GoldReviewStepState extends State<GoldReviewStep> {
                         children: [
                           Text(
                             '₹${controller.currentGoldPrice?.toStringAsFixed(2) ?? '-'} per gram',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 24,
-                              color: Color(0xFFFFB81C),
+                              fontSize: RT.largeTitle(context),
+                              color: const Color(0xFFFFB81C),
                             ),
                           ),
                           const SizedBox(height: Spacing.xs),

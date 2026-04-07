@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/ui/manage/stocks/stocks_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class StockReviewStep extends StatelessWidget {
   const StockReviewStep({super.key});
@@ -45,7 +46,7 @@ class StockReviewStep extends StatelessWidget {
           Center(
             child: Text(
               stock.symbol,
-              style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
+              style: AppStyles.titleStyle(context).copyWith(fontSize: RT.largeTitle(context)),
             ),
           ),
           Center(

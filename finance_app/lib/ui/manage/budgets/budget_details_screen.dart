@@ -7,6 +7,7 @@ import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 import 'package:vittara_fin_os/ui/widgets/animated_counter.dart';
 import 'package:vittara_fin_os/ui/widgets/glass_card.dart';
 import 'package:vittara_fin_os/ui/widgets/neumorphic_glass_card.dart';
@@ -87,7 +88,7 @@ class BudgetDetailsScreen extends StatelessWidget {
                                   children: [
                                     Text(budget.name,
                                         style: TextStyle(
-                                            fontSize: TypeScale.title2,
+                                            fontSize: RT.title2(context),
                                             fontWeight: FontWeight.bold,
                                             color: AppStyles.getTextColor(
                                                 context))),
@@ -117,7 +118,7 @@ class BudgetDetailsScreen extends StatelessWidget {
                                     suffix: '%',
                                     decimalPlaces: 1,
                                     textStyle: TextStyle(
-                                        fontSize: TypeScale.hero,
+                                        fontSize: RT.hero(context),
                                         fontWeight: FontWeight.bold,
                                         color: statusColor)),
                                 const SizedBox(height: Spacing.xs),
@@ -143,7 +144,7 @@ class BudgetDetailsScreen extends StatelessWidget {
                                 CurrencyCounter(
                                     value: budget.spentAmount,
                                     textStyle: TextStyle(
-                                        fontSize: TypeScale.title1,
+                                        fontSize: RT.title1(context),
                                         fontWeight: FontWeight.bold,
                                         color: statusColor),
                                     decimalPlaces: 0)
@@ -165,7 +166,7 @@ class BudgetDetailsScreen extends StatelessWidget {
                                 CurrencyCounter(
                                     value: budget.remainingAmount,
                                     textStyle: TextStyle(
-                                        fontSize: TypeScale.title1,
+                                        fontSize: RT.title1(context),
                                         fontWeight: FontWeight.bold,
                                         color: AppStyles.getTextColor(context)),
                                     decimalPlaces: 0)

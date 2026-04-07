@@ -79,7 +79,7 @@ Future<Category?> showCreateCategoryModal(
                   Text(
                     isEditMode ? 'Edit Category' : 'Create Custom Category',
                     style: AppStyles.titleStyle(stateContext)
-                        .copyWith(fontSize: TypeScale.title2),
+                        .copyWith(fontSize: RT.title2(stateContext)),
                   ),
                   const SizedBox(height: Spacing.xxl),
                   Column(

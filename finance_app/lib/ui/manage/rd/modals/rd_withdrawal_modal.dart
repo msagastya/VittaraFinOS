@@ -189,7 +189,7 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
                               child: Text(
                                 '₹',
                                 style: TextStyle(
-                                  fontSize: TypeScale.largeTitle,
+                                  fontSize: RT.largeTitle(context),
                                   fontWeight: FontWeight.bold,
                                   color: AppStyles.getPrimaryColor(context),
                                 ),
@@ -199,7 +199,7 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
                                 decimal: true),
                             style: TextStyle(
                               color: AppStyles.getPrimaryColor(context),
-                              fontSize: TypeScale.largeTitle,
+                              fontSize: RT.largeTitle(context),
                               fontWeight: FontWeight.bold,
                             ),
                             decoration: BoxDecoration(

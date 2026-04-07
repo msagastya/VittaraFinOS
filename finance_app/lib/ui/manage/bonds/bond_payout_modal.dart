@@ -236,7 +236,7 @@ class _BondPayoutModalState extends State<BondPayoutModal> {
             const SizedBox(height: Spacing.lg),
             Text('Record Bond Payout',
                 style: AppStyles.titleStyle(context)
-                    .copyWith(fontSize: TypeScale.title1)),
+                    .copyWith(fontSize: RT.title1(context))),
             const SizedBox(height: Spacing.xxxl),
             Text('Payout Amount',
                 style:

@@ -8,6 +8,7 @@ import 'package:vittara_fin_os/logic/lending_borrowing_controller.dart';
 import 'package:vittara_fin_os/logic/lending_borrowing_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/utils/id_generator.dart';
@@ -167,7 +168,7 @@ class _BillSplitScreenState extends State<BillSplitScreen> {
                     'Split Created!',
                     style: TextStyle(
                       color: AppStyles.getTextColor(ctx),
-                      fontSize: TypeScale.title2,
+                      fontSize: RT.title2(ctx),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -569,7 +570,7 @@ class _BillSplitScreenState extends State<BillSplitScreen> {
             '₹',
             style: TextStyle(
               color: SemanticColors.lending,
-              fontSize: TypeScale.title2,
+              fontSize: RT.title2(context),
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -775,7 +776,7 @@ class _BillSplitScreenState extends State<BillSplitScreen> {
                 'Add New Contact',
                 style: TextStyle(
                   color: AppStyles.getTextColor(ctx),
-                  fontSize: TypeScale.title2,
+                  fontSize: RT.title2(ctx),
                   fontWeight: FontWeight.bold,
                 ),
               ),

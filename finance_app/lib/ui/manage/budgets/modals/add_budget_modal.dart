@@ -116,7 +116,7 @@ class _AddBudgetModalState extends State<AddBudgetModal> {
               const SizedBox(height: Spacing.xl),
               Text('Create New Budget',
                   style: TextStyle(
-                      fontSize: TypeScale.title2,
+                      fontSize: RT.title2(context),
                       fontWeight: FontWeight.bold,
                       color: AppStyles.getTextColor(context))),
               const SizedBox(height: Spacing.xxl),

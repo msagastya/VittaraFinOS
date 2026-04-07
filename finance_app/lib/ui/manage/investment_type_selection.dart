@@ -6,6 +6,7 @@ import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/investment_type_preferences_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 
@@ -99,7 +100,7 @@ class _InvestmentTypeSelectionModalState
                     Text(
                       'Select Investment Type',
                       style:
-                          AppStyles.titleStyle(context).copyWith(fontSize: 24),
+                          AppStyles.titleStyle(context).copyWith(fontSize: RT.largeTitle(context)),
                     ),
                     if (_showAll)
                       CupertinoButton(
@@ -344,7 +345,7 @@ class _InvestmentTypePreferencesModalState
                     Text(
                       'Customize First Screen',
                       style: AppStyles.titleStyle(context)
-                          .copyWith(fontSize: TypeScale.title2),
+                          .copyWith(fontSize: RT.title2(context)),
                     ),
                     const SizedBox(height: Spacing.sm),
                     Text(

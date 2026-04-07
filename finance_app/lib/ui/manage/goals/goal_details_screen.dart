@@ -100,7 +100,7 @@ class GoalDetailsScreen extends StatelessWidget {
                                     Text(
                                       goal.name,
                                       style: TextStyle(
-                                        fontSize: TypeScale.title2,
+                                        fontSize: RT.title2(context),
                                         fontWeight: FontWeight.bold,
                                         color: AppStyles.getTextColor(context),
                                       ),
@@ -132,7 +132,7 @@ class GoalDetailsScreen extends StatelessWidget {
                                   suffix: '%',
                                   decimalPlaces: 1,
                                   textStyle: TextStyle(
-                                    fontSize: TypeScale.hero,
+                                    fontSize: RT.hero(context),
                                     fontWeight: FontWeight.bold,
                                     color: goal.color,
                                   ),
@@ -167,7 +167,7 @@ class GoalDetailsScreen extends StatelessWidget {
                                     counter_widgets.CurrencyCounter(
                                       value: goal.currentAmount,
                                       textStyle: TextStyle(
-                                        fontSize: TypeScale.title1,
+                                        fontSize: RT.title1(context),
                                         fontWeight: FontWeight.bold,
                                         color: goal.color,
                                       ),
@@ -197,7 +197,7 @@ class GoalDetailsScreen extends StatelessWidget {
                                     counter_widgets.CurrencyCounter(
                                       value: goal.targetAmount,
                                       textStyle: TextStyle(
-                                        fontSize: TypeScale.title1,
+                                        fontSize: RT.title1(context),
                                         fontWeight: FontWeight.bold,
                                         color: AppStyles.getTextColor(context),
                                       ),
@@ -344,7 +344,7 @@ class GoalDetailsScreen extends StatelessWidget {
                           counter_widgets.CurrencyCounter(
                             value: goal.recommendedMonthlySavings,
                             textStyle: TextStyle(
-                              fontSize: TypeScale.title1,
+                              fontSize: RT.title1(context),
                               fontWeight: FontWeight.bold,
                               color: goal.isOnTrack
                                   ? SemanticColors.success

@@ -251,7 +251,7 @@ class _LendingWizardState extends State<LendingWizard> {
                 Text(
                   'Who did you ${widget.type == LendingType.lent ? "lend" : "borrow"} from?',
                   style: AppStyles.titleStyle(context).copyWith(
-                      fontSize: TypeScale.largeTitle,
+                      fontSize: RT.largeTitle(context),
                       fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: Spacing.sm),
@@ -401,7 +401,7 @@ class _LendingWizardState extends State<LendingWizard> {
               Expanded(
                 child: Text(
                   'My People',
-                  style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
+                  style: AppStyles.titleStyle(context).copyWith(fontSize: RT.largeTitle(context)),
                 ),
               ),
             ],
@@ -549,7 +549,7 @@ class _LendingWizardState extends State<LendingWizard> {
               Expanded(
                 child: Text(
                   'Phone Contacts',
-                  style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
+                  style: AppStyles.titleStyle(context).copyWith(fontSize: RT.largeTitle(context)),
                 ),
               ),
             ],
@@ -707,7 +707,7 @@ class _LendingWizardState extends State<LendingWizard> {
                                 style: TextStyle(
                                   color: AppStyles.gain(context),
                                   fontWeight: FontWeight.w700,
-                                  fontSize: TypeScale.title2,
+                                  fontSize: RT.title2(context),
                                 ),
                               ),
                             ),
@@ -796,7 +796,7 @@ class _LendingWizardState extends State<LendingWizard> {
               Expanded(
                 child: Text(
                   'Manual Entry',
-                  style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
+                  style: AppStyles.titleStyle(context).copyWith(fontSize: RT.largeTitle(context)),
                 ),
               ),
             ],
@@ -884,7 +884,7 @@ class _LendingWizardState extends State<LendingWizard> {
           Text(
             'How much did you ${widget.type == LendingType.lent ? "lend" : "borrow"}?',
             style: AppStyles.titleStyle(context).copyWith(
-                fontSize: TypeScale.largeTitle, fontWeight: FontWeight.w800),
+                fontSize: RT.largeTitle(context), fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: Spacing.sm),
           Text(
@@ -902,7 +902,7 @@ class _LendingWizardState extends State<LendingWizard> {
                 Text(
                   '₹',
                   style: AppStyles.titleStyle(context).copyWith(
-                      fontSize: TypeScale.hero, fontWeight: FontWeight.w700),
+                      fontSize: RT.hero(context), fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(width: Spacing.md),
                 IntrinsicWidth(
@@ -920,7 +920,7 @@ class _LendingWizardState extends State<LendingWizard> {
                       ),
                     ),
                     style: AppStyles.titleStyle(context).copyWith(
-                      fontSize: TypeScale.hero,
+                      fontSize: RT.hero(context),
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.5,
                     ),
@@ -952,7 +952,7 @@ class _LendingWizardState extends State<LendingWizard> {
           Text(
             'Anything else?',
             style: AppStyles.titleStyle(context).copyWith(
-                fontSize: TypeScale.largeTitle, fontWeight: FontWeight.w800),
+                fontSize: RT.largeTitle(context), fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: Spacing.sm),
           Text(
@@ -1030,9 +1030,9 @@ class _LendingWizardState extends State<LendingWizard> {
                   child: Center(
                     child: Text(
                       DateFormatter.format(_selectedDate),
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppStyles.accentBlue,
-                        fontSize: 24,
+                        fontSize: RT.largeTitle(context),
                         fontWeight: FontWeight.w800,
                         letterSpacing: 0.5,
                       ),
@@ -1128,7 +1128,7 @@ class _LendingWizardState extends State<LendingWizard> {
         children: [
           Text(
             'Review',
-            style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
+            style: AppStyles.titleStyle(context).copyWith(fontSize: RT.largeTitle(context)),
           ),
           const SizedBox(height: Spacing.sm),
           Text(

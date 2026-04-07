@@ -98,7 +98,7 @@ class _AddGoalModalState extends State<AddGoalModal> {
               Text(
                 'Create New Goal',
                 style: TextStyle(
-                  fontSize: TypeScale.title2,
+                  fontSize: RT.title2(context),
                   fontWeight: FontWeight.bold,
                   color: AppStyles.getTextColor(context),
                 ),

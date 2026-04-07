@@ -218,7 +218,7 @@ class _FODetailsScreenState extends State<FODetailsScreen> {
                     'Edit ${fo.name}',
                     style: TextStyle(
                         color: AppStyles.getTextColor(ctx),
-                        fontSize: TypeScale.title2,
+                        fontSize: RT.title2(ctx),
                         fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 20),

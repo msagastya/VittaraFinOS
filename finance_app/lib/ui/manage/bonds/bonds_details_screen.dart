@@ -498,7 +498,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
                     'Edit Bond Details',
                     style: TextStyle(
                         color: AppStyles.getTextColor(ctx),
-                        fontSize: TypeScale.title2,
+                        fontSize: RT.title2(ctx),
                         fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 20),

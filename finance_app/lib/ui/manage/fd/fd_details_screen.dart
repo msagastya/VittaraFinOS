@@ -84,7 +84,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                                 widget.fd.name,
                                 style: TextStyle(
                                   color: AppStyles.getTextColor(context),
-                                  fontSize: TypeScale.title2,
+                                  fontSize: RT.title2(context),
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -562,7 +562,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
                         '₹${widget.fd.maturityValue.toStringAsFixed(2)}',
                         style: TextStyle(
                           color: AppStyles.gain(context),
-                          fontSize: TypeScale.title2,
+                          fontSize: RT.title2(context),
                           fontWeight: FontWeight.bold,
                         ),
                       ),

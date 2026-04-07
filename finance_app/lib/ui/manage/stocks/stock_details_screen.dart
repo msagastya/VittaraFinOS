@@ -191,7 +191,7 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                               Text(
                                 _symbol,
                                 style: AppStyles.titleStyle(context)
-                                    .copyWith(fontSize: 24),
+                                    .copyWith(fontSize: RT.largeTitle(context)),
                               ),
                               Text(
                                 _stockName,
@@ -233,7 +233,7 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                             Text(
                               '₹${_investedAmount.toStringAsFixed(2)}',
                               style: AppStyles.titleStyle(context)
-                                  .copyWith(fontSize: TypeScale.title2),
+                                  .copyWith(fontSize: RT.title2(context)),
                             ),
                           ],
                         ),
@@ -251,7 +251,7 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
                             Text(
                               '₹${_currentValue.toStringAsFixed(2)}',
                               style: AppStyles.titleStyle(context).copyWith(
-                                fontSize: TypeScale.title2,
+                                fontSize: RT.title2(context),
                                 color: _investment.color,
                               ),
                             ),
@@ -784,7 +784,7 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
                               ? 'Extra Charges (Optional)'
                               : 'Review & Confirm',
                   style: AppStyles.titleStyle(context)
-                      .copyWith(fontSize: TypeScale.title1),
+                      .copyWith(fontSize: RT.title1(context)),
                 ),
                 const SizedBox(height: Spacing.sm),
                 Text(
@@ -1604,7 +1604,7 @@ class _SellModalState extends State<_SellModal> {
                               ? 'Extra Charges (Optional)'
                               : 'Review & Confirm',
                   style: AppStyles.titleStyle(context)
-                      .copyWith(fontSize: TypeScale.title1),
+                      .copyWith(fontSize: RT.title1(context)),
                 ),
                 const SizedBox(height: Spacing.sm),
                 Text(
@@ -2229,7 +2229,7 @@ class _SIPModalState extends State<_SIPModal> {
                                       ? 'Link Account'
                                       : 'Review & Confirm',
                   style: AppStyles.titleStyle(context)
-                      .copyWith(fontSize: TypeScale.title1),
+                      .copyWith(fontSize: RT.title1(context)),
                 ),
                 const SizedBox(height: Spacing.sm),
                 Text(
@@ -2714,7 +2714,7 @@ class _EditModalState extends State<_EditModal> {
                 Text(
                   'Edit Investment',
                   style: AppStyles.titleStyle(context)
-                      .copyWith(fontSize: TypeScale.title1),
+                      .copyWith(fontSize: RT.title1(context)),
                 ),
                 const SizedBox(height: Spacing.xxxl),
                 Text('Investment Name',
@@ -2877,7 +2877,7 @@ class _DividendModalState extends State<_DividendModal> {
                 Text(
                   'Record Dividend',
                   style: AppStyles.titleStyle(context)
-                      .copyWith(fontSize: TypeScale.title1),
+                      .copyWith(fontSize: RT.title1(context)),
                 ),
                 const SizedBox(height: Spacing.sm),
                 Text(
@@ -3186,7 +3186,7 @@ class _AccountSelector extends StatelessWidget {
                     Text(
                       'Select Account',
                       style: AppStyles.titleStyle(context)
-                          .copyWith(fontSize: TypeScale.title1),
+                          .copyWith(fontSize: RT.title1(context)),
                     ),
                     const SizedBox(height: Spacing.xxxl),
                     if (accounts.isEmpty)

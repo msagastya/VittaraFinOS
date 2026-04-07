@@ -1051,7 +1051,7 @@ class _MFDividendModalState extends State<_MFDividendModal> {
             Text(
               'Dividend',
               style: AppStyles.titleStyle(context)
-                  .copyWith(fontSize: TypeScale.title1),
+                  .copyWith(fontSize: RT.title1(context)),
             ),
             const SizedBox(height: Spacing.xxxl),
             _buildField(context, 'Amount', prefix: '₹'),
@@ -1224,7 +1224,7 @@ class _EditMFModalState extends State<_EditMFModal> {
               Text(
                 'Edit Mutual Fund',
                 style: AppStyles.titleStyle(context)
-                    .copyWith(fontSize: TypeScale.title1),
+                    .copyWith(fontSize: RT.title1(context)),
               ),
               const SizedBox(height: Spacing.xxxl),
               _buildInputField(context, 'Investment Amount', _amountController,

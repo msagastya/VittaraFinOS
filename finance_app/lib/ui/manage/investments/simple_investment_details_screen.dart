@@ -4,6 +4,7 @@ import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
@@ -319,7 +320,7 @@ class _SimpleInvestmentDetailsScreenState
                     'Edit ${fresh.name}',
                     style: TextStyle(
                         color: AppStyles.getTextColor(ctx),
-                        fontSize: TypeScale.title2,
+                        fontSize: RT.title2(ctx),
                         fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 20),

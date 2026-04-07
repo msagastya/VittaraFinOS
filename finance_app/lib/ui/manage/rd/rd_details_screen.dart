@@ -65,7 +65,7 @@ class _RDDetailsScreenState extends State<RDDetailsScreen> {
                                 widget.rd.name,
                                 style: TextStyle(
                                   color: AppStyles.getTextColor(context),
-                                  fontSize: TypeScale.title2,
+                                  fontSize: RT.title2(context),
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
