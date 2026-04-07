@@ -9,6 +9,7 @@ import 'package:vittara_fin_os/logic/contact_model.dart' as app_contact;
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class LendingWizard extends StatefulWidget {
   final LendingType type;
@@ -1244,7 +1245,9 @@ class _LendingWizardState extends State<LendingWizard> {
   void _selectDate(BuildContext context, {required bool isDueDate}) async {
     await showCupertinoModalPopup<DateTime>(
       context: context,
-      builder: (context) => Container(
+      builder: (context) => RLayout.tabletConstrain(
+        context,
+        Container(
         height: 216,
         color: AppStyles.getCardColor(context),
         child: CupertinoDatePicker(
@@ -1259,6 +1262,7 @@ class _LendingWizardState extends State<LendingWizard> {
             }
           },
         ),
+      ),
       ),
     );
   }

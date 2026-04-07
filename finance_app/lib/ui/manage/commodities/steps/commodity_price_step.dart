@@ -4,6 +4,7 @@ import 'package:vittara_fin_os/ui/manage/commodities/commodities_wizard_controll
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/app_date_picker.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class CommodityPriceStep extends StatefulWidget {
   final CommoditiesWizardController ctrl;
@@ -122,7 +123,9 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
               onPressed: () {
                 showCupertinoModalPopup(
                   context: context,
-                  builder: (ctx) => Container(
+                  builder: (ctx) => RLayout.tabletConstrain(
+                    ctx,
+                    Container(
                     color: AppStyles.getBackground(context),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -200,6 +203,7 @@ class _CommodityPriceStepState extends State<CommodityPriceStep> {
                         ),
                       ],
                     ),
+                  ),
                   ),
                 );
               },

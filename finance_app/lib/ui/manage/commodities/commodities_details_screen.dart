@@ -7,6 +7,7 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class CommoditiesDetailsScreen extends StatefulWidget {
   final Investment investment;
@@ -189,7 +190,9 @@ class _CommoditiesDetailsScreenState extends State<CommoditiesDetailsScreen> {
 
     showCupertinoModalPopup(
       context: context,
-      builder: (ctx) => StatefulBuilder(
+      builder: (ctx) => RLayout.tabletConstrain(
+        ctx,
+        StatefulBuilder(
         builder: (ctx, setS) {
           final isDark = AppStyles.isDarkMode(ctx);
           return Container(
@@ -307,6 +310,7 @@ class _CommoditiesDetailsScreenState extends State<CommoditiesDetailsScreen> {
             ),
           );
         },
+      ),
       ),
     ).whenComplete(() {
       priceCtrl.dispose();

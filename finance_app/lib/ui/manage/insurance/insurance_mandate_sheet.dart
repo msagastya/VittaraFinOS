@@ -9,11 +9,15 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 void showInsuranceMandateSheet(BuildContext context, InsurancePolicy policy) {
   showCupertinoModalPopup<void>(
     context: context,
-    builder: (ctx) => _InsuranceMandateSheet(policy: policy),
+    builder: (ctx) => RLayout.tabletConstrain(
+      ctx,
+      _InsuranceMandateSheet(policy: policy),
+    ),
   );
 }
 
@@ -63,7 +67,9 @@ class _InsuranceMandateSheetState extends State<_InsuranceMandateSheet> {
         final secondaryText = AppStyles.getSecondaryTextColor(ctx);
         final primaryText = AppStyles.getTextColor(ctx);
 
-        return Container(
+        return RLayout.tabletConstrain(
+          ctx,
+          Container(
           decoration: BoxDecoration(
             color: bgColor,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
@@ -163,6 +169,7 @@ class _InsuranceMandateSheetState extends State<_InsuranceMandateSheet> {
               ],
             ),
           ),
+        ),
         );
       },
     );
@@ -173,7 +180,9 @@ class _InsuranceMandateSheetState extends State<_InsuranceMandateSheet> {
       context: context,
       builder: (ctx) {
         final isDark = AppStyles.isDarkMode(ctx);
-        return Container(
+        return RLayout.tabletConstrain(
+          ctx,
+          Container(
           height: 280,
           color: isDark ? const Color(0xFF1C1C1E) : CupertinoColors.systemBackground.resolveFrom(ctx),
           child: Column(
@@ -198,6 +207,7 @@ class _InsuranceMandateSheetState extends State<_InsuranceMandateSheet> {
               ),
             ],
           ),
+        ),
         );
       },
     );

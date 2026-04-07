@@ -9,6 +9,7 @@ import 'package:vittara_fin_os/logic/notification_helpers.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class BondPayoutModal extends StatefulWidget {
   final Investment bond;
@@ -49,7 +50,9 @@ class _BondPayoutModalState extends State<BondPayoutModal> {
     showCupertinoModalPopup(
       context: context,
       builder: (ctx) {
-        return SafeArea(
+        return RLayout.tabletConstrain(
+          ctx,
+          SafeArea(
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: AppStyles.bottomSheetDecoration(ctx),
@@ -123,6 +126,7 @@ class _BondPayoutModalState extends State<BondPayoutModal> {
               ],
             ),
           ),
+        ),
         );
       },
     );
@@ -131,7 +135,9 @@ class _BondPayoutModalState extends State<BondPayoutModal> {
   void _showDatePicker(BuildContext context) {
     showCupertinoModalPopup(
       context: context,
-      builder: (ctx) => Container(
+      builder: (ctx) => RLayout.tabletConstrain(
+        ctx,
+        Container(
         height: 300,
         color: AppStyles.getCardColor(ctx),
         child: Column(
@@ -166,6 +172,7 @@ class _BondPayoutModalState extends State<BondPayoutModal> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

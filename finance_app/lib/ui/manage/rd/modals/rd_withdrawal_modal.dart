@@ -9,6 +9,7 @@ import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class RDWithdrawalModal extends StatefulWidget {
   final RecurringDeposit rd;
@@ -356,7 +357,9 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
   void _showDatePicker(BuildContext context) {
     showCupertinoModalPopup(
       context: context,
-      builder: (BuildContext context) => Container(
+      builder: (BuildContext context) => RLayout.tabletConstrain(
+        context,
+        Container(
         height: 300,
         color: AppStyles.getBackground(context),
         child: Column(
@@ -385,6 +388,7 @@ class _RDWithdrawalModalState extends State<RDWithdrawalModal> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

@@ -17,6 +17,7 @@ import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/app_date_picker.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class MFDetailsScreen extends StatefulWidget {
   final Investment investment;
@@ -716,7 +717,9 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
 
     showCupertinoModalPopup(
       context: context,
-      builder: (_) => CupertinoActionSheet(
+      builder: (_) => RLayout.tabletConstrain(
+        _,
+        CupertinoActionSheet(
         title: const Text('SIP Options'),
         actions: [
           CupertinoActionSheetAction(
@@ -744,6 +747,7 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
           child: const Text('Cancel'),
           onPressed: () => Navigator.pop(context),
         ),
+      ),
       ),
     );
   }
@@ -813,14 +817,20 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
   void _showEditModal(BuildContext context) {
     showCupertinoModalPopup(
       context: context,
-      builder: (_) => _EditMFModal(investment: investment),
+      builder: (_) => RLayout.tabletConstrain(
+        _,
+        _EditMFModal(investment: investment),
+      ),
     );
   }
 
   void _showDividendModal(BuildContext context) {
     showCupertinoModalPopup(
       context: context,
-      builder: (_) => _MFDividendModal(investment: investment),
+      builder: (_) => RLayout.tabletConstrain(
+        _,
+        _MFDividendModal(investment: investment),
+      ),
     );
   }
 

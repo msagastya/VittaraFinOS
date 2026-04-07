@@ -11,6 +11,7 @@ import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class FDRenewalModal extends StatefulWidget {
   final FixedDeposit fd;
@@ -610,7 +611,9 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
   ) {
     showCupertinoModalPopup(
       context: context,
-      builder: (BuildContext context) => Container(
+      builder: (BuildContext context) => RLayout.tabletConstrain(
+        context,
+        Container(
         height: 300,
         color: AppStyles.getBackground(context),
         child: Column(
@@ -629,6 +632,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
             ),
           ],
         ),
+      ),
       ),
     );
   }
@@ -713,7 +717,9 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
   void _showUnitPicker(BuildContext context) {
     showCupertinoModalPopup(
       context: context,
-      builder: (BuildContext context) => Container(
+      builder: (BuildContext context) => RLayout.tabletConstrain(
+        context,
+        Container(
         color: AppStyles.getBackground(context),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -791,6 +797,7 @@ class _FDRenewalModalState extends State<FDRenewalModal> {
             const SizedBox(height: Spacing.lg),
           ],
         ),
+      ),
       ),
     );
   }

@@ -14,6 +14,7 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/utils/id_generator.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -150,7 +151,9 @@ class AIMonthlyPlannerScreen extends StatelessWidget {
     final ctrl = context.read<FinancialPlansController>();
     showCupertinoModalPopup<void>(
       context: context,
-      builder: (_) => _PlanWizardSheet(
+      builder: (_) => RLayout.tabletConstrain(
+        _,
+        _PlanWizardSheet(
         existing: existing,
         onSaved: (plan) {
           if (existing == null) {
@@ -159,6 +162,7 @@ class AIMonthlyPlannerScreen extends StatelessWidget {
             ctrl.update(plan);
           }
         },
+      ),
       ),
     );
   }
@@ -639,9 +643,12 @@ class _PlanDetailScreen extends StatelessWidget {
       FinancialPlansController ctrl) {
     showCupertinoModalPopup<void>(
       context: context,
-      builder: (_) => _PlanWizardSheet(
+      builder: (_) => RLayout.tabletConstrain(
+        _,
+        _PlanWizardSheet(
         existing: plan,
         onSaved: (updated) => ctrl.update(updated),
+      ),
       ),
     );
   }

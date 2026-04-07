@@ -38,6 +38,7 @@ import 'package:vittara_fin_os/services/sms_service.dart';
 import 'package:vittara_fin_os/logic/insurance_controller.dart';
 import 'package:vittara_fin_os/logic/insurance_model.dart';
 import 'package:vittara_fin_os/utils/id_generator.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class _NotifTab {
   final String label;
@@ -1369,9 +1370,12 @@ class _NotificationsPageState extends State<NotificationsPage> {
   void _showSipExecutionModal(BuildContext context, SipNotificationInfo entry) {
     showCupertinoModalPopup(
       context: context,
-      builder: (_) => _SipExecutionModal(
+      builder: (_) => RLayout.tabletConstrain(
+        _,
+        _SipExecutionModal(
         investment: entry.investment,
         dueDate: entry.dueDate,
+      ),
       ),
     );
   }
@@ -1740,9 +1744,12 @@ class _NotificationsPageState extends State<NotificationsPage> {
       BuildContext context, BondPayoutNotificationInfo entry) {
     showCupertinoModalPopup(
       context: context,
-      builder: (ctx) => BondPayoutModal(
+      builder: (ctx) => RLayout.tabletConstrain(
+        ctx,
+        BondPayoutModal(
         bond: entry.investment,
         notification: entry,
+      ),
       ),
     );
   }
@@ -2208,7 +2215,9 @@ class _SipExecutionModalState extends State<_SipExecutionModal> {
   void _showAccountPicker() {
     showCupertinoModalPopup(
       context: context,
-      builder: (_) => Consumer<AccountsController>(
+      builder: (_) => RLayout.tabletConstrain(
+        _,
+        Consumer<AccountsController>(
         builder: (context, controller, __) {
           final accounts = controller.accounts;
           return Container(
@@ -2278,6 +2287,7 @@ class _SipExecutionModalState extends State<_SipExecutionModal> {
             ),
           );
         },
+      ),
       ),
     );
   }
@@ -2649,7 +2659,9 @@ class _SmsSectionWidgetState extends State<_SmsSectionWidget> {
   void _openSmsReview(SmsParseResult item) {
     showCupertinoModalPopup<void>(
       context: context,
-      builder: (sheetCtx) => _SmsQuickConfirmSheet(
+      builder: (sheetCtx) => RLayout.tabletConstrain(
+        sheetCtx,
+        _SmsQuickConfirmSheet(
         item: item,
         onSaved: () {
           if (!mounted) return;
@@ -2674,6 +2686,7 @@ class _SmsSectionWidgetState extends State<_SmsSectionWidget> {
             SmsAutoScanService.instance.markSeen(fp);
           });
         },
+      ),
       ),
     );
   }

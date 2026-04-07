@@ -13,6 +13,7 @@ import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 import 'package:vittara_fin_os/ui/manage/lending/bill_split_screen.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class LendingBorrowingScreen extends StatefulWidget {
   const LendingBorrowingScreen({super.key});
@@ -393,7 +394,9 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
   void _showSortSheet() {
     showCupertinoModalPopup<void>(
       context: context,
-      builder: (ctx) => CupertinoActionSheet(
+      builder: (ctx) => RLayout.tabletConstrain(
+        ctx,
+        CupertinoActionSheet(
         title: const Text('Sort By'),
         actions: [
           CupertinoActionSheetAction(
@@ -447,6 +450,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
           child: const Text('Cancel'),
         ),
       ),
+      ),
     );
   }
 
@@ -499,7 +503,9 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
 
     showCupertinoModalPopup(
       context: context,
-      builder: (BuildContext context) => CupertinoActionSheet(
+      builder: (BuildContext context) => RLayout.tabletConstrain(
+        context,
+        CupertinoActionSheet(
         title: Text(
           record.personName,
           style: const TextStyle(
@@ -630,6 +636,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
           child: const Text('Cancel'),
         ),
       ),
+      ),
     );
   }
 
@@ -643,7 +650,9 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
 
     showCupertinoModalPopup(
       context: context,
-      builder: (BuildContext modalContext) => StatefulBuilder(
+      builder: (BuildContext modalContext) => RLayout.tabletConstrain(
+        modalContext,
+        StatefulBuilder(
         builder: (BuildContext context, StateSetter setModalState) {
           return Container(
             height: 350,
@@ -844,6 +853,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
           );
         },
       ),
+      ),
     ).whenComplete(amountController.dispose);
   }
 
@@ -940,7 +950,9 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
 
     showCupertinoModalPopup(
       context: context,
-      builder: (modalContext) => Container(
+      builder: (modalContext) => RLayout.tabletConstrain(
+        modalContext,
+        Container(
         decoration: BoxDecoration(
           color: AppStyles.getCardColor(context),
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
@@ -1075,6 +1087,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
             ],
           ),
         ),
+      ),
       ),
     );
   }
@@ -1350,7 +1363,9 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
 
     showCupertinoModalPopup(
       context: context,
-      builder: (ctx) => StatefulBuilder(
+      builder: (ctx) => RLayout.tabletConstrain(
+        ctx,
+        StatefulBuilder(
         builder: (ctx, setS) {
           final isDark = AppStyles.isDarkMode(ctx);
           final monthly = double.tryParse(monthlyController.text) ?? 0;
@@ -1581,6 +1596,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
             ),
           );
         },
+      ),
       ),
     );
   }

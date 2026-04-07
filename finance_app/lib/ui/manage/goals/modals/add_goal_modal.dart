@@ -7,6 +7,7 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/utils/alert_service.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class AddGoalModal extends StatefulWidget {
   const AddGoalModal({super.key});
@@ -221,7 +222,9 @@ class _AddGoalModalState extends State<AddGoalModal> {
                       onTap: () {
                         showCupertinoModalPopup(
                           context: context,
-                          builder: (context) => Container(
+                          builder: (context) => RLayout.tabletConstrain(
+                            context,
+                            Container(
                             height: 300,
                             color: AppStyles.getCardColor(context),
                             child: Column(
@@ -251,6 +254,7 @@ class _AddGoalModalState extends State<AddGoalModal> {
                                 ),
                               ],
                             ),
+                          ),
                           ),
                         );
                       },

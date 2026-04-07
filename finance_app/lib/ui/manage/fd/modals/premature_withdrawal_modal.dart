@@ -3,6 +3,7 @@ import 'package:vittara_fin_os/logic/fixed_deposit_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class PrematureWithdrawalModal extends StatefulWidget {
   final FixedDeposit fd;
@@ -74,7 +75,9 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
     final picked = await showCupertinoModalPopup<DateTime>(
       context: context,
       builder: (BuildContext context) {
-        return Container(
+        return RLayout.tabletConstrain(
+          context,
+          Container(
           height: 216,
           padding: const EdgeInsets.only(top: 6.0),
           margin: EdgeInsets.only(
@@ -97,6 +100,7 @@ class _PrematureWithdrawalModalState extends State<PrematureWithdrawalModal> {
               },
             ),
           ),
+        ),
         );
       },
     );

@@ -14,6 +14,7 @@ import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/transaction_details_content.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
 import 'package:vittara_fin_os/utils/date_formatter.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class TransactionsArchiveScreen extends StatefulWidget {
   const TransactionsArchiveScreen({super.key});
@@ -29,7 +30,9 @@ class _TransactionsArchiveScreenState extends State<TransactionsArchiveScreen> {
   void _showFilterSheet() {
     showCupertinoModalPopup<void>(
       context: context,
-      builder: (ctx) => CupertinoActionSheet(
+      builder: (ctx) => RLayout.tabletConstrain(
+        ctx,
+        CupertinoActionSheet(
         title: const Text('Filter by Type'),
         actions: [
           _filterAction(ctx, null, 'All Types'),
@@ -45,6 +48,7 @@ class _TransactionsArchiveScreenState extends State<TransactionsArchiveScreen> {
           onPressed: () => Navigator.pop(ctx),
           child: const Text('Cancel'),
         ),
+      ),
       ),
     );
   }
@@ -281,7 +285,9 @@ class _ArchivedTransactionCard extends StatelessWidget {
   void _showDetailSheet(BuildContext context) {
     showCupertinoModalPopup(
       context: context,
-      builder: (modalContext) => DraggableScrollableSheet(
+      builder: (modalContext) => RLayout.tabletConstrain(
+        modalContext,
+        DraggableScrollableSheet(
         expand: false,
         initialChildSize: 0.7,
         minChildSize: 0.4,
@@ -322,6 +328,7 @@ class _ArchivedTransactionCard extends StatelessWidget {
           );
         },
       ),
+      ),
     );
   }
 
@@ -330,7 +337,9 @@ class _ArchivedTransactionCard extends StatelessWidget {
     showCupertinoModalPopup(
       context: context,
       builder: (actionContext) {
-        return CupertinoActionSheet(
+        return RLayout.tabletConstrain(
+          actionContext,
+          CupertinoActionSheet(
           title: const Text('Delete Permanently'),
           message: const Text(
               'The transaction will be gone forever. Do you want to also reverse the account balance, or leave balances unchanged?'),
@@ -367,6 +376,7 @@ class _ArchivedTransactionCard extends StatelessWidget {
             child: const Text('Cancel'),
             onPressed: () => Navigator.pop(actionContext),
           ),
+        ),
         );
       },
     );

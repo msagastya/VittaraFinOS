@@ -26,6 +26,7 @@ import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/transaction_history_screen.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 import 'package:vittara_fin_os/services/transaction_export_service.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class AccountsScreen extends StatefulWidget {
   const AccountsScreen({super.key});
@@ -82,7 +83,9 @@ class _AccountsScreenState extends State<AccountsScreen> {
             Provider.of<SettingsController>(context, listen: false);
         final showInvestment = settings.isInvestmentTrackingEnabled;
 
-        return BackdropFilter(
+        return RLayout.tabletConstrain(
+          context,
+          BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
           child: Container(
             decoration: AppStyles.bottomSheetDecoration(context),
@@ -163,6 +166,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
               ),
             ),
           ),
+        ),
         );
       },
     );
@@ -232,7 +236,9 @@ class _AccountsScreenState extends State<AccountsScreen> {
 
     showCupertinoModalPopup<void>(
       context: context,
-      builder: (ctx) => StatefulBuilder(
+      builder: (ctx) => RLayout.tabletConstrain(
+        ctx,
+        StatefulBuilder(
         builder: (ctx, setModalState) {
           final canSave = balanceCtrl.text.isNotEmpty;
           final isDark = AppStyles.isDarkMode(ctx);
@@ -374,6 +380,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
             ),
           );
         },
+      ),
       ),
     ).whenComplete(() {
       nameCtrl.dispose();
@@ -1283,7 +1290,9 @@ class _AccountsScreenState extends State<AccountsScreen> {
   void _showAccountExportSheet(BuildContext context, Account account) {
     showCupertinoModalPopup<void>(
       context: context,
-      builder: (ctx) => CupertinoActionSheet(
+      builder: (ctx) => RLayout.tabletConstrain(
+        ctx,
+        CupertinoActionSheet(
         title: Text('Export — ${account.name}'),
         actions: [
           CupertinoActionSheetAction(
@@ -1325,6 +1334,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
           isDefaultAction: true,
           child: const Text('Cancel'),
         ),
+      ),
       ),
     );
   }
@@ -1388,7 +1398,9 @@ class _AccountsScreenState extends State<AccountsScreen> {
     showCupertinoModalPopup(
       context: context,
       builder: (modalContext) {
-        return DraggableScrollableSheet(
+        return RLayout.tabletConstrain(
+          modalContext,
+          DraggableScrollableSheet(
           expand: false,
           initialChildSize: 0.7,
           minChildSize: 0.4,
@@ -1888,6 +1900,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
               }, // end Consumer builder
             ); // end Consumer
           },
+        ),
         );
       },
     );
@@ -1900,7 +1913,9 @@ class _AccountsScreenState extends State<AccountsScreen> {
     showCupertinoModalPopup(
       context: context,
       builder: (modalContext) {
-        return StatefulBuilder(
+        return RLayout.tabletConstrain(
+          modalContext,
+          StatefulBuilder(
           builder: (context, setModalState) {
             return Container(
               decoration: BoxDecoration(
@@ -2167,6 +2182,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
               ),
             );
           },
+        ),
         );
       },
     ).whenComplete(amountController.dispose);

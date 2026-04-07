@@ -39,6 +39,7 @@ import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 final _dashboardLogger = AppLogger();
 
@@ -48,7 +49,10 @@ void showDashboardActionSheet(BuildContext context) {
   final nav = Navigator.of(context);
   showCupertinoModalPopup<void>(
     context: context,
-    builder: (_) => _DashboardActionSheet(navigator: nav),
+    builder: (_) => RLayout.tabletConstrain(
+      _,
+      _DashboardActionSheet(navigator: nav),
+    ),
   );
 }
 

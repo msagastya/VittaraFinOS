@@ -6,6 +6,7 @@ import 'package:vittara_fin_os/logic/bond_cashflow_model.dart';
 import 'package:vittara_fin_os/ui/manage/bonds/bonds_wizard_controller_v2.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class BondTypeNameStep extends StatelessWidget {
   final BondsWizardControllerV2 ctrl;
@@ -23,7 +24,9 @@ class BondTypeNameStep extends StatelessWidget {
 
     showCupertinoModalPopup(
       context: context,
-      builder: (ctx) => Container(
+      builder: (ctx) => RLayout.tabletConstrain(
+        ctx,
+        Container(
         color: AppStyles.getBackground(context),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -124,6 +127,7 @@ class BondTypeNameStep extends StatelessWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }

@@ -8,6 +8,7 @@ import 'package:vittara_fin_os/logic/category_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/utils/alert_service.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class AddBudgetModal extends StatefulWidget {
   const AddBudgetModal({super.key});
@@ -150,7 +151,9 @@ class _AddBudgetModalState extends State<AddBudgetModal> {
                             .categories;
                         await showCupertinoModalPopup<void>(
                           context: context,
-                          builder: (ctx) => Container(
+                          builder: (ctx) => RLayout.tabletConstrain(
+                            ctx,
+                            Container(
                             height: 420,
                             decoration: BoxDecoration(
                               color: AppStyles.getCardColor(ctx),
@@ -273,6 +276,7 @@ class _AddBudgetModalState extends State<AddBudgetModal> {
                                 ],
                               ),
                             ),
+                          ),
                           ),
                         );
                       },

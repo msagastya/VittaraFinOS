@@ -8,6 +8,7 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class BondsDetailsScreen extends StatefulWidget {
   final Investment investment;
@@ -475,7 +476,9 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
 
     showCupertinoModalPopup(
       context: context,
-      builder: (ctx) => StatefulBuilder(
+      builder: (ctx) => RLayout.tabletConstrain(
+        ctx,
+        StatefulBuilder(
         builder: (ctx, setS) {
           final isDark = AppStyles.isDarkMode(ctx);
           return Container(
@@ -553,6 +556,7 @@ class _BondsDetailsScreenState extends State<BondsDetailsScreen> {
             ),
           );
         },
+      ),
       ),
     ).whenComplete(notesCtrl.dispose);
   }

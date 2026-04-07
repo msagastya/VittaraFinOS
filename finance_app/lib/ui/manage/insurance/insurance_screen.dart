@@ -15,6 +15,7 @@ import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/logic/insurance_rider_model.dart';
 import 'package:vittara_fin_os/ui/widgets/animated_counter.dart' as counter_widgets;
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class InsuranceScreen extends StatefulWidget {
   const InsuranceScreen({super.key});
@@ -495,7 +496,9 @@ class _PolicyCard extends StatelessWidget {
     HapticFeedback.mediumImpact();
     showCupertinoModalPopup<void>(
       context: context,
-      builder: (ctx) => CupertinoActionSheet(
+      builder: (ctx) => RLayout.tabletConstrain(
+        ctx,
+        CupertinoActionSheet(
         title: Text(policy.name),
         actions: [
           CupertinoActionSheetAction(
@@ -533,6 +536,7 @@ class _PolicyCard extends StatelessWidget {
           onPressed: () => Navigator.of(ctx).pop(),
           child: const Text('Cancel'),
         ),
+      ),
       ),
     );
   }

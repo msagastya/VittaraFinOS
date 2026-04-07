@@ -21,6 +21,7 @@ import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/utils/id_generator.dart';
 import 'package:intl/intl.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 // ── Entry point ───────────────────────────────────────────────────────────────
 
@@ -29,9 +30,12 @@ void showQuickEntrySheet(BuildContext context,
     Transaction? existingTransaction}) {
   showCupertinoModalPopup<void>(
     context: context,
-    builder: (ctx) => _QuickEntrySheet(
+    builder: (ctx) => RLayout.tabletConstrain(
+      ctx,
+      _QuickEntrySheet(
       initialBranch: branch,
       existingTransaction: existingTransaction,
+    ),
     ),
   );
 }
@@ -386,7 +390,9 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
         final secondaryText = AppStyles.getSecondaryTextColor(ctx);
         final primaryText = AppStyles.getTextColor(ctx);
 
-        return Container(
+        return RLayout.tabletConstrain(
+          ctx,
+          Container(
           decoration: BoxDecoration(
             color: bgColor,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
@@ -582,6 +588,7 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
               ],
             ),
           ),
+        ),
         );
       },
     );
@@ -605,7 +612,9 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
         // "None" is appended at the end
         final allItems = [...apps, null];
 
-        return Container(
+        return RLayout.tabletConstrain(
+          ctx,
+          Container(
           decoration: BoxDecoration(
             color: bgColor,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
@@ -804,6 +813,7 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
               ],
             ),
           ),
+        ),
         );
       },
     );
@@ -1660,7 +1670,9 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
       onTap: () {
         showCupertinoModalPopup<void>(
           context: context,
-          builder: (ctx) => Container(
+          builder: (ctx) => RLayout.tabletConstrain(
+            ctx,
+            Container(
             height: 280,
             color: isDark ? const Color(0xFF1C1C1E) : CupertinoColors.systemBackground.resolveFrom(ctx),
             child: Column(
@@ -1688,6 +1700,7 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
                 ),
               ],
             ),
+          ),
           ),
         );
       },

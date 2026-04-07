@@ -9,6 +9,7 @@ import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class TagsScreen extends StatefulWidget {
   const TagsScreen({super.key});
@@ -275,7 +276,9 @@ class _TagsScreenState extends State<TagsScreen> {
 
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => StatefulBuilder(
+      builder: (context) => RLayout.tabletConstrain(
+        context,
+        StatefulBuilder(
         builder: (context, setState) => CupertinoActionSheet(
           title: Column(
             children: [
@@ -427,6 +430,7 @@ class _TagsScreenState extends State<TagsScreen> {
           ],
         ),
       ),
+      ),
     ).whenComplete(nameController.dispose);
   }
 
@@ -434,7 +438,9 @@ class _TagsScreenState extends State<TagsScreen> {
       BuildContext context, Tag tag, TagsController controller) {
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => CupertinoActionSheet(
+      builder: (context) => RLayout.tabletConstrain(
+        context,
+        CupertinoActionSheet(
         title: Column(
           children: [
             Container(
@@ -503,6 +509,7 @@ class _TagsScreenState extends State<TagsScreen> {
           onPressed: () => Navigator.pop(context),
           child: const Text('Close'),
         ),
+      ),
       ),
     );
   }
@@ -597,7 +604,9 @@ class _TagsScreenState extends State<TagsScreen> {
       BuildContext context, Tag tag, TagsController controller) {
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => CupertinoActionSheet(
+      builder: (context) => RLayout.tabletConstrain(
+        context,
+        CupertinoActionSheet(
         title: Column(
           children: [
             Text(
@@ -667,6 +676,7 @@ class _TagsScreenState extends State<TagsScreen> {
           onPressed: () => Navigator.pop(context),
           child: const Text('Close'),
         ),
+      ),
       ),
     );
   }

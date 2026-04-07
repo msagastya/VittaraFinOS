@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/ui/manage/bonds/bonds_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class BondsPurchaseStep extends StatefulWidget {
   const BondsPurchaseStep({super.key});
@@ -69,7 +70,9 @@ class _BondsPurchaseStepState extends State<BondsPurchaseStep> {
               final pickedDate = await showCupertinoModalPopup<DateTime>(
                 context: context,
                 builder: (BuildContext context) {
-                  return Container(
+                  return RLayout.tabletConstrain(
+                    context,
+                    Container(
                     height: 300,
                     color: AppStyles.getBackground(context),
                     child: Column(
@@ -105,6 +108,7 @@ class _BondsPurchaseStepState extends State<BondsPurchaseStep> {
                         ),
                       ],
                     ),
+                  ),
                   );
                 },
               );

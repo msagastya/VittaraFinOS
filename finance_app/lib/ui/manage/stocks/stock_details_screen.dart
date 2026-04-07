@@ -13,6 +13,7 @@ import 'package:vittara_fin_os/ui/widgets/app_date_picker.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class StockDetailsScreen extends StatefulWidget {
   final Investment investment;
@@ -59,7 +60,10 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
   void _showBuyMoreModal() {
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => _BuyMoreModal(investment: _investment),
+      builder: (context) => RLayout.tabletConstrain(
+        context,
+        _BuyMoreModal(investment: _investment),
+      ),
     );
   }
 
@@ -67,28 +71,40 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
     showCupertinoModalPopup(
       context: context,
       builder: (context) =>
-          _SellModal(investment: _investment, currentQty: _qty),
+          RLayout.tabletConstrain(
+        context,
+        _SellModal(investment: _investment, currentQty: _qty),
+      ),
     );
   }
 
   void _showSIPModal() {
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => _SIPModal(investment: _investment),
+      builder: (context) => RLayout.tabletConstrain(
+        context,
+        _SIPModal(investment: _investment),
+      ),
     );
   }
 
   void _showEditModal() {
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => _EditModal(investment: _investment),
+      builder: (context) => RLayout.tabletConstrain(
+        context,
+        _EditModal(investment: _investment),
+      ),
     );
   }
 
   void _showDividendModal() {
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => _DividendModal(investment: _investment),
+      builder: (context) => RLayout.tabletConstrain(
+        context,
+        _DividendModal(investment: _investment),
+      ),
     );
   }
 
@@ -640,12 +656,15 @@ class _BuyMoreModalState extends State<_BuyMoreModal> {
   void _showAccountSelector() {
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => _AccountSelector(
+      builder: (context) => RLayout.tabletConstrain(
+        context,
+        _AccountSelector(
         accountType: AccountType.investment,
         onSelected: (account) {
           setState(() => _selectedAccount = account);
           Navigator.pop(context);
         },
+      ),
       ),
     );
   }
@@ -1445,11 +1464,14 @@ class _SellModalState extends State<_SellModal> {
   void _showAccountSelector() {
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => _AccountSelector(
+      builder: (context) => RLayout.tabletConstrain(
+        context,
+        _AccountSelector(
         onSelected: (account) {
           setState(() => _selectedAccount = account);
           Navigator.pop(context);
         },
+      ),
       ),
     );
   }
@@ -2012,7 +2034,9 @@ class _SIPModalState extends State<_SIPModal> {
   void _showDatePicker() {
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => Container(
+      builder: (context) => RLayout.tabletConstrain(
+        context,
+        Container(
         height: 216,
         padding: const EdgeInsets.only(top: 6.0),
         margin:
@@ -2031,6 +2055,7 @@ class _SIPModalState extends State<_SIPModal> {
             },
           ),
         ),
+      ),
       ),
     );
   }
@@ -2053,12 +2078,15 @@ class _SIPModalState extends State<_SIPModal> {
   void _showAccountSelector() {
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => _AccountSelector(
+      builder: (context) => RLayout.tabletConstrain(
+        context,
+        _AccountSelector(
         accountType: AccountType.savings,
         onSelected: (account) {
           setState(() => _selectedAccount = account);
           Navigator.pop(context);
         },
+      ),
       ),
     );
   }
@@ -2780,12 +2808,15 @@ class _DividendModalState extends State<_DividendModal> {
   void _showAccountSelector() {
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => _AccountSelector(
+      builder: (context) => RLayout.tabletConstrain(
+        context,
+        _AccountSelector(
         accountType: AccountType.savings,
         onSelected: (account) {
           setState(() => _selectedAccount = account);
           Navigator.pop(context);
         },
+      ),
       ),
     );
   }
@@ -2793,7 +2824,9 @@ class _DividendModalState extends State<_DividendModal> {
   void _showDatePicker() {
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => Container(
+      builder: (context) => RLayout.tabletConstrain(
+        context,
+        Container(
         height: 216,
         padding: const EdgeInsets.only(top: 6.0),
         margin:
@@ -2813,6 +2846,7 @@ class _DividendModalState extends State<_DividendModal> {
             },
           ),
         ),
+      ),
       ),
     );
   }

@@ -8,6 +8,7 @@ import 'package:vittara_fin_os/ui/manage/mf/sip_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class SIPFrequencyDeductionStep extends StatefulWidget {
   const SIPFrequencyDeductionStep({super.key});
@@ -335,7 +336,9 @@ class _SIPFrequencyDeductionStepState extends State<SIPFrequencyDeductionStep> {
         Provider.of<SIPWizardController>(context, listen: false);
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => Container(
+      builder: (context) => RLayout.tabletConstrain(
+        context,
+        Container(
         height: 216,
         padding: const EdgeInsets.only(top: 6.0),
         margin: EdgeInsets.only(
@@ -360,6 +363,7 @@ class _SIPFrequencyDeductionStepState extends State<SIPFrequencyDeductionStep> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

@@ -10,6 +10,7 @@ import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/app_date_picker.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class SimpleInvestmentEntryWizard extends StatefulWidget {
   final InvestmentType type;
@@ -92,7 +93,9 @@ class _SimpleInvestmentEntryWizardState
 
     await showCupertinoModalPopup<void>(
       context: context,
-      builder: (ctx) => CupertinoActionSheet(
+      builder: (ctx) => RLayout.tabletConstrain(
+        ctx,
+        CupertinoActionSheet(
         title: const Text('Select Debit Account'),
         actions: accounts
             .map(
@@ -109,6 +112,7 @@ class _SimpleInvestmentEntryWizardState
           onPressed: () => Navigator.of(ctx).pop(),
           child: const Text('Cancel'),
         ),
+      ),
       ),
     );
   }

@@ -12,6 +12,7 @@ import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/widgets/animated_counter.dart' as counter_widgets;
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class LoanTrackerScreen extends StatefulWidget {
   const LoanTrackerScreen({super.key});
@@ -225,7 +226,9 @@ class _LoanTrackerScreenState extends State<LoanTrackerScreen> {
   void _showLoanDetailSheet(BuildContext context, Loan loan) {
     showCupertinoModalPopup<void>(
       context: context,
-      builder: (ctx) => DraggableScrollableSheet(
+      builder: (ctx) => RLayout.tabletConstrain(
+        ctx,
+        DraggableScrollableSheet(
         expand: false,
         initialChildSize: 0.75,
         minChildSize: 0.45,
@@ -241,6 +244,7 @@ class _LoanTrackerScreenState extends State<LoanTrackerScreen> {
             },
           ),
         ),
+      ),
       ),
     );
   }
@@ -555,7 +559,9 @@ class _LoanCard extends StatelessWidget {
     HapticFeedback.mediumImpact();
     await showCupertinoModalPopup<void>(
       context: context,
-      builder: (ctx) => CupertinoActionSheet(
+      builder: (ctx) => RLayout.tabletConstrain(
+        ctx,
+        CupertinoActionSheet(
         title: Text(loan.name),
         actions: [
           CupertinoActionSheetAction(
@@ -578,6 +584,7 @@ class _LoanCard extends StatelessWidget {
           onPressed: () => Navigator.of(ctx).pop(),
           child: const Text('Cancel'),
         ),
+      ),
       ),
     );
   }

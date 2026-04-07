@@ -12,6 +12,7 @@ import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
 import 'package:vittara_fin_os/utils/logger.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class BanksScreen extends StatefulWidget {
   const BanksScreen({super.key});
@@ -95,7 +96,9 @@ class _BanksScreenState extends State<BanksScreen> {
     showCupertinoModalPopup(
       context: context,
       builder: (context) {
-        return Consumer<BanksController>(
+        return RLayout.tabletConstrain(
+          context,
+          Consumer<BanksController>(
           builder: (context, banksController, child) {
             return StatefulBuilder(
               builder: (context, setDialogState) {
@@ -343,6 +346,7 @@ class _BanksScreenState extends State<BanksScreen> {
               },
             );
           },
+        ),
         );
       },
     ).whenComplete(() {

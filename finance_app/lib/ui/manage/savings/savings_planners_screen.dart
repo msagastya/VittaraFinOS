@@ -14,6 +14,7 @@ import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/glass_card.dart';
 import 'package:vittara_fin_os/ui/widgets/liquid_progress_indicators.dart';
 import 'package:vittara_fin_os/utils/alert_service.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class SavingsPlannersScreen extends StatefulWidget {
   const SavingsPlannersScreen({super.key});
@@ -38,7 +39,9 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
 
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => StatefulBuilder(
+      builder: (context) => RLayout.tabletConstrain(
+        context,
+        StatefulBuilder(
         builder: (context, modalSetState) => Container(
           decoration: BoxDecoration(
               color: AppStyles.getCardColor(context),
@@ -92,7 +95,9 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
                                     .categories;
                             await showCupertinoModalPopup<void>(
                               context: context,
-                              builder: (ctx) => Container(
+                              builder: (ctx) => RLayout.tabletConstrain(
+                                ctx,
+                                Container(
                                 height: 420,
                                 decoration: BoxDecoration(
                                     color: AppStyles.getCardColor(ctx),
@@ -195,6 +200,7 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
                                     ],
                                   ),
                                 ),
+                              ),
                               ),
                             );
                           },
@@ -302,6 +308,7 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
             ),
           ),
         ),
+      ),
       ),
     ).whenComplete(() {
       nameController.dispose();

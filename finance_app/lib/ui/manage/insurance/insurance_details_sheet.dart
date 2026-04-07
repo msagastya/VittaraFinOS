@@ -13,11 +13,15 @@ import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 void showInsuranceDetailsSheet(BuildContext context, InsurancePolicy policy) {
   showCupertinoModalPopup<void>(
     context: context,
-    builder: (ctx) => _InsuranceDetailsSheet(policy: policy),
+    builder: (ctx) => RLayout.tabletConstrain(
+      ctx,
+      _InsuranceDetailsSheet(policy: policy),
+    ),
   );
 }
 
@@ -400,7 +404,9 @@ class _InsuranceDetailsSheetState extends State<_InsuranceDetailsSheet> {
                   minimumSize: const Size(32, 32),
                   onPressed: () => showCupertinoModalPopup<void>(
                     context: context,
-                    builder: (ctx) => CupertinoActionSheet(
+                    builder: (ctx) => RLayout.tabletConstrain(
+                      ctx,
+                      CupertinoActionSheet(
                       title: Text(rider.riderName),
                       actions: [
                         CupertinoActionSheetAction(
@@ -417,6 +423,7 @@ class _InsuranceDetailsSheetState extends State<_InsuranceDetailsSheet> {
                         ),
                       ],
                       cancelButton: CupertinoActionSheetAction(isDefaultAction: true, onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+                    ),
                     ),
                   ),
                   child: Icon(CupertinoIcons.ellipsis_circle, size: 18, color: secondaryText),

@@ -13,6 +13,7 @@ import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -567,7 +568,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       BuildContext context, SettingsController settings) {
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => CupertinoActionSheet(
+      builder: (context) => RLayout.tabletConstrain(
+        context,
+        CupertinoActionSheet(
         title: const Text('Auto-Lock Timeout'),
         actions: [
           _buildActionSheetItem(
@@ -586,6 +589,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: const Text('Cancel'),
         ),
       ),
+      ),
     );
   }
 
@@ -594,7 +598,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       // Already set — offer to change or clear
       showCupertinoModalPopup(
         context: context,
-        builder: (ctx) => CupertinoActionSheet(
+        builder: (ctx) => RLayout.tabletConstrain(
+          ctx,
+          CupertinoActionSheet(
           title: const Text('PIN Lock'),
           message: const Text('Your PIN is currently set.'),
           actions: [
@@ -619,6 +625,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: const Text('Cancel'),
           ),
         ),
+        ),
       );
     } else {
       _showPinEntryDialog(context, settings, isSetup: true);
@@ -634,7 +641,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     showCupertinoModalPopup(
       context: context,
-      builder: (ctx) => StatefulBuilder(
+      builder: (ctx) => RLayout.tabletConstrain(
+        ctx,
+        StatefulBuilder(
         builder: (ctx, setS) {
           final dotColor =
               error ? AppStyles.loss(ctx) : AppStyles.accentBlue;
@@ -790,6 +799,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           );
         },
       ),
+      ),
     );
   }
 
@@ -851,7 +861,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _showThemeOptions(BuildContext context, SettingsController settings) {
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => CupertinoActionSheet(
+      builder: (context) => RLayout.tabletConstrain(
+        context,
+        CupertinoActionSheet(
         title: const Text('Appearance'),
         actions: [
           _buildActionSheetItem(
@@ -865,6 +877,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           onPressed: () => Navigator.pop(context),
           child: const Text('Cancel'),
         ),
+      ),
       ),
     );
   }

@@ -17,6 +17,7 @@ import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/floating_particle_background.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 const String _appName = 'VittaraFinOS';
 const String _appTagline = 'Track Wealth, Master Life';
@@ -218,7 +219,9 @@ class DashboardAppMenuScreen extends StatelessWidget {
   Future<void> _showSupportOptions(BuildContext context) async {
     await showCupertinoModalPopup<void>(
       context: context,
-      builder: (ctx) => CupertinoActionSheet(
+      builder: (ctx) => RLayout.tabletConstrain(
+        ctx,
+        CupertinoActionSheet(
         title: const Text('Contact Support'),
         message: const Text(
           'Share your issue with relevant details. Include screenshots and steps to reproduce for faster resolution.',
@@ -251,6 +254,7 @@ class DashboardAppMenuScreen extends StatelessWidget {
           onPressed: () => Navigator.of(ctx).pop(),
           child: const Text('Close'),
         ),
+      ),
       ),
     );
   }

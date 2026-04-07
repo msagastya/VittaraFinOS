@@ -5,6 +5,7 @@ import 'package:vittara_fin_os/ui/manage/stocks/stocks_wizard_controller.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class TransactionDetailsStep extends StatefulWidget {
   const TransactionDetailsStep({super.key});
@@ -72,7 +73,9 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
         Provider.of<StocksWizardController>(context, listen: false);
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => Container(
+      builder: (context) => RLayout.tabletConstrain(
+        context,
+        Container(
         height: 216,
         padding: const EdgeInsets.only(top: 6.0),
         margin: EdgeInsets.only(
@@ -90,6 +93,7 @@ class _TransactionDetailsStepState extends State<TransactionDetailsStep> {
             },
           ),
         ),
+      ),
       ),
     );
   }

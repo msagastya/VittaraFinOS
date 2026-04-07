@@ -17,6 +17,7 @@ import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/glass_card.dart';
 import 'package:vittara_fin_os/ui/widgets/liquid_progress_indicators.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class BudgetsScreen extends StatefulWidget {
   const BudgetsScreen({super.key});
@@ -48,7 +49,10 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
   void _showAddBudgetModal() {
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => const AddBudgetModal(),
+      builder: (context) => RLayout.tabletConstrain(
+        context,
+        const AddBudgetModal(),
+      ),
     );
   }
 
@@ -927,7 +931,9 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
   void _showPeriodFilter() {
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => CupertinoActionSheet(
+      builder: (context) => RLayout.tabletConstrain(
+        context,
+        CupertinoActionSheet(
         title: const Text('Filter by Period'),
         actions: [
           ...BudgetPeriod.values.map((period) {
@@ -970,6 +976,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
         ],
         cancelButton: CupertinoActionSheetAction(
             onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+      ),
       ),
     );
   }

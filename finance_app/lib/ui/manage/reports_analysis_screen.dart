@@ -22,6 +22,7 @@ import 'package:vittara_fin_os/ui/widgets/floating_particle_background.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/logic/ml_planner_engine.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 const String _reportAppName = 'VittaraFinOS';
 const String _reportTagline = 'Track Wealth, Master Life';
@@ -3095,7 +3096,9 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
 
     await showCupertinoModalPopup<void>(
       context: context,
-      builder: (ctx) => Container(
+      builder: (ctx) => RLayout.tabletConstrain(
+        ctx,
+        Container(
         height: 280,
         color: CupertinoTheme.of(ctx).scaffoldBackgroundColor,
         child: Column(
@@ -3143,6 +3146,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
           ],
         ),
       ),
+      ),
     );
     // No additional setState needed — done inside the button above
   }
@@ -3151,7 +3155,9 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
     final selected = isPrimary ? _primaryGroupBy : _secondaryGroupBy;
     await showCupertinoModalPopup<void>(
       context: context,
-      builder: (ctx) => CupertinoActionSheet(
+      builder: (ctx) => RLayout.tabletConstrain(
+        ctx,
+        CupertinoActionSheet(
         title: Text(isPrimary ? 'Primary Grouping' : 'Secondary Grouping'),
         actions: ReportGroupBy.values.map((groupBy) {
           final isSelected = groupBy == selected;
@@ -3187,13 +3193,16 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
           child: const Text('Cancel'),
         ),
       ),
+      ),
     );
   }
 
   Future<void> _pickSortMetric() async {
     await showCupertinoModalPopup<void>(
       context: context,
-      builder: (ctx) => CupertinoActionSheet(
+      builder: (ctx) => RLayout.tabletConstrain(
+        ctx,
+        CupertinoActionSheet(
         title: const Text('Sort Grouped Metrics'),
         actions: ReportSortMetric.values.map((metric) {
           final isSelected = metric == _sortMetric;
@@ -3220,6 +3229,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
           child: const Text('Cancel'),
         ),
       ),
+      ),
     );
   }
 
@@ -3236,7 +3246,9 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
 
     await showCupertinoModalPopup<void>(
       context: context,
-      builder: (ctx) => StatefulBuilder(
+      builder: (ctx) => RLayout.tabletConstrain(
+        ctx,
+        StatefulBuilder(
         builder: (ctx, setSheetState) {
           return Container(
             height: AppStyles.sheetMaxHeight(ctx),
@@ -3347,6 +3359,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
             ),
           );
         },
+      ),
       ),
     );
   }

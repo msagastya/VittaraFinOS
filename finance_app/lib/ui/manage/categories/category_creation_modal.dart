@@ -6,6 +6,7 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/icon_picker.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 Future<Category?> showCreateCategoryModal(
   BuildContext context, {
@@ -47,7 +48,9 @@ Future<Category?> showCreateCategoryModal(
 
   return showCupertinoModalPopup<Category>(
     context: context,
-    builder: (modalContext) => StatefulBuilder(
+    builder: (modalContext) => RLayout.tabletConstrain(
+      modalContext,
+      StatefulBuilder(
       builder: (stateContext, setModalState) {
         return Container(
           decoration: BoxDecoration(
@@ -250,6 +253,7 @@ Future<Category?> showCreateCategoryModal(
           ),
         );
       },
+    ),
     ),
   ).whenComplete(nameController.dispose);
 }

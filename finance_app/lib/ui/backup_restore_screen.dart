@@ -22,6 +22,7 @@ import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class BackupRestoreScreen extends StatefulWidget {
   const BackupRestoreScreen({super.key});
@@ -124,7 +125,9 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
     final controller = TextEditingController();
     final restoreJson = await showCupertinoModalPopup<String>(
       context: context,
-      builder: (modalContext) => CupertinoActionSheet(
+      builder: (modalContext) => RLayout.tabletConstrain(
+        modalContext,
+        CupertinoActionSheet(
         title: const Text('Paste Backup JSON'),
         message: Material(
           color: Colors.transparent,
@@ -148,6 +151,7 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
           onPressed: () => Navigator.pop(modalContext),
           child: const Text('Cancel'),
         ),
+      ),
       ),
     );
     controller.dispose();
@@ -200,7 +204,9 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
 
     await showCupertinoModalPopup<void>(
       context: context,
-      builder: (modalContext) => CupertinoActionSheet(
+      builder: (modalContext) => RLayout.tabletConstrain(
+        modalContext,
+        CupertinoActionSheet(
         title: const Text('Local Backups'),
         message: const Text('Pick a file to restore from local storage'),
         actions: _localBackups.take(8).map((file) {
@@ -240,6 +246,7 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
           onPressed: () => Navigator.pop(modalContext),
           child: const Text('Close'),
         ),
+      ),
       ),
     );
   }

@@ -17,6 +17,7 @@ import 'package:vittara_fin_os/ui/widgets/glass_card.dart';
 import 'package:vittara_fin_os/ui/widgets/liquid_progress_indicators.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
 import 'package:vittara_fin_os/utils/logger.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class GoalsScreen extends StatefulWidget {
   const GoalsScreen({super.key});
@@ -59,7 +60,10 @@ class _GoalsScreenState extends State<GoalsScreen> {
   Future<void> _showAddGoalModal() async {
     await showCupertinoModalPopup(
       context: context,
-      builder: (context) => const AddGoalModal(),
+      builder: (context) => RLayout.tabletConstrain(
+        context,
+        const AddGoalModal(),
+      ),
     );
     // Refresh controller after modal closes to pick up any new goals.
     if (mounted) {
@@ -825,7 +829,9 @@ class _GoalsScreenState extends State<GoalsScreen> {
   void _showFilterSheet() {
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => CupertinoActionSheet(
+      builder: (context) => RLayout.tabletConstrain(
+        context,
+        CupertinoActionSheet(
         title: const Text('Filter by Goal Type'),
         actions: [
           ...GoalType.values.map((type) {
@@ -867,6 +873,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
           onPressed: () => Navigator.pop(context),
           child: const Text('Cancel'),
         ),
+      ),
       ),
     );
   }

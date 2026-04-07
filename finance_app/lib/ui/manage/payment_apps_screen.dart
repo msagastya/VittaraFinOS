@@ -14,6 +14,7 @@ import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/id_generator.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class PaymentAppsScreen extends StatefulWidget {
   const PaymentAppsScreen({super.key});
@@ -61,7 +62,9 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
       context: context,
       builder: (ctx) {
         final keyboardInset = MediaQuery.of(ctx).viewInsets.bottom;
-        return AnimatedPadding(
+        return RLayout.tabletConstrain(
+          ctx,
+          AnimatedPadding(
           duration: const Duration(milliseconds: 180),
           curve: Curves.easeOut,
           padding: EdgeInsets.only(bottom: keyboardInset),
@@ -142,6 +145,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
               ),
             ),
           ),
+        ),
         );
       },
     ).whenComplete(controller.dispose);
@@ -167,7 +171,9 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
     showCupertinoModalPopup(
       context: context,
       builder: (ctx) {
-        return StatefulBuilder(builder: (ctx, setSheetState) {
+        return RLayout.tabletConstrain(
+          ctx,
+          StatefulBuilder(builder: (ctx, setSheetState) {
           final keyboardInset = MediaQuery.of(ctx).viewInsets.bottom;
           final accountsCtrl = ctx.read<AccountsController>();
           final accounts = accountsCtrl.accounts
@@ -313,7 +319,9 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                             onTap: () {
                               showCupertinoModalPopup<void>(
                                 context: ctx,
-                                builder: (pickerCtx) => Container(
+                                builder: (pickerCtx) => RLayout.tabletConstrain(
+                                  pickerCtx,
+                                  Container(
                                   height: 300,
                                   color: AppStyles.isDarkMode(pickerCtx)
                                       ? const Color(0xFF1C1C1E)
@@ -374,6 +382,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                                       ),
                                     ],
                                   ),
+                                ),
                                 ),
                               ).then((_) {
                                 selectedAccount ??= accounts.isNotEmpty
@@ -552,7 +561,8 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
               ),
             ),
           );
-        });
+        }),
+        );
       },
     ).whenComplete(() {
       amountCtrl.dispose();
@@ -1132,7 +1142,9 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
       context: context,
       builder: (ctx) {
         final keyboardInset = MediaQuery.of(ctx).viewInsets.bottom;
-        return AnimatedPadding(
+        return RLayout.tabletConstrain(
+          ctx,
+          AnimatedPadding(
           duration: const Duration(milliseconds: 180),
           curve: Curves.easeOut,
           padding: EdgeInsets.only(bottom: keyboardInset),
@@ -1229,6 +1241,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
               ),
             ),
           ),
+        ),
         );
       },
     ).whenComplete(balanceController.dispose);
@@ -1374,7 +1387,9 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
     showCupertinoModalPopup(
       context: context,
       builder: (sheetContext) {
-        return Consumer<TransactionsController>(
+        return RLayout.tabletConstrain(
+          sheetContext,
+          Consumer<TransactionsController>(
           builder: (ctx, txCtrl, _) {
             final appName = app['name'] as String;
             final appTxs = txCtrl.transactions
@@ -1863,6 +1878,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
               },
             );
           },
+        ),
         );
       },
     );
@@ -1877,7 +1893,9 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
     showCupertinoModalPopup(
       context: context,
       builder: (modalContext) {
-        return StatefulBuilder(builder: (context, setModalState) {
+        return RLayout.tabletConstrain(
+          modalContext,
+          StatefulBuilder(builder: (context, setModalState) {
           final keyboardInset = MediaQuery.of(context).viewInsets.bottom;
           return AnimatedPadding(
             duration: const Duration(milliseconds: 180),
@@ -2098,7 +2116,8 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
               ),
             ),
           );
-        });
+        }),
+        );
       },
     ).whenComplete(() {
       appNameController.dispose();

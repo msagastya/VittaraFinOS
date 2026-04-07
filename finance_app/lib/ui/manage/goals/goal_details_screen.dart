@@ -16,6 +16,7 @@ import 'package:vittara_fin_os/ui/widgets/liquid_progress_indicators.dart';
 import 'package:vittara_fin_os/utils/alert_service.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class GoalDetailsScreen extends StatelessWidget {
   final String goalId;
@@ -534,14 +535,19 @@ class GoalDetailsScreen extends StatelessWidget {
       BuildContext context, Goal goal, GoalsController controller) {
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => CupertinoActionSheet(
+      builder: (context) => RLayout.tabletConstrain(
+        context,
+        CupertinoActionSheet(
         actions: [
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(context);
               showCupertinoModalPopup(
                 context: context,
-                builder: (context) => AddContributionModal(goal: goal),
+                builder: (context) => RLayout.tabletConstrain(
+                  context,
+                  AddContributionModal(goal: goal),
+                ),
               );
             },
             child: const Row(
@@ -558,7 +564,10 @@ class GoalDetailsScreen extends StatelessWidget {
               Navigator.pop(context);
               showCupertinoModalPopup(
                 context: context,
-                builder: (context) => EditGoalModal(goal: goal),
+                builder: (context) => RLayout.tabletConstrain(
+                  context,
+                  EditGoalModal(goal: goal),
+                ),
               );
             },
             child: const Row(
@@ -610,6 +619,7 @@ class GoalDetailsScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
           child: const Text('Cancel'),
         ),
+      ),
       ),
     );
   }

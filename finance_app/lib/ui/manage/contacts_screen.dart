@@ -14,6 +14,7 @@ import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
 import 'package:vittara_fin_os/ui/transaction_history_screen.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class ContactsScreen extends StatefulWidget {
   const ContactsScreen({super.key});
@@ -221,7 +222,9 @@ class _ContactsScreenState extends State<ContactsScreen> {
     showCupertinoModalPopup(
       context: context,
       builder: (sheetContext) {
-        return Consumer2<LendingBorrowingController, TransactionsController>(
+        return RLayout.tabletConstrain(
+          sheetContext,
+          Consumer2<LendingBorrowingController, TransactionsController>(
           builder: (ctx, lbCtrl, txCtrl, _) {
             // Reload contact from controller to pick up any edits since tap.
             final freshContact = Provider.of<ContactsController>(ctx, listen: false)
@@ -616,6 +619,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
               },
             );
           },
+        ),
         );
       },
     );
@@ -779,7 +783,9 @@ class _ContactsScreenState extends State<ContactsScreen> {
   ) {
     showCupertinoModalPopup<void>(
       context: context,
-      builder: (context) => CupertinoActionSheet(
+      builder: (context) => RLayout.tabletConstrain(
+        context,
+        CupertinoActionSheet(
         actions: [
           CupertinoActionSheetAction(
             onPressed: () {
@@ -803,6 +809,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
           child: const Text('Cancel'),
         ),
       ),
+      ),
     );
   }
 
@@ -810,7 +817,9 @@ class _ContactsScreenState extends State<ContactsScreen> {
       BuildContext context, ContactsController controller) {
     showCupertinoModalPopup<void>(
       context: context,
-      builder: (sheetContext) => CupertinoActionSheet(
+      builder: (sheetContext) => RLayout.tabletConstrain(
+        sheetContext,
+        CupertinoActionSheet(
         title: const Text('Add Contact'),
         actions: [
           CupertinoActionSheetAction(
@@ -832,6 +841,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
           onPressed: () => Navigator.pop(sheetContext),
           child: const Text('Cancel'),
         ),
+      ),
       ),
     );
   }
@@ -880,7 +890,10 @@ class _ContactsScreenState extends State<ContactsScreen> {
     if (!mounted) return;
     final selected = await showCupertinoModalPopup<Contact>(
       context: context,
-      builder: (ctx) => _PhoneContactsPickerSheet(contacts: mappedContacts),
+      builder: (ctx) => RLayout.tabletConstrain(
+        ctx,
+        _PhoneContactsPickerSheet(contacts: mappedContacts),
+      ),
     );
 
     if (!mounted || selected == null) return;

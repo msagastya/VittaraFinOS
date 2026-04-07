@@ -28,6 +28,7 @@ import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class _DuplicateMatch {
   final Transaction transaction;
@@ -177,7 +178,9 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
   void _openSmsReview(SmsParseResult r) {
     showCupertinoModalPopup<void>(
       context: context,
-      builder: (sheetCtx) => _SmsQuickConfirmSheet(
+      builder: (sheetCtx) => RLayout.tabletConstrain(
+        sheetCtx,
+        _SmsQuickConfirmSheet(
         item: r,
         onSaved: () {
           if (!mounted) return;
@@ -192,6 +195,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
             setState(() => _results.remove(r));
           });
         },
+      ),
       ),
     );
   }
@@ -999,7 +1003,9 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
 
     showCupertinoModalPopup(
       context: context,
-      builder: (ctx) => Container(
+      builder: (ctx) => RLayout.tabletConstrain(
+        ctx,
+        Container(
         height: AppStyles.sheetMaxHeight(ctx),
         decoration: BoxDecoration(
           color: isDark
@@ -1164,6 +1170,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
             ),
           ],
         ),
+      ),
       ),
     );
   }
@@ -1394,7 +1401,9 @@ class _SmsQuickConfirmSheetState extends State<_SmsQuickConfirmSheet> {
     if (accounts.isEmpty) return;
     showCupertinoModalPopup<void>(
       context: context,
-      builder: (ctx) => CupertinoActionSheet(
+      builder: (ctx) => RLayout.tabletConstrain(
+        ctx,
+        CupertinoActionSheet(
         title: const Text('Select Account'),
         actions: [
           ...accounts.map((a) => CupertinoActionSheetAction(
@@ -1417,6 +1426,7 @@ class _SmsQuickConfirmSheetState extends State<_SmsQuickConfirmSheet> {
           child: const Text('Cancel'),
         ),
       ),
+      ),
     );
   }
 
@@ -1426,7 +1436,9 @@ class _SmsQuickConfirmSheetState extends State<_SmsQuickConfirmSheet> {
     if (apps.isEmpty) return;
     showCupertinoModalPopup<void>(
       context: context,
-      builder: (ctx) => CupertinoActionSheet(
+      builder: (ctx) => RLayout.tabletConstrain(
+        ctx,
+        CupertinoActionSheet(
         title: const Text('Select Payment App'),
         actions: [
           ...apps.map((a) => CupertinoActionSheetAction(
@@ -1448,6 +1460,7 @@ class _SmsQuickConfirmSheetState extends State<_SmsQuickConfirmSheet> {
           onPressed: () => Navigator.pop(ctx),
           child: const Text('Cancel'),
         ),
+      ),
       ),
     );
   }

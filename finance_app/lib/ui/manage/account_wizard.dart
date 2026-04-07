@@ -10,6 +10,7 @@ import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class AccountWizard extends StatefulWidget {
   final bool isInvestment;
@@ -517,7 +518,9 @@ class _AccountWizardState extends State<AccountWizard> {
     showCupertinoModalPopup(
       context: context,
       builder: (context) {
-        return StatefulBuilder(
+        return RLayout.tabletConstrain(
+          context,
+          StatefulBuilder(
           builder: (context, setDialogState) {
             return Container(
               height: AppStyles.sheetMaxHeight(context),
@@ -704,6 +707,7 @@ class _AccountWizardState extends State<AccountWizard> {
               ),
             );
           },
+        ),
         );
       },
     ).whenComplete(brokerNameController.dispose);
@@ -1089,7 +1093,9 @@ class _AccountWizardState extends State<AccountWizard> {
       builder: (context) {
         final disabledBanks = banksController.disabledBanks;
 
-        return Container(
+        return RLayout.tabletConstrain(
+          context,
+          Container(
           height: AppStyles.sheetMaxHeight(context),
           decoration: BoxDecoration(
             color: AppStyles.getCardColor(context),
@@ -1245,6 +1251,7 @@ class _AccountWizardState extends State<AccountWizard> {
               ),
             ],
           ),
+        ),
         );
       },
     );
@@ -1258,7 +1265,9 @@ class _AccountWizardState extends State<AccountWizard> {
     showCupertinoModalPopup(
       context: context,
       builder: (context) {
-        return StatefulBuilder(
+        return RLayout.tabletConstrain(
+          context,
+          StatefulBuilder(
           builder: (context, setDialogState) {
             return Container(
               height: AppStyles.sheetMaxHeight(context),
@@ -1459,6 +1468,7 @@ class _AccountWizardState extends State<AccountWizard> {
               ),
             );
           },
+        ),
         );
       },
     ).whenComplete(bankNameController.dispose);

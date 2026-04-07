@@ -30,6 +30,7 @@ import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/app_date_picker.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 enum TransactionWizardBranch { expense, income, transfer }
 
@@ -144,7 +145,9 @@ class _TransactionWizardState extends State<TransactionWizard> {
 
     showCupertinoModalPopup(
       context: context,
-      builder: (ctx) => StatefulBuilder(
+      builder: (ctx) => RLayout.tabletConstrain(
+        ctx,
+        StatefulBuilder(
         builder: (ctx, setS) {
           final isDark = AppStyles.isDarkMode(ctx);
           final btnBg =
@@ -361,6 +364,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
             ),
           );
         },
+      ),
       ),
     );
   }
@@ -1160,7 +1164,9 @@ class _TransactionWizardState extends State<TransactionWizard> {
 
     showCupertinoModalPopup(
       context: context,
-      builder: (ctx) => StatefulBuilder(
+      builder: (ctx) => RLayout.tabletConstrain(
+        ctx,
+        StatefulBuilder(
         builder: (ctx, setModalState) => Container(
           padding: EdgeInsets.only(
             left: Spacing.xl,
@@ -1307,13 +1313,16 @@ class _TransactionWizardState extends State<TransactionWizard> {
           ),
         ),
       ),
+      ),
     ).whenComplete(nameController.dispose);
   }
 
   void _showManageTemplatesSheet(RecurringTemplatesController ctrl) {
     showCupertinoModalPopup(
       context: context,
-      builder: (ctx) => Container(
+      builder: (ctx) => RLayout.tabletConstrain(
+        ctx,
+        Container(
         decoration: BoxDecoration(
           color: AppStyles.getCardColor(ctx),
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
@@ -1385,6 +1394,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
             ],
           ),
         ),
+      ),
       ),
     );
   }
@@ -2779,7 +2789,9 @@ class _TransactionWizardState extends State<TransactionWizard> {
     final nameController = TextEditingController();
     showCupertinoModalPopup(
       context: context,
-      builder: (ctx) => Container(
+      builder: (ctx) => RLayout.tabletConstrain(
+        ctx,
+        Container(
         padding: EdgeInsets.fromLTRB(
           24,
           24,
@@ -2852,6 +2864,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
               ],
             )),
       ),
+      ),
     ).whenComplete(nameController.dispose);
   }
 
@@ -2902,7 +2915,10 @@ class _TransactionWizardState extends State<TransactionWizard> {
     if (!mounted) return;
     final picked = await showCupertinoModalPopup<Contact>(
       context: context,
-      builder: (ctx) => _PhoneContactsPickerSheet(contacts: mappedContacts),
+      builder: (ctx) => RLayout.tabletConstrain(
+        ctx,
+        _PhoneContactsPickerSheet(contacts: mappedContacts),
+      ),
     );
 
     if (!mounted || picked == null) return;

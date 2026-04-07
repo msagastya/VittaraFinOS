@@ -14,6 +14,7 @@ import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/manage/fd/fd_renewal_wizard_screen.dart';
 import 'package:vittara_fin_os/ui/manage/fd/modals/fd_withdrawal_modal.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class FDDetailsScreen extends StatefulWidget {
   final FixedDeposit fd;
@@ -501,7 +502,9 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
   void _showReinvestModal(BuildContext context) {
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => Container(
+      builder: (context) => RLayout.tabletConstrain(
+        context,
+        Container(
         color: AppStyles.getBackground(context),
         child: SafeArea(
           top: false,
@@ -601,6 +604,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
           ),
         ),
       ),
+      ),
     );
   }
 
@@ -694,7 +698,9 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
 
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => StatefulBuilder(
+      builder: (context) => RLayout.tabletConstrain(
+        context,
+        StatefulBuilder(
         builder: (context, setState) {
           final initialAmount = calculateWithdrawalAmount(withdrawalDate);
           withdrawalAmountController = TextEditingController(
@@ -1120,13 +1126,16 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
           );
         },
       ),
+      ),
     );
   }
 
   void _showPayoutScheduleModal(BuildContext context) {
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => Container(
+      builder: (context) => RLayout.tabletConstrain(
+        context,
+        Container(
         color: AppStyles.getBackground(context),
         child: Column(
           children: [
@@ -1206,6 +1215,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
           ],
         ),
       ),
+      ),
     );
   }
 
@@ -1278,7 +1288,9 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
   void _showEditModal(BuildContext context) {
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => Container(
+      builder: (context) => RLayout.tabletConstrain(
+        context,
+        Container(
         color: AppStyles.getBackground(context),
         child: SafeArea(
           top: true,
@@ -1548,13 +1560,16 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
           ),
         ),
       ),
+      ),
     );
   }
 
   void _showHistoryModal(BuildContext context) {
     showCupertinoModalPopup(
       context: context,
-      builder: (context) => Container(
+      builder: (context) => RLayout.tabletConstrain(
+        context,
+        Container(
         color: AppStyles.getBackground(context),
         child: SafeArea(
           top: true,
@@ -1641,6 +1656,7 @@ class _FDDetailsScreenState extends State<FDDetailsScreen> {
             ],
           ),
         ),
+      ),
       ),
     );
   }
