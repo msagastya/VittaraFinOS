@@ -789,18 +789,20 @@ class NetWorthWidget extends BaseDashboardWidget {
             accounts: accounts,
           );
 
-          return SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            child: _NetWorthBody(
-              accounts: visibleAccounts,
-              totalSavings: totalSavings,
-              totalInvestments: totalInvestments,
-              totalCreditUsed: totalCreditUsed,
-              totalNetWorth: totalNetWorth,
-              momTrendPct: momTrendPct,
-              isDark: isDark,
-              healthData: healthData,
-            ),
+          // Outer _buildDashboardWidgetCard in main.dart already provides
+          // LayoutBuilder + ConstrainedBox(minHeight) + SingleChildScrollView.
+          // Returning _NetWorthBody directly prevents double-nested scroll that
+          // caused content to shrink-wrap, leaving empty space at bottom on
+          // narrow phones (Motorola 393dp).
+          return _NetWorthBody(
+            accounts: visibleAccounts,
+            totalSavings: totalSavings,
+            totalInvestments: totalInvestments,
+            totalCreditUsed: totalCreditUsed,
+            totalNetWorth: totalNetWorth,
+            momTrendPct: momTrendPct,
+            isDark: isDark,
+            healthData: healthData,
           );
         },
       ),

@@ -1104,7 +1104,15 @@ class DashboardScreen extends StatelessWidget {
         if (isLandscape) _buildLandscapeNavBar(context),
 
         // PROFESSIONAL HEADER (hidden in landscape to save vertical space)
-        if (!isLandscape) _buildHeaderSection(context),
+        // Height capped proportionally so the CardDeck always gets enough space
+        // on narrow/short phones (Motorola 393dp, iPhone SE 375dp, Fold outer 360dp).
+        if (!isLandscape)
+          ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: (MediaQuery.of(context).size.height * 0.22).clamp(100.0, 160.0),
+            ),
+            child: _buildHeaderSection(context),
+          ),
 
         // CARD DECK — swipe left/right to cycle through widgets
         Expanded(
