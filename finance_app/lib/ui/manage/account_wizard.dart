@@ -379,7 +379,7 @@ class _AccountWizardState extends State<AccountWizard> {
             children: [
               Text(
                 'Select your Broker',
-                style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
+                style: AppStyles.titleStyle(context).copyWith(fontSize: RT.largeTitle(context)),
               ),
               const SizedBox(height: Spacing.sm),
               Text(
@@ -540,7 +540,7 @@ class _AccountWizardState extends State<AccountWizard> {
                         Text(
                           'Add New Broker',
                           style: AppStyles.titleStyle(context)
-                              .copyWith(fontSize: TypeScale.title2),
+                              .copyWith(fontSize: RT.title2(context)),
                         ),
                       ],
                     ),
@@ -721,7 +721,7 @@ class _AccountWizardState extends State<AccountWizard> {
         children: [
           Text(
             'Demat Balance',
-            style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
+            style: AppStyles.titleStyle(context).copyWith(fontSize: RT.largeTitle(context)),
           ),
           const SizedBox(height: Spacing.sm),
           Text(
@@ -778,7 +778,7 @@ class _AccountWizardState extends State<AccountWizard> {
         children: [
           Text(
             'Review & Finish',
-            style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
+            style: AppStyles.titleStyle(context).copyWith(fontSize: RT.largeTitle(context)),
           ),
           const SizedBox(height: Spacing.xxxl),
           Container(
@@ -814,7 +814,7 @@ class _AccountWizardState extends State<AccountWizard> {
                 Text(
                   displayBalance,
                   style: AppStyles.titleStyle(context).copyWith(
-                    fontSize: TypeScale.largeTitle,
+                    fontSize: RT.largeTitle(context),
                     color: AppStyles.accentBlue,
                     fontWeight: FontWeight.bold,
                   ),
@@ -838,7 +838,7 @@ class _AccountWizardState extends State<AccountWizard> {
           children: [
             Text(
               'Select your Broker',
-              style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
+              style: AppStyles.titleStyle(context).copyWith(fontSize: RT.largeTitle(context)),
             ),
             const SizedBox(height: Spacing.sm),
             Text(
@@ -923,7 +923,7 @@ class _AccountWizardState extends State<AccountWizard> {
             children: [
               Text(
                 'Select your Bank',
-                style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
+                style: AppStyles.titleStyle(context).copyWith(fontSize: RT.largeTitle(context)),
               ),
               const SizedBox(height: Spacing.sm),
               Text(
@@ -1117,7 +1117,7 @@ class _AccountWizardState extends State<AccountWizard> {
                         Text(
                           'Select Bank',
                           style: AppStyles.titleStyle(context)
-                              .copyWith(fontSize: TypeScale.title2),
+                              .copyWith(fontSize: RT.title2(context)),
                         ),
                         CupertinoButton(
                           padding: EdgeInsets.zero,
@@ -1288,7 +1288,7 @@ class _AccountWizardState extends State<AccountWizard> {
                         Text(
                           'Add New Bank',
                           style: AppStyles.titleStyle(context)
-                              .copyWith(fontSize: TypeScale.title2),
+                              .copyWith(fontSize: RT.title2(context)),
                         ),
                       ],
                     ),
@@ -1510,7 +1510,7 @@ class _AccountWizardState extends State<AccountWizard> {
         children: [
           Text(
             'Account Type',
-            style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
+            style: AppStyles.titleStyle(context).copyWith(fontSize: RT.largeTitle(context)),
           ),
           const SizedBox(height: Spacing.sm),
           Text(
@@ -1618,7 +1618,7 @@ class _AccountWizardState extends State<AccountWizard> {
         children: [
           Text(
             'Account Details',
-            style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
+            style: AppStyles.titleStyle(context).copyWith(fontSize: RT.largeTitle(context)),
           ),
           const SizedBox(height: Spacing.xxxl),
           if (_selectedAccountType == AccountType.savings ||
@@ -2007,7 +2007,7 @@ class _AccountWizardState extends State<AccountWizard> {
         children: [
           Text(
             'Review & Finish',
-            style: AppStyles.titleStyle(context).copyWith(fontSize: 24),
+            style: AppStyles.titleStyle(context).copyWith(fontSize: RT.largeTitle(context)),
           ),
           const SizedBox(height: Spacing.xxxl),
           Container(
@@ -2053,7 +2053,7 @@ class _AccountWizardState extends State<AccountWizard> {
                 Text(
                   displayBalance,
                   style: AppStyles.titleStyle(context).copyWith(
-                    fontSize: TypeScale.largeTitle,
+                    fontSize: RT.largeTitle(context),
                     color: AppStyles.accentBlue,
                     fontWeight: FontWeight.bold,
                   ),

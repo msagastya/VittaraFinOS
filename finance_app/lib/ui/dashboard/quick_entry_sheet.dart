@@ -863,7 +863,7 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
                         style: TextStyle(
                           fontFamily: 'SpaceGrotesk',
                           fontWeight: FontWeight.bold,
-                          fontSize: 20,
+                          fontSize: RT.title2(context),
                           color: primaryText,
                         ),
                       ),
@@ -1020,7 +1020,7 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
         Text(
           '₹',
           style: TextStyle(
-            fontSize: 36,
+            fontSize: RT.displayLarge(context),
             fontWeight: FontWeight.bold,
             color: _branchColor,
           ),
@@ -1033,12 +1033,12 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             placeholder: '0',
             style: TextStyle(
-              fontSize: 36,
+              fontSize: RT.displayLarge(context),
               fontWeight: FontWeight.bold,
               color: primaryText,
             ),
             placeholderStyle: TextStyle(
-              fontSize: 36,
+              fontSize: RT.displayLarge(context),
               fontWeight: FontWeight.bold,
               color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.4),
             ),

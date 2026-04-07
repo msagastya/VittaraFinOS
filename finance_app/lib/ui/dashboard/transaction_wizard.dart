@@ -283,7 +283,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                       child: Text(
                         '₹$display',
                         style: TextStyle(
-                          fontSize: 38,
+                          fontSize: RT.hero(ctx),
                           fontWeight: FontWeight.bold,
                           color: AppStyles.getTextColor(ctx),
                         ),
@@ -819,7 +819,7 @@ class _TransactionWizardState extends State<TransactionWizard> {
                       child: Text(
                         title,
                         style: AppStyles.titleStyle(context).copyWith(
-                          fontSize: TypeScale.title1,
+                          fontSize: RT.title1(context),
                           fontWeight: FontWeight.w800,
                           height: 1.2,
                         ),
@@ -3405,7 +3405,7 @@ class _PhoneContactsPickerSheetState extends State<_PhoneContactsPickerSheet> {
                   Text(
                     'Phone contacts',
                     style: AppStyles.titleStyle(context)
-                        .copyWith(fontSize: TypeScale.title2),
+                        .copyWith(fontSize: RT.title2(context)),
                   ),
                   const Spacer(),
                   CupertinoButton(

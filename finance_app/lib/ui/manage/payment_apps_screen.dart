@@ -940,9 +940,9 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                   const SizedBox(height: 4),
                   Text(
                     '₹${totalWalletBalance.toStringAsFixed(2)}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.white,
-                      fontSize: TypeScale.title1,
+                      fontSize: RT.title1(context),
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -1453,7 +1453,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                                     children: [
                                       Text(appName,
                                           style: TextStyle(
-                                            fontSize: TypeScale.title2,
+                                            fontSize: RT.title2(ctx),
                                             fontWeight: FontWeight.w700,
                                             color: AppStyles.getTextColor(ctx),
                                           )),
@@ -1518,7 +1518,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                                           Text(
                                             '₹${balance.toStringAsFixed(2)}',
                                             style: TextStyle(
-                                              fontSize: TypeScale.title2,
+                                              fontSize: RT.title2(ctx),
                                               fontWeight: FontWeight.w700,
                                               color: balance >= 0
                                                   ? CupertinoColors.systemGreen
@@ -1929,7 +1929,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                           const SizedBox(height: Spacing.lg),
                           Text('Add Payment App',
                               style: AppStyles.titleStyle(context)
-                                  .copyWith(fontSize: TypeScale.title2)),
+                                  .copyWith(fontSize: RT.title2(context))),
                         ],
                       ),
                     ),

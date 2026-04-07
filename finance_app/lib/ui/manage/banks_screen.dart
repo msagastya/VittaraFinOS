@@ -133,7 +133,7 @@ class _BanksScreenState extends State<BanksScreen> {
                             Text(
                               isEditMode ? 'Edit Bank' : 'Add Bank',
                               style: AppStyles.titleStyle(context)
-                                  .copyWith(fontSize: TypeScale.title2),
+                                  .copyWith(fontSize: RT.title2(context)),
                             ),
                             const SizedBox(height: Spacing.lg),
                             Container(

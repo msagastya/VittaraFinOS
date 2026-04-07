@@ -309,8 +309,8 @@ class _ContactsScreenState extends State<ContactsScreen> {
                                   child: Center(
                                     child: Text(
                                       initials,
-                                      style: const TextStyle(
-                                        fontSize: 22,
+                                      style: TextStyle(
+                                        fontSize: RT.title1(ctx),
                                         fontWeight: FontWeight.w700,
                                         color: CupertinoColors.systemBlue,
                                       ),
@@ -325,7 +325,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
                                     children: [
                                       Text(contact.name,
                                           style: TextStyle(
-                                            fontSize: TypeScale.title2,
+                                            fontSize: RT.title2(ctx),
                                             fontWeight: FontWeight.w700,
                                             color:
                                                 AppStyles.getTextColor(ctx),
@@ -1098,7 +1098,7 @@ class _PhoneContactsPickerSheetState extends State<_PhoneContactsPickerSheet> {
                   Text(
                     'Phone contacts',
                     style: AppStyles.titleStyle(context)
-                        .copyWith(fontSize: TypeScale.title2),
+                        .copyWith(fontSize: RT.title2(context)),
                   ),
                   const Spacer(),
                   CupertinoButton(
