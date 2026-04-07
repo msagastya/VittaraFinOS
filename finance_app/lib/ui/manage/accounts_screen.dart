@@ -182,7 +182,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
     return BouncyButton(
       onPressed: onTap,
       child: Container(
-        height: 160,
+        constraints: const BoxConstraints(minHeight: 110, maxHeight: 160),
         decoration: AppStyles.cardDecoration(context).copyWith(
           border: Border.all(
             color: color.withValues(alpha: 0.2),
