@@ -2473,11 +2473,16 @@ class _TransactionWizardState extends State<TransactionWizard> {
                                 color:
                                     AppStyles.getSecondaryTextColor(context))),
                       )
-                    : GridView.count(
-                        crossAxisCount: 2,
-                        childAspectRatio: 3,
-                        crossAxisSpacing: Spacing.sm,
-                        mainAxisSpacing: Spacing.sm,
+                    : LayoutBuilder(
+                        builder: (context, constraints) {
+                          const cols = 2;
+                          const spacing = Spacing.sm;
+                          final itemW = (constraints.maxWidth - (cols - 1) * spacing) / cols;
+                          return GridView.count(
+                        crossAxisCount: cols,
+                        childAspectRatio: itemW / (itemW / 3.0),
+                        crossAxisSpacing: spacing,
+                        mainAxisSpacing: spacing,
                         children: categories.map((category) {
                           final selected = _selectedCategory?.id == category.id;
                           return GestureDetector(
@@ -2517,6 +2522,8 @@ class _TransactionWizardState extends State<TransactionWizard> {
                             ),
                           );
                         }).toList(),
+                          );
+                        },
                       ),
               ),
               CupertinoButton(

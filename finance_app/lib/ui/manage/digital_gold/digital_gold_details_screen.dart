@@ -377,13 +377,18 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
               const SizedBox(height: 30),
 
               // Action Buttons (Edit & Delete)
-              GridView.count(
-                crossAxisCount: 2,
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  const cols = 2;
+                  const spacing = 12.0;
+                  final itemW = (constraints.maxWidth - (cols - 1) * spacing) / cols;
+                  return GridView.count(
+                crossAxisCount: cols,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                crossAxisSpacing: 12,
+                crossAxisSpacing: spacing,
                 mainAxisSpacing: 12,
-                childAspectRatio: 1.2,
+                childAspectRatio: itemW / (itemW * 1.2),
                 children: [
                   _buildActionButton(
                     context,
@@ -400,6 +405,8 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
                     onTap: _showDeleteConfirmation,
                   ),
                 ],
+                  );
+                },
               ),
 
               const SizedBox(height: Spacing.xl),

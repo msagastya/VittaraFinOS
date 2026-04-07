@@ -516,13 +516,20 @@ class _DashboardActionSheetState extends State<_DashboardActionSheet> {
         _sheetHeader('Investment Type', 'Select the type of investment'),
         SizedBox(
           height: screenH * 0.60,
-          child: GridView.builder(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              crossAxisSpacing: 10,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              const cols = 3;
+              const hPad = 20.0;
+              const spacing = 10.0;
+              final gridW = constraints.maxWidth - hPad * 2;
+              final itemW = (gridW - (cols - 1) * spacing) / cols;
+              return GridView.builder(
+            padding: const EdgeInsets.fromLTRB(hPad, 8, hPad, 20),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: cols,
+              crossAxisSpacing: spacing,
               mainAxisSpacing: 10,
-              childAspectRatio: 0.78,
+              childAspectRatio: itemW / (itemW / 0.78),
             ),
             itemCount: allTypes.length,
             itemBuilder: (ctx, i) {
@@ -596,6 +603,8 @@ class _DashboardActionSheetState extends State<_DashboardActionSheet> {
                     ],
                   ),
                 ),
+              );
+            },
               );
             },
           ),

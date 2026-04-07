@@ -576,14 +576,19 @@ class _Step1TypeSelector extends StatelessWidget {
             ),
           ),
           const SizedBox(height: Spacing.xl),
-          GridView.builder(
+          LayoutBuilder(
+            builder: (context, constraints) {
+              const cols = 3;
+              const spacing = 12.0;
+              final itemW = (constraints.maxWidth - (cols - 1) * spacing) / cols;
+              return GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: cols,
               mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: 1.0,
+              crossAxisSpacing: spacing,
+              childAspectRatio: itemW / (itemW * 1.0),
             ),
             itemCount: _types.length,
             itemBuilder: (context, i) {
@@ -633,6 +638,8 @@ class _Step1TypeSelector extends StatelessWidget {
                     ],
                   ),
                 ),
+              );
+            },
               );
             },
           ),

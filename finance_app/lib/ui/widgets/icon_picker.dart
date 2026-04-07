@@ -441,13 +441,20 @@ class _IconPickerModalState extends State<IconPickerModal> {
 
           // Icons Grid
           Expanded(
-            child: GridView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                crossAxisSpacing: 16,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                const cols = 4;
+                const hPad = 16.0;
+                const spacing = 16.0;
+                final gridW = constraints.maxWidth - hPad * 2;
+                final itemW = (gridW - (cols - 1) * spacing) / cols;
+                return GridView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: hPad),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: cols,
+                crossAxisSpacing: spacing,
                 mainAxisSpacing: 20,
-                childAspectRatio: 0.9,
+                childAspectRatio: itemW / (itemW / 0.9),
               ),
               itemCount: _filteredIcons.length,
               itemBuilder: (context, index) {
@@ -481,6 +488,8 @@ class _IconPickerModalState extends State<IconPickerModal> {
                       ),
                     ],
                   ),
+                );
+              },
                 );
               },
             ),

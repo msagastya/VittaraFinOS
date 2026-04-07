@@ -387,14 +387,19 @@ class _AccountWizardState extends State<AccountWizard> {
                     TextStyle(color: AppStyles.getSecondaryTextColor(context)),
               ),
               const SizedBox(height: Spacing.xxxl),
-              GridView.builder(
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  const cols = 2;
+                  const spacing = 16.0;
+                  final itemW = (constraints.maxWidth - (cols - 1) * spacing) / cols;
+                  return GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: cols,
+                  crossAxisSpacing: spacing,
                   mainAxisSpacing: 16,
-                  childAspectRatio: 1.2,
+                  childAspectRatio: itemW / (itemW * 1.2),
                 ),
                 itemCount: brokersController.brokers.length,
                 itemBuilder: (context, index) {
@@ -440,6 +445,8 @@ class _AccountWizardState extends State<AccountWizard> {
                       ),
                     ),
                   );
+                },
+              );
                 },
               ),
               const SizedBox(height: Spacing.xxl),
@@ -835,14 +842,19 @@ class _AccountWizardState extends State<AccountWizard> {
               style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
             ),
             const SizedBox(height: Spacing.xxxl),
-            GridView.builder(
+            LayoutBuilder(
+              builder: (context, constraints) {
+                const cols = 2;
+                const spacing = 16.0;
+                final itemW = (constraints.maxWidth - (cols - 1) * spacing) / cols;
+                return GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: cols,
+                crossAxisSpacing: spacing,
                 mainAxisSpacing: 16,
-                childAspectRatio: 1.2,
+                childAspectRatio: itemW / (itemW * 1.2),
               ),
               itemCount: items.length,
               itemBuilder: (context, index) {
@@ -885,6 +897,8 @@ class _AccountWizardState extends State<AccountWizard> {
                       ],
                     ),
                   ),
+                );
+              },
                 );
               },
             ),
@@ -960,15 +974,20 @@ class _AccountWizardState extends State<AccountWizard> {
               else
                 Column(
                   children: [
-                    GridView.builder(
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        const cols = 2;
+                        const spacing = 16.0;
+                        final itemW = (constraints.maxWidth - (cols - 1) * spacing) / cols;
+                        return GridView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 16,
+                          SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: cols,
+                        crossAxisSpacing: spacing,
                         mainAxisSpacing: 16,
-                        childAspectRatio: 1.2,
+                        childAspectRatio: itemW / (itemW * 1.2),
                       ),
                       itemCount: enabledBanks.length,
                       itemBuilder: (context, index) {
@@ -1013,6 +1032,8 @@ class _AccountWizardState extends State<AccountWizard> {
                               ],
                             ),
                           ),
+                        );
+                      },
                         );
                       },
                     ),
@@ -2037,7 +2058,7 @@ class _AccountWizardState extends State<AccountWizard> {
 
   Widget _buildReviewRow(String label, String value) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
@@ -2046,10 +2067,14 @@ class _AccountWizardState extends State<AccountWizard> {
             fontSize: TypeScale.body,
           ),
         ),
-        Text(
-          value,
-          style: AppStyles.titleStyle(context)
-              .copyWith(fontWeight: FontWeight.w600),
+        const SizedBox(width: Spacing.sm),
+        Expanded(
+          child: Text(
+            value,
+            style: AppStyles.titleStyle(context)
+                .copyWith(fontWeight: FontWeight.w600),
+            textAlign: TextAlign.right,
+          ),
         ),
       ],
     );

@@ -474,13 +474,18 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
                 ),
               ),
               const SizedBox(height: Spacing.md),
-              GridView.count(
-                crossAxisCount: 2,
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  const cols = 2;
+                  const spacing = Spacing.lg;
+                  final itemW = (constraints.maxWidth - (cols - 1) * spacing) / cols;
+                  return GridView.count(
+                crossAxisCount: cols,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                mainAxisSpacing: Spacing.lg,
-                crossAxisSpacing: Spacing.lg,
-                childAspectRatio: 1.3,
+                mainAxisSpacing: spacing,
+                crossAxisSpacing: spacing,
+                childAspectRatio: itemW / (itemW * 1.3),
                 children: [
                   _buildActionButton(
                     context,
@@ -525,6 +530,8 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
                     onTap: () => _showDeleteConfirmation(context),
                   ),
                 ],
+                  );
+                },
               ),
 
               const SizedBox(height: Spacing.xl),

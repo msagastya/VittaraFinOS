@@ -698,14 +698,19 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: Spacing.md),
-      child: GridView.builder(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          const cols = 7;
+          const spacing = 0.0;
+          final itemW = (constraints.maxWidth - (cols - 1) * spacing) / cols;
+          return GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 7,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: cols,
           mainAxisSpacing: 4,
-          crossAxisSpacing: 0,
-          childAspectRatio: 0.78,
+          crossAxisSpacing: spacing,
+          childAspectRatio: itemW / (itemW / 0.78),
         ),
         itemCount: totalCells,
         itemBuilder: (ctx, index) {
@@ -733,6 +738,8 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
             isSelected: isSelected,
             isSunday: isSunday,
             onTap: () => _selectDay(date),
+          );
+        },
           );
         },
       ),

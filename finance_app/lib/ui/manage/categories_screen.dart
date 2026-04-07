@@ -233,16 +233,23 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                             ),
                           // Default categories grid
                           if (defaultCats.isNotEmpty)
-                            SliverPadding(
+                            SliverLayoutBuilder(
+                              builder: (context, sliverConstraints) {
+                                const cols = 3;
+                                const hPad = 16.0;
+                                const spacing = 12.0;
+                                final gridW = sliverConstraints.crossAxisExtent - hPad * 2;
+                                final itemW = (gridW - (cols - 1) * spacing) / cols;
+                                return SliverPadding(
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 16),
                               sliver: SliverGrid(
                                 gridDelegate:
-                                    const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 3,
-                                  crossAxisSpacing: 12,
+                                    SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: cols,
+                                  crossAxisSpacing: spacing,
                                   mainAxisSpacing: 12,
-                                  childAspectRatio: 1,
+                                  childAspectRatio: itemW / (itemW * 1.0),
                                 ),
                                 delegate: SliverChildBuilderDelegate(
                                   (context, index) {
@@ -256,6 +263,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                                   childCount: defaultCats.length,
                                 ),
                               ),
+                                );
+                              },
                             ),
                           // Custom Categories header
                           if (customCats.isNotEmpty)
@@ -276,16 +285,23 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                             ),
                           // Custom categories grid
                           if (customCats.isNotEmpty)
-                            SliverPadding(
+                            SliverLayoutBuilder(
+                              builder: (context, sliverConstraints) {
+                                const cols = 3;
+                                const hPad = 16.0;
+                                const spacing = 12.0;
+                                final gridW = sliverConstraints.crossAxisExtent - hPad * 2;
+                                final itemW = (gridW - (cols - 1) * spacing) / cols;
+                                return SliverPadding(
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 16),
                               sliver: SliverGrid(
                                 gridDelegate:
-                                    const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 3,
-                                  crossAxisSpacing: 12,
+                                    SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: cols,
+                                  crossAxisSpacing: spacing,
                                   mainAxisSpacing: 12,
-                                  childAspectRatio: 1,
+                                  childAspectRatio: itemW / (itemW * 1.0),
                                 ),
                                 delegate: SliverChildBuilderDelegate(
                                   (context, index) {
@@ -302,6 +318,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                                   childCount: customCats.length,
                                 ),
                               ),
+                                );
+                              },
                             ),
                           // Bottom padding for FAB clearance
                           const SliverToBoxAdapter(

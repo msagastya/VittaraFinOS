@@ -1952,13 +1952,18 @@ class _PlanWizardSheetState extends State<_PlanWizardSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: Spacing.md),
-        GridView.count(
-          crossAxisCount: 3,
+        LayoutBuilder(
+          builder: (context, constraints) {
+            const cols = 3;
+            const spacing = Spacing.sm;
+            final itemW = (constraints.maxWidth - (cols - 1) * spacing) / cols;
+            return GridView.count(
+          crossAxisCount: cols,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          crossAxisSpacing: Spacing.sm,
-          mainAxisSpacing: Spacing.sm,
-          childAspectRatio: 0.9,
+          crossAxisSpacing: spacing,
+          mainAxisSpacing: spacing,
+          childAspectRatio: itemW / (itemW / 0.9),
           children: options.map((opt) {
             final (focus, icon, label, color, subtitle) = opt;
             final selected = _focus == focus;
@@ -2026,6 +2031,8 @@ class _PlanWizardSheetState extends State<_PlanWizardSheet> {
               ),
             );
           }).toList(),
+            );
+          },
         ),
         const SizedBox(height: Spacing.lg),
       ],

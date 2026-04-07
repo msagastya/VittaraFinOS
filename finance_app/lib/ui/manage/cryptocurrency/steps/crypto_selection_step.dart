@@ -76,14 +76,19 @@ class _CryptoSelectionStepState extends State<CryptoSelectionStep> {
             ),
           ),
           const SizedBox(height: Spacing.md),
-          GridView.builder(
+          LayoutBuilder(
+            builder: (context, constraints) {
+              const cols = 2;
+              const spacing = 12.0;
+              final itemW = (constraints.maxWidth - (cols - 1) * spacing) / cols;
+              return GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: cols,
+              crossAxisSpacing: spacing,
               mainAxisSpacing: 12,
-              childAspectRatio: 1.2,
+              childAspectRatio: itemW / (itemW * 1.2),
             ),
             itemCount: cryptoOptions.length,
             itemBuilder: (context, index) {
@@ -150,6 +155,8 @@ class _CryptoSelectionStepState extends State<CryptoSelectionStep> {
                     ],
                   ),
                 ),
+              );
+            },
               );
             },
           ),
