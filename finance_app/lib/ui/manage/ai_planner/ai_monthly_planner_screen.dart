@@ -205,7 +205,7 @@ class _EmptyState extends StatelessWidget {
         Text(
           'Your Financial Plans',
           style: TextStyle(
-            fontSize: TypeScale.title1,
+            fontSize: RT.title1(context),
             fontWeight: FontWeight.w800,
             color: AppStyles.getTextColor(context),
           ),
@@ -753,7 +753,7 @@ class _DetailBody extends StatelessWidget {
             ),
             child: Center(
               child: plan.emoji != null
-                  ? Text(plan.emoji!, style: const TextStyle(fontSize: 26))
+                  ? Text(plan.emoji!, style: TextStyle(fontSize: RT.title1(context)))
                   : Icon(_planIcon(plan.focus), size: 26, color: color),
             ),
           ),
@@ -764,7 +764,7 @@ class _DetailBody extends StatelessWidget {
               children: [
                 Text(plan.name,
                     style: TextStyle(
-                      fontSize: TypeScale.title2,
+                      fontSize: RT.title2(context),
                       fontWeight: FontWeight.w800,
                       color: AppStyles.getTextColor(context),
                     )),
@@ -1586,7 +1586,7 @@ class _DetailBody extends StatelessWidget {
       children: [
         Text('Recommendations',
             style: TextStyle(
-              fontSize: TypeScale.title2,
+              fontSize: RT.title2(context),
               fontWeight: FontWeight.w700,
               color: AppStyles.getTextColor(context),
             )),
@@ -1823,7 +1823,7 @@ class _PlanWizardSheetState extends State<_PlanWizardSheet> {
                         child: Text(
                           _stepTitle(),
                           style: TextStyle(
-                            fontSize: TypeScale.title2,
+                            fontSize: RT.title2(context),
                             fontWeight: FontWeight.w800,
                             color: AppStyles.getTextColor(context),
                           ),
@@ -2103,7 +2103,7 @@ class _PlanWizardSheetState extends State<_PlanWizardSheet> {
                   ),
                 ),
                 child: Center(
-                    child: Text(e, style: const TextStyle(fontSize: 22))),
+                    child: Text(e, style: TextStyle(fontSize: RT.title1(context)))),
               ),
             );
           }).toList(),

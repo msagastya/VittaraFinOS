@@ -59,7 +59,7 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
                   const SizedBox(height: Spacing.xl),
                   Text('Create Savings Planner',
                       style: TextStyle(
-                          fontSize: TypeScale.title2,
+                          fontSize: RT.title2(context),
                           fontWeight: FontWeight.bold,
                           color: AppStyles.getTextColor(context))),
                   const SizedBox(height: Spacing.xxl),
@@ -364,8 +364,8 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
                                     counter_widgets.CurrencyCounter(
                                         value: controller
                                             .totalMonthlySavingsTarget,
-                                        textStyle: const TextStyle(
-                                            fontSize: TypeScale.largeTitle,
+                                        textStyle: TextStyle(
+                                            fontSize: RT.largeTitle(context),
                                             fontWeight: FontWeight.bold,
                                             color: SemanticColors.success),
                                         decimalPlaces: 0),
@@ -590,7 +590,7 @@ class _SavingsPlannersScreenState extends State<SavingsPlannersScreen> {
             const SizedBox(height: Spacing.xxl),
             Text('No Savings Planners',
                 style: TextStyle(
-                    fontSize: TypeScale.largeTitle,
+                    fontSize: RT.largeTitle(context),
                     fontWeight: FontWeight.bold,
                     color: AppStyles.getTextColor(context))),
             const SizedBox(height: Spacing.md),

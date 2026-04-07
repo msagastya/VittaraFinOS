@@ -617,7 +617,7 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
                     Text(
                       'Deep Analysis',
                       style: AppStyles.titleStyle(context).copyWith(
-                        fontSize: TypeScale.title2,
+                        fontSize: RT.title2(context),
                         fontWeight: FontWeight.w800,
                       ),
                     ),

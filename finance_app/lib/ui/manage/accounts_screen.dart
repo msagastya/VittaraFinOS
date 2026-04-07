@@ -106,7 +106,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                   Text(
                     'Add New Account',
                     style: AppStyles.titleStyle(context)
-                        .copyWith(fontSize: TypeScale.title1),
+                        .copyWith(fontSize: RT.title1(context)),
                   ),
                   const SizedBox(height: Spacing.sm),
                   Text(
@@ -286,7 +286,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                       const SizedBox(width: Spacing.md),
                       Text(
                         'Cash in Hand',
-                        style: AppStyles.titleStyle(ctx).copyWith(fontSize: TypeScale.title2),
+                        style: AppStyles.titleStyle(ctx).copyWith(fontSize: RT.title2(ctx)),
                       ),
                     ],
                   ),
@@ -1442,7 +1442,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                           Text(
                             freshAccount.name,
                             style: AppStyles.titleStyle(dragContext)
-                                .copyWith(fontSize: TypeScale.title2),
+                                .copyWith(fontSize: RT.title2(dragContext)),
                           ),
                           const SizedBox(height: Spacing.sm),
                           Text(
@@ -1468,7 +1468,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                           Text(
                             '₹${freshAccount.balance.toStringAsFixed(2)}',
                             style: AppStyles.titleStyle(dragContext).copyWith(
-                              fontSize: TypeScale.largeTitle,
+                              fontSize: RT.largeTitle(dragContext),
                               color: AppStyles.accentBlue,
                               fontWeight: FontWeight.bold,
                             ),
@@ -1940,7 +1940,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                         Text(
                           'Adjust Balance',
                           style: AppStyles.titleStyle(context)
-                              .copyWith(fontSize: TypeScale.title1),
+                              .copyWith(fontSize: RT.title1(context)),
                         ),
                         const SizedBox(height: Spacing.sm),
                         Text(

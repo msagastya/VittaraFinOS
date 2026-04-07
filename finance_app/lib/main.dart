@@ -47,6 +47,7 @@ import 'package:vittara_fin_os/ui/widgets/floating_particle_background.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 import 'package:vittara_fin_os/services/mf_database_service.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 import 'package:vittara_fin_os/ui/manage/goals/goals_screen.dart';
 import 'package:vittara_fin_os/ui/manage/budgets/budgets_screen.dart';
 import 'package:vittara_fin_os/ui/onboarding_screen.dart';
@@ -430,11 +431,11 @@ class _LockScreenState extends State<LockScreen> {
               ),
             ),
             const SizedBox(height: Spacing.xxxl),
-            const Text(
+            Text(
               'VittaraFinOS Locked',
               style: TextStyle(
                 color: Colors.white,
-                fontSize: TypeScale.title2,
+                fontSize: RT.title2(context),
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -483,11 +484,11 @@ class _LockScreenState extends State<LockScreen> {
         const SizedBox(height: Spacing.xxxl),
         const Icon(CupertinoIcons.lock_fill, color: Colors.white, size: 40),
         const SizedBox(height: Spacing.lg),
-        const Text(
+        Text(
           'Enter PIN',
           style: TextStyle(
             color: Colors.white,
-            fontSize: TypeScale.title2,
+            fontSize: RT.title2(context),
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -557,9 +558,9 @@ class _LockScreenState extends State<LockScreen> {
                           child: Center(
                             child: Text(
                               label,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 26,
+                                fontSize: RT.title1(context),
                                 fontWeight: FontWeight.w400,
                               ),
                             ),
@@ -734,7 +735,7 @@ class _SplashScreenState extends State<SplashScreen> {
             Text(
               'VittaraFinOS',
               style: TextStyle(
-                fontSize: 24,
+                fontSize: RT.largeTitle(context),
                 fontWeight: FontWeight.bold,
                 color: textColor,
               ),
@@ -950,7 +951,7 @@ class DashboardScreen extends StatelessWidget {
                                 Text(
                                   'No widgets enabled',
                                   style: AppStyles.titleStyle(context).copyWith(
-                                    fontSize: TypeScale.title2,
+                                    fontSize: RT.title2(context),
                                   ),
                                 ),
                                 const SizedBox(height: Spacing.sm),
@@ -1448,8 +1449,8 @@ class DashboardScreen extends StatelessWidget {
                             children: [
                               Text(
                                 greeting,
-                                style: const TextStyle(
-                                  fontSize: TypeScale.title2,
+                                style: TextStyle(
+                                  fontSize: RT.title2(context),
                                   fontWeight: FontWeight.w800,
                                   color: Colors.white,
                                   letterSpacing: -0.5,

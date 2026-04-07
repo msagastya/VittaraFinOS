@@ -397,7 +397,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                     counter_widgets.CurrencyCounter(
                       value: controller.totalTargetAmount,
                       textStyle: TextStyle(
-                        fontSize: TypeScale.title2,
+                        fontSize: RT.title2(context),
                         fontWeight: FontWeight.bold,
                         color: AppStyles.getTextColor(context),
                       ),
@@ -420,8 +420,8 @@ class _GoalsScreenState extends State<GoalsScreen> {
                     const SizedBox(height: Spacing.xs),
                     counter_widgets.CurrencyCounter(
                       value: controller.totalSavedAmount,
-                      textStyle: const TextStyle(
-                        fontSize: TypeScale.title2,
+                      textStyle: TextStyle(
+                        fontSize: RT.title2(context),
                         fontWeight: FontWeight.bold,
                         color: SemanticColors.success,
                       ),
@@ -766,7 +766,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
             Text(
               'No Goals Yet',
               style: TextStyle(
-                fontSize: TypeScale.largeTitle,
+                fontSize: RT.largeTitle(context),
                 fontWeight: FontWeight.bold,
                 color: AppStyles.getTextColor(context),
               ),

@@ -21,6 +21,7 @@ import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 // ─── Event type ───────────────────────────────────────────────────────────────
 
@@ -790,8 +791,8 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
             const SizedBox(width: 10),
             Text(
               '${refDay.day}',
-              style: const TextStyle(
-                fontSize: 30,
+              style: TextStyle(
+                fontSize: RT.largeTitle(context),
                 fontWeight: FontWeight.w700,
                 color: AppStyles.aetherTeal,
                 height: 1.0,

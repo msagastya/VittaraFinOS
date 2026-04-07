@@ -17,6 +17,7 @@ import 'package:vittara_fin_os/ui/widgets/card_deck_view.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Asset Allocation Ring — animated donut showing savings/investments/debt
@@ -447,7 +448,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                       Text(
                         'Your Scorecard Awaits',
                         style: TextStyle(
-                          fontSize: TypeScale.title1,
+                          fontSize: RT.title1(context),
                           fontWeight: FontWeight.bold,
                           color: AppStyles.getTextColor(context),
                         ),

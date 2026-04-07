@@ -475,7 +475,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                         suffix: '%',
                         decimalPlaces: 1,
                         textStyle: TextStyle(
-                            fontSize: TypeScale.title2,
+                            fontSize: RT.title2(context),
                             fontWeight: FontWeight.bold,
                             color: statusColor)),
                   ],
@@ -879,7 +879,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
             const SizedBox(height: Spacing.xxl),
             Text('No Budgets Yet',
                 style: TextStyle(
-                    fontSize: TypeScale.largeTitle,
+                    fontSize: RT.largeTitle(context),
                     fontWeight: FontWeight.bold,
                     color: AppStyles.getTextColor(context))),
             const SizedBox(height: Spacing.md),

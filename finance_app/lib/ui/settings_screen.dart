@@ -705,7 +705,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     inConfirm ? 'Confirm PIN' : 'Set New PIN',
                     style: TextStyle(
                       color: AppStyles.getTextColor(ctx),
-                      fontSize: TypeScale.title2,
+                      fontSize: RT.title2(ctx),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -779,7 +779,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                         label,
                                         style: TextStyle(
                                           color: AppStyles.getTextColor(ctx),
-                                          fontSize: 24,
+                                          fontSize: RT.largeTitle(ctx),
                                           fontWeight: FontWeight.w400,
                                         ),
                                       ),

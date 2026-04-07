@@ -665,7 +665,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                   Text(
                     'Adjust Amount',
                     style: AppStyles.titleStyle(context).copyWith(
-                      fontSize: TypeScale.title2,
+                      fontSize: RT.title2(context),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -800,14 +800,14 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                           '₹',
                           style: TextStyle(
                             color: AppStyles.getTextColor(context),
-                            fontSize: TypeScale.title2,
+                            fontSize: RT.title2(context),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
                       style: TextStyle(
                         color: AppStyles.getTextColor(context),
-                        fontSize: TypeScale.title2,
+                        fontSize: RT.title2(context),
                         fontWeight: FontWeight.bold,
                       ),
                       decoration: BoxDecoration(
@@ -1447,7 +1447,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                         'Payoff Calculator',
                         style: TextStyle(
                           color: AppStyles.getTextColor(ctx),
-                          fontSize: TypeScale.title2,
+                          fontSize: RT.title2(ctx),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -1633,7 +1633,7 @@ class _TransactionTypeWizard extends StatelessWidget {
               Text(
                 'What would you like to record?',
                 style: AppStyles.titleStyle(context).copyWith(
-                  fontSize: TypeScale.largeTitle,
+                  fontSize: RT.largeTitle(context),
                   fontWeight: FontWeight.w700,
                 ),
               ),

@@ -594,21 +594,39 @@ class AppStyles {
 
   /// Large financial number — extreme tight tracking like HFT terminal display.
   static TextStyle heroNumberStyle(BuildContext context,
-          {double fontSize = 40}) =>
+          {double? fontSize}) =>
       TextStyle(
-        fontSize: fontSize,
+        fontSize: fontSize ?? _heroFontSize(context),
         fontWeight: FontWeight.w900,
         color: Colors.white,
         letterSpacing: -1.8,
         height: 0.95,
       );
 
+  static double _heroFontSize(BuildContext context) {
+    final w = MediaQuery.of(context).size.width;
+    if (w < 360) return 32;
+    if (w < 393) return 34;
+    if (w < 412) return 36;
+    if (w < 480) return 38;
+    return 40;
+  }
+
   /// Standard amount style.
   static TextStyle amountStyle(BuildContext context, {Color? color}) =>
       TextStyle(
-        fontSize: TypeScale.title1,
+        fontSize: _amountFontSize(context),
         fontWeight: FontWeight.w800,
         color: color ?? getTextColor(context),
         letterSpacing: -0.7,
       );
+
+  static double _amountFontSize(BuildContext context) {
+    final w = MediaQuery.of(context).size.width;
+    if (w < 360) return 18;
+    if (w < 393) return 19;
+    if (w < 412) return 20;
+    if (w < 480) return 21;
+    return 22;
+  }
 }
