@@ -9,8 +9,12 @@ import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
+import 'package:vittara_fin_os/logic/payment_apps_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
+import 'package:vittara_fin_os/ui/manage/accounts_screen.dart';
+import 'package:vittara_fin_os/ui/manage/investments_screen.dart';
+import 'package:vittara_fin_os/ui/manage/payment_apps_screen.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/card_deck_view.dart';
@@ -410,9 +414,9 @@ class _NetWorthPageState extends State<NetWorthPage> {
               border: null,
             ),
       child: SafeArea(
-        child: Consumer3<AccountsController, InvestmentsController,
-            TransactionsController>(
-          builder: (context, accountsController, investmentsController, txCtrl, _) {
+        child: Consumer4<AccountsController, InvestmentsController,
+            TransactionsController, PaymentAppsController>(
+          builder: (context, accountsController, investmentsController, txCtrl, payCtrl, _) {
             // Loading skeleton
             if (!accountsController.isLoaded ||
                 !investmentsController.isLoaded) {
@@ -517,14 +521,20 @@ class _NetWorthPageState extends State<NetWorthPage> {
                             ],
                           ),
                         ),
-                        // Card 2: Liquid Assets — bank accounts
+                        // Card 2: Liquid Assets — bank accounts + payment wallets
                         _buildNwDeckCard(
                           context,
                           label: 'LIQUID ASSETS',
                           icon: CupertinoIcons.building_2_fill,
                           accent: AppStyles.gain(context),
-                          child: _buildBankAccountsSection(
-                              context, accountsController),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _buildBankAccountsSection(
+                                  context, accountsController),
+                              ..._buildWalletsSection(context, payCtrl),
+                            ],
+                          ),
                         ),
                         // Card 3: Portfolio — demat + investments
                         _buildNwDeckCard(
@@ -1103,7 +1113,10 @@ class _NetWorthPageState extends State<NetWorthPage> {
 
     const sectionColor = Color(0xFF00D4AA);
 
-    return Container(
+    return GestureDetector(
+      onTap: () => Navigator.of(context).push(
+          FadeScalePageRoute(page: const AccountsScreen())),
+      child: Container(
       decoration: AppStyles.sectionDecoration(
         context,
         tint: sectionColor,
@@ -1152,6 +1165,10 @@ class _NetWorthPageState extends State<NetWorthPage> {
                   style: AppStyles.amountStyle(context,
                       color: sectionColor),
                 ),
+                const SizedBox(width: Spacing.sm),
+                Icon(CupertinoIcons.chevron_right,
+                    size: 14,
+                    color: AppStyles.getSecondaryTextColor(context)),
               ],
             ),
           ),
@@ -1215,7 +1232,167 @@ class _NetWorthPageState extends State<NetWorthPage> {
           ),
         ],
       ),
+      ), // GestureDetector
     );
+  }
+
+  // ── Payment App Wallets — only apps with hasWallet enabled ──────────────────
+  List<Widget> _buildWalletsSection(
+    BuildContext context,
+    PaymentAppsController payCtrl,
+  ) {
+    final walletApps = payCtrl.enabledApps
+        .where((app) => app['hasWallet'] == true)
+        .toList();
+
+    if (walletApps.isEmpty) return [];
+
+    double totalWallets = 0;
+    for (final app in walletApps) {
+      totalWallets += (app['walletBalance'] as num?)?.toDouble() ?? 0.0;
+    }
+
+    const sectionColor = CupertinoColors.systemIndigo;
+
+    return [
+      const SizedBox(height: Spacing.lg),
+      GestureDetector(
+        onTap: () => Navigator.of(context).push(
+            FadeScalePageRoute(page: const PaymentAppsScreen())),
+        child: Container(
+          decoration: AppStyles.sectionDecoration(
+            context,
+            tint: sectionColor,
+            radius: Radii.xl,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                    Spacing.lg, Spacing.lg, Spacing.lg, Spacing.md),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration:
+                          AppStyles.iconBoxDecoration(context, sectionColor),
+                      child: const Icon(
+                          CupertinoIcons.device_phone_portrait,
+                          size: 20,
+                          color: sectionColor),
+                    ),
+                    const SizedBox(width: Spacing.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Payment Wallets',
+                            style: TextStyle(
+                              fontSize: TypeScale.headline,
+                              fontWeight: FontWeight.w700,
+                              color: AppStyles.getTextColor(context),
+                              letterSpacing: -0.3,
+                            ),
+                          ),
+                          Text(
+                            '${walletApps.length} wallet${walletApps.length != 1 ? 's' : ''}',
+                            style: TextStyle(
+                              fontSize: TypeScale.footnote,
+                              color:
+                                  AppStyles.getSecondaryTextColor(context),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Text(
+                      CurrencyFormatter.compact(totalWallets),
+                      style: AppStyles.amountStyle(context,
+                          color: sectionColor),
+                    ),
+                    const SizedBox(width: Spacing.sm),
+                    Icon(CupertinoIcons.chevron_right,
+                        size: 14,
+                        color: AppStyles.getSecondaryTextColor(context)),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              Padding(
+                padding: const EdgeInsets.all(Spacing.lg),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: walletApps.asMap().entries.map((entry) {
+                    final isLast = entry.key == walletApps.length - 1;
+                    final app = entry.value;
+                    final name = app['name'] as String? ?? '';
+                    final balance =
+                        (app['walletBalance'] as num?)?.toDouble() ?? 0.0;
+                    final appColor =
+                        (app['color'] as Color?) ?? sectionColor;
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          mainAxisAlignment:
+                              MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  width: 28,
+                                  height: 28,
+                                  decoration: BoxDecoration(
+                                    color: appColor.withValues(alpha: 0.15),
+                                    borderRadius:
+                                        BorderRadius.circular(6),
+                                  ),
+                                  child: Icon(
+                                      CupertinoIcons
+                                          .device_phone_portrait,
+                                      size: 14,
+                                      color: appColor),
+                                ),
+                                const SizedBox(width: Spacing.sm),
+                                Text(
+                                  name,
+                                  style: TextStyle(
+                                    fontSize: TypeScale.subhead,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppStyles.getTextColor(context),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            AnimatedCounter(
+                              value: balance,
+                              prefix: '₹',
+                              style: TextStyle(
+                                fontSize: TypeScale.subhead,
+                                fontWeight: FontWeight.bold,
+                                color: AppStyles.getTextColor(context),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (!isLast)
+                          const Padding(
+                            padding: EdgeInsets.symmetric(
+                                vertical: Spacing.md),
+                            child: Divider(height: 1),
+                          ),
+                      ],
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ];
   }
 
   Widget _buildDematAccountsSection(
@@ -1236,7 +1413,10 @@ class _NetWorthPageState extends State<NetWorthPage> {
       total += account.balance;
     }
 
-    return Container(
+    return GestureDetector(
+      onTap: () => Navigator.of(context).push(
+          FadeScalePageRoute(page: const AccountsScreen())),
+      child: Container(
       decoration: AppStyles.cardDecoration(context),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -1279,6 +1459,10 @@ class _NetWorthPageState extends State<NetWorthPage> {
                   CurrencyFormatter.compact(total),
                   style: AppStyles.amountStyle(context, color: CupertinoColors.systemOrange),
                 ),
+                const SizedBox(width: Spacing.sm),
+                Icon(CupertinoIcons.chevron_right,
+                    size: 14,
+                    color: AppStyles.getSecondaryTextColor(context)),
               ],
             ),
           ),
@@ -1342,6 +1526,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
           ),
         ],
       ),
+      ), // GestureDetector
     );
   }
 
@@ -1367,7 +1552,10 @@ class _NetWorthPageState extends State<NetWorthPage> {
     }
     final totalAvailable = totalCreditLimit - totalUsed;
 
-    return Container(
+    return GestureDetector(
+      onTap: () => Navigator.of(context).push(
+          FadeScalePageRoute(page: const AccountsScreen())),
+      child: Container(
       decoration: AppStyles.cardDecoration(context),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -1416,6 +1604,10 @@ class _NetWorthPageState extends State<NetWorthPage> {
                     color: AppStyles.loss(context),
                   ),
                 ),
+                const SizedBox(width: Spacing.sm),
+                Icon(CupertinoIcons.chevron_right,
+                    size: 14,
+                    color: AppStyles.getSecondaryTextColor(context)),
               ],
             ),
           ),
@@ -1597,6 +1789,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
           ),
         ],
       ),
+      ), // GestureDetector
     );
   }
 
@@ -1655,7 +1848,10 @@ class _NetWorthPageState extends State<NetWorthPage> {
 
     final displayEntries = sortedEntries;
 
-    return Container(
+    return GestureDetector(
+      onTap: () => Navigator.of(context).push(
+          FadeScalePageRoute(page: const InvestmentsScreen())),
+      child: Container(
       decoration: AppStyles.cardDecoration(context),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -1716,6 +1912,10 @@ class _NetWorthPageState extends State<NetWorthPage> {
                     ),
                   ],
                 ),
+                const SizedBox(width: Spacing.sm),
+                Icon(CupertinoIcons.chevron_right,
+                    size: 14,
+                    color: AppStyles.getSecondaryTextColor(context)),
               ],
             ),
           ),
@@ -1812,6 +2012,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
           ),
         ],
       ),
+      ), // GestureDetector
     );
   }
 
