@@ -9,6 +9,7 @@ import 'package:vittara_fin_os/logic/ai_planner_engine.dart';
 import 'package:vittara_fin_os/logic/budgets_controller.dart';
 import 'package:vittara_fin_os/logic/goals_controller.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
+import 'package:vittara_fin_os/logic/ml_planner_engine.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
@@ -140,6 +141,8 @@ class AIMonthlyPlannerScreen extends StatelessWidget {
             return _PlansList(
               plans: ctrl.plans,
               onAdd: () => _openWizard(context, existing: null),
+              onAddWithFocus: (focus) =>
+                  _openWizard(context, existing: null, initialFocus: focus),
             );
           },
         ),
@@ -147,22 +150,27 @@ class AIMonthlyPlannerScreen extends StatelessWidget {
     );
   }
 
-  void _openWizard(BuildContext context, {required FinancialPlan? existing}) {
+  void _openWizard(BuildContext context,
+      {required FinancialPlan? existing, PlanningFocus? initialFocus}) {
     final ctrl = context.read<FinancialPlansController>();
+    final txCtrl = context.read<TransactionsController>();
+    final mlAnalysis = MLPlannerEngine.analyze(transactions: txCtrl.transactions, currentSaved: 0);
     showCupertinoModalPopup<void>(
       context: context,
       builder: (_) => RLayout.tabletConstrain(
         _,
         _PlanWizardSheet(
-        existing: existing,
-        onSaved: (plan) {
-          if (existing == null) {
-            ctrl.add(plan);
-          } else {
-            ctrl.update(plan);
-          }
-        },
-      ),
+          existing: existing,
+          mlAnalysis: mlAnalysis,
+          initialFocus: initialFocus,
+          onSaved: (plan) {
+            if (existing == null) {
+              ctrl.add(plan);
+            } else {
+              ctrl.update(plan);
+            }
+          },
+        ),
       ),
     );
   }
@@ -302,20 +310,37 @@ class _EmptyState extends StatelessWidget {
 class _PlansList extends StatelessWidget {
   final List<FinancialPlan> plans;
   final VoidCallback onAdd;
+  final void Function(PlanningFocus) onAddWithFocus;
 
-  const _PlansList({required this.plans, required this.onAdd});
+  const _PlansList({
+    required this.plans,
+    required this.onAdd,
+    required this.onAddWithFocus,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Consumer5<TransactionsController, AccountsController,
         InvestmentsController, BudgetsController, GoalsController>(
       builder: (ctx, txCtrl, accCtrl, invCtrl, budCtrl, goalCtrl, _) {
+        final mlAnalysis = MLPlannerEngine.analyze(transactions: txCtrl.transactions, currentSaved: 0);
+        final suggestions = _computeSuggestions(plans, mlAnalysis);
+
         return ListView.builder(
           padding: const EdgeInsets.fromLTRB(
               Spacing.lg, Spacing.md, Spacing.lg, 100),
-          itemCount: plans.length + 1, // +1 for "Add Plan" footer
+          itemCount: plans.length + 2, // +1 suggestions header, +1 Add Plan footer
           itemBuilder: (context, i) {
-            if (i == plans.length) {
+            // Index 0: Suggested Plans section
+            if (i == 0) {
+              if (suggestions.isEmpty) return const SizedBox.shrink();
+              return _buildSuggestionsSection(context, suggestions);
+            }
+
+            final planIndex = i - 1;
+
+            // Last item: Add Plan button
+            if (planIndex == plans.length) {
               return Padding(
                 padding: const EdgeInsets.only(top: Spacing.md),
                 child: CupertinoButton(
@@ -329,8 +354,8 @@ class _PlansList extends StatelessWidget {
                       const Icon(CupertinoIcons.add,
                           size: 16, color: AppStyles.aetherTeal),
                       const SizedBox(width: Spacing.sm),
-                      Text('Add Plan',
-                          style: const TextStyle(
+                      const Text('Add Plan',
+                          style: TextStyle(
                               color: AppStyles.aetherTeal,
                               fontWeight: FontWeight.w600)),
                     ],
@@ -339,7 +364,7 @@ class _PlansList extends StatelessWidget {
               );
             }
 
-            final plan = plans[i];
+            final plan = plans[planIndex];
             final analysis = AIPlannerEngine.analyze(
               plan: plan,
               transactions: txCtrl.transactions,
@@ -364,6 +389,177 @@ class _PlansList extends StatelessWidget {
           },
         );
       },
+    );
+  }
+
+  // Build 2–3 suggested plans the user hasn't created yet.
+  List<(PlanningFocus, String, String, Color, IconData)> _computeSuggestions(
+      List<FinancialPlan> existing, MLAnalysis ml) {
+    final existingFocuses = existing.map((p) => p.focus).toSet();
+    final candidates = <(PlanningFocus, String, String, Color, IconData)>[
+      (
+        PlanningFocus.emergencyFund,
+        'Build an Emergency Fund',
+        ml.dataSufficient && ml.predictedExpenses != null
+            ? '6-month cushion ≈ ${CurrencyFormatter.compact((ml.predictedExpenses! * 6))}'
+            : 'A 3–6 month safety net is step one',
+        AppStyles.accentGreen,
+        CupertinoIcons.shield_fill,
+      ),
+      (
+        PlanningFocus.retirement,
+        'Start a Retirement Fund',
+        'The earlier you start, the less you need to save each month',
+        AppStyles.accentPurple,
+        CupertinoIcons.person_fill,
+      ),
+      (
+        PlanningFocus.investment,
+        'Grow Your Money',
+        ml.dataSufficient && (ml.predictedSavings ?? 0) > 0
+            ? 'You save ~${CurrencyFormatter.compact(ml.predictedSavings!)} /mo — put it to work'
+            : 'Invest your monthly surplus to beat inflation',
+        AppStyles.aetherTeal,
+        CupertinoIcons.chart_bar_alt_fill,
+      ),
+      (
+        PlanningFocus.homeDownPayment,
+        'Save for a Home',
+        'Start building your down payment fund',
+        AppStyles.accentBlue,
+        CupertinoIcons.house_fill,
+      ),
+      (
+        PlanningFocus.debtPayoff,
+        'Pay Off Debt Faster',
+        'Every extra rupee towards debt saves you interest',
+        AppStyles.accentOrange,
+        CupertinoIcons.creditcard_fill,
+      ),
+    ];
+
+    return candidates
+        .where((c) => !existingFocuses.contains(c.$1))
+        .take(3)
+        .toList();
+  }
+
+  Widget _buildSuggestionsSection(BuildContext context,
+      List<(PlanningFocus, String, String, Color, IconData)> suggestions) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: Spacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(CupertinoIcons.sparkles, size: 14,
+                  color: AppStyles.aetherTeal),
+              const SizedBox(width: 6),
+              Text(
+                'Suggested for you',
+                style: TextStyle(
+                  fontSize: TypeScale.footnote,
+                  fontWeight: FontWeight.w700,
+                  color: AppStyles.aetherTeal,
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: Spacing.sm),
+          SizedBox(
+            height: 108,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: suggestions.length,
+              separatorBuilder: (_, __) => const SizedBox(width: Spacing.sm),
+              itemBuilder: (context, i) {
+                final (focus, title, desc, color, icon) = suggestions[i];
+                return GestureDetector(
+                  onTap: () => onAddWithFocus(focus),
+                  child: Container(
+                    width: 200,
+                    padding: const EdgeInsets.all(Spacing.md),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(Radii.lg),
+                      border: Border.all(
+                          color: color.withValues(alpha: 0.25), width: 1),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: 28,
+                              height: 28,
+                              decoration: BoxDecoration(
+                                color: color.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(icon, size: 14, color: color),
+                            ),
+                            const SizedBox(width: Spacing.sm),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: color.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text('+ Start',
+                                  style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      color: color)),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: Spacing.sm),
+                        Text(title,
+                            style: TextStyle(
+                              fontSize: TypeScale.caption,
+                              fontWeight: FontWeight.w700,
+                              color: AppStyles.getTextColor(context),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis),
+                        const SizedBox(height: 2),
+                        Text(desc,
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: AppStyles.getSecondaryTextColor(context),
+                              height: 1.35,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: Spacing.md),
+          Divider(
+            color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.12),
+            height: 1,
+          ),
+          const SizedBox(height: Spacing.md),
+          Text(
+            'Your plans',
+            style: TextStyle(
+              fontSize: TypeScale.footnote,
+              fontWeight: FontWeight.w700,
+              color: AppStyles.getSecondaryTextColor(context),
+              letterSpacing: 0.3,
+            ),
+          ),
+          const SizedBox(height: Spacing.sm),
+        ],
+      ),
     );
   }
 }
@@ -641,12 +837,15 @@ class _PlanDetailScreen extends StatelessWidget {
 
   void _openWizard(BuildContext context, FinancialPlan plan,
       FinancialPlansController ctrl) {
+    final txCtrl = context.read<TransactionsController>();
+    final mlAnalysis = MLPlannerEngine.analyze(transactions: txCtrl.transactions, currentSaved: 0);
     showCupertinoModalPopup<void>(
       context: context,
       builder: (_) => RLayout.tabletConstrain(
         _,
         _PlanWizardSheet(
         existing: plan,
+        mlAnalysis: mlAnalysis,
         onSaved: (updated) => ctrl.update(updated),
       ),
       ),
@@ -1668,8 +1867,15 @@ class _DetailBody extends StatelessWidget {
 class _PlanWizardSheet extends StatefulWidget {
   final FinancialPlan? existing;
   final void Function(FinancialPlan) onSaved;
+  final MLAnalysis? mlAnalysis;
+  final PlanningFocus? initialFocus;
 
-  const _PlanWizardSheet({required this.existing, required this.onSaved});
+  const _PlanWizardSheet({
+    required this.existing,
+    required this.onSaved,
+    this.mlAnalysis,
+    this.initialFocus,
+  });
 
   @override
   State<_PlanWizardSheet> createState() => _PlanWizardSheetState();
@@ -1681,13 +1887,16 @@ class _PlanWizardSheetState extends State<_PlanWizardSheet> {
   PlanningTimeline _timeline = PlanningTimeline.oneYear;
   int _priority = 2;
   String _emoji = '';
+  RiskProfile _riskProfile = RiskProfile.moderate;
+  IncomeStability _incomeStability = IncomeStability.stable;
+  int _dependentsCount = 0;
   final _nameCtrl = TextEditingController();
   final _targetCtrl = TextEditingController();
   final _contributionCtrl = TextEditingController();
   final _savedCtrl = TextEditingController();
   final _notesCtrl = TextEditingController();
 
-  static const _totalSteps = 5;
+  static const _totalSteps = 6;
 
   @override
   void initState() {
@@ -1698,6 +1907,9 @@ class _PlanWizardSheetState extends State<_PlanWizardSheet> {
       _timeline = e.timeline;
       _priority = e.priority;
       _emoji = e.emoji ?? '';
+      _riskProfile = e.riskProfile;
+      _incomeStability = e.incomeStability;
+      _dependentsCount = e.dependentsCount;
       _nameCtrl.text = e.name;
       if (e.targetAmount != null && e.targetAmount! > 0)
         _targetCtrl.text = e.targetAmount!.toStringAsFixed(0);
@@ -1707,7 +1919,13 @@ class _PlanWizardSheetState extends State<_PlanWizardSheet> {
         _savedCtrl.text = e.currentSaved.toStringAsFixed(0);
       if (e.notes != null) _notesCtrl.text = e.notes!;
     } else {
-      _nameCtrl.text = '';
+      // Pre-select focus from suggestion card if provided
+      if (widget.initialFocus != null) {
+        _focus = widget.initialFocus!;
+        _nameCtrl.text = _defaultPlanName(widget.initialFocus!);
+      } else {
+        _nameCtrl.text = '';
+      }
     }
   }
 
@@ -1724,7 +1942,7 @@ class _PlanWizardSheetState extends State<_PlanWizardSheet> {
   bool get _canProceed {
     switch (_step) {
       case 0:
-        return _focus != PlanningFocus.custom || _nameCtrl.text.trim().isNotEmpty;
+        return true; // focus is always pre-selected — Custom name handled in step 1
       case 1:
         return _nameCtrl.text.trim().isNotEmpty;
       default:
@@ -1781,6 +1999,9 @@ class _PlanWizardSheetState extends State<_PlanWizardSheet> {
       notes:
           _notesCtrl.text.trim().isNotEmpty ? _notesCtrl.text.trim() : null,
       createdAt: widget.existing?.createdAt ?? DateTime.now(),
+      riskProfile: _riskProfile,
+      incomeStability: _incomeStability,
+      dependentsCount: _dependentsCount,
     );
     widget.onSaved(plan);
     Navigator.of(context).pop();
@@ -1925,7 +2146,8 @@ class _PlanWizardSheetState extends State<_PlanWizardSheet> {
       case 1: return 'Name your plan';
       case 2: return 'Set a target';
       case 3: return 'Your contribution';
-      case 4: return 'Any extra context?';
+      case 4: return 'A little about you';
+      case 5: return 'Any extra context?';
       default: return '';
     }
   }
@@ -1936,7 +2158,8 @@ class _PlanWizardSheetState extends State<_PlanWizardSheet> {
       case 1: return _buildNameStep();
       case 2: return _buildTargetStep();
       case 3: return _buildContributionStep();
-      case 4: return _buildNotesStep();
+      case 4: return _buildContextStep();
+      case 5: return _buildNotesStep();
       default: return const SizedBox.shrink();
     }
   }
@@ -1958,6 +2181,31 @@ class _PlanWizardSheetState extends State<_PlanWizardSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const SizedBox(height: Spacing.sm),
+        Container(
+          padding: const EdgeInsets.all(Spacing.md),
+          decoration: BoxDecoration(
+            color: AppStyles.aetherTeal.withValues(alpha: 0.07),
+            borderRadius: BorderRadius.circular(Radii.md),
+          ),
+          child: Row(
+            children: [
+              const Icon(CupertinoIcons.lightbulb_fill,
+                  size: 16, color: AppStyles.aetherTeal),
+              const SizedBox(width: Spacing.sm),
+              Expanded(
+                child: Text(
+                  'Pick your goal type — the planner will use your actual spending history to build a personalised roadmap.',
+                  style: TextStyle(
+                    fontSize: TypeScale.caption,
+                    color: AppStyles.aetherTeal,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
         const SizedBox(height: Spacing.md),
         LayoutBuilder(
           builder: (context, constraints) {
@@ -1977,9 +2225,10 @@ class _PlanWizardSheetState extends State<_PlanWizardSheet> {
             return GestureDetector(
               onTap: () {
                 setState(() {
+                  final oldDefault = _defaultPlanName(_focus); // capture before update
                   _focus = focus;
-                  if (_nameCtrl.text.isEmpty ||
-                      _nameCtrl.text == _defaultPlanName(_focus)) {
+                  // Auto-update name only if it was still the old auto-filled default
+                  if (_nameCtrl.text.isEmpty || _nameCtrl.text == oldDefault) {
                     _nameCtrl.text = _defaultPlanName(focus);
                   }
                 });
@@ -2053,6 +2302,33 @@ class _PlanWizardSheetState extends State<_PlanWizardSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: Spacing.md),
+        if (_focus == PlanningFocus.custom) ...[
+          Container(
+            padding: const EdgeInsets.all(Spacing.md),
+            decoration: BoxDecoration(
+              color: AppStyles.accentOrange.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(Radii.md),
+            ),
+            child: Row(
+              children: [
+                const Icon(CupertinoIcons.star_fill,
+                    size: 14, color: AppStyles.accentOrange),
+                const SizedBox(width: Spacing.sm),
+                Expanded(
+                  child: Text(
+                    'You chose Custom — give your goal a meaningful name so you can track it easily.',
+                    style: TextStyle(
+                      fontSize: TypeScale.caption,
+                      color: AppStyles.accentOrange,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: Spacing.md),
+        ],
         Text('Give it a personal name',
             style: TextStyle(
               fontSize: TypeScale.footnote,
@@ -2168,15 +2444,72 @@ class _PlanWizardSheetState extends State<_PlanWizardSheet> {
       (PlanningTimeline.fiveYears,   '5 yr'),
       (PlanningTimeline.tenYears,    '10 yr'),
     ];
+
+    // ML-powered target suggestion based on focus + spending history
+    final ml = widget.mlAnalysis;
+    String? targetHint;
+    if (ml != null && ml.dataSufficient && ml.predictedExpenses != null) {
+      switch (_focus) {
+        case PlanningFocus.emergencyFund:
+          targetHint =
+              'Suggested: ${CurrencyFormatter.compact(ml.predictedExpenses! * 6)} (6 months of your ₹${CurrencyFormatter.compact(ml.predictedExpenses!)} avg monthly expenses)';
+          break;
+        case PlanningFocus.retirement:
+          if (ml.predictedExpenses! > 0) {
+            targetHint =
+                'Rule of thumb: 25× your annual expenses = ${CurrencyFormatter.compact(ml.predictedExpenses! * 12 * 25)}';
+          }
+          break;
+        default:
+          break;
+      }
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: Spacing.md),
+        if (targetHint != null) ...[
+          Container(
+            padding: const EdgeInsets.all(Spacing.md),
+            decoration: BoxDecoration(
+              color: AppStyles.accentBlue.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(Radii.md),
+              border: Border.all(
+                  color: AppStyles.accentBlue.withValues(alpha: 0.2)),
+            ),
+            child: Row(
+              children: [
+                const Icon(CupertinoIcons.sparkles,
+                    size: 14, color: AppStyles.accentBlue),
+                const SizedBox(width: Spacing.sm),
+                Expanded(
+                  child: Text(targetHint,
+                      style: TextStyle(
+                        fontSize: TypeScale.caption,
+                        color: AppStyles.accentBlue,
+                        height: 1.4,
+                      )),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: Spacing.md),
+        ],
         Text('Target amount (optional)',
             style: TextStyle(
               fontSize: TypeScale.footnote,
               color: AppStyles.getSecondaryTextColor(context),
             )),
+        const SizedBox(height: 3),
+        Text(
+          'How much do you need in total? You can leave this blank and track progress by savings rate instead.',
+          style: TextStyle(
+            fontSize: TypeScale.caption,
+            color: AppStyles.getSecondaryTextColor(context),
+            height: 1.4,
+          ),
+        ),
         const SizedBox(height: Spacing.sm),
         CupertinoTextField(
           controller: _targetCtrl,
@@ -2241,10 +2574,68 @@ class _PlanWizardSheetState extends State<_PlanWizardSheet> {
 
   // Step 3 — Monthly contribution + current head start
   Widget _buildContributionStep() {
+    final ml = widget.mlAnalysis;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: Spacing.md),
+        // ML insight banner
+        if (ml != null && ml.dataSufficient && (ml.predictedSavings ?? 0) > 0) ...[
+          Container(
+            padding: const EdgeInsets.all(Spacing.md),
+            decoration: BoxDecoration(
+              color: AppStyles.accentGreen.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(Radii.md),
+              border: Border.all(
+                  color: AppStyles.accentGreen.withValues(alpha: 0.2)),
+            ),
+            child: Row(
+              children: [
+                const Icon(CupertinoIcons.chart_bar_fill,
+                    size: 14, color: AppStyles.accentGreen),
+                const SizedBox(width: Spacing.sm),
+                Expanded(
+                  child: Text(
+                    'Based on your last ${ml.dataMonths} months, you save about ${CurrencyFormatter.compact(ml.predictedSavings!)} per month on average.',
+                    style: TextStyle(
+                      fontSize: TypeScale.caption,
+                      color: AppStyles.accentGreen,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: Spacing.md),
+        ] else if (ml != null && !ml.dataSufficient) ...[
+          Container(
+            padding: const EdgeInsets.all(Spacing.md),
+            decoration: BoxDecoration(
+              color: AppStyles.getCardColor(context),
+              borderRadius: BorderRadius.circular(Radii.md),
+            ),
+            child: Row(
+              children: [
+                Icon(CupertinoIcons.info_circle,
+                    size: 14,
+                    color: AppStyles.getSecondaryTextColor(context)),
+                const SizedBox(width: Spacing.sm),
+                Expanded(
+                  child: Text(
+                    'Record ${3 - ml.dataMonths} more month${3 - ml.dataMonths == 1 ? '' : 's'} of transactions to unlock ML-powered savings predictions.',
+                    style: TextStyle(
+                      fontSize: TypeScale.caption,
+                      color: AppStyles.getSecondaryTextColor(context),
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: Spacing.md),
+        ],
         Text('Monthly contribution (optional)',
             style: TextStyle(
               fontSize: TypeScale.footnote,
@@ -2305,7 +2696,254 @@ class _PlanWizardSheetState extends State<_PlanWizardSheet> {
     );
   }
 
-  // Step 4 — Notes
+  // Step 4 — ML context questions (income type, dependents, risk profile)
+  Widget _buildContextStep() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: Spacing.sm),
+        Container(
+          padding: const EdgeInsets.all(Spacing.md),
+          decoration: BoxDecoration(
+            color: AppStyles.accentPurple.withValues(alpha: 0.07),
+            borderRadius: BorderRadius.circular(Radii.md),
+          ),
+          child: Row(
+            children: [
+              const Icon(CupertinoIcons.sparkles,
+                  size: 14, color: AppStyles.accentPurple),
+              const SizedBox(width: Spacing.sm),
+              Expanded(
+                child: Text(
+                  'These 3 questions help the ML model tailor projections to your real financial situation.',
+                  style: TextStyle(
+                    fontSize: TypeScale.caption,
+                    color: AppStyles.accentPurple,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: Spacing.lg),
+
+        // — Income type —
+        Text('How stable is your income?',
+            style: TextStyle(
+              fontSize: TypeScale.subhead,
+              fontWeight: FontWeight.w700,
+              color: AppStyles.getTextColor(context),
+            )),
+        const SizedBox(height: 4),
+        Text(
+          'Helps predict how reliable your monthly savings will be.',
+          style: TextStyle(
+            fontSize: TypeScale.caption,
+            color: AppStyles.getSecondaryTextColor(context),
+          ),
+        ),
+        const SizedBox(height: Spacing.sm),
+        Wrap(
+          spacing: Spacing.sm,
+          runSpacing: Spacing.sm,
+          children: [
+            _contextChip('💼  Stable salary', IncomeStability.stable,
+                _incomeStability == IncomeStability.stable,
+                () => setState(() => _incomeStability = IncomeStability.stable)),
+            _contextChip('📊  Variable pay', IncomeStability.variable,
+                _incomeStability == IncomeStability.variable,
+                () => setState(() => _incomeStability = IncomeStability.variable)),
+            _contextChip('🖥️  Freelance', IncomeStability.freelance,
+                _incomeStability == IncomeStability.freelance,
+                () => setState(() => _incomeStability = IncomeStability.freelance)),
+            _contextChip('🏢  Own business', IncomeStability.business,
+                _incomeStability == IncomeStability.business,
+                () => setState(() => _incomeStability = IncomeStability.business)),
+          ],
+        ),
+        const SizedBox(height: Spacing.lg),
+
+        // — Dependents —
+        Text('How many dependents do you have?',
+            style: TextStyle(
+              fontSize: TypeScale.subhead,
+              fontWeight: FontWeight.w700,
+              color: AppStyles.getTextColor(context),
+            )),
+        const SizedBox(height: 4),
+        Text(
+          'Family responsibilities affect how aggressive you can be with saving.',
+          style: TextStyle(
+            fontSize: TypeScale.caption,
+            color: AppStyles.getSecondaryTextColor(context),
+          ),
+        ),
+        const SizedBox(height: Spacing.sm),
+        Row(
+          children: [
+            for (final (val, label) in [(0, 'Just me'), (1, '1'), (2, '2'), (3, '3+')])
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(right: val < 3 ? Spacing.sm : 0),
+                  child: GestureDetector(
+                    onTap: () => setState(() => _dependentsCount = val),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 120),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        color: _dependentsCount == val
+                            ? AppStyles.aetherTeal.withValues(alpha: 0.15)
+                            : AppStyles.getCardColor(context),
+                        borderRadius: BorderRadius.circular(Radii.md),
+                        border: Border.all(
+                          color: _dependentsCount == val
+                              ? AppStyles.aetherTeal
+                              : AppStyles.getSecondaryTextColor(context)
+                                  .withValues(alpha: 0.2),
+                          width: _dependentsCount == val ? 1.5 : 1,
+                        ),
+                      ),
+                      child: Text(label,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: TypeScale.footnote,
+                            fontWeight: _dependentsCount == val
+                                ? FontWeight.w700
+                                : FontWeight.w500,
+                            color: _dependentsCount == val
+                                ? AppStyles.aetherTeal
+                                : AppStyles.getTextColor(context),
+                          )),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: Spacing.lg),
+
+        // — Risk tolerance —
+        Text('What\'s your risk appetite?',
+            style: TextStyle(
+              fontSize: TypeScale.subhead,
+              fontWeight: FontWeight.w700,
+              color: AppStyles.getTextColor(context),
+            )),
+        const SizedBox(height: 4),
+        Text(
+          'Affects how the planner weighs growth vs safety in its advice.',
+          style: TextStyle(
+            fontSize: TypeScale.caption,
+            color: AppStyles.getSecondaryTextColor(context),
+          ),
+        ),
+        const SizedBox(height: Spacing.sm),
+        ...RiskProfile.values.map((rp) {
+          final (icon, label, desc, color) = switch (rp) {
+            RiskProfile.conservative => ('🛡️', 'Conservative',
+                'Safety first — steady growth, low volatility', AppStyles.accentGreen),
+            RiskProfile.moderate => ('⚖️', 'Moderate',
+                'Balance of safety and growth', AppStyles.accentBlue),
+            RiskProfile.aggressive => ('📈', 'Aggressive',
+                'Comfortable with ups and downs for higher returns', AppStyles.accentOrange),
+          };
+          final selected = _riskProfile == rp;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: Spacing.sm),
+            child: GestureDetector(
+              onTap: () => setState(() => _riskProfile = rp),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 120),
+                padding: const EdgeInsets.all(Spacing.md),
+                decoration: BoxDecoration(
+                  color: selected
+                      ? color.withValues(alpha: 0.10)
+                      : AppStyles.getCardColor(context),
+                  borderRadius: BorderRadius.circular(Radii.md),
+                  border: Border.all(
+                    color: selected
+                        ? color
+                        : AppStyles.getSecondaryTextColor(context)
+                            .withValues(alpha: 0.15),
+                    width: selected ? 1.5 : 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Text(icon, style: const TextStyle(fontSize: 22)),
+                    const SizedBox(width: Spacing.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(label,
+                              style: TextStyle(
+                                fontSize: TypeScale.callout,
+                                fontWeight: selected
+                                    ? FontWeight.w700
+                                    : FontWeight.w600,
+                                color: selected
+                                    ? color
+                                    : AppStyles.getTextColor(context),
+                              )),
+                          Text(desc,
+                              style: TextStyle(
+                                fontSize: TypeScale.caption,
+                                color: selected
+                                    ? color.withValues(alpha: 0.80)
+                                    : AppStyles.getSecondaryTextColor(context),
+                                height: 1.3,
+                              )),
+                        ],
+                      ),
+                    ),
+                    if (selected)
+                      Icon(CupertinoIcons.checkmark_circle_fill,
+                          size: 18, color: color),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }),
+        const SizedBox(height: Spacing.lg),
+      ],
+    );
+  }
+
+  Widget _contextChip<T>(String label, T value, bool selected, VoidCallback onTap) {
+    final color = selected ? AppStyles.aetherTeal : AppStyles.getSecondaryTextColor(context);
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 120),
+        padding: const EdgeInsets.symmetric(
+            horizontal: Spacing.md, vertical: Spacing.sm),
+        decoration: BoxDecoration(
+          color: selected
+              ? AppStyles.aetherTeal.withValues(alpha: 0.12)
+              : AppStyles.getCardColor(context),
+          borderRadius: BorderRadius.circular(Radii.xl),
+          border: Border.all(
+            color: selected
+                ? AppStyles.aetherTeal
+                : AppStyles.getSecondaryTextColor(context)
+                    .withValues(alpha: 0.2),
+            width: selected ? 1.5 : 1,
+          ),
+        ),
+        child: Text(label,
+            style: TextStyle(
+              fontSize: TypeScale.footnote,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              color: color,
+            )),
+      ),
+    );
+  }
+
+  // Step 5 — Notes
   Widget _buildNotesStep() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

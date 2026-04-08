@@ -23,6 +23,9 @@ enum PlanningTimeline {
   tenYears,
 }
 
+enum RiskProfile { conservative, moderate, aggressive }
+enum IncomeStability { stable, variable, freelance, business }
+
 // ─────────────────────────────────────────────────────────────────────────────
 // FinancialPlan — a single goal with context for the planner engine.
 // Replaces the old single-context AIPlannerContext.
@@ -40,6 +43,9 @@ class FinancialPlan {
   final String? emoji;
   final String? notes;
   final DateTime createdAt;
+  final RiskProfile riskProfile;
+  final IncomeStability incomeStability;
+  final int dependentsCount;          // 0, 1, 2, 3 (3 means 3 or more)
 
   const FinancialPlan({
     required this.id,
@@ -53,6 +59,9 @@ class FinancialPlan {
     this.emoji,
     this.notes,
     required this.createdAt,
+    this.riskProfile = RiskProfile.moderate,
+    this.incomeStability = IncomeStability.stable,
+    this.dependentsCount = 0,
   });
 
   String get focusLabel {
@@ -111,6 +120,9 @@ class FinancialPlan {
         'emoji': emoji,
         'notes': notes,
         'createdAt': createdAt.toIso8601String(),
+        'riskProfile': riskProfile.name,
+        'incomeStability': incomeStability.name,
+        'dependentsCount': dependentsCount,
       };
 
   factory FinancialPlan.fromMap(Map<String, dynamic> m) => FinancialPlan(
@@ -131,6 +143,15 @@ class FinancialPlan {
         emoji: m['emoji'] as String?,
         notes: m['notes'] as String?,
         createdAt: DateTime.tryParse(m['createdAt'] as String? ?? '') ?? DateTime.now(),
+        riskProfile: RiskProfile.values.firstWhere(
+          (e) => e.name == (m['riskProfile'] as String? ?? ''),
+          orElse: () => RiskProfile.moderate,
+        ),
+        incomeStability: IncomeStability.values.firstWhere(
+          (e) => e.name == (m['incomeStability'] as String? ?? ''),
+          orElse: () => IncomeStability.stable,
+        ),
+        dependentsCount: (m['dependentsCount'] as int?) ?? 0,
       );
 }
 
