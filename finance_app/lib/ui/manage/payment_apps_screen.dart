@@ -30,11 +30,54 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
   String _searchQuery = '';
   bool _isAscending = true;
   late int _selectedTab; // 0 = Active, 1 = Wallets, 2 = All Apps
+  late final PageController _pageController;
 
   @override
   void initState() {
     super.initState();
     _selectedTab = widget.initialTab;
+    _pageController = PageController(initialPage: widget.initialTab);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  // ── Brand color adaptation — lifts very dark colors in dark mode ─────────────
+  Color _adaptBrandColor(Color color) {
+    if (!AppStyles.isDarkMode(context)) return color;
+    final hsl = HSLColor.fromColor(color);
+    if (hsl.lightness < 0.35) {
+      return hsl.withLightness(0.55).toColor();
+    }
+    return color;
+  }
+
+  // ── App avatar — first letter on brand color background ──────────────────────
+  Widget _buildAppAvatar(String name, Color brandColor, {double size = 46}) {
+    final adapted = _adaptBrandColor(brandColor);
+    final initial = name.trim().isNotEmpty ? name.trim()[0].toUpperCase() : '?';
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: adapted,
+        borderRadius: BorderRadius.circular(size * 0.26),
+      ),
+      child: Center(
+        child: Text(
+          initial,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: size * 0.43,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.5,
+          ),
+        ),
+      ),
+    );
   }
 
   void _onReorder(
@@ -753,19 +796,30 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                           ),
                         },
                         onValueChanged: (val) {
-                          if (val != null) setState(() => _selectedTab = val);
+                          if (val != null) {
+                            setState(() => _selectedTab = val);
+                            _pageController.animateToPage(
+                              val,
+                              duration: const Duration(milliseconds: 250),
+                              curve: Curves.easeOutCubic,
+                            );
+                          }
                         },
                       ),
                     ),
                     const SizedBox(height: 12),
 
-                    // Tab content
+                    // Tab content — swipeable PageView
                     Expanded(
-                      child: _selectedTab == 0
-                          ? _buildActiveAppsTab(activeApps, appsController)
-                          : _selectedTab == 1
-                              ? _buildWalletsTab(walletApps, appsController)
-                              : _buildAllAppsTab(filteredApps, appsController),
+                      child: PageView(
+                        controller: _pageController,
+                        onPageChanged: (i) => setState(() => _selectedTab = i),
+                        children: [
+                          _buildActiveAppsTab(activeApps, appsController),
+                          _buildWalletsTab(walletApps, appsController),
+                          _buildAllAppsTab(filteredApps, appsController),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -824,7 +878,12 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
         title: 'No active apps',
         subtitle: 'Enable apps in the All Apps tab to see them here.',
         actionLabel: 'Go to All Apps',
-        onAction: () => setState(() => _selectedTab = 2),
+        onAction: () {
+          setState(() => _selectedTab = 2);
+          _pageController.animateToPage(2,
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeOutCubic);
+        },
       );
     }
 
@@ -851,14 +910,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
           padding: const EdgeInsets.all(Spacing.lg),
           child: Row(
             children: [
-              Container(
-                width: 46,
-                height: 46,
-                decoration: AppStyles.iconBoxDecoration(context, color),
-                child: Center(
-                  child: Icon(CupertinoIcons.square_fill, color: color, size: 22),
-                ),
-              ),
+              _buildAppAvatar(app['name'] as String, color),
               const SizedBox(width: Spacing.lg),
               Expanded(
                 child: Column(
@@ -900,7 +952,12 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
         subtitle:
             'Enable apps with wallet feature and toggle them on to see them here.',
         actionLabel: 'Go to All Apps',
-        onAction: () => setState(() => _selectedTab = 2),
+        onAction: () {
+          setState(() => _selectedTab = 2);
+          _pageController.animateToPage(2,
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeOutCubic);
+        },
       );
     }
 
@@ -986,14 +1043,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
         padding: const EdgeInsets.all(Spacing.lg),
         child: Row(
           children: [
-            Container(
-              width: 46,
-              height: 46,
-              decoration: AppStyles.iconBoxDecoration(context, color),
-              child: Center(
-                child: Icon(CupertinoIcons.square_fill, color: color, size: 22),
-              ),
-            ),
+            _buildAppAvatar(app['name'] as String, color),
             const SizedBox(width: Spacing.lg),
             Expanded(
               child: Column(
@@ -1265,18 +1315,10 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
         padding: const EdgeInsets.all(Spacing.lg),
         child: Row(
           children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: AppStyles.iconBoxDecoration(context, app['color']),
-              child: Center(
-                child: Icon(
-                  CupertinoIcons.square_fill,
-                  color: app['color'],
-                  size: 24,
-                ),
-              ),
-            ),
+            _buildAppAvatar(
+                app['name'] as String,
+                (app['color'] as Color?) ?? CupertinoColors.systemBlue,
+                size: 48),
             const SizedBox(width: Spacing.lg),
             Expanded(
               child: Text(
@@ -1445,15 +1487,7 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                             // ── App header ────────────────────────────────
                             Row(
                               children: [
-                                Container(
-                                  width: 56,
-                                  height: 56,
-                                  decoration: AppStyles.iconBoxDecoration(ctx, color),
-                                  child: Center(
-                                    child: Icon(CupertinoIcons.square_fill,
-                                        color: color, size: 28),
-                                  ),
-                                ),
+                                _buildAppAvatar(appName, color, size: 56),
                                 const SizedBox(width: 16),
                                 Expanded(
                                   child: Column(
