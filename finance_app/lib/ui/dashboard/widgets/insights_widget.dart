@@ -1284,6 +1284,15 @@ class InsightsWidget extends BaseDashboardWidget {
   });
 
   @override
+  Widget build(BuildContext context) => buildContent(
+        context,
+        columnSpan: config.columnSpan,
+        rowSpan: config.rowSpan,
+        width: double.infinity,
+        height: double.infinity,
+      );
+
+  @override
   Widget buildContent(
     BuildContext context, {
     required int columnSpan,
