@@ -453,7 +453,8 @@ class _DashboardActionSheetState extends State<_DashboardActionSheet> {
       children: [
         BouncyButton(
           onPressed: onTap,
-          child: Padding(
+          child: Container(
+            color: Colors.transparent, // ensures full row width is hit-testable
             padding: const EdgeInsets.symmetric(vertical: 10),
             child: Row(
               children: [
