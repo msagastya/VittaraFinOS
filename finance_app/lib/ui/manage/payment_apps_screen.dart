@@ -17,7 +17,9 @@ import 'package:vittara_fin_os/utils/logger.dart';
 import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class PaymentAppsScreen extends StatefulWidget {
-  const PaymentAppsScreen({super.key});
+  /// If provided, opens directly to that tab: 0=Active, 1=Wallets, 2=All Apps
+  final int initialTab;
+  const PaymentAppsScreen({super.key, this.initialTab = 0});
 
   @override
   State<PaymentAppsScreen> createState() => _PaymentAppsScreenState();
@@ -27,7 +29,13 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
   final AppLogger logger = AppLogger();
   String _searchQuery = '';
   bool _isAscending = true;
-  int _selectedTab = 0; // 0 = Active, 1 = Wallets, 2 = All Apps
+  late int _selectedTab; // 0 = Active, 1 = Wallets, 2 = All Apps
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedTab = widget.initialTab;
+  }
 
   void _onReorder(
       int oldIndex, int newIndex, PaymentAppsController appsController) {

@@ -29,7 +29,9 @@ import 'package:vittara_fin_os/services/transaction_export_service.dart';
 import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class AccountsScreen extends StatefulWidget {
-  const AccountsScreen({super.key});
+  /// If provided, the screen jumps to this account type tab on first load.
+  final AccountType? initialCategoryType;
+  const AccountsScreen({super.key, this.initialCategoryType});
 
   @override
   State<AccountsScreen> createState() => _AccountsScreenState();
@@ -49,6 +51,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
   final Map<String, List<Account>> _filterSortCache = {};
   String _lastCacheKey = '';
   bool _hiddenSectionExpanded = false;
+  bool _didInitialJump = false;
 
   @override
   void initState() {
@@ -785,6 +788,22 @@ class _AccountsScreenState extends State<AccountsScreen> {
               allAccounts.where((a) => a.isHidden).toList();
           final types = _orderedAccountTypes(visibleAccounts);
           _syncSelectedCategoryIndex(types);
+
+          // Jump to initialCategoryType on first load (from deep-link navigation)
+          if (!_didInitialJump && widget.initialCategoryType != null) {
+            final targetIdx = types.indexOf(widget.initialCategoryType!);
+            if (targetIdx >= 0 && targetIdx != _selectedCategoryIndex) {
+              _didInitialJump = true;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!mounted) return;
+                setState(() => _selectedCategoryIndex = targetIdx);
+                _categoryPageController.jumpToPage(targetIdx);
+              });
+            } else if (targetIdx >= 0) {
+              _didInitialJump = true;
+            }
+          }
+
           return Stack(
             children: [
               if (allAccounts.isEmpty)

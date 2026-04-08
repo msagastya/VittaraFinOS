@@ -1114,8 +1114,9 @@ class _NetWorthPageState extends State<NetWorthPage> {
     const sectionColor = Color(0xFF00D4AA);
 
     return GestureDetector(
-      onTap: () => Navigator.of(context).push(
-          FadeScalePageRoute(page: const AccountsScreen())),
+      onTap: () => Navigator.of(context).push(FadeScalePageRoute(
+          page: const AccountsScreen(
+              initialCategoryType: AccountType.savings))),
       child: Container(
       decoration: AppStyles.sectionDecoration(
         context,
@@ -1257,8 +1258,8 @@ class _NetWorthPageState extends State<NetWorthPage> {
     return [
       const SizedBox(height: Spacing.lg),
       GestureDetector(
-        onTap: () => Navigator.of(context).push(
-            FadeScalePageRoute(page: const PaymentAppsScreen())),
+        onTap: () => Navigator.of(context).push(FadeScalePageRoute(
+            page: const PaymentAppsScreen(initialTab: 1))),
         child: Container(
           decoration: AppStyles.sectionDecoration(
             context,
@@ -1414,8 +1415,9 @@ class _NetWorthPageState extends State<NetWorthPage> {
     }
 
     return GestureDetector(
-      onTap: () => Navigator.of(context).push(
-          FadeScalePageRoute(page: const AccountsScreen())),
+      onTap: () => Navigator.of(context).push(FadeScalePageRoute(
+          page: const AccountsScreen(
+              initialCategoryType: AccountType.investment))),
       child: Container(
       decoration: AppStyles.cardDecoration(context),
       child: Column(
@@ -1553,8 +1555,9 @@ class _NetWorthPageState extends State<NetWorthPage> {
     final totalAvailable = totalCreditLimit - totalUsed;
 
     return GestureDetector(
-      onTap: () => Navigator.of(context).push(
-          FadeScalePageRoute(page: const AccountsScreen())),
+      onTap: () => Navigator.of(context).push(FadeScalePageRoute(
+          page: const AccountsScreen(
+              initialCategoryType: AccountType.credit))),
       child: Container(
       decoration: AppStyles.cardDecoration(context),
       child: Column(
