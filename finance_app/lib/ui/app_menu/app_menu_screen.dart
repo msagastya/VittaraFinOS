@@ -283,11 +283,11 @@ class _BrandHeader extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
             ),
             alignment: Alignment.center,
-            child: const Text(
+            child: Text(
               'V',
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 24,
+                fontSize: RT.largeTitle(context),
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -300,7 +300,7 @@ class _BrandHeader extends StatelessWidget {
                 Text(
                   _appName,
                   style: AppStyles.titleStyle(context).copyWith(
-                    fontSize: TypeScale.title2,
+                    fontSize: RT.title2(context),
                     fontWeight: FontWeight.w800,
                   ),
                 ),

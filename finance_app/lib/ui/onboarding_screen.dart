@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 const String _kOnboardingDoneKey = 'onboarding_complete_v1';
 
@@ -394,7 +395,7 @@ class _OnboardingPageView extends StatelessWidget {
             textAlign: TextAlign.center,
             style: TextStyle(
               color: textColor,
-              fontSize: TypeScale.title1,
+              fontSize: RT.title1(context),
               fontWeight: FontWeight.w700,
               letterSpacing: -0.5,
               height: 1.2,
@@ -549,7 +550,7 @@ class _DemoOnboardingPage extends StatelessWidget {
             textAlign: TextAlign.center,
             style: TextStyle(
               color: textColor,
-              fontSize: TypeScale.title1,
+              fontSize: RT.title1(context),
               fontWeight: FontWeight.w700,
               letterSpacing: -0.5,
               height: 1.2,

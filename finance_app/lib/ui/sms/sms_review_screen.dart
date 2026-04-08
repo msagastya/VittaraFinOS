@@ -341,7 +341,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
                   'Scan Your Bank SMS',
                   style: TextStyle(
                     fontFamily: 'SpaceGrotesk',
-                    fontSize: 22,
+                    fontSize: RT.title1(context),
                     fontWeight: FontWeight.w700,
                     color: AppStyles.getTextColor(context),
                   ),
@@ -775,7 +775,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
                         fmt.format(p.amount),
                         style: TextStyle(
                           fontFamily: 'SpaceGrotesk',
-                          fontSize: 22,
+                          fontSize: RT.title1(context),
                           fontWeight: FontWeight.w700,
                           color: txColor,
                           height: 1.1,
@@ -1041,7 +1041,7 @@ class _SmsReviewScreenState extends State<SmsReviewScreen> {
                           fmt.format(p.amount),
                           style: TextStyle(
                             fontFamily: 'SpaceGrotesk',
-                            fontSize: 26,
+                            fontSize: RT.title1(context),
                             fontWeight: FontWeight.w700,
                             color: p.type == 'expense'
                                 ? AppStyles.loss(context)

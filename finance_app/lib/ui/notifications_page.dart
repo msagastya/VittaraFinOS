@@ -2444,7 +2444,7 @@ class _SipExecutionModalState extends State<_SipExecutionModal> {
                 'Execute SIP',
                 style: TextStyle(
                   color: AppStyles.getTextColor(context),
-                  fontSize: TypeScale.title1,
+                  fontSize: RT.title1(context),
                   fontWeight: FontWeight.bold,
                 ),
               ),

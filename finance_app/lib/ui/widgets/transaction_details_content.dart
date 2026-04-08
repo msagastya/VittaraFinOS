@@ -3,6 +3,7 @@ import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class TransactionDetailsContent extends StatelessWidget {
   final Transaction transaction;
@@ -51,7 +52,7 @@ class TransactionDetailsContent extends StatelessWidget {
                 Text(
                   transaction.getTypeLabel(),
                   style: AppStyles.titleStyle(context)
-                      .copyWith(fontSize: TypeScale.title2),
+                      .copyWith(fontSize: RT.title2(context)),
                 ),
                 const SizedBox(height: Spacing.xs),
                 Text(
@@ -83,7 +84,7 @@ class TransactionDetailsContent extends StatelessWidget {
                 Text(
                   '₹${transaction.amount.toStringAsFixed(2)}',
                   style: AppStyles.titleStyle(context).copyWith(
-                    fontSize: TypeScale.largeTitle,
+                    fontSize: RT.largeTitle(context),
                     color: _getTransactionColor(context),
                     fontWeight: FontWeight.bold,
                   ),

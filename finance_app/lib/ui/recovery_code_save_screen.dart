@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 
 /// Shown ONCE after the user sets their PIN.
@@ -107,7 +108,7 @@ class _RecoveryCodeSaveScreenState extends State<RecoveryCodeSaveScreen>
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontFamily: 'SpaceGrotesk',
-                  fontSize: TypeScale.title1,
+                  fontSize: RT.title1(context),
                   fontWeight: FontWeight.w700,
                   color: textColor,
                   height: 1.2,

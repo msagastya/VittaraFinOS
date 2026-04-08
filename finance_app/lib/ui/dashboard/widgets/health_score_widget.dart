@@ -13,6 +13,7 @@ import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/ui/dashboard/base_dashboard_widget.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 // ---------------------------------------------------------------------------
 // Data model (public — reused by NetWorthWidget)
@@ -552,7 +553,7 @@ class HealthScoreBodyState extends State<HealthScoreBody>
                         Text(
                           '${(data.total * _scoreCountAnim.value).round()}',
                           style: TextStyle(
-                            fontSize: TypeScale.title1,
+                            fontSize: RT.title1(context),
                             fontWeight: FontWeight.w800,
                             color: data.bandColor,
                             height: 1.1,

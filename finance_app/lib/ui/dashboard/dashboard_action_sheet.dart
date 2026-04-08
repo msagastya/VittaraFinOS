@@ -378,7 +378,7 @@ class _DashboardActionSheetState extends State<_DashboardActionSheet> {
                 'Quick Add',
                 style: TextStyle(
                   fontFamily: 'SpaceGrotesk',
-                  fontSize: 22,
+                  fontSize: RT.title1(context),
                   fontWeight: FontWeight.w700,
                   color: AppStyles.getTextColor(context),
                 ),

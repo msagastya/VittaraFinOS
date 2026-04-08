@@ -7,6 +7,7 @@ import 'package:vittara_fin_os/logic/settings_controller.dart';
 import 'package:vittara_fin_os/ui/recovery_code_save_screen.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 
 /// Three-step recovery flow:
@@ -261,7 +262,7 @@ class _PinRecoveryScreenState extends State<PinRecoveryScreen> {
               Text('Enter Recovery Code',
                   style: TextStyle(
                     fontFamily: 'SpaceGrotesk',
-                    fontSize: TypeScale.title2,
+                    fontSize: RT.title2(context),
                     fontWeight: FontWeight.w700,
                     color: textColor,
                   )),
@@ -452,7 +453,7 @@ class _PinRecoveryScreenState extends State<PinRecoveryScreen> {
                       : 'Set New PIN',
               style: TextStyle(
                 color: textColor,
-                fontSize: TypeScale.title2,
+                fontSize: RT.title2(context),
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -521,7 +522,7 @@ class _PinRecoveryScreenState extends State<PinRecoveryScreen> {
                                   label,
                                   style: TextStyle(
                                     color: textColor,
-                                    fontSize: 24,
+                                    fontSize: RT.largeTitle(context),
                                     fontWeight: FontWeight.w400,
                                   ),
                                 ),
@@ -590,7 +591,7 @@ class _PinRecoveryScreenState extends State<PinRecoveryScreen> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontFamily: 'SpaceGrotesk',
-                      fontSize: TypeScale.title2,
+                      fontSize: RT.title2(context),
                       fontWeight: FontWeight.w700,
                       color: textColor,
                     )),
@@ -628,7 +629,7 @@ class _PinRecoveryScreenState extends State<PinRecoveryScreen> {
                 Text('Type to Confirm',
                     style: TextStyle(
                       fontFamily: 'SpaceGrotesk',
-                      fontSize: TypeScale.title2,
+                      fontSize: RT.title2(context),
                       fontWeight: FontWeight.w700,
                       color: textColor,
                     )),
@@ -690,7 +691,7 @@ class _PinRecoveryScreenState extends State<PinRecoveryScreen> {
                 Text('Deleting in...',
                     style: TextStyle(
                       fontFamily: 'SpaceGrotesk',
-                      fontSize: TypeScale.title2,
+                      fontSize: RT.title2(context),
                       fontWeight: FontWeight.w700,
                       color: textColor,
                     )),

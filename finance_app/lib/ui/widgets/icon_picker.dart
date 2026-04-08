@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class IconPickerModal extends StatefulWidget {
   final Function(IconData) onIconSelected;
@@ -410,7 +411,7 @@ class _IconPickerModalState extends State<IconPickerModal> {
             child: Text(
               'Choose Icon',
               style: AppStyles.titleStyle(context)
-                  .copyWith(fontSize: TypeScale.title2),
+                  .copyWith(fontSize: RT.title2(context)),
             ),
           ),
           const SizedBox(height: Spacing.lg),
