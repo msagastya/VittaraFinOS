@@ -882,43 +882,56 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                 .key;
         final hasSpend = catSpend.isNotEmpty;
 
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(Spacing.xxl),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const SizedBox(height: Spacing.xxl),
-              Container(
-                padding: const EdgeInsets.all(Spacing.xxl),
-                decoration: BoxDecoration(
-                    color: SemanticColors.primary.withValues(alpha: 0.1),
-                    shape: BoxShape.circle),
-                child: const Icon(CupertinoIcons.chart_pie_fill,
-                    size: IconSizes.emptyStateIcon,
-                    color: SemanticColors.primary),
+        // CTA pinned outside scroll view so it never hides behind the FAB.
+        return Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(
+                    Spacing.xxl, Spacing.xxl, Spacing.xxl, Spacing.lg),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: Spacing.xxl),
+                    Container(
+                      padding: const EdgeInsets.all(Spacing.xxl),
+                      decoration: BoxDecoration(
+                          color: SemanticColors.primary.withValues(alpha: 0.1),
+                          shape: BoxShape.circle),
+                      child: const Icon(CupertinoIcons.chart_pie_fill,
+                          size: IconSizes.emptyStateIcon,
+                          color: SemanticColors.primary),
+                    ),
+                    const SizedBox(height: Spacing.xxl),
+                    Text(
+                      'Without a limit, there\'s no finish line',
+                      style: TextStyle(
+                          fontSize: RT.largeTitle(context),
+                          fontWeight: FontWeight.bold,
+                          color: AppStyles.getTextColor(context)),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: Spacing.md),
+                    Text(
+                      hasSpend
+                          ? 'You spent most on $topCat. Set a budget and we\'ll tell you how you\'re doing in real time.'
+                          : 'Set a budget for any spending category and track it automatically as you log transactions.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          fontSize: TypeScale.callout,
+                          color: AppStyles.getSecondaryTextColor(context),
+                          height: 1.5),
+                    ),
+                    const SizedBox(height: Spacing.xl),
+                  ],
+                ),
               ),
-              const SizedBox(height: Spacing.xxl),
-              Text(
-                'Without a limit, there\'s no finish line',
-                style: TextStyle(
-                    fontSize: RT.largeTitle(context),
-                    fontWeight: FontWeight.bold,
-                    color: AppStyles.getTextColor(context)),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: Spacing.md),
-              Text(
-                hasSpend
-                    ? 'You spent most on $topCat. Set a budget and we\'ll tell you how you\'re doing in real time.'
-                    : 'Set a budget for any spending category and track it automatically as you log transactions.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontSize: TypeScale.callout,
-                    color: AppStyles.getSecondaryTextColor(context),
-                    height: 1.5),
-              ),
-              const SizedBox(height: Spacing.xxl),
-              BouncyButton(
+            ),
+            // Fixed CTA — always visible above the FAB
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                  Spacing.xxl, 0, Spacing.xxl, 104),
+              child: BouncyButton(
                 onPressed: _showAddBudgetModal,
                 child: Container(
                   width: double.infinity,
@@ -931,8 +944,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                     borderRadius: BorderRadius.circular(Radii.full),
                     boxShadow: [
                       BoxShadow(
-                          color:
-                              SemanticColors.primary.withValues(alpha: 0.35),
+                          color: SemanticColors.primary.withValues(alpha: 0.35),
                           blurRadius: 20,
                           offset: const Offset(0, 8))
                     ],
@@ -956,10 +968,8 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                   ),
                 ),
               ),
-              // Extra clearance so FAB doesn't overlap the CTA button
-              const SizedBox(height: 88),
-            ],
-          ),
+            ),
+          ],
         );
       },
     );

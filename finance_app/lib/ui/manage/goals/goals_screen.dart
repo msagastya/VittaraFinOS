@@ -744,74 +744,87 @@ class _GoalsScreenState extends State<GoalsScreen> {
   }
 
   Widget _buildEmptyState() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(Spacing.xxl),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const SizedBox(height: Spacing.xxl),
-          // Icon with glow
-          Container(
-            padding: const EdgeInsets.all(Spacing.xxl),
-            decoration: BoxDecoration(
-              color: SemanticColors.success.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              CupertinoIcons.flag_fill,
-              size: IconSizes.emptyStateIcon,
-              color: SemanticColors.success,
+    // CTA is pinned outside the scroll view so it never hides behind the FAB
+    // (FAB occupies 32–88dp from screen bottom; 104dp bottom padding gives ~16dp gap).
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(
+                Spacing.xxl, Spacing.xxl, Spacing.xxl, Spacing.lg),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(height: Spacing.xxl),
+                Container(
+                  padding: const EdgeInsets.all(Spacing.xxl),
+                  decoration: BoxDecoration(
+                    color: SemanticColors.success.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    CupertinoIcons.flag_fill,
+                    size: IconSizes.emptyStateIcon,
+                    color: SemanticColors.success,
+                  ),
+                ),
+                const SizedBox(height: Spacing.xxl),
+                Text(
+                  'Goals turn savings into outcomes',
+                  style: TextStyle(
+                    fontSize: RT.largeTitle(context),
+                    fontWeight: FontWeight.bold,
+                    color: AppStyles.getTextColor(context),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: Spacing.md),
+                Text(
+                  'People who track goals save 2.4× more than those who don\'t — because a number with a name is harder to spend.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: TypeScale.callout,
+                    color: AppStyles.getSecondaryTextColor(context),
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: Spacing.xxl),
+                Text(
+                  'What are you working toward?',
+                  style: TextStyle(
+                    fontSize: TypeScale.footnote,
+                    fontWeight: FontWeight.w600,
+                    color: AppStyles.getSecondaryTextColor(context),
+                    letterSpacing: 0.3,
+                  ),
+                ),
+                const SizedBox(height: Spacing.md),
+                Wrap(
+                  spacing: Spacing.sm,
+                  runSpacing: Spacing.sm,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    _goalTypeChip(GoalType.emergency, 'Emergency Fund',
+                        CupertinoIcons.shield_fill, SemanticColors.warning),
+                    _goalTypeChip(GoalType.home, 'Home',
+                        CupertinoIcons.house_fill, AppStyles.accentBlue),
+                    _goalTypeChip(GoalType.vacation, 'Vacation',
+                        CupertinoIcons.airplane, AppStyles.accentTeal),
+                    _goalTypeChip(GoalType.retirement, 'Retirement',
+                        CupertinoIcons.person_crop_circle_fill,
+                        AppStyles.novaPurple),
+                  ],
+                ),
+                const SizedBox(height: Spacing.xl),
+              ],
             ),
           ),
-          const SizedBox(height: Spacing.xxl),
-          Text(
-            'Goals turn savings into outcomes',
-            style: TextStyle(
-              fontSize: RT.largeTitle(context),
-              fontWeight: FontWeight.bold,
-              color: AppStyles.getTextColor(context),
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: Spacing.md),
-          Text(
-            'People who track goals save 2.4× more than those who don\'t — because a number with a name is harder to spend.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: TypeScale.callout,
-              color: AppStyles.getSecondaryTextColor(context),
-              height: 1.5,
-            ),
-          ),
-          const SizedBox(height: Spacing.xxl),
-          // Quick-start type buttons
-          Text(
-            'What are you working toward?',
-            style: TextStyle(
-              fontSize: TypeScale.footnote,
-              fontWeight: FontWeight.w600,
-              color: AppStyles.getSecondaryTextColor(context),
-              letterSpacing: 0.3,
-            ),
-          ),
-          const SizedBox(height: Spacing.md),
-          Wrap(
-            spacing: Spacing.sm,
-            runSpacing: Spacing.sm,
-            alignment: WrapAlignment.center,
-            children: [
-              _goalTypeChip(GoalType.emergency, 'Emergency Fund',
-                  CupertinoIcons.shield_fill, SemanticColors.warning),
-              _goalTypeChip(GoalType.home, 'Home',
-                  CupertinoIcons.house_fill, AppStyles.accentBlue),
-              _goalTypeChip(GoalType.vacation, 'Vacation',
-                  CupertinoIcons.airplane, AppStyles.accentTeal),
-              _goalTypeChip(GoalType.retirement, 'Retirement',
-                  CupertinoIcons.person_crop_circle_fill, AppStyles.novaPurple),
-            ],
-          ),
-          const SizedBox(height: Spacing.xl),
-          BouncyButton(
+        ),
+        // Fixed CTA — always visible above the FAB
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+              Spacing.xxl, 0, Spacing.xxl, 104),
+          child: BouncyButton(
             onPressed: _showAddGoalModal,
             child: Container(
               width: double.infinity,
@@ -820,7 +833,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                 gradient: LinearGradient(
                   colors: [
                     SemanticColors.success,
-                    SemanticColors.success.withValues(alpha: 0.8)
+                    SemanticColors.success.withValues(alpha: 0.8),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(Radii.full),
@@ -835,7 +848,8 @@ class _GoalsScreenState extends State<GoalsScreen> {
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(CupertinoIcons.add, color: Colors.white, size: IconSizes.lg),
+                  Icon(CupertinoIcons.add,
+                      color: Colors.white, size: IconSizes.lg),
                   SizedBox(width: Spacing.sm),
                   Text(
                     'Create My First Goal',
@@ -849,10 +863,8 @@ class _GoalsScreenState extends State<GoalsScreen> {
               ),
             ),
           ),
-          // Extra clearance so FAB doesn't overlap the CTA button
-          const SizedBox(height: 88),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
