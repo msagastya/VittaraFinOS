@@ -744,80 +744,150 @@ class _GoalsScreenState extends State<GoalsScreen> {
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(Spacing.xxxl),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(Spacing.xxxl),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(Spacing.xxl),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const SizedBox(height: Spacing.xxl),
+          // Icon with glow
+          Container(
+            padding: const EdgeInsets.all(Spacing.xxl),
+            decoration: BoxDecoration(
+              color: SemanticColors.success.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              CupertinoIcons.flag_fill,
+              size: IconSizes.emptyStateIcon,
+              color: SemanticColors.success,
+            ),
+          ),
+          const SizedBox(height: Spacing.xxl),
+          Text(
+            'Goals turn savings into outcomes',
+            style: TextStyle(
+              fontSize: RT.largeTitle(context),
+              fontWeight: FontWeight.bold,
+              color: AppStyles.getTextColor(context),
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: Spacing.md),
+          Text(
+            'People who track goals save 2.4× more than those who don\'t — because a number with a name is harder to spend.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: TypeScale.callout,
+              color: AppStyles.getSecondaryTextColor(context),
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: Spacing.xxl),
+          // Quick-start type buttons
+          Text(
+            'What are you working toward?',
+            style: TextStyle(
+              fontSize: TypeScale.footnote,
+              fontWeight: FontWeight.w600,
+              color: AppStyles.getSecondaryTextColor(context),
+              letterSpacing: 0.3,
+            ),
+          ),
+          const SizedBox(height: Spacing.md),
+          Wrap(
+            spacing: Spacing.sm,
+            runSpacing: Spacing.sm,
+            alignment: WrapAlignment.center,
+            children: [
+              _goalTypeChip(GoalType.emergency, 'Emergency Fund',
+                  CupertinoIcons.shield_fill, SemanticColors.warning),
+              _goalTypeChip(GoalType.home, 'Home',
+                  CupertinoIcons.house_fill, AppStyles.accentBlue),
+              _goalTypeChip(GoalType.vacation, 'Vacation',
+                  CupertinoIcons.airplane, AppStyles.accentTeal),
+              _goalTypeChip(GoalType.retirement, 'Retirement',
+                  CupertinoIcons.person_crop_circle_fill, AppStyles.novaPurple),
+            ],
+          ),
+          const SizedBox(height: Spacing.xl),
+          BouncyButton(
+            onPressed: _showAddGoalModal,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: Spacing.lg),
               decoration: BoxDecoration(
-                color: SemanticColors.success.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                CupertinoIcons.flag_fill,
-                size: IconSizes.emptyStateIcon,
-                color: SemanticColors.success,
-              ),
-            ),
-            const SizedBox(height: Spacing.xxl),
-            Text(
-              'No Goals Yet',
-              style: TextStyle(
-                fontSize: RT.largeTitle(context),
-                fontWeight: FontWeight.bold,
-                color: AppStyles.getTextColor(context),
-              ),
-            ),
-            const SizedBox(height: Spacing.md),
-            Text(
-              'Start planning your financial future by\nsetting your first goal',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: TypeScale.callout,
-                color: AppStyles.getSecondaryTextColor(context),
-              ),
-            ),
-            const SizedBox(height: Spacing.xxxl),
-            BouncyButton(
-              onPressed: _showAddGoalModal,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: Spacing.xxl, vertical: Spacing.lg),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      SemanticColors.success,
-                      SemanticColors.success.withValues(alpha: 0.8)
-                    ],
+                gradient: LinearGradient(
+                  colors: [
+                    SemanticColors.success,
+                    SemanticColors.success.withValues(alpha: 0.8)
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(Radii.full),
+                boxShadow: [
+                  BoxShadow(
+                    color: SemanticColors.success.withValues(alpha: 0.35),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
                   ),
-                  borderRadius: BorderRadius.circular(Radii.full),
-                  boxShadow: [
-                    BoxShadow(
-                      color: SemanticColors.success.withValues(alpha: 0.4),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
+                ],
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(CupertinoIcons.add, color: Colors.white, size: IconSizes.lg),
+                  SizedBox(width: Spacing.sm),
+                  Text(
+                    'Create My First Goal',
+                    style: TextStyle(
+                      fontSize: TypeScale.callout,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
                     ),
-                  ],
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(CupertinoIcons.add,
-                        color: Colors.white, size: IconSizes.lg),
-                    SizedBox(width: Spacing.sm),
-                    Text(
-                      'Create Your First Goal',
-                      style: TextStyle(
-                        fontSize: TypeScale.callout,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: Spacing.xxl),
+        ],
+      ),
+    );
+  }
+
+  Widget _goalTypeChip(GoalType type, String label, IconData icon, Color color) {
+    return BouncyButton(
+      onPressed: () async {
+        await showCupertinoModalPopup(
+          context: context,
+          builder: (context) => RLayout.tabletConstrain(
+            context,
+            AddGoalModal(initialType: type),
+          ),
+        );
+        if (mounted) {
+          Provider.of<GoalsController>(context, listen: false).initialize();
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+            horizontal: Spacing.md, vertical: Spacing.sm),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(Radii.full),
+          border: Border.all(color: color.withValues(alpha: 0.3), width: 0.8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: color),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: TypeScale.footnote,
+                fontWeight: FontWeight.w600,
+                color: color,
               ),
             ),
           ],

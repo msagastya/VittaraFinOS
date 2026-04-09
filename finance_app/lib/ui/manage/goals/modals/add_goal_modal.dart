@@ -10,7 +10,8 @@ import 'package:vittara_fin_os/utils/alert_service.dart';
 import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
 class AddGoalModal extends StatefulWidget {
-  const AddGoalModal({super.key});
+  final GoalType? initialType;
+  const AddGoalModal({super.key, this.initialType});
 
   @override
   State<AddGoalModal> createState() => _AddGoalModalState();
@@ -21,10 +22,16 @@ class _AddGoalModalState extends State<AddGoalModal> {
   final _targetAmountController = TextEditingController();
   final _notesController = TextEditingController();
 
-  GoalType _selectedType = GoalType.custom;
+  late GoalType _selectedType;
   Color _selectedColor = SemanticColors.primary;
   DateTime _targetDate = DateTime.now().add(const Duration(days: 365));
   bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedType = widget.initialType ?? GoalType.custom;
+  }
 
   @override
   void dispose() {

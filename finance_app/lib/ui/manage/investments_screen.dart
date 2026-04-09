@@ -867,6 +867,120 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     );
   }
 
+  Widget _buildInvestmentsEmptyState(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(Spacing.xxl),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const SizedBox(height: Spacing.xxl),
+          Container(
+            width: 88,
+            height: 88,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  SemanticColors.investments.withValues(alpha: 0.2),
+                  AppStyles.solarGold.withValues(alpha: 0.15),
+                ],
+              ),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(CupertinoIcons.chart_bar_fill,
+                size: 40, color: SemanticColors.investments),
+          ),
+          const SizedBox(height: Spacing.xl),
+          Text(
+            'Your money isn\'t working yet',
+            style: TextStyle(
+              fontSize: TypeScale.title1,
+              fontWeight: FontWeight.w800,
+              color: AppStyles.getTextColor(context),
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: Spacing.md),
+          Text(
+            '₹10,000 at 12% p.a. grows to ₹93,000 in 20 years.\nThe same amount in savings: barely keeps pace with inflation.',
+            style: TextStyle(
+              fontSize: TypeScale.callout,
+              color: AppStyles.getSecondaryTextColor(context),
+              height: 1.55,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: Spacing.xxl),
+          Text(
+            'Start anywhere. Even FD counts.',
+            style: TextStyle(
+              fontSize: TypeScale.footnote,
+              fontWeight: FontWeight.w600,
+              color: AppStyles.getSecondaryTextColor(context),
+              letterSpacing: 0.3,
+            ),
+          ),
+          const SizedBox(height: Spacing.md),
+          Wrap(
+            spacing: Spacing.sm,
+            runSpacing: Spacing.sm,
+            alignment: WrapAlignment.center,
+            children: [
+              _invTypeChip(context, 'Stocks', CupertinoIcons.graph_circle_fill,
+                  SemanticColors.investments, InvestmentType.stocks),
+              _invTypeChip(context, 'Mutual Funds', CupertinoIcons.chart_pie_fill,
+                  AppStyles.accentBlue, InvestmentType.mutualFund),
+              _invTypeChip(context, 'FD / RD', CupertinoIcons.lock_shield_fill,
+                  AppStyles.accentTeal, InvestmentType.fixedDeposit),
+              _invTypeChip(context, 'Digital Gold', CupertinoIcons.star_fill,
+                  AppStyles.solarGold, InvestmentType.digitalGold),
+            ],
+          ),
+          const SizedBox(height: Spacing.xl),
+          SizedBox(
+            width: double.infinity,
+            child: CupertinoButton.filled(
+              borderRadius: BorderRadius.circular(Radii.lg),
+              onPressed: () => _showInvestmentTypeSelection(context),
+              child: const Text('Add Investment',
+                  style: TextStyle(fontWeight: FontWeight.w700)),
+            ),
+          ),
+          const SizedBox(height: Spacing.xxl),
+        ],
+      ),
+    );
+  }
+
+  Widget _invTypeChip(BuildContext context, String label, IconData icon,
+      Color color, InvestmentType type) {
+    return GestureDetector(
+      onTap: () => _showInvestmentTypeSelection(context),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+            horizontal: Spacing.md, vertical: Spacing.sm),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(Radii.full),
+          border: Border.all(color: color.withValues(alpha: 0.3), width: 0.8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 13, color: color),
+            const SizedBox(width: 5),
+            Text(label,
+                style: TextStyle(
+                    fontSize: TypeScale.caption,
+                    fontWeight: FontWeight.w600,
+                    color: color)),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _syncSelectedCategory(List<InvestmentType?> categories) {
     final selected = _selectedFilter;
     if (!categories.contains(selected)) {
@@ -1352,10 +1466,13 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             if (_searchQuery.isNotEmpty) {
               return _buildNoSearchResults();
             }
+            if (categoryType == null) {
+              return _buildInvestmentsEmptyState(context);
+            }
             return EmptyStateView(
               icon: CupertinoIcons.chart_bar_square,
-              title: 'No investments yet',
-              subtitle: 'Add your first ${categoryType?.name ?? ""} investment.',
+              title: 'No ${categoryType.name} investments',
+              subtitle: 'Add your first ${categoryType.name} investment.',
               showPulse: false,
             );
           }

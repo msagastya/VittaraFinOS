@@ -211,7 +211,7 @@ class _EmptyState extends StatelessWidget {
         ),
         const SizedBox(height: Spacing.xl),
         Text(
-          'Your Financial Plans',
+          'Your financial plan is missing',
           style: TextStyle(
             fontSize: RT.title1(context),
             fontWeight: FontWeight.w800,
@@ -221,7 +221,7 @@ class _EmptyState extends StatelessWidget {
         ),
         const SizedBox(height: Spacing.md),
         Text(
-          'Know exactly where you stand on every financial goal — not just one.',
+          '83% of people who reach their money goals had a written plan. This takes 90 seconds.',
           style: TextStyle(
             fontSize: TypeScale.body,
             color: AppStyles.getSecondaryTextColor(context),
@@ -238,7 +238,7 @@ class _EmptyState extends StatelessWidget {
           child: CupertinoButton.filled(
             borderRadius: BorderRadius.circular(Radii.lg),
             onPressed: onTap,
-            child: const Text('Create Your First Plan',
+            child: const Text('Build My Plan',
                 style: TextStyle(fontWeight: FontWeight.w700)),
           ),
         ),
@@ -249,14 +249,14 @@ class _EmptyState extends StatelessWidget {
   List<Widget> _features(BuildContext context) {
     final items = [
       (CupertinoIcons.flag_fill, AppStyles.aetherTeal,
-          'Track multiple goals at once',
-          'Emergency fund, home, retirement, travel — each with its own timeline and target.'),
+          'Multiple goals, one view',
+          'Emergency fund, home, retirement, travel — each tracked with its own timeline and monthly target.'),
       (CupertinoIcons.chart_bar_alt_fill, AppStyles.accentBlue,
-          'See exactly if you\'re on track',
-          'The planner checks your actual savings rate and tells you if you\'ll hit each goal on time.'),
+          'Know if you\'re on track',
+          'The AI checks your real savings rate and tells you exactly whether you\'ll hit each goal on time.'),
       (CupertinoIcons.lightbulb_fill, AppStyles.accentOrange,
-          'Get a concrete action every month',
-          'No vague advice — you\'ll see exactly how much more to save this month.'),
+          'One concrete action per month',
+          'No vague advice. You\'ll see the exact amount to save this month to stay on schedule.'),
     ];
 
     return items.map((item) {

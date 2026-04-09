@@ -5,6 +5,8 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/budgets_controller.dart';
 import 'package:vittara_fin_os/logic/budget_model.dart';
+import 'package:vittara_fin_os/logic/transactions_controller.dart';
+import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/ui/manage/budgets/budget_details_screen.dart';
 import 'package:vittara_fin_os/ui/manage/budgets/modals/add_budget_modal.dart';
 import 'dart:math' as math;
@@ -861,70 +863,104 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(Spacing.xxxl),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(Spacing.xxxl),
-              decoration: BoxDecoration(
-                  color: SemanticColors.primary.withValues(alpha: 0.1),
-                  shape: BoxShape.circle),
-              child: const Icon(CupertinoIcons.chart_pie_fill,
-                  size: IconSizes.emptyStateIcon,
-                  color: SemanticColors.primary),
-            ),
-            const SizedBox(height: Spacing.xxl),
-            Text('No Budgets Yet',
+    // Find top spend category from transactions for personalisation
+    return Consumer<TransactionsController>(
+      builder: (context, txCtrl, _) {
+        final catSpend = <String, double>{};
+        for (final tx in txCtrl.transactions) {
+          if (tx.type == TransactionType.expense) {
+            final cat =
+                tx.metadata?['categoryName'] as String? ?? 'General';
+            catSpend[cat] = (catSpend[cat] ?? 0) + tx.amount;
+          }
+        }
+        final topCat = catSpend.isEmpty
+            ? 'Food & Dining'
+            : (catSpend.entries.toList()
+                  ..sort((a, b) => b.value.compareTo(a.value)))
+                .first
+                .key;
+        final hasSpend = catSpend.isNotEmpty;
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(Spacing.xxl),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(height: Spacing.xxl),
+              Container(
+                padding: const EdgeInsets.all(Spacing.xxl),
+                decoration: BoxDecoration(
+                    color: SemanticColors.primary.withValues(alpha: 0.1),
+                    shape: BoxShape.circle),
+                child: const Icon(CupertinoIcons.chart_pie_fill,
+                    size: IconSizes.emptyStateIcon,
+                    color: SemanticColors.primary),
+              ),
+              const SizedBox(height: Spacing.xxl),
+              Text(
+                'Without a limit, there\'s no finish line',
                 style: TextStyle(
                     fontSize: RT.largeTitle(context),
                     fontWeight: FontWeight.bold,
-                    color: AppStyles.getTextColor(context))),
-            const SizedBox(height: Spacing.md),
-            Text('Start tracking your spending by\ncreating your first budget',
+                    color: AppStyles.getTextColor(context)),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: Spacing.md),
+              Text(
+                hasSpend
+                    ? 'You spent most on $topCat. Set a budget and we\'ll tell you how you\'re doing in real time.'
+                    : 'Set a budget for any spending category and track it automatically as you log transactions.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     fontSize: TypeScale.callout,
-                    color: AppStyles.getSecondaryTextColor(context))),
-            const SizedBox(height: Spacing.xxxl),
-            BouncyButton(
-              onPressed: _showAddBudgetModal,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: Spacing.xxl, vertical: Spacing.lg),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: [
-                    SemanticColors.primary,
-                    SemanticColors.primary.withValues(alpha: 0.8)
-                  ]),
-                  borderRadius: BorderRadius.circular(Radii.full),
-                  boxShadow: [
-                    BoxShadow(
-                        color: SemanticColors.primary.withValues(alpha: 0.4),
-                        blurRadius: 20,
-                        offset: const Offset(0, 8))
-                  ],
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(CupertinoIcons.add,
-                        color: Colors.white, size: IconSizes.lg),
-                    SizedBox(width: Spacing.sm),
-                    Text('Create Your First Budget',
-                        style: TextStyle(
+                    color: AppStyles.getSecondaryTextColor(context),
+                    height: 1.5),
+              ),
+              const SizedBox(height: Spacing.xxl),
+              BouncyButton(
+                onPressed: _showAddBudgetModal,
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: Spacing.lg),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(colors: [
+                      SemanticColors.primary,
+                      SemanticColors.primary.withValues(alpha: 0.8)
+                    ]),
+                    borderRadius: BorderRadius.circular(Radii.full),
+                    boxShadow: [
+                      BoxShadow(
+                          color:
+                              SemanticColors.primary.withValues(alpha: 0.35),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8))
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(CupertinoIcons.add,
+                          color: Colors.white, size: IconSizes.lg),
+                      const SizedBox(width: Spacing.sm),
+                      Text(
+                        hasSpend
+                            ? 'Create Budget for $topCat'
+                            : 'Create Your First Budget',
+                        style: const TextStyle(
                             fontSize: TypeScale.callout,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white)),
-                  ],
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
-      ),
+              const SizedBox(height: Spacing.xxl),
+            ],
+          ),
+        );
+      },
     );
   }
 

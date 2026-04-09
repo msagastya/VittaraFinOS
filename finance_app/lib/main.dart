@@ -65,6 +65,11 @@ import 'package:vittara_fin_os/ui/dashboard/widgets/cash_flow_widget.dart';
 import 'package:vittara_fin_os/ui/dashboard/widgets/insights_widget.dart';
 import 'package:vittara_fin_os/ui/dashboard/widgets/net_worth_widget.dart';
 import 'package:vittara_fin_os/ui/dashboard/widgets/transaction_history_widget.dart';
+import 'package:vittara_fin_os/ui/dashboard/widgets/next_move_widget.dart';
+import 'package:vittara_fin_os/ui/dashboard/widgets/onboarding_card_widget.dart';
+import 'package:vittara_fin_os/logic/engagement_service.dart';
+import 'package:vittara_fin_os/ui/engagement/achievements_screen.dart';
+import 'package:vittara_fin_os/ui/dashboard/widgets/health_score_widget.dart';
 import 'package:vittara_fin_os/ui/widgets/global_search_overlay.dart';
 import 'package:vittara_fin_os/ui/whats_new_sheet.dart';
 import 'package:shared_preferences/shared_preferences.dart' as sp;
@@ -147,6 +152,10 @@ void main() {
           ChangeNotifierProvider(create: (_) {
             try { return InsuranceController()..load(); }
             catch (e) { logger.error('InsuranceController init failed', error: e); return InsuranceController(); }
+          }),
+          ChangeNotifierProvider(create: (_) {
+            try { return EngagementService()..initialize(); }
+            catch (e) { logger.error('EngagementService init failed', error: e); return EngagementService(); }
           }),
         ],
         child: const MyApp(),
@@ -755,6 +764,361 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 }
 
+// ---------------------------------------------------------------------------
+// _EngagementChecker — zero-size widget that triggers achievements & digest
+// ---------------------------------------------------------------------------
+
+class _EngagementChecker extends StatefulWidget {
+  const _EngagementChecker();
+
+  @override
+  State<_EngagementChecker> createState() => _EngagementCheckerState();
+}
+
+class _EngagementCheckerState extends State<_EngagementChecker> {
+  bool _checked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _run());
+  }
+
+  Future<void> _run() async {
+    if (_checked || !mounted) return;
+    _checked = true;
+
+    final eng = Provider.of<EngagementService>(context, listen: false);
+    if (!eng.initialized) return;
+
+    final txCtrl = Provider.of<TransactionsController>(context, listen: false);
+    final accCtrl = Provider.of<AccountsController>(context, listen: false);
+    final budgetCtrl = Provider.of<BudgetsController>(context, listen: false);
+    final goalCtrl = Provider.of<GoalsController>(context, listen: false);
+    final invCtrl = Provider.of<InvestmentsController>(context, listen: false);
+
+    // Evaluate streaks
+    await eng.evaluateBudgetStreak(budgetCtrl.budgets);
+    await eng.evaluateSavingsStreak(txCtrl.transactions);
+
+    // Check achievements
+    final now = DateTime.now();
+    final monthStart = DateTime(now.year, now.month, 1);
+    double income = 0, expenses = 0;
+    for (final tx in txCtrl.transactions) {
+      if (tx.dateTime.isBefore(monthStart)) continue;
+      if (tx.type == TransactionType.income ||
+          tx.type == TransactionType.cashback) {
+        income += tx.amount;
+      } else if (tx.type == TransactionType.expense) {
+        expenses += tx.amount;
+      }
+    }
+
+    final hs = computeHealthScore(
+      transactions: txCtrl.transactions,
+      budgets: budgetCtrl.budgets,
+      investments: invCtrl.investments,
+      accounts: accCtrl.accounts,
+    );
+
+    await eng.checkAchievements(
+      transactions: txCtrl.transactions,
+      accounts: accCtrl.accounts,
+      budgets: budgetCtrl.budgets,
+      goals: goalCtrl.activeGoals,
+      investments: invCtrl.investments,
+      healthScore: hs.total,
+    );
+
+    if (!mounted) return;
+
+    // Show pending achievement overlays (one at a time)
+    final pending = eng.consumePendingAchievements();
+    for (final id in pending) {
+      if (!mounted) break;
+      await AchievementUnlockOverlay.show(context, id);
+      await Future.delayed(const Duration(milliseconds: 300));
+    }
+
+    if (!mounted) return;
+
+    // Show monthly digest on first 5 days of month
+    if (eng.shouldShowDigest) {
+      await eng.markDigestShown();
+      if (mounted) {
+        _showMonthlyDigest(context, eng, txCtrl, budgetCtrl, goalCtrl);
+      }
+    }
+  }
+
+  void _showMonthlyDigest(
+    BuildContext context,
+    EngagementService eng,
+    TransactionsController txCtrl,
+    BudgetsController budgetCtrl,
+    GoalsController goalCtrl,
+  ) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (_) => _MonthlyDigestSheet(
+        eng: eng,
+        txCtrl: txCtrl,
+        budgetCtrl: budgetCtrl,
+        goalCtrl: goalCtrl,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => const SizedBox.shrink();
+}
+
+// ---------------------------------------------------------------------------
+// Monthly Digest Sheet
+// ---------------------------------------------------------------------------
+
+class _MonthlyDigestSheet extends StatelessWidget {
+  final EngagementService eng;
+  final TransactionsController txCtrl;
+  final BudgetsController budgetCtrl;
+  final GoalsController goalCtrl;
+
+  const _MonthlyDigestSheet({
+    required this.eng,
+    required this.txCtrl,
+    required this.budgetCtrl,
+    required this.goalCtrl,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final prevMonth = DateTime(now.year, now.month - 1, 1);
+    final prevMonthEnd = DateTime(now.year, now.month, 0);
+    final monthName = _monthName(prevMonth.month);
+
+    // Compute prev month stats
+    double income = 0, expenses = 0;
+    int txCount = 0;
+    String? topCategory;
+    double topCatAmount = 0;
+    final catMap = <String, double>{};
+
+    for (final tx in txCtrl.transactions) {
+      if (tx.dateTime.isBefore(prevMonth) || tx.dateTime.isAfter(prevMonthEnd)) {
+        continue;
+      }
+      txCount++;
+      if (tx.type == TransactionType.income ||
+          tx.type == TransactionType.cashback) {
+        income += tx.amount;
+      } else if (tx.type == TransactionType.expense) {
+        expenses += tx.amount;
+        final cat = tx.metadata?['categoryName'] as String? ?? 'General';
+        catMap[cat] = (catMap[cat] ?? 0) + tx.amount;
+      }
+    }
+
+    if (catMap.isNotEmpty) {
+      final topEntry = catMap.entries.reduce(
+          (a, b) => a.value > b.value ? a : b);
+      topCategory = topEntry.key;
+      topCatAmount = topEntry.value;
+    }
+
+    final savingsRate = income > 0
+        ? ((income - expenses) / income * 100).clamp(0.0, 100.0)
+        : 0.0;
+
+    final completedGoals =
+        goalCtrl.activeGoals.where((g) => g.isCompleted).length;
+    final budgetStreak = eng.budgetStreakCount;
+    final savingsStreak = eng.savingsStreakCount;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppStyles.getBackground(context),
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(Radii.xxl),
+          topRight: Radius.circular(Radii.xxl),
+        ),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle
+            Container(
+              margin: const EdgeInsets.only(top: Spacing.md),
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppStyles.getSecondaryTextColor(context)
+                    .withValues(alpha: 0.25),
+                borderRadius: BorderRadius.circular(Radii.full),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(Spacing.xl),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Title
+                  Row(
+                    children: [
+                      const Icon(CupertinoIcons.sparkles,
+                          color: AppStyles.solarGold, size: 18),
+                      const SizedBox(width: Spacing.sm),
+                      Text(
+                        '$monthName — Your Month in Review',
+                        style: TextStyle(
+                          fontSize: TypeScale.headline,
+                          fontWeight: FontWeight.w800,
+                          color: AppStyles.getTextColor(context),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: Spacing.xl),
+
+                  // Stats grid
+                  Row(
+                    children: [
+                      _statTile(context, 'Savings Rate',
+                          '${savingsRate.toStringAsFixed(1)}%',
+                          savingsRate >= 20
+                              ? AppStyles.accentGreen
+                              : savingsRate >= 10
+                                  ? AppStyles.solarGold
+                                  : AppStyles.plasmaRed),
+                      const SizedBox(width: Spacing.md),
+                      _statTile(context, 'Transactions', '$txCount',
+                          AppStyles.accentBlue),
+                    ],
+                  ),
+                  const SizedBox(height: Spacing.md),
+                  if (topCategory != null)
+                    _infoRow(
+                      context,
+                      CupertinoIcons.chart_pie_fill,
+                      AppStyles.accentOrange,
+                      'Top spend',
+                      '$topCategory — ₹${topCatAmount.toStringAsFixed(0)}',
+                    ),
+                  if (budgetStreak > 0)
+                    _infoRow(
+                      context,
+                      CupertinoIcons.flame_fill,
+                      AppStyles.accentTeal,
+                      'Budget streak',
+                      '$budgetStreak week${budgetStreak > 1 ? 's' : ''} under budget',
+                    ),
+                  if (savingsStreak > 0)
+                    _infoRow(
+                      context,
+                      CupertinoIcons.arrow_up_circle_fill,
+                      AppStyles.accentGreen,
+                      'Savings streak',
+                      '$savingsStreak week${savingsStreak > 1 ? 's' : ''} above 10%',
+                    ),
+                  if (completedGoals > 0)
+                    _infoRow(
+                      context,
+                      CupertinoIcons.flag_fill,
+                      SemanticColors.success,
+                      'Goals completed',
+                      '$completedGoals goal${completedGoals > 1 ? 's' : ''} reached',
+                    ),
+
+                  const SizedBox(height: Spacing.xl),
+
+                  // CTA
+                  SizedBox(
+                    width: double.infinity,
+                    child: CupertinoButton.filled(
+                      borderRadius: BorderRadius.circular(Radii.lg),
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Start Fresh This Month',
+                          style: TextStyle(fontWeight: FontWeight.w700)),
+                    ),
+                  ),
+                  const SizedBox(height: Spacing.md),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _statTile(BuildContext context, String label, String value, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(Spacing.md),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(Radii.md),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label,
+                style: TextStyle(
+                    fontSize: TypeScale.caption,
+                    color: AppStyles.getSecondaryTextColor(context))),
+            const SizedBox(height: 4),
+            Text(value,
+                style: TextStyle(
+                    fontSize: TypeScale.title2,
+                    fontWeight: FontWeight.w800,
+                    color: color)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _infoRow(BuildContext context, IconData icon, Color color,
+      String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: Spacing.sm),
+      child: Row(
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: Spacing.sm),
+          Text('$label: ',
+              style: TextStyle(
+                  fontSize: TypeScale.footnote,
+                  color: AppStyles.getSecondaryTextColor(context))),
+          Expanded(
+            child: Text(value,
+                style: TextStyle(
+                    fontSize: TypeScale.footnote,
+                    fontWeight: FontWeight.w600,
+                    color: AppStyles.getTextColor(context))),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _monthName(int month) {
+    const months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    return months[month - 1];
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Dashboard Screen
+// ---------------------------------------------------------------------------
+
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
@@ -1115,6 +1479,10 @@ class DashboardScreen extends StatelessWidget {
             child: _buildHeaderSection(context),
           ),
 
+        // ENGAGEMENT: onboarding checklist + next-move card
+        const OnboardingCardWidget(),
+        const NextMoveWidget(),
+
         // CARD DECK — swipe left/right to cycle through widgets
         Expanded(
           child: Padding(
@@ -1128,6 +1496,9 @@ class DashboardScreen extends StatelessWidget {
             ),
           ),
         ),
+
+        // Engagement checker — handles achievements + monthly digest
+        const _EngagementChecker(),
       ],
     );
   }

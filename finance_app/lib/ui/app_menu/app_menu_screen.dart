@@ -18,6 +18,7 @@ import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/floating_particle_background.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
+import 'package:vittara_fin_os/ui/engagement/achievements_screen.dart';
 
 const String _appName = 'VittaraFinOS';
 const String _appTagline = 'Track Wealth, Master Life';
@@ -149,6 +150,21 @@ class DashboardAppMenuScreen extends StatelessWidget {
                               lastUpdated: 'February 20, 2026',
                               sections: _termsSections),
                         ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: Spacing.lg),
+                _MenuSectionCard(
+                  title: 'Achievements',
+                  items: [
+                    _MenuItem(
+                      title: 'Your Achievements',
+                      subtitle: 'Milestones unlocked across your financial journey',
+                      icon: CupertinoIcons.star_fill,
+                      color: AppStyles.solarGold,
+                      onTap: () => Navigator.of(context).push(
+                        FadeScalePageRoute(page: const AchievementsScreen()),
                       ),
                     ),
                   ],

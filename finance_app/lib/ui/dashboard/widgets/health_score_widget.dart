@@ -10,6 +10,7 @@ import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
+import 'package:vittara_fin_os/logic/engagement_service.dart';
 import 'package:vittara_fin_os/ui/dashboard/base_dashboard_widget.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
@@ -408,8 +409,14 @@ class _AnimatedSubScoreBarState extends State<_AnimatedSubScoreBar> {
 class HealthScoreBody extends StatefulWidget {
   final HealthScoreData data;
   final bool isDark;
+  final int? scoreDelta; // positive = improved, negative = dropped, null = no prev data
 
-  const HealthScoreBody({super.key, required this.data, required this.isDark});
+  const HealthScoreBody({
+    super.key,
+    required this.data,
+    required this.isDark,
+    this.scoreDelta,
+  });
 
   @override
   State<HealthScoreBody> createState() => HealthScoreBodyState();
@@ -641,6 +648,10 @@ class HealthScoreBodyState extends State<HealthScoreBody>
                           height: 1.4,
                         ),
                       ),
+                      if (widget.scoreDelta != null) ...[
+                        const SizedBox(height: Spacing.sm),
+                        _DeltaBadge(delta: widget.scoreDelta!),
+                      ],
                     ],
                   ),
                 ),
@@ -742,6 +753,65 @@ class HealthScoreBodyState extends State<HealthScoreBody>
 }
 
 // ---------------------------------------------------------------------------
+// Delta badge
+// ---------------------------------------------------------------------------
+
+class _DeltaBadge extends StatelessWidget {
+  final int delta;
+  const _DeltaBadge({required this.delta});
+
+  @override
+  Widget build(BuildContext context) {
+    if (delta == 0) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(Radii.full),
+        ),
+        child: Text(
+          '— same as last week',
+          style: TextStyle(
+            fontSize: TypeScale.caption,
+            color: AppStyles.getSecondaryTextColor(context),
+          ),
+        ),
+      );
+    }
+    final isUp = delta > 0;
+    final color = isUp ? const Color(0xFF00C853) : const Color(0xFFFF4560);
+    final prefix = isUp ? '+' : '';
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(Radii.full),
+        border: Border.all(color: color.withValues(alpha: 0.25), width: 0.8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            isUp ? CupertinoIcons.arrow_up_right : CupertinoIcons.arrow_down_right,
+            size: 10,
+            color: color,
+          ),
+          const SizedBox(width: 3),
+          Text(
+            '$prefix$delta this week',
+            style: TextStyle(
+              fontSize: TypeScale.caption,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Main widget
 // ---------------------------------------------------------------------------
 
@@ -770,10 +840,10 @@ class HealthScoreWidget extends BaseDashboardWidget {
     required double height,
   }) {
     return RepaintBoundary(
-      child: Consumer4<TransactionsController, BudgetsController,
-          InvestmentsController, AccountsController>(
+      child: Consumer5<TransactionsController, BudgetsController,
+          InvestmentsController, AccountsController, EngagementService>(
         builder: (context, txController, budgetsController,
-            investmentsController, accountsController, child) {
+            investmentsController, accountsController, engService, child) {
           final data = computeHealthScore(
             transactions: txController.transactions,
             budgets: budgetsController.budgets,
@@ -781,7 +851,25 @@ class HealthScoreWidget extends BaseDashboardWidget {
             accounts: accountsController.accounts,
           );
           final isDark = Theme.of(context).brightness == Brightness.dark;
-          return HealthScoreBody(key: ValueKey(data.total), data: data, isDark: isDark);
+
+          // Save snapshot & compute delta
+          int? delta;
+          if (engService.initialized) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              engService.saveHealthSnapshot(data.total);
+            });
+            final prevScore = engService.getPrevWeekScore();
+            if (prevScore != null) {
+              delta = data.total - prevScore;
+            }
+          }
+
+          return HealthScoreBody(
+            key: ValueKey(data.total),
+            data: data,
+            isDark: isDark,
+            scoreDelta: delta,
+          );
         },
       ),
     );
