@@ -956,7 +956,8 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: Spacing.xxl),
+              // Extra clearance so FAB doesn't overlap the CTA button
+              const SizedBox(height: 88),
             ],
           ),
         );

@@ -65,8 +65,7 @@ import 'package:vittara_fin_os/ui/dashboard/widgets/cash_flow_widget.dart';
 import 'package:vittara_fin_os/ui/dashboard/widgets/insights_widget.dart';
 import 'package:vittara_fin_os/ui/dashboard/widgets/net_worth_widget.dart';
 import 'package:vittara_fin_os/ui/dashboard/widgets/transaction_history_widget.dart';
-import 'package:vittara_fin_os/ui/dashboard/widgets/next_move_widget.dart';
-import 'package:vittara_fin_os/ui/dashboard/widgets/onboarding_card_widget.dart';
+import 'package:vittara_fin_os/ui/dashboard/widgets/engagement_strip_widget.dart';
 import 'package:vittara_fin_os/logic/engagement_service.dart';
 import 'package:vittara_fin_os/ui/engagement/achievements_screen.dart';
 import 'package:vittara_fin_os/ui/dashboard/widgets/health_score_widget.dart';
@@ -1479,9 +1478,8 @@ class DashboardScreen extends StatelessWidget {
             child: _buildHeaderSection(context),
           ),
 
-        // ENGAGEMENT: onboarding checklist + next-move card
-        const OnboardingCardWidget(),
-        const NextMoveWidget(),
+        // ENGAGEMENT: compact strip (collapses both into one thin row when scrolled)
+        const EngagementStripWidget(),
 
         // CARD DECK — swipe left/right to cycle through widgets
         Expanded(
