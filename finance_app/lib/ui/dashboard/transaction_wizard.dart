@@ -22,6 +22,7 @@ import 'package:vittara_fin_os/services/sms_service.dart';
 import 'package:vittara_fin_os/ui/manage/account_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/categories/category_creation_modal.dart';
 import 'package:vittara_fin_os/ui/manage/payment_apps_screen.dart';
+import 'package:vittara_fin_os/logic/transaction_suggestion_engine.dart';
 import 'package:vittara_fin_os/ui/manage/transfer_wizard.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/utils/form_validators.dart';
@@ -2456,9 +2457,14 @@ class _TransactionWizardState extends State<TransactionWizard> {
   }
 
   Widget _buildCategoryPage() {
-    return Consumer<CategoriesController>(
-      builder: (context, categoriesController, child) {
-        final categories = categoriesController.categories
+    return Consumer2<CategoriesController, TransactionsController>(
+      builder: (context, categoriesController, txCtrl, child) {
+        // Rank by usage frequency first, then apply search filter
+        final ranked = TransactionSuggestionEngine.rankedCategories(
+          txCtrl.transactions,
+          categoriesController.categories,
+        );
+        final categories = ranked
             .where((cat) =>
                 _categorySearchController.text.isEmpty ||
                 cat.name

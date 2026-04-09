@@ -12,7 +12,9 @@ import 'package:vittara_fin_os/logic/tag_model.dart';
 import 'package:vittara_fin_os/logic/tags_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
+import 'package:vittara_fin_os/logic/transaction_suggestion_engine.dart';
 import 'package:vittara_fin_os/ui/dashboard/transaction_wizard.dart';
+import 'package:vittara_fin_os/ui/manage/transfer_wizard.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
@@ -76,6 +78,9 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
   bool _showCashbackField = false;
   bool _showTagPicker = false;
   bool _showNewTagInput = false;
+  // true when the current _selectedCategory was set by ML auto-suggestion
+  // (not by the user tapping). Lets us override it on the next merchant change.
+  bool _categoryAutoSuggested = false;
 
   DateTime _selectedDate = DateTime.now();
 
@@ -175,6 +180,31 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
         _selectedPaymentApp = paymentApps.enabledApps.first['name'] as String?;
       }
     }
+
+    // ML auto-suggest: when merchant changes, auto-pick the most likely category
+    _merchantCtrl.addListener(_onMerchantChanged);
+  }
+
+  void _onMerchantChanged() {
+    // Only auto-suggest; never override a category the user manually tapped
+    if (!_categoryAutoSuggested && _selectedCategory != null) return;
+    final txs = context.read<TransactionsController>().transactions;
+    final cats = context.read<CategoriesController>().categories;
+    final suggestion = TransactionSuggestionEngine.suggestCategoryForMerchant(
+      txs, _merchantCtrl.text, cats,
+    );
+    if (suggestion != null) {
+      setState(() {
+        _selectedCategory = suggestion;
+        _categoryAutoSuggested = true;
+      });
+    } else if (_categoryAutoSuggested) {
+      // Merchant was cleared / no longer matches — clear the auto-suggestion
+      setState(() {
+        _selectedCategory = null;
+        _categoryAutoSuggested = false;
+      });
+    }
   }
 
   @override
@@ -200,18 +230,12 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
       (double.tryParse(_amountCtrl.text) ?? 0) > 0 &&
       _selectedCategory != null;
 
-  /// Ranks categories by usage in the last 100 transactions (most used first).
-  List<Category> _rankedCategories(List<Category> all) {
-    final recent = context.read<TransactionsController>().transactions.reversed.take(100);
-    final counts = <String, int>{};
-    for (final tx in recent) {
-      final catId = tx.metadata?['categoryId'] as String?;
-      if (catId != null) counts[catId] = (counts[catId] ?? 0) + 1;
-    }
-    final sorted = List<Category>.from(all);
-    sorted.sort((a, b) => (counts[b.id] ?? 0).compareTo(counts[a.id] ?? 0));
-    return sorted;
-  }
+  /// Delegates to TransactionSuggestionEngine — most-used categories first.
+  List<Category> _rankedCategories(List<Category> all) =>
+      TransactionSuggestionEngine.rankedCategories(
+        context.read<TransactionsController>().transactions,
+        all,
+      );
 
   String _accountTypeLabel(AccountType type) {
     switch (type) {
@@ -232,19 +256,11 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
     return (app?['hasWallet'] as bool?) ?? false;
   }
 
-  List<String> get _recentMerchants {
-    final all = context.read<TransactionsController>().transactions;
-    final seen = <String>{};
-    final result = <String>[];
-    for (final tx in all.reversed) {
-      final m = tx.metadata?['merchant'] as String?;
-      if (m != null && m.isNotEmpty && seen.add(m)) {
-        result.add(m);
-        if (result.length >= 20) break;
-      }
-    }
-    return result;
-  }
+  /// Merchants sorted by how often they've been used (most-used first).
+  List<String> get _rankedMerchants =>
+      TransactionSuggestionEngine.rankedMerchants(
+        context.read<TransactionsController>().transactions,
+      );
 
   // ── Save transaction ─────────────────────────────────────────────────────────
 
@@ -517,7 +533,24 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
                                           : const Color(0xFFFF3B30),
                                     ),
                                   ),
-                                  if (isSelected) ...[
+                                  if (acc.id == settings.defaultAccountId) ...[
+                                    const SizedBox(height: 2),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                      decoration: BoxDecoration(
+                                        color: AppStyles.accentBlue.withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        'Default',
+                                        style: TextStyle(
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppStyles.accentBlue,
+                                        ),
+                                      ),
+                                    ),
+                                  ] else if (isSelected) ...[
                                     const SizedBox(height: 2),
                                     Icon(CupertinoIcons.checkmark_circle_fill,
                                         size: 14, color: acc.color),
@@ -747,10 +780,34 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
                                   ],
                                 ),
                               ),
-                              if (isSelected)
-                                Icon(CupertinoIcons.checkmark_circle_fill,
-                                    size: 18,
-                                    color: appName == null ? secondaryText : appColor),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (appName != null && appName == settings.defaultPaymentAppName) ...[
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                      decoration: BoxDecoration(
+                                        color: AppStyles.accentBlue.withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        'Default',
+                                        style: TextStyle(
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppStyles.accentBlue,
+                                        ),
+                                      ),
+                                    ),
+                                    if (isSelected) const SizedBox(height: 4),
+                                  ],
+                                  if (isSelected)
+                                    Icon(CupertinoIcons.checkmark_circle_fill,
+                                        size: 18,
+                                        color: appName == null ? secondaryText : appColor),
+                                ],
+                              ),
                             ],
                           ),
                         ),
@@ -974,7 +1031,47 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
         Expanded(child: _typeChip(TransactionWizardBranch.expense, '↑ Expense', isDark)),
         const SizedBox(width: Spacing.sm),
         Expanded(child: _typeChip(TransactionWizardBranch.income, '↓ Income', isDark)),
+        const SizedBox(width: Spacing.sm),
+        Expanded(child: _transferChip(isDark)),
       ],
+    );
+  }
+
+  Widget _transferChip(bool isDark) {
+    const color = Color(0xFF007AFF);
+    return GestureDetector(
+      onTap: () {
+        Navigator.pop(context);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) {
+            Navigator.push(
+              context,
+              CupertinoPageRoute(builder: (_) => const TransferWizard()),
+            );
+          }
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: Spacing.md),
+        decoration: BoxDecoration(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(Radii.md),
+          border: Border.all(
+            color: isDark ? const Color(0xFF2A2A3A) : const Color(0xFFCCDDEE),
+          ),
+        ),
+        child: const Center(
+          child: Text(
+            '⇄ Transfer',
+            style: TextStyle(
+              fontFamily: 'SpaceGrotesk',
+              fontWeight: FontWeight.normal,
+              fontSize: 14,
+              color: color,
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -1077,7 +1174,10 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
               final cat = _rankedCategories(categories)[i];
               final isSelected = _selectedCategory?.id == cat.id;
               return GestureDetector(
-                onTap: () => setState(() => _selectedCategory = cat),
+                onTap: () => setState(() {
+                  _selectedCategory = cat;
+                  _categoryAutoSuggested = false; // user chose manually
+                }),
                 child: AnimatedContainer(
                   duration: AppDurations.fast,
                   padding: const EdgeInsets.symmetric(horizontal: Spacing.md, vertical: Spacing.sm),
@@ -1110,6 +1210,26 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
                           color: isSelected ? cat.color : AppStyles.getTextColor(context),
                         ),
                       ),
+                      // ML auto-suggestion badge
+                      if (isSelected && _categoryAutoSuggested) ...[
+                        const SizedBox(width: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: cat.color.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            'AI',
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w800,
+                              color: cat.color,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -1196,15 +1316,15 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
         ),
         if (_showMerchantField) ...[
           const SizedBox(height: Spacing.xs),
-          // Recent merchants chips
+          // Frequency-ranked merchant chips (most used first)
           Builder(builder: (ctx) {
-            final recent = _recentMerchants;
+            final recent = _rankedMerchants;
             if (recent.isEmpty) return const SizedBox.shrink();
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Recent',
+                  'Most used',
                   style: TextStyle(fontSize: 11, color: secondaryText),
                 ),
                 const SizedBox(height: Spacing.xs),
