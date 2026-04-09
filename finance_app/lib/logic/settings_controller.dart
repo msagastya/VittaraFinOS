@@ -39,6 +39,7 @@ class SettingsController with ChangeNotifier {
   String? _pinHash; // SHA-256 of the PIN
   String? _pinSalt; // Per-user random salt (base64, v2+). Null for legacy users.
   bool _showPinFallback = false; // set to true after biometric fails
+  bool _isAuthenticating = false; // guard against concurrent auth calls
 
   ThemeMode get themeMode => _themeMode;
   bool get isBiometricEnabled => _isBiometricEnabled;
@@ -392,35 +393,39 @@ class SettingsController with ChangeNotifier {
   }
 
   Future<void> authenticateAndUnlock() async {
-    if (kIsWeb) return; // Skip on web
+    if (kIsWeb) return;
 
-    // PIN-only mode: biometric disabled but PIN is set — go straight to numpad
-    if (!_isBiometricEnabled && isPinEnabled) {
-      showPinEntryFallback();
-      return;
-    }
-
-    // No security configured (shouldn't be locked, but unlock anyway)
-    if (!_isBiometricEnabled && !isPinEnabled) {
-      _isLocked = false;
-      notifyListeners();
-      return;
-    }
+    // Prevent concurrent calls — e.g. lifecycle resume fires while the
+    // biometric dialog is still open, which would queue a second auth attempt
+    // and cause the dialog to reappear immediately after the user cancels.
+    if (_isAuthenticating) return;
+    _isAuthenticating = true;
 
     try {
+      // PIN-only mode: biometric disabled but PIN is set — go straight to numpad
+      if (!_isBiometricEnabled && isPinEnabled) {
+        showPinEntryFallback();
+        return;
+      }
+
+      // No security configured (shouldn't be locked, but unlock anyway)
+      if (!_isBiometricEnabled && !isPinEnabled) {
+        _isLocked = false;
+        notifyListeners();
+        return;
+      }
+
       final canBiometric = await auth.canCheckBiometrics;
       if (!canBiometric) {
-        // Device doesn't support biometric — fall back to PIN if set
         if (isPinEnabled) showPinEntryFallback();
         return;
       }
 
-      // biometricOnly: true prevents the system from showing its own device-PIN fallback.
-      // The app handles PIN fallback through its own in-app numpad.
+      // biometricOnly: true prevents the system from showing its own device-PIN
+      // fallback sheet. The app handles PIN via its own in-app numpad.
       final bool authenticated = await auth.authenticate(
         localizedReason: 'Unlock VittaraFinOS',
-        biometricOnly:
-            isPinEnabled, // suppress OS PIN sheet only when we have our own
+        biometricOnly: isPinEnabled,
       );
 
       if (authenticated) {
@@ -428,15 +433,16 @@ class SettingsController with ChangeNotifier {
         _isLocked = false;
         notifyListeners();
       } else if (isPinEnabled) {
-        // Biometric failed/cancelled — offer in-app PIN
+        // Biometric failed / cancelled — offer in-app PIN
         showPinEntryFallback();
-      } else {
-        // No PIN fallback — re-prompt biometric
-        authenticateAndUnlock();
       }
+      // No else re-prompt: if biometric fails with no PIN fallback, the user
+      // stays on the lock screen and can tap "Use Biometric" to retry manually.
     } catch (e) {
       logger.error('Unlock Error', error: e, context: 'SettingsController');
       if (isPinEnabled) showPinEntryFallback();
+    } finally {
+      _isAuthenticating = false;
     }
   }
 }

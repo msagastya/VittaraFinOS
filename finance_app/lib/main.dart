@@ -174,6 +174,11 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  // Tracks whether a _LockDialog is already on the navigator stack.
+  // Prevents duplicate dialogs when the biometric prompt causes a resume event
+  // while the lock screen is already handling authentication.
+  bool _lockDialogActive = false;
+
   @override
   void initState() {
     super.initState();
@@ -193,8 +198,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       settings.appPaused();
     } else if (state == AppLifecycleState.resumed) {
       settings.appResumed();
-      // Re-show lock screen if lock is active.
-      if (settings.lockOnMinimize && settings.isLocked && settings.appLoaded && !kIsWeb) {
+      // Re-show lock screen if lock is active — but only if one isn't already shown.
+      if (settings.lockOnMinimize && settings.isLocked && settings.appLoaded &&
+          !kIsWeb && !_lockDialogActive) {
         _showLockDialog();
       }
     }
@@ -203,13 +209,14 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void _showLockDialog() {
     final nav = appNavigatorKey.currentState;
     if (nav == null) return;
+    _lockDialogActive = true;
     nav.push(
       PageRouteBuilder(
         opaque: false,
         barrierDismissible: false,
         pageBuilder: (_, __, ___) => const _LockDialog(),
       ),
-    );
+    ).then((_) => _lockDialogActive = false);
   }
 
   @override
@@ -464,8 +471,8 @@ class _LockScreenState extends State<LockScreen> {
                 radius: 15,
               ),
             ),
-            if (settings.isPinEnabled) ...[
-              const SizedBox(height: Spacing.xxxl),
+            const SizedBox(height: Spacing.xxxl),
+            if (settings.isPinEnabled)
               CupertinoButton(
                 onPressed: settings.showPinEntryFallback,
                 child: Text(
@@ -475,8 +482,18 @@ class _LockScreenState extends State<LockScreen> {
                     fontSize: TypeScale.body,
                   ),
                 ),
+              )
+            else
+              CupertinoButton(
+                onPressed: settings.authenticateAndUnlock,
+                child: Text(
+                  'Try again',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.7),
+                    fontSize: TypeScale.body,
+                  ),
+                ),
               ),
-            ],
           ],
         ),
       ),
