@@ -19,6 +19,7 @@ import 'package:vittara_fin_os/ui/widgets/floating_particle_background.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 import 'package:vittara_fin_os/ui/engagement/achievements_screen.dart';
+import 'package:vittara_fin_os/ui/widgets/monthly_statement_sheet.dart';
 
 const String _appName = 'VittaraFinOS';
 const String _appTagline = 'Track Wealth, Master Life';
@@ -193,6 +194,14 @@ class DashboardAppMenuScreen extends StatelessWidget {
                       onTap: () => Navigator.of(context).push(
                         FadeScalePageRoute(page: const ReportsAnalysisScreen()),
                       ),
+                    ),
+                    _MenuItem(
+                      title: 'Monthly Statement',
+                      subtitle:
+                          'Full account-wise PDF — accounts, investments, merchants & more',
+                      icon: CupertinoIcons.doc_text_fill,
+                      color: SemanticColors.primary,
+                      onTap: () => showMonthlyStatementSheet(context),
                     ),
                     _MenuItem(
                       title: 'Manage',

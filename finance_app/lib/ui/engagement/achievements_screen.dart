@@ -480,7 +480,7 @@ class AchievementsScreen extends StatelessWidget {
                 crossAxisCount: 2,
                 crossAxisSpacing: Spacing.md,
                 mainAxisSpacing: Spacing.md,
-                childAspectRatio: 1.25,
+                childAspectRatio: 1.4,
               ),
               itemCount: achievements.length,
               itemBuilder: (context, index) {
@@ -513,17 +513,37 @@ class _AchievementCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isUnlocked ? _tierColor(achievement.tier) : Colors.transparent;
-    final dimColor = AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.3);
+    final tierColor = _tierColor(achievement.tier);
+    final color = isUnlocked ? tierColor : tierColor;
+    final isDark = AppStyles.isDarkMode(context);
+
+    // Locked: still show tier color but muted
+    final iconBg = isUnlocked
+        ? color.withValues(alpha: 0.15)
+        : color.withValues(alpha: isDark ? 0.12 : 0.09);
+    final iconColor = isUnlocked
+        ? color
+        : color.withValues(alpha: 0.45);
+    final borderColor = isUnlocked
+        ? color.withValues(alpha: 0.35)
+        : color.withValues(alpha: isDark ? 0.18 : 0.15);
+    final nameColor = isUnlocked
+        ? AppStyles.getTextColor(context)
+        : AppStyles.getTextColor(context).withValues(alpha: 0.65);
+    final subColor = isUnlocked
+        ? AppStyles.getSecondaryTextColor(context)
+        : AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.65);
 
     return Container(
       decoration: BoxDecoration(
-        color: AppStyles.getCardColor(context),
+        color: isUnlocked
+            ? AppStyles.getCardColor(context)
+            : Color.alphaBlend(
+                color.withValues(alpha: isDark ? 0.06 : 0.04),
+                AppStyles.getCardColor(context),
+              ),
         borderRadius: BorderRadius.circular(Radii.lg),
-        border: Border.all(
-          color: isUnlocked ? color.withValues(alpha: 0.35) : dimColor,
-          width: 0.8,
-        ),
+        border: Border.all(color: borderColor, width: 0.8),
         boxShadow: isUnlocked
             ? [
                 BoxShadow(
@@ -544,20 +564,18 @@ class _AchievementCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  width: 32,
-                  height: 32,
+                  width: 34,
+                  height: 34,
                   decoration: BoxDecoration(
-                    color: isUnlocked
-                        ? color.withValues(alpha: 0.15)
-                        : dimColor.withValues(alpha: 0.3),
+                    color: iconBg,
                     borderRadius: BorderRadius.circular(Radii.sm),
                   ),
                   child: Icon(
                     isUnlocked
                         ? _tierIcon(achievement.tier)
                         : CupertinoIcons.lock_fill,
-                    size: 16,
-                    color: isUnlocked ? color : dimColor,
+                    size: 17,
+                    color: iconColor,
                   ),
                 ),
                 if (isUnlocked)
@@ -569,17 +587,16 @@ class _AchievementCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  isUnlocked ? achievement.name : '???',
+                  achievement.name,
                   style: TextStyle(
                     fontSize: TypeScale.footnote,
                     fontWeight: FontWeight.w700,
-                    color: isUnlocked
-                        ? AppStyles.getTextColor(context)
-                        : dimColor,
+                    color: nameColor,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
+                const SizedBox(height: 2),
                 if (date != null)
                   Text(
                     '${date!.day}/${date!.month}/${date!.year}',
@@ -588,12 +605,12 @@ class _AchievementCard extends StatelessWidget {
                       color: color.withValues(alpha: 0.6),
                     ),
                   )
-                else if (!isUnlocked)
+                else
                   Text(
                     achievement.label,
                     style: TextStyle(
                       fontSize: TypeScale.caption,
-                      color: dimColor,
+                      color: subColor,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
