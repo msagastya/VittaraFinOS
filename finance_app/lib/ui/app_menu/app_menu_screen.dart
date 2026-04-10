@@ -213,8 +213,8 @@ class DashboardAppMenuScreen extends StatelessWidget {
                       ),
                     ),
                     _MenuItem(
-                      title: 'Import CSV',
-                      subtitle: 'Import bank statement transactions from CSV',
+                      title: 'Import Bank Statement',
+                      subtitle: 'CSV, PDF, XLS, XLSX — 14 banks, AI-powered',
                       icon: CupertinoIcons.arrow_down_doc_fill,
                       color: AppStyles.aetherTeal,
                       onTap: () => Navigator.of(context).push(

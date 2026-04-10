@@ -36,6 +36,8 @@ dependencies:
   flutter_secure_storage: ^9.2.4
   pdf: ^3.10.8
   excel: ^4.0.2
+  file_picker: ^8.1.2
+  syncfusion_flutter_pdf: ^28.2.7
 dev_dependencies:
   flutter_test:
     sdk: flutter
