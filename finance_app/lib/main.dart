@@ -1249,7 +1249,7 @@ class DashboardScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: Spacing.xl),
                       Semantics(
-                        label: 'Dashboard layout settings',
+                        label: 'Dashboard layout',
                         child: BouncyButton(
                           onPressed: () {
                             Navigator.of(context).push(
@@ -1259,36 +1259,6 @@ class DashboardScreen extends StatelessWidget {
                           },
                           child: Icon(
                             CupertinoIcons.slider_horizontal_3,
-                            size: IconSizes.navIcon,
-                            color: AppStyles.getTextColor(context),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: Spacing.xl),
-                      Semantics(
-                        label: 'Manage accounts and investments',
-                        child: BouncyButton(
-                          onPressed: () {
-                            Navigator.of(context).push(
-                                FadeScalePageRoute(page: const ManageScreen()));
-                          },
-                          child: Icon(
-                            CupertinoIcons.square_grid_2x2,
-                            size: IconSizes.navIcon,
-                            color: AppStyles.getTextColor(context),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: Spacing.xl),
-                      Semantics(
-                        label: 'Settings',
-                        child: BouncyButton(
-                          onPressed: () {
-                            Navigator.of(context).push(
-                                FadeScalePageRoute(page: const SettingsScreen()));
-                          },
-                          child: Icon(
-                            CupertinoIcons.settings,
                             size: IconSizes.navIcon,
                             color: AppStyles.getTextColor(context),
                           ),

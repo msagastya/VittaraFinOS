@@ -28,7 +28,7 @@ class SettingsController with ChangeNotifier {
   bool _isBiometricEnabled = true;
   bool _lockOnMinimize = false;
   int _lockTimeoutSeconds = 10;
-  bool _isInvestmentTrackingEnabled = false; // Default OFF
+  bool _isInvestmentTrackingEnabled = true; // Default ON
   DateTime? _lastPausedTime;
   bool _isLocked = false;
   bool _appLoaded = false;
@@ -76,7 +76,7 @@ class SettingsController with ChangeNotifier {
     _lockOnMinimize = _prefs.getBool('lockOnMinimize') ?? false;
     _lockTimeoutSeconds = _prefs.getInt('lockTimeoutSeconds') ?? 10;
     _isInvestmentTrackingEnabled =
-        _prefs.getBool('isInvestmentTrackingEnabled') ?? false;
+        _prefs.getBool('isInvestmentTrackingEnabled') ?? true;
     _isArchivedTransactionsEnabled =
         _prefs.getBool('showArchivedTransactions') ?? false;
     _isSmsEnabled = _prefs.getBool('isSmsEnabled') ?? false;
@@ -330,7 +330,7 @@ class SettingsController with ChangeNotifier {
     _isBiometricEnabled = true;
     _lockOnMinimize = false;
     _lockTimeoutSeconds = 10;
-    _isInvestmentTrackingEnabled = false;
+    _isInvestmentTrackingEnabled = true;
     _isArchivedTransactionsEnabled = false;
     _isSmsEnabled = false;
     _defaultAccountId = null;
@@ -348,7 +348,7 @@ class SettingsController with ChangeNotifier {
     _isBiometricEnabled = true;
     _lockOnMinimize = false;
     _lockTimeoutSeconds = 10;
-    _isInvestmentTrackingEnabled = false;
+    _isInvestmentTrackingEnabled = true;
     _isArchivedTransactionsEnabled = false;
     _isSmsEnabled = false;
     _isLocked = false;

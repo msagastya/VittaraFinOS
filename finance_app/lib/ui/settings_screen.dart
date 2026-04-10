@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
+import 'package:vittara_fin_os/logic/payment_apps_controller.dart';
 import 'package:vittara_fin_os/logic/pin_recovery_controller.dart';
 import 'package:vittara_fin_os/logic/settings_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
@@ -130,6 +131,43 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         value: _getThemeString(settings.themeMode),
                         color: CupertinoColors.systemBlue,
                         onTap: () => _showThemeOptions(context, settings),
+                      ),
+                    ]),
+
+                    // ── PREFERENCES ─────────────────────────────────────
+                    _buildHeader('Preferences'),
+                    _buildModernSection(context, [
+                      _buildNavRow(
+                        context,
+                        icon: CupertinoIcons.creditcard_fill,
+                        title: 'Default Account',
+                        subtitle: 'Auto-selected in Quick Entry',
+                        color: AppStyles.aetherTeal,
+                        value: () {
+                          final accts = context
+                              .read<AccountsController>()
+                              .accounts;
+                          final id = settings.defaultAccountId;
+                          if (id == null) return 'None';
+                          final acc = accts
+                              .where((a) => a.id == id)
+                              .cast<dynamic>()
+                              .firstOrNull;
+                          return acc?.name ?? 'None';
+                        }(),
+                        onTap: () => _showDefaultAccountPicker(
+                            context, settings),
+                      ),
+                      _buildDivider(context),
+                      _buildNavRow(
+                        context,
+                        icon: CupertinoIcons.device_phone_portrait,
+                        title: 'Default Payment App',
+                        subtitle: 'Pre-selected in Quick Entry',
+                        color: AppStyles.novaPurple,
+                        value: settings.defaultPaymentAppName ?? 'None',
+                        onTap: () => _showDefaultPaymentAppPicker(
+                            context, settings),
                       ),
                     ]),
 
@@ -890,6 +928,81 @@ class _SettingsScreenState extends State<SettingsScreen> {
         Navigator.pop(context);
       },
       child: Text(text),
+    );
+  }
+
+  void _showDefaultAccountPicker(
+      BuildContext context, SettingsController settings) {
+    final accounts = context
+        .read<AccountsController>()
+        .accounts
+        .where((a) => !a.isHidden)
+        .toList();
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (_) => CupertinoActionSheet(
+        title: const Text('Default Account'),
+        message: const Text('Auto-selected when Quick Entry opens'),
+        actions: [
+          CupertinoActionSheetAction(
+            onPressed: () {
+              settings.setDefaultAccountId(null);
+              Navigator.pop(context);
+            },
+            child: const Text('None'),
+          ),
+          ...accounts.map((acc) => CupertinoActionSheetAction(
+                onPressed: () {
+                  settings.setDefaultAccountId(acc.id);
+                  Navigator.pop(context);
+                },
+                isDefaultAction: settings.defaultAccountId == acc.id,
+                child: Text(acc.name),
+              )),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+      ),
+    );
+  }
+
+  void _showDefaultPaymentAppPicker(
+      BuildContext context, SettingsController settings) {
+    final apps = context
+        .read<PaymentAppsController>()
+        .enabledApps;
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (_) => CupertinoActionSheet(
+        title: const Text('Default Payment App'),
+        message: const Text('Pre-selected when Quick Entry opens'),
+        actions: [
+          CupertinoActionSheetAction(
+            onPressed: () {
+              settings.setDefaultPaymentApp(null);
+              Navigator.pop(context);
+            },
+            child: const Text('None'),
+          ),
+          ...apps.map((app) {
+            final name = app['name'] as String;
+            return CupertinoActionSheetAction(
+              onPressed: () {
+                settings.setDefaultPaymentApp(name);
+                Navigator.pop(context);
+              },
+              isDefaultAction: settings.defaultPaymentAppName == name,
+              child: Text(name),
+            );
+          }),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+      ),
     );
   }
 }

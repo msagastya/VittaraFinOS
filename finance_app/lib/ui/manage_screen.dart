@@ -36,18 +36,18 @@ class _ManageScreenState extends State<ManageScreen> {
 
   final List<Map<String, dynamic>> _items = [
     {
-      'id': 'banks',
-      'title': 'Banks',
-      'subtitle': 'Manage linked bank profiles',
-      'icon': CupertinoIcons.building_2_fill,
-      'color': CupertinoColors.systemBlue
-    },
-    {
       'id': 'accounts',
       'title': 'Accounts',
-      'subtitle': 'Savings, credit cards & wallets',
+      'subtitle': 'Savings, credit, cash, wallets — linked to banks',
       'icon': CupertinoIcons.creditcard_fill,
       'color': SemanticColors.accounts // natural green, safe in both themes
+    },
+    {
+      'id': 'banks',
+      'title': 'Banks',
+      'subtitle': 'Your banks and financial institutions',
+      'icon': CupertinoIcons.building_2_fill,
+      'color': CupertinoColors.systemBlue
     },
     {
       'id': 'pay',
