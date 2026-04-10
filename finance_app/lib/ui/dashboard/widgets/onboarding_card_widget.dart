@@ -7,6 +7,7 @@ import 'package:vittara_fin_os/logic/engagement_service.dart';
 import 'package:vittara_fin_os/logic/goals_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
+import 'package:vittara_fin_os/ui/dashboard/quick_entry_sheet.dart';
 import 'package:vittara_fin_os/ui/manage/account_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/budgets/modals/add_budget_modal.dart';
 import 'package:vittara_fin_os/ui/manage/goals/modals/add_goal_modal.dart';
@@ -282,9 +283,16 @@ class OnboardingCardWidget extends StatelessWidget {
         );
         break;
       case 'transaction':
+        Navigator.of(context, rootNavigator: true).pop(); // close any modal
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          showQuickEntrySheet(context, branch: TransactionWizardBranch.expense);
+        });
+        break;
       case 'income':
-        // Open quick-add via action sheet — mark step via parent
-        // For now just mark done manually after they add
+        Navigator.of(context, rootNavigator: true).pop();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          showQuickEntrySheet(context, branch: TransactionWizardBranch.income);
+        });
         break;
       case 'budget':
         showCupertinoModalPopup(

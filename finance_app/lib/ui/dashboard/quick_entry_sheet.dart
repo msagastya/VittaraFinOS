@@ -14,6 +14,7 @@ import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_suggestion_engine.dart';
 import 'package:vittara_fin_os/ui/dashboard/transaction_wizard.dart';
+import 'package:vittara_fin_os/ui/manage/account_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/transfer_wizard.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
@@ -167,6 +168,15 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
         if (nonCash.isNotEmpty) {
           _selectedAccountId = nonCash.first.id;
           _selectedAccountName = nonCash.first.name;
+        } else {
+          // Fall back to cash accounts (e.g. fresh-install user with only "Cash in Hand")
+          final cashAccounts = accounts.accounts
+              .where((a) => !a.isHidden && a.type == AccountType.cash)
+              .toList();
+          if (cashAccounts.isNotEmpty) {
+            _selectedAccountId = cashAccounts.first.id;
+            _selectedAccountName = cashAccounts.first.name;
+          }
         }
       }
 
@@ -228,7 +238,8 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
   bool get _canSave =>
       _amountCtrl.text.trim().isNotEmpty &&
       (double.tryParse(_amountCtrl.text) ?? 0) > 0 &&
-      _selectedCategory != null;
+      _selectedCategory != null &&
+      _selectedAccountId != null;
 
   /// Delegates to TransactionSuggestionEngine — most-used categories first.
   List<Category> _rankedCategories(List<Category> all) =>
@@ -938,6 +949,50 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
                 ),
 
                 const SizedBox(height: Spacing.sm),
+
+                // ── No-account warning banner ──────────────────────────────────
+                Builder(builder: (ctx) {
+                  final allAccounts = ctx.watch<AccountsController>().accounts
+                      .where((a) => !a.isHidden && a.type != AccountType.investment)
+                      .toList();
+                  if (allAccounts.isNotEmpty) return const SizedBox.shrink();
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                      showCupertinoModalPopup<void>(
+                        context: context,
+                        builder: (_) => AccountWizard(),
+                      );
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, Spacing.sm),
+                      padding: const EdgeInsets.symmetric(horizontal: Spacing.md, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFF9500).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(Radii.md),
+                        border: Border.all(color: const Color(0xFFFF9500).withValues(alpha: 0.4)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(CupertinoIcons.exclamationmark_triangle_fill,
+                              color: Color(0xFFFF9500), size: 16),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'No account set up yet. Tap to add one first.',
+                              style: TextStyle(
+                                fontSize: TypeScale.footnote,
+                                color: AppStyles.getTextColor(context),
+                              ),
+                            ),
+                          ),
+                          const Icon(CupertinoIcons.chevron_right,
+                              color: Color(0xFFFF9500), size: 13),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
 
                 // Scrollable content
                 Flexible(

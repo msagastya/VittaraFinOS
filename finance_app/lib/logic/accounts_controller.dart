@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
 import 'package:vittara_fin_os/utils/async_mutex.dart';
+import 'package:vittara_fin_os/utils/id_generator.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 
 final _accountsLogger = AppLogger();
@@ -10,7 +11,8 @@ final _accountsLogger = AppLogger();
 class AccountsController with ChangeNotifier {
   late SharedPreferences _prefs;
   late List<Account> _accounts;
-  static const String _storageKey = 'accounts';
+  static const String _storageKey  = 'accounts';
+  static const String _seededKey   = 'accounts_seeded_v1';
   static final _writeMutex = AsyncMutex();
 
   bool _isLoaded = false;
@@ -44,6 +46,21 @@ class AccountsController with ChangeNotifier {
       _accountsLogger.warning('Skipped $skipped corrupted account(s)');
     }
     _accounts = loaded;
+
+    // First-install seed: every user gets "Cash in Hand" automatically.
+    if (_accounts.isEmpty && !(_prefs.getBool(_seededKey) ?? false)) {
+      final cashAccount = Account(
+        id: IdGenerator.next(prefix: 'acct'),
+        name: 'Cash in Hand',
+        bankName: 'Cash',
+        type: AccountType.cash,
+        balance: 0.0,
+        color: const Color(0xFF00B890),
+      );
+      _accounts.add(cashAccount);
+      await _saveAccounts();
+      await _prefs.setBool(_seededKey, true);
+    }
 
     _isLoaded = true;
     notifyListeners();
