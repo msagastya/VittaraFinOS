@@ -1044,20 +1044,47 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
                           child: CupertinoButton(
                             padding: EdgeInsets.zero,
                             onPressed: () {
+                              // Build a prefill stub so the wizard auto-populates
+                              final amount = double.tryParse(_amountCtrl.text.trim()) ?? 0;
+                              final meta = <String, dynamic>{
+                                if (_selectedCategory != null) 'categoryId': _selectedCategory!.id,
+                                if (_selectedCategory != null) 'categoryName': _selectedCategory!.name,
+                                'merchant': _merchantCtrl.text.trim(),
+                                'description': _descCtrl.text.trim(),
+                                'tags': _selectedTags,
+                                if (_selectedAccountId != null) 'accountId': _selectedAccountId,
+                                if (_selectedAccountName != null) 'accountName': _selectedAccountName,
+                                if (_selectedPaymentApp != null) 'paymentApp': _selectedPaymentApp,
+                              };
+                              final stub = Transaction(
+                                id: IdGenerator.next(),
+                                type: _branch == TransactionWizardBranch.expense
+                                    ? TransactionType.expense
+                                    : TransactionType.income,
+                                description: _descCtrl.text.trim().isEmpty
+                                    ? (_selectedCategory?.name ?? '')
+                                    : _descCtrl.text.trim(),
+                                dateTime: _selectedDate,
+                                amount: amount > 0 ? amount : 0.01,
+                                sourceAccountId: _selectedAccountId,
+                                sourceAccountName: _selectedAccountName,
+                                paymentAppName: _selectedPaymentApp,
+                                metadata: meta,
+                              );
                               Navigator.pop(context);
                               WidgetsBinding.instance.addPostFrameCallback((_) {
                                 if (context.mounted) {
                                   Navigator.push(
                                     context,
                                     FadeScalePageRoute(
-                                      page: TransactionWizard(initialBranch: _branch),
+                                      page: TransactionWizard(cloneFrom: stub),
                                     ),
                                   );
                                 }
                               });
                             },
                             child: const Text(
-                              'Open full wizard →',
+                              'More options →',
                               style: TextStyle(
                                 fontSize: 13,
                                 color: AppStyles.accentBlue,

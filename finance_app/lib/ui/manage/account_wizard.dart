@@ -1477,29 +1477,52 @@ class _AccountWizardState extends State<AccountWizard> {
   Widget _buildAccountTypeStep() {
     final accountTypes = [
       {
+        'type': AccountType.cash,
+        'label': 'Cash in Hand',
+        'subtitle': 'Physical cash, pocket money, petty cash',
+        'icon': CupertinoIcons.money_dollar_circle_fill,
+        'badge': 'Most common for daily tracking',
+        'highlight': true,
+      },
+      {
         'type': AccountType.savings,
         'label': 'Savings Account',
-        'icon': CupertinoIcons.book_fill
+        'subtitle': 'Bank savings account (most common)',
+        'icon': CupertinoIcons.book_fill,
+        'badge': null,
+        'highlight': false,
       },
       {
         'type': AccountType.current,
         'label': 'Current Account',
-        'icon': CupertinoIcons.briefcase_fill
+        'subtitle': 'Business / current account',
+        'icon': CupertinoIcons.briefcase_fill,
+        'badge': null,
+        'highlight': false,
       },
       {
         'type': AccountType.credit,
         'label': 'Credit Card',
-        'icon': CupertinoIcons.creditcard_fill
+        'subtitle': 'Credit card — tracks limit and usage',
+        'icon': CupertinoIcons.creditcard_fill,
+        'badge': null,
+        'highlight': false,
       },
       {
         'type': AccountType.payLater,
         'label': 'Pay Later (BNPL)',
-        'icon': CupertinoIcons.clock_fill
+        'subtitle': 'BNPL — Simpl, LazyPay, etc.',
+        'icon': CupertinoIcons.clock_fill,
+        'badge': null,
+        'highlight': false,
       },
       {
         'type': AccountType.wallet,
         'label': 'Digital Wallet',
-        'icon': CupertinoIcons.square_stack_3d_down_right_fill
+        'subtitle': 'UPI wallet — PhonePe, Paytm balance',
+        'icon': CupertinoIcons.square_stack_3d_down_right_fill,
+        'badge': null,
+        'highlight': false,
       },
     ];
 
@@ -1521,6 +1544,12 @@ class _AccountWizardState extends State<AccountWizard> {
           Column(
             children: accountTypes.map((item) {
               final isSelected = _selectedAccountType == item['type'];
+              final isHighlight = item['highlight'] as bool;
+              final badge = item['badge'] as String?;
+              final subtitle = item['subtitle'] as String;
+              final accentColor = isHighlight
+                  ? AppStyles.aetherTeal
+                  : CupertinoColors.systemBlue;
               return GestureDetector(
                 onTap: () {
                   final selectedType = item['type'] as AccountType;
@@ -1540,15 +1569,18 @@ class _AccountWizardState extends State<AccountWizard> {
                   margin: const EdgeInsets.only(bottom: 12),
                   padding: const EdgeInsets.all(Spacing.lg),
                   decoration: BoxDecoration(
-                    color: AppStyles.getCardColor(context),
+                    color: isHighlight
+                        ? AppStyles.aetherTeal.withValues(alpha: 0.06)
+                        : AppStyles.getCardColor(context),
                     borderRadius: BorderRadius.circular(Radii.md),
                     border: isSelected
-                        ? Border.all(
-                            color: CupertinoColors.systemBlue, width: 2)
+                        ? Border.all(color: accentColor, width: 2)
                         : Border.all(
-                            color: AppStyles.getSecondaryTextColor(context)
-                                .withValues(alpha: 0.1),
-                            width: 1,
+                            color: isHighlight
+                                ? AppStyles.aetherTeal.withValues(alpha: 0.3)
+                                : AppStyles.getSecondaryTextColor(context)
+                                    .withValues(alpha: 0.1),
+                            width: isHighlight ? 1.5 : 1,
                           ),
                   ),
                   child: Row(
@@ -1557,30 +1589,68 @@ class _AccountWizardState extends State<AccountWizard> {
                         width: 48,
                         height: 48,
                         decoration: BoxDecoration(
-                          color:
-                              CupertinoColors.systemBlue.withValues(alpha: 0.1),
+                          color: accentColor.withValues(alpha: 0.12),
                           shape: BoxShape.circle,
                         ),
                         child: Center(
                           child: Icon(
                             item['icon'] as IconData,
-                            color: CupertinoColors.systemBlue,
+                            color: accentColor,
                             size: 24,
                           ),
                         ),
                       ),
                       const SizedBox(width: Spacing.lg),
                       Expanded(
-                        child: Text(
-                          item['label'] as String,
-                          style: AppStyles.titleStyle(context)
-                              .copyWith(fontSize: TypeScale.headline),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  item['label'] as String,
+                                  style: AppStyles.titleStyle(context)
+                                      .copyWith(fontSize: TypeScale.headline),
+                                ),
+                                if (badge != null) ...[
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: AppStyles.aetherTeal
+                                          .withValues(alpha: 0.15),
+                                      borderRadius:
+                                          BorderRadius.circular(Radii.sm),
+                                    ),
+                                    child: Text(
+                                      badge,
+                                      style: TextStyle(
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppStyles.aetherTeal,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              subtitle,
+                              style: TextStyle(
+                                fontSize: TypeScale.caption,
+                                color:
+                                    AppStyles.getSecondaryTextColor(context),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       if (isSelected)
-                        const Icon(
+                        Icon(
                           CupertinoIcons.checkmark_circle_fill,
-                          color: CupertinoColors.systemBlue,
+                          color: accentColor,
                           size: 24,
                         ),
                     ],

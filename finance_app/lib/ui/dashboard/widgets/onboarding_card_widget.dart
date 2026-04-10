@@ -8,6 +8,7 @@ import 'package:vittara_fin_os/logic/goals_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/ui/dashboard/quick_entry_sheet.dart';
+import 'package:vittara_fin_os/ui/dashboard/transaction_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/account_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/budgets/modals/add_budget_modal.dart';
 import 'package:vittara_fin_os/ui/manage/goals/modals/add_goal_modal.dart';
@@ -27,7 +28,7 @@ class OnboardingCardWidget extends StatelessWidget {
   static const _steps = [
     _OnboardStep(
       id: 'account',
-      title: 'Add a bank account',
+      title: 'Add your first account',
       subtitle: 'Know where your money lives',
       icon: CupertinoIcons.building_2_fill,
     ),

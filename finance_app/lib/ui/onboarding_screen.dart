@@ -89,7 +89,7 @@ const _pages = [
   // Page 5 — interactive demo (rendered separately)
   _OnboardingPage(
     title: 'See it in action',
-    subtitle: 'Tap anything — this is exactly what your dashboard looks like.',
+    subtitle: 'This is what your dashboard will look like once you start tracking.',
     emoji: '⚡',
     accent: AppStyles.solarGold,
     bullets: [],
@@ -265,27 +265,37 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                 padding: const EdgeInsets.fromLTRB(24, 0, 24, 0),
                 child: Column(
                   children: [
-                    // Dot indicators
+                    // Dot indicators + page counter
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(_pages.length, (i) {
-                        final active = i == _currentPage;
-                        return AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                          margin: const EdgeInsets.symmetric(horizontal: 4),
-                          width: active ? 24 : 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(4),
-                            color: active
-                                ? accent
-                                : (isDark
-                                    ? Colors.white24
-                                    : Colors.black26),
+                      children: [
+                        ...List.generate(_pages.length, (i) {
+                          final active = i == _currentPage;
+                          return AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                            margin: const EdgeInsets.symmetric(horizontal: 4),
+                            width: active ? 24 : 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(4),
+                              color: active
+                                  ? accent
+                                  : (isDark
+                                      ? Colors.white24
+                                      : Colors.black26),
+                            ),
+                          );
+                        }),
+                        const SizedBox(width: 12),
+                        Text(
+                          '${_currentPage + 1} / ${_pages.length}',
+                          style: TextStyle(
+                            fontSize: TypeScale.caption,
+                            color: isDark ? Colors.white38 : Colors.black38,
                           ),
-                        );
-                      }),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 24),
 
@@ -743,7 +753,7 @@ class _DemoOnboardingPage extends StatelessWidget {
 
           const SizedBox(height: 8),
           Text(
-            'Tap anything above — it works!',
+            'Your data. Your insights. Let\'s set it up.',
             style: TextStyle(
               color: page.accent.withValues(alpha: 0.7),
               fontSize: TypeScale.caption,
