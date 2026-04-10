@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
+import 'package:vittara_fin_os/ui/dashboard/quick_entry_sheet.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
@@ -73,11 +75,23 @@ class CashFlowDashboardWidget extends StatelessWidget {
                 ),
                 const SizedBox(height: Spacing.xs),
                 Text(
-                  'Add transactions to see\nyour cash flow',
+                  'Track income and expenses to see\nyour cash flow',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: TypeScale.caption,
                     color: AppStyles.getSecondaryTextColor(context),
+                  ),
+                ),
+                const SizedBox(height: Spacing.sm),
+                CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  onPressed: () => showQuickEntrySheet(context),
+                  child: Text(
+                    'Add transaction →',
+                    style: TextStyle(
+                      fontSize: TypeScale.caption,
+                      color: AppStyles.aetherTeal,
+                    ),
                   ),
                 ),
               ],

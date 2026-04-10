@@ -8,6 +8,7 @@ import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/logic/transaction_feed_builder.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/ui/dashboard/base_dashboard_widget.dart';
+import 'package:vittara_fin_os/ui/dashboard/quick_entry_sheet.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/styles/transaction_type_theme.dart';
@@ -123,12 +124,24 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
                 ),
                 const SizedBox(height: Spacing.sm),
                 Text(
-                  'No transactions',
+                  'No transactions yet',
                   style: TextStyle(
                     fontSize: columnSpan == 1 ? 11 : 13,
                     color: AppStyles.getSecondaryTextColor(context),
                   ),
                   textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: Spacing.sm),
+                CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  onPressed: () => showQuickEntrySheet(context),
+                  child: Text(
+                    'Log your first →',
+                    style: TextStyle(
+                      fontSize: columnSpan == 1 ? 11 : 13,
+                      color: AppStyles.aetherTeal,
+                    ),
+                  ),
                 ),
               ],
             ),

@@ -562,7 +562,7 @@ class SpendNarrativeCarouselState extends State<SpendNarrativeCarousel>
                             fontWeight: FontWeight.w600,
                             color: AppStyles.getTextColor(context))),
                     const SizedBox(height: 2),
-                    Text('Add transactions to unlock spending insights',
+                    Text('Log a few transactions to unlock spending insights',
                         style: TextStyle(
                             fontSize: TypeScale.caption,
                             color: AppStyles.getSecondaryTextColor(context))),

@@ -15,6 +15,7 @@ import 'package:vittara_fin_os/ui/dashboard/widgets/health_score_widget.dart'
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
+import 'package:vittara_fin_os/ui/manage/account_wizard.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -770,13 +771,32 @@ class NetWorthWidget extends BaseDashboardWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Add accounts to track your scorecard',
+                    'Add accounts to track your net worth',
                     style: TextStyle(
                       fontSize: TypeScale.caption,
                       color: AppStyles.getSecondaryTextColor(context)
                           .withValues(alpha: 0.6),
                     ),
                     textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: Spacing.md),
+                  CupertinoButton(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: Spacing.lg, vertical: Spacing.sm),
+                    color: AppStyles.aetherTeal.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(Radii.md),
+                    onPressed: () => showCupertinoModalPopup<void>(
+                      context: context,
+                      builder: (_) => AccountWizard(),
+                    ),
+                    child: Text(
+                      'Add Account',
+                      style: TextStyle(
+                        fontSize: TypeScale.footnote,
+                        fontWeight: FontWeight.w600,
+                        color: AppStyles.aetherTeal,
+                      ),
+                    ),
                   ),
                 ],
               ),

@@ -24,6 +24,7 @@ import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/logic/ml_planner_engine.dart';
 import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 import 'package:vittara_fin_os/ui/widgets/monthly_statement_sheet.dart';
+import 'package:vittara_fin_os/ui/dashboard/quick_entry_sheet.dart';
 
 const String _reportAppName = 'VittaraFinOS';
 const String _reportTagline = 'Track Wealth, Master Life';
@@ -821,11 +822,13 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
         if (summary.transactionCount == 0) {
           return [
             const SizedBox(height: Spacing.xl),
-            const EmptyStateView(
+            EmptyStateView(
               icon: CupertinoIcons.doc_chart,
               title: 'No Data for This Period',
               subtitle:
-                  'Try adjusting your date range or filters to see transactions.',
+                  'Your insights will appear here once you start tracking.',
+              actionLabel: 'Log first transaction',
+              onAction: () => showQuickEntrySheet(context),
             ),
           ];
         }
