@@ -46,3 +46,4 @@ flutter:
   assets:
     - assets/animations/loader.json
     - assets/remote_config.json
+    - assets/app_icon.png

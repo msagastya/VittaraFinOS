@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -86,6 +87,7 @@ class MonthlyStatementService {
     required List<Account> accounts,
     required List<Investment> investments,
     required List<LendingBorrowing> lendingRecords,
+    Uint8List? appIconBytes,
   }) async {
     final monthStart  = DateTime(year, month, 1);
     final monthEnd    = DateTime(year, month + 1, 1).subtract(const Duration(milliseconds: 1));
@@ -101,14 +103,16 @@ class MonthlyStatementService {
 
     final doc = pw.Document();
 
+    final ib = appIconBytes; // capture for closures
+
     // ── 1. Cover ──
-    doc.addPage(_coverPage(monthLabel, monthTxns.length, stats, visibleAccounts));
+    doc.addPage(_coverPage(monthLabel, monthTxns.length, stats, visibleAccounts, ib));
 
     // ── 2. Executive Summary ──
     doc.addPage(pw.MultiPage(
       pageFormat: PdfPageFormat.a4,
       margin: pw.EdgeInsets.zero,
-      header: (ctx) => _hdr('Executive Summary', monthLabel, ctx),
+      header: (ctx) => _hdr('Executive Summary', monthLabel, ctx, ib),
       footer: (ctx) => _ftr(ctx),
       build: (_) => [
         pw.SizedBox(height: 10),
@@ -135,7 +139,7 @@ class MonthlyStatementService {
       doc.addPage(pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: pw.EdgeInsets.zero,
-        header: (ctx) => _hdr('Account Statement', monthLabel, ctx),
+        header: (ctx) => _hdr('Account Statement', monthLabel, ctx, ib),
         footer: (ctx) => _ftr(ctx),
         build: (_) => [
           pw.SizedBox(height: 10),
@@ -154,7 +158,7 @@ class MonthlyStatementService {
       doc.addPage(pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: pw.EdgeInsets.zero,
-        header: (ctx) => _hdr('Category Breakdown', monthLabel, ctx),
+        header: (ctx) => _hdr('Category Breakdown', monthLabel, ctx, ib),
         footer: (ctx) => _ftr(ctx),
         build: (_) => [
           pw.SizedBox(height: 10),
@@ -178,7 +182,7 @@ class MonthlyStatementService {
       doc.addPage(pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: pw.EdgeInsets.zero,
-        header: (ctx) => _hdr('Payment Apps', monthLabel, ctx),
+        header: (ctx) => _hdr('Payment Apps', monthLabel, ctx, ib),
         footer: (ctx) => _ftr(ctx),
         build: (_) => [
           pw.SizedBox(height: 10),
@@ -204,7 +208,7 @@ class MonthlyStatementService {
       doc.addPage(pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: pw.EdgeInsets.zero,
-        header: (ctx) => _hdr('Investments', monthLabel, ctx),
+        header: (ctx) => _hdr('Investments', monthLabel, ctx, ib),
         footer: (ctx) => _ftr(ctx),
         build: (_) => [
           pw.SizedBox(height: 10),
@@ -235,7 +239,7 @@ class MonthlyStatementService {
       doc.addPage(pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: pw.EdgeInsets.zero,
-        header: (ctx) => _hdr('Dividends', monthLabel, ctx),
+        header: (ctx) => _hdr('Dividends', monthLabel, ctx, ib),
         footer: (ctx) => _ftr(ctx),
         build: (_) => [
           pw.SizedBox(height: 10),
@@ -255,7 +259,7 @@ class MonthlyStatementService {
       doc.addPage(pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: pw.EdgeInsets.zero,
-        header: (ctx) => _hdr('Lending & Borrowing', monthLabel, ctx),
+        header: (ctx) => _hdr('Lending & Borrowing', monthLabel, ctx, ib),
         footer: (ctx) => _ftr(ctx),
         build: (_) => [
           pw.SizedBox(height: 10),
@@ -294,7 +298,7 @@ class MonthlyStatementService {
       doc.addPage(pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: pw.EdgeInsets.zero,
-        header: (ctx) => _hdr('Merchant Analysis', monthLabel, ctx),
+        header: (ctx) => _hdr('Merchant Analysis', monthLabel, ctx, ib),
         footer: (ctx) => _ftr(ctx),
         build: (_) => [
           pw.SizedBox(height: 10),
@@ -316,7 +320,7 @@ class MonthlyStatementService {
     doc.addPage(pw.MultiPage(
       pageFormat: PdfPageFormat.a4,
       margin: pw.EdgeInsets.zero,
-      header: (ctx) => _hdr('Full Transaction Log', monthLabel, ctx),
+      header: (ctx) => _hdr('Full Transaction Log', monthLabel, ctx, ib),
       footer: (ctx) => _ftr(ctx),
       build: (_) => [
         pw.SizedBox(height: 10),
@@ -337,7 +341,7 @@ class MonthlyStatementService {
   // SECTION 1 — Cover page (pw.Page, full design)
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static pw.Page _coverPage(String monthLabel, int txnCount, Map<String, double> stats, List<Account> accounts) {
+  static pw.Page _coverPage(String monthLabel, int txnCount, Map<String, double> stats, List<Account> accounts, Uint8List? ib) {
     final net = stats['net']!;
     return pw.Page(
       pageFormat: PdfPageFormat.a4,
@@ -379,7 +383,7 @@ class MonthlyStatementService {
             children: [
               // Logo + brand
               pw.Row(children: [
-                _logoMark(60),
+                _logoMark(60, ib),
                 pw.SizedBox(width: 16),
                 pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
                   pw.Text(_appName, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 22, color: PdfColors.white, letterSpacing: 2.0)),
@@ -646,13 +650,14 @@ class MonthlyStatementService {
             style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 20, color: PdfColors.white)),
         ),
         pw.SizedBox(width: 14),
-        pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-          pw.Text(account.name, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 13, color: _navy)),
-          pw.SizedBox(height: 3),
-          pw.Text('${account.bankName}  •  ${_acctTypeLabel(account.type)}',
-            style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 8, color: _grey)),
-        ]),
-        pw.Spacer(),
+        pw.Expanded(
+          child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+            pw.Text(account.name, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 13, color: _navy)),
+            pw.SizedBox(height: 3),
+            pw.Text('${account.bankName}  •  ${_acctTypeLabel(account.type)}',
+              style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 8, color: _grey)),
+          ]),
+        ),
         pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.end, children: [
           pw.Text('OPENING',  style: pw.TextStyle(font: pw.Font.helvetica(),     fontSize: 7, color: _grey, letterSpacing: 0.5)),
           pw.Text('Rs ${_fmtAmt(row.opening)}', style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 12, color: _navy)),
@@ -1060,7 +1065,7 @@ class MonthlyStatementService {
   // Shared page header / footer
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static pw.Widget _hdr(String section, String monthLabel, pw.Context ctx) {
+  static pw.Widget _hdr(String section, String monthLabel, pw.Context ctx, Uint8List? ib) {
     return pw.Container(
       height: 52,
       decoration: pw.BoxDecoration(
@@ -1068,13 +1073,14 @@ class MonthlyStatementService {
       ),
       padding: const pw.EdgeInsets.symmetric(horizontal: 24, vertical: 10),
       child: pw.Row(crossAxisAlignment: pw.CrossAxisAlignment.center, children: [
-        _logoMark(30),
+        _logoMark(30, ib),
         pw.SizedBox(width: 10),
-        pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-          pw.Text(_appName, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 11, color: PdfColors.white, letterSpacing: 1.2)),
-          pw.Text(section.toUpperCase(), style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7, color: const PdfColor(0.55, 0.70, 0.82), letterSpacing: 0.8)),
-        ]),
-        pw.Spacer(),
+        pw.Expanded(
+          child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+            pw.Text(_appName, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 11, color: PdfColors.white, letterSpacing: 1.2)),
+            pw.Text(section.toUpperCase(), style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7, color: const PdfColor(0.55, 0.70, 0.82), letterSpacing: 0.8)),
+          ]),
+        ),
         pw.Text(monthLabel, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 10, color: PdfColors.white)),
         pw.SizedBox(width: 14),
         pw.Container(
@@ -1130,10 +1136,12 @@ class MonthlyStatementService {
           child: pw.Text(tag, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 8, color: from)),
         ),
         pw.SizedBox(width: 10),
-        pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-          pw.Text(title, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 12, color: PdfColors.white)),
-          pw.Text(subtitle, style: pw.TextStyle(font: pw.Font.helveticaOblique(), fontSize: 7.5, color: const PdfColor(0.95, 0.95, 0.98))),
-        ]),
+        pw.Expanded(
+          child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+            pw.Text(title, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 12, color: PdfColors.white)),
+            pw.Text(subtitle, style: pw.TextStyle(font: pw.Font.helveticaOblique(), fontSize: 7.5, color: const PdfColor(0.95, 0.95, 0.98))),
+          ]),
+        ),
       ]),
     );
   }
@@ -1158,7 +1166,21 @@ class MonthlyStatementService {
   // Shared widgets
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static pw.Widget _logoMark(double size) {
+  static pw.Widget _logoMark(double size, [Uint8List? iconBytes]) {
+    if (iconBytes != null) {
+      // Real app icon inside a white rounded-rect container (looks clean on any bg)
+      return pw.Container(
+        width: size, height: size,
+        decoration: pw.BoxDecoration(
+          color: PdfColors.white,
+          borderRadius: pw.BorderRadius.all(pw.Radius.circular(size * 0.22)),
+          boxShadow: [pw.BoxShadow(color: PdfColors.black, blurRadius: 4, spreadRadius: 0, offset: const PdfPoint(0, 1))],
+        ),
+        padding: pw.EdgeInsets.all(size * 0.10),
+        child: pw.Image(pw.MemoryImage(iconBytes), width: size * 0.80, height: size * 0.80),
+      );
+    }
+    // Fallback: gradient V box
     return pw.Container(
       width: size, height: size,
       decoration: pw.BoxDecoration(

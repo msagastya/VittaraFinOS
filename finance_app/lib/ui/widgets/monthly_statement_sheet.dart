@@ -1,5 +1,7 @@
+import 'dart:typed_data';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
@@ -53,6 +55,13 @@ class _MonthlyStatementSheetState extends State<_MonthlyStatementSheet> {
       final invCtrl = ctx.read<InvestmentsController>();
       final lbCtrl = ctx.read<LendingBorrowingController>();
 
+      // Load real app icon for PDF branding
+      Uint8List? iconBytes;
+      try {
+        final data = await rootBundle.load('assets/app_icon.png');
+        iconBytes = data.buffer.asUint8List();
+      } catch (_) {}
+
       final file = await MonthlyStatementService.build(
         year: month.year,
         month: month.month,
@@ -60,6 +69,7 @@ class _MonthlyStatementSheetState extends State<_MonthlyStatementSheet> {
         accounts: acCtrl.accounts,
         investments: invCtrl.investments,
         lendingRecords: lbCtrl.records,
+        appIconBytes: iconBytes,
       );
 
       await Share.shareXFiles(
