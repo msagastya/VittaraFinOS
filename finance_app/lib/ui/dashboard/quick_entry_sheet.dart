@@ -83,6 +83,9 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
   // (not by the user tapping). Lets us override it on the next merchant change.
   bool _categoryAutoSuggested = false;
 
+  // Dirty tracking — true once the user has entered any data
+  bool _isDirty = false;
+
   DateTime _selectedDate = DateTime.now();
 
   @override
@@ -193,6 +196,11 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
 
     // ML auto-suggest: when merchant changes, auto-pick the most likely category
     _merchantCtrl.addListener(_onMerchantChanged);
+
+    // Dirty tracking
+    _amountCtrl.addListener(_markDirty);
+    _merchantCtrl.addListener(_markDirty);
+    _descCtrl.addListener(_markDirty);
   }
 
   void _onMerchantChanged() {
@@ -240,6 +248,34 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
       (double.tryParse(_amountCtrl.text) ?? 0) > 0 &&
       _selectedCategory != null &&
       _selectedAccountId != null;
+
+  void _markDirty() {
+    if (!_isDirty) setState(() => _isDirty = true);
+  }
+
+  Future<bool> _confirmDiscard() async {
+    if (!_isDirty) return true;
+    final result = await showCupertinoDialog<bool>(
+      context: context,
+      builder: (_) => CupertinoAlertDialog(
+        title: const Text('Discard transaction?'),
+        content: const Text('Your unsaved entry will be lost.'),
+        actions: [
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Discard'),
+          ),
+          CupertinoDialogAction(
+            isDefaultAction: true,
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Keep Editing'),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
 
   /// Delegates to TransactionSuggestionEngine — most-used categories first.
   List<Category> _rankedCategories(List<Category> all) =>
@@ -899,7 +935,15 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
     final secondaryText = AppStyles.getSecondaryTextColor(context);
     final primaryText = AppStyles.getTextColor(context);
 
-    return AnimatedPadding(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        if (await _confirmDiscard() && context.mounted) {
+          Navigator.pop(context);
+        }
+      },
+      child: AnimatedPadding(
       padding: EdgeInsets.only(bottom: kb),
       duration: const Duration(milliseconds: 120),
       curve: Curves.easeOut,
@@ -937,7 +981,11 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
                       ),
                       CupertinoButton(
                         padding: EdgeInsets.zero,
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: () async {
+                          if (await _confirmDiscard() && context.mounted) {
+                            Navigator.pop(context);
+                          }
+                        },
                         child: Icon(
                           CupertinoIcons.xmark_circle_fill,
                           color: secondaryText.withValues(alpha: 0.4),
@@ -1100,9 +1148,10 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
               ],
             ),
           ),
-        ),
-      ),
-    );
+        ), // SafeArea/Container chain
+      ), // Container (closes AnimatedPadding's child:)
+      ), // AnimatedPadding (closes PopScope's child:)
+    ); // PopScope
   }
 
   // ── Type toggle ──────────────────────────────────────────────────────────────
