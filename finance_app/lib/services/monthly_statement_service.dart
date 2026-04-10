@@ -554,7 +554,7 @@ class MonthlyStatementService {
           color: i.isEven ? const PdfColor(0.86, 0.97, 0.96) : PdfColors.white,
           padding: const pw.EdgeInsets.fromLTRB(20, 7, 20, 7),
           child: pw.Row(children: [
-            pw.SizedBox(width: 130, child: pw.Text(r.name.length > 20 ? '${r.name.substring(0, 20)}…' : r.name,
+            pw.SizedBox(width: 130, child: pw.Text(r.name.length > 20 ? '${r.name.substring(0, 20)}...' : r.name,
                 style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 8.5, color: _navy))),
             pw.SizedBox(width: 72,  child: _amtCell(r.opening,  _grey)),
             pw.SizedBox(width: 72,  child: _amtCell(r.debits,   _red)),
@@ -700,7 +700,7 @@ class MonthlyStatementService {
           child: pw.Row(children: [
             pw.SizedBox(width: 50,  child: pw.Text(_fmtDateShort(r.date), style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7, color: _grey))),
             pw.Expanded(child: pw.Text(
-              r.description.length > 42 ? '${r.description.substring(0, 42)}…' : r.description,
+              r.description.length > 42 ? '${r.description.substring(0, 42)}...' : r.description,
               style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 8, color: _navy))),
             pw.SizedBox(width: 64,  child: pw.Text(r.paymentApp, style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7, color: _grey), textAlign: pw.TextAlign.right)),
             pw.SizedBox(width: 68,  child: r.debit > 0
@@ -862,7 +862,7 @@ class MonthlyStatementService {
             pw.Container(width: 10, height: 10, decoration: pw.BoxDecoration(color: col, borderRadius: const pw.BorderRadius.all(pw.Radius.circular(2)))),
             pw.SizedBox(width: 6),
             pw.SizedBox(width: 124, child: pw.Text(type, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 8.5, color: _navy))),
-            pw.Expanded(child: pw.Text(items.map((inv) => inv.name).take(3).join(', ') + (items.length > 3 ? '…' : ''),
+            pw.Expanded(child: pw.Text(items.map((inv) => inv.name).take(3).join(', ') + (items.length > 3 ? '...' : ''),
                 style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7.5, color: _grey))),
             pw.SizedBox(width: 90, child: pw.Text('Rs ${_fmtAmt(total)}', textAlign: pw.TextAlign.right,
                 style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 8.5, color: col))),
@@ -903,7 +903,7 @@ class MonthlyStatementService {
           padding: const pw.EdgeInsets.fromLTRB(16, 5, 16, 5),
           child: pw.Row(children: [
             pw.SizedBox(width: 58,  child: pw.Text(_fmtDateShort(t.dateTime), style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7.5, color: _grey))),
-            pw.Expanded(child: pw.Text(desc.length > 44 ? '${desc.substring(0, 44)}…' : desc, style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 8.5, color: _navy))),
+            pw.Expanded(child: pw.Text(desc.length > 44 ? '${desc.substring(0, 44)}...' : desc, style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 8.5, color: _navy))),
             pw.SizedBox(width: 72,  child: pw.Text(acct, style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7.5, color: _grey))),
             pw.SizedBox(width: 78,  child: pw.Text('+Rs ${_fmtAmt(t.amount)}', textAlign: pw.TextAlign.right, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 8.5, color: _amber))),
           ]),
@@ -1010,7 +1010,7 @@ class MonthlyStatementService {
               child: pw.Text(tl, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 6.5, color: tc)),
             )),
             pw.Expanded(child: pw.Text(
-              desc.length > 38 ? '${desc.substring(0, 38)}…' : desc,
+              desc.length > 38 ? '${desc.substring(0, 38)}...' : desc,
               style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 8, color: _navy))),
             pw.SizedBox(width: 62,  child: pw.Text(app, style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7, color: _grey), textAlign: pw.TextAlign.right)),
             pw.SizedBox(width: 76,  child: pw.Text(
@@ -1018,7 +1018,7 @@ class MonthlyStatementService {
               textAlign: pw.TextAlign.right,
               style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 8, color: isCredit ? _green : _red))),
             pw.SizedBox(width: 80,  child: pw.Text(
-              acct.length > 12 ? '${acct.substring(0, 12)}…' : acct,
+              acct.length > 12 ? '${acct.substring(0, 12)}...' : acct,
               style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7, color: _grey))),
           ]),
         );
@@ -1046,7 +1046,7 @@ class MonthlyStatementService {
         child: pw.Row(children: [
           pw.SizedBox(width: 52, child: pw.Text(_fmtDateShort(t.dateTime), style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7, color: _grey))),
           pw.Expanded(child: pw.Text(
-            desc.length > 44 ? '${desc.substring(0, 44)}…' : desc,
+            desc.length > 44 ? '${desc.substring(0, 44)}...' : desc,
             style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 8, color: _navy))),
           if (app.isNotEmpty) pw.SizedBox(width: 60, child: pw.Text(app, textAlign: pw.TextAlign.right, style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7, color: _grey))),
           pw.SizedBox(width: 76,  child: pw.Text(
@@ -1054,7 +1054,7 @@ class MonthlyStatementService {
             textAlign: pw.TextAlign.right,
             style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 8, color: isC ? _green : _red))),
           pw.SizedBox(width: 80,  child: pw.Text(
-            acct.length > 12 ? '${acct.substring(0, 12)}…' : acct,
+            acct.length > 12 ? '${acct.substring(0, 12)}...' : acct,
             style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7, color: _grey))),
         ]),
       );
