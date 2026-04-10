@@ -23,6 +23,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/logic/ml_planner_engine.dart';
 import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
+import 'package:vittara_fin_os/ui/widgets/monthly_statement_sheet.dart';
 
 const String _reportAppName = 'VittaraFinOS';
 const String _reportTagline = 'Track Wealth, Master Life';
@@ -2456,6 +2457,86 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
           const SizedBox(height: Spacing.sm),
           Text(
             'PDF includes logo-style header, app name, tagline, deep analytics, grouped breakdown, and strategy results. Excel export is compatible with spreadsheet tools.',
+            style: TextStyle(
+              color: AppStyles.getSecondaryTextColor(context),
+              fontSize: TypeScale.caption,
+            ),
+          ),
+          const SizedBox(height: Spacing.lg),
+          _buildMonthlyStatementSection(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMonthlyStatementSection() {
+    return Container(
+      padding: const EdgeInsets.all(Spacing.md),
+      decoration: BoxDecoration(
+        color: SemanticColors.primary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(Radii.lg),
+        border: Border.all(
+          color: SemanticColors.primary.withValues(alpha: 0.25),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF00B890), Color(0xFF7B5CEF)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(CupertinoIcons.doc_richtext, color: Colors.white, size: 16),
+              ),
+              const SizedBox(width: 10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Monthly Statement',
+                    style: TextStyle(
+                      fontFamily: 'SpaceGrotesk',
+                      fontSize: TypeScale.body,
+                      fontWeight: FontWeight.w700,
+                      color: AppStyles.getTextColor(context),
+                    ),
+                  ),
+                  Text(
+                    'Full account-wise PDF • 20–50 pages',
+                    style: TextStyle(
+                      fontSize: TypeScale.caption,
+                      color: AppStyles.getSecondaryTextColor(context),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: Spacing.sm),
+          SizedBox(
+            width: double.infinity,
+            child: CupertinoButton(
+              color: SemanticColors.primary,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              onPressed: () => showMonthlyStatementSheet(context),
+              child: const Text(
+                'Download Monthly Statement',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ),
+          ),
+          const SizedBox(height: Spacing.xs),
+          Text(
+            'Includes every account with opening & closing balances, all transactions, categories, investments by type, dividends, lending & borrowing, merchant analysis, and more.',
             style: TextStyle(
               color: AppStyles.getSecondaryTextColor(context),
               fontSize: TypeScale.caption,
