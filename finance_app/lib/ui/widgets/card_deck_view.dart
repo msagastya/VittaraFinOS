@@ -132,8 +132,13 @@ class _CardDeckViewState extends State<CardDeckView>
   }
 
   void _onPanStart(DragStartDetails _) {
-    if (_swipeController.isAnimating || _returnController.isAnimating) return;
-    _isSwiping = true;
+    // Don't start a new gesture while any animation is still running.
+    if (_swipeController.isAnimating ||
+        _returnController.isAnimating ||
+        _promotionController.isAnimating) return;
+    setState(() {
+      _isSwiping = true;
+    });
     _returnController.reset();
   }
 
@@ -158,6 +163,15 @@ class _CardDeckViewState extends State<CardDeckView>
     }
   }
 
+  /// Called when the OS cancels the gesture (scroll conflict, system interrupt, etc.).
+  /// Without this, _isSwiping stays true and the card freezes mid-drag.
+  void _onPanCancel() {
+    if (!_isSwiping) return;
+    _buildReturnAnim(_dragOffset);
+    setState(() => _isSwiping = false);
+    _returnController.forward();
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_cardCount == 0) return const SizedBox.shrink();
@@ -177,6 +191,7 @@ class _CardDeckViewState extends State<CardDeckView>
             onPanStart: _onPanStart,
             onPanUpdate: _onPanUpdate,
             onPanEnd: _onPanEnd,
+            onPanCancel: _onPanCancel,
             child: Stack(
               alignment: Alignment.topCenter,
               children: [
