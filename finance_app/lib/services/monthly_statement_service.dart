@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -11,6 +12,25 @@ import 'package:vittara_fin_os/logic/transaction_model.dart';
 // ─────────────────────────────────────────────────────────────────────────────
 // Internal helpers
 // ─────────────────────────────────────────────────────────────────────────────
+
+/// Holds the loaded TrueType fonts for the PDF document. Using Roboto (which
+/// supports the Indian Rupee sign ₹) instead of the built-in Helvetica (which
+/// is Latin-1 only and cannot render ₹).
+class _PdfFonts {
+  final pw.Font regular;
+  final pw.Font bold;
+  final pw.Font oblique; // Roboto-Italic would be ideal; reusing regular as fallback.
+
+  const _PdfFonts({required this.regular, required this.bold, required this.oblique});
+
+  static Future<_PdfFonts> load() async {
+    final regBytes  = await rootBundle.load('assets/fonts/Roboto-Regular.ttf');
+    final boldBytes = await rootBundle.load('assets/fonts/Roboto-Bold.ttf');
+    final reg  = pw.Font.ttf(regBytes);
+    final bold = pw.Font.ttf(boldBytes);
+    return _PdfFonts(regular: reg, bold: bold, oblique: reg);
+  }
+}
 
 class _AcctRow {
   final String name;
@@ -40,6 +60,11 @@ class _TxRow {
 class MonthlyStatementService {
   static const _appName = 'VittaraFinOS';
   static const _tagline = 'Track Wealth, Master Life';
+
+  // Roboto fonts loaded once per build() call — support ₹ and full Unicode.
+  static late pw.Font _regFont;
+  static late pw.Font _boldFont;
+  static late pw.Font _obliqueFont;
 
   // ── Brand palette ──────────────────────────────────────────────────────────
   static const _brandTeal   = PdfColor(0.000, 0.722, 0.565);
@@ -89,6 +114,12 @@ class MonthlyStatementService {
     required List<LendingBorrowing> lendingRecords,
     Uint8List? appIconBytes,
   }) async {
+    // Load Roboto fonts (supports ₹ and full Unicode — unlike built-in Helvetica).
+    final fonts = await _PdfFonts.load();
+    _regFont     = fonts.regular;
+    _boldFont    = fonts.bold;
+    _obliqueFont = fonts.oblique;
+
     final monthStart  = DateTime(year, month, 1);
     final monthEnd    = DateTime(year, month + 1, 1).subtract(const Duration(milliseconds: 1));
     final monthLabel  = '${_mo[month - 1]} $year';
@@ -118,7 +149,7 @@ class MonthlyStatementService {
         pw.SizedBox(height: 10),
         _summaryStatRow(stats),
         pw.SizedBox(height: 14),
-        _sectionBanner('Account Balance Overview', 'Opening → Closing balances for ${_mo[month - 1]}', _brandTeal, _blue, 'A'),
+        _sectionBanner('Account Balance Overview', 'Opening -> Closing balances for ${_mo[month - 1]}', _brandTeal, _blue, 'A'),
         pw.SizedBox(height: 6),
         _acctBalanceTable(acctRows),
         pw.SizedBox(height: 14),
@@ -316,7 +347,19 @@ class MonthlyStatementService {
       ));
     }
 
-    // ── 10. Full Transaction Log ──
+    // ── 10. Financial Insights & Recommendations ──
+    doc.addPage(pw.MultiPage(
+      pageFormat: PdfPageFormat.a4,
+      margin: pw.EdgeInsets.zero,
+      header: (ctx) => _hdr('Financial Insights', monthLabel, ctx, ib),
+      footer: (ctx) => _ftr(ctx),
+      build: (_) => [
+        pw.SizedBox(height: 10),
+        ..._insightsSection(stats, monthTxns, monthLabel),
+      ],
+    ));
+
+    // ── 11. Full Transaction Log ──
     doc.addPage(pw.MultiPage(
       pageFormat: PdfPageFormat.a4,
       margin: pw.EdgeInsets.zero,
@@ -324,7 +367,7 @@ class MonthlyStatementService {
       footer: (ctx) => _ftr(ctx),
       build: (_) => [
         pw.SizedBox(height: 10),
-        _sectionBanner('Complete Transaction Log', '${monthTxns.length} records for ${_mo[month - 1]} $year — chronological', _navy, _navyMid, 'F'),
+        _sectionBanner('Complete Transaction Log', '${monthTxns.length} records for ${_mo[month - 1]} $year - chronological', _navy, _navyMid, 'F'),
         pw.SizedBox(height: 6),
         _fullLogTable(monthTxns),
       ],
@@ -386,9 +429,9 @@ class MonthlyStatementService {
                 _logoMark(60, ib),
                 pw.SizedBox(width: 16),
                 pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-                  pw.Text(_appName, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 22, color: PdfColors.white, letterSpacing: 2.0)),
+                  pw.Text(_appName, style: pw.TextStyle(font: _boldFont, fontSize: 22, color: PdfColors.white, letterSpacing: 2.0)),
                   pw.SizedBox(height: 4),
-                  pw.Text(_tagline, style: pw.TextStyle(font: pw.Font.helveticaOblique(), fontSize: 10, color: const PdfColor(0.55, 0.70, 0.82))),
+                  pw.Text(_tagline, style: pw.TextStyle(font: _obliqueFont, fontSize: 10, color: const PdfColor(0.55, 0.70, 0.82))),
                 ]),
               ]),
               pw.SizedBox(height: 60),
@@ -400,25 +443,25 @@ class MonthlyStatementService {
                   borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
                 ),
                 child: pw.Text('MONTHLY FINANCIAL STATEMENT',
-                  style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 9, color: PdfColors.white, letterSpacing: 1.5)),
+                  style: pw.TextStyle(font: _boldFont, fontSize: 9, color: PdfColors.white, letterSpacing: 1.5)),
               ),
               pw.SizedBox(height: 16),
               // Month title
               pw.Text(monthLabel,
-                style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 48, color: PdfColors.white, letterSpacing: 0.5)),
+                style: pw.TextStyle(font: _boldFont, fontSize: 48, color: PdfColors.white, letterSpacing: 0.5)),
               pw.SizedBox(height: 8),
               pw.Text('A comprehensive view of all your financial activity',
-                style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 12, color: const PdfColor(0.60, 0.72, 0.84))),
+                style: pw.TextStyle(font: _regFont, fontSize: 12, color: const PdfColor(0.60, 0.72, 0.84))),
               pw.SizedBox(height: 48),
               // Quick stats row
               pw.Row(children: [
-                _coverStat('INCOME',    '+Rs ${_fmtAmt(stats['income']!)}',    _green),
+                _coverStat('INCOME',    '+₹${_fmtAmt(stats['income']!)}',    _green),
                 pw.SizedBox(width: 12),
-                _coverStat('EXPENSES',  '-Rs ${_fmtAmt(stats['expense']!)}',   _red),
+                _coverStat('EXPENSES',  '-₹${_fmtAmt(stats['expense']!)}',   _red),
                 pw.SizedBox(width: 12),
-                _coverStat('NET',       '${net >= 0 ? '+' : '-'}Rs ${_fmtAmt(net.abs())}', net >= 0 ? _green : _red),
+                _coverStat('NET',       '${net >= 0 ? '+' : '-'}₹${_fmtAmt(net.abs())}', net >= 0 ? _green : _red),
                 pw.SizedBox(width: 12),
-                _coverStat('INVESTED',  'Rs ${_fmtAmt(stats['investment']!)}', _indigo),
+                _coverStat('INVESTED',  '₹${_fmtAmt(stats['investment']!)}', _indigo),
                 pw.SizedBox(width: 12),
                 _coverStat('RECORDS',   '$txnCount',                           _brandTeal),
               ]),
@@ -434,7 +477,7 @@ class MonthlyStatementService {
                     border: pw.Border.all(color: const PdfColor(0.22, 0.38, 0.55), width: 0.8),
                   ),
                   child: pw.Text(a.name,
-                    style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 8, color: const PdfColor(0.70, 0.82, 0.92))),
+                    style: pw.TextStyle(font: _regFont, fontSize: 8, color: const PdfColor(0.70, 0.82, 0.92))),
                 )).toList(),
               ),
               pw.Spacer(),
@@ -443,10 +486,10 @@ class MonthlyStatementService {
               pw.SizedBox(height: 10),
               pw.Row(children: [
                 pw.Text('Generated ${_fmtDate(DateTime.now())}',
-                  style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 8, color: const PdfColor(0.45, 0.58, 0.70))),
+                  style: pw.TextStyle(font: _regFont, fontSize: 8, color: const PdfColor(0.45, 0.58, 0.70))),
                 pw.Spacer(),
-                pw.Text('Confidential  •  Personal Use Only',
-                  style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 8, color: const PdfColor(0.45, 0.58, 0.70))),
+                pw.Text('Confidential | Personal Use Only',
+                  style: pw.TextStyle(font: _regFont, fontSize: 8, color: const PdfColor(0.45, 0.58, 0.70))),
               ]),
             ],
           ),
@@ -465,9 +508,9 @@ class MonthlyStatementService {
           border: pw.Border(top: pw.BorderSide(color: color, width: 3)),
         ),
         child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-          pw.Text(label, style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 6.5, color: const PdfColor(0.55, 0.68, 0.80), letterSpacing: 0.5)),
+          pw.Text(label, style: pw.TextStyle(font: _regFont, fontSize: 6.5, color: const PdfColor(0.55, 0.68, 0.80), letterSpacing: 0.5)),
           pw.SizedBox(height: 5),
-          pw.Text(value, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 11, color: color)),
+          pw.Text(value, style: pw.TextStyle(font: _boldFont, fontSize: 11, color: color)),
         ]),
       ),
     );
@@ -488,15 +531,15 @@ class MonthlyStatementService {
         ),
       ),
       child: pw.Row(children: [
-        _sCard('INCOME',    '+Rs ${_fmtAmt(stats['income']!)}',    _green,      const PdfColor(0.87, 0.98, 0.91), '↑'),
+        _sCard('INCOME',    '+₹${_fmtAmt(stats['income']!)}',    _green,      const PdfColor(0.87, 0.98, 0.91), '+'),
         pw.SizedBox(width: 6),
-        _sCard('EXPENSES',  '-Rs ${_fmtAmt(stats['expense']!)}',   _red,        const PdfColor(0.99, 0.88, 0.89), '↓'),
+        _sCard('EXPENSES',  '-₹${_fmtAmt(stats['expense']!)}',   _red,        const PdfColor(0.99, 0.88, 0.89), '-'),
         pw.SizedBox(width: 6),
-        _sCard('NET FLOW',  '${net >= 0 ? '+' : '-'}Rs ${_fmtAmt(net.abs())}', net >= 0 ? _green : _red, net >= 0 ? const PdfColor(0.87, 0.98, 0.91) : const PdfColor(0.99, 0.88, 0.89), '='),
+        _sCard('NET FLOW',  '${net >= 0 ? '+' : '-'}₹${_fmtAmt(net.abs())}', net >= 0 ? _green : _red, net >= 0 ? const PdfColor(0.87, 0.98, 0.91) : const PdfColor(0.99, 0.88, 0.89), '='),
         pw.SizedBox(width: 6),
-        _sCard('INVESTED',  'Rs ${_fmtAmt(stats['investment']!)}', _indigo,     const PdfColor(0.93, 0.91, 0.99), '★'),
+        _sCard('INVESTED',  '₹${_fmtAmt(stats['investment']!)}', _indigo,     const PdfColor(0.93, 0.91, 0.99), '*'),
         pw.SizedBox(width: 6),
-        _sCard('TRANSFERS', 'Rs ${_fmtAmt(stats['transfer']!)}',   _brandTeal,  const PdfColor(0.86, 0.97, 0.96), '⇄'),
+        _sCard('TRANSFERS', '₹${_fmtAmt(stats['transfer']!)}',   _brandTeal,  const PdfColor(0.86, 0.97, 0.96), '<>'),
         pw.SizedBox(width: 6),
         _sCard('RECORDS',   '${stats['count']!.toInt()}',          _navy,       const PdfColor(0.90, 0.92, 0.95), '#'),
       ]),
@@ -518,13 +561,13 @@ class MonthlyStatementService {
               width: 13, height: 13,
               decoration: pw.BoxDecoration(color: accent, borderRadius: const pw.BorderRadius.all(pw.Radius.circular(7))),
               alignment: pw.Alignment.center,
-              child: pw.Text(sym, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 7, color: PdfColors.white)),
+              child: pw.Text(sym, style: pw.TextStyle(font: _boldFont, fontSize: 7, color: PdfColors.white)),
             ),
             pw.SizedBox(width: 4),
-            pw.Text(l, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 5.5, color: _grey, letterSpacing: 0.4)),
+            pw.Text(l, style: pw.TextStyle(font: _boldFont, fontSize: 5.5, color: _grey, letterSpacing: 0.4)),
           ]),
           pw.SizedBox(height: 5),
-          pw.Text(v, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 9.5, color: accent)),
+          pw.Text(v, style: pw.TextStyle(font: _boldFont, fontSize: 9.5, color: accent)),
         ]),
       ),
     );
@@ -554,8 +597,8 @@ class MonthlyStatementService {
           color: i.isEven ? const PdfColor(0.86, 0.97, 0.96) : PdfColors.white,
           padding: const pw.EdgeInsets.fromLTRB(20, 7, 20, 7),
           child: pw.Row(children: [
-            pw.SizedBox(width: 130, child: pw.Text(r.name.length > 20 ? '${r.name.substring(0, 20)}...' : r.name,
-                style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 8.5, color: _navy))),
+            pw.SizedBox(width: 130, child: pw.Text(() { final n = _safe(r.name); return n.length > 20 ? '${n.substring(0, 20)}...' : n; }(),
+                style: pw.TextStyle(font: _boldFont, fontSize: 8.5, color: _navy))),
             pw.SizedBox(width: 72,  child: _amtCell(r.opening,  _grey)),
             pw.SizedBox(width: 72,  child: _amtCell(r.debits,   _red)),
             pw.SizedBox(width: 72,  child: _amtCell(r.credits,  _green)),
@@ -569,7 +612,7 @@ class MonthlyStatementService {
         color: const PdfColor(0.11, 0.23, 0.32),
         padding: const pw.EdgeInsets.fromLTRB(20, 7, 20, 7),
         child: pw.Row(children: [
-          pw.SizedBox(width: 130, child: pw.Text('TOTAL', style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 8.5, color: PdfColors.white))),
+          pw.SizedBox(width: 130, child: pw.Text('TOTAL', style: pw.TextStyle(font: _boldFont, fontSize: 8.5, color: PdfColors.white))),
           pw.SizedBox(width: 72,  child: _amtCell(rows.fold(0.0, (s, r) => s + r.opening),  PdfColors.white, bold: true)),
           pw.SizedBox(width: 72,  child: _amtCell(rows.fold(0.0, (s, r) => s + r.debits),   const PdfColor(1.0, 0.65, 0.68), bold: true)),
           pw.SizedBox(width: 72,  child: _amtCell(rows.fold(0.0, (s, r) => s + r.credits),  const PdfColor(0.65, 1.0, 0.78), bold: true)),
@@ -591,10 +634,10 @@ class MonthlyStatementService {
       points.add('${expTxns.length} expense transactions averaging Rs ${_fmtAmt(avg)} each.');
     }
     final invTxns = txns.where((t) => t.type == TransactionType.investment).toList();
-    if (invTxns.isNotEmpty) points.add('Rs ${_fmtAmt(stats['investment']!)} invested across ${invTxns.length} investment events.');
+    if (invTxns.isNotEmpty) points.add('₹${_fmtAmt(stats['investment']!)} invested across ${invTxns.length} investment events.');
     if (rows.isNotEmpty) {
       final best = rows.reduce((a, b) => a.net > b.net ? a : b);
-      points.add('Best performing account: ${best.name} with a net of ${best.net >= 0 ? '+' : '-'}Rs ${_fmtAmt(best.net.abs())}.');
+      points.add('Best performing account: ${best.name} with a net of ${best.net >= 0 ? '+' : '-'}₹${_fmtAmt(best.net.abs())}.');
     }
     final divs = txns.where((t) => (t.metadata ?? {})['investmentEventType'] == 'dividend').toList();
     if (divs.isNotEmpty) points.add('${divs.length} dividend receipt${divs.length == 1 ? '' : 's'} totalling Rs ${_fmtAmt(divs.fold(0.0, (s, t) => s + t.amount))}.');
@@ -617,7 +660,7 @@ class MonthlyStatementService {
               decoration: pw.BoxDecoration(color: color, borderRadius: const pw.BorderRadius.all(pw.Radius.circular(3))),
             ),
             pw.SizedBox(width: 8),
-            pw.Expanded(child: pw.Text(e.value, style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 8.5, color: const PdfColor(0.14, 0.18, 0.26)))),
+            pw.Expanded(child: pw.Text(e.value, style: pw.TextStyle(font: _regFont, fontSize: 8.5, color: const PdfColor(0.14, 0.18, 0.26)))),
           ]),
         );
       }).toList(),
@@ -647,25 +690,25 @@ class MonthlyStatementService {
           ),
           alignment: pw.Alignment.center,
           child: pw.Text(account.name.substring(0, 1).toUpperCase(),
-            style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 20, color: PdfColors.white)),
+            style: pw.TextStyle(font: _boldFont, fontSize: 20, color: PdfColors.white)),
         ),
         pw.SizedBox(width: 14),
         pw.Expanded(
           child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-            pw.Text(account.name, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 13, color: _navy)),
+            pw.Text(_safe(account.name), style: pw.TextStyle(font: _boldFont, fontSize: 13, color: _navy)),
             pw.SizedBox(height: 3),
-            pw.Text('${account.bankName}  •  ${_acctTypeLabel(account.type)}',
-              style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 8, color: _grey)),
+            pw.Text(_safe(account.bankName) + '  |  ' + _acctTypeLabel(account.type),
+              style: pw.TextStyle(font: _regFont, fontSize: 8, color: _grey)),
           ]),
         ),
         pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.end, children: [
-          pw.Text('OPENING',  style: pw.TextStyle(font: pw.Font.helvetica(),     fontSize: 7, color: _grey, letterSpacing: 0.5)),
-          pw.Text('Rs ${_fmtAmt(row.opening)}', style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 12, color: _navy)),
+          pw.Text('OPENING',  style: pw.TextStyle(font: _regFont,     fontSize: 7, color: _grey, letterSpacing: 0.5)),
+          pw.Text('₹${_fmtAmt(row.opening)}', style: pw.TextStyle(font: _boldFont, fontSize: 12, color: _navy)),
         ]),
         pw.SizedBox(width: 24),
         pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.end, children: [
-          pw.Text('CLOSING',  style: pw.TextStyle(font: pw.Font.helvetica(),     fontSize: 7, color: _grey, letterSpacing: 0.5)),
-          pw.Text('Rs ${_fmtAmt(row.closing)}', style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 12, color: row.net >= 0 ? _green : _red)),
+          pw.Text('CLOSING',  style: pw.TextStyle(font: _regFont,     fontSize: 7, color: _grey, letterSpacing: 0.5)),
+          pw.Text('₹${_fmtAmt(row.closing)}', style: pw.TextStyle(font: _boldFont, fontSize: 12, color: row.net >= 0 ? _green : _red)),
         ]),
       ]),
     );
@@ -698,19 +741,18 @@ class MonthlyStatementService {
           color: i.isEven ? _row1 : _row0,
           padding: const pw.EdgeInsets.fromLTRB(16, 5, 16, 5),
           child: pw.Row(children: [
-            pw.SizedBox(width: 50,  child: pw.Text(_fmtDateShort(r.date), style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7, color: _grey))),
-            pw.Expanded(child: pw.Text(
-              r.description.length > 42 ? '${r.description.substring(0, 42)}...' : r.description,
-              style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 8, color: _navy))),
-            pw.SizedBox(width: 64,  child: pw.Text(r.paymentApp, style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7, color: _grey), textAlign: pw.TextAlign.right)),
+            pw.SizedBox(width: 50,  child: pw.Text(_fmtDateShort(r.date), style: pw.TextStyle(font: _regFont, fontSize: 7, color: _grey))),
+            pw.Expanded(child: pw.Text(() { final d = _safe(r.description); return d.length > 42 ? '${d.substring(0, 42)}...' : d; }(),
+              style: pw.TextStyle(font: _regFont, fontSize: 8, color: _navy))),
+            pw.SizedBox(width: 64,  child: pw.Text(r.paymentApp, style: pw.TextStyle(font: _regFont, fontSize: 7, color: _grey), textAlign: pw.TextAlign.right)),
             pw.SizedBox(width: 68,  child: r.debit > 0
-                ? pw.Text('-Rs ${_fmtAmt(r.debit)}',  textAlign: pw.TextAlign.right, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 7.5, color: _red))
+                ? pw.Text('-₹${_fmtAmt(r.debit)}',  textAlign: pw.TextAlign.right, style: pw.TextStyle(font: _boldFont, fontSize: 7.5, color: _red))
                 : pw.Text('', textAlign: pw.TextAlign.right)),
             pw.SizedBox(width: 68,  child: r.credit > 0
-                ? pw.Text('+Rs ${_fmtAmt(r.credit)}', textAlign: pw.TextAlign.right, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 7.5, color: _green))
+                ? pw.Text('+₹${_fmtAmt(r.credit)}', textAlign: pw.TextAlign.right, style: pw.TextStyle(font: _boldFont, fontSize: 7.5, color: _green))
                 : pw.Text('', textAlign: pw.TextAlign.right)),
-            pw.SizedBox(width: 76,  child: pw.Text('Rs ${_fmtAmt(running)}', textAlign: pw.TextAlign.right,
-                style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 7.5, color: running >= 0 ? _navy : _red))),
+            pw.SizedBox(width: 76,  child: pw.Text('₹${_fmtAmt(running)}', textAlign: pw.TextAlign.right,
+                style: pw.TextStyle(font: _boldFont, fontSize: 7.5, color: running >= 0 ? _navy : _red))),
           ]),
         );
       }),
@@ -726,16 +768,16 @@ class MonthlyStatementService {
         border: pw.Border.all(color: row.net >= 0 ? _green : _red, width: 1),
       ),
       child: pw.Row(children: [
-        _closingCell('TOTAL DEBITS',  '-Rs ${_fmtAmt(row.debits)}',  _red),
+        _closingCell('TOTAL DEBITS',  '-₹${_fmtAmt(row.debits)}',  _red),
         pw.SizedBox(width: 20),
-        _closingCell('TOTAL CREDITS', '+Rs ${_fmtAmt(row.credits)}', _green),
+        _closingCell('TOTAL CREDITS', '+₹${_fmtAmt(row.credits)}', _green),
         pw.SizedBox(width: 20),
-        _closingCell('NET CHANGE', '${row.net >= 0 ? '+' : '-'}Rs ${_fmtAmt(row.net.abs())}', row.net >= 0 ? _green : _red),
+        _closingCell('NET CHANGE', '${row.net >= 0 ? '+' : '-'}₹${_fmtAmt(row.net.abs())}', row.net >= 0 ? _green : _red),
         pw.Spacer(),
         pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.end, children: [
-          pw.Text('CLOSING BALANCE', style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 7, color: _grey, letterSpacing: 0.5)),
+          pw.Text('CLOSING BALANCE', style: pw.TextStyle(font: _boldFont, fontSize: 7, color: _grey, letterSpacing: 0.5)),
           pw.SizedBox(height: 3),
-          pw.Text('Rs ${_fmtAmt(row.closing)}', style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 16, color: row.net >= 0 ? _green : _red)),
+          pw.Text('₹${_fmtAmt(row.closing)}', style: pw.TextStyle(font: _boldFont, fontSize: 16, color: row.net >= 0 ? _green : _red)),
         ]),
       ]),
     );
@@ -743,9 +785,9 @@ class MonthlyStatementService {
 
   static pw.Widget _closingCell(String label, String value, PdfColor color) {
     return pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-      pw.Text(label, style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7, color: _grey, letterSpacing: 0.4)),
+      pw.Text(label, style: pw.TextStyle(font: _regFont, fontSize: 7, color: _grey, letterSpacing: 0.4)),
       pw.SizedBox(height: 2),
-      pw.Text(value, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 11, color: color)),
+      pw.Text(value, style: pw.TextStyle(font: _boldFont, fontSize: 11, color: color)),
     ]);
   }
 
@@ -771,14 +813,14 @@ class MonthlyStatementService {
         child: pw.Row(children: [
           pw.Container(width: 10, height: 10, decoration: pw.BoxDecoration(color: col, borderRadius: const pw.BorderRadius.all(pw.Radius.circular(2)))),
           pw.SizedBox(width: 8),
-          pw.SizedBox(width: 90, child: pw.Text(name.isEmpty ? 'Uncategorised' : name, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 8, color: _navy))),
+          pw.SizedBox(width: 90, child: pw.Text(name.isEmpty ? 'Uncategorised' : name, style: pw.TextStyle(font: _boldFont, fontSize: 8, color: _navy))),
           pw.Expanded(child: _hBar(frac, col)),
           pw.SizedBox(width: 6),
           _pill('${pct.toStringAsFixed(0)}%', col),
           pw.SizedBox(width: 8),
-          pw.SizedBox(width: 60, child: pw.Text('Rs ${_fmtAmt(amt)}', textAlign: pw.TextAlign.right, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 8, color: col))),
+          pw.SizedBox(width: 60, child: pw.Text('₹${_fmtAmt(amt)}', textAlign: pw.TextAlign.right, style: pw.TextStyle(font: _boldFont, fontSize: 8, color: col))),
           pw.SizedBox(width: 6),
-          pw.SizedBox(width: 36, child: pw.Text('${txns.length} txns', textAlign: pw.TextAlign.right, style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7, color: _grey))),
+          pw.SizedBox(width: 36, child: pw.Text('${txns.length} txns', textAlign: pw.TextAlign.right, style: pw.TextStyle(font: _regFont, fontSize: 7, color: _grey))),
         ]),
       );
     }).toList());
@@ -796,12 +838,12 @@ class MonthlyStatementService {
         padding: const pw.EdgeInsets.fromLTRB(16, 6, 16, 6),
         decoration: pw.BoxDecoration(color: tint, borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4))),
         child: pw.Row(children: [
-          pw.SizedBox(width: 100, child: pw.Text(name, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 8, color: _navy))),
+          pw.SizedBox(width: 100, child: pw.Text(name, style: pw.TextStyle(font: _boldFont, fontSize: 8, color: _navy))),
           pw.Expanded(child: _hBar(frac, col)),
           pw.SizedBox(width: 8),
-          pw.SizedBox(width: 60, child: pw.Text('Rs ${_fmtAmt(amt)}', textAlign: pw.TextAlign.right, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 8, color: col))),
+          pw.SizedBox(width: 60, child: pw.Text('₹${_fmtAmt(amt)}', textAlign: pw.TextAlign.right, style: pw.TextStyle(font: _boldFont, fontSize: 8, color: col))),
           pw.SizedBox(width: 6),
-          pw.SizedBox(width: 36, child: pw.Text('${txns.length} txns', textAlign: pw.TextAlign.right, style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7, color: _grey))),
+          pw.SizedBox(width: 36, child: pw.Text('${txns.length} txns', textAlign: pw.TextAlign.right, style: pw.TextStyle(font: _regFont, fontSize: 7, color: _grey))),
         ]),
       );
     }).toList());
@@ -820,12 +862,12 @@ class MonthlyStatementService {
         padding: const pw.EdgeInsets.fromLTRB(16, 6, 16, 6),
         decoration: pw.BoxDecoration(color: tint, borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4))),
         child: pw.Row(children: [
-          pw.SizedBox(width: 100, child: pw.Text(name.isEmpty ? 'Unknown' : name, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 8, color: _navy))),
+          pw.SizedBox(width: 100, child: pw.Text(name.isEmpty ? 'Unknown' : name, style: pw.TextStyle(font: _boldFont, fontSize: 8, color: _navy))),
           pw.Expanded(child: _hBar(frac, col)),
           pw.SizedBox(width: 8),
-          pw.SizedBox(width: 60, child: pw.Text('Rs ${_fmtAmt(amt)}', textAlign: pw.TextAlign.right, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 8, color: col))),
+          pw.SizedBox(width: 60, child: pw.Text('₹${_fmtAmt(amt)}', textAlign: pw.TextAlign.right, style: pw.TextStyle(font: _boldFont, fontSize: 8, color: col))),
           pw.SizedBox(width: 6),
-          pw.SizedBox(width: 36, child: pw.Text('${txns.length} txns', textAlign: pw.TextAlign.right, style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7, color: _grey))),
+          pw.SizedBox(width: 36, child: pw.Text('${txns.length} txns', textAlign: pw.TextAlign.right, style: pw.TextStyle(font: _regFont, fontSize: 7, color: _grey))),
         ]),
       );
     }).toList());
@@ -836,7 +878,7 @@ class MonthlyStatementService {
   // ═══════════════════════════════════════════════════════════════════════════
 
   static pw.Widget _investmentSummaryTable(Map<String, List<Investment>> byType) {
-    if (byType.isEmpty) return pw.Text('No investments on record.', style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 9, color: _grey));
+    if (byType.isEmpty) return pw.Text('No investments on record.', style: pw.TextStyle(font: _regFont, fontSize: 9, color: _grey));
     return pw.Column(children: [
       pw.Container(
         padding: const pw.EdgeInsets.fromLTRB(16, 7, 16, 7),
@@ -861,13 +903,13 @@ class MonthlyStatementService {
           child: pw.Row(children: [
             pw.Container(width: 10, height: 10, decoration: pw.BoxDecoration(color: col, borderRadius: const pw.BorderRadius.all(pw.Radius.circular(2)))),
             pw.SizedBox(width: 6),
-            pw.SizedBox(width: 124, child: pw.Text(type, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 8.5, color: _navy))),
+            pw.SizedBox(width: 124, child: pw.Text(type, style: pw.TextStyle(font: _boldFont, fontSize: 8.5, color: _navy))),
             pw.Expanded(child: pw.Text(items.map((inv) => inv.name).take(3).join(', ') + (items.length > 3 ? '...' : ''),
-                style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7.5, color: _grey))),
-            pw.SizedBox(width: 90, child: pw.Text('Rs ${_fmtAmt(total)}', textAlign: pw.TextAlign.right,
-                style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 8.5, color: col))),
+                style: pw.TextStyle(font: _regFont, fontSize: 7.5, color: _grey))),
+            pw.SizedBox(width: 90, child: pw.Text('₹${_fmtAmt(total)}', textAlign: pw.TextAlign.right,
+                style: pw.TextStyle(font: _boldFont, fontSize: 8.5, color: col))),
             pw.SizedBox(width: 40, child: pw.Text('${items.length}', textAlign: pw.TextAlign.right,
-                style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7.5, color: _grey))),
+                style: pw.TextStyle(font: _regFont, fontSize: 7.5, color: _grey))),
           ]),
         );
       }),
@@ -902,10 +944,10 @@ class MonthlyStatementService {
           color: i.isEven ? const PdfColor(1.0, 0.97, 0.87) : PdfColors.white,
           padding: const pw.EdgeInsets.fromLTRB(16, 5, 16, 5),
           child: pw.Row(children: [
-            pw.SizedBox(width: 58,  child: pw.Text(_fmtDateShort(t.dateTime), style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7.5, color: _grey))),
-            pw.Expanded(child: pw.Text(desc.length > 44 ? '${desc.substring(0, 44)}...' : desc, style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 8.5, color: _navy))),
-            pw.SizedBox(width: 72,  child: pw.Text(acct, style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7.5, color: _grey))),
-            pw.SizedBox(width: 78,  child: pw.Text('+Rs ${_fmtAmt(t.amount)}', textAlign: pw.TextAlign.right, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 8.5, color: _amber))),
+            pw.SizedBox(width: 58,  child: pw.Text(_fmtDateShort(t.dateTime), style: pw.TextStyle(font: _regFont, fontSize: 7.5, color: _grey))),
+            pw.Expanded(child: pw.Text(() { final d = _safe(desc); return d.length > 44 ? '${d.substring(0, 44)}...' : d; }(), style: pw.TextStyle(font: _regFont, fontSize: 8.5, color: _navy))),
+            pw.SizedBox(width: 72,  child: pw.Text(_safe(acct), style: pw.TextStyle(font: _regFont, fontSize: 7.5, color: _grey))),
+            pw.SizedBox(width: 78,  child: pw.Text('+₹${_fmtAmt(t.amount)}', textAlign: pw.TextAlign.right, style: pw.TextStyle(font: _boldFont, fontSize: 8.5, color: _amber))),
           ]),
         );
       }),
@@ -940,10 +982,10 @@ class MonthlyStatementService {
           color: i.isEven ? tint : PdfColors.white,
           padding: const pw.EdgeInsets.fromLTRB(16, 5, 16, 5),
           child: pw.Row(children: [
-            pw.Expanded(child: pw.Text(r.personName, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 8.5, color: _navy))),
-            pw.SizedBox(width: 58,  child: pw.Text(_fmtDateShort(r.date), style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7.5, color: _grey))),
-            pw.SizedBox(width: 72,  child: pw.Text('Rs ${_fmtAmt(r.amount)}', textAlign: pw.TextAlign.right, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 8.5, color: accentColor))),
-            pw.SizedBox(width: 60,  child: pw.Text(r.dueDate != null ? _fmtDateShort(r.dueDate!) : '—', style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7.5, color: _grey))),
+            pw.Expanded(child: pw.Text(_safe(r.personName), style: pw.TextStyle(font: _boldFont, fontSize: 8.5, color: _navy))),
+            pw.SizedBox(width: 58,  child: pw.Text(_fmtDateShort(r.date), style: pw.TextStyle(font: _regFont, fontSize: 7.5, color: _grey))),
+            pw.SizedBox(width: 72,  child: pw.Text('₹${_fmtAmt(r.amount)}', textAlign: pw.TextAlign.right, style: pw.TextStyle(font: _boldFont, fontSize: 8.5, color: accentColor))),
+            pw.SizedBox(width: 60,  child: pw.Text(r.dueDate != null ? _fmtDateShort(r.dueDate!) : '—', style: pw.TextStyle(font: _regFont, fontSize: 7.5, color: _grey))),
             pw.SizedBox(width: 54,  child: pw.Container(
               alignment: pw.Alignment.centerRight,
               child: pw.Container(
@@ -953,7 +995,7 @@ class MonthlyStatementService {
                   borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
                 ),
                 child: pw.Text(r.isSettled ? 'Settled' : 'Active',
-                  style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 6.5, color: PdfColors.white)),
+                  style: pw.TextStyle(font: _boldFont, fontSize: 6.5, color: PdfColors.white)),
               ),
             )),
           ]),
@@ -1000,26 +1042,25 @@ class MonthlyStatementService {
           color: rowBg,
           padding: const pw.EdgeInsets.fromLTRB(16, 4, 16, 4),
           child: pw.Row(children: [
-            pw.SizedBox(width: 56,  child: pw.Text(_fmtDateShort(t.dateTime), style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7, color: _grey))),
+            pw.SizedBox(width: 56,  child: pw.Text(_fmtDateShort(t.dateTime), style: pw.TextStyle(font: _regFont, fontSize: 7, color: _grey))),
             pw.SizedBox(width: 66,  child: pw.Container(
               padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 2),
               decoration: pw.BoxDecoration(
                 color: PdfColor(tc.red * 0.14 + 0.86, tc.green * 0.14 + 0.86, tc.blue * 0.14 + 0.86),
                 borderRadius: const pw.BorderRadius.all(pw.Radius.circular(3)),
               ),
-              child: pw.Text(tl, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 6.5, color: tc)),
+              child: pw.Text(tl, style: pw.TextStyle(font: _boldFont, fontSize: 6.5, color: tc)),
             )),
-            pw.Expanded(child: pw.Text(
-              desc.length > 38 ? '${desc.substring(0, 38)}...' : desc,
-              style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 8, color: _navy))),
-            pw.SizedBox(width: 62,  child: pw.Text(app, style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7, color: _grey), textAlign: pw.TextAlign.right)),
+            pw.Expanded(child: pw.Text(() { final d = _safe(desc); return d.length > 38 ? '${d.substring(0, 38)}...' : d; }(),
+              style: pw.TextStyle(font: _regFont, fontSize: 8, color: _navy))),
+            pw.SizedBox(width: 62,  child: pw.Text(_safe(app), style: pw.TextStyle(font: _regFont, fontSize: 7, color: _grey), textAlign: pw.TextAlign.right)),
             pw.SizedBox(width: 76,  child: pw.Text(
-              '${isCredit ? '+' : '-'}Rs ${_fmtAmt(t.amount)}',
+              '${isCredit ? '+' : '-'}₹${_fmtAmt(t.amount)}',
               textAlign: pw.TextAlign.right,
-              style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 8, color: isCredit ? _green : _red))),
+              style: pw.TextStyle(font: _boldFont, fontSize: 8, color: isCredit ? _green : _red))),
             pw.SizedBox(width: 80,  child: pw.Text(
               acct.length > 12 ? '${acct.substring(0, 12)}...' : acct,
-              style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7, color: _grey))),
+              style: pw.TextStyle(font: _regFont, fontSize: 7, color: _grey))),
           ]),
         );
       }),
@@ -1044,18 +1085,17 @@ class MonthlyStatementService {
         color: i.isEven ? _row1 : _row0,
         padding: const pw.EdgeInsets.fromLTRB(22, 4, 22, 4),
         child: pw.Row(children: [
-          pw.SizedBox(width: 52, child: pw.Text(_fmtDateShort(t.dateTime), style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7, color: _grey))),
-          pw.Expanded(child: pw.Text(
-            desc.length > 44 ? '${desc.substring(0, 44)}...' : desc,
-            style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 8, color: _navy))),
-          if (app.isNotEmpty) pw.SizedBox(width: 60, child: pw.Text(app, textAlign: pw.TextAlign.right, style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7, color: _grey))),
+          pw.SizedBox(width: 52, child: pw.Text(_fmtDateShort(t.dateTime), style: pw.TextStyle(font: _regFont, fontSize: 7, color: _grey))),
+          pw.Expanded(child: pw.Text(() { final d = _safe(desc); return d.length > 44 ? '${d.substring(0, 44)}...' : d; }(),
+            style: pw.TextStyle(font: _regFont, fontSize: 8, color: _navy))),
+          if (app.isNotEmpty) pw.SizedBox(width: 60, child: pw.Text(_safe(app), textAlign: pw.TextAlign.right, style: pw.TextStyle(font: _regFont, fontSize: 7, color: _grey))),
           pw.SizedBox(width: 76,  child: pw.Text(
-            '${isC ? '+' : '-'}Rs ${_fmtAmt(t.amount)}',
+            '${isC ? '+' : '-'}₹${_fmtAmt(t.amount)}',
             textAlign: pw.TextAlign.right,
-            style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 8, color: isC ? _green : _red))),
+            style: pw.TextStyle(font: _boldFont, fontSize: 8, color: isC ? _green : _red))),
           pw.SizedBox(width: 80,  child: pw.Text(
             acct.length > 12 ? '${acct.substring(0, 12)}...' : acct,
-            style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7, color: _grey))),
+            style: pw.TextStyle(font: _regFont, fontSize: 7, color: _grey))),
         ]),
       );
     }).toList());
@@ -1077,11 +1117,11 @@ class MonthlyStatementService {
         pw.SizedBox(width: 10),
         pw.Expanded(
           child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-            pw.Text(_appName, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 11, color: PdfColors.white, letterSpacing: 1.2)),
-            pw.Text(section.toUpperCase(), style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7, color: const PdfColor(0.55, 0.70, 0.82), letterSpacing: 0.8)),
+            pw.Text(_appName, style: pw.TextStyle(font: _boldFont, fontSize: 11, color: PdfColors.white, letterSpacing: 1.2)),
+            pw.Text(section.toUpperCase(), style: pw.TextStyle(font: _regFont, fontSize: 7, color: const PdfColor(0.55, 0.70, 0.82), letterSpacing: 0.8)),
           ]),
         ),
-        pw.Text(monthLabel, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 10, color: PdfColors.white)),
+        pw.Text(monthLabel, style: pw.TextStyle(font: _boldFont, fontSize: 10, color: PdfColors.white)),
         pw.SizedBox(width: 14),
         pw.Container(
           padding: const pw.EdgeInsets.symmetric(horizontal: 9, vertical: 3),
@@ -1090,7 +1130,7 @@ class MonthlyStatementService {
             borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
           ),
           child: pw.Text('${ctx.pageNumber} / ${ctx.pagesCount}',
-            style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 7, color: PdfColors.white)),
+            style: pw.TextStyle(font: _boldFont, fontSize: 7, color: PdfColors.white)),
         ),
       ]),
     );
@@ -1110,9 +1150,9 @@ class MonthlyStatementService {
           ),
         ),
         pw.SizedBox(width: 6),
-        pw.Text('$_appName  •  $_tagline', style: pw.TextStyle(font: pw.Font.helveticaOblique(), fontSize: 7, color: _greyDk)),
+        pw.Text('$_appName | $_tagline', style: pw.TextStyle(font: _obliqueFont, fontSize: 7, color: _greyDk)),
         pw.Spacer(),
-        pw.Text('Monthly Statement  •  Confidential', style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 6.5, color: _grey)),
+        pw.Text('Monthly Statement | Confidential', style: pw.TextStyle(font: _regFont, fontSize: 6.5, color: _grey)),
       ]),
     );
   }
@@ -1133,13 +1173,13 @@ class MonthlyStatementService {
           width: 22, height: 22,
           decoration: pw.BoxDecoration(color: PdfColors.white, borderRadius: const pw.BorderRadius.all(pw.Radius.circular(11))),
           alignment: pw.Alignment.center,
-          child: pw.Text(tag, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 8, color: from)),
+          child: pw.Text(tag, style: pw.TextStyle(font: _boldFont, fontSize: 8, color: from)),
         ),
         pw.SizedBox(width: 10),
         pw.Expanded(
           child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-            pw.Text(title, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 12, color: PdfColors.white)),
-            pw.Text(subtitle, style: pw.TextStyle(font: pw.Font.helveticaOblique(), fontSize: 7.5, color: const PdfColor(0.95, 0.95, 0.98))),
+            pw.Text(title, style: pw.TextStyle(font: _boldFont, fontSize: 12, color: PdfColors.white)),
+            pw.Text(subtitle, style: pw.TextStyle(font: _obliqueFont, fontSize: 7.5, color: const PdfColor(0.95, 0.95, 0.98))),
           ]),
         ),
       ]),
@@ -1155,7 +1195,7 @@ class MonthlyStatementService {
         border: pw.Border(left: pw.BorderSide(color: color, width: 4)),
       ),
       child: pw.Row(children: [
-        pw.Text(title, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 10, color: _navy)),
+        pw.Text(title, style: pw.TextStyle(font: _boldFont, fontSize: 10, color: _navy)),
         pw.SizedBox(width: 8),
         _pill('$count record${count == 1 ? '' : 's'}', color),
       ]),
@@ -1188,18 +1228,18 @@ class MonthlyStatementService {
         borderRadius: pw.BorderRadius.all(pw.Radius.circular(size * 0.286)),
       ),
       alignment: pw.Alignment.center,
-      child: pw.Text('V', style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: size * 0.46, color: PdfColors.white)),
+      child: pw.Text('V', style: pw.TextStyle(font: _boldFont, fontSize: size * 0.46, color: PdfColors.white)),
     );
   }
 
   static pw.Widget _wt(String t, {bool right = false}) => pw.Text(t,
     textAlign: right ? pw.TextAlign.right : pw.TextAlign.left,
-    style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 7, color: PdfColors.white, letterSpacing: 0.5));
+    style: pw.TextStyle(font: _boldFont, fontSize: 7, color: PdfColors.white, letterSpacing: 0.5));
 
   static pw.Widget _amtCell(double v, PdfColor color, {bool bold = false, bool sign = false}) {
-    final str = sign ? '${v >= 0 ? '+' : '-'}Rs ${_fmtAmt(v.abs())}' : 'Rs ${_fmtAmt(v)}';
+    final str = sign ? '${v >= 0 ? '+' : '-'}₹${_fmtAmt(v.abs())}' : '₹${_fmtAmt(v)}';
     return pw.Text(str, textAlign: pw.TextAlign.right,
-      style: pw.TextStyle(font: bold ? pw.Font.helveticaBold() : pw.Font.helvetica(), fontSize: 8, color: color));
+      style: pw.TextStyle(font: bold ? _boldFont : _regFont, fontSize: 8, color: color));
   }
 
   static pw.Widget _hBar(double fraction, PdfColor fill, {double h = 8}) {
@@ -1219,8 +1259,297 @@ class MonthlyStatementService {
     return pw.Container(
       padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: pw.BoxDecoration(color: bg, borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8))),
-      child: pw.Text(text, style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 7, color: PdfColors.white)),
+      child: pw.Text(text, style: pw.TextStyle(font: _boldFont, fontSize: 7, color: PdfColors.white)),
     );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECTION 10 — Financial Insights & Recommendations
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  static List<pw.Widget> _insightsSection(Map<String, double> stats, List<Transaction> txns, String monthLabel) {
+    final income   = stats['income']!;
+    final expense  = stats['expense']!;
+    final invested = stats['investment']!;
+    final transfer = stats['transfer']!;
+    final net      = stats['net']!;
+
+    // ── Compute health score (0-100) ──
+    double score = 50.0;
+    if (income > 0) {
+      final savingsRate = (net / income * 100).clamp(-100.0, 100.0);
+      score += savingsRate * 0.4; // savings rate contributes up to 40pts
+    }
+    if (income > 0 && invested > 0) {
+      final invRate = (invested / income * 100).clamp(0.0, 30.0);
+      score += invRate; // investment rate contributes up to 30pts
+    }
+    if (expense > income && income > 0) score -= 20;
+    score = score.clamp(0.0, 100.0);
+
+    final scoreColor = score >= 70 ? _green : (score >= 45 ? _orange : _red);
+    final scoreLabel = score >= 70 ? 'Healthy' : (score >= 45 ? 'Needs Attention' : 'At Risk');
+
+    // ── Category breakdown ──
+    final catGroups = <String, double>{};
+    for (final t in txns) {
+      if (t.type == TransactionType.expense) {
+        final cat = ((t.metadata ?? {})['categoryName'] ?? 'Other').toString();
+        catGroups[cat] = (catGroups[cat] ?? 0) + t.amount;
+      }
+    }
+    final sortedCats = catGroups.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+
+    // ── Build insights list ──
+    final positives = <String>[];
+    final warnings  = <String>[];
+    final actions   = <String>[];
+
+    if (income > 0) {
+      final savingsRate = ((income - expense) / income * 100).clamp(-100.0, 100.0);
+      if (savingsRate >= 30) {
+        positives.add('Excellent savings rate of ${savingsRate.toStringAsFixed(1)}% — you saved Rs ${_fmtAmt((income - expense).clamp(0, double.infinity))} out of Rs ${_fmtAmt(income)} earned.');
+      } else if (savingsRate >= 10) {
+        positives.add('Savings rate: ${savingsRate.toStringAsFixed(1)}%. Rs ${_fmtAmt((income - expense).clamp(0, double.infinity))} saved. Aim for 30%+ for long-term financial health.');
+      } else if (savingsRate > 0) {
+        warnings.add('Low savings rate of ${savingsRate.toStringAsFixed(1)}%. Try reducing discretionary spending to build a safety net.');
+      } else {
+        warnings.add('You spent more than you earned this month. Expenses exceeded income by Rs ${_fmtAmt(expense - income)}. Review your top spending categories.');
+      }
+    }
+
+    if (invested > 0 && income > 0) {
+      final invRate = invested / income * 100;
+      if (invRate >= 20) {
+        positives.add('Strong investment discipline: ${invRate.toStringAsFixed(1)}% of income (Rs ${_fmtAmt(invested)}) invested. Keep building wealth consistently.');
+      } else if (invRate >= 10) {
+        positives.add('Investing ${invRate.toStringAsFixed(1)}% of income (Rs ${_fmtAmt(invested)}). Good start — consider increasing to 20%+ for faster wealth growth.');
+      } else {
+        actions.add('Investment rate is ${invRate.toStringAsFixed(1)}% of income. Consider automating SIPs or RDs to hit 20% investment rate.');
+      }
+    } else if (income > 0) {
+      actions.add('No investments recorded this month. Even a small SIP or FD contribution builds long-term wealth through compounding.');
+    }
+
+    if (sortedCats.isNotEmpty) {
+      final topCat = sortedCats.first;
+      final topPct = expense > 0 ? topCat.value / expense * 100 : 0.0;
+      if (topPct > 40) {
+        warnings.add('${topCat.key} dominates at ${topPct.toStringAsFixed(0)}% of total spending (Rs ${_fmtAmt(topCat.value)}). High concentration — review if all expenses are necessary.');
+      }
+    }
+
+    // Category-specific tips
+    for (final entry in sortedCats.take(5)) {
+      final cat = entry.key.toLowerCase();
+      final pct = expense > 0 ? entry.value / expense * 100 : 0.0;
+      if (cat.contains('food') || cat.contains('dining') || cat.contains('restaurant')) {
+        if (pct > 30) warnings.add('Food & dining at ${pct.toStringAsFixed(0)}% of expenses. Meal planning and cooking at home can reduce this by 30-50%.');
+        else if (pct > 20) actions.add('Food spending at ${pct.toStringAsFixed(0)}%. Consider batch cooking on weekends to lower daily food costs.');
+      } else if (cat.contains('entertainment') || cat.contains('subscriptions')) {
+        if (pct > 15) warnings.add('Entertainment & subscriptions at ${pct.toStringAsFixed(0)}%. Audit recurring subscriptions — cancel unused ones immediately.');
+        else if (pct > 10) actions.add('Entertainment at ${pct.toStringAsFixed(0)}%. Check for duplicate streaming or subscription services you can consolidate.');
+      } else if (cat.contains('shopping') || cat.contains('clothes') || cat.contains('fashion')) {
+        if (pct > 25) warnings.add('Shopping at ${pct.toStringAsFixed(0)}% of expenses. Implement a 48-hour rule before any non-essential purchase.');
+      } else if (cat.contains('transport') || cat.contains('fuel') || cat.contains('travel')) {
+        if (pct > 20) actions.add('Transport costs at ${pct.toStringAsFixed(0)}%. Consider public transport, carpooling, or monthly passes for regular routes.');
+      } else if (cat.contains('health') || cat.contains('medical')) {
+        positives.add('Healthcare investment noted (Rs ${_fmtAmt(entry.value)}). Ensure you have adequate health insurance to avoid larger unexpected costs.');
+      }
+    }
+
+    if (transfer > 0) {
+      actions.add('₹${_fmtAmt(transfer)} in inter-account transfers. Consolidating accounts can reduce complexity and improve cash flow visibility.');
+    }
+
+    final expTxns = txns.where((t) => t.type == TransactionType.expense).toList();
+    if (expTxns.length >= 5) {
+      final avg = expense / expTxns.length;
+      actions.add('Average expense per transaction: Rs ${_fmtAmt(avg)}. Track high-value single transactions — they often reveal budget leaks.');
+    }
+
+    // Fallback if nothing to show
+    if (positives.isEmpty && warnings.isEmpty && actions.isEmpty) {
+      positives.add('Keep recording all transactions consistently to unlock personalized financial insights and trend analysis.');
+    }
+
+    // ── Build widgets ──
+    final widgets = <pw.Widget>[];
+
+    // Banner
+    widgets.add(_sectionBanner('Financial Insights & Recommendations', 'Personalized analysis for $monthLabel', _brandTeal, _brandViolet, 'I'));
+    widgets.add(pw.SizedBox(height: 12));
+
+    // Health score card
+    widgets.add(pw.Container(
+      padding: const pw.EdgeInsets.all(16),
+      decoration: pw.BoxDecoration(
+        gradient: pw.LinearGradient(colors: [_navy, _navyMid], begin: pw.Alignment.topLeft, end: pw.Alignment.bottomRight),
+        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(10)),
+      ),
+      child: pw.Row(crossAxisAlignment: pw.CrossAxisAlignment.center, children: [
+        pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+          pw.Text('FINANCIAL HEALTH SCORE', style: pw.TextStyle(font: _boldFont, fontSize: 7, color: const PdfColor(0.55, 0.70, 0.82), letterSpacing: 1.0)),
+          pw.SizedBox(height: 6),
+          pw.Row(crossAxisAlignment: pw.CrossAxisAlignment.end, children: [
+            pw.Text(score.toInt().toString(), style: pw.TextStyle(font: _boldFont, fontSize: 40, color: scoreColor)),
+            pw.SizedBox(width: 4),
+            pw.Padding(padding: const pw.EdgeInsets.only(bottom: 6), child:
+              pw.Text('/100  $scoreLabel', style: pw.TextStyle(font: _boldFont, fontSize: 10, color: scoreColor))),
+          ]),
+        ]),
+        pw.SizedBox(width: 20),
+        pw.Expanded(child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+          _insightScoreBar('Savings', income > 0 ? ((net / income).clamp(0.0, 1.0)) : 0.0, _green),
+          pw.SizedBox(height: 4),
+          _insightScoreBar('Investment', income > 0 ? (invested / income).clamp(0.0, 1.0) : 0.0, _indigo),
+          pw.SizedBox(height: 4),
+          _insightScoreBar('Spend Control', income > 0 ? (1.0 - (expense / income).clamp(0.0, 1.0)) : 0.5, _brandTeal),
+        ])),
+        pw.SizedBox(width: 16),
+        pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.end, children: [
+          _insightMini('Income',  '+₹${_fmtAmt(income)}',  _green),
+          pw.SizedBox(height: 6),
+          _insightMini('Expense', '-₹${_fmtAmt(expense)}', _red),
+          pw.SizedBox(height: 6),
+          _insightMini('Saved',   '${net >= 0 ? '+' : '-'}₹${_fmtAmt(net.abs())}', net >= 0 ? _green : _red),
+        ]),
+      ]),
+    ));
+    widgets.add(pw.SizedBox(height: 14));
+
+    if (positives.isNotEmpty) {
+      widgets.add(_insightGroup('What You Are Doing Well', positives, _green, const PdfColor(0.87, 0.98, 0.91)));
+      widgets.add(pw.SizedBox(height: 10));
+    }
+    if (warnings.isNotEmpty) {
+      widgets.add(_insightGroup('Areas of Concern', warnings, _red, const PdfColor(0.99, 0.88, 0.89)));
+      widgets.add(pw.SizedBox(height: 10));
+    }
+    if (actions.isNotEmpty) {
+      widgets.add(_insightGroup('Action Items for Next Month', actions, _orange, const PdfColor(1.0, 0.95, 0.87)));
+      widgets.add(pw.SizedBox(height: 10));
+    }
+
+    // Top category spend table
+    if (sortedCats.isNotEmpty) {
+      widgets.add(_sectionBanner('Top Spending Categories', 'Where your money went this month', _brandViolet, _indigo, 'C'));
+      widgets.add(pw.SizedBox(height: 8));
+      widgets.add(_insightCatTable(sortedCats.take(8).toList(), expense));
+    }
+
+    return widgets;
+  }
+
+  static pw.Widget _insightScoreBar(String label, double fraction, PdfColor color) {
+    final pct = fraction.clamp(0.0, 1.0);
+    final fFlex = (pct * 100).round().clamp(1, 100);
+    final eFlex = ((1.0 - pct) * 100).round().clamp(0, 100);
+    return pw.Row(children: [
+      pw.SizedBox(width: 72, child: pw.Text(label, style: pw.TextStyle(font: _regFont, fontSize: 7, color: const PdfColor(0.70, 0.82, 0.90)))),
+      pw.Expanded(child: pw.ClipRRect(
+        horizontalRadius: 3, verticalRadius: 3,
+        child: pw.Row(children: [
+          pw.Expanded(flex: fFlex, child: pw.Container(height: 6, color: color)),
+          if (eFlex > 0) pw.Expanded(flex: eFlex, child: pw.Container(height: 6, color: const PdfColor(0.18, 0.28, 0.40))),
+        ]),
+      )),
+      pw.SizedBox(width: 6),
+      pw.SizedBox(width: 28, child: pw.Text('${(pct * 100).toInt()}%', textAlign: pw.TextAlign.right, style: pw.TextStyle(font: _boldFont, fontSize: 7, color: color))),
+    ]);
+  }
+
+  static pw.Widget _insightMini(String label, String value, PdfColor color) {
+    return pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.end, children: [
+      pw.Text(label, style: pw.TextStyle(font: _regFont, fontSize: 6, color: const PdfColor(0.55, 0.70, 0.82), letterSpacing: 0.3)),
+      pw.Text(value, style: pw.TextStyle(font: _boldFont, fontSize: 8.5, color: color)),
+    ]);
+  }
+
+  static pw.Widget _insightGroup(String title, List<String> items, PdfColor accent, PdfColor tint) {
+    return pw.Column(children: [
+      pw.Container(
+        padding: const pw.EdgeInsets.fromLTRB(14, 7, 14, 7),
+        decoration: pw.BoxDecoration(
+          color: tint,
+          borderRadius: const pw.BorderRadius.only(topLeft: pw.Radius.circular(6), topRight: pw.Radius.circular(6)),
+          border: pw.Border(bottom: pw.BorderSide(color: accent, width: 2)),
+        ),
+        child: pw.Row(children: [
+          pw.Container(width: 8, height: 8, decoration: pw.BoxDecoration(color: accent, borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)))),
+          pw.SizedBox(width: 7),
+          pw.Text(title, style: pw.TextStyle(font: _boldFont, fontSize: 9, color: _navy)),
+        ]),
+      ),
+      ...items.asMap().entries.map((e) => pw.Container(
+        padding: const pw.EdgeInsets.fromLTRB(24, 7, 16, 7),
+        decoration: pw.BoxDecoration(
+          color: e.key.isEven ? PdfColors.white : PdfColor(tint.red * 0.5 + 0.5, tint.green * 0.5 + 0.5, tint.blue * 0.5 + 0.5),
+          borderRadius: e.key == items.length - 1
+              ? const pw.BorderRadius.only(bottomLeft: pw.Radius.circular(6), bottomRight: pw.Radius.circular(6))
+              : pw.BorderRadius.zero,
+          border: pw.Border(left: pw.BorderSide(color: accent, width: 3)),
+        ),
+        child: pw.Row(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+          pw.Text('${e.key + 1}.', style: pw.TextStyle(font: _boldFont, fontSize: 8, color: accent)),
+          pw.SizedBox(width: 6),
+          pw.Expanded(child: pw.Text(e.value, style: pw.TextStyle(font: _regFont, fontSize: 8.5, color: const PdfColor(0.14, 0.18, 0.26)))),
+        ]),
+      )),
+    ]);
+  }
+
+  static pw.Widget _insightCatTable(List<MapEntry<String, double>> cats, double totalExpense) {
+    return pw.Column(children: [
+      pw.Container(
+        padding: const pw.EdgeInsets.fromLTRB(16, 7, 16, 7),
+        decoration: pw.BoxDecoration(
+          gradient: pw.LinearGradient(colors: [_brandViolet, _indigo], begin: pw.Alignment.centerLeft, end: pw.Alignment.centerRight),
+          borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+        ),
+        child: pw.Row(children: [
+          pw.SizedBox(width: 130, child: _wt('CATEGORY')),
+          pw.Expanded(child: _wt('SHARE OF SPEND')),
+          pw.SizedBox(width: 60, child: _wt('AMOUNT', right: true)),
+          pw.SizedBox(width: 46, child: _wt('% OF TOTAL', right: true)),
+          pw.SizedBox(width: 80, child: _wt('GUIDANCE')),
+        ]),
+      ),
+      ...cats.asMap().entries.map((e) {
+        final i = e.key; final cat = e.value.key; final amt = e.value.value;
+        final pct  = totalExpense > 0 ? amt / totalExpense * 100 : 0.0;
+        final frac = totalExpense > 0 ? amt / totalExpense : 0.0;
+        final col  = _pal[i % _pal.length];
+        final tint = _palTint[i % _palTint.length];
+        final cl   = cat.toLowerCase();
+        String guidance = 'On track';
+        PdfColor gColor = _green;
+        if (cl.contains('food') || cl.contains('dining')) {
+          if (pct > 30) { guidance = 'Reduce'; gColor = _red; }
+          else if (pct > 20) { guidance = 'Watch'; gColor = _orange; }
+        } else if (cl.contains('entertain') || cl.contains('sub')) {
+          if (pct > 15) { guidance = 'Audit'; gColor = _orange; }
+        } else if (cl.contains('shopping')) {
+          if (pct > 25) { guidance = 'Control'; gColor = _red; }
+        }
+        return pw.Container(
+          color: i.isEven ? tint : PdfColors.white,
+          padding: const pw.EdgeInsets.fromLTRB(16, 6, 16, 6),
+          child: pw.Row(children: [
+            pw.SizedBox(width: 130, child: pw.Text(cat.isEmpty ? 'Other' : cat, style: pw.TextStyle(font: _boldFont, fontSize: 8.5, color: _navy))),
+            pw.Expanded(child: _hBar(frac, col)),
+            pw.SizedBox(width: 60,  child: pw.Text('₹${_fmtAmt(amt)}', textAlign: pw.TextAlign.right, style: pw.TextStyle(font: _boldFont, fontSize: 8, color: col))),
+            pw.SizedBox(width: 46,  child: pw.Text('${pct.toStringAsFixed(1)}%', textAlign: pw.TextAlign.right, style: pw.TextStyle(font: _boldFont, fontSize: 8, color: col))),
+            pw.SizedBox(width: 80,  child: pw.Container(
+              margin: const pw.EdgeInsets.only(left: 8),
+              padding: const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+              decoration: pw.BoxDecoration(color: gColor, borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4))),
+              child: pw.Text(guidance, style: pw.TextStyle(font: _boldFont, fontSize: 6.5, color: PdfColors.white)),
+            )),
+          ]),
+        );
+      }),
+    ]);
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -1432,6 +1761,29 @@ class MonthlyStatementService {
   static String _fmtDate(DateTime d) => '${d.day} ${_moAbbr[d.month - 1]} ${d.year}';
   static String _fmtDateShort(DateTime d) =>
       '${d.day.toString().padLeft(2, ' ')} ${_moAbbr[d.month - 1]}\'${d.year.toString().substring(2)}';
+
+  /// Sanitises user-supplied text for Roboto (which supports ₹ and most Unicode).
+  /// We now use Roboto instead of Helvetica so ₹ renders correctly. This helper
+  /// still cleans up decorative or ambiguous Unicode that could appear as boxes
+  /// in less complete font subsets.
+  static String _safe(String s) {
+    return s
+        .replaceAll('\u2192', '->')   // → (RIGHT ARROW)
+        .replaceAll('\u2190', '<-')   // ←
+        .replaceAll('\u21C4', '<>')   // ⇄
+        .replaceAll('\u2022', '-')    // • (BULLET)
+        .replaceAll('\u2023', '-')    // ‣
+        .replaceAll('\u2605', '*')    // ★
+        .replaceAll('\u2606', '*')    // ☆
+        .replaceAll('\u2191', '+')    // ↑
+        .replaceAll('\u2193', '-')    // ↓
+        .replaceAll('\u2013', '-')    // – (EN DASH)
+        .replaceAll('\u2014', '-')    // — (EM DASH)
+        .replaceAll('\u2026', '...')  // … (ELLIPSIS)
+        .replaceAll('\u00A0', ' ');   // non-breaking space
+        // NOTE: ₹ (\u20B9), € (\u20AC), £ (\u00A3) are intentionally NOT
+        // replaced — Roboto supports them natively.
+  }
 
   static String _fmtAmt(double v) {
     if (v > 10000000) return '${(v / 10000000).toStringAsFixed(2)}Cr';

@@ -49,3 +49,5 @@ flutter:
     - assets/animations/loader.json
     - assets/remote_config.json
     - assets/app_icon.png
+    - assets/fonts/Roboto-Regular.ttf
+    - assets/fonts/Roboto-Bold.ttf

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -48,6 +49,11 @@ class _MonthStat {
 class TransactionExportService {
   static const _appName = 'VittaraFinOS';
   static const _tagline = 'Track Wealth, Master Life';
+
+  // Roboto fonts loaded once per buildPdf() — support ₹ and full Unicode.
+  static late pw.Font _regFont;
+  static late pw.Font _boldFont;
+  static late pw.Font _obliqueFont;
 
   // ── Brand palette (matches design_tokens.dart exactly) ────────────────────
   // SemanticColors.primary = #00B890 → PdfColor(0, 184/255, 144/255)
@@ -112,6 +118,13 @@ class TransactionExportService {
     String title = 'Transaction Statement',
     String? accountName,
   }) async {
+    // Load Roboto fonts (supports ₹ — unlike built-in Helvetica which is Latin-1 only).
+    final regBytes  = await rootBundle.load('assets/fonts/Roboto-Regular.ttf');
+    final boldBytes = await rootBundle.load('assets/fonts/Roboto-Bold.ttf');
+    _regFont     = pw.Font.ttf(regBytes);
+    _boldFont    = pw.Font.ttf(boldBytes);
+    _obliqueFont = _regFont;
+
     final doc   = pw.Document();
     final stats = _computeStats(transactions);
     final range = _buildDateRange(transactions);
@@ -242,7 +255,7 @@ class TransactionExportService {
       alignment: pw.Alignment.center,
       child: pw.Text('V',
         style: pw.TextStyle(
-          font: pw.Font.helveticaBold(),
+          font: _boldFont,
           fontSize: size * 0.46,
           color: PdfColors.white,
         )),
@@ -271,13 +284,13 @@ class TransactionExportService {
             children: [
               pw.Text(_appName,
                 style: pw.TextStyle(
-                  font: pw.Font.helveticaBold(), fontSize: 15,
+                  font: _boldFont, fontSize: 15,
                   color: PdfColors.white, letterSpacing: 1.4,
                 )),
               pw.SizedBox(height: 3),
               pw.Text(_tagline,
                 style: pw.TextStyle(
-                  font: pw.Font.helveticaOblique(), fontSize: 7.5,
+                  font: _obliqueFont, fontSize: 7.5,
                   color: const PdfColor(0.55, 0.68, 0.80),
                 )),
             ],
@@ -289,13 +302,13 @@ class TransactionExportService {
             children: [
               pw.Text('TRANSACTION STATEMENT',
                 style: pw.TextStyle(
-                  font: pw.Font.helveticaBold(), fontSize: 7.5,
+                  font: _boldFont, fontSize: 7.5,
                   color: PdfColors.white, letterSpacing: 1.2,
                 )),
               pw.SizedBox(height: 4),
               pw.Text('Generated ${_fmtDate(now)}',
                 style: pw.TextStyle(
-                  font: pw.Font.helvetica(), fontSize: 7,
+                  font: _regFont, fontSize: 7,
                   color: const PdfColor(0.55, 0.68, 0.80),
                 )),
               pw.SizedBox(height: 5),
@@ -311,7 +324,7 @@ class TransactionExportService {
                 ),
                 child: pw.Text('Page ${ctx.pageNumber} of ${ctx.pagesCount}',
                   style: pw.TextStyle(
-                    font: pw.Font.helveticaBold(), fontSize: 7,
+                    font: _boldFont, fontSize: 7,
                     color: PdfColors.white,
                   )),
               ),
@@ -345,12 +358,12 @@ class TransactionExportService {
           ),
           pw.SizedBox(width: 7),
           pw.Text(_appName,
-            style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 7.5, color: _greyDark)),
-          pw.Text('  •  $_tagline',
-            style: pw.TextStyle(font: pw.Font.helveticaOblique(), fontSize: 7, color: _greyMid)),
+            style: pw.TextStyle(font: _boldFont, fontSize: 7.5, color: _greyDark)),
+          pw.Text(' | $_tagline',
+            style: pw.TextStyle(font: _obliqueFont, fontSize: 7, color: _greyMid)),
           pw.Spacer(),
-          pw.Text('Confidential  •  Personal Use Only',
-            style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 6.5, color: _greyMid)),
+          pw.Text('Confidential | Personal Use Only',
+            style: pw.TextStyle(font: _regFont, fontSize: 6.5, color: _greyMid)),
         ],
       ),
     );
@@ -375,11 +388,11 @@ class TransactionExportService {
               borderRadius: const pw.BorderRadius.all(pw.Radius.circular(5)),
             ),
             child: pw.Text(label,
-              style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 8, color: PdfColors.white)),
+              style: pw.TextStyle(font: _boldFont, fontSize: 8, color: PdfColors.white)),
           ),
           pw.SizedBox(width: 10),
           pw.Text('$count transaction${count == 1 ? '' : 's'}',
-            style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 8, color: const PdfColor(0.70, 0.80, 0.88))),
+            style: pw.TextStyle(font: _regFont, fontSize: 8, color: const PdfColor(0.70, 0.80, 0.88))),
           pw.Spacer(),
           // Net flow pill
           pw.Container(
@@ -389,13 +402,13 @@ class TransactionExportService {
               borderRadius: const pw.BorderRadius.all(pw.Radius.circular(5)),
             ),
             child: pw.Text(
-              'NET: ${net >= 0 ? '+' : '-'}Rs ${_fmtAmt(net.abs())}',
-              style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 7.5, color: PdfColors.white),
+              'NET: ${net >= 0 ? '+' : '-'}₹${_fmtAmt(net.abs())}',
+              style: pw.TextStyle(font: _boldFont, fontSize: 7.5, color: PdfColors.white),
             ),
           ),
           pw.SizedBox(width: 10),
           pw.Text(range,
-            style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 8, color: const PdfColor(0.70, 0.80, 0.88))),
+            style: pw.TextStyle(font: _regFont, fontSize: 8, color: const PdfColor(0.70, 0.80, 0.88))),
         ],
       ),
     );
@@ -420,15 +433,15 @@ class TransactionExportService {
       ),
       child: pw.Row(
         children: [
-          _statCard('INCOME',    '+Rs ${_fmtAmt(stats['income']!)}',    _green,      _tintGreen,  '↑'),
+          _statCard('INCOME',    '+₹${_fmtAmt(stats['income']!)}',    _green,      _tintGreen,  '+'),
           pw.SizedBox(width: 6),
-          _statCard('EXPENSES',  '-Rs ${_fmtAmt(stats['expense']!)}',   _red,        _tintRed,    '↓'),
+          _statCard('EXPENSES',  '-₹${_fmtAmt(stats['expense']!)}',   _red,        _tintRed,    '-'),
           pw.SizedBox(width: 6),
-          _statCard('NET FLOW',  '${net >= 0 ? '+' : '–'}Rs ${_fmtAmt(net.abs())}', netColor, netTint, '='),
+          _statCard('NET FLOW',  '${net >= 0 ? '+' : '-'}₹${_fmtAmt(net.abs())}', netColor, netTint, '='),
           pw.SizedBox(width: 6),
-          _statCard('INVESTED',  'Rs ${_fmtAmt(stats['investment']!)}', _indigo,     _tintViolet, '★'),
+          _statCard('INVESTED',  '₹${_fmtAmt(stats['investment']!)}', _indigo,     _tintViolet, '*'),
           pw.SizedBox(width: 6),
-          _statCard('TRANSFERS', 'Rs ${_fmtAmt(stats['transfer']!)}',   _brandTeal,  _tintTeal,   '⇄'),
+          _statCard('TRANSFERS', '₹${_fmtAmt(stats['transfer']!)}',   _brandTeal,  _tintTeal,   '<>'),
           pw.SizedBox(width: 6),
           _statCard('RECORDS',   '${stats['count']!.toInt()}',          _navy,       _tintNavy,   '#'),
         ],
@@ -463,15 +476,15 @@ class TransactionExportService {
                 ),
                 alignment: pw.Alignment.center,
                 child: pw.Text(sym,
-                  style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 7, color: PdfColors.white)),
+                  style: pw.TextStyle(font: _boldFont, fontSize: 7, color: PdfColors.white)),
               ),
               pw.SizedBox(width: 5),
               pw.Text(label,
-                style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 5.5, color: _greyMid, letterSpacing: 0.4)),
+                style: pw.TextStyle(font: _boldFont, fontSize: 5.5, color: _greyMid, letterSpacing: 0.4)),
             ]),
             pw.SizedBox(height: 6),
             pw.Text(value,
-              style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 10, color: accent)),
+              style: pw.TextStyle(font: _boldFont, fontSize: 10, color: accent)),
           ],
         ),
       ),
@@ -507,17 +520,17 @@ class TransactionExportService {
             ),
             alignment: pw.Alignment.center,
             child: pw.Text(num,
-              style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 8, color: from)),
+              style: pw.TextStyle(font: _boldFont, fontSize: 8, color: from)),
           ),
           pw.SizedBox(width: 10),
           pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               pw.Text(title,
-                style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 12, color: PdfColors.white)),
+                style: pw.TextStyle(font: _boldFont, fontSize: 12, color: PdfColors.white)),
               pw.SizedBox(height: 1),
               pw.Text(subtitle,
-                style: pw.TextStyle(font: pw.Font.helveticaOblique(), fontSize: 7.5,
+                style: pw.TextStyle(font: _obliqueFont, fontSize: 7.5,
                   color: const PdfColor(0.95, 0.95, 0.98))),
             ],
           ),
@@ -552,7 +565,7 @@ class TransactionExportService {
         borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
       ),
       child: pw.Text(text,
-        style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 7, color: PdfColors.white)),
+        style: pw.TextStyle(font: _boldFont, fontSize: 7, color: PdfColors.white)),
     );
   }
 
@@ -592,20 +605,20 @@ class TransactionExportService {
             pw.SizedBox(width: 8),
             pw.SizedBox(width: 72,
               child: pw.Text(label,
-                style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 9, color: _navy))),
+                style: pw.TextStyle(font: _boldFont, fontSize: 9, color: _navy))),
             pw.Expanded(child: _hBar(pct, color, h: 9)),
             pw.SizedBox(width: 8),
             _pill('${pctOf.toStringAsFixed(0)}%', color),
             pw.SizedBox(width: 8),
             pw.SizedBox(width: 62,
-              child: pw.Text('Rs ${_fmtAmt(amt)}',
+              child: pw.Text('₹${_fmtAmt(amt)}',
                 textAlign: pw.TextAlign.right,
-                style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 9, color: color))),
+                style: pw.TextStyle(font: _boldFont, fontSize: 9, color: color))),
             pw.SizedBox(width: 8),
             pw.SizedBox(width: 38,
               child: pw.Text('$count txns',
                 textAlign: pw.TextAlign.right,
-                style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7, color: _greyMid))),
+                style: pw.TextStyle(font: _regFont, fontSize: 7, color: _greyMid))),
           ]),
         );
       }).toList(),
@@ -652,26 +665,26 @@ class TransactionExportService {
               pw.SizedBox(width: 110,
                 child: pw.Text(
                   s.name.length > 17 ? '${s.name.substring(0, 17)}...' : s.name,
-                  style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 8.5, color: _navy))),
+                  style: pw.TextStyle(font: _boldFont, fontSize: 8.5, color: _navy))),
               pw.Expanded(child: _hBar(frac, _brandTeal)),
               pw.SizedBox(width: 4),
               pw.SizedBox(width: 62,
-                child: pw.Text('+Rs ${_fmtAmt(s.income)}',
+                child: pw.Text('+₹${_fmtAmt(s.income)}',
                   textAlign: pw.TextAlign.right,
-                  style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7.5, color: _green))),
+                  style: pw.TextStyle(font: _regFont, fontSize: 7.5, color: _green))),
               pw.SizedBox(width: 62,
-                child: pw.Text('-Rs ${_fmtAmt(s.expense)}',
+                child: pw.Text('-₹${_fmtAmt(s.expense)}',
                   textAlign: pw.TextAlign.right,
-                  style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7.5, color: _red))),
+                  style: pw.TextStyle(font: _regFont, fontSize: 7.5, color: _red))),
               pw.SizedBox(width: 54,
                 child: pw.Text(
-                  '${s.net >= 0 ? '+' : '-'}Rs ${_fmtAmt(s.net.abs())}',
+                  '${s.net >= 0 ? '+' : '-'}₹${_fmtAmt(s.net.abs())}',
                   textAlign: pw.TextAlign.right,
-                  style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 7.5, color: netColor))),
+                  style: pw.TextStyle(font: _boldFont, fontSize: 7.5, color: netColor))),
               pw.SizedBox(width: 32,
                 child: pw.Text('${s.count}',
                   textAlign: pw.TextAlign.right,
-                  style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7.5, color: _greyMid))),
+                  style: pw.TextStyle(font: _regFont, fontSize: 7.5, color: _greyMid))),
             ]),
           );
         }),
@@ -729,13 +742,13 @@ class TransactionExportService {
               pw.SizedBox(width: 86,
                 child: pw.Text(
                   s.name.isEmpty ? 'Uncategorised' : s.name,
-                  style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 8.5, color: _navy))),
+                  style: pw.TextStyle(font: _boldFont, fontSize: 8.5, color: _navy))),
               pw.Expanded(child: _hBar(frac, color)),
               pw.SizedBox(width: 8),
               pw.SizedBox(width: 62,
-                child: pw.Text('Rs ${_fmtAmt(s.amount)}',
+                child: pw.Text('₹${_fmtAmt(s.amount)}',
                   textAlign: pw.TextAlign.right,
-                  style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 8.5, color: color))),
+                  style: pw.TextStyle(font: _boldFont, fontSize: 8.5, color: color))),
               pw.SizedBox(width: 6),
               pw.SizedBox(width: 44,
                 child: pw.Align(
@@ -745,7 +758,7 @@ class TransactionExportService {
               pw.SizedBox(width: 34,
                 child: pw.Text('${s.count}',
                   textAlign: pw.TextAlign.right,
-                  style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7.5, color: _greyMid))),
+                  style: pw.TextStyle(font: _regFont, fontSize: 7.5, color: _greyMid))),
             ]),
           );
         }),
@@ -802,21 +815,21 @@ class TransactionExportService {
               pw.SizedBox(width: 100,
                 child: pw.Text(
                   s.name.length > 16 ? '${s.name.substring(0, 16)}...' : s.name,
-                  style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 8.5, color: _navy))),
+                  style: pw.TextStyle(font: _boldFont, fontSize: 8.5, color: _navy))),
               pw.Expanded(child: _hBar(frac, color)),
               pw.SizedBox(width: 4),
               pw.SizedBox(width: 62,
-                child: pw.Text('Rs ${_fmtAmt(s.amount)}',
+                child: pw.Text('₹${_fmtAmt(s.amount)}',
                   textAlign: pw.TextAlign.right,
-                  style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 8.5, color: color))),
+                  style: pw.TextStyle(font: _boldFont, fontSize: 8.5, color: color))),
               pw.SizedBox(width: 38,
                 child: pw.Text('${s.count}',
                   textAlign: pw.TextAlign.right,
-                  style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7.5, color: _greyMid))),
+                  style: pw.TextStyle(font: _regFont, fontSize: 7.5, color: _greyMid))),
               pw.SizedBox(width: 62,
-                child: pw.Text('Rs ${_fmtAmt(s.avg)}',
+                child: pw.Text('₹${_fmtAmt(s.avg)}',
                   textAlign: pw.TextAlign.right,
-                  style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7.5, color: _greyMid))),
+                  style: pw.TextStyle(font: _regFont, fontSize: 7.5, color: _greyMid))),
             ]),
           );
         }),
@@ -868,38 +881,38 @@ class TransactionExportService {
             child: pw.Row(crossAxisAlignment: pw.CrossAxisAlignment.center, children: [
               pw.SizedBox(width: 50,
                 child: pw.Text(s.label,
-                  style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 8.5, color: labelColor))),
+                  style: pw.TextStyle(font: _boldFont, fontSize: 8.5, color: labelColor))),
               pw.Expanded(
                 child: pw.Column(children: [
                   pw.Row(children: [
                     pw.SizedBox(width: 36,
                       child: pw.Text('Income',
-                        style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 6.5, color: _green))),
+                        style: pw.TextStyle(font: _regFont, fontSize: 6.5, color: _green))),
                     pw.Expanded(child: _hBar(incFrac, _green, h: 6)),
                   ]),
                   pw.SizedBox(height: 3),
                   pw.Row(children: [
                     pw.SizedBox(width: 36,
                       child: pw.Text('Expense',
-                        style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 6.5, color: _red))),
+                        style: pw.TextStyle(font: _regFont, fontSize: 6.5, color: _red))),
                     pw.Expanded(child: _hBar(expFrac, _red, h: 6)),
                   ]),
                 ]),
               ),
               pw.SizedBox(width: 6),
               pw.SizedBox(width: 60,
-                child: pw.Text('+Rs ${_fmtAmt(s.income)}',
+                child: pw.Text('+₹${_fmtAmt(s.income)}',
                   textAlign: pw.TextAlign.right,
-                  style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7.5, color: _green))),
+                  style: pw.TextStyle(font: _regFont, fontSize: 7.5, color: _green))),
               pw.SizedBox(width: 60,
-                child: pw.Text('-Rs ${_fmtAmt(s.expense)}',
+                child: pw.Text('-₹${_fmtAmt(s.expense)}',
                   textAlign: pw.TextAlign.right,
-                  style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7.5, color: _red))),
+                  style: pw.TextStyle(font: _regFont, fontSize: 7.5, color: _red))),
               pw.SizedBox(width: 60,
                 child: pw.Text(
-                  '${s.net >= 0 ? '+' : '-'}Rs ${_fmtAmt(s.net.abs())}',
+                  '${s.net >= 0 ? '+' : '-'}₹${_fmtAmt(s.net.abs())}',
                   textAlign: pw.TextAlign.right,
-                  style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 8, color: netColor))),
+                  style: pw.TextStyle(font: _boldFont, fontSize: 8, color: netColor))),
             ]),
           );
         }),
@@ -982,12 +995,12 @@ class TransactionExportService {
               ),
               alignment: pw.Alignment.center,
               child: pw.Text(b['tag']!,
-                style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 5.5, color: PdfColors.white)),
+                style: pw.TextStyle(font: _boldFont, fontSize: 5.5, color: PdfColors.white)),
             ),
             pw.SizedBox(width: 8),
             pw.Expanded(
               child: pw.Text(b['text']!,
-                style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 8.5, color: const PdfColor(0.14, 0.18, 0.26))),
+                style: pw.TextStyle(font: _regFont, fontSize: 8.5, color: const PdfColor(0.14, 0.18, 0.26))),
             ),
           ]),
         );
@@ -1001,7 +1014,7 @@ class TransactionExportService {
 
   static pw.Widget _hdrText(String t, {bool right = false}) => pw.Text(t,
     textAlign: right ? pw.TextAlign.right : pw.TextAlign.left,
-    style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 7,
+    style: pw.TextStyle(font: _boldFont, fontSize: 7,
       color: PdfColors.white, letterSpacing: 0.6));
 
   static pw.Widget _tableHeaderRow() {
@@ -1024,7 +1037,7 @@ class TransactionExportService {
     final isCredit  = _isCredit(t.type, eventType);
     final typeColor = _typeColor(t.type, eventType);
     final amtColor  = isCredit ? _green : _red;
-    final amtStr    = '${isCredit ? '+' : '-'}Rs ${_fmtAmt(t.amount)}';
+    final amtStr    = '${isCredit ? '+' : '-'}₹${_fmtAmt(t.amount)}';
     final description = (meta['description'] ?? meta['merchant'] ?? t.description ?? t.getSummary()).toString();
     final account   = (meta['accountName'] ?? t.sourceAccountName ?? '').toString();
     final typeLabel = _typeLabel(t.type, eventType);
@@ -1040,7 +1053,7 @@ class TransactionExportService {
       child: pw.Row(crossAxisAlignment: pw.CrossAxisAlignment.center, children: [
         pw.SizedBox(width: 58,
           child: pw.Text(_fmtDateShort(t.dateTime),
-            style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7.5, color: _greyMid))),
+            style: pw.TextStyle(font: _regFont, fontSize: 7.5, color: _greyMid))),
         pw.SizedBox(width: 68,
           child: pw.Container(
             padding: const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 2),
@@ -1049,19 +1062,19 @@ class TransactionExportService {
               borderRadius: const pw.BorderRadius.all(pw.Radius.circular(3)),
             ),
             child: pw.Text(typeLabel,
-              style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 6.5, color: typeColor)),
+              style: pw.TextStyle(font: _boldFont, fontSize: 6.5, color: typeColor)),
           )),
         pw.Expanded(
           child: pw.Text(
             description.length > 40 ? '${description.substring(0, 40)}...' : description,
-            style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 8.5, color: const PdfColor(0.12, 0.15, 0.20)))),
+            style: pw.TextStyle(font: _regFont, fontSize: 8.5, color: const PdfColor(0.12, 0.15, 0.20)))),
         pw.SizedBox(width: 80,
           child: pw.Text(amtStr, textAlign: pw.TextAlign.right,
-            style: pw.TextStyle(font: pw.Font.helveticaBold(), fontSize: 8.5, color: amtColor))),
+            style: pw.TextStyle(font: _boldFont, fontSize: 8.5, color: amtColor))),
         pw.SizedBox(width: 88,
           child: pw.Text(
             account.length > 14 ? '${account.substring(0, 14)}...' : account,
-            style: pw.TextStyle(font: pw.Font.helvetica(), fontSize: 7.5, color: _greyMid))),
+            style: pw.TextStyle(font: _regFont, fontSize: 7.5, color: _greyMid))),
       ]),
     );
   }
