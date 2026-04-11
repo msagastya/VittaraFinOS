@@ -33,6 +33,7 @@ import 'package:vittara_fin_os/ui/manage/simple_investment_entry_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/stocks/stock_details_screen.dart';
 import 'package:vittara_fin_os/ui/manage/stocks/stocks_wizard.dart';
 import 'package:vittara_fin_os/ui/dashboard/quick_entry_sheet.dart';
+import 'package:vittara_fin_os/ui/manage/transfer_wizard.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
@@ -406,6 +407,13 @@ class _DashboardActionSheetState extends State<_DashboardActionSheet> {
                 showQuickEntrySheet(widget.navigator.context);
               });
             },
+          ),
+          _homeRow(
+            icon: CupertinoIcons.arrow_right_arrow_left_circle_fill,
+            label: 'Transfer',
+            subtitle: 'Move money between accounts',
+            color: AppStyles.accentBlue,
+            onTap: () => _launch(const TransferWizard()),
             isLast: !context.read<SettingsController>().isInvestmentTrackingEnabled,
           ),
           if (context.read<SettingsController>().isInvestmentTrackingEnabled) ...[
