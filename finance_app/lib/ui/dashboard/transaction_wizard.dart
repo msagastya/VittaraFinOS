@@ -1020,29 +1020,6 @@ class _TransactionWizardState extends State<TransactionWizard> {
             color: AppStyles.gain(context),
             onTap: () => _selectBranch(TransactionWizardBranch.income),
           ),
-          const SizedBox(height: Spacing.sm),
-          CupertinoButton(
-            padding: EdgeInsets.zero,
-            onPressed: () => _selectBranch(TransactionWizardBranch.transfer),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  CupertinoIcons.arrow_right_arrow_left,
-                  size: 14,
-                  color: CupertinoColors.systemBlue,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  'Move money between accounts? Use Transfer',
-                  style: TextStyle(
-                    fontSize: TypeScale.footnote,
-                    color: CupertinoColors.systemBlue,
-                  ),
-                ),
-              ],
-            ),
-          ),
           if (templates.isNotEmpty) ...[
             const SizedBox(height: Spacing.xl),
             Row(
