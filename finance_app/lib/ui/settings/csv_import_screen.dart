@@ -1408,7 +1408,18 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
   // ─── STEP 2: ACCOUNT PICK ───────────────────────────────────────────────
 
   Widget _buildAccountPick() {
-    final accounts = context.read<AccountsController>().accounts;
+    final allAccounts = context.read<AccountsController>().accounts
+        .where((a) => !a.isHidden).toList();
+
+    // Split: accounts whose bank name matches detected bank vs rest
+    final bankName = _bankDisplayName(_detectedBank).toLowerCase();
+    final matchingAccounts = _detectedBank == _BankFormat.unknown
+        ? <Account>[]
+        : allAccounts.where((a) =>
+            a.bankName.toLowerCase().contains(bankName.split(' ').first) ||
+            bankName.contains(a.bankName.toLowerCase().split(' ').first)).toList();
+    final otherAccounts = allAccounts
+        .where((a) => !matchingAccounts.any((m) => m.id == a.id)).toList();
 
     return ListView(
       padding: const EdgeInsets.all(Spacing.lg),
@@ -1417,34 +1428,53 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
           step: 2, total: 4,
           icon: CupertinoIcons.creditcard_fill,
           iconColor: AppStyles.aetherTeal,
-          title: 'Link to Account',
-          subtitle: 'Which account does this statement belong to? Transactions will be associated — balances are NOT affected.',
+          title: 'Which account is this?',
+          subtitle: 'Select the account this statement belongs to. Balances are NOT modified.',
         ),
         if (_detectedBank != _BankFormat.unknown) ...[
           const SizedBox(height: Spacing.md),
           _buildDetectedBankBadge(_detectedBank),
         ],
         const SizedBox(height: Spacing.lg),
-        if (accounts.isEmpty)
+        if (allAccounts.isEmpty)
           Container(
             padding: const EdgeInsets.all(Spacing.lg),
             decoration: BoxDecoration(color: AppStyles.getCardColor(context), borderRadius: BorderRadius.circular(Radii.md)),
             child: Text('No accounts found. Add an account first.',
                 style: TextStyle(color: AppStyles.getSecondaryTextColor(context)), textAlign: TextAlign.center),
           )
-        else
-          ...accounts.map((acc) => _buildAccountTile(acc)),
-        const SizedBox(height: Spacing.sm),
-        // "No specific account" option
+        else ...[
+          // Matching bank accounts shown at top with a label
+          if (matchingAccounts.isNotEmpty) ...[
+            _buildSectionLabel('${_bankDisplayName(_detectedBank)} accounts'),
+            ...matchingAccounts.map((acc) => _buildAccountTile(acc, highlighted: true)),
+            if (otherAccounts.isNotEmpty) ...[
+              const SizedBox(height: Spacing.md),
+              _buildSectionLabel('Other accounts'),
+            ],
+          ],
+          ...otherAccounts.map((acc) => _buildAccountTile(acc)),
+        ],
+        const SizedBox(height: Spacing.md),
+        _buildSectionLabel('Not linked'),
         _buildAccountTile(null),
       ],
     );
   }
 
-  Widget _buildAccountTile(Account? acc) {
+  Widget _buildSectionLabel(String label) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: Spacing.sm),
+      child: Text(label,
+          style: TextStyle(fontSize: TypeScale.caption, fontWeight: FontWeight.w700,
+              color: AppStyles.getSecondaryTextColor(context), letterSpacing: 0.4)),
+    );
+  }
+
+  Widget _buildAccountTile(Account? acc, {bool highlighted = false}) {
     final isSelected = _selectedAccount?.id == acc?.id && !(_selectedAccount == null && acc != null);
     final label = acc?.name ?? 'No specific account';
-    final sub = acc != null ? '${acc.type.name} · ${acc.bankName}' : 'Transactions will not be linked to any account';
+    final sub = acc != null ? '${acc.type.name.toUpperCase()} · ${acc.bankName}' : 'Transactions will not be linked to any account';
     final color = acc?.color ?? AppStyles.getSecondaryTextColor(context);
 
     return Padding(
@@ -1469,7 +1499,18 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
               ),
               const SizedBox(width: Spacing.md),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(label, style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.footnote, color: AppStyles.getTextColor(context))),
+                Row(children: [
+                  Expanded(child: Text(label, style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.footnote, color: AppStyles.getTextColor(context)))),
+                  if (highlighted && !isSelected)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF00B890).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Text('Likely', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: Color(0xFF00B890))),
+                    ),
+                ]),
                 Text(sub, style: TextStyle(fontSize: TypeScale.caption, color: AppStyles.getSecondaryTextColor(context))),
               ])),
               if (isSelected)

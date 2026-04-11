@@ -969,8 +969,28 @@ class _AccountsScreenState extends State<AccountsScreen> {
       ),
       endActionPane: ActionPane(
         motion: const BehindMotion(),
-        extentRatio: 0.5,
+        extentRatio: 0.75,
         children: [
+          SlidableAction(
+            onPressed: (_) {
+              HapticFeedback.lightImpact();
+              final settings = Provider.of<SettingsController>(context, listen: false);
+              final isAlreadyDefault = settings.defaultAccountId == account.id;
+              if (isAlreadyDefault) {
+                settings.setDefaultAccountId(null);
+                toast.showInfo('Default account cleared');
+              } else {
+                settings.setDefaultAccountId(account.id);
+                toast.showSuccess('${account.name} set as default');
+              }
+            },
+            backgroundColor: const Color(0xFF00B890),
+            foregroundColor: Colors.black,
+            icon: CupertinoIcons.star_fill,
+            label: 'Default',
+            borderRadius:
+                const BorderRadius.horizontal(left: Radius.circular(12)),
+          ),
           SlidableAction(
             onPressed: (_) {
               HapticFeedback.lightImpact();
@@ -980,8 +1000,6 @@ class _AccountsScreenState extends State<AccountsScreen> {
             foregroundColor: Colors.white,
             icon: CupertinoIcons.pencil,
             label: 'Edit',
-            borderRadius:
-                const BorderRadius.horizontal(left: Radius.circular(12)),
           ),
           SlidableAction(
             onPressed: (_) {
@@ -1186,11 +1204,22 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                     color: account.color),
                               ),
                               const SizedBox(height: Spacing.xs),
-                              Icon(
-                                CupertinoIcons.chevron_right,
-                                size: IconSizes.xs,
-                                color: AppStyles.getSecondaryTextColor(context),
-                              ),
+                              context.select<SettingsController, bool>(
+                                      (s) => s.defaultAccountId == account.id)
+                                  ? Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF00B890).withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: const Text('Default',
+                                          style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: Color(0xFF00B890))),
+                                    )
+                                  : Icon(
+                                      CupertinoIcons.chevron_right,
+                                      size: IconSizes.xs,
+                                      color: AppStyles.getSecondaryTextColor(context),
+                                    ),
                             ],
                           ),
                         ],

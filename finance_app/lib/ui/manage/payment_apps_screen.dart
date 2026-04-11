@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/payment_apps_controller.dart';
+import 'package:vittara_fin_os/logic/settings_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/ui/transaction_history_screen.dart';
@@ -1528,7 +1529,60 @@ class _PaymentAppsScreenState extends State<PaymentAppsScreen> {
                               ],
                             ),
 
-                            const SizedBox(height: 24),
+                            const SizedBox(height: 16),
+
+                            // ── Set as Default ────────────────────────────
+                            Consumer<SettingsController>(
+                              builder: (c, settings, _) {
+                                final isDefault = settings.defaultPaymentAppName == appName;
+                                return GestureDetector(
+                                  onTap: () {
+                                    if (isDefault) {
+                                      settings.setDefaultPaymentApp(null);
+                                      toast.showInfo('Default payment app cleared');
+                                    } else {
+                                      settings.setDefaultPaymentApp(appName);
+                                      toast.showSuccess('$appName set as default');
+                                    }
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                    decoration: BoxDecoration(
+                                      color: isDefault
+                                          ? const Color(0xFF00B890).withValues(alpha: 0.12)
+                                          : AppStyles.getBackground(c).withValues(alpha: 0.6),
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(
+                                        color: isDefault
+                                            ? const Color(0xFF00B890).withValues(alpha: 0.4)
+                                            : AppStyles.getSecondaryTextColor(c).withValues(alpha: 0.2),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          isDefault ? CupertinoIcons.star_fill : CupertinoIcons.star,
+                                          size: 14,
+                                          color: isDefault ? const Color(0xFF00B890) : AppStyles.getSecondaryTextColor(c),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          isDefault ? 'Default payment app' : 'Set as default',
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
+                                            color: isDefault ? const Color(0xFF00B890) : AppStyles.getSecondaryTextColor(c),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+
+                            const SizedBox(height: 16),
 
                             // ── Wallet section ────────────────────────────
                             if (hasWallet) ...[

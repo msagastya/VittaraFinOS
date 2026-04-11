@@ -15,7 +15,6 @@ import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_suggestion_engine.dart';
 import 'package:vittara_fin_os/ui/dashboard/transaction_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/account_wizard.dart';
-import 'package:vittara_fin_os/ui/manage/transfer_wizard.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
@@ -351,9 +350,12 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
     }
 
     if (account != null) {
-      final snapped =
-          accountsCtrl.getAccountById(account.id) ?? account;
-      meta['sourceBalanceAfter'] = snapped.balance;
+      final snapped = accountsCtrl.getAccountById(account.id) ?? account;
+      // Snapshot must reflect balance AFTER this transaction is applied
+      final balanceDelta = _branch == TransactionWizardBranch.expense
+          ? -accountPortion
+          : amount;
+      meta['sourceBalanceAfter'] = snapped.balance + balanceDelta;
       if (snapped.creditLimit != null) {
         meta['sourceCreditLimit'] = snapped.creditLimit;
       }
@@ -1162,47 +1164,7 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
         Expanded(child: _typeChip(TransactionWizardBranch.expense, '↑ Expense', isDark)),
         const SizedBox(width: Spacing.sm),
         Expanded(child: _typeChip(TransactionWizardBranch.income, '↓ Income', isDark)),
-        const SizedBox(width: Spacing.sm),
-        Expanded(child: _transferChip(isDark)),
       ],
-    );
-  }
-
-  Widget _transferChip(bool isDark) {
-    const color = Color(0xFF007AFF);
-    return GestureDetector(
-      onTap: () {
-        Navigator.pop(context);
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (context.mounted) {
-            Navigator.push(
-              context,
-              CupertinoPageRoute(builder: (_) => const TransferWizard()),
-            );
-          }
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: Spacing.md),
-        decoration: BoxDecoration(
-          color: Colors.transparent,
-          borderRadius: BorderRadius.circular(Radii.md),
-          border: Border.all(
-            color: isDark ? const Color(0xFF2A2A3A) : const Color(0xFFCCDDEE),
-          ),
-        ),
-        child: const Center(
-          child: Text(
-            '⇄ Transfer',
-            style: TextStyle(
-              fontFamily: 'SpaceGrotesk',
-              fontWeight: FontWeight.normal,
-              fontSize: 14,
-              color: color,
-            ),
-          ),
-        ),
-      ),
     );
   }
 
