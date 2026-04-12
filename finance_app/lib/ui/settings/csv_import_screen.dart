@@ -36,6 +36,7 @@ enum _CsvColumn { date, description, amount, debit, credit, reference, type, ski
 enum _BankFormat {
   hdfc, hdfcCc, sbi, icici, iciciCc, axis, kotak,
   indusind, yesBank, federal, rbl, idfc, amex, citi,
+  bankOfBaroda,
   unknown
 }
 
@@ -229,9 +230,14 @@ _BankFormat _detectBankFromHeaders(List<String> headers) {
 
 _BankFormat _detectBankFromText(String text) {
   final t = text.toLowerCase();
+  if (t.contains('bank of baroda') || t.contains('bankofbaroda') ||
+      t.contains('barb0') || t.contains('baroda')) return _BankFormat.bankOfBaroda;
   if (t.contains('hdfc bank')) {
     return t.contains('credit card') ? _BankFormat.hdfcCc : _BankFormat.hdfc;
   }
+  // HDFC CC without "HDFC Bank" text (Tata Neu Plus etc)
+  if (t.contains('tata neu') && t.contains('credit card')) return _BankFormat.hdfcCc;
+  if (t.contains('hdfc bank credit card')) return _BankFormat.hdfcCc;
   if (t.contains('state bank of india') || t.contains('sbi')) return _BankFormat.sbi;
   if (t.contains('icici bank')) return _BankFormat.icici;
   if (t.contains('axis bank')) return _BankFormat.axis;
@@ -262,6 +268,7 @@ String _bankDisplayName(_BankFormat f) {
     case _BankFormat.idfc: return 'IDFC First Bank';
     case _BankFormat.amex: return 'American Express';
     case _BankFormat.citi: return 'Citibank';
+    case _BankFormat.bankOfBaroda: return 'Bank of Baroda';
     case _BankFormat.unknown: return 'Unknown Bank';
   }
 }
@@ -630,55 +637,198 @@ String? _extractPdfText(Uint8List bytes, {String? password}) {
   }
 }
 
-/// Parses extracted PDF text into rows using bank-specific line parsers.
+/// Smart universal PDF parser — works for any bank statement format.
+/// Instead of hardcoded templates per bank, it:
+///   1. Auto-detects whether it's a savings/current account or a credit card.
+///   2. For savings/current: rebuilds wrapped narrations, then uses running-
+///      balance tracking to determine debit vs credit — no bank knowledge needed.
+///   3. For credit cards: uses sign (+/-) and payment-keyword detection.
+///   4. Cleans descriptions with format-agnostic heuristics.
+/// This handles any bank that follows standard Indian banking conventions.
 List<_ParsedRow> _parsePdfText(String text, _BankFormat bank) {
-  final lines = text.split('\n').map((l) => l.trim()).where((l) => l.isNotEmpty).toList();
-  final result = <_ParsedRow>[];
+  return _detectIsCreditCard(text) ? _parseCreditCardPdf(text) : _parseSavingsAccountPdf(text);
+}
 
-  // Generic date-anchored line parser
-  // Looks for lines that start with or contain a recognizable date pattern
-  // followed by a description and amount(s)
-  final datePattern = RegExp(
-    r'(\d{1,2}[/\-\.]\d{1,2}[/\-\.]\d{2,4}|\d{1,2}\s+[A-Za-z]{3}\s+\d{2,4})',
-  );
+// ── Format auto-detector ──────────────────────────────────────────────────────
 
-  for (var i = 0; i < lines.length; i++) {
-    final line = lines[i];
-    final dm = datePattern.firstMatch(line);
-    if (dm == null) continue;
+bool _detectIsCreditCard(String text) {
+  final t = text.toLowerCase();
+  return t.contains('credit card') ||
+      t.contains('minimum due') ||
+      t.contains('minimum amount due') ||
+      t.contains('total amount due') ||
+      t.contains('credit limit') ||
+      t.contains('available credit') ||
+      t.contains('statement balance') ||
+      t.contains('billing period') ||
+      t.contains('neucoins') || // HDFC Tata Neu
+      (t.contains('payment due') && !t.contains('savings account'));
+}
 
-    final date = _parseDate(dm.group(1)!);
+// ═══════════════════════════════════════════════════════════════════════════════
+// UNIVERSAL SAVINGS/CURRENT ACCOUNT PARSER
+// Works for: BOB, HDFC, SBI, ICICI, Axis, Kotak, IndusInd, Yes Bank, Federal,
+//            any bank whose PDF follows DATE | DESC | AMOUNT(s) | BALANCE Cr|Dr
+// Core insight: track the running balance → if prevBalance - txn ≈ newBalance
+// it's a debit; if prevBalance + txn ≈ newBalance it's a credit.
+// No per-bank knowledge required.
+// ═══════════════════════════════════════════════════════════════════════════════
+List<_ParsedRow> _parseSavingsAccountPdf(String text) {
+  final result   = <_ParsedRow>[];
+  final rawLines = text.split('\n').map((l) => l.trim()).where((l) => l.isNotEmpty).toList();
+
+  // ── Detect date format used in this specific PDF ──────────────────────────
+  // Patterns: DD-MM-YYYY, DD/MM/YYYY, DD.MM.YYYY, DDMMYYYY (rare)
+  // Also: DD MMM YYYY, DD-MMM-YY
+  final dateFmts = [
+    RegExp(r'^\d{2}-\d{2}-\d{4}\b'),  // BOB: DD-MM-YYYY
+    RegExp(r'^\d{2}/\d{2}/\d{4}\b'),  // HDFC/ICICI: DD/MM/YYYY
+    RegExp(r'^\d{2}\.\d{2}\.\d{4}\b'), // some banks: DD.MM.YYYY
+    RegExp(r'^\d{1,2}\s+[A-Za-z]{3}\s+\d{4}\b'), // SBI: D MMM YYYY
+    RegExp(r'^\d{2}-[A-Za-z]{3}-\d{4}\b'), // some: DD-MMM-YYYY
+    RegExp(r'^\d{2}-[A-Za-z]{3}-\d{2}\b'), // some: DD-MMM-YY
+  ];
+  RegExp? activeDateRx;
+  for (final rx in dateFmts) {
+    if (rawLines.any((l) => rx.hasMatch(l))) { activeDateRx = rx; break; }
+  }
+  // Fallback: any DD/MM or DD-MM style date at line start
+  activeDateRx ??= RegExp(r'^\d{1,2}[/\-\.]\d{1,2}[/\-\.]');
+
+  // ── Detect whether balance has explicit Cr|Dr suffix ─────────────────────
+  // BOB-style: "1250.00 28776.44 Cr"  — two amounts + Cr/Dr at line end
+  // HDFC-style: "1250.00  23050.00"   — last number is balance, no suffix
+  final hasCrDrSuffix = rawLines.any((l) =>
+      RegExp(r'[\d,]+\.\d{2}\s+(?:Cr|Dr)\s*$', caseSensitive: false).hasMatch(l));
+
+  final txnEndRx = hasCrDrSuffix
+      ? RegExp(r'[\d,]+\.\d{2}\s+(?:Cr|Dr)\s*$', caseSensitive: false)
+      : RegExp(r'[\d,]+\.\d{2}\s*$');
+
+  // ── Phase 1: Rebuild wrapped narration lines ──────────────────────────────
+  // A new transaction starts when the line begins with a date.
+  // Continuation lines (no date) are appended to the current buffer.
+  // We flush when the buffer matches a complete transaction ending.
+  final rebuilt = <String>[];
+  var buf = StringBuffer();
+
+  for (final line in rawLines) {
+    if (activeDateRx.hasMatch(line)) {
+      if (buf.isNotEmpty) rebuilt.add(buf.toString().trim());
+      buf = StringBuffer(line);
+    } else if (buf.isNotEmpty) {
+      buf.write(' $line');
+    }
+    if (buf.isNotEmpty && txnEndRx.hasMatch(buf.toString())) {
+      rebuilt.add(buf.toString().trim());
+      buf = StringBuffer();
+    }
+  }
+  if (buf.isNotEmpty) rebuilt.add(buf.toString().trim());
+
+  // ── Phase 2: Parse each rebuilt line ─────────────────────────────────────
+  // Amount pattern: numbers with exactly 2 decimal places, possibly comma-
+  // separated. We deliberately exclude numbers without decimals to avoid
+  // matching reference numbers like 111243113217.
+  final amtRx = RegExp(r'([\d,]+\.\d{2})(?:\s+(Cr|Dr))?', caseSensitive: false);
+
+  double prevBalance = 0;
+  bool  prevBalanceSet = false;
+
+  for (final line in rebuilt) {
+    final lo = line.toLowerCase();
+
+    // ── Skip non-transaction lines ──────────────────────────────────────────
+    if (lo.contains('date') && (lo.contains('narration') || lo.contains('description') ||
+        lo.contains('particulars'))) continue;
+    if (lo.contains('opening balance') || lo.contains('closing balance') ||
+        lo.contains('b/f') || lo.contains('brought forward')) {
+      // Capture opening balance for tracking
+      final m = amtRx.allMatches(line).toList();
+      if (m.isNotEmpty) {
+        final lastM = m.last;
+        final bal = double.tryParse(lastM.group(1)!.replaceAll(',', ''));
+        if (bal != null) {
+          final dir = lastM.group(2)?.toUpperCase() ?? 'CR';
+          prevBalance = dir == 'DR' ? -bal : bal;
+          prevBalanceSet = true;
+        }
+      }
+      continue;
+    }
+    if (lo.contains('page ') && lo.contains('|')) continue;
+    if (lo.startsWith('http') || lo.contains('customer care') ||
+        lo.contains('toll free') || lo.contains('1800 5')) continue;
+    if (lo.contains('fixed deposit') || lo.contains('term deposit') ||
+        lo.contains('abbreviation') || lo.contains('nominee')) continue;
+    if (lo.contains('summary of') || lo.contains('account number') && lo.length < 30) continue;
+
+    // ── Extract date ────────────────────────────────────────────────────────
+    final dateM = activeDateRx.firstMatch(line);
+    if (dateM == null) continue;
+    final date = _parseDate(line.substring(dateM.start, dateM.end).trim());
     if (date == null) continue;
 
-    // Extract amounts from the line (numbers with optional decimals)
-    final amounts = RegExp(r'[\d,]+\.?\d{0,2}').allMatches(line)
-        .map((m) => double.tryParse(m.group(0)!.replaceAll(',', '')))
-        .where((v) => v != null && v > 0)
-        .cast<double>()
-        .toList();
-    if (amounts.isEmpty) continue;
+    // ── Extract all amounts from the line ───────────────────────────────────
+    // Each match: group(1)=number string, group(2)=Cr|Dr suffix (may be null)
+    final amtMatches = amtRx.allMatches(line).toList();
+    if (amtMatches.isEmpty) continue;
 
-    // Description: text between the date match and the first number
-    var desc = line.substring(dm.end).trim();
-    // Remove leading reference numbers
-    desc = desc.replaceAll(RegExp(r'^\d{6,}\s*'), '').trim();
-    // Remove trailing amounts
-    desc = desc.replaceAll(RegExp(r'[\d,]+\.?\d{0,2}\s*$'), '').trim();
-    if (desc.length < 3) {
-      // Try merging with next line if it looks like a continuation
-      if (i + 1 < lines.length && !datePattern.hasMatch(lines[i + 1])) {
-        desc = lines[i + 1].replaceAll(RegExp(r'[\d,]+\.?\d{0,2}'), '').trim();
+    // The LAST amount in the line is the running balance
+    final balMatch  = amtMatches.last;
+    final balStr    = balMatch.group(1)!.replaceAll(',', '');
+    final balDirStr = balMatch.group(2)?.toUpperCase() ?? 'CR';
+    final balance   = double.tryParse(balStr);
+    if (balance == null) continue;
+    final newBalance = balDirStr == 'DR' ? -balance : balance;
+
+    // Transaction amount(s): all amounts except the last (balance) one
+    final txnMatches = amtMatches.length > 1
+        ? amtMatches.sublist(0, amtMatches.length - 1)
+        : amtMatches; // single amount — might be balance or txn; handle below
+
+    // If there is only one amount in the line AND no prior balance context,
+    // skip (we can't determine debit/credit reliably)
+    if (txnMatches.isEmpty) continue;
+
+    // Pick the transaction amount: use the last of the non-balance amounts.
+    // Banks with separate debit/credit columns will show only one non-zero value.
+    final txnStr = txnMatches.last.group(1)!.replaceAll(',', '');
+    final amount = double.tryParse(txnStr);
+    if (amount == null || amount <= 0) continue;
+
+    // ── Determine debit vs credit using balance tracking ────────────────────
+    bool isDebit;
+    if (!prevBalanceSet || prevBalance == 0) {
+      // No prior balance — fall back to keyword / direction heuristics
+      isDebit = _isTxnDebitByKeyword(line);
+    } else {
+      final errDebit  = (prevBalance - amount - newBalance).abs();
+      final errCredit = (prevBalance + amount - newBalance).abs();
+      // Allow a small tolerance for rounding (0.02)
+      if ((errDebit - errCredit).abs() < 0.02) {
+        isDebit = _isTxnDebitByKeyword(line);
+      } else {
+        isDebit = errDebit < errCredit;
       }
     }
-    if (desc.length < 3) continue;
+    prevBalance    = newBalance;
+    prevBalanceSet = true;
 
-    // For debit/credit split: try to determine direction from keywords
-    final isDebit = _isDebitLine(line, bank);
+    // ── Extract description ─────────────────────────────────────────────────
+    final afterDate = line.substring(dateM.end).trim();
+    // Description ends just before the first amount
+    final firstAmtStart = amtMatches.first.start - (line.length - afterDate.length);
+    var desc = firstAmtStart > 0
+        ? afterDate.substring(0, firstAmtStart.clamp(0, afterDate.length)).trim()
+        : afterDate.replaceAll(amtRx, ' ').trim();
+    desc = _cleanUniversalDesc(desc);
+    if (desc.length < 2) continue;
 
     result.add(_ParsedRow(
       date: date,
       description: desc,
-      amount: amounts.first,
+      amount: amount,
       isDebit: isDebit,
       rawLine: line,
     ));
@@ -686,14 +836,243 @@ List<_ParsedRow> _parsePdfText(String text, _BankFormat bank) {
   return result;
 }
 
-bool _isDebitLine(String line, _BankFormat bank) {
+// ── Keyword-based debit/credit for when balance tracking isn't possible ──────
+bool _isTxnDebitByKeyword(String line) {
   final l = line.toLowerCase();
-  if (l.contains('cr ') || l.contains(' cr') || l.contains('credit') ||
-      l.contains('deposit') || l.contains('salary')) return false;
-  if (l.contains('dr ') || l.contains(' dr') || l.contains('debit') ||
-      l.contains('withdrawal') || l.contains('payment')) return true;
-  // Default: assume debit if no signal
-  return true;
+  // Strong credit signals
+  if (l.contains('achcr') || l.contains('salary') || l.contains('refund') ||
+      l.contains('dividend') || l.contains('interest credit') ||
+      l.contains('neft cr') || l.contains('rtgs cr') || l.contains('cr ')) return false;
+  // Strong debit signals
+  if (l.contains('achdr') || l.contains('dcardfee') || l.contains('withdrawal') ||
+      l.contains('chgs') || l.contains('fee') || l.contains('dr ') ||
+      l.contains('upi')) return true;
+  return true; // default: debit
+}
+
+// ── Universal description cleaner ────────────────────────────────────────────
+// Works across all banks: cleans UPI handles, NEFT/RTGS refs, ACH codes,
+// reference numbers, and other bank-specific noise without per-bank knowledge.
+String _cleanUniversalDesc(String raw) {
+  var d = raw.trim();
+
+  // UPI/refNo/time/UPI/handle@bank or UPI-MERCHANT NAME
+  if (RegExp(r'^UPI/', caseSensitive: false).hasMatch(d)) {
+    final parts = d.split('/');
+    // Parts: [UPI, refNo, time, UPI, handle, ...]
+    // Try to get the human-readable part after the last slash
+    final handle = parts.length >= 5 ? parts[4] : parts.last;
+    final name   = handle.split('@').first.trim();
+    if (name.length > 2) return 'UPI: $name';
+  }
+  if (d.toUpperCase().startsWith('UPI-')) d = d.substring(4).trim();
+
+  // ACHDR/EntityName/.../... → "ACH Debit: EntityName"
+  if (RegExp(r'^ACHDR/', caseSensitive: false).hasMatch(d)) {
+    final entity = d.split('/').skip(1).first.trim();
+    if (entity.isNotEmpty) return 'ACH Debit: $entity';
+  }
+  // ACHCR/EntityName/.../... → "ACH Credit: EntityName"
+  if (RegExp(r'^ACHCR/', caseSensitive: false).hasMatch(d)) {
+    final entity = d.split('/').skip(1).first.trim();
+    if (entity.isNotEmpty) return 'ACH Credit: $entity';
+  }
+
+  // NEFT-XXXXXXXXrefXXX-Name or NEFT/... → "NEFT: Name"
+  if (RegExp(r'^NEFT[-/]', caseSensitive: false).hasMatch(d)) {
+    final rem = d.substring(5).replaceAll(RegExp(r'^[A-Z0-9]{8,}\s*[-/\s]?'), '').trim();
+    if (rem.length > 2) return 'NEFT: $rem';
+  }
+  // RTGS-... → similar
+  if (RegExp(r'^RTGS[-/]', caseSensitive: false).hasMatch(d)) {
+    final rem = d.substring(5).replaceAll(RegExp(r'^[A-Z0-9]{8,}\s*[-/\s]?'), '').trim();
+    if (rem.length > 2) return 'RTGS: $rem';
+  }
+
+  // IMPS/..., NACH/..., ENACH/... → standardise prefix
+  for (final prefix in ['IMPS', 'NACH', 'ENACH', 'ECS', 'SI', 'MBK']) {
+    if (d.toUpperCase().startsWith('$prefix/') || d.toUpperCase().startsWith('$prefix-')) {
+      final rem = d.substring(prefix.length + 1);
+      // Remove leading long numeric ref
+      final clean = rem.replaceAll(RegExp(r'^[\d/]{6,}\s*/?'), '').trim();
+      return clean.length > 2 ? '$prefix: $clean' : '$prefix $rem';
+    }
+  }
+
+  // Remove embedded long reference numbers (8+ digits) that aren't part of a word
+  d = d.replaceAll(RegExp(r'(?<!\w)\d{8,}(?!\w)'), '').trim();
+  // Remove long alphanumeric codes (reference/transaction IDs)
+  d = d.replaceAll(RegExp(r'\b[A-Z0-9]{12,}\b'), '').trim();
+  // Remove trailing slashes or hyphens
+  d = d.replaceAll(RegExp(r'[/\-]+\s*$'), '').trim();
+  // Collapse whitespace
+  d = d.replaceAll(RegExp(r'\s{2,}'), ' ').trim();
+  return d.isNotEmpty ? d : raw.trim();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// UNIVERSAL CREDIT CARD PDF PARSER
+// Works for: HDFC CC, ICICI CC, Axis CC, SBI Card, any credit card statement.
+// Core insight:
+//  - Transaction rows have date + time (or just date) + description + amount
+//  - A '+' sign (or payment keyword) before the amount = credit (payment received)
+//  - Absence of '+' = debit (purchase)
+//  - Currency symbol can be ₹, C (PDF artefact), Rs, $ — all handled
+// ═══════════════════════════════════════════════════════════════════════════════
+// Regex that identifies a line as the START of a credit card transaction
+final _ccDateStartRx = RegExp(
+  r'^\d{2}[/\-\.]\d{2}[/\-\.]\d{2,4}[\||\s]',
+);
+
+List<_ParsedRow> _parseCreditCardPdf(String text) {
+  final result    = <_ParsedRow>[];
+  final rawLines  = text.split('\n').map((l) => l.trim()).where((l) => l.isNotEmpty).toList();
+
+  // ── Phase 1: Rebuild wrapped CC transaction lines ─────────────────────────
+  // HDFC Tata Neu CC (and others) often split a single transaction line at a
+  // column boundary, e.g.:
+  //   "02/03/2026| 20:01 BPPY CC PAYMENT DP016061200... (Ref#"
+  //   "ST26063...520) +  C 1,100.00 l"
+  // We detect a new transaction start by the date-at-start pattern and flush
+  // when we see a currency+amount at the end of the buffer.
+  final ccAmtEndRx = RegExp(
+    r'(?:[C₹]|Rs\.?|INR)\s*[\d,]+\.\d{2}',
+    caseSensitive: false,
+  );
+
+  final rebuilt = <String>[];
+  var buf = StringBuffer();
+
+  for (final line in rawLines) {
+    if (_ccDateStartRx.hasMatch(line)) {
+      if (buf.isNotEmpty) rebuilt.add(buf.toString().trim());
+      buf = StringBuffer(line);
+    } else if (buf.isNotEmpty) {
+      buf.write(' $line');
+    } else {
+      rebuilt.add(line); // non-transaction line, keep as-is
+    }
+    // Flush when we see a currency amount (transaction is complete)
+    if (buf.isNotEmpty && ccAmtEndRx.hasMatch(buf.toString())) {
+      rebuilt.add(buf.toString().trim());
+      buf = StringBuffer();
+    }
+  }
+  if (buf.isNotEmpty) rebuilt.add(buf.toString().trim());
+
+  // Pattern A: DD/MM/YYYY| HH:MM description [+] CURR amount
+  //   (HDFC CC, ICICI CC with time component)
+  // Pattern B: DD/MM/YYYY description [+] CURR amount
+  //   (SBI Card, Axis CC — date only)
+  // Pattern C: DD-MMM-YYYY description + CURR amount
+  //   (Amex, Citibank)
+  // We try all patterns on each line.
+
+  final currRx = r'(?:[C₹]|Rs\.?|INR)\s*'; // currency symbol variants
+  final amtRx  = r'([\d,]+\.\d{2})';
+
+  final patterns = [
+    // With time and pipe: DD/MM/YYYY| HH:MM
+    RegExp(
+      r'^(\d{2}/\d{2}/\d{4})\|\s*\d{2}:\d{2}\s+(.+?)\s*(\+)?\s*' + currRx + amtRx,
+      caseSensitive: false,
+    ),
+    // With time, no pipe: DD/MM/YYYY HH:MM
+    RegExp(
+      r'^(\d{2}/\d{2}/\d{4})\s+\d{2}:\d{2}\s+(.+?)\s*(\+)?\s*' + currRx + amtRx,
+      caseSensitive: false,
+    ),
+    // Date only, slash: DD/MM/YYYY
+    RegExp(
+      r'^(\d{2}/\d{2}/\d{4})\s+(.+?)\s*(\+)?\s*' + currRx + amtRx,
+      caseSensitive: false,
+    ),
+    // Date only, dash: DD-MM-YYYY or DD-MMM-YYYY
+    RegExp(
+      r'^(\d{2}[-\./]\d{2}[-\./]\d{4}|\d{2}-[A-Za-z]{3}-\d{4})\s+(.+?)\s*(\+)?\s*' + currRx + amtRx,
+      caseSensitive: false,
+    ),
+    // Fallback: any date + amount preceded by currency symbol
+    RegExp(
+      r'(\d{1,2}[/\-\.]\d{1,2}[/\-\.]\d{2,4})\b.+?(\+)?\s*' + currRx + amtRx,
+      caseSensitive: false,
+    ),
+  ];
+
+  for (final line in rebuilt) {
+    // Skip header/footer lines
+    final lo = line.toLowerCase();
+    if (lo.contains('date') && (lo.contains('description') || lo.contains('transaction'))) continue;
+    if (lo.contains('total') && lo.contains('due')) continue;
+    if (lo.contains('minimum') && lo.contains('due')) continue;
+    if (lo.contains('previous statement') || lo.contains('payments/credit')) continue;
+    if (lo.contains('page ') || lo.startsWith('http')) continue;
+
+    for (final rx in patterns) {
+      final m = rx.firstMatch(line);
+      if (m == null) continue;
+
+      final dateStr = m.group(1)!;
+      final desc    = m.group(2)!.trim();
+      final hasPlus = m.group(3) != null;
+      final amtStr  = m.group(4)!.replaceAll(',', '');
+
+      final date = _parseDate(dateStr);
+      if (date == null) break;
+
+      final amount = double.tryParse(amtStr);
+      if (amount == null || amount <= 0) break;
+
+      // Determine debit/credit
+      final descUp = desc.toUpperCase();
+      final isPayment = hasPlus ||
+          descUp.contains('CC PAYMENT') ||
+          descUp.contains('PAYMENT RECEIVED') ||
+          descUp.contains('AUTOPAY') ||
+          descUp.contains('BILL PAYMENT') ||
+          descUp.contains('ONLINE PAYMENT') ||
+          descUp.contains('BPPY CC') ||
+          descUp.contains('CREDIT ADJUSTMENT') ||
+          descUp.contains('REFUND');
+
+      result.add(_ParsedRow(
+        date: date,
+        description: _cleanCreditCardDesc(desc),
+        amount: amount,
+        isDebit: !isPayment,
+        rawLine: line,
+      ));
+      break; // matched — stop trying patterns
+    }
+  }
+  return result;
+}
+
+/// Cleans credit-card transaction descriptions regardless of issuing bank.
+String _cleanCreditCardDesc(String raw) {
+  var d = raw.trim();
+
+  // Structured payment ref: "BPPY CC PAYMENT DPxxx (Ref# STxxx)" → "CC Payment"
+  if (d.toUpperCase().contains('CC PAYMENT') || d.toUpperCase().startsWith('BPPY CC')) {
+    return 'CC Payment';
+  }
+
+  // Remove parenthesised reference blocks: (Ref# ...), (Ref No ...), (TXN ...)
+  d = d.replaceAll(RegExp(r'\s*\([Rr]ef[#\s]\w+\)', caseSensitive: false), '').trim();
+  d = d.replaceAll(RegExp(r'\s*\([Tt]xn\s*[#:]\s*\w+\)', caseSensitive: false), '').trim();
+
+  // Remove inline reference codes like DP016061..., ST2606..., AX996..., P3...
+  d = d.replaceAll(RegExp(r'\b[A-Z]{2}\d{8,}\w*', caseSensitive: false), '').trim();
+
+  // Remove trailing alphanumeric codes (no spaces, 8+ chars)
+  d = d.replaceAll(RegExp(r'\s+[A-Z0-9]{8,}\s*$', caseSensitive: false), '').trim();
+
+  // Remove "UPI-" prefix
+  if (d.toUpperCase().startsWith('UPI-')) d = d.substring(4).trim();
+
+  // Collapse whitespace
+  d = d.replaceAll(RegExp(r'\s{2,}'), ' ').trim();
+  return d.isNotEmpty ? d : raw.trim();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -894,7 +1273,14 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
     setState(() { _passwordError = null; });
 
     if (_fileFormat == _FileFormat.pdf) {
-      final text = _extractPdfText(_fileBytes!, password: pwd);
+      // Try the entered password, then UPPERCASE and lowercase variants
+      // (some banks use UPPERCASE passwords, e.g. HDFC/BOB DOB-based passwords)
+      final variants = {pwd, pwd.toUpperCase(), pwd.toLowerCase()}.toList();
+      String? text;
+      for (final variant in variants) {
+        text = _extractPdfText(_fileBytes!, password: variant);
+        if (text != null) break;
+      }
       if (text == null) {
         setState(() => _passwordError = 'Incorrect password. Please try again.');
         return;
