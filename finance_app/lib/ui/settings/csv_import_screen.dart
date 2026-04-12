@@ -647,15 +647,192 @@ String? _extractPdfText(Uint8List bytes, {String? password}) {
 }
 
 /// Smart universal PDF parser — works for any bank statement format.
-/// Instead of hardcoded templates per bank, it:
-///   1. Auto-detects whether it's a savings/current account or a credit card.
-///   2. For savings/current: rebuilds wrapped narrations, then uses running-
-///      balance tracking to determine debit vs credit — no bank knowledge needed.
-///   3. For credit cards: uses sign (+/-) and payment-keyword detection.
-///   4. Cleans descriptions with format-agnostic heuristics.
-/// This handles any bank that follows standard Indian banking conventions.
+/// Tries multiple strategies in order and returns first non-empty result.
 List<_ParsedRow> _parsePdfText(String text, _BankFormat bank) {
-  return _detectIsCreditCard(text) ? _parseCreditCardPdf(text) : _parseSavingsAccountPdf(text);
+  final isCC = _detectIsCreditCard(text);
+
+  // Strategy 1: Line-based parser (primary, works when Syncfusion gives row-by-row text)
+  var rows = isCC ? _parseCreditCardPdf(text) : _parseSavingsAccountPdf(text);
+  if (rows.isNotEmpty) return rows;
+
+  // Strategy 2: Swap type (in case CC detection was wrong)
+  rows = isCC ? _parseSavingsAccountPdf(text) : _parseCreditCardPdf(text);
+  if (rows.isNotEmpty) return rows;
+
+  // Strategy 3: Multiline/full-text savings parser
+  // Works when Syncfusion gives columnar or non-line-structured output
+  rows = _parseSavingsMultiline(text);
+  if (rows.isNotEmpty) return rows;
+
+  // Strategy 4: Multiline credit card parser
+  rows = _parseCreditCardMultiline(text);
+  return rows;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MULTILINE SAVINGS PARSER
+// Scans entire text as a blob — finds date positions, extracts the segment
+// between consecutive dates, pulls amounts+balance from it.
+// Works when Syncfusion gives columnar/non-row-structured output.
+// ═══════════════════════════════════════════════════════════════════════════════
+List<_ParsedRow> _parseSavingsMultiline(String text) {
+  final result = <_ParsedRow>[];
+
+  // Pick the date format that appears most often in the text
+  final dateFmts = [
+    RegExp(r'\b(\d{2}-\d{2}-\d{4})\b'),   // DD-MM-YYYY
+    RegExp(r'\b(\d{2}/\d{2}/\d{4})\b'),   // DD/MM/YYYY
+    RegExp(r'\b(\d{2}\.\d{2}\.\d{4})\b'), // DD.MM.YYYY
+    RegExp(r'\b(\d{1,2}\s+[A-Za-z]{3}\s+\d{4})\b'), // D MMM YYYY
+  ];
+
+  RegExp? dateRx;
+  int maxCount = 0;
+  for (final rx in dateFmts) {
+    final c = rx.allMatches(text).length;
+    if (c > maxCount) { maxCount = c; dateRx = rx; }
+  }
+  if (dateRx == null || maxCount < 2) return result;
+
+  final allDateM = dateRx.allMatches(text).toList();
+  final amtRx   = RegExp(r'([\d,]+\.\d{2})', caseSensitive: false);
+  final balDirRx = RegExp(r'([\d,]+\.\d{2})\s+(Cr|Dr)\b', caseSensitive: false);
+
+  double prevBalance = 0;
+  bool   prevSet = false;
+
+  for (var i = 0; i < allDateM.length; i++) {
+    final dm = allDateM[i];
+
+    // Segment from this date to next date (max 600 chars to avoid overlap)
+    final segEnd = i + 1 < allDateM.length
+        ? allDateM[i + 1].start
+        : (dm.start + 600 < text.length ? dm.start + 600 : text.length);
+    final segment = text.substring(dm.start, segEnd);
+    final segLo   = segment.toLowerCase();
+
+    // Capture opening/closing balance for tracking; skip as transactions
+    if (segLo.contains('opening balance') || segLo.contains('closing balance') ||
+        segLo.contains('brought forward') || segLo.contains('b/f')) {
+      final bm = balDirRx.firstMatch(segment);
+      if (bm != null) {
+        final v = double.tryParse(bm.group(1)!.replaceAll(',', ''));
+        if (v != null) {
+          prevBalance = (bm.group(2)?.toUpperCase() ?? 'CR') == 'DR' ? -v : v;
+          prevSet = true;
+        }
+      }
+      continue;
+    }
+
+    // Skip header rows
+    if (segLo.contains('narration') || segLo.contains('particulars') ||
+        segLo.contains('withdrawal') || segLo.contains('deposit') &&
+        segLo.contains('balance')) continue;
+
+    // All amounts in this segment
+    final allAmts = amtRx.allMatches(segment).toList();
+    if (allAmts.isEmpty) continue;
+
+    // Balance = last amount with Cr/Dr suffix; fallback = last amount
+    final balMatches = balDirRx.allMatches(segment).toList();
+    double newBalance;
+    int balStart;
+    if (balMatches.isNotEmpty) {
+      final bm = balMatches.last;
+      final v  = double.tryParse(bm.group(1)!.replaceAll(',', ''));
+      if (v == null) continue;
+      newBalance = (bm.group(2)?.toUpperCase() ?? 'CR') == 'DR' ? -v : v;
+      balStart = bm.start;
+    } else if (allAmts.length >= 2) {
+      final v = double.tryParse(allAmts.last.group(1)!.replaceAll(',', ''));
+      if (v == null) continue;
+      newBalance = v;
+      balStart   = allAmts.last.start;
+    } else {
+      continue;
+    }
+
+    // Transaction amounts = all amounts before the balance
+    final txnAmts = allAmts.where((m) => m.start < balStart).toList();
+    if (txnAmts.isEmpty) continue;
+    final txnAmt = double.tryParse(txnAmts.last.group(1)!.replaceAll(',', ''));
+    if (txnAmt == null || txnAmt <= 0) continue;
+
+    // Debit/credit via balance tracking
+    bool isDebit;
+    if (!prevSet) {
+      isDebit = _isTxnDebitByKeyword(segment);
+    } else {
+      final eD = (prevBalance - txnAmt - newBalance).abs();
+      final eC = (prevBalance + txnAmt - newBalance).abs();
+      isDebit   = (eD - eC).abs() < 0.02 ? _isTxnDebitByKeyword(segment) : eD < eC;
+    }
+    prevBalance = newBalance;
+    prevSet     = true;
+
+    // Description: text between date and first amount
+    final dateStr  = dm.group(0)!;
+    final afterDate = segment.substring(dateStr.length);
+    final firstAmt  = amtRx.firstMatch(afterDate);
+    var desc = firstAmt != null
+        ? afterDate.substring(0, firstAmt.start).trim()
+        : afterDate.replaceAll(amtRx, ' ').trim();
+    desc = desc.replaceAll(RegExp(r'\s+'), ' ').trim();
+    desc = _cleanUniversalDesc(desc);
+    if (desc.length < 2) continue;
+
+    final date = _parseDate(dateStr);
+    if (date == null) continue;
+
+    result.add(_ParsedRow(date: date, description: desc, amount: txnAmt, isDebit: isDebit));
+  }
+  return result;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MULTILINE CREDIT CARD PARSER
+// Scans entire text for date+time blocks followed by a currency amount.
+// Works when Syncfusion breaks CC transaction lines unpredictably.
+// ═══════════════════════════════════════════════════════════════════════════════
+List<_ParsedRow> _parseCreditCardMultiline(String text) {
+  final result = <_ParsedRow>[];
+
+  // Combined pattern: date (with optional pipe+time) then up to 300 chars then amount
+  // multiline-safe because we operate on the full text blob
+  final txnRx = RegExp(
+    r'(\d{2}[/\-]\d{2}[/\-]\d{4})(?:\|?\s*\d{2}:\d{2})?\s+'
+    r'((?:(?!(?:\d{2}[/\-]\d{2}[/\-]\d{4})).){1,300}?)'
+    r'\s*(\+)?\s*(?:[C₹]|Rs\.?|INR)\s*([\d,]+\.\d{2})',
+    caseSensitive: false,
+    dotAll: true, // . matches \n too
+  );
+
+  for (final m in txnRx.allMatches(text)) {
+    final dateStr = m.group(1)!;
+    final desc    = (m.group(2) ?? '').replaceAll(RegExp(r'\s+'), ' ').trim();
+    final hasPlus = m.group(3) != null;
+    final amtStr  = m.group(4)!.replaceAll(',', '');
+
+    final date   = _parseDate(dateStr);
+    final amount = double.tryParse(amtStr);
+    if (date == null || amount == null || amount <= 0) continue;
+    if (desc.isEmpty) continue;
+
+    final descUp   = desc.toUpperCase();
+    final isPayment = hasPlus ||
+        descUp.contains('CC PAYMENT') || descUp.contains('PAYMENT RECEIVED') ||
+        descUp.contains('AUTOPAY')    || descUp.contains('BPPY CC') ||
+        descUp.contains('REFUND')     || descUp.contains('CREDIT ADJUSTMENT');
+
+    result.add(_ParsedRow(
+      date: date,
+      description: _cleanCreditCardDesc(desc),
+      amount: amount,
+      isDebit: !isPayment,
+    ));
+  }
+  return result;
 }
 
 // ── Format auto-detector ──────────────────────────────────────────────────────
@@ -1129,6 +1306,7 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
   bool _showPassword = false;
   String? _passwordError;
   bool _isProcessing = false; // true while PDF decryption/parsing is running
+  String? _lastExtractedText;  // raw PDF text — used for debug copy
 
   // Paste mode
   bool _pasteMode = false;
@@ -1211,13 +1389,13 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
         });
         return;
       }
+      _lastExtractedText = text;
       final bank = _detectBankFromText(text);
       final rows = await Future(() => _parsePdfText(text, bank));
       if (!mounted) return;
       setState(() => _isProcessing = false);
       if (rows.isEmpty) {
-        _showError('Could not extract transactions from this PDF.\n\n'
-            'Try exporting your statement as CSV from your bank\'s app or website.');
+        _showPdfError();
         return;
       }
       setState(() {
@@ -1312,6 +1490,7 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
       }
 
       // Parse off UI thread too — can be slow on large statements
+      _lastExtractedText = text;
       final bank  = _detectBankFromText(text);
       final rows  = await Future(() => _parsePdfText(text!, bank));
 
@@ -1319,8 +1498,7 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
       setState(() => _isProcessing = false);
 
       if (rows.isEmpty) {
-        _showError('Could not extract transactions from this PDF.\n\n'
-            'Try exporting your statement as CSV from your bank\'s app or website.');
+        _showPdfError();
         return;
       }
       setState(() {
@@ -1438,6 +1616,61 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
         content: Text(msg),
         actions: [
           CupertinoDialogAction(child: const Text('OK'), onPressed: () => Navigator.of(ctx).pop()),
+        ],
+      ),
+    );
+  }
+
+  /// Special PDF parse-failure dialog: shows first 500 chars of extracted text
+  /// so the user can copy it and share for diagnosis.
+  void _showPdfError() {
+    final raw = _lastExtractedText ?? '';
+    final preview = raw.isEmpty
+        ? '(no text extracted)'
+        : raw.length > 500 ? raw.substring(0, 500) : raw;
+
+    showCupertinoDialog(
+      context: context,
+      builder: (ctx) => CupertinoAlertDialog(
+        title: const Text('Could Not Read PDF'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'The PDF was decrypted but no transactions could be parsed.\n\n'
+              'Copy the raw text below and share it — this helps fix the parser for your bank format.',
+              style: TextStyle(fontSize: 13),
+            ),
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: CupertinoColors.systemGrey6,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                preview,
+                style: const TextStyle(fontSize: 10, fontFamily: 'Courier'),
+                maxLines: 12,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          CupertinoDialogAction(
+            child: const Text('Copy Raw Text'),
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: raw));
+              Navigator.of(ctx).pop();
+            },
+          ),
+          CupertinoDialogAction(
+            isDefaultAction: true,
+            child: const Text('OK'),
+            onPressed: () => Navigator.of(ctx).pop(),
+          ),
         ],
       ),
     );
