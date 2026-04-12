@@ -624,14 +624,23 @@ List<List<String>> _parseExcelBytes(Uint8List bytes) {
 }
 
 /// Extracts text from PDF bytes using Syncfusion, optionally with password.
-/// Returns null if wrong password.
+/// Returns null if wrong password or extraction failed.
 String? _extractPdfText(Uint8List bytes, {String? password}) {
   try {
     final doc = PdfDocument(inputBytes: bytes, password: password ?? '');
     final extractor = PdfTextExtractor(doc);
-    final text = extractor.extractText();
+
+    // Extract page by page and join — more reliable than extractText() alone
+    // because some banks' PDFs have per-page text streams Syncfusion handles better.
+    final buf = StringBuffer();
+    for (var i = 0; i < doc.pages.count; i++) {
+      final pageText = extractor.extractText(startPageIndex: i, endPageIndex: i);
+      if (pageText.isNotEmpty) buf.writeln(pageText);
+    }
     doc.dispose();
-    return text;
+
+    final text = buf.toString().trim();
+    return text.isEmpty ? null : text; // return null if nothing extracted
   } catch (e) {
     return null;
   }
@@ -675,7 +684,10 @@ bool _detectIsCreditCard(String text) {
 // ═══════════════════════════════════════════════════════════════════════════════
 List<_ParsedRow> _parseSavingsAccountPdf(String text) {
   final result   = <_ParsedRow>[];
-  final rawLines = text.split('\n').map((l) => l.trim()).where((l) => l.isNotEmpty).toList();
+
+  // Normalise line endings — Syncfusion sometimes emits \r\n or just \r
+  final normalised = text.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
+  final rawLines = normalised.split('\n').map((l) => l.trim()).where((l) => l.isNotEmpty).toList();
 
   // ── Detect date format used in this specific PDF ──────────────────────────
   // Patterns: DD-MM-YYYY, DD/MM/YYYY, DD.MM.YYYY, DDMMYYYY (rare)
@@ -992,9 +1004,10 @@ List<_ParsedRow> _parseCreditCardPdf(String text) {
       r'^(\d{2}[-\./]\d{2}[-\./]\d{4}|\d{2}-[A-Za-z]{3}-\d{4})\s+(.+?)\s*(\+)?\s*' + currRx + amtRx,
       caseSensitive: false,
     ),
-    // Fallback: any date + amount preceded by currency symbol
+    // Fallback: any date anywhere in line + description + amount
+    // Group structure kept consistent: (date)(desc)(+?)(amount)
     RegExp(
-      r'(\d{1,2}[/\-\.]\d{1,2}[/\-\.]\d{2,4})\b.+?(\+)?\s*' + currRx + amtRx,
+      r'(\d{1,2}[/\-\.]\d{1,2}[/\-\.]\d{2,4})\s+(.+?)\s*(\+)?\s*' + currRx + amtRx,
       caseSensitive: false,
     ),
   ];
@@ -1115,6 +1128,7 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
   final _passwordCtrl = TextEditingController();
   bool _showPassword = false;
   String? _passwordError;
+  bool _isProcessing = false; // true while PDF decryption/parsing is running
 
   // Paste mode
   bool _pasteMode = false;
@@ -1180,20 +1194,37 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
     }
   }
 
-  void _processFile() {
+  Future<void> _processFile() async {
     if (_fileBytes == null) return;
 
     if (_fileFormat == _FileFormat.pdf) {
-      final text = _extractPdfText(_fileBytes!);
+      setState(() => _isProcessing = true);
+      final bytes = _fileBytes!;
+      final text  = await Future(() => _extractPdfText(bytes));
+      if (!mounted) return;
       if (text == null) {
         // Likely password-protected
         setState(() {
+          _isProcessing = false;
           _needsPassword = true;
           _step = _ImportStep.password;
         });
         return;
       }
-      _processPdfText(text);
+      final bank = _detectBankFromText(text);
+      final rows = await Future(() => _parsePdfText(text, bank));
+      if (!mounted) return;
+      setState(() => _isProcessing = false);
+      if (rows.isEmpty) {
+        _showError('Could not extract transactions from this PDF.\n\n'
+            'Try exporting your statement as CSV from your bank\'s app or website.');
+        return;
+      }
+      setState(() {
+        _detectedBank = bank;
+        _parsedRows   = rows;
+        _step         = _ImportStep.accountPick;
+      });
       return;
     }
 
@@ -1250,47 +1281,58 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
     }
   }
 
-  void _processPdfText(String text) {
-    final bank = _detectBankFromText(text);
-    final rows = _parsePdfText(text, bank);
-    if (rows.isEmpty) {
-      _showError('Could not extract transactions from this PDF.\n\nTry exporting your statement as CSV from your bank\'s app or website.');
-      return;
-    }
-    setState(() {
-      _detectedBank = bank;
-      _parsedRows = rows;
-      _step = _ImportStep.accountPick;
-    });
-  }
 
-  void _submitPassword() {
+  Future<void> _submitPassword() async {
     final pwd = _passwordCtrl.text.trim();
     if (pwd.isEmpty) {
       setState(() => _passwordError = 'Please enter the file password.');
       return;
     }
-    setState(() { _passwordError = null; });
+    setState(() { _passwordError = null; _isProcessing = true; });
 
     if (_fileFormat == _FileFormat.pdf) {
-      // Try the entered password, then UPPERCASE and lowercase variants
-      // (some banks use UPPERCASE passwords, e.g. HDFC/BOB DOB-based passwords)
+      // Run heavy PDF work off the UI thread
+      final bytes = _fileBytes!;
       final variants = {pwd, pwd.toUpperCase(), pwd.toLowerCase()}.toList();
+
       String? text;
       for (final variant in variants) {
-        text = _extractPdfText(_fileBytes!, password: variant);
+        // Use Future.microtask so the loading indicator renders before blocking
+        text = await Future(() => _extractPdfText(bytes, password: variant));
         if (text != null) break;
       }
+
+      if (!mounted) return;
       if (text == null) {
-        setState(() => _passwordError = 'Incorrect password. Please try again.');
+        setState(() {
+          _isProcessing = false;
+          _passwordError = 'Incorrect password. Please try again.';
+        });
         return;
       }
-      _processPdfText(text);
+
+      // Parse off UI thread too — can be slow on large statements
+      final bank  = _detectBankFromText(text);
+      final rows  = await Future(() => _parsePdfText(text!, bank));
+
+      if (!mounted) return;
+      setState(() => _isProcessing = false);
+
+      if (rows.isEmpty) {
+        _showError('Could not extract transactions from this PDF.\n\n'
+            'Try exporting your statement as CSV from your bank\'s app or website.');
+        return;
+      }
+      setState(() {
+        _detectedBank = bank;
+        _parsedRows   = rows;
+        _step         = _ImportStep.accountPick;
+      });
       return;
     }
 
+    setState(() => _isProcessing = false);
     // For Excel password-protected files, the excel package doesn't support it natively.
-    // Show informative message.
     setState(() {
       _passwordError = 'Password-protected Excel files are not yet supported. '
           'Please save as CSV first (File → Save As → CSV in Excel).';
@@ -1780,11 +1822,25 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
         ],
         const SizedBox(height: Spacing.xl),
         BouncyButton(
-          onPressed: _submitPassword,
+          onPressed: _isProcessing ? () {} : () => _submitPassword(),
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 14),
-            decoration: BoxDecoration(color: AppStyles.aetherTeal, borderRadius: BorderRadius.circular(Radii.md)),
-            child: const Center(child: Text('Unlock File', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w700))),
+            decoration: BoxDecoration(
+              color: _isProcessing
+                  ? AppStyles.aetherTeal.withValues(alpha: 0.5)
+                  : AppStyles.aetherTeal,
+              borderRadius: BorderRadius.circular(Radii.md),
+            ),
+            child: Center(
+              child: _isProcessing
+                  ? const SizedBox(
+                      width: 18, height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Colors.black,
+                      ),
+                    )
+                  : const Text('Unlock File', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w700)),
+            ),
           ),
         ),
       ],
