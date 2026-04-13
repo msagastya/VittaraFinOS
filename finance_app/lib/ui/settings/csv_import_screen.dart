@@ -1315,14 +1315,42 @@ String _cleanCreditCardDesc(String raw) {
 void _detectDuplicates(List<_ParsedRow> parsed, List<Transaction> existing) {
   for (final row in parsed) {
     row.isDuplicate = existing.any((e) {
-      final sameAmount = e.amount == row.amount;
-      final sameDate = e.dateTime.difference(row.date).inDays.abs() <= 1;
-      final sameDesc = e.description.toLowerCase() == row.description.toLowerCase() ||
-          (e.metadata?['merchant']?.toString().toLowerCase() ==
-              row.description.toLowerCase());
-      return sameAmount && sameDate && sameDesc;
+      final sameAmount = (e.amount - row.amount).abs() < 0.01;
+      final dayDiff    = e.dateTime.difference(row.date).inDays.abs();
+
+      // Same amount + same day → definite duplicate
+      if (sameAmount && dayDiff == 0) return true;
+
+      // Same amount within ±1 day → check description similarity too
+      if (sameAmount && dayDiff == 1) {
+        return _descSimilar(e.description, row.description) ||
+            _descSimilar(e.metadata?['merchant']?.toString() ?? '', row.description);
+      }
+      return false;
     });
   }
+}
+
+/// Fuzzy description match: true if both share a meaningful common word
+/// (>3 chars, not generic banking noise). Works across cleaned/uncleaned text.
+bool _descSimilar(String a, String b) {
+  if (a.isEmpty || b.isEmpty) return false;
+  // Exact match shortcut
+  if (a.toLowerCase() == b.toLowerCase()) return true;
+
+  final stopWords = {'upi', 'neft', 'imps', 'rtgs', 'nach', 'ach', 'the',
+      'and', 'for', 'from', 'with', 'payment', 'transfer', 'debit', 'credit'};
+
+  Set<String> words(String s) => s
+      .toLowerCase()
+      .replaceAll(RegExp(r'[^a-z0-9\s]'), ' ')
+      .split(RegExp(r'\s+'))
+      .where((w) => w.length > 3 && !stopWords.contains(w))
+      .toSet();
+
+  final wa = words(a);
+  final wb = words(b);
+  return wa.intersection(wb).isNotEmpty;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
