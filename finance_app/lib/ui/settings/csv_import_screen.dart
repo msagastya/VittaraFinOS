@@ -44,7 +44,7 @@ class _ParsedRow {
   final DateTime date;
   final String description;
   final double amount;
-  final bool isDebit; // true = expense, false = income
+  bool isDebit; // true = expense, false = income — mutable so user can flip
   final String? reference;
   final String? rawLine;
   bool isDuplicate = false;
@@ -1349,6 +1349,7 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
   bool _showPassword = false;
   String? _passwordError;
   bool _isProcessing = false; // true while PDF decryption/parsing is running
+  int? _expandedReviewIndex;   // which review tile is currently expanded
 
   // Paste mode
   bool _pasteMode = false;
@@ -2314,7 +2315,7 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
           padding: const EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, 100),
           itemCount: _parsedRows.length,
           separatorBuilder: (_, __) => const SizedBox(height: Spacing.xs),
-          itemBuilder: (ctx, i) => _buildReviewTile(_parsedRows[i]),
+          itemBuilder: (ctx, i) => _buildReviewTile(_parsedRows[i], i),
         ),
       ),
       // Bottom action bar
@@ -2372,101 +2373,274 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
     );
   }
 
-  Widget _buildReviewTile(_ParsedRow row) {
-    final cat = _categorize(row.description);
+  Widget _buildReviewTile(_ParsedRow row, int index) {
+    final cat         = _categorize(row.description);
     final isDuplicate = row.isDuplicate;
-    final isIncluded = !isDuplicate || row.includeIfDuplicate;
+    final isIncluded  = !isDuplicate || row.includeIfDuplicate;
+    final isExpanded  = _expandedReviewIndex == index;
+    final txColor     = row.isDebit ? SemanticColors.error : SemanticColors.success;
+
+    // Formatted date e.g. "01 Mar 2026"
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    final dateLabel =
+        '${row.date.day.toString().padLeft(2, '0')} ${months[row.date.month - 1]} ${row.date.year}';
 
     return AnimatedOpacity(
       duration: const Duration(milliseconds: 150),
       opacity: isIncluded ? 1.0 : 0.45,
-      child: Container(
-        padding: const EdgeInsets.all(Spacing.sm),
-        decoration: BoxDecoration(
-          color: AppStyles.getCardColor(context),
-          borderRadius: BorderRadius.circular(Radii.md),
-          border: isDuplicate
-              ? Border.all(color: CupertinoColors.systemOrange.withValues(alpha: isIncluded ? 0.5 : 0.25), width: 1)
-              : null,
-        ),
-        child: Row(children: [
-          // Type indicator
-          Container(
-            width: 34, height: 34,
-            decoration: BoxDecoration(
-              color: (row.isDebit ? SemanticColors.error : SemanticColors.success).withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              row.isDebit ? CupertinoIcons.arrow_down_circle_fill : CupertinoIcons.arrow_up_circle_fill,
-              size: 16,
-              color: row.isDebit ? SemanticColors.error : SemanticColors.success,
-            ),
+      child: GestureDetector(
+        onTap: () => setState(() =>
+            _expandedReviewIndex = isExpanded ? null : index),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeInOut,
+          decoration: BoxDecoration(
+            color: AppStyles.getCardColor(context),
+            borderRadius: BorderRadius.circular(Radii.md),
+            border: isDuplicate
+                ? Border.all(
+                    color: CupertinoColors.systemOrange
+                        .withValues(alpha: isIncluded ? 0.5 : 0.25),
+                    width: 1)
+                : isExpanded
+                    ? Border.all(
+                        color: txColor.withValues(alpha: 0.35), width: 1)
+                    : null,
           ),
-          const SizedBox(width: Spacing.sm),
-          // Details
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              Expanded(child: Text(
-                _cleanMerchant(row.description),
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppStyles.getTextColor(context)),
-                maxLines: 1, overflow: TextOverflow.ellipsis,
-              )),
-              if (isDuplicate)
-                Container(
-                  margin: const EdgeInsets.only(left: 4),
-                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                  decoration: BoxDecoration(
-                    color: CupertinoColors.systemOrange.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(4),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // ── Collapsed header row ──────────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.all(Spacing.sm),
+                child: Row(children: [
+                  // Type icon
+                  Container(
+                    width: 34, height: 34,
+                    decoration: BoxDecoration(
+                      color: txColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      row.isDebit
+                          ? CupertinoIcons.arrow_down_circle_fill
+                          : CupertinoIcons.arrow_up_circle_fill,
+                      size: 16, color: txColor,
+                    ),
                   ),
-                  child: const Text('Duplicate', style: TextStyle(fontSize: 8, color: CupertinoColors.systemOrange, fontWeight: FontWeight.w700)),
+                  const SizedBox(width: Spacing.sm),
+                  // Merchant + date + category
+                  Expanded(child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(children: [
+                        Expanded(child: Text(
+                          _cleanMerchant(row.description),
+                          style: TextStyle(
+                              fontSize: 13, fontWeight: FontWeight.w600,
+                              color: AppStyles.getTextColor(context)),
+                          maxLines: 1, overflow: TextOverflow.ellipsis,
+                        )),
+                        if (isDuplicate)
+                          Container(
+                            margin: const EdgeInsets.only(left: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: CupertinoColors.systemOrange.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text('Duplicate',
+                                style: TextStyle(fontSize: 8,
+                                    color: CupertinoColors.systemOrange,
+                                    fontWeight: FontWeight.w700)),
+                          ),
+                      ]),
+                      Row(children: [
+                        Text(dateLabel,
+                            style: TextStyle(fontSize: 10,
+                                color: AppStyles.getSecondaryTextColor(context))),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: CupertinoColors.systemGrey6.withValues(alpha: 0.3),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(cat.categoryName,
+                              style: TextStyle(fontSize: 9,
+                                  color: AppStyles.getSecondaryTextColor(context))),
+                        ),
+                      ]),
+                    ],
+                  )),
+                  const SizedBox(width: Spacing.sm),
+                  // Amount + expand chevron
+                  Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                    Text(
+                      '${row.isDebit ? '-' : '+'}₹${_fmt(row.amount)}',
+                      style: TextStyle(
+                          fontFamily: 'SpaceGrotesk', fontSize: 13,
+                          fontWeight: FontWeight.w700, color: txColor),
+                    ),
+                    if (isDuplicate) ...[
+                      const SizedBox(height: 2),
+                      GestureDetector(
+                        onTap: () => setState(
+                            () => row.includeIfDuplicate = !row.includeIfDuplicate),
+                        child: Text(
+                          row.includeIfDuplicate ? 'Include' : 'Skip',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: row.includeIfDuplicate
+                                ? const Color(0xFF00B890)
+                                : CupertinoColors.systemOrange,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ] else
+                      AnimatedRotation(
+                        turns: isExpanded ? 0.5 : 0.0,
+                        duration: const Duration(milliseconds: 220),
+                        child: Icon(CupertinoIcons.chevron_down,
+                            size: 11,
+                            color: AppStyles.getSecondaryTextColor(context)),
+                      ),
+                  ]),
+                ]),
+              ),
+
+              // ── Expanded detail panel ─────────────────────────────────────
+              AnimatedSize(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeInOut,
+                child: isExpanded
+                    ? _buildExpandedDetail(row, cat, txColor, dateLabel)
+                    : const SizedBox.shrink(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExpandedDetail(
+      _ParsedRow row, _CategoryResult cat, Color txColor, String dateLabel) {
+    final secColor = AppStyles.getSecondaryTextColor(context);
+    final divColor = const Color(0xFF1C1C1C);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Divider(height: 1, color: divColor),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(Spacing.sm, Spacing.sm, Spacing.sm, Spacing.sm),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+
+              // Full narration
+              _detailRow(
+                CupertinoIcons.doc_text, 'Full Description',
+                row.description, secColor,
+              ),
+              const SizedBox(height: Spacing.sm),
+
+              // Date + Type side by side
+              Row(children: [
+                Expanded(child: _detailRow(
+                  CupertinoIcons.calendar, 'Date', dateLabel, secColor,
+                )),
+                const SizedBox(width: Spacing.md),
+                Expanded(child: _detailRow(
+                  row.isDebit
+                      ? CupertinoIcons.minus_circle_fill
+                      : CupertinoIcons.plus_circle_fill,
+                  'Type',
+                  row.isDebit ? 'Expense / Debit' : 'Income / Credit',
+                  secColor,
+                  valueColor: txColor,
+                )),
+              ]),
+              const SizedBox(height: Spacing.sm),
+
+              // Category + Amount side by side
+              Row(children: [
+                Expanded(child: _detailRow(
+                  CupertinoIcons.tag_fill, 'Category',
+                  cat.categoryName, secColor,
+                )),
+                const SizedBox(width: Spacing.md),
+                Expanded(child: _detailRow(
+                  CupertinoIcons.money_dollar_circle_fill, 'Amount',
+                  '₹${_fmt(row.amount)}', secColor,
+                  valueColor: txColor,
+                )),
+              ]),
+
+              // Reference (if present)
+              if (row.reference != null && row.reference!.isNotEmpty) ...[
+                const SizedBox(height: Spacing.sm),
+                _detailRow(
+                  CupertinoIcons.number_circle, 'Reference',
+                  row.reference!, secColor,
                 ),
-            ]),
-            Row(children: [
-              Text(
-                '${row.date.day}/${row.date.month}/${row.date.year}',
-                style: TextStyle(fontSize: 10, color: AppStyles.getSecondaryTextColor(context)),
-              ),
-              const SizedBox(width: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                decoration: BoxDecoration(
-                  color: CupertinoColors.systemGrey6.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(cat.categoryName, style: TextStyle(fontSize: 9, color: AppStyles.getSecondaryTextColor(context))),
-              ),
-            ]),
-          ])),
-          const SizedBox(width: Spacing.sm),
-          // Amount + toggle for duplicates
-          Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-            Text(
-              '${row.isDebit ? '-' : '+'}₹${_fmt(row.amount)}',
-              style: TextStyle(
-                fontFamily: 'SpaceGrotesk', fontSize: 13, fontWeight: FontWeight.w700,
-                color: row.isDebit ? SemanticColors.error : SemanticColors.success,
-              ),
-            ),
-            if (isDuplicate) ...[
-              const SizedBox(height: 2),
+              ],
+
+              const SizedBox(height: Spacing.sm),
+              Divider(height: 1, color: divColor),
+              const SizedBox(height: Spacing.sm),
+
+              // Flip debit/credit button
               GestureDetector(
-                onTap: () => setState(() => row.includeIfDuplicate = !row.includeIfDuplicate),
-                child: Text(
-                  row.includeIfDuplicate ? 'Include' : 'Skip',
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: row.includeIfDuplicate ? const Color(0xFF00B890) : CupertinoColors.systemOrange,
-                    fontWeight: FontWeight.w600,
+                onTap: () => setState(() => row.isDebit = !row.isDebit),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 9),
+                  decoration: BoxDecoration(
+                    color: txColor.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(Radii.sm),
+                    border: Border.all(color: txColor.withValues(alpha: 0.25)),
                   ),
+                  child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    Icon(CupertinoIcons.arrow_2_squarepath,
+                        size: 13, color: txColor),
+                    const SizedBox(width: 6),
+                    Text(
+                      row.isDebit
+                          ? 'Mark as Income instead'
+                          : 'Mark as Expense instead',
+                      style: TextStyle(
+                          fontSize: 12, fontWeight: FontWeight.w600,
+                          color: txColor),
+                    ),
+                  ]),
                 ),
               ),
             ],
-          ]),
-        ]),
-      ),
+          ),
+        ),
+      ],
     );
+  }
+
+  Widget _detailRow(IconData icon, String label, String value, Color secColor,
+      {Color? valueColor}) {
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(children: [
+        Icon(icon, size: 10, color: secColor),
+        const SizedBox(width: 4),
+        Text(label,
+            style: TextStyle(fontSize: 9, color: secColor,
+                fontWeight: FontWeight.w500)),
+      ]),
+      const SizedBox(height: 2),
+      Text(value,
+          style: TextStyle(
+              fontSize: 12, fontWeight: FontWeight.w600,
+              color: valueColor ?? AppStyles.getTextColor(context))),
+    ]);
   }
 
   Widget _buildReviewBottomBar(int total, int dupes) {
