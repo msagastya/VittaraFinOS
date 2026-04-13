@@ -2413,10 +2413,7 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
     final dateLabel =
         '${row.date.day.toString().padLeft(2, '0')} ${months[row.date.month - 1]} ${row.date.year}';
 
-    return AnimatedOpacity(
-      duration: const Duration(milliseconds: 150),
-      opacity: isIncluded ? 1.0 : 0.45,
-      child: GestureDetector(
+    return GestureDetector(
         onTap: () => setState(() =>
             _expandedReviewIndex = isExpanded ? null : index),
         child: AnimatedContainer(
@@ -2549,7 +2546,6 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
             ],
           ),
         ),
-      ),
     );
   }
 
