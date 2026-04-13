@@ -199,6 +199,48 @@ class BackupRestoreService {
     }
   }
 
+  /// Creates a backup JSON file in the temp directory and returns the file path
+  /// so the caller can share it via [share_plus]. Prefer this over
+  /// [createLocalBackupFile] when the user explicitly wants to export their
+  /// backup — the system share sheet lets them save to Downloads, Google Drive,
+  /// WhatsApp, email, etc. so it survives app uninstall.
+  static Future<BackupOperationResult> buildAndExportBackupFile() async {
+    if (kIsWeb) {
+      return const BackupOperationResult(
+        success: false,
+        message: 'File export is not available on web.',
+      );
+    }
+
+    final bundleResult = await buildBackupJson();
+    if (!bundleResult.success || bundleResult.backupJson == null) {
+      return bundleResult;
+    }
+
+    try {
+      final tmpDir = await getTemporaryDirectory();
+      final timestamp =
+          DateTime.now().toIso8601String().replaceAll(RegExp(r'[:.]'), '-');
+      final filePath =
+          '${tmpDir.path}/${backupFilePrefix}_$timestamp.json';
+      await File(filePath).writeAsString(bundleResult.backupJson!, flush: true);
+
+      final details = Map<String, dynamic>.from(bundleResult.details ?? {});
+      return BackupOperationResult(
+        success: true,
+        message: 'Backup file ready to share.',
+        filePath: filePath,
+        backupJson: bundleResult.backupJson,
+        details: details,
+      );
+    } catch (error) {
+      return BackupOperationResult(
+        success: false,
+        message: 'Failed to prepare export file: $error',
+      );
+    }
+  }
+
   // ── UTL-04: Auto-backup (daily, keep last 7) ──────────────────────────────
 
   static const String _lastAutoBackupDateKey = 'last_auto_backup_date';
@@ -1453,18 +1495,22 @@ class BackupRestoreService {
   }
 
   static Future<Map<String, String>> _encryptPayload(String payloadJson) async {
-    const keyVersion = _encryptionKeyVersion;
+    // keyVersion=1 uses the hardcoded seed baked into the binary — this key
+    // survives app uninstall/reinstall, making backups portable and restorable.
+    // The per-device key (keyVersion=2) was deleted on uninstall, breaking
+    // backup restore across reinstalls.
+    const keyVersion = 1;
     final nonce = _randomBytes(16);
     final salt = _randomBytes(16);
-    final deviceSeed = await _getOrCreateDeviceKey();
+    final seed = Uint8List.fromList(_masterSecretSeed);
     final encryptionKey = _deriveEncryptionKey(
-      seed: deviceSeed,
+      seed: seed,
       keyVersion: keyVersion,
       salt: salt,
       purpose: 'enc',
     );
     final macKey = _deriveEncryptionKey(
-      seed: deviceSeed,
+      seed: seed,
       keyVersion: keyVersion,
       salt: salt,
       purpose: 'mac',
@@ -1522,14 +1568,15 @@ class BackupRestoreService {
       final cipher = base64Decode(payloadBase64);
       final mac = base64Decode(macBase64);
 
-      // keyVersion 1 = legacy hardcoded seed; keyVersion 2 = device key.
+      // keyVersion 1 = hardcoded seed (portable, survives reinstall).
+      // keyVersion 2 = per-device key in secure storage (deprecated — deleted on uninstall).
       final Uint8List seed;
       if (keyVersion >= 2) {
         lastRestoreUsedLegacyKey = false;
         seed = await _getOrCreateDeviceKey();
       } else {
-        // Legacy backup: flag so caller can prompt user to re-backup.
-        lastRestoreUsedLegacyKey = true;
+        // keyVersion=1 is now the standard portable format — not a legacy flag.
+        lastRestoreUsedLegacyKey = false;
         seed = Uint8List.fromList(_masterSecretSeed);
       }
 

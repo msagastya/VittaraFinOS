@@ -1,9 +1,11 @@
 import 'dart:io';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/backup_restore_service.dart';
 import 'package:vittara_fin_os/logic/budgets_controller.dart';
@@ -81,6 +83,85 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
     });
     if (result.success) {
       toast.showSuccess('Backup JSON copied');
+    } else {
+      toast.showError(result.message);
+    }
+  }
+
+  Future<void> _exportBackup() async {
+    setState(() => _busy = true);
+    final result = await BackupRestoreService.buildAndExportBackupFile();
+    if (!mounted) return;
+    setState(() {
+      _busy = false;
+      _lastStatus = result.message;
+      _lastSummary = result.details;
+    });
+    if (!result.success || result.filePath == null) {
+      toast.showError(result.message);
+      return;
+    }
+    await Share.shareXFiles(
+      [XFile(result.filePath!)],
+      subject: 'Vittara Backup',
+    );
+  }
+
+  Future<void> _restoreFromPickedFile() async {
+    FilePickerResult? picked;
+    try {
+      picked = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['json'],
+        withData: true,
+      );
+    } catch (_) {}
+    if (!mounted) return;
+    if (picked == null || picked.files.isEmpty) return;
+
+    final file = picked.files.first;
+    String? rawJson;
+    if (file.bytes != null) {
+      rawJson = String.fromCharCodes(file.bytes!);
+    } else if (file.path != null) {
+      rawJson = await File(file.path!).readAsString();
+    }
+    if (!mounted) return;
+    if (rawJson == null || rawJson.trim().isEmpty) {
+      toast.showError('Could not read the selected file.');
+      return;
+    }
+
+    final inspect = await BackupRestoreService.inspectBackupJson(rawJson);
+    if (!mounted) return;
+    if (!inspect.success) {
+      toast.showError('Not a valid Vittara backup: ${inspect.message}');
+      return;
+    }
+
+    final txCount = inspect.details?['transactionCount'] ?? 0;
+    final accounts = inspect.details?['accountCount'] ?? 0;
+    final confirm = await _confirmDestructive(
+      title: 'Restore from file?',
+      message:
+          'This backup contains $txCount transactions and $accounts accounts. Current data will be overwritten.',
+      destructiveText: 'Restore',
+    );
+    if (confirm != true) return;
+
+    setState(() => _busy = true);
+    final result = await BackupRestoreService.restoreFromJson(rawJson);
+    if (result.success) {
+      await _reloadAllControllers();
+    }
+    if (!mounted) return;
+    setState(() {
+      _busy = false;
+      _lastStatus = result.message;
+      _lastSummary = result.details;
+    });
+    if (result.success) {
+      toast.showSuccess('Backup restored');
     } else {
       toast.showError(result.message);
     }
@@ -340,9 +421,26 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
             const SizedBox(height: Spacing.md),
             _buildActionCard(
               context,
-              title: 'Create Local Backup File',
+              title: 'Export & Share Backup',
               subtitle:
-                  'Creates a versioned JSON backup in app documents storage.',
+                  'Save to Downloads, Google Drive, WhatsApp, etc. Survives reinstall.',
+              icon: CupertinoIcons.share_solid,
+              color: CupertinoColors.systemGreen,
+              onTap: _busy ? null : _exportBackup,
+            ),
+            _buildActionCard(
+              context,
+              title: 'Restore from File',
+              subtitle: 'Pick a backup .json file from your device or cloud storage.',
+              icon: CupertinoIcons.tray_arrow_up_fill,
+              color: CupertinoColors.systemOrange,
+              onTap: _busy ? null : _restoreFromPickedFile,
+            ),
+            _buildActionCard(
+              context,
+              title: 'Create Local Backup',
+              subtitle:
+                  'Auto-saves a backup on this device (deleted on uninstall — export to keep it safe).',
               icon: CupertinoIcons.cloud_download_fill,
               color: CupertinoColors.systemBlue,
               onTap: _busy ? null : _createLocalBackup,
@@ -358,9 +456,9 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
             _buildActionCard(
               context,
               title: 'Restore Latest Local Backup',
-              subtitle: 'Restores from the most recent local backup file.',
+              subtitle: 'Restores from the most recent on-device backup file.',
               icon: CupertinoIcons.arrow_clockwise_circle_fill,
-              color: CupertinoColors.systemOrange,
+              color: CupertinoColors.systemBlue,
               onTap: _busy ? null : _restoreLatestLocalBackup,
             ),
             _buildActionCard(
@@ -374,7 +472,7 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
             _buildActionCard(
               context,
               title: 'Browse Local Backups',
-              subtitle: 'Pick a specific backup file to restore.',
+              subtitle: 'Pick a specific on-device backup file to restore.',
               icon: CupertinoIcons.folder_fill,
               color: CupertinoColors.systemIndigo,
               onTap: _busy ? null : _showLocalBackupPicker,
@@ -427,7 +525,7 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
           ),
           const SizedBox(height: Spacing.sm),
           Text(
-            'Backups are versioned and include typed storage snapshot for compatibility with future app upgrades.',
+            'Use "Export & Share Backup" to save your backup outside the app — local backups are deleted when you uninstall.',
             style: TextStyle(
               color: AppStyles.getSecondaryTextColor(context),
               fontSize: TypeScale.footnote,
