@@ -624,23 +624,66 @@ List<List<String>> _parseExcelBytes(Uint8List bytes) {
 }
 
 /// Extracts text from PDF bytes using Syncfusion, optionally with password.
-/// Returns null if wrong password or extraction failed.
+/// Uses extractTextLines() to get position-aware fragments, then reconstructs
+/// proper table rows by grouping fragments at similar Y positions and sorting
+/// left-to-right. This handles bank statement PDFs where columns are stored as
+/// separate text streams and extractText() gives them in wrong order.
 String? _extractPdfText(Uint8List bytes, {String? password}) {
   try {
     final doc = PdfDocument(inputBytes: bytes, password: password ?? '');
     final extractor = PdfTextExtractor(doc);
 
-    // Extract page by page and join — more reliable than extractText() alone
-    // because some banks' PDFs have per-page text streams Syncfusion handles better.
-    final buf = StringBuffer();
-    for (var i = 0; i < doc.pages.count; i++) {
-      final pageText = extractor.extractText(startPageIndex: i, endPageIndex: i);
-      if (pageText.isNotEmpty) buf.writeln(pageText);
-    }
-    doc.dispose();
+    final allRows = <String>[];
 
-    final text = buf.toString().trim();
-    return text.isEmpty ? null : text; // return null if nothing extracted
+    for (var pageIdx = 0; pageIdx < doc.pages.count; pageIdx++) {
+      // extractTextLines gives each fragment with its bounding Rect on the page
+      final lines = extractor.extractTextLines(
+        startPageIndex: pageIdx,
+        endPageIndex: pageIdx,
+      );
+      if (lines.isEmpty) continue;
+
+      // Sort fragments: primary = top (Y), secondary = left (X)
+      // This restores visual reading order even when content streams are columnar
+      lines.sort((a, b) {
+        final dy = a.bounds.top.compareTo(b.bounds.top);
+        if (dy != 0) return dy;
+        return a.bounds.left.compareTo(b.bounds.left);
+      });
+
+      // Group fragments whose Y positions are within 6 pts of each other → same row
+      final rowGroups = <List<TextLine>>[];
+      List<TextLine>? currentGroup;
+      double? groupTop;
+
+      for (final line in lines) {
+        if (groupTop == null || (line.bounds.top - groupTop).abs() > 6) {
+          if (currentGroup != null) rowGroups.add(currentGroup);
+          currentGroup = [line];
+          groupTop = line.bounds.top;
+        } else {
+          currentGroup!.add(line);
+          // Expand groupTop toward the new line so rows with slight drift stay merged
+          groupTop = (groupTop! + line.bounds.top) / 2;
+        }
+      }
+      if (currentGroup != null) rowGroups.add(currentGroup);
+
+      // Join each group into a single text line, space-separated
+      for (final group in rowGroups) {
+        // Sort group members left-to-right
+        group.sort((a, b) => a.bounds.left.compareTo(b.bounds.left));
+        final rowText = group
+            .map((l) => l.text.trim())
+            .where((t) => t.isNotEmpty)
+            .join('  '); // double-space preserves column gaps for amount parsing
+        if (rowText.isNotEmpty) allRows.add(rowText);
+      }
+    }
+
+    doc.dispose();
+    final text = allRows.join('\n').trim();
+    return text.isEmpty ? null : text;
   } catch (e) {
     return null;
   }
@@ -1306,7 +1349,6 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
   bool _showPassword = false;
   String? _passwordError;
   bool _isProcessing = false; // true while PDF decryption/parsing is running
-  String? _lastExtractedText;  // raw PDF text — used for debug copy
 
   // Paste mode
   bool _pasteMode = false;
@@ -1389,7 +1431,6 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
         });
         return;
       }
-      _lastExtractedText = text;
       final bank = _detectBankFromText(text);
       final rows = await Future(() => _parsePdfText(text, bank));
       if (!mounted) return;
@@ -1490,7 +1531,6 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
       }
 
       // Parse off UI thread too — can be slow on large statements
-      _lastExtractedText = text;
       final bank  = _detectBankFromText(text);
       final rows  = await Future(() => _parsePdfText(text!, bank));
 
@@ -1621,58 +1661,10 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
     );
   }
 
-  /// Special PDF parse-failure dialog: shows first 500 chars of extracted text
-  /// so the user can copy it and share for diagnosis.
   void _showPdfError() {
-    final raw = _lastExtractedText ?? '';
-    final preview = raw.isEmpty
-        ? '(no text extracted)'
-        : raw.length > 500 ? raw.substring(0, 500) : raw;
-
-    showCupertinoDialog(
-      context: context,
-      builder: (ctx) => CupertinoAlertDialog(
-        title: const Text('Could Not Read PDF'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'The PDF was decrypted but no transactions could be parsed.\n\n'
-              'Copy the raw text below and share it — this helps fix the parser for your bank format.',
-              style: TextStyle(fontSize: 13),
-            ),
-            const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: CupertinoColors.systemGrey6,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Text(
-                preview,
-                style: const TextStyle(fontSize: 10, fontFamily: 'Courier'),
-                maxLines: 12,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          CupertinoDialogAction(
-            child: const Text('Copy Raw Text'),
-            onPressed: () {
-              Clipboard.setData(ClipboardData(text: raw));
-              Navigator.of(ctx).pop();
-            },
-          ),
-          CupertinoDialogAction(
-            isDefaultAction: true,
-            child: const Text('OK'),
-            onPressed: () => Navigator.of(ctx).pop(),
-          ),
-        ],
-      ),
+    _showError(
+      'Could not extract transactions from this PDF.\n\n'
+      'Try exporting your statement as CSV from your bank\'s app or website.',
     );
   }
 
