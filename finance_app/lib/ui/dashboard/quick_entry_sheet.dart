@@ -24,6 +24,7 @@ import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/utils/id_generator.dart';
 import 'package:intl/intl.dart';
 import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
+import 'package:vittara_fin_os/main.dart' show dashboardSavedSignal;
 
 // ── Entry point ───────────────────────────────────────────────────────────────
 
@@ -433,6 +434,7 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
 
       await transactionsCtrl.addTransaction(tx);
       HapticFeedback.heavyImpact();
+      dashboardSavedSignal.value++; // triggers FAB checkmark morph
       if (mounted) Navigator.pop(context);
       toast_lib.toast.showSuccess('Transaction saved');
     }

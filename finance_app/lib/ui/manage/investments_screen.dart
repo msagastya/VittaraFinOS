@@ -653,7 +653,10 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                 : isToday
                                     ? 'Matures today!'
                                     : 'In $daysLeft day${daysLeft == 1 ? '' : 's'}';
-                            return Container(
+                            return StaggeredItem(
+                              index: i,
+                              itemDelay: const Duration(milliseconds: 40),
+                              child: Container(
                               margin: const EdgeInsets.only(bottom: Spacing.md),
                               decoration: AppStyles.accentCardDecoration(
                                   context, statusColor),
@@ -764,7 +767,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                                   ),
                                 ),
                               ),
-                            );
+                            ));
                           },
                         ),
                 ),

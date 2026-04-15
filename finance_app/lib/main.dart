@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/physics.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -34,6 +35,7 @@ import 'package:vittara_fin_os/ui/manage_screen.dart';
 import 'package:vittara_fin_os/ui/settings_screen.dart';
 import 'package:vittara_fin_os/ui/transaction_history_screen.dart';
 import 'package:vittara_fin_os/ui/spending_insights_screen.dart';
+import 'package:vittara_fin_os/ui/styles/app_springs.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/logic/notification_helpers.dart';
 import 'package:vittara_fin_os/ui/dashboard/dashboard_action_sheet.dart';
@@ -74,6 +76,10 @@ import 'package:vittara_fin_os/ui/whats_new_sheet.dart';
 import 'package:shared_preferences/shared_preferences.dart' as sp;
 
 final AppLogger logger = AppLogger();
+
+/// Fires once after a transaction is successfully saved from the quick-entry
+/// sheet. The dashboard FAB listens to this and plays its checkmark morph.
+final dashboardSavedSignal = ValueNotifier<int>(0);
 
 /// Applies iOS-style rubber-band scroll physics to every scrollable in the app.
 class _AppScrollBehavior extends ScrollBehavior {
@@ -1404,36 +1410,8 @@ class DashboardScreen extends StatelessWidget {
                               );
                             },
                           ),
-                          // Main + FAB
-                          BouncyButton(
-                            onPressed: () {
-                              showDashboardActionSheet(context);
-                            },
-                            child: Container(
-                              width: 60,
-                              height: 60,
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    AppStyles.aetherTeal,
-                                    AppStyles.novaPurple,
-                                  ],
-                                ),
-                                shape: BoxShape.circle,
-                                boxShadow: AppStyles.elevatedShadows(
-                                  context,
-                                  tint: AppStyles.aetherTeal,
-                                  strength: 0.90,
-                                ),
-                              ),
-                              child: const Icon(
-                                CupertinoIcons.add,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
+                          // Main + FAB (spring morph to checkmark on save)
+                          _buildMorphFAB(context),
                         ],
                       ),
                     ),
@@ -1592,6 +1570,13 @@ class DashboardScreen extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  /// FAB with checkmark morph — listens to [dashboardSavedSignal].
+  Widget _buildMorphFAB(BuildContext context) {
+    return _MorphFAB(
+      onPressed: () => showDashboardActionSheet(context),
     );
   }
 
@@ -2914,6 +2899,122 @@ class _LockDialog extends StatelessWidget {
           child: const LockScreen(),
         );
       },
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// _MorphFAB — FAB that springs to a checkmark when dashboardSavedSignal fires
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _MorphFAB extends StatefulWidget {
+  final VoidCallback onPressed;
+  const _MorphFAB({required this.onPressed});
+
+  @override
+  State<_MorphFAB> createState() => _MorphFABState();
+}
+
+class _MorphFABState extends State<_MorphFAB>
+    with SingleTickerProviderStateMixin {
+  // 0.0 = plus icon, 1.0 = checkmark icon
+  late final AnimationController _ctrl = AnimationController.unbounded(
+    vsync: this,
+    value: 0.0,
+  );
+
+  bool _showCheck = false;
+
+  @override
+  void initState() {
+    super.initState();
+    dashboardSavedSignal.addListener(_onSaved);
+  }
+
+  @override
+  void dispose() {
+    dashboardSavedSignal.removeListener(_onSaved);
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  void _onSaved() {
+    if (!mounted) return;
+    setState(() => _showCheck = true);
+    // Spring bounce in
+    _ctrl.animateWith(
+      SpringSimulation(AppSprings.bouncy, 0.0, 1.0, 0.0),
+    );
+    // Auto-return after 1.4s
+    Future.delayed(const Duration(milliseconds: 1400), () {
+      if (!mounted) return;
+      _ctrl.animateWith(
+        SpringSimulation(AppSprings.crisp, _ctrl.value, 0.0, 0.0),
+      );
+      Future.delayed(const Duration(milliseconds: 350), () {
+        if (mounted) setState(() => _showCheck = false);
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BouncyButton(
+      onPressed: widget.onPressed,
+      scaleFactor: 0.92,
+      child: AnimatedBuilder(
+        animation: _ctrl,
+        builder: (context, _) {
+          final t = _ctrl.value.clamp(0.0, 1.0);
+          // Scale pulse: expands slightly past 1.0 during spring overshoot
+          final scale = 1.0 + (_ctrl.value - t) * 0.3;
+          return Transform.scale(
+            scale: 1.0 + scale * 0.04,
+            child: Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: _showCheck
+                      ? [
+                          Color.lerp(AppStyles.aetherTeal,
+                              SemanticColors.success, t)!,
+                          Color.lerp(AppStyles.novaPurple,
+                              SemanticColors.success, t)!,
+                        ]
+                      : [AppStyles.aetherTeal, AppStyles.novaPurple],
+                ),
+                shape: BoxShape.circle,
+                boxShadow: AppStyles.elevatedShadows(
+                  context,
+                  tint: _showCheck
+                      ? Color.lerp(AppStyles.aetherTeal,
+                          SemanticColors.success, t)!
+                      : AppStyles.aetherTeal,
+                  strength: 0.90,
+                ),
+              ),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                transitionBuilder: (child, anim) => ScaleTransition(
+                  scale: anim,
+                  child: FadeTransition(opacity: anim, child: child),
+                ),
+                child: Icon(
+                  _showCheck
+                      ? CupertinoIcons.checkmark_alt
+                      : CupertinoIcons.add,
+                  key: ValueKey(_showCheck),
+                  color: Colors.white,
+                  size: _showCheck ? 22 : 24,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }

@@ -1007,7 +1007,10 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                           : delta >= 0
                               ? '+₹${delta.toStringAsFixed(0)}'
                               : '-₹${delta.abs().toStringAsFixed(0)}';
-                      return Container(
+                      return StaggeredItem(
+                        index: index,
+                        itemDelay: const Duration(milliseconds: 40),
+                        child: Container(
                         padding: const EdgeInsets.all(Spacing.md),
                         decoration: BoxDecoration(
                           color: color.withValues(alpha: 0.12),
@@ -1080,7 +1083,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                             ),
                           ],
                         ),
-                      );
+                      ));
                     },
                   ),
                 ),
