@@ -47,21 +47,21 @@ class _ManageScreenState extends State<ManageScreen> {
       'title': 'Banks',
       'subtitle': 'Your banks and financial institutions',
       'icon': CupertinoIcons.building_2_fill,
-      'color': CupertinoColors.systemBlue
+      'color': SemanticColors.banks,
     },
     {
       'id': 'pay',
       'title': 'Payment Apps',
       'subtitle': 'UPI & digital payment wallets',
       'icon': CupertinoIcons.device_phone_portrait,
-      'color': CupertinoColors.systemIndigo
+      'color': SemanticColors.paymentApps,
     },
     {
       'id': 'invest',
       'title': 'Investments',
       'subtitle': 'Stocks, MF, FD, gold & more',
       'icon': CupertinoIcons.graph_square_fill,
-      'color': CupertinoColors.systemOrange
+      'color': SemanticColors.investments,
     },
     {
       'id': 'debt',
@@ -75,42 +75,42 @@ class _ManageScreenState extends State<ManageScreen> {
       'title': 'Insurance Tracker',
       'subtitle': 'Health, life & general policies',
       'icon': CupertinoIcons.shield_fill,
-      'color': AppStyles.accentBlue,
+      'color': SemanticColors.info,
     },
     {
       'id': 'cats',
       'title': 'Categories',
       'subtitle': 'Organise spending by type',
       'icon': CupertinoIcons.square_grid_2x2_fill,
-      'color': CupertinoColors.systemPurple
+      'color': SemanticColors.categories,
     },
     {
       'id': 'contacts',
       'title': 'People',
       'subtitle': 'Contacts for transfers & splits',
       'icon': CupertinoIcons.person_2_fill,
-      'color': CupertinoColors.systemBrown
+      'color': SemanticColors.contacts,
     },
     {
       'id': 'lend',
       'title': 'Personal Lending & Borrowing',
       'subtitle': 'Track money lent & borrowed',
       'icon': CupertinoIcons.money_dollar_circle_fill,
-      'color': CupertinoColors.systemTeal
+      'color': SemanticColors.lending,
     },
     {
       'id': 'tags',
       'title': 'Tags',
       'subtitle': 'Custom labels for transactions',
       'icon': CupertinoIcons.tag_fill,
-      'color': CupertinoColors.systemIndigo
+      'color': SemanticColors.tags,
     },
     {
       'id': 'archived',
       'title': 'Archived Transactions',
       'subtitle': 'Hidden & archived entries',
       'icon': CupertinoIcons.archivebox_fill,
-      'color': CupertinoColors.systemPurple
+      'color': SemanticColors.categories,
     },
   ];
 
@@ -339,7 +339,7 @@ class _ManageScreenState extends State<ManageScreen> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: Spacing.sm, vertical: 2),
                           decoration: BoxDecoration(
-                            color: CupertinoColors.systemOrange
+                            color: SemanticColors.warning
                                 .withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(4),
                           ),
@@ -348,7 +348,7 @@ class _ManageScreenState extends State<ManageScreen> {
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
-                              color: CupertinoColors.systemOrange,
+                              color: SemanticColors.warning,
                             ),
                           ),
                         ),

@@ -21,13 +21,12 @@ class SpendingInsightsScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return CupertinoPageScaffold(
       navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
-        middle: const Text('Spending Intelligence'),
+        middle: Text('Spending Intelligence',
+            style: TextStyle(color: AppStyles.getTextColor(context))),
         backgroundColor: isDark ? AppStyles.darkBackground : AppStyles.lightBackground,
         border: Border(
           bottom: BorderSide(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.07)
-                : Colors.black.withValues(alpha: 0.07),
+            color: AppStyles.getDividerColor(context),
             width: 0.5,
           ),
         ),

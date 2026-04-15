@@ -1,6 +1,9 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/physics.dart';
 import 'package:flutter/services.dart';
+import 'package:vittara_fin_os/ui/styles/app_springs.dart';
+import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CardDeckView — Bloomberg-level swipeable card deck
@@ -32,8 +35,8 @@ class CardDeckView extends StatefulWidget {
     required this.cards,
     this.onCardChanged,
     this.swipeThreshold = 80.0,
-    this.depthScaleStep = 0.05,
-    this.depthTranslateStep = 10.0,
+    this.depthScaleStep = 0.055,
+    this.depthTranslateStep = 14.0,
   });
 
   @override
@@ -49,8 +52,8 @@ class _CardDeckViewState extends State<CardDeckView>
   late final AnimationController _swipeController;
 
   /// Drives spring-return animation (card snaps back).
+  /// Unbounded so SpringSimulation can drive pixel-space values (e.g. 120 → 0).
   late final AnimationController _returnController;
-  late Animation<double> _returnAnim;
 
   /// Drives depth-slot promotions (back cards animate into new positions).
   late final AnimationController _promotionController;
@@ -74,30 +77,19 @@ class _CardDeckViewState extends State<CardDeckView>
         }
       });
 
-    _returnController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 400),
-    )..addStatusListener((status) {
+    // Unbounded: spring drives pixel values like 80.0 → 0.0
+    _returnController = AnimationController.unbounded(vsync: this)
+      ..addStatusListener((status) {
         if (status == AnimationStatus.completed) {
           setState(() {
             _dragOffset = 0;
-            _isSwiping = false;
           });
-          _returnController.reset();
         }
       });
 
     _promotionController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 280),
-    );
-
-    _buildReturnAnim(0.0);
-  }
-
-  void _buildReturnAnim(double from) {
-    _returnAnim = Tween<double>(begin: from, end: 0.0).animate(
-      CurvedAnimation(parent: _returnController, curve: Curves.elasticOut),
     );
   }
 
@@ -156,10 +148,12 @@ class _CardDeckViewState extends State<CardDeckView>
       // Commit swipe
       _swipeController.forward();
     } else {
-      // Spring back
-      _buildReturnAnim(_dragOffset);
+      // Spring back using real finger velocity so the card feels anchored.
+      final velocityX = details.velocity.pixelsPerSecond.dx;
       setState(() => _isSwiping = false);
-      _returnController.forward();
+      _returnController.animateWith(
+        SpringSimulation(AppSprings.natural, _dragOffset, 0.0, velocityX),
+      );
     }
   }
 
@@ -167,9 +161,10 @@ class _CardDeckViewState extends State<CardDeckView>
   /// Without this, _isSwiping stays true and the card freezes mid-drag.
   void _onPanCancel() {
     if (!_isSwiping) return;
-    _buildReturnAnim(_dragOffset);
     setState(() => _isSwiping = false);
-    _returnController.forward();
+    _returnController.animateWith(
+      SpringSimulation(AppSprings.natural, _dragOffset, 0.0, 0.0),
+    );
   }
 
   @override
@@ -256,8 +251,8 @@ class _CardDeckViewState extends State<CardDeckView>
         offsetX = _dragOffset;
         rotationZ = (_dragOffset / 400) * 0.08; // subtle tilt
       } else if (_returnController.isAnimating) {
-        offsetX = _returnAnim.value;
-        rotationZ = (_returnAnim.value / 400) * 0.08;
+        offsetX = _returnController.value;
+        rotationZ = (_returnController.value / 400) * 0.08;
       } else if (_swipeController.isAnimating) {
         final screenWidth = MediaQuery.of(context).size.width;
         offsetX = (_swipingRight ? 1 : -1) *
@@ -303,8 +298,8 @@ class _CardDeckViewState extends State<CardDeckView>
           }
 
           if (_returnController.isAnimating && depth == 0) {
-            liveOffsetX = _returnAnim.value;
-            liveRotationZ = (_returnAnim.value / 400) * 0.08;
+            liveOffsetX = _returnController.value;
+            liveRotationZ = (_returnController.value / 400) * 0.08;
           }
 
           return Opacity(
@@ -322,7 +317,11 @@ class _CardDeckViewState extends State<CardDeckView>
         child: Semantics(
           label: 'Card ${depth + 1} of $_cardCount',
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            // Reduced from 16 → 8 so depth-stack back cards peek at edges,
+            // giving a clear visual cue that more cards exist.
+            padding: EdgeInsets.symmetric(
+              horizontal: depth == 0 ? 8.0 : (8.0 + depth * 6.0),
+            ),
             child: widget.cards[_indexAt(depth)],
           ),
         ),
@@ -344,8 +343,8 @@ class _CardDeckViewState extends State<CardDeckView>
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(3),
             color: isActive
-                ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).colorScheme.primary.withValues(alpha: 0.25),
+                ? SemanticColors.getPrimary(context)
+                : SemanticColors.getPrimary(context).withValues(alpha: 0.25),
           ),
         );
       }),

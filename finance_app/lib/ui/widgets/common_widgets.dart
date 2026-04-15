@@ -130,6 +130,28 @@ class SkeletonLoader extends StatefulWidget {
     this.onTimeout,
   });
 
+  /// Dashboard / summary card placeholder.
+  const SkeletonLoader.card({Key? key})
+      : this(key: key, width: double.infinity, height: 120, borderRadius: 22);
+
+  /// Stat / metric number placeholder (wide and short).
+  const SkeletonLoader.stat({Key? key, double width = 160})
+      : this(key: key, width: width, height: 36, borderRadius: 8);
+
+  /// Chart / graph area placeholder (full-width and tall).
+  const SkeletonLoader.chart({Key? key})
+      : this(key: key, width: double.infinity, height: 180, borderRadius: 16);
+
+  /// Single text line placeholder.
+  const SkeletonLoader.text({Key? key, double width = 200})
+      : this(key: key, width: width, height: 14, borderRadius: 7);
+
+  /// Composite list-item placeholder: icon box + two text lines + amount.
+  /// Returns a Row — use as a static factory since it's a composite widget.
+  static Widget listItem() {
+    return const _SkeletonListItem();
+  }
+
   @override
   State<SkeletonLoader> createState() => _SkeletonLoaderState();
 }
@@ -249,6 +271,36 @@ class _SkeletonLoaderState extends State<SkeletonLoader> {
         },
       );
     }
+  }
+}
+
+// Composite skeleton: icon box + two text lines + trailing amount chip.
+class _SkeletonListItem extends StatelessWidget {
+  const _SkeletonListItem();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10.0),
+      child: Row(
+        children: [
+          const SkeletonLoader(width: 44, height: 44, borderRadius: 14),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                SkeletonLoader.text(width: double.infinity),
+                SizedBox(height: 6),
+                SkeletonLoader.text(width: 120),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          const SkeletonLoader.stat(width: 72),
+        ],
+      ),
+    );
   }
 }
 

@@ -1,11 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/dashboard_controller.dart';
 import 'package:vittara_fin_os/logic/dashboard_widget_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
 class DashboardSettingsModal extends StatefulWidget {
@@ -189,7 +189,7 @@ class _DashboardSettingsModalState extends State<DashboardSettingsModal> {
           CupertinoSwitch(
             value: widget.isVisible,
             onChanged: (value) {
-              HapticFeedback.selectionClick();
+              Haptics.toggle();
               controller.toggleWidgetVisibility(widget.id);
             },
           ),

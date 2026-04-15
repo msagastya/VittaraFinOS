@@ -46,7 +46,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Expanded(
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: EdgeInsets.symmetric(horizontal: RS.lg(context)),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -72,7 +72,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           title: 'Lock on Minimize',
                           subtitle: 'Lock app when sent to background',
                           value: settings.lockOnMinimize,
-                          color: CupertinoColors.systemOrange,
+                          color: SemanticColors.warning,
                           onChanged: (val) {
                             settings.toggleLockOnMinimize(val);
                             if (val)
@@ -88,7 +88,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             subtitle: null,
                             value: _getTimeoutString(
                                 settings.lockTimeoutSeconds),
-                            color: CupertinoColors.systemGrey,
+                            color: AppStyles.getSecondaryTextColor(context),
                             onTap: () =>
                                 _showLockTimeoutOptions(context, settings),
                           ),
@@ -100,7 +100,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           title: 'PIN Lock',
                           subtitle: 'Set a 6-digit fallback PIN',
                           value: settings.isPinEnabled ? 'Enabled' : 'Not set',
-                          color: CupertinoColors.systemPurple,
+                          color: SemanticColors.categories,
                           onTap: () => _showPinSetupSheet(context, settings),
                         ),
                         if (settings.isPinEnabled) ...[
@@ -128,7 +128,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         title: 'Theme',
                         subtitle: 'AMOLED dark / light / system',
                         value: _getThemeString(settings.themeMode),
-                        color: CupertinoColors.systemBlue,
+                        color: AppStyles.getPrimaryColor(context),
                         onTap: () => _showThemeOptions(context, settings),
                       ),
                     ]),
@@ -174,7 +174,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         title: 'Backup & Restore',
                         subtitle: 'Encrypted device backup',
                         value: null,
-                        color: CupertinoColors.systemPink,
+                        color: SemanticColors.error,
                         onTap: () => Navigator.of(context).push(
                           FadeScalePageRoute(
                               page: const BackupRestoreScreen()),
@@ -437,9 +437,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Container(
               padding: const EdgeInsets.all(Spacing.sm),
               decoration: AppStyles.iconBoxDecoration(
-                  context, color ?? CupertinoColors.systemBlue),
+                  context, color ?? AppStyles.getPrimaryColor(context)),
               child: Icon(icon,
-                  size: 20, color: color ?? CupertinoColors.systemBlue),
+                  size: 20, color: color ?? AppStyles.getPrimaryColor(context)),
             ),
             const SizedBox(width: Spacing.lg),
             Expanded(
@@ -698,8 +698,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const SizedBox(height: 16),
                   const ModalHandle(),
                   const SizedBox(height: 24),
-                  const Icon(CupertinoIcons.number_square_fill,
-                      size: 36, color: CupertinoColors.systemPurple),
+                  Icon(CupertinoIcons.number_square_fill,
+                      size: 36, color: SemanticColors.categories),
                   const SizedBox(height: 12),
                   Text(
                     inConfirm ? 'Confirm PIN' : 'Set New PIN',

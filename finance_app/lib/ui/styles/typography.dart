@@ -38,7 +38,6 @@ class AppTypography {
     FontWeight? fontWeight,
   }) {
     return TextStyle(
-      fontFamily: displayFont,
       fontSize: TypeScale.display,
       fontWeight: fontWeight ?? bold,
       letterSpacing: letterSpacingTight,
@@ -52,7 +51,6 @@ class AppTypography {
     FontWeight? fontWeight,
   }) {
     return TextStyle(
-      fontFamily: displayFont,
       fontSize: TypeScale.hero,
       fontWeight: fontWeight ?? heavy,
       letterSpacing: letterSpacingTight,
@@ -67,7 +65,6 @@ class AppTypography {
     FontWeight? fontWeight,
   }) {
     return TextStyle(
-      fontFamily: displayFont,
       fontSize: TypeScale.largeTitle,
       fontWeight: fontWeight ?? bold,
       letterSpacing: letterSpacingTight,
@@ -81,7 +78,6 @@ class AppTypography {
     FontWeight? fontWeight,
   }) {
     return TextStyle(
-      fontFamily: systemFont,
       fontSize: TypeScale.title1,
       fontWeight: fontWeight ?? semiBold,
       letterSpacing: letterSpacingNormal,
@@ -95,7 +91,6 @@ class AppTypography {
     FontWeight? fontWeight,
   }) {
     return TextStyle(
-      fontFamily: systemFont,
       fontSize: TypeScale.title2,
       fontWeight: fontWeight ?? semiBold,
       letterSpacing: letterSpacingNormal,
@@ -109,7 +104,6 @@ class AppTypography {
     FontWeight? fontWeight,
   }) {
     return TextStyle(
-      fontFamily: systemFont,
       fontSize: TypeScale.title3,
       fontWeight: fontWeight ?? semiBold,
       letterSpacing: letterSpacingNormal,
@@ -124,7 +118,6 @@ class AppTypography {
     FontWeight? fontWeight,
   }) {
     return TextStyle(
-      fontFamily: systemFont,
       fontSize: TypeScale.headline,
       fontWeight: fontWeight ?? semiBold,
       letterSpacing: letterSpacingNormal,
@@ -138,7 +131,6 @@ class AppTypography {
     FontWeight? fontWeight,
   }) {
     return TextStyle(
-      fontFamily: systemFont,
       fontSize: TypeScale.body,
       fontWeight: fontWeight ?? regular,
       letterSpacing: letterSpacingNormal,
@@ -152,7 +144,6 @@ class AppTypography {
     FontWeight? fontWeight,
   }) {
     return TextStyle(
-      fontFamily: systemFont,
       fontSize: TypeScale.callout,
       fontWeight: fontWeight ?? regular,
       letterSpacing: letterSpacingNormal,
@@ -166,7 +157,6 @@ class AppTypography {
     FontWeight? fontWeight,
   }) {
     return TextStyle(
-      fontFamily: systemFont,
       fontSize: TypeScale.subhead,
       fontWeight: fontWeight ?? regular,
       letterSpacing: letterSpacingNormal,
@@ -181,7 +171,6 @@ class AppTypography {
     FontWeight? fontWeight,
   }) {
     return TextStyle(
-      fontFamily: systemFont,
       fontSize: TypeScale.footnote,
       fontWeight: fontWeight ?? regular,
       letterSpacing: letterSpacingNormal,
@@ -195,7 +184,6 @@ class AppTypography {
     FontWeight? fontWeight,
   }) {
     return TextStyle(
-      fontFamily: systemFont,
       fontSize: TypeScale.caption,
       fontWeight: fontWeight ?? regular,
       letterSpacing: letterSpacingWide,
@@ -225,7 +213,6 @@ class AppTypography {
     FontWeight? fontWeight,
   }) {
     return TextStyle(
-      fontFamily: systemFont,
       fontSize: TypeScale.callout,
       fontWeight: fontWeight ?? semiBold,
       letterSpacing: letterSpacingWide,
@@ -239,7 +226,6 @@ class AppTypography {
     FontWeight? fontWeight,
   }) {
     return TextStyle(
-      fontFamily: systemFont,
       fontSize: TypeScale.footnote,
       fontWeight: fontWeight ?? medium,
       letterSpacing: letterSpacingWide,
@@ -255,7 +241,6 @@ class AppTypography {
     FontWeight? fontWeight,
   }) {
     return TextStyle(
-      fontFamily: systemFont,
       fontSize: fontSize ?? TypeScale.body,
       fontWeight: fontWeight ?? semiBold,
       fontFeatures: const [FontFeature.tabularFigures()],
@@ -270,7 +255,6 @@ class AppTypography {
     FontWeight? fontWeight,
   }) {
     return TextStyle(
-      fontFamily: displayFont,
       fontSize: TypeScale.largeTitle,
       fontWeight: fontWeight ?? bold,
       fontFeatures: const [FontFeature.tabularFigures()],
@@ -285,7 +269,6 @@ class AppTypography {
     FontWeight? fontWeight,
   }) {
     return TextStyle(
-      fontFamily: systemFont,
       fontSize: TypeScale.title2,
       fontWeight: fontWeight ?? semiBold,
       fontFeatures: const [FontFeature.tabularFigures()],
@@ -300,7 +283,6 @@ class AppTypography {
     FontWeight? fontWeight,
   }) {
     return TextStyle(
-      fontFamily: systemFont,
       fontSize: TypeScale.body,
       fontWeight: fontWeight ?? medium,
       fontFeatures: const [FontFeature.tabularFigures()],

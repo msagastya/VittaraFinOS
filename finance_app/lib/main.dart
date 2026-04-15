@@ -75,6 +75,13 @@ import 'package:shared_preferences/shared_preferences.dart' as sp;
 
 final AppLogger logger = AppLogger();
 
+/// Applies iOS-style rubber-band scroll physics to every scrollable in the app.
+class _AppScrollBehavior extends ScrollBehavior {
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) =>
+      const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics());
+}
+
 void main() {
   runZonedGuarded(() {
     WidgetsFlutterBinding.ensureInitialized();
@@ -320,7 +327,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                         ? AppStyles.darkText
                         : AppStyles.lightText,
                   ),
-                  child: child!,
+                  child: ScrollConfiguration(
+                    behavior: _AppScrollBehavior(),
+                    child: child!,
+                  ),
                 ),
                 // Lock screen is shown via _LockDialog (dialog route) on resume.
                 // Kept as fallback Positioned.fill only during initial cold start.
@@ -1475,9 +1485,17 @@ class DashboardScreen extends StatelessWidget {
               top: isLandscape ? 0 : Spacing.md,
               bottom: Spacing.sm,
             ),
-            child: CardDeckView(
-              cards: cards,
-              onCardChanged: (_) {},
+            child: Selector<AccountsController, bool>(
+              selector: (_, ctrl) => ctrl.accounts.isEmpty,
+              builder: (context, hasNoAccounts, _) {
+                if (hasNoAccounts) {
+                  return _buildSetupCard(context);
+                }
+                return CardDeckView(
+                  cards: cards,
+                  onCardChanged: (_) {},
+                );
+              },
             ),
           ),
         ),
@@ -1485,6 +1503,95 @@ class DashboardScreen extends StatelessWidget {
         // Engagement checker — handles achievements + monthly digest
         const _EngagementChecker(),
       ],
+    );
+  }
+
+  /// Shown when the user has no accounts yet — guides them to set up their first account.
+  Widget _buildSetupCard(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
+      child: Center(
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(Spacing.xl),
+          decoration: AppStyles.heroCardDecoration(context),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppStyles.aetherTeal.withValues(alpha: 0.12),
+                  border: Border.all(
+                    color: AppStyles.aetherTeal.withValues(alpha: 0.35),
+                    width: 1.5,
+                  ),
+                ),
+                child: const Icon(
+                  CupertinoIcons.creditcard_fill,
+                  color: AppStyles.aetherTeal,
+                  size: 32,
+                ),
+              ),
+              const SizedBox(height: Spacing.lg),
+              Text(
+                'Add Your First Account',
+                style: TextStyle(
+                  fontSize: TypeScale.title3,
+                  fontWeight: FontWeight.w700,
+                  color: AppStyles.getTextColor(context),
+                  letterSpacing: -0.3,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: Spacing.sm),
+              Text(
+                'Connect a bank account, credit card, or cash wallet to start tracking your finances.',
+                style: TextStyle(
+                  fontSize: TypeScale.callout,
+                  color: AppStyles.getSecondaryTextColor(context),
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: Spacing.xl),
+              BouncyButton(
+                onPressed: () => Navigator.of(context).push(
+                  FadeScalePageRoute(page: const ManageScreen()),
+                ),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: Spacing.xl, vertical: Spacing.md),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [AppStyles.aetherTeal, AppStyles.novaPurple],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                    borderRadius: BorderRadius.circular(Radii.full),
+                    boxShadow: AppStyles.elevatedShadows(
+                      context,
+                      tint: AppStyles.aetherTeal,
+                      strength: 0.55,
+                    ),
+                  ),
+                  child: const Text(
+                    'Set Up Accounts',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: TypeScale.callout,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -1826,41 +1933,41 @@ class DashboardScreen extends StatelessWidget {
                             ],
                           ),
                         ),
-                        // Status badge
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 5),
-                          decoration: BoxDecoration(
-                            color: SemanticColors.success.withValues(alpha: 0.18),
-                            borderRadius: BorderRadius.circular(Radii.full),
-                            border: Border.all(
-                              color: SemanticColors.success
-                                  .withValues(alpha: 0.55),
-                              width: 1.0,
+                        // Net worth mini-badge — tappable, navigates to net worth page
+                        BouncyButton(
+                          onPressed: () => Navigator.of(context).push(
+                            FadeScalePageRoute(page: const NetWorthPage())),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: AppStyles.aetherTeal.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(Radii.full),
+                              border: Border.all(
+                                color: AppStyles.aetherTeal.withValues(alpha: 0.40),
+                                width: 1.0,
+                              ),
                             ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                width: 6,
-                                height: 6,
-                                decoration: const BoxDecoration(
-                                  color: SemanticColors.success,
-                                  shape: BoxShape.circle,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  CupertinoIcons.chart_bar_square_fill,
+                                  size: 11,
+                                  color: AppStyles.aetherTeal,
                                 ),
-                              ),
-                              const SizedBox(width: 5),
-                              const Text(
-                                'Active',
-                                style: TextStyle(
-                                  fontSize: TypeScale.caption,
-                                  color: SemanticColors.success,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.3,
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Net Worth',
+                                  style: TextStyle(
+                                    fontSize: TypeScale.caption,
+                                    color: AppStyles.aetherTeal,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.3,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ],
@@ -1884,7 +1991,7 @@ class DashboardScreen extends StatelessWidget {
 
                     const SizedBox(height: Spacing.lg),
 
-                    // Quick action pills
+                    // Quick action pills — frequency descending: History first
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       physics: const BouncingScrollPhysics(),
@@ -1892,9 +1999,9 @@ class DashboardScreen extends StatelessWidget {
                         children: [
                           _buildQuickActionPill(
                             context,
-                            'Goals',
-                            CupertinoIcons.checkmark_seal_fill,
-                            AppStyles.aetherTeal,
+                            'History',
+                            CupertinoIcons.clock_fill,
+                            SemanticColors.info,
                           ),
                           const SizedBox(width: Spacing.sm),
                           _buildQuickActionPill(
@@ -1902,6 +2009,13 @@ class DashboardScreen extends StatelessWidget {
                             'Budgets',
                             CupertinoIcons.chart_pie_fill,
                             AppStyles.accentCoral,
+                          ),
+                          const SizedBox(width: Spacing.sm),
+                          _buildQuickActionPill(
+                            context,
+                            'Goals',
+                            CupertinoIcons.checkmark_seal_fill,
+                            AppStyles.aetherTeal,
                           ),
                           const SizedBox(width: Spacing.sm),
                           _buildQuickActionPill(
@@ -1970,8 +2084,12 @@ class DashboardScreen extends StatelessWidget {
 
   void _handleQuickActionTap(BuildContext context, String action) {
     switch (action) {
+      case 'History':
+        Navigator.of(context).push(
+          FadeScalePageRoute(page: const TransactionHistoryScreen()),
+        );
+        break;
       case 'Goals':
-        // Navigate to Goals screen
         Navigator.of(context).push(
           FadeScalePageRoute(page: const GoalsScreen()),
         );

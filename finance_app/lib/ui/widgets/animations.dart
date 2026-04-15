@@ -2,7 +2,9 @@ import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/physics.dart';
 import 'package:flutter/services.dart';
+import 'package:vittara_fin_os/ui/styles/app_springs.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
@@ -39,7 +41,11 @@ class Haptics {
 // ANIMATED COUNTER WIDGET
 // ============================================================
 
-class AnimatedCounter extends StatelessWidget {
+// ── AnimatedCounter ────────────────────────────────────────────────────────
+// Scramble effect: Phase 1 (0–55%) all digits cycle randomly.
+// Phase 2 (55–100%) digits lock into place left-to-right (slot-machine settle).
+// Non-digit characters (commas, dots, prefix, suffix) are shown immediately.
+class AnimatedCounter extends StatefulWidget {
   final double value;
   final String prefix;
   final String suffix;
@@ -53,22 +59,86 @@ class AnimatedCounter extends StatelessWidget {
     this.prefix = '',
     this.suffix = '',
     this.style,
-    this.duration = const Duration(milliseconds: 800),
+    this.duration = const Duration(milliseconds: 900),
     this.decimals = 0,
   });
 
   @override
+  State<AnimatedCounter> createState() => _AnimatedCounterState();
+}
+
+class _AnimatedCounterState extends State<AnimatedCounter>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  double _from = 0.0;
+  final _rng = math.Random();
+  static const _digits = '0123456789';
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: widget.duration);
+    _ctrl.forward();
+  }
+
+  @override
+  void didUpdateWidget(AnimatedCounter old) {
+    super.didUpdateWidget(old);
+    if (old.value != widget.value) {
+      _from = old.value;
+      _ctrl
+        ..duration = widget.duration
+        ..reset()
+        ..forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  String _scramble(double progress) {
+    const settleStart = 0.55;
+    final target = widget.value;
+    // Numeric value to display (interpolated so the number also counts up)
+    final displayed = _from + (target - _from) * math.min(progress / settleStart, 1.0);
+    final targetStr = displayed.toStringAsFixed(widget.decimals);
+
+    if (progress >= 1.0) return '${widget.prefix}$targetStr${widget.suffix}';
+
+    // Collect digit positions only
+    final chars = targetStr.split('');
+    final digitIndices = <int>[];
+    for (int i = 0; i < chars.length; i++) {
+      if (_digits.contains(chars[i])) digitIndices.add(i);
+    }
+
+    if (progress < settleStart) {
+      // Phase 1: all digits scramble
+      for (final idx in digitIndices) {
+        chars[idx] = _digits[_rng.nextInt(10)];
+      }
+    } else {
+      // Phase 2: settle left-to-right
+      final settleProgress = (progress - settleStart) / (1.0 - settleStart);
+      final settled = (settleProgress * digitIndices.length).floor();
+      for (int i = settled; i < digitIndices.length; i++) {
+        chars[digitIndices[i]] = _digits[_rng.nextInt(10)];
+      }
+    }
+
+    return '${widget.prefix}${chars.join()}${widget.suffix}';
+  }
+
+  @override
   Widget build(BuildContext context) {
     return RepaintBoundary(
-      child: TweenAnimationBuilder<double>(
-        tween: Tween(begin: 0, end: value),
-        duration: duration,
-        curve: Curves.easeOutCubic,
-        builder: (context, animatedValue, child) {
-          return Text(
-            '$prefix${animatedValue.toStringAsFixed(decimals)}$suffix',
-            style: style,
-          );
+      child: AnimatedBuilder(
+        animation: _ctrl,
+        builder: (context, _) {
+          return Text(_scramble(_ctrl.value), style: widget.style);
         },
       ),
     );
@@ -289,9 +359,9 @@ class GradientBorderContainer extends StatelessWidget {
     super.key,
     required this.child,
     this.gradientColors = const [
-      CupertinoColors.systemBlue,
-      CupertinoColors.systemPurple,
-      CupertinoColors.systemPink,
+      SemanticColors.info,
+      SemanticColors.categories,
+      SemanticColors.error,
     ],
     this.borderWidth = 2,
     this.borderRadius,
@@ -323,24 +393,35 @@ class GradientBorderContainer extends StatelessWidget {
   }
 }
 
-/// A custom page route that fades and scales the incoming page.
-/// Gives a modern "pop" feel.
+/// A custom page route with spring-approximated physics transitions.
+///
+/// Scale uses a back-out cubic that overshoots ~4% before settling at 1.0,
+/// matching the feel of a SpringDescription(mass:1, stiffness:220, damping:22).
+/// Full `animateWith(SpringSimulation)` requires a custom ModalRoute; this
+/// achieves the same perceived result within PageRouteBuilder.
 class FadeScalePageRoute<T> extends PageRouteBuilder<T> {
   final Widget page;
+
+  // Back-out spring approximation: overshoots ~4%, settles at 1.0.
+  static const _springScale = Cubic(0.34, 1.56, 0.64, 1.0);
+  // Crisp deceleration for fade — no overshoot on opacity.
+  static const _fadeCurve = Cubic(0.25, 0.46, 0.45, 0.94);
+  // Gentle lift for slide.
+  static const _slideCurve = Cubic(0.34, 1.56, 0.64, 1.0);
 
   FadeScalePageRoute({required this.page})
       : super(
           opaque: false,
           pageBuilder: (context, animation, secondaryAnimation) => page,
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            final scaleTween = Tween(begin: 0.94, end: 1.0)
-                .chain(CurveTween(curve: MotionCurves.emphasis));
+            final scaleTween = Tween(begin: 0.92, end: 1.0)
+                .chain(CurveTween(curve: _springScale));
             final fadeTween = Tween(begin: 0.0, end: 1.0)
-                .chain(CurveTween(curve: MotionCurves.standard));
+                .chain(CurveTween(curve: _fadeCurve));
             final slideTween = Tween(
-              begin: const Offset(0.0, 0.03),
+              begin: const Offset(0.0, 0.025),
               end: Offset.zero,
-            ).chain(CurveTween(curve: MotionCurves.emphasis));
+            ).chain(CurveTween(curve: _slideCurve));
 
             return FadeTransition(
               opacity: animation.drive(fadeTween),
@@ -353,8 +434,8 @@ class FadeScalePageRoute<T> extends PageRouteBuilder<T> {
               ),
             );
           },
-          transitionDuration: AppDurations.medium,
-          reverseTransitionDuration: AppDurations.pageTransitionReverse,
+          transitionDuration: const Duration(milliseconds: 340),
+          reverseTransitionDuration: const Duration(milliseconds: 220),
         );
 }
 
@@ -379,36 +460,11 @@ class BouncyButton extends StatefulWidget {
 
 class _BouncyButtonState extends State<BouncyButton>
     with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: AppDurations.buttonPress,
-      reverseDuration: AppDurations.buttonPress,
-    );
-    // Spring feel: compress → overshoot slightly below target → settle
-    _scaleAnimation = TweenSequence<double>([
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 1.0, end: widget.scaleFactor),
-        weight: 60,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(
-            begin: widget.scaleFactor, end: widget.scaleFactor - 0.01),
-        weight: 20,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(
-            begin: widget.scaleFactor - 0.01, end: widget.scaleFactor),
-        weight: 20,
-      ),
-    ]).animate(
-        CurvedAnimation(parent: _controller, curve: MotionCurves.standard));
-  }
+  // Upper-bound 1.0 so controller can travel 0→1 (scale = lerp 1.0→scaleFactor).
+  late final AnimationController _controller = AnimationController.unbounded(
+    vsync: this,
+    value: 0.0,
+  );
 
   @override
   void dispose() {
@@ -416,28 +472,38 @@ class _BouncyButtonState extends State<BouncyButton>
     super.dispose();
   }
 
-  void _onTapDown(TapDownDetails details) {
-    _controller.forward();
+  /// Drives the scale value: controller value 0 = normal, 1 = fully pressed.
+  double get _scale =>
+      1.0 - (1.0 - widget.scaleFactor) * _controller.value.clamp(0.0, 1.2);
+
+  void _press() {
+    _controller.animateWith(
+      SpringSimulation(AppSprings.crisp, _controller.value, 1.0, 0.0),
+    );
     if (widget.enableHaptics) Haptics.light();
   }
 
-  void _onTapUp(TapUpDetails details) {
-    _controller.reverse();
-    widget.onPressed();
-  }
-
-  void _onTapCancel() {
-    _controller.reverse();
+  void _release() {
+    _controller.animateWith(
+      SpringSimulation(AppSprings.bouncy, _controller.value, 0.0, 0.0),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown: _onTapDown,
-      onTapUp: _onTapUp,
-      onTapCancel: _onTapCancel,
-      child: ScaleTransition(
-        scale: _scaleAnimation,
+      onTapDown: (_) => _press(),
+      onTapUp: (_) {
+        _release();
+        widget.onPressed();
+      },
+      onTapCancel: _release,
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) => Transform.scale(
+          scale: _scale,
+          child: child,
+        ),
         child: widget.child,
       ),
     );
@@ -1222,8 +1288,7 @@ class _SuccessCheckmarkState extends State<SuccessCheckmark>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final checkColor = widget.color ??
-        (isDark ? CupertinoColors.systemGreen : CupertinoColors.systemGreen);
+    final checkColor = widget.color ?? SemanticColors.success;
     final circleColor = widget.circleColor ??
         checkColor.withValues(alpha: 0.15);
 
