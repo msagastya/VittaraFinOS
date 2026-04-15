@@ -312,15 +312,9 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
-        middle: Text(
-          'Reports & Analysis',
-          style: TextStyle(color: AppStyles.getTextColor(context)),
-        ),
-        previousPageTitle: 'Back',
-        backgroundColor: AppStyles.isDarkMode(context) ? Colors.black : Colors.white.withValues(alpha: 0.95),
-        border: null,
-      ),
+      navigationBar: AppStyles.isLandscape(context)
+          ? null
+          : AppStyles.standardNavBar(context, 'Reports & Analysis'),
       child: Consumer3<TransactionsController, AccountsController,
           CategoriesController>(
         builder: (

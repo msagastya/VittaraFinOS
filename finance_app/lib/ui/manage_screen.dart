@@ -153,13 +153,9 @@ class _ManageScreenState extends State<ManageScreen> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
-        middle: Text('Manage',
-            style: TextStyle(color: AppStyles.getTextColor(context))),
-        previousPageTitle: 'Back',
-        backgroundColor: AppStyles.isDarkMode(context) ? Colors.black : Colors.white.withValues(alpha: 0.95),
-        border: null,
-      ),
+      navigationBar: AppStyles.isLandscape(context)
+          ? null
+          : AppStyles.standardNavBar(context, 'Manage'),
       child: Builder(
         builder: (context) {
           // Only select the two booleans we need — avoids full rebuild on unrelated settings changes

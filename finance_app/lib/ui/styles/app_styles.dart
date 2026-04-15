@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
@@ -623,6 +624,39 @@ class AppStyles {
               ),
             ]
           : null,
+    );
+  }
+
+  // ── Nav Bar Factory — Phase 1E ───────────────────────────────────────────
+  // Use this for ALL CupertinoNavigationBar declarations.
+  // Call with: `AppStyles.isLandscape(context) ? null : AppStyles.standardNavBar(context, 'Title')`
+
+  /// Returns a fully-themed CupertinoNavigationBar.
+  /// Dark: pure-black background + white title.
+  /// Light: white/95% translucent background + dark title.
+  static CupertinoNavigationBar standardNavBar(
+    BuildContext context,
+    String title, {
+    String previousPageTitle = 'Back',
+    Widget? trailing,
+    Widget? leading,
+  }) {
+    return CupertinoNavigationBar(
+      middle: Text(
+        title,
+        style: TextStyle(
+          color: getTextColor(context),
+          fontWeight: FontWeight.w600,
+          fontSize: 17,
+        ),
+      ),
+      previousPageTitle: previousPageTitle,
+      backgroundColor: isDarkMode(context)
+          ? darkBackground
+          : Colors.white.withValues(alpha: 0.95),
+      border: null,
+      trailing: trailing,
+      leading: leading,
     );
   }
 

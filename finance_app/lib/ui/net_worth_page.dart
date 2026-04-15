@@ -408,11 +408,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
       // Landscape: hide nav bar — replaced by compact inline bar in body
       navigationBar: isLandscape
           ? null
-          : const CupertinoNavigationBar(
-              middle: Text('Scorecard'),
-              previousPageTitle: 'Back',
-              border: null,
-            ),
+          : AppStyles.standardNavBar(context, 'Scorecard'),
       child: SafeArea(
         child: Consumer4<AccountsController, InvestmentsController,
             TransactionsController, PaymentAppsController>(

@@ -31,14 +31,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
-        middle: Text('Settings',
-            style: TextStyle(color: AppStyles.getTextColor(context))),
-        previousPageTitle: 'Back',
-        backgroundColor:
-            AppStyles.getBackground(context).withValues(alpha: 0.8),
-        border: null,
-      ),
+      navigationBar: AppStyles.isLandscape(context)
+          ? null
+          : AppStyles.standardNavBar(context, 'Settings'),
       child: SafeArea(
         child: Column(
           children: [

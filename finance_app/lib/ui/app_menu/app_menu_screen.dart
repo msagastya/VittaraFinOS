@@ -33,15 +33,9 @@ class DashboardAppMenuScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
-        middle: Text(
-          'Menu',
-          style: TextStyle(color: AppStyles.getTextColor(context)),
-        ),
-        previousPageTitle: 'Back',
-        backgroundColor: AppStyles.isDarkMode(context) ? Colors.black : Colors.white.withValues(alpha: 0.95),
-        border: null,
-      ),
+      navigationBar: AppStyles.isLandscape(context)
+          ? null
+          : AppStyles.standardNavBar(context, 'Menu'),
       child: SafeArea(
         child: SubtleParticleOverlay(
           particleCount: 28,
