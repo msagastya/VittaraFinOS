@@ -247,6 +247,41 @@ class SemanticColors {
   static Color getInfo(BuildContext context) {
     return Theme.of(context).brightness == Brightness.dark ? infoDark : info;
   }
+
+  // ── Domain-specific theme-aware getters (Phase 1C) ────────────────────────
+  // Constants above were tuned for AMOLED void. These getters return
+  // a lighter, more saturated variant in dark mode and a deeper,
+  // desaturated variant in light mode for WCAG AA readability.
+
+  static bool _isDark(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark;
+
+  static Color getBanks(BuildContext context) =>
+      _isDark(context) ? const Color(0xFF409CFF) : const Color(0xFF0056CC);
+
+  static Color getAccounts(BuildContext context) =>
+      _isDark(context) ? const Color(0xFF30D158) : const Color(0xFF248A3D);
+
+  static Color getPaymentApps(BuildContext context) =>
+      _isDark(context) ? const Color(0xFF6E6CD8) : const Color(0xFF3B39A0);
+
+  static Color getInvestments(BuildContext context) =>
+      _isDark(context) ? const Color(0xFFFF9F0A) : const Color(0xFFA85A00);
+
+  static Color getLiabilities(BuildContext context) =>
+      _isDark(context) ? const Color(0xFFFF453A) : const Color(0xFFC00B0B);
+
+  static Color getCategories(BuildContext context) =>
+      _isDark(context) ? const Color(0xFFBF5AF2) : const Color(0xFF7B2D9E);
+
+  static Color getContacts(BuildContext context) =>
+      _isDark(context) ? const Color(0xFFA08070) : const Color(0xFF6B4534);
+
+  static Color getLending(BuildContext context) =>
+      _isDark(context) ? const Color(0xFF40C8D0) : const Color(0xFF1B7A87);
+
+  static Color getTags(BuildContext context) =>
+      _isDark(context) ? const Color(0xFF6E6CD8) : const Color(0xFF3B39A0);
 }
 
 /// Icon sizes for consistency

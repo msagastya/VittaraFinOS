@@ -19,8 +19,15 @@ class AppStyles {
   static const Color darkBackground = Color(0xFF000000); // True void
 
   static const Color lightCard = Color(0xFFFFFFFF);
-  // Elevated void surface — dark enough to feel deep, bright enough to contrast
-  static const Color darkCard = Color(0xFF0D1829);
+  // Elevation language — the 5-layer void depth system (L0–L4)
+  // Every surface in the app must use one of these exactly — no inline hex.
+  static const Color darkL0 = Color(0xFF000000); // Pure void — app background
+  static const Color darkL1 = Color(0xFF0D0D0D); // Standard card / section
+  static const Color darkL2 = Color(0xFF141414); // Elevated card / modal
+  static const Color darkL3 = Color(0xFF1C1C1C); // Interactive surface / selected chip
+  static const Color darkL4Divider = Color(0xFF1C1C1E); // Hairline divider / subtle border
+  // Legacy alias — kept to avoid refactor churn, same value as darkL1
+  static const Color darkCard = darkL1;
 
   // AU10-03 — WCAG AA verified: lightText #0C1E3A on lightBackground #F2F6FF ~10:1 contrast ratio
   static const Color lightText = Color(0xFF0C1E3A);
@@ -66,18 +73,85 @@ class AppStyles {
       isDarkMode(context) ? darkText : lightText;
 
   static Color getSecondaryTextColor(BuildContext context) => isDarkMode(context)
-      ? const Color(0xFF6B8AAD) // deep-sea moonlight
-      : const Color(0xFF3A5A80);
+      ? Colors.white.withValues(alpha: 0.55) // 55% white — legible but clearly secondary
+      : Colors.black.withValues(alpha: 0.45); // 45% black on light bg
+
+  /// Tertiary text — captions, placeholders, timestamps, helper lines.
+  static Color getTertiaryTextColor(BuildContext context) => isDarkMode(context)
+      ? Colors.white.withValues(alpha: 0.30)
+      : Colors.black.withValues(alpha: 0.25);
+
+  /// Disabled text — non-interactive labels, greyed out items.
+  static Color getDisabledTextColor(BuildContext context) => isDarkMode(context)
+      ? Colors.white.withValues(alpha: 0.20)
+      : Colors.black.withValues(alpha: 0.18);
 
   static Color getPrimaryColor(BuildContext context) =>
       isDarkMode(context) ? aetherTeal : const Color(0xFF0077CC);
 
   static Color getDividerColor(BuildContext context) => isDarkMode(context)
-      ? const Color(0xFF0D1829) // barely visible boundary
-      : const Color(0xFFCCDDEE);
+      ? darkL4Divider // hairline — slightly lighter than L3
+      : const Color(0xFFC6C6C8); // iOS system separator
 
   static bool isDarkMode(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark;
+
+  // ── Elevation Getters — Phase 1A ─────────────────────────────────────────
+  // Dark mode: true depth layers. Light mode: white card / system-grey surface.
+  // Use these everywhere instead of darkBackground / darkCard directly.
+
+  /// L0 — app background (pure void in dark, off-white in light)
+  static Color l0(BuildContext context) =>
+      isDarkMode(context) ? darkL0 : lightBackground;
+
+  /// L1 — standard card / section surface
+  static Color l1(BuildContext context) =>
+      isDarkMode(context) ? darkL1 : lightCard;
+
+  /// L2 — elevated card / modal container
+  static Color l2(BuildContext context) =>
+      isDarkMode(context) ? darkL2 : lightCard;
+
+  /// L3 — interactive surface (selected chip, pressed state, input field bg)
+  static Color l3(BuildContext context) =>
+      isDarkMode(context) ? darkL3 : const Color(0xFFF2F2F7);
+
+  // ── Unified Card Shadow — Phase 1B ───────────────────────────────────────
+  // Dark: phosphorescent emissive glow. Light: true drop shadow.
+
+  /// Standard card shadow — glow in dark, crisp drop shadow in light.
+  static List<BoxShadow> cardShadow(BuildContext context) {
+    if (isDarkMode(context)) return softShadows(context);
+    return [
+      const BoxShadow(
+        color: Color(0x0F000000), // 6% black
+        blurRadius: 8,
+        offset: Offset(0, 2),
+      ),
+      const BoxShadow(
+        color: Color(0x08000000), // 3% black
+        blurRadius: 4,
+        offset: Offset(0, 1),
+      ),
+    ];
+  }
+
+  /// Elevated card shadow — stronger for modals / hero cards.
+  static List<BoxShadow> elevatedCardShadow(BuildContext context) {
+    if (isDarkMode(context)) return elevatedShadows(context);
+    return [
+      const BoxShadow(
+        color: Color(0x1A000000), // 10% black
+        blurRadius: 16,
+        offset: Offset(0, 4),
+      ),
+      const BoxShadow(
+        color: Color(0x0A000000), // 4% black
+        blurRadius: 8,
+        offset: Offset(0, 2),
+      ),
+    ];
+  }
 
   /// True when the device is in landscape orientation.
   /// Use this to switch between portrait and landscape layouts.
@@ -325,25 +399,15 @@ class AppStyles {
   static BoxDecoration cardDecoration(BuildContext context) {
     final isDark = isDarkMode(context);
     return BoxDecoration(
-      gradient: isDark
-          ? const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF070D1A), Color(0xFF050B15)],
-            )
-          : const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFFFFFFFF), Color(0xFFF4F9FF)],
-            ),
+      color: isDark ? darkL1 : lightCard,
       border: Border.all(
         color: isDark
-            ? const Color(0xFF1A2E4A) // chromatic ocean rim
-            : const Color(0xFFBDD4F0),
+            ? Colors.white.withValues(alpha: 0.06) // barely-there crystal rim
+            : const Color(0xFFDDE8F5),
         width: 1.0,
       ),
       borderRadius: BorderRadius.circular(Radii.xxl),
-      boxShadow: softShadows(context),
+      boxShadow: cardShadow(context),
     );
   }
 
@@ -357,23 +421,13 @@ class AppStyles {
   static BoxDecoration bottomSheetDecoration(BuildContext context) {
     final isDark = isDarkMode(context);
     return BoxDecoration(
-      gradient: isDark
-          ? const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF070D1A), Color(0xFF050B15)],
-            )
-          : const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFFFFFFFF), Color(0xFFF4F9FF)],
-            ),
+      color: isDark ? darkL2 : lightCard,
       border: Border(
         top: BorderSide(
           color: isDark
-              ? const Color(0xFF1A2E4A)
-              : const Color(0xFFBDD4F0),
-          width: 1.0,
+              ? Colors.white.withValues(alpha: 0.08)
+              : const Color(0xFFDDE8F5),
+          width: 0.5,
         ),
       ),
       borderRadius: Radii.modalRadius,
@@ -455,8 +509,8 @@ class AppStyles {
         end: Alignment.bottomRight,
         colors: isDark
             ? [
-                Color.lerp(const Color(0xFF070D1A), base, 0.08)!,
-                const Color(0xFF050B15),
+                Color.lerp(darkL1, base, 0.10)!,
+                Color.lerp(darkL2, base, 0.04)!,
               ]
             : [
                 Colors.white,
@@ -486,8 +540,8 @@ class AppStyles {
         end: Alignment.bottomRight,
         colors: isDark
             ? [
-                Color.lerp(const Color(0xFF070D1A), accent, 0.06)!,
-                const Color(0xFF050B15),
+                Color.lerp(darkL1, accent, 0.08)!,
+                Color.lerp(darkL2, accent, 0.03)!,
               ]
             : [
                 Color.lerp(Colors.white, accent, 0.08)!,
@@ -548,7 +602,7 @@ class AppStyles {
                 color.withValues(alpha: isDark ? 0.16 : 0.08),
               ]
             : [
-                const Color(0xFF070D1A).withValues(alpha: isDark ? 1 : 0),
+                isDark ? darkL1 : Colors.transparent,
                 Colors.transparent,
               ],
       ),
