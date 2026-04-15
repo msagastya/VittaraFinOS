@@ -9,6 +9,7 @@ import 'package:vittara_fin_os/ui/manage/goals/goal_details_screen.dart';
 import 'package:vittara_fin_os/ui/manage/goals/modals/add_goal_modal.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/typography.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/animated_counter.dart'
     as counter_widgets;
@@ -336,13 +337,11 @@ class _GoalsScreenState extends State<GoalsScreen> {
           ),
           const SizedBox(width: 8),
           Text('GOALS',
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
-                  color: AppStyles.getTextColor(context), letterSpacing: 1.1)),
+              style: AppTypography.sectionLabel(color: AppStyles.getTextColor(context))),
           const Spacer(),
           Text(
             '${controller.activeGoals.length} active',
-            style: TextStyle(fontSize: TypeScale.footnote,
-                color: AppStyles.getSecondaryTextColor(context)),
+            style: AppTypography.footnote(color: AppStyles.getSecondaryTextColor(context)),
           ),
           const SizedBox(width: 8),
           CupertinoButton(

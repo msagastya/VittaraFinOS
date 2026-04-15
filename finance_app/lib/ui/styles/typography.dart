@@ -192,6 +192,34 @@ class AppTypography {
     );
   }
 
+  /// Micro — 9pt for tick marks, chart axis labels, dense data grids.
+  static TextStyle micro({
+    Color? color,
+    FontWeight? fontWeight,
+  }) {
+    return TextStyle(
+      fontSize: TypeScale.micro,
+      fontWeight: fontWeight ?? regular,
+      letterSpacing: letterSpacingNormal,
+      height: lineHeightNormal,
+      color: color,
+    );
+  }
+
+  /// Section label — 11pt ALL CAPS, bold, wide tracking. Use for every section header.
+  /// The caller is responsible for uppercasing the string.
+  static TextStyle sectionLabel({
+    Color? color,
+  }) {
+    return TextStyle(
+      fontSize: TypeScale.caption,
+      fontWeight: bold,
+      letterSpacing: 1.2,
+      height: lineHeightNormal,
+      color: color,
+    );
+  }
+
   /// Special purpose styles
   static TextStyle monospace({
     double? fontSize,

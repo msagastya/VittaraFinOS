@@ -10,6 +10,7 @@ import 'package:vittara_fin_os/ui/manage/insurance/insurance_rider_form.dart';
 import 'package:vittara_fin_os/ui/manage/insurance/insurance_wizard.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/typography.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
@@ -152,7 +153,7 @@ class _InsuranceDetailsSheetState extends State<_InsuranceDetailsSheet> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(_policy.name, style: TextStyle(fontFamily: 'SpaceGrotesk', fontWeight: FontWeight.bold, fontSize: 18, color: primaryText)),
-                        Text('${_policy.insurer} · ${_policy.type.displayName}', style: TextStyle(fontSize: 12, color: secondaryText)),
+                        Text('${_policy.insurer} · ${_policy.type.displayName}', style: AppTypography.footnote(color: secondaryText)),
                       ],
                     ),
                   ),
@@ -211,7 +212,7 @@ class _InsuranceDetailsSheetState extends State<_InsuranceDetailsSheet> {
                     if (activeRiders.isEmpty)
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 6),
-                        child: Text('No riders added yet.', style: TextStyle(fontSize: 13, color: secondaryText)),
+                        child: Text('No riders added yet.', style: AppTypography.subhead(color: secondaryText)),
                       )
                     else
                       ...activeRiders.map((rider) => _buildRiderCard(rider, isDark, primaryText, secondaryText, cardColor, borderColor)),
@@ -235,7 +236,7 @@ class _InsuranceDetailsSheetState extends State<_InsuranceDetailsSheet> {
                           children: [
                             Icon(CupertinoIcons.plus_circle_fill, size: 15, color: AppStyles.accentBlue),
                             const SizedBox(width: 6),
-                            Text('Add Rider / Add-on', style: TextStyle(fontSize: 13, color: AppStyles.accentBlue, fontWeight: FontWeight.w600)),
+                            Text('Add Rider / Add-on', style: AppTypography.subhead(color: AppStyles.accentBlue, fontWeight: AppTypography.semiBold)),
                           ],
                         ),
                       ),
@@ -260,14 +261,14 @@ class _InsuranceDetailsSheetState extends State<_InsuranceDetailsSheet> {
                           children: [
                             Icon(CupertinoIcons.checkmark_circle_fill, size: 13, color: AppStyles.gain(context)),
                             const SizedBox(width: 6),
-                            Text('Auto-pay active', style: TextStyle(fontSize: 12, color: AppStyles.gain(context), fontWeight: FontWeight.w600)),
+                            Text('Auto-pay active', style: AppTypography.footnote(color: AppStyles.gain(context), fontWeight: AppTypography.semiBold)),
                           ],
                         ),
                       ),
                     ] else
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 6),
-                        child: Text('No auto-pay mandate set up.', style: TextStyle(fontSize: 13, color: secondaryText)),
+                        child: Text('No auto-pay mandate set up.', style: AppTypography.subhead(color: secondaryText)),
                       ),
 
                     const SizedBox(height: 16),
@@ -379,8 +380,8 @@ class _InsuranceDetailsSheetState extends State<_InsuranceDetailsSheet> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(rider.riderName, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: primaryText)),
-                      Text(rider.type.displayName, style: TextStyle(fontSize: 11, color: secondaryText)),
+                      Text(rider.riderName, style: AppTypography.subhead(color: primaryText, fontWeight: AppTypography.semiBold)),
+                      Text(rider.type.displayName, style: AppTypography.caption(color: secondaryText)),
                     ],
                   ),
                 ),
@@ -391,12 +392,12 @@ class _InsuranceDetailsSheetState extends State<_InsuranceDetailsSheet> {
                       color: AppStyles.gain(context).withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: Text('Inbuilt', style: TextStyle(fontSize: 10, color: AppStyles.gain(context), fontWeight: FontWeight.w600)),
+                    child: Text('Inbuilt', style: AppTypography.micro(color: AppStyles.gain(context), fontWeight: AppTypography.semiBold)),
                   )
                 else
                   Text(
                     CurrencyFormatter.compact(rider.annualCost),
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppStyles.accentBlue),
+                    style: AppTypography.subhead(color: AppStyles.accentBlue, fontWeight: AppTypography.bold),
                   ),
                 const SizedBox(width: 4),
                 CupertinoButton(
@@ -482,7 +483,7 @@ class _InsuranceDetailsSheetState extends State<_InsuranceDetailsSheet> {
         borderRadius: BorderRadius.circular(6),
         border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
-      child: Text(label, style: TextStyle(fontSize: 10, color: color)),
+      child: Text(label, style: AppTypography.micro(color: color)),
     );
   }
 
@@ -491,7 +492,7 @@ class _InsuranceDetailsSheetState extends State<_InsuranceDetailsSheet> {
       padding: const EdgeInsets.only(top: 16, bottom: 8),
       child: Row(
         children: [
-          Text(title.toUpperCase(), style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? const Color(0xFF5A6A80) : const Color(0xFF8899AA), letterSpacing: 0.8)),
+          Text(title.toUpperCase(), style: AppTypography.sectionLabel(color: isDark ? AppStyles.getTertiaryTextColor(context) : AppStyles.getSecondaryTextColor(context))),
           const SizedBox(width: 8),
           Expanded(child: Divider(color: isDark ? const Color(0xFF1C2A3A) : const Color(0xFFDDEEFF), height: 1)),
         ],
@@ -505,8 +506,8 @@ class _InsuranceDetailsSheetState extends State<_InsuranceDetailsSheet> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 140, child: Text(label, style: TextStyle(fontSize: 13, color: secondaryText))),
-          Expanded(child: Text(value, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: primaryText), textAlign: TextAlign.right)),
+          SizedBox(width: 140, child: Text(label, style: AppTypography.subhead(color: secondaryText))),
+          Expanded(child: Text(value, style: AppTypography.subhead(color: primaryText, fontWeight: AppTypography.medium), textAlign: TextAlign.right)),
         ],
       ),
     );
@@ -528,7 +529,7 @@ class _InsuranceDetailsSheetState extends State<_InsuranceDetailsSheet> {
           children: [
             Icon(icon, size: 15, color: color),
             const SizedBox(width: 6),
-            Text(label, style: TextStyle(fontSize: 13, color: color, fontWeight: FontWeight.w600)),
+            Text(label, style: AppTypography.subhead(color: color, fontWeight: AppTypography.semiBold)),
           ],
         ),
       ),

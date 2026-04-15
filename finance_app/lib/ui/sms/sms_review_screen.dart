@@ -25,6 +25,7 @@ import 'package:vittara_fin_os/services/sms_service.dart';
 import 'package:vittara_fin_os/ui/dashboard/transaction_wizard.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/typography.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
@@ -1595,7 +1596,7 @@ class _SmsQuickConfirmSheetState extends State<_SmsQuickConfirmSheet> {
                             Expanded(
                               child: Text(
                                 '${_selectedDate.day} ${DateFormatter.getMonthName(_selectedDate.month)} ${_selectedDate.year}',
-                                style: TextStyle(fontSize: TypeScale.body, color: AppStyles.getTextColor(context)),
+                                style: AppTypography.body(color: AppStyles.getTextColor(context)),
                               ),
                             ),
                             Icon(CupertinoIcons.chevron_right,
@@ -1770,7 +1771,7 @@ class _SmsQuickConfirmSheetState extends State<_SmsQuickConfirmSheet> {
                             Expanded(
                               child: Text(
                                 _selectedAccount?.name ?? 'Tap to select account',
-                                style: TextStyle(fontSize: TypeScale.body, color: AppStyles.getTextColor(context)).copyWith(
+                                style: AppTypography.body(color: AppStyles.getTextColor(context)).copyWith(
                                   color: _selectedAccount == null
                                       ? AppStyles.loss(context)
                                       : AppStyles.getTextColor(context),
@@ -1822,7 +1823,7 @@ class _SmsQuickConfirmSheetState extends State<_SmsQuickConfirmSheet> {
                                       child: Text(
                                         _selectedPaymentApp ??
                                             'Optional — tap to select',
-                                        style: TextStyle(fontSize: TypeScale.body, color: AppStyles.getTextColor(context))
+                                        style: AppTypography.body(color: AppStyles.getTextColor(context))
                                             .copyWith(
                                           color: _selectedPaymentApp == null
                                               ? AppStyles.getSecondaryTextColor(
@@ -1856,7 +1857,7 @@ class _SmsQuickConfirmSheetState extends State<_SmsQuickConfirmSheet> {
                       placeholder: 'Merchant, note or description',
                       placeholderStyle: TextStyle(
                           color: AppStyles.getSecondaryTextColor(context)),
-                      style: TextStyle(fontSize: TypeScale.body, color: AppStyles.getTextColor(context)),
+                      style: AppTypography.body(color: AppStyles.getTextColor(context)),
                       decoration: BoxDecoration(
                         color: AppStyles.getCardColor(context),
                         borderRadius: BorderRadius.circular(Radii.md),
@@ -1993,7 +1994,7 @@ class _SmsQuickConfirmSheetState extends State<_SmsQuickConfirmSheet> {
                                   placeholderStyle: TextStyle(
                                       color: AppStyles.getSecondaryTextColor(
                                           context)),
-                                  style: TextStyle(fontSize: TypeScale.body, color: AppStyles.getTextColor(context)),
+                                  style: AppTypography.body(color: AppStyles.getTextColor(context)),
                                   decoration: BoxDecoration(
                                     color: AppStyles.getCardColor(context),
                                     borderRadius:

@@ -19,6 +19,7 @@ import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/floating_particle_background.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/typography.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
 import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
@@ -263,8 +264,7 @@ class _ManageScreenState extends State<ManageScreen> {
           ),
           const SizedBox(width: 8),
           Text('MANAGE',
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
-                  color: AppStyles.getTextColor(context), letterSpacing: 1.1)),
+              style: AppTypography.sectionLabel(color: AppStyles.getTextColor(context))),
         ],
       ),
     );

@@ -8,6 +8,7 @@ import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/ui/dashboard/widgets/insights_widget.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/typography.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Full-screen Spending Intelligence Screen
@@ -368,13 +369,13 @@ Widget _buildTxRow(BuildContext context, Transaction tx, bool isDark) {
           width: 36,
           child: Text(
             dateStr,
-            style: TextStyle(fontSize: 10, color: AppStyles.getSecondaryTextColor(context)),
+            style: AppTypography.micro(color: AppStyles.getSecondaryTextColor(context)),
           ),
         ),
         Expanded(
           child: Text(
             tx.description.isNotEmpty ? tx.description : 'Transaction',
-            style: TextStyle(fontSize: TypeScale.caption, color: AppStyles.getTextColor(context)),
+            style: AppTypography.caption(color: AppStyles.getTextColor(context)),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),

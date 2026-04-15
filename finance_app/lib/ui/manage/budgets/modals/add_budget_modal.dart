@@ -7,6 +7,7 @@ import 'package:vittara_fin_os/logic/categories_controller.dart';
 import 'package:vittara_fin_os/logic/category_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/typography.dart';
 import 'package:vittara_fin_os/utils/alert_service.dart';
 import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
@@ -323,10 +324,10 @@ class _AddBudgetModalState extends State<AddBudgetModal> {
                         placeholder: '10000',
                         keyboardType:
                             const TextInputType.numberWithOptions(decimal: true),
-                        prefix: const Padding(
-                            padding: EdgeInsets.only(left: Spacing.lg),
+                        prefix: Padding(
+                            padding: const EdgeInsets.only(left: Spacing.lg),
                             child: Text('₹',
-                                style: TextStyle(fontSize: TypeScale.callout))),
+                                style: AppTypography.callout())),
                         padding: const EdgeInsets.all(Spacing.lg),
                         decoration: BoxDecoration(
                             color: AppStyles.getBackground(context),

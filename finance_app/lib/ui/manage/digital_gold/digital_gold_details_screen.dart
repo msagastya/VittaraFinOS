@@ -7,6 +7,7 @@ import 'package:vittara_fin_os/services/gold_price_service.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/typography.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 
@@ -425,7 +426,7 @@ class _DigitalGoldDetailsScreenState extends State<DigitalGoldDetailsScreen> {
         children: [
           Text(
             label,
-            style: const TextStyle(fontSize: TypeScale.subhead),
+            style: AppTypography.subhead(),
           ),
           Text(
             value,

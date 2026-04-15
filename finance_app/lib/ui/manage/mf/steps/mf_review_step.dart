@@ -4,6 +4,7 @@ import 'package:vittara_fin_os/ui/manage/mf/mf_wizard_controller.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/typography.dart';
 
 class MFReviewStep extends StatelessWidget {
   const MFReviewStep({super.key});
@@ -193,7 +194,7 @@ class MFReviewStep extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(fontSize: TypeScale.footnote),
+            style: AppTypography.footnote(),
           ),
           Text(
             value,

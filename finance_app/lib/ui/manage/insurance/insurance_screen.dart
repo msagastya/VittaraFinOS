@@ -9,6 +9,7 @@ import 'package:vittara_fin_os/ui/manage/insurance/insurance_mandate_sheet.dart'
 import 'package:vittara_fin_os/ui/manage/insurance/insurance_wizard.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/typography.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
@@ -709,7 +710,7 @@ class _PolicyCard extends StatelessWidget {
                       policy.mandateNextDueDate != null
                           ? 'Auto-pay: ${DateFormatter.format(policy.mandateNextDueDate!)}'
                           : 'Auto-pay active',
-                      style: TextStyle(fontSize: 11, color: AppStyles.teal(context)),
+                      style: AppTypography.caption(color: AppStyles.teal(context)),
                     ),
                   ],
                 ),
@@ -728,7 +729,7 @@ class _PolicyCard extends StatelessWidget {
                         final label = count == 1 ? 'rider' : 'riders';
                         return '$count $label · +${CurrencyFormatter.compact(policy.totalRiderPremium)}/yr';
                       }(),
-                      style: TextStyle(fontSize: 11, color: AppStyles.accentBlue),
+                      style: AppTypography.caption(color: AppStyles.accentBlue),
                     ),
                   ],
                 ),

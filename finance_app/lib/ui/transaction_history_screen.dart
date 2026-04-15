@@ -17,6 +17,7 @@ import 'package:vittara_fin_os/utils/id_generator.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/styles/transaction_type_theme.dart';
+import 'package:vittara_fin_os/ui/styles/typography.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/dashboard/transaction_wizard.dart';
@@ -514,16 +515,16 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
               Navigator.pop(ctx);
               _exportPdf(transactions);
             },
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(CupertinoIcons.doc_richtext, color: CupertinoColors.systemRed),
-                SizedBox(width: 10),
+                const Icon(CupertinoIcons.doc_richtext, color: CupertinoColors.systemRed),
+                const SizedBox(width: 10),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Export as PDF', style: TextStyle(fontWeight: FontWeight.w600)),
-                    Text('Styled report with logo & summary', style: TextStyle(fontSize: 12, color: CupertinoColors.systemGrey)),
+                    const Text('Export as PDF', style: TextStyle(fontWeight: FontWeight.w600)),
+                    Text('Styled report with logo & summary', style: AppTypography.footnote(color: CupertinoColors.systemGrey)),
                   ],
                 ),
               ],
@@ -534,16 +535,16 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
               Navigator.pop(ctx);
               _exportXlsx(transactions);
             },
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(CupertinoIcons.square_grid_2x2, color: CupertinoColors.systemGreen),
-                SizedBox(width: 10),
+                const Icon(CupertinoIcons.square_grid_2x2, color: CupertinoColors.systemGreen),
+                const SizedBox(width: 10),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Export as Excel (.xlsx)', style: TextStyle(fontWeight: FontWeight.w600)),
-                    Text('Spreadsheet with colour coding', style: TextStyle(fontSize: 12, color: CupertinoColors.systemGrey)),
+                    const Text('Export as Excel (.xlsx)', style: TextStyle(fontWeight: FontWeight.w600)),
+                    Text('Spreadsheet with colour coding', style: AppTypography.footnote(color: CupertinoColors.systemGrey)),
                   ],
                 ),
               ],
@@ -554,16 +555,16 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
               Navigator.pop(ctx);
               _exportCsv(transactions);
             },
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(CupertinoIcons.doc_plaintext, color: CupertinoColors.systemBlue),
-                SizedBox(width: 10),
+                const Icon(CupertinoIcons.doc_plaintext, color: CupertinoColors.systemBlue),
+                const SizedBox(width: 10),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Export as CSV', style: TextStyle(fontWeight: FontWeight.w600)),
-                    Text('Plain comma-separated values', style: TextStyle(fontSize: 12, color: CupertinoColors.systemGrey)),
+                    const Text('Export as CSV', style: TextStyle(fontWeight: FontWeight.w600)),
+                    Text('Plain comma-separated values', style: AppTypography.footnote(color: CupertinoColors.systemGrey)),
                   ],
                 ),
               ],

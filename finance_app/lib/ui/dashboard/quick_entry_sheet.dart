@@ -17,6 +17,7 @@ import 'package:vittara_fin_os/ui/dashboard/transaction_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/account_wizard.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/typography.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
@@ -566,7 +567,7 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
                                     const SizedBox(height: 2),
                                     Text(
                                       '${acc.bankName} · ${_accountTypeLabel(acc.type)}',
-                                      style: TextStyle(fontSize: 11, color: secondaryText),
+                                      style: AppTypography.caption(color: secondaryText),
                                     ),
                                   ],
                                 ),
@@ -631,7 +632,7 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
                             ),
                             child: Center(
                               child: Text('Cancel',
-                                  style: TextStyle(fontSize: 14, color: secondaryText)),
+                                  style: AppTypography.body(color: secondaryText)),
                             ),
                           ),
                         ),
@@ -825,7 +826,7 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
                                       const SizedBox(height: 2),
                                       Text(
                                         'Wallet enabled',
-                                        style: TextStyle(fontSize: 11, color: secondaryText),
+                                        style: AppTypography.caption(color: secondaryText),
                                       ),
                                     ],
                                   ],
@@ -882,7 +883,7 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
                             ),
                             child: Center(
                               child: Text('Cancel',
-                                  style: TextStyle(fontSize: 14, color: secondaryText)),
+                                  style: AppTypography.body(color: secondaryText)),
                             ),
                           ),
                         ),
@@ -1256,7 +1257,7 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
       children: [
         Text(
           'Category',
-          style: TextStyle(fontSize: 12, color: secondaryText),
+          style: AppTypography.footnote(color: secondaryText),
         ),
         const SizedBox(height: Spacing.sm),
         SizedBox(
@@ -1344,7 +1345,7 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
       children: [
         Text(
           'Description',
-          style: TextStyle(fontSize: 12, color: secondaryText),
+          style: AppTypography.footnote(color: secondaryText),
         ),
         const SizedBox(height: Spacing.sm),
         CupertinoTextField(
@@ -1377,7 +1378,7 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
           padding: const EdgeInsets.symmetric(horizontal: Spacing.sm),
           child: Text(
             'Details',
-            style: TextStyle(fontSize: 11, color: secondaryText),
+            style: AppTypography.caption(color: secondaryText),
           ),
         ),
         Expanded(
@@ -1420,7 +1421,7 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
               children: [
                 Text(
                   'Most used',
-                  style: TextStyle(fontSize: 11, color: secondaryText),
+                  style: AppTypography.caption(color: secondaryText),
                 ),
                 const SizedBox(height: Spacing.xs),
                 SizedBox(
@@ -1450,7 +1451,7 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
                                   : (isDark ? const Color(0xFF2A3A55) : const Color(0xFFBBCCEE)),
                             ),
                           ),
-                          child: Text(m, style: TextStyle(fontSize: 12, color: primaryText)),
+                          child: Text(m, style: AppTypography.footnote(color: primaryText)),
                         ),
                       );
                     },
@@ -1521,7 +1522,7 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
             const SizedBox(height: Spacing.xs),
             Row(
               children: [
-                Text('Goes to:', style: TextStyle(fontSize: 12, color: secondaryText)),
+                Text('Goes to:', style: AppTypography.footnote(color: secondaryText)),
                 const SizedBox(width: Spacing.sm),
                 _cashbackDestChip(
                   label: _selectedAccountName ?? 'Account',
@@ -1668,7 +1669,7 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
                         const SizedBox(width: 4),
                         Text(
                           'New tag',
-                          style: TextStyle(fontSize: 12, color: AppStyles.accentPurple),
+                          style: AppTypography.footnote(color: AppStyles.accentPurple),
                         ),
                       ],
                     ),
@@ -1742,9 +1743,9 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
                       color: AppStyles.accentPurple.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(Radii.md),
                     ),
-                    child: const Text(
+                    child: Text(
                       'Add',
-                      style: TextStyle(fontSize: 13, color: AppStyles.accentPurple),
+                      style: AppTypography.subhead(color: AppStyles.accentPurple),
                     ),
                   ),
                 ),
@@ -1773,12 +1774,12 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
         children: [
           Icon(icon, size: 16, color: iconColor),
           const SizedBox(width: Spacing.sm),
-          Text(label, style: TextStyle(fontSize: 13, color: secondaryText)),
+          Text(label, style: AppTypography.subhead(color: secondaryText)),
           const Spacer(),
           Flexible(
             child: Text(
               value,
-              style: TextStyle(fontSize: 13, color: primaryText),
+              style: AppTypography.subhead(color: primaryText),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -1801,7 +1802,7 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
           children: [
             SizedBox(
               width: 72,
-              child: Text('Account:', style: TextStyle(fontSize: 12, color: secondaryText)),
+              child: Text('Account:', style: AppTypography.footnote(color: secondaryText)),
             ),
             Expanded(
               child: GestureDetector(
@@ -1822,7 +1823,7 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
           children: [
             SizedBox(
               width: 72,
-              child: Text('Pay via:', style: TextStyle(fontSize: 12, color: secondaryText)),
+              child: Text('Pay via:', style: AppTypography.footnote(color: secondaryText)),
             ),
             Expanded(
               child: GestureDetector(
@@ -1927,7 +1928,7 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
             const SizedBox(width: 4),
             Text(
               label,
-              style: TextStyle(fontSize: 12, color: secondaryText),
+              style: AppTypography.footnote(color: secondaryText),
             ),
             const SizedBox(width: 4),
             Icon(CupertinoIcons.pencil, size: 11, color: secondaryText.withValues(alpha: 0.5)),
@@ -1947,7 +1948,7 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
           color: isDark ? const Color(0xFF2A3A55) : const Color(0xFFBBCCEE),
         ),
       ),
-      child: Text(label, style: TextStyle(fontSize: 12, color: primaryText)),
+      child: Text(label, style: AppTypography.footnote(color: primaryText)),
     );
   }
 
@@ -1975,7 +1976,7 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
           Flexible(
             child: Text(
               label,
-              style: TextStyle(fontSize: 12, color: primaryText),
+              style: AppTypography.footnote(color: primaryText),
               overflow: TextOverflow.ellipsis,
             ),
           ),

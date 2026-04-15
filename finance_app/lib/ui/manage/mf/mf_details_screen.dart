@@ -12,6 +12,7 @@ import 'package:vittara_fin_os/ui/manage/mf/sip_wizard.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/typography.dart';
 import 'package:vittara_fin_os/services/nav_service.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/app_date_picker.dart';
@@ -675,7 +676,7 @@ class _MFDetailsScreenState extends State<MFDetailsScreen> {
             children: [
               Text(
                 label,
-                style: const TextStyle(fontSize: TypeScale.subhead),
+                style: AppTypography.subhead(),
               ),
               if (labelSuffix != null) ...[
                 const SizedBox(width: 3),

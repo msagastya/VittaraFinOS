@@ -6,6 +6,7 @@ import 'package:vittara_fin_os/logic/goal_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
+import 'package:vittara_fin_os/ui/styles/typography.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
@@ -138,10 +139,10 @@ class _AddContributionModalState extends State<AddContributionModal> {
                       placeholder: '0.00',
                       keyboardType:
                           const TextInputType.numberWithOptions(decimal: true),
-                      prefix: const Padding(
-                          padding: EdgeInsets.only(left: Spacing.lg),
+                      prefix: Padding(
+                          padding: const EdgeInsets.only(left: Spacing.lg),
                           child: Text('₹',
-                              style: TextStyle(fontSize: TypeScale.callout))),
+                              style: AppTypography.callout())),
                       padding: const EdgeInsets.all(Spacing.lg),
                       decoration: BoxDecoration(
                           color: AppStyles.getBackground(context),

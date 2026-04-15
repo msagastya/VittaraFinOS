@@ -19,6 +19,7 @@ import 'package:vittara_fin_os/ui/manage/account_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/transfer_wizard.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/typography.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
@@ -1212,8 +1213,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                         color: const Color(0xFF00B890).withValues(alpha: 0.15),
                                         borderRadius: BorderRadius.circular(4),
                                       ),
-                                      child: const Text('Default',
-                                          style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: Color(0xFF00B890))),
+                                      child: Text('Default',
+                                          style: AppTypography.micro(color: SemanticColors.success, fontWeight: AppTypography.bold)),
                                     )
                                   : Icon(
                                       CupertinoIcons.chevron_right,

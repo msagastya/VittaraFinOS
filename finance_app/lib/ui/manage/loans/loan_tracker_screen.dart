@@ -7,6 +7,7 @@ import 'package:vittara_fin_os/logic/loan_model.dart';
 import 'package:vittara_fin_os/ui/manage/loans/loan_wizard.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/typography.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
@@ -321,8 +322,7 @@ class _LoanTrackerScreenState extends State<LoanTrackerScreen> {
           ),
           const SizedBox(width: 8),
           Text('LOAN / EMI TRACKER',
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
-                  color: AppStyles.getTextColor(context), letterSpacing: 1.1)),
+              style: AppTypography.sectionLabel(color: AppStyles.getTextColor(context))),
         ],
       ),
     );
@@ -764,13 +764,10 @@ class _LoanDetailSheetState extends State<_LoanDetailSheet> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(loan.name,
-                        style: TextStyle(fontSize: TypeScale.title3,
-                            fontWeight: FontWeight.w800,
-                            color: AppStyles.getTextColor(context))),
+                        style: AppTypography.title3(color: AppStyles.getTextColor(context), fontWeight: AppTypography.heavy)),
                     if (loan.bankName != null)
                       Text(loan.bankName!,
-                          style: TextStyle(fontSize: TypeScale.footnote,
-                              color: AppStyles.getSecondaryTextColor(context))),
+                          style: AppTypography.footnote(color: AppStyles.getSecondaryTextColor(context))),
                   ],
                 ),
               ),
@@ -784,9 +781,7 @@ class _LoanDetailSheetState extends State<_LoanDetailSheet> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text('Edit',
-                      style: TextStyle(fontSize: TypeScale.footnote,
-                          fontWeight: FontWeight.w700,
-                          color: AppStyles.getPrimaryColor(context))),
+                      style: AppTypography.footnote(color: AppStyles.getPrimaryColor(context), fontWeight: AppTypography.bold)),
                 ),
               ),
             ],
@@ -837,12 +832,10 @@ class _LoanDetailSheetState extends State<_LoanDetailSheet> {
                 const SizedBox(height: 4),
                 Row(children: [
                   Text('${(loan.progressPercent * 100).toStringAsFixed(0)}% paid',
-                      style: TextStyle(fontSize: TypeScale.caption,
-                          color: AppStyles.gain(context), fontWeight: FontWeight.w600)),
+                      style: AppTypography.caption(color: AppStyles.gain(context), fontWeight: AppTypography.semiBold)),
                   const Spacer(),
                   Text('₹${loan.totalPaid.toStringAsFixed(0)} paid',
-                      style: TextStyle(fontSize: TypeScale.caption,
-                          color: AppStyles.getSecondaryTextColor(context))),
+                      style: AppTypography.caption(color: AppStyles.getSecondaryTextColor(context))),
                 ]),
               ],
             ),
@@ -886,9 +879,7 @@ class _LoanDetailSheetState extends State<_LoanDetailSheet> {
                     child: Text(
                       'Save ${savings.savedMonths} month${savings.savedMonths == 1 ? '' : 's'} · '
                       '₹${savings.savedInterest.toStringAsFixed(0)} interest saved',
-                      style: TextStyle(fontSize: TypeScale.footnote,
-                          fontWeight: FontWeight.w700,
-                          color: AppStyles.teal(context)),
+                      style: AppTypography.footnote(color: AppStyles.teal(context), fontWeight: AppTypography.bold),
                     ),
                   ),
                 ],
@@ -897,8 +888,7 @@ class _LoanDetailSheetState extends State<_LoanDetailSheet> {
           ] else if (savings != null && savings.savedMonths == 0) ...[
             const SizedBox(height: Spacing.sm),
             Text('Loan fully paid off with this prepayment.',
-                style: TextStyle(fontSize: TypeScale.footnote,
-                    color: AppStyles.gain(context), fontWeight: FontWeight.w700)),
+                style: AppTypography.footnote(color: AppStyles.gain(context), fontWeight: AppTypography.bold)),
           ],
 
           const SizedBox(height: Spacing.lg),
@@ -971,8 +961,7 @@ class _LoanDetailSheetState extends State<_LoanDetailSheet> {
         ),
         const SizedBox(width: 6),
         Text(label,
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
-                color: accent, letterSpacing: 1.0)),
+            style: AppTypography.sectionLabel(color: accent)),
       ],
     );
   }
@@ -983,12 +972,10 @@ class _LoanDetailSheetState extends State<_LoanDetailSheet> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label,
-              style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600,
-                  color: AppStyles.getSecondaryTextColor(context), letterSpacing: 0.5)),
+              style: AppTypography.micro(color: AppStyles.getSecondaryTextColor(context), fontWeight: AppTypography.semiBold)),
           const SizedBox(height: 2),
           Text(value,
-              style: TextStyle(fontSize: TypeScale.callout, fontWeight: FontWeight.w800,
-                  color: color)),
+              style: AppTypography.callout(color: color, fontWeight: AppTypography.heavy)),
         ],
       ),
     );

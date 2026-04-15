@@ -6,6 +6,7 @@ import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/insurance_controller.dart';
 import 'package:vittara_fin_os/logic/insurance_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/typography.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
@@ -136,8 +137,8 @@ class _InsuranceMandateSheetState extends State<_InsuranceMandateSheet> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(acc.name, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: primaryText)),
-                                    Text(acc.bankName, style: TextStyle(fontSize: 11, color: secondaryText)),
+                                    Text(acc.name, style: AppTypography.body(color: primaryText, fontWeight: AppTypography.semiBold)),
+                                    Text(acc.bankName, style: AppTypography.caption(color: secondaryText)),
                                   ],
                                 ),
                               ),
@@ -162,7 +163,7 @@ class _InsuranceMandateSheetState extends State<_InsuranceMandateSheet> {
                         color: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFEEEEEE),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Center(child: Text('Cancel', style: TextStyle(fontSize: 14, color: secondaryText))),
+                      child: Center(child: Text('Cancel', style: AppTypography.body(color: secondaryText))),
                     ),
                   ),
                 ),
@@ -263,7 +264,7 @@ class _InsuranceMandateSheetState extends State<_InsuranceMandateSheet> {
                       Text('Auto-Pay Mandate',
                         style: TextStyle(fontFamily: 'SpaceGrotesk', fontWeight: FontWeight.bold, fontSize: 18, color: primaryText),
                       ),
-                      Text(widget.policy.name, style: TextStyle(fontSize: 12, color: secondaryText)),
+                      Text(widget.policy.name, style: AppTypography.footnote(color: secondaryText)),
                     ],
                   ),
                   const Spacer(),
@@ -299,8 +300,8 @@ class _InsuranceMandateSheetState extends State<_InsuranceMandateSheet> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Enable Auto-Pay', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: primaryText)),
-                                Text('Get a reminder when premium is due', style: TextStyle(fontSize: 11, color: secondaryText)),
+                                Text('Enable Auto-Pay', style: AppTypography.body(color: primaryText, fontWeight: AppTypography.semiBold)),
+                                Text('Get a reminder when premium is due', style: AppTypography.caption(color: secondaryText)),
                               ],
                             ),
                           ),
@@ -338,7 +339,7 @@ class _InsuranceMandateSheetState extends State<_InsuranceMandateSheet> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('Debit Account', style: TextStyle(fontSize: 13, color: secondaryText)),
+                                    Text('Debit Account', style: AppTypography.subhead(color: secondaryText)),
                                     Text(
                                       _linkedAccountName ?? 'Tap to select',
                                       style: TextStyle(
@@ -374,10 +375,10 @@ class _InsuranceMandateSheetState extends State<_InsuranceMandateSheet> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('Next Due Date', style: TextStyle(fontSize: 13, color: secondaryText)),
+                                    Text('Next Due Date', style: AppTypography.subhead(color: secondaryText)),
                                     Text(
                                       DateFormatter.format(_nextDueDate),
-                                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: primaryText),
+                                      style: AppTypography.body(color: primaryText, fontWeight: AppTypography.semiBold),
                                     ),
                                   ],
                                 ),
@@ -404,7 +405,7 @@ class _InsuranceMandateSheetState extends State<_InsuranceMandateSheet> {
                             Expanded(
                               child: Text(
                                 'When the due date is within 7 days, you\'ll see a reminder in Notifications → Upcoming with options to Pay Now or Skip.',
-                                style: TextStyle(fontSize: 11, color: AppStyles.accentBlue, height: 1.5),
+                                style: AppTypography.caption(color: AppStyles.accentBlue),
                               ),
                             ),
                           ],

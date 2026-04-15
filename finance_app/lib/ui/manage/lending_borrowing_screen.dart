@@ -8,6 +8,7 @@ import 'package:vittara_fin_os/ui/manage/lending_wizard.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/typography.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
@@ -271,8 +272,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
           ),
           const SizedBox(width: 8),
           Text('LENDING & BORROWING',
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
-                  color: AppStyles.getTextColor(context), letterSpacing: 1.1)),
+              style: AppTypography.sectionLabel(color: AppStyles.getTextColor(context))),
           const Spacer(),
           CupertinoButton(
             padding: EdgeInsets.zero,
@@ -325,11 +325,9 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(label, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700,
-              color: color.withValues(alpha: 0.7), letterSpacing: 0.5)),
+          Text(label, style: AppTypography.micro(color: color.withValues(alpha: 0.7), fontWeight: AppTypography.bold)),
           const SizedBox(height: 2),
-          Text(value, style: TextStyle(fontSize: TypeScale.footnote,
-              fontWeight: FontWeight.w800, color: color)),
+          Text(value, style: AppTypography.footnote(color: color, fontWeight: AppTypography.heavy)),
         ],
       ),
     );

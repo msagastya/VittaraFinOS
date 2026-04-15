@@ -5,6 +5,7 @@ import 'package:vittara_fin_os/ui/manage/mf/sip_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
+import 'package:vittara_fin_os/ui/styles/typography.dart';
 
 class SIPReviewStep extends StatelessWidget {
   const SIPReviewStep({super.key});
@@ -131,7 +132,7 @@ class SIPReviewStep extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(fontSize: TypeScale.caption),
+            style: AppTypography.caption(),
           ),
           Text(
             '₹${value.toStringAsFixed(2)}/month',

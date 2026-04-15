@@ -5,6 +5,7 @@ import 'package:vittara_fin_os/logic/goals_controller.dart';
 import 'package:vittara_fin_os/logic/goal_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/typography.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/utils/alert_service.dart';
 import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
@@ -208,10 +209,10 @@ class _AddGoalModalState extends State<AddGoalModal> {
                       placeholder: '100000',
                       keyboardType:
                           const TextInputType.numberWithOptions(decimal: true),
-                      prefix: const Padding(
-                        padding: EdgeInsets.only(left: Spacing.lg),
+                      prefix: Padding(
+                        padding: const EdgeInsets.only(left: Spacing.lg),
                         child: Text('₹',
-                            style: TextStyle(fontSize: TypeScale.callout)),
+                            style: AppTypography.callout()),
                       ),
                       padding: const EdgeInsets.all(Spacing.lg),
                       decoration: BoxDecoration(

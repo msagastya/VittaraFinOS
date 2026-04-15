@@ -5,6 +5,7 @@ import 'package:vittara_fin_os/logic/insurance_model.dart';
 import 'package:vittara_fin_os/logic/insurance_rider_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/typography.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
@@ -335,7 +336,7 @@ class _InsuranceRiderFormState extends State<_InsuranceRiderForm> {
                           ),
                         ),
                         if (_typeSelected)
-                          Text(_type.displayName, style: TextStyle(fontSize: 12, color: secondaryText)),
+                          Text(_type.displayName, style: AppTypography.footnote(color: secondaryText)),
                       ],
                     ),
                   ),
@@ -410,7 +411,7 @@ class _InsuranceRiderFormState extends State<_InsuranceRiderForm> {
                               Expanded(
                                 child: Text(
                                   _type.shortDescription,
-                                  style: TextStyle(fontSize: 11, color: AppStyles.accentBlue, height: 1.4),
+                                  style: AppTypography.caption(color: AppStyles.accentBlue),
                                 ),
                               ),
                             ],
@@ -764,7 +765,7 @@ class _InsuranceRiderFormState extends State<_InsuranceRiderForm> {
         if (label.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(bottom: 4),
-            child: Text(label, style: TextStyle(fontSize: 12, color: secondaryText)),
+            child: Text(label, style: AppTypography.footnote(color: secondaryText)),
           ),
         CupertinoTextField(
           controller: controller,
@@ -808,7 +809,7 @@ class _InsuranceRiderFormState extends State<_InsuranceRiderForm> {
       children: [
         Padding(
           padding: const EdgeInsets.only(bottom: 4),
-          child: Text(label, style: TextStyle(fontSize: 12, color: secondaryText)),
+          child: Text(label, style: AppTypography.footnote(color: secondaryText)),
         ),
         GestureDetector(
           onTap: () {
@@ -854,7 +855,7 @@ class _InsuranceRiderFormState extends State<_InsuranceRiderForm> {
                 Expanded(
                   child: Text(
                     labels[options.indexOf(value) >= 0 ? options.indexOf(value) : 0],
-                    style: TextStyle(fontSize: 14, color: primaryText),
+                    style: AppTypography.body(color: primaryText),
                   ),
                 ),
                 Icon(CupertinoIcons.chevron_down, size: 12, color: secondaryText),
@@ -894,8 +895,8 @@ class _InsuranceRiderFormState extends State<_InsuranceRiderForm> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: primaryText)),
-                Text(subtitle, style: TextStyle(fontSize: 11, color: secondaryText)),
+                Text(title, style: AppTypography.subhead(color: primaryText, fontWeight: AppTypography.semiBold)),
+                Text(subtitle, style: AppTypography.caption(color: secondaryText)),
               ],
             ),
           ),
@@ -930,8 +931,8 @@ class _InsuranceRiderFormState extends State<_InsuranceRiderForm> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: TextStyle(fontSize: 11, color: secondaryText)),
-                Text(value, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: primaryText)),
+                Text(label, style: AppTypography.caption(color: secondaryText)),
+                Text(value, style: AppTypography.subhead(color: primaryText, fontWeight: AppTypography.semiBold)),
               ],
             ),
           ),
