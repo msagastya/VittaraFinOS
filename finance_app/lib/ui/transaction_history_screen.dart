@@ -1039,8 +1039,11 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
       children: [
         RefreshIndicator(
       onRefresh: () async {
-        // Trigger a UI refresh
-        if (mounted) setState(() {});
+        // Scroll to top and trigger a UI refresh
+        if (mounted) {
+          _scrollController.jumpTo(0);
+          setState(() {});
+        }
       },
       child: ListView.builder(
         controller: _scrollController,

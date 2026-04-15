@@ -37,6 +37,7 @@ import 'package:vittara_fin_os/ui/transaction_history_screen.dart';
 import 'package:vittara_fin_os/ui/spending_insights_screen.dart';
 import 'package:vittara_fin_os/ui/styles/app_springs.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
+import 'package:vittara_fin_os/ui/styles/typography.dart';
 import 'package:vittara_fin_os/logic/notification_helpers.dart';
 import 'package:vittara_fin_os/ui/dashboard/dashboard_action_sheet.dart';
 import 'package:vittara_fin_os/ui/notifications_page.dart';
@@ -1726,21 +1727,13 @@ class DashboardScreen extends StatelessWidget {
                           Expanded(
                             child: Text(
                               widgetConfig.title,
-                              style: TextStyle(
-                                fontSize: TypeScale.headline,
-                                fontWeight: FontWeight.w700,
+                              style: AppTypography.headline(
                                 color: AppStyles.getTextColor(context),
-                                letterSpacing: -0.3,
+                                fontWeight: AppTypography.bold,
                               ),
                             ),
                           ),
-                          // Drag handle + arrow
-                          Icon(
-                            CupertinoIcons.line_horizontal_3,
-                            size: 16,
-                            color: accent.withValues(alpha: 0.45),
-                          ),
-                          const SizedBox(width: Spacing.sm),
+                          // Tap indicator
                           Icon(
                             CupertinoIcons.chevron_right,
                             size: 16,
@@ -1956,6 +1949,50 @@ class DashboardScreen extends StatelessWidget {
                           ),
                         ),
                       ],
+                    ),
+
+                    const SizedBox(height: Spacing.xl),
+
+                    // Hero balance — total across all accounts
+                    Consumer<AccountsController>(
+                      builder: (context, acCtrl, _) {
+                        final visibleAccounts = acCtrl.accounts
+                            .where((a) => !a.isHidden)
+                            .toList();
+                        final total = visibleAccounts.fold(
+                            0.0, (sum, a) => sum + a.balance);
+                        final count = visibleAccounts.length;
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            AnimatedCounter(
+                              value: total,
+                              prefix: '₹',
+                              style: TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                                letterSpacing: -1.0,
+                                fontFamily: 'SpaceGrotesk',
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures(),
+                                ],
+                              ),
+                              duration: const Duration(milliseconds: 700),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Across $count account${count == 1 ? '' : 's'}',
+                              style: TextStyle(
+                                fontSize: TypeScale.caption,
+                                color: Colors.white.withValues(alpha: 0.55),
+                                fontWeight: FontWeight.w500,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
 
                     const SizedBox(height: Spacing.lg),

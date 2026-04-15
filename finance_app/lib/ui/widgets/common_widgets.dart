@@ -1488,13 +1488,14 @@ class SmoothScrollPhysics extends ScrollPhysics {
       ScrollMetrics position, double velocity) {
     final tolerance = toleranceFor(position);
     if (velocity.abs() < tolerance.velocity ||
+        position.outOfRange || // don't interfere when overscrolled (let parent spring back)
         (position.pixels <= position.minScrollExtent && velocity < 0) ||
         (position.pixels >= position.maxScrollExtent && velocity > 0)) {
       return null;
     }
-    // Fast fling (> 2000 px/s): low friction → long glide.
+    // Fast fling (> 2000 px/s): moderate friction → natural glide.
     // Slow fling: higher friction → stops sooner.
-    final friction = velocity.abs() > 2000.0 ? 0.010 : 0.030;
+    final friction = velocity.abs() > 2000.0 ? 0.015 : 0.035;
     return FrictionSimulation(
       friction,
       position.pixels,

@@ -195,7 +195,7 @@ class MonthlyStatementService {
           pw.SizedBox(height: 10),
           _sectionBanner('Spending by Category', 'All transactions grouped by category', _brandViolet, _indigo, 'C'),
           pw.SizedBox(height: 6),
-          _catSummaryBars(catGroups, stats['expense']!),
+          _catSummaryBars(catGroups, stats['expense'] ?? 0.0),
           pw.SizedBox(height: 14),
           ...catGroups.entries.expand((entry) => [
             _subSectionHeader(entry.key.isEmpty ? 'Uncategorised' : entry.key, entry.value.length, _pal[catGroups.keys.toList().indexOf(entry.key) % _pal.length]),
@@ -385,7 +385,7 @@ class MonthlyStatementService {
   // ═══════════════════════════════════════════════════════════════════════════
 
   static pw.Page _coverPage(String monthLabel, int txnCount, Map<String, double> stats, List<Account> accounts, Uint8List? ib) {
-    final net = stats['net']!;
+    final net = stats['net'] ?? 0.0;
     return pw.Page(
       pageFormat: PdfPageFormat.a4,
       margin: pw.EdgeInsets.zero,
@@ -455,13 +455,13 @@ class MonthlyStatementService {
               pw.SizedBox(height: 48),
               // Quick stats row
               pw.Row(children: [
-                _coverStat('INCOME',    '+₹${_fmtAmt(stats['income']!)}',    _green),
+                _coverStat('INCOME',    '+₹${_fmtAmt(stats['income'] ?? 0.0)}',    _green),
                 pw.SizedBox(width: 12),
-                _coverStat('EXPENSES',  '-₹${_fmtAmt(stats['expense']!)}',   _red),
+                _coverStat('EXPENSES',  '-₹${_fmtAmt(stats['expense'] ?? 0.0)}',   _red),
                 pw.SizedBox(width: 12),
                 _coverStat('NET',       '${net >= 0 ? '+' : '-'}₹${_fmtAmt(net.abs())}', net >= 0 ? _green : _red),
                 pw.SizedBox(width: 12),
-                _coverStat('INVESTED',  '₹${_fmtAmt(stats['investment']!)}', _indigo),
+                _coverStat('INVESTED',  '₹${_fmtAmt(stats['investment'] ?? 0.0)}', _indigo),
                 pw.SizedBox(width: 12),
                 _coverStat('RECORDS',   '$txnCount',                           _brandTeal),
               ]),
@@ -521,7 +521,7 @@ class MonthlyStatementService {
   // ═══════════════════════════════════════════════════════════════════════════
 
   static pw.Widget _summaryStatRow(Map<String, double> stats) {
-    final net = stats['net']!;
+    final net = stats['net'] ?? 0.0;
     return pw.Container(
       padding: const pw.EdgeInsets.fromLTRB(20, 12, 20, 12),
       decoration: pw.BoxDecoration(
@@ -531,17 +531,17 @@ class MonthlyStatementService {
         ),
       ),
       child: pw.Row(children: [
-        _sCard('INCOME',    '+₹${_fmtAmt(stats['income']!)}',    _green,      const PdfColor(0.87, 0.98, 0.91), '+'),
+        _sCard('INCOME',    '+₹${_fmtAmt(stats['income'] ?? 0.0)}',    _green,      const PdfColor(0.87, 0.98, 0.91), '+'),
         pw.SizedBox(width: 6),
-        _sCard('EXPENSES',  '-₹${_fmtAmt(stats['expense']!)}',   _red,        const PdfColor(0.99, 0.88, 0.89), '-'),
+        _sCard('EXPENSES',  '-₹${_fmtAmt(stats['expense'] ?? 0.0)}',   _red,        const PdfColor(0.99, 0.88, 0.89), '-'),
         pw.SizedBox(width: 6),
         _sCard('NET FLOW',  '${net >= 0 ? '+' : '-'}₹${_fmtAmt(net.abs())}', net >= 0 ? _green : _red, net >= 0 ? const PdfColor(0.87, 0.98, 0.91) : const PdfColor(0.99, 0.88, 0.89), '='),
         pw.SizedBox(width: 6),
-        _sCard('INVESTED',  '₹${_fmtAmt(stats['investment']!)}', _indigo,     const PdfColor(0.93, 0.91, 0.99), '*'),
+        _sCard('INVESTED',  '₹${_fmtAmt(stats['investment'] ?? 0.0)}', _indigo,     const PdfColor(0.93, 0.91, 0.99), '*'),
         pw.SizedBox(width: 6),
-        _sCard('TRANSFERS', '₹${_fmtAmt(stats['transfer']!)}',   _brandTeal,  const PdfColor(0.86, 0.97, 0.96), '<>'),
+        _sCard('TRANSFERS', '₹${_fmtAmt(stats['transfer'] ?? 0.0)}',   _brandTeal,  const PdfColor(0.86, 0.97, 0.96), '<>'),
         pw.SizedBox(width: 6),
-        _sCard('RECORDS',   '${stats['count']!.toInt()}',          _navy,       const PdfColor(0.90, 0.92, 0.95), '#'),
+        _sCard('RECORDS',   '${(stats['count'] ?? 0.0).toInt()}',       _navy,       const PdfColor(0.90, 0.92, 0.95), '#'),
       ]),
     );
   }
@@ -624,8 +624,8 @@ class MonthlyStatementService {
   }
 
   static pw.Widget _glanceSection(Map<String, double> stats, List<Transaction> txns, List<_AcctRow> rows) {
-    final income  = stats['income']!;
-    final expense = stats['expense']!;
+    final income  = stats['income'] ?? 0.0;
+    final expense = stats['expense'] ?? 0.0;
     final points  = <String>[];
     if (income > 0) points.add('Savings rate: ${((income - expense) / income * 100).clamp(0, 100).toStringAsFixed(1)}% — Rs ${_fmtAmt((income - expense).clamp(0, double.infinity))} of Rs ${_fmtAmt(income)} income saved.');
     final expTxns = txns.where((t) => t.type == TransactionType.expense).toList();
@@ -634,7 +634,7 @@ class MonthlyStatementService {
       points.add('${expTxns.length} expense transactions averaging Rs ${_fmtAmt(avg)} each.');
     }
     final invTxns = txns.where((t) => t.type == TransactionType.investment).toList();
-    if (invTxns.isNotEmpty) points.add('₹${_fmtAmt(stats['investment']!)} invested across ${invTxns.length} investment events.');
+    if (invTxns.isNotEmpty) points.add('₹${_fmtAmt(stats['investment'] ?? 0.0)} invested across ${invTxns.length} investment events.');
     if (rows.isNotEmpty) {
       final best = rows.reduce((a, b) => a.net > b.net ? a : b);
       points.add('Best performing account: ${best.name} with a net of ${best.net >= 0 ? '+' : '-'}₹${_fmtAmt(best.net.abs())}.');
@@ -1268,11 +1268,11 @@ class MonthlyStatementService {
   // ═══════════════════════════════════════════════════════════════════════════
 
   static List<pw.Widget> _insightsSection(Map<String, double> stats, List<Transaction> txns, String monthLabel) {
-    final income   = stats['income']!;
-    final expense  = stats['expense']!;
-    final invested = stats['investment']!;
-    final transfer = stats['transfer']!;
-    final net      = stats['net']!;
+    final income   = stats['income'] ?? 0.0;
+    final expense  = stats['expense'] ?? 0.0;
+    final invested = stats['investment'] ?? 0.0;
+    final transfer = stats['transfer'] ?? 0.0;
+    final net      = stats['net'] ?? 0.0;
 
     // ── Compute health score (0-100) ──
     double score = 50.0;
