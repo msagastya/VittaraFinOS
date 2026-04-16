@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart' as sp;
 import 'package:vittara_fin_os/ui/styles/app_springs.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
@@ -61,6 +62,9 @@ class _CardDeckViewState extends State<CardDeckView>
   bool _isSwiping = false;
   bool _swipingRight = false;
 
+  /// Drives the one-shot swipe-hint animation (15dp right → spring back).
+  late final AnimationController _hintController;
+
   @override
   void initState() {
     super.initState();
@@ -91,6 +95,29 @@ class _CardDeckViewState extends State<CardDeckView>
       vsync: this,
       duration: const Duration(milliseconds: 280),
     );
+
+    _hintController = AnimationController.unbounded(vsync: this);
+
+    _checkSwipeHint();
+  }
+
+  Future<void> _checkSwipeHint() async {
+    final prefs = await sp.SharedPreferences.getInstance();
+    if (prefs.getBool('dashboard_swipe_hint_shown') == true) return;
+    await prefs.setBool('dashboard_swipe_hint_shown', true);
+    // Delay until the dashboard settles before playing hint
+    await Future.delayed(const Duration(milliseconds: 900));
+    if (!mounted) return;
+    // Slide 15dp right…
+    await _hintController.animateWith(
+      SpringSimulation(AppSprings.gentle, 0.0, 15.0, 0.0),
+    );
+    if (!mounted) return;
+    // …then spring back with slight negative velocity for a snappy return
+    await _hintController.animateWith(
+      SpringSimulation(AppSprings.natural, 15.0, 0.0, -3.0),
+    );
+    if (mounted) _hintController.value = 0.0;
   }
 
   @override
@@ -98,6 +125,7 @@ class _CardDeckViewState extends State<CardDeckView>
     _swipeController.dispose();
     _returnController.dispose();
     _promotionController.dispose();
+    _hintController.dispose();
     super.dispose();
   }
 
@@ -193,13 +221,17 @@ class _CardDeckViewState extends State<CardDeckView>
                 // Render from back to front so front card is on top
                 for (int depth = visibleDepth - 1; depth >= 0; depth--)
                   _buildDepthSlot(depth),
+                // Dot indicators overlaid at the bottom of the card, inside the deck
+                Positioned(
+                  bottom: 16,
+                  left: 0,
+                  right: 0,
+                  child: _buildDotIndicators(),
+                ),
               ],
             ),
           ),
         ),
-        const SizedBox(height: 16),
-        _buildDotIndicators(),
-        const SizedBox(height: 8),
       ],
     );
   }
@@ -268,7 +300,7 @@ class _CardDeckViewState extends State<CardDeckView>
     return Positioned.fill(
       child: AnimatedBuilder(
         animation: Listenable.merge(
-            [_swipeController, _returnController, _promotionController]),
+            [_swipeController, _returnController, _promotionController, _hintController]),
         builder: (context, child) {
           // Recalculate live values inside AnimatedBuilder for smooth animation
           double liveScale = scale;
@@ -300,6 +332,12 @@ class _CardDeckViewState extends State<CardDeckView>
           if (_returnController.isAnimating && depth == 0) {
             liveOffsetX = _returnController.value;
             liveRotationZ = (_returnController.value / 400) * 0.08;
+          }
+
+          // One-shot swipe hint: front card slides right then returns
+          if (_hintController.isAnimating && depth == 0) {
+            liveOffsetX = _hintController.value;
+            liveRotationZ = (_hintController.value / 400) * 0.06;
           }
 
           return Opacity(
