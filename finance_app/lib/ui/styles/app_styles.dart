@@ -280,13 +280,13 @@ class AppStyles {
           ],
           stops: [0.0, 0.35, 0.70, 1.0],
         )
+      // Light mode: clean white → barely-teal (#F0FAFA). No blue — restraint.
       : const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFF0055AA),
-            Color(0xFF0077CC),
-            Color(0xFF0099CC),
+            Color(0xFFFFFFFF), // pure white
+            Color(0xFFF0FAFA), // whisper teal
           ],
         );
 
@@ -443,15 +443,26 @@ class AppStyles {
       border: Border.all(
         color: isDark
             ? aetherTeal.withValues(alpha: 0.35) // teal emissive rim
-            : const Color(0xFF0077CC).withValues(alpha: 0.60),
-        width: 1.2,
+            : const Color(0xFF007A6E).withValues(alpha: 0.15), // subtle teal hairline
+        width: isDark ? 1.2 : 1.0,
       ),
       borderRadius: BorderRadius.circular(Radii.xxl),
-      boxShadow: elevatedShadows(
-        context,
-        tint: isDark ? aetherTeal : accentBlue,
-        strength: 1.0,
-      ),
+      boxShadow: isDark
+          ? elevatedShadows(context, tint: aetherTeal, strength: 1.0)
+          : [
+              // Light mode: soft drop shadow — elevation through shadow not glow
+              BoxShadow(
+                color: const Color(0xFF007A6E).withValues(alpha: 0.08),
+                blurRadius: 20,
+                spreadRadius: -2,
+                offset: const Offset(0, 4),
+              ),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
     );
   }
 
@@ -561,28 +572,39 @@ class AppStyles {
   /// Icon box — gradient fill with emissive glow matching the icon color.
   static BoxDecoration iconBoxDecoration(BuildContext context, Color color) {
     final isDark = isDarkMode(context);
-    return BoxDecoration(
-      gradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [
-          color.withValues(alpha: isDark ? 0.28 : 0.24),
-          color.withValues(alpha: isDark ? 0.42 : 0.40),
+    if (isDark) {
+      return BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            color.withValues(alpha: 0.28),
+            color.withValues(alpha: 0.42),
+          ],
+        ),
+        border: Border.all(
+          color: color.withValues(alpha: 0.55),
+          width: 1.0,
+        ),
+        borderRadius: BorderRadius.circular(Radii.lg),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.28),
+            blurRadius: 18,
+            spreadRadius: -3,
+            offset: const Offset(0, 4),
+          ),
         ],
-      ),
+      );
+    }
+    // Light mode: soft tinted fill + hairline border. No gradient, no glow.
+    return BoxDecoration(
+      color: color.withValues(alpha: 0.12),
       border: Border.all(
-        color: color.withValues(alpha: isDark ? 0.55 : 0.38),
+        color: color.withValues(alpha: 0.25),
         width: 1.0,
       ),
       borderRadius: BorderRadius.circular(Radii.lg),
-      boxShadow: [
-        BoxShadow(
-          color: color.withValues(alpha: isDark ? 0.28 : 0.18),
-          blurRadius: 18,
-          spreadRadius: -3,
-          offset: const Offset(0, 4),
-        ),
-      ],
     );
   }
 

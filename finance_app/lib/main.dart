@@ -1832,47 +1832,51 @@ class DashboardScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(Radii.xxl),
           child: Stack(
             children: [
-              // Ambient orbs for depth
-              // Aether teal emission — top-right
-              Positioned(
-                top: -30,
-                right: -20,
-                child: Container(
-                  width: 160,
-                  height: 160,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        AppStyles.aetherTeal.withValues(alpha: 0.22),
-                        AppStyles.aetherTeal.withValues(alpha: 0.00),
-                      ],
+              // Dark mode only: ambient orbs + dot grid give the emissive feel.
+              // Light mode: clean gradient from heroCardDecoration is enough —
+              // orbs look washed out on white and the grid disappears entirely.
+              if (isDark) ...[
+                // Aether teal emission — top-right
+                Positioned(
+                  top: -30,
+                  right: -20,
+                  child: Container(
+                    width: 160,
+                    height: 160,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          AppStyles.aetherTeal.withValues(alpha: 0.22),
+                          AppStyles.aetherTeal.withValues(alpha: 0.00),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              // Nova violet emission — bottom-left
-              Positioned(
-                bottom: -50,
-                left: -30,
-                child: Container(
-                  width: 180,
-                  height: 180,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        AppStyles.novaPurple.withValues(alpha: 0.18),
-                        AppStyles.novaPurple.withValues(alpha: 0.00),
-                      ],
+                // Nova violet emission — bottom-left
+                Positioned(
+                  bottom: -50,
+                  left: -30,
+                  child: Container(
+                    width: 180,
+                    height: 180,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          AppStyles.novaPurple.withValues(alpha: 0.18),
+                          AppStyles.novaPurple.withValues(alpha: 0.00),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              // Subtle grid dots overlay
-              Positioned.fill(
-                child: CustomPaint(painter: _DotGridPainter(isDark: isDark)),
-              ),
+                // Subtle grid dots overlay
+                Positioned.fill(
+                  child: CustomPaint(painter: _DotGridPainter(isDark: isDark)),
+                ),
+              ],
               // Content
               Padding(
                 padding: const EdgeInsets.fromLTRB(
