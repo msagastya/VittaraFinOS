@@ -10,6 +10,7 @@ import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/ui/dashboard/base_dashboard_widget.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/typography.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Data models
@@ -937,13 +938,12 @@ class _SpendCategoryDriftCardState extends State<SpendCategoryDriftCard>
         children: [
           Row(
             children: [
-              Text(drift.emoji, style: const TextStyle(fontSize: 11)),
+              Text(drift.emoji, style: AppTypography.caption()),
               const SizedBox(width: 3),
               Expanded(
                 child: Text(
                   drift.name,
-                  style: TextStyle(
-                    fontSize: 9,
+                  style: AppTypography.micro().copyWith(
                     fontWeight: FontWeight.w600,
                     color: AppStyles.getSecondaryTextColor(context),
                   ),

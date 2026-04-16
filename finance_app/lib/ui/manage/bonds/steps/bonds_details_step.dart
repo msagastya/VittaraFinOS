@@ -5,6 +5,7 @@ import 'package:vittara_fin_os/logic/bonds_model.dart';
 import 'package:vittara_fin_os/ui/manage/bonds/bonds_wizard_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/typography.dart';
 
 class BondsDetailsStep extends StatefulWidget {
   const BondsDetailsStep({super.key});
@@ -111,32 +112,32 @@ class _BondsDetailsStepState extends State<BondsDetailsStep> {
           const SizedBox(height: Spacing.md),
           CupertinoSegmentedControl<CouponFrequency>(
             children: {
-              CouponFrequency.annual: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
+              CouponFrequency.annual: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
                   'Annual',
-                  style: TextStyle(fontSize: TypeScale.subhead),
+                  style: AppTypography.subhead(),
                 ),
               ),
-              CouponFrequency.semiAnnual: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
+              CouponFrequency.semiAnnual: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
                   'Semi-Annual',
-                  style: TextStyle(fontSize: TypeScale.subhead),
+                  style: AppTypography.subhead(),
                 ),
               ),
-              CouponFrequency.quarterly: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
+              CouponFrequency.quarterly: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
                   'Quarterly',
-                  style: TextStyle(fontSize: TypeScale.subhead),
+                  style: AppTypography.subhead(),
                 ),
               ),
-              CouponFrequency.monthly: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
+              CouponFrequency.monthly: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
                   'Monthly',
-                  style: TextStyle(fontSize: TypeScale.subhead),
+                  style: AppTypography.subhead(),
                 ),
               ),
             },

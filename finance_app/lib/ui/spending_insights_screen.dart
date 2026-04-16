@@ -464,7 +464,7 @@ class _ExpandableCategoryTableState extends State<_ExpandableCategoryTable> {
                 padding: const EdgeInsets.symmetric(vertical: Spacing.sm),
                 child: Row(
                   children: [
-                    Text(drift.emoji, style: const TextStyle(fontSize: 16)),
+                    Text(drift.emoji, style: AppTypography.callout()),
                     const SizedBox(width: Spacing.sm),
                     Expanded(
                       child: Column(

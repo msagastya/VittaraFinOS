@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/typography.dart';
 
 /// Alert types
 enum AlertType {
@@ -203,7 +204,7 @@ class AlertService {
                 const SizedBox(height: Spacing.lg),
                 Text(
                   message,
-                  style: const TextStyle(fontSize: TypeScale.headline),
+                  style: AppTypography.headline(),
                 ),
               ],
             ),

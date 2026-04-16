@@ -14,6 +14,7 @@ import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
+import 'package:vittara_fin_os/ui/styles/typography.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/utils/id_generator.dart';
 
@@ -1794,7 +1795,7 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
         const SizedBox(height: Spacing.xl),
         // Format cards
         Text('Supported Formats',
-          style: TextStyle(fontSize: TypeScale.footnote, fontWeight: FontWeight.w700,
+          style: AppTypography.footnote().copyWith(fontWeight: FontWeight.w700,
               color: AppStyles.getSecondaryTextColor(context), letterSpacing: 0.5)),
         const SizedBox(height: Spacing.md),
         _buildFormatGrid(),
@@ -1810,11 +1811,11 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Icon(CupertinoIcons.folder_open, color: Colors.black, size: 18),
-                SizedBox(width: 8),
+              children: [
+                const Icon(CupertinoIcons.folder_open, color: Colors.black, size: 18),
+                const SizedBox(width: 8),
                 Text('Pick File from Storage',
-                    style: TextStyle(color: Colors.black, fontWeight: FontWeight.w700, fontSize: 15)),
+                    style: AppTypography.body().copyWith(color: Colors.black, fontWeight: FontWeight.w700)),
               ],
             ),
           ),
@@ -1825,7 +1826,7 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
           Expanded(child: Divider(color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.2))),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Text('or', style: TextStyle(fontSize: TypeScale.footnote, color: AppStyles.getSecondaryTextColor(context))),
+            child: Text('or', style: AppTypography.footnote().copyWith(color: AppStyles.getSecondaryTextColor(context))),
           ),
           Expanded(child: Divider(color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.2))),
         ]),
@@ -1836,11 +1837,11 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
             padding: EdgeInsets.zero,
             onPressed: () => setState(() => _pasteMode = true),
             child: Text('Paste CSV text instead',
-                style: TextStyle(fontSize: TypeScale.footnote, color: AppStyles.aetherTeal)),
+                style: AppTypography.footnote().copyWith(color: AppStyles.aetherTeal)),
           )
         else ...[
           Text('Paste CSV Text',
-              style: TextStyle(fontSize: TypeScale.footnote, fontWeight: FontWeight.w700, color: AppStyles.getTextColor(context))),
+              style: AppTypography.footnote().copyWith(fontWeight: FontWeight.w700, color: AppStyles.getTextColor(context))),
           const SizedBox(height: Spacing.sm),
           Container(
             decoration: BoxDecoration(
@@ -1852,8 +1853,8 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
               placeholder: 'Date,Description,Amount\n01/01/2026,Zomato,-250\n02/01/2026,Salary,50000',
               maxLines: 8,
               padding: const EdgeInsets.all(Spacing.md),
-              style: TextStyle(fontFamily: 'monospace', fontSize: 12, color: AppStyles.getTextColor(context)),
-              placeholderStyle: TextStyle(fontSize: 11, color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.5)),
+              style: AppTypography.footnote().copyWith(fontFamily: 'monospace', color: AppStyles.getTextColor(context)),
+              placeholderStyle: AppTypography.caption().copyWith(color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.5)),
               decoration: null,
             ),
           ),
@@ -1908,11 +1909,11 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Smart Bank Import', style: TextStyle(fontFamily: 'SpaceGrotesk', fontSize: 16,
+                Text('Smart Bank Import', style: AppTypography.callout().copyWith(fontFamily: 'SpaceGrotesk',
                     fontWeight: FontWeight.w700, color: AppStyles.getTextColor(context))),
                 const SizedBox(height: 2),
                 Text('AI-powered parsing · 14 banks · 4 formats',
-                    style: TextStyle(fontSize: 11, color: AppStyles.getSecondaryTextColor(context))),
+                    style: AppTypography.caption().copyWith(color: AppStyles.getSecondaryTextColor(context))),
               ],
             ),
           ),
@@ -1951,8 +1952,8 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppStyles.getTextColor(context))),
-                Text(sub, style: TextStyle(fontSize: 9, color: AppStyles.getSecondaryTextColor(context)), maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text(label, style: AppTypography.footnote().copyWith(fontWeight: FontWeight.w700, color: AppStyles.getTextColor(context))),
+                Text(sub, style: AppTypography.micro().copyWith(color: AppStyles.getSecondaryTextColor(context)), maxLines: 1, overflow: TextOverflow.ellipsis),
               ],
             )),
           ]),
@@ -1977,7 +1978,7 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Supported Banks',
-              style: TextStyle(fontSize: TypeScale.caption, fontWeight: FontWeight.w700,
+              style: AppTypography.caption().copyWith(fontWeight: FontWeight.w700,
                   color: AppStyles.getSecondaryTextColor(context), letterSpacing: 0.4)),
           const SizedBox(height: Spacing.sm),
           Wrap(
@@ -1989,13 +1990,13 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(color: AppStyles.aetherTeal.withValues(alpha: 0.2)),
               ),
-              child: Text(b, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: Color(0xFF00B890))),
+              child: Text(b, style: AppTypography.micro().copyWith(fontWeight: FontWeight.w500, color: const Color(0xFF00B890))),
             )).toList(),
           ),
           const SizedBox(height: Spacing.sm),
           Text(
             'Balances are NOT modified — import is read-only.',
-            style: TextStyle(fontSize: 10, color: AppStyles.getSecondaryTextColor(context), fontStyle: FontStyle.italic),
+            style: AppTypography.micro().copyWith(color: AppStyles.getSecondaryTextColor(context), fontStyle: FontStyle.italic),
           ),
         ],
       ),
@@ -2027,7 +2028,7 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
             Row(children: [
               const Icon(CupertinoIcons.info_circle, size: 14, color: CupertinoColors.systemOrange),
               const SizedBox(width: 6),
-              Text('Common passwords:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppStyles.getTextColor(context))),
+              Text('Common passwords:', style: AppTypography.footnote().copyWith(fontWeight: FontWeight.w600, color: AppStyles.getTextColor(context))),
             ]),
             const SizedBox(height: 6),
             Text(
@@ -2036,13 +2037,13 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
               '• Axis Bank: Last 4 digits of registered mobile\n'
               '• Kotak: Date of birth (DDMMYYYY)\n'
               '• Credit Cards: PAN number or registered mobile',
-              style: TextStyle(fontSize: 11, color: AppStyles.getSecondaryTextColor(context), height: 1.6),
+              style: AppTypography.caption().copyWith(color: AppStyles.getSecondaryTextColor(context), height: 1.6),
             ),
           ]),
         ),
         const SizedBox(height: Spacing.lg),
         Text(_fileName ?? 'Selected file',
-            style: TextStyle(fontSize: TypeScale.caption, color: AppStyles.getSecondaryTextColor(context))),
+            style: AppTypography.caption().copyWith(color: AppStyles.getSecondaryTextColor(context))),
         const SizedBox(height: Spacing.sm),
         Container(
           decoration: BoxDecoration(
@@ -2057,7 +2058,7 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
             placeholder: 'Enter file password',
             obscureText: !_showPassword,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            style: TextStyle(fontSize: TypeScale.body, color: AppStyles.getTextColor(context)),
+            style: AppTypography.body().copyWith(color: AppStyles.getTextColor(context)),
             decoration: null,
             suffix: CupertinoButton(
               padding: const EdgeInsets.only(right: 8),
@@ -2072,7 +2073,7 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
         ),
         if (_passwordError != null) ...[
           const SizedBox(height: Spacing.sm),
-          Text(_passwordError!, style: const TextStyle(fontSize: 12, color: SemanticColors.error)),
+          Text(_passwordError!, style: AppTypography.footnote().copyWith(color: SemanticColors.error)),
         ],
         const SizedBox(height: Spacing.xl),
         BouncyButton(
@@ -2162,7 +2163,7 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: Spacing.sm),
       child: Text(label,
-          style: TextStyle(fontSize: TypeScale.caption, fontWeight: FontWeight.w700,
+          style: AppTypography.caption().copyWith(fontWeight: FontWeight.w700,
               color: AppStyles.getSecondaryTextColor(context), letterSpacing: 0.4)),
     );
   }
@@ -2196,7 +2197,7 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
               const SizedBox(width: Spacing.md),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Row(children: [
-                  Expanded(child: Text(label, style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.footnote, color: AppStyles.getTextColor(context)))),
+                  Expanded(child: Text(label, style: AppTypography.footnote().copyWith(fontWeight: FontWeight.w600, color: AppStyles.getTextColor(context)))),
                   if (highlighted && !isSelected)
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
@@ -2204,10 +2205,10 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
                         color: const Color(0xFF00B890).withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: const Text('Likely', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: Color(0xFF00B890))),
+                      child: Text('Likely', style: AppTypography.micro().copyWith(fontWeight: FontWeight.w700, color: const Color(0xFF00B890))),
                     ),
                 ]),
-                Text(sub, style: TextStyle(fontSize: TypeScale.caption, color: AppStyles.getSecondaryTextColor(context))),
+                Text(sub, style: AppTypography.caption().copyWith(color: AppStyles.getSecondaryTextColor(context))),
               ])),
               if (isSelected)
                 Icon(CupertinoIcons.checkmark_circle_fill, size: 20, color: color),
@@ -2283,9 +2284,9 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(header, style: TextStyle(fontWeight: FontWeight.w600, fontSize: TypeScale.footnote, color: AppStyles.getTextColor(context))),
+            Text(header, style: AppTypography.footnote().copyWith(fontWeight: FontWeight.w600, color: AppStyles.getTextColor(context))),
             if (sample.isNotEmpty)
-              Text('e.g. $sample', style: TextStyle(fontSize: 10, color: AppStyles.getSecondaryTextColor(context)), maxLines: 1, overflow: TextOverflow.ellipsis),
+              Text('e.g. $sample', style: AppTypography.micro().copyWith(color: AppStyles.getSecondaryTextColor(context)), maxLines: 1, overflow: TextOverflow.ellipsis),
           ])),
         ]),
         const SizedBox(height: Spacing.sm),
@@ -2306,7 +2307,7 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
                   ),
                 ),
                 child: Text(_csvColumnLabels[col]!,
-                    style: TextStyle(fontSize: 11, fontWeight: active ? FontWeight.w700 : FontWeight.w400,
+                    style: AppTypography.caption().copyWith(fontWeight: active ? FontWeight.w700 : FontWeight.w400,
                         color: active ? AppStyles.aetherTeal : AppStyles.getSecondaryTextColor(context))),
               ),
             );
@@ -2375,8 +2376,8 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
           border: Border.all(color: color.withValues(alpha: 0.25)),
         ),
         child: Column(children: [
-          Text(value, style: TextStyle(fontFamily: 'SpaceGrotesk', fontSize: 12, fontWeight: FontWeight.w700, color: color)),
-          Text(label, style: TextStyle(fontSize: 9, color: AppStyles.getSecondaryTextColor(context))),
+          Text(value, style: AppTypography.footnote().copyWith(fontFamily: 'SpaceGrotesk', fontWeight: FontWeight.w700, color: color)),
+          Text(label, style: AppTypography.micro().copyWith(color: AppStyles.getSecondaryTextColor(context))),
         ]),
       ),
     );
@@ -2395,7 +2396,7 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
         const SizedBox(width: 8),
         Expanded(child: Text(
           '$count possible duplicate${count > 1 ? 's' : ''} detected — toggled OFF by default. Tap to include.',
-          style: const TextStyle(fontSize: 11, color: CupertinoColors.systemOrange),
+          style: AppTypography.caption().copyWith(color: CupertinoColors.systemOrange),
         )),
       ]),
     );
@@ -2461,8 +2462,7 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
                       Row(children: [
                         Expanded(child: Text(
                           _cleanMerchant(row.description),
-                          style: TextStyle(
-                              fontSize: 13, fontWeight: FontWeight.w600,
+                          style: AppTypography.subhead().copyWith(fontWeight: FontWeight.w600,
                               color: AppStyles.getTextColor(context)),
                           maxLines: 1, overflow: TextOverflow.ellipsis,
                         )),
@@ -2474,15 +2474,15 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
                               color: CupertinoColors.systemOrange.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: const Text('Duplicate',
-                                style: TextStyle(fontSize: 8,
+                            child: Text('Duplicate',
+                                style: AppTypography.micro().copyWith(
                                     color: CupertinoColors.systemOrange,
                                     fontWeight: FontWeight.w700)),
                           ),
                       ]),
                       Row(children: [
                         Text(dateLabel,
-                            style: TextStyle(fontSize: 10,
+                            style: AppTypography.micro().copyWith(
                                 color: AppStyles.getSecondaryTextColor(context))),
                         const SizedBox(width: 6),
                         Container(
@@ -2492,7 +2492,7 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(cat.categoryName,
-                              style: TextStyle(fontSize: 9,
+                              style: AppTypography.micro().copyWith(
                                   color: AppStyles.getSecondaryTextColor(context))),
                         ),
                       ]),
@@ -2503,8 +2503,8 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
                   Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
                     Text(
                       '${row.isDebit ? '-' : '+'}₹${_fmt(row.amount)}',
-                      style: TextStyle(
-                          fontFamily: 'SpaceGrotesk', fontSize: 13,
+                      style: AppTypography.subhead().copyWith(
+                          fontFamily: 'SpaceGrotesk',
                           fontWeight: FontWeight.w700, color: txColor),
                     ),
                     if (isDuplicate) ...[
@@ -2514,8 +2514,7 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
                             () => row.includeIfDuplicate = !row.includeIfDuplicate),
                         child: Text(
                           row.includeIfDuplicate ? 'Include' : 'Skip',
-                          style: TextStyle(
-                            fontSize: 10,
+                          style: AppTypography.micro().copyWith(
                             color: row.includeIfDuplicate
                                 ? const Color(0xFF00B890)
                                 : CupertinoColors.systemOrange,
@@ -2635,8 +2634,7 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
                       row.isDebit
                           ? 'Mark as Income instead'
                           : 'Mark as Expense instead',
-                      style: TextStyle(
-                          fontSize: 12, fontWeight: FontWeight.w600,
+                      style: AppTypography.footnote().copyWith(fontWeight: FontWeight.w600,
                           color: txColor),
                     ),
                   ]),
@@ -2656,13 +2654,12 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
         Icon(icon, size: 10, color: secColor),
         const SizedBox(width: 4),
         Text(label,
-            style: TextStyle(fontSize: 9, color: secColor,
+            style: AppTypography.micro().copyWith(color: secColor,
                 fontWeight: FontWeight.w500)),
       ]),
       const SizedBox(height: 2),
       Text(value,
-          style: TextStyle(
-              fontSize: 12, fontWeight: FontWeight.w600,
+          style: AppTypography.footnote().copyWith(fontWeight: FontWeight.w600,
               color: valueColor ?? AppStyles.getTextColor(context))),
     ]);
   }
@@ -2678,10 +2675,10 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
       child: Row(children: [
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text('$toImport transactions will be imported',
-              style: TextStyle(fontSize: TypeScale.footnote, fontWeight: FontWeight.w600, color: AppStyles.getTextColor(context))),
+              style: AppTypography.footnote().copyWith(fontWeight: FontWeight.w600, color: AppStyles.getTextColor(context))),
           if (dupes > 0)
             Text('${dupes - _parsedRows.where((r) => r.isDuplicate && r.includeIfDuplicate).length} duplicates skipped',
-                style: TextStyle(fontSize: TypeScale.caption, color: AppStyles.getSecondaryTextColor(context))),
+                style: AppTypography.caption().copyWith(color: AppStyles.getSecondaryTextColor(context))),
         ])),
         const SizedBox(width: Spacing.md),
         BouncyButton(
@@ -2704,11 +2701,11 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
   // ─── IMPORTING ──────────────────────────────────────────────────────────
 
   Widget _buildImporting() {
-    return const Center(
+    return Center(
       child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        CupertinoActivityIndicator(radius: 18),
-        SizedBox(height: Spacing.lg),
-        Text('Importing transactions…', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+        const CupertinoActivityIndicator(radius: 18),
+        const SizedBox(height: Spacing.lg),
+        Text('Importing transactions…', style: AppTypography.body().copyWith(fontWeight: FontWeight.w500)),
       ]),
     );
   }
@@ -2730,20 +2727,20 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
           ),
           const SizedBox(height: Spacing.lg),
           Text('Import Complete',
-              style: TextStyle(fontFamily: 'SpaceGrotesk', fontSize: TypeScale.title2,
+              style: AppTypography.title2().copyWith(fontFamily: 'SpaceGrotesk',
                   fontWeight: FontWeight.w700, color: AppStyles.getTextColor(context))),
           const SizedBox(height: Spacing.sm),
           Text('$_imported transaction${_imported != 1 ? 's' : ''} imported',
-              style: TextStyle(fontSize: TypeScale.body, color: AppStyles.getSecondaryTextColor(context))),
+              style: AppTypography.body().copyWith(color: AppStyles.getSecondaryTextColor(context))),
           if (_duplicatesSkipped > 0) ...[
             const SizedBox(height: Spacing.xs),
             Text('$_duplicatesSkipped duplicate${_duplicatesSkipped != 1 ? 's' : ''} skipped',
-                style: const TextStyle(fontSize: TypeScale.footnote, color: CupertinoColors.systemOrange)),
+                style: AppTypography.footnote().copyWith(color: CupertinoColors.systemOrange)),
           ],
           if (_selectedAccount != null && _selectedAccount!.id.isNotEmpty) ...[
             const SizedBox(height: Spacing.xs),
             Text('Linked to: ${_selectedAccount!.name}',
-                style: TextStyle(fontSize: TypeScale.footnote, color: AppStyles.getSecondaryTextColor(context))),
+                style: AppTypography.footnote().copyWith(color: AppStyles.getSecondaryTextColor(context))),
           ],
           const SizedBox(height: Spacing.xxl),
           BouncyButton(
@@ -2751,7 +2748,7 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: Spacing.xl, vertical: Spacing.md),
               decoration: BoxDecoration(color: AppStyles.aetherTeal, borderRadius: BorderRadius.circular(Radii.md)),
-              child: const Text('Done', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w700, fontSize: 15)),
+              child: Text('Done', style: AppTypography.body().copyWith(color: Colors.black, fontWeight: FontWeight.w700)),
             ),
           ),
         ]),
@@ -2786,7 +2783,7 @@ class _CsvImportScreenState extends State<CsvImportScreen> {
         const SizedBox(width: 6),
         Text(
           'Detected: ${_bankDisplayName(bank)} — format auto-recognised',
-          style: const TextStyle(fontSize: TypeScale.caption, color: CupertinoColors.activeGreen, fontWeight: FontWeight.w500),
+          style: AppTypography.caption().copyWith(color: CupertinoColors.activeGreen, fontWeight: FontWeight.w500),
         ),
       ]),
     );
@@ -2839,11 +2836,11 @@ class _StepHeader extends StatelessWidget {
       const SizedBox(width: Spacing.md),
       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text('Step $step of $total',
-            style: TextStyle(fontSize: TypeScale.caption, color: AppStyles.aetherTeal, fontWeight: FontWeight.w600)),
+            style: AppTypography.caption().copyWith(color: AppStyles.aetherTeal, fontWeight: FontWeight.w600)),
         const SizedBox(height: 2),
-        Text(title, style: TextStyle(fontSize: TypeScale.title3, fontWeight: FontWeight.w700, color: AppStyles.getTextColor(context))),
+        Text(title, style: AppTypography.title3().copyWith(fontWeight: FontWeight.w700, color: AppStyles.getTextColor(context))),
         const SizedBox(height: Spacing.xs),
-        Text(subtitle, style: TextStyle(fontSize: TypeScale.footnote, color: AppStyles.getSecondaryTextColor(context))),
+        Text(subtitle, style: AppTypography.footnote().copyWith(color: AppStyles.getSecondaryTextColor(context))),
       ])),
     ]);
   }

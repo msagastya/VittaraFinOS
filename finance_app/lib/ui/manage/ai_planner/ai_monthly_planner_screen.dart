@@ -13,6 +13,7 @@ import 'package:vittara_fin_os/logic/ml_planner_engine.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/typography.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/utils/id_generator.dart';
 import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
@@ -621,7 +622,7 @@ class _PlanCard extends StatelessWidget {
                     child: Center(
                       child: plan.emoji != null
                           ? Text(plan.emoji!,
-                              style: const TextStyle(fontSize: 18))
+                              style: AppTypography.title3())
                           : Icon(_planIcon(plan.focus),
                               size: 16, color: color),
                     ),
@@ -952,7 +953,7 @@ class _DetailBody extends StatelessWidget {
             ),
             child: Center(
               child: plan.emoji != null
-                  ? Text(plan.emoji!, style: TextStyle(fontSize: RT.title1(context)))
+                  ? Text(plan.emoji!, style: AppTypography.title1())
                   : Icon(_planIcon(plan.focus), size: 26, color: color),
             ),
           ),
@@ -2379,7 +2380,7 @@ class _PlanWizardSheetState extends State<_PlanWizardSheet> {
                   ),
                 ),
                 child: Center(
-                    child: Text(e, style: TextStyle(fontSize: RT.title1(context)))),
+                    child: Text(e, style: AppTypography.title1())),
               ),
             );
           }).toList(),
@@ -2871,7 +2872,7 @@ class _PlanWizardSheetState extends State<_PlanWizardSheet> {
                 ),
                 child: Row(
                   children: [
-                    Text(icon, style: const TextStyle(fontSize: 22)),
+                    Text(icon, style: AppTypography.title2()),
                     const SizedBox(width: Spacing.md),
                     Expanded(
                       child: Column(
