@@ -247,62 +247,13 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
   }
 
   Widget _buildEmptyState(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(Spacing.xxxl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              CupertinoIcons.shield_fill,
-              size: 64,
-              color: AppStyles.getSecondaryTextColor(context),
-            ),
-            const SizedBox(height: Spacing.lg),
-            Text(
-              'No insurance policies',
-              style: TextStyle(
-                fontSize: TypeScale.title3,
-                fontWeight: FontWeight.w600,
-                color: AppStyles.getTextColor(context),
-              ),
-            ),
-            const SizedBox(height: Spacing.sm),
-            Text(
-              'Track your health, life, vehicle, and other insurance policies in one place.',
-              style: TextStyle(
-                fontSize: TypeScale.body,
-                color: AppStyles.getSecondaryTextColor(context),
-                height: 1.5,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: Spacing.xxl),
-            BouncyButton(
-              onPressed: () => _openAddPolicy(context),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: Spacing.xxl,
-                  vertical: Spacing.md,
-                ),
-                decoration: BoxDecoration(
-                  color: AppStyles.accentBlue,
-                  borderRadius: BorderRadius.circular(Radii.full),
-                  boxShadow: Shadows.fab(AppStyles.accentBlue),
-                ),
-                child: const Text(
-                  'Add First Policy',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 15,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+    return EmptyStateView(
+      icon: CupertinoIcons.shield_fill,
+      title: 'No insurance policies',
+      subtitle:
+          'Track your health, life, vehicle, and other policies in one place.',
+      actionLabel: 'Add First Policy',
+      onAction: () => _openAddPolicy(context),
     );
   }
 

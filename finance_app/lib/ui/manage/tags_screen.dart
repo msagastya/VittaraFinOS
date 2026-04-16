@@ -98,53 +98,15 @@ class _TagsScreenState extends State<TagsScreen> {
                       ],
                       const SizedBox(height: Spacing.xxxl),
                       if (tags.isEmpty)
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 60, horizontal: 24),
-                          decoration: BoxDecoration(
-                            color: AppStyles.accentBlue.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                                color:
-                                    AppStyles.accentBlue.withValues(alpha: 0.2),
-                                width: 2),
-                          ),
-                          child: Column(
-                            children: [
-                              Container(
-                                width: 64,
-                                height: 64,
-                                decoration: BoxDecoration(
-                                  color: AppStyles.accentBlue
-                                      .withValues(alpha: 0.15),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Center(
-                                  child: Icon(CupertinoIcons.tag,
-                                      size: 32, color: AppStyles.accentBlue),
-                                ),
-                              ),
-                              const SizedBox(height: Spacing.lg),
-                              Text(
-                                'No tags created yet',
-                                style: TextStyle(
-                                  fontSize: TypeScale.headline,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppStyles.getTextColor(context),
-                                ),
-                              ),
-                              const SizedBox(height: Spacing.sm),
-                              Text(
-                                'Tap the + button to create your first tag',
-                                style: TextStyle(
-                                  fontSize: TypeScale.subhead,
-                                  color:
-                                      AppStyles.getSecondaryTextColor(context),
-                                ),
-                              ),
-                            ],
-                          ),
+                        EmptyStateView(
+                          icon: CupertinoIcons.tag_fill,
+                          title: 'No tags yet',
+                          subtitle:
+                              'Tags help you group transactions. Tap + to create your first.',
+                          actionLabel: 'Create Tag',
+                          onAction: () => _showCreateTagWizard(
+                              context,
+                              context.read<TagsController>()),
                         )
                       else if (filteredTags.isEmpty)
                         Center(

@@ -12,6 +12,7 @@ import 'package:vittara_fin_os/ui/manage/budgets/modals/add_budget_modal.dart';
 import 'dart:math' as math;
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/typography.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/animated_counter.dart'
     as counter_widgets;
@@ -200,30 +201,11 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                             ),
                           if (filteredBudgets.isEmpty)
                             SliverFillRemaining(
-                              child: Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(CupertinoIcons.search,
-                                        size: IconSizes.emptyStateIcon,
-                                        color: AppStyles.getSecondaryTextColor(
-                                            context)),
-                                    const SizedBox(height: Spacing.lg),
-                                    Text('No budgets found',
-                                        style: TextStyle(
-                                            fontSize: TypeScale.title3,
-                                            fontWeight: FontWeight.w600,
-                                            color: AppStyles.getTextColor(
-                                                context))),
-                                    const SizedBox(height: Spacing.sm),
-                                    Text('Try adjusting your filter',
-                                        style: TextStyle(
-                                            fontSize: TypeScale.body,
-                                            color:
-                                                AppStyles.getSecondaryTextColor(
-                                                    context))),
-                                  ],
-                                ),
+                              child: EmptyStateView(
+                                icon: CupertinoIcons.search,
+                                title: 'No budgets found',
+                                subtitle: 'Try adjusting your filter.',
+                                showPulse: false,
                               ),
                             )
                           else
@@ -905,9 +887,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                     const SizedBox(height: Spacing.xxl),
                     Text(
                       'Without a limit, there\'s no finish line',
-                      style: TextStyle(
-                          fontSize: RT.largeTitle(context),
-                          fontWeight: FontWeight.bold,
+                      style: AppTypography.title2(
                           color: AppStyles.getTextColor(context)),
                       textAlign: TextAlign.center,
                     ),
@@ -917,10 +897,9 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                           ? 'You spent most on $topCat. Set a budget and we\'ll tell you how you\'re doing in real time.'
                           : 'Set a budget for any spending category and track it automatically as you log transactions.',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                          fontSize: TypeScale.callout,
-                          color: AppStyles.getSecondaryTextColor(context),
-                          height: 1.5),
+                      style: AppTypography.callout(
+                              color: AppStyles.getSecondaryTextColor(context))
+                          .copyWith(height: 1.5),
                     ),
                     const SizedBox(height: Spacing.xl),
                   ],
@@ -959,10 +938,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
                         hasSpend
                             ? 'Create Budget for $topCat'
                             : 'Create Your First Budget',
-                        style: const TextStyle(
-                            fontSize: TypeScale.callout,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white),
+                        style: AppTypography.button(color: Colors.white),
                       ),
                     ],
                   ),

@@ -5,6 +5,7 @@ import 'package:flutter/physics.dart';
 import 'package:flutter/rendering.dart' show ScrollDirection;
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/typography.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 
 // ============================================================
@@ -559,23 +560,19 @@ class EmptyStateView extends StatelessWidget {
               const SizedBox(height: Spacing.lg),
               Text(
                 title,
-                style: TextStyle(
-                  color: AppStyles.getSecondaryTextColor(context),
-                  fontSize: TypeScale.title3,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: AppTypography.headline(
+                    color: AppStyles.getTextColor(context)),
                 textAlign: TextAlign.center,
               ),
               if (subtitle != null) ...[
                 const SizedBox(height: Spacing.sm),
                 Text(
                   subtitle!,
-                  style: TextStyle(
-                    color: AppStyles.getSecondaryTextColor(context)
-                        .withValues(alpha: 0.7),
-                    fontSize: TypeScale.body,
-                  ),
+                  style: AppTypography.callout(
+                      color: AppStyles.getSecondaryTextColor(context)),
                   textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
               if (actionLabel != null && onAction != null) ...[

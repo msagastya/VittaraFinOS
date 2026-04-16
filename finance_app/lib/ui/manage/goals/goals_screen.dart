@@ -248,36 +248,12 @@ class _GoalsScreenState extends State<GoalsScreen> {
                           // Goals List
                           if (filteredGoals.isEmpty)
                             SliverFillRemaining(
-                              child: Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      CupertinoIcons.search,
-                                      size: IconSizes.emptyStateIcon,
-                                      color: AppStyles.getSecondaryTextColor(
-                                          context),
-                                    ),
-                                    const SizedBox(height: Spacing.lg),
-                                    Text(
-                                      'No goals found',
-                                      style: TextStyle(
-                                        fontSize: TypeScale.title3,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppStyles.getTextColor(context),
-                                      ),
-                                    ),
-                                    const SizedBox(height: Spacing.sm),
-                                    Text(
-                                      'Try adjusting your search or filter',
-                                      style: TextStyle(
-                                        fontSize: TypeScale.body,
-                                        color: AppStyles.getSecondaryTextColor(
-                                            context),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                              child: EmptyStateView(
+                                icon: CupertinoIcons.search,
+                                title: 'No goals found',
+                                subtitle:
+                                    'Try adjusting your search or filter.',
+                                showPulse: false,
                               ),
                             )
                           else
@@ -770,32 +746,24 @@ class _GoalsScreenState extends State<GoalsScreen> {
                 const SizedBox(height: Spacing.xxl),
                 Text(
                   'Goals turn savings into outcomes',
-                  style: TextStyle(
-                    fontSize: RT.largeTitle(context),
-                    fontWeight: FontWeight.bold,
-                    color: AppStyles.getTextColor(context),
-                  ),
+                  style: AppTypography.title2(
+                      color: AppStyles.getTextColor(context)),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: Spacing.md),
                 Text(
                   'People who track goals save 2.4× more than those who don\'t — because a number with a name is harder to spend.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: TypeScale.callout,
-                    color: AppStyles.getSecondaryTextColor(context),
-                    height: 1.5,
-                  ),
+                  style: AppTypography.callout(
+                          color: AppStyles.getSecondaryTextColor(context))
+                      .copyWith(height: 1.5),
                 ),
                 const SizedBox(height: Spacing.xxl),
                 Text(
                   'What are you working toward?',
-                  style: TextStyle(
-                    fontSize: TypeScale.footnote,
-                    fontWeight: FontWeight.w600,
-                    color: AppStyles.getSecondaryTextColor(context),
-                    letterSpacing: 0.3,
-                  ),
+                  style: AppTypography.footnote(
+                          color: AppStyles.getSecondaryTextColor(context))
+                      .copyWith(fontWeight: FontWeight.w600, letterSpacing: 0.3),
                 ),
                 const SizedBox(height: Spacing.md),
                 Wrap(
@@ -844,20 +812,14 @@ class _GoalsScreenState extends State<GoalsScreen> {
                   ),
                 ],
               ),
-              child: const Row(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(CupertinoIcons.add,
+                  const Icon(CupertinoIcons.add,
                       color: Colors.white, size: IconSizes.lg),
-                  SizedBox(width: Spacing.sm),
-                  Text(
-                    'Create My First Goal',
-                    style: TextStyle(
-                      fontSize: TypeScale.callout,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
+                  const SizedBox(width: Spacing.sm),
+                  Text('Create My First Goal',
+                      style: AppTypography.button(color: Colors.white)),
                 ],
               ),
             ),
