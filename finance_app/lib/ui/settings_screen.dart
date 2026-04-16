@@ -10,6 +10,7 @@ import 'package:vittara_fin_os/ui/backup_restore_screen.dart';
 import 'package:vittara_fin_os/ui/recovery_code_save_screen.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/styles/typography.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
@@ -349,10 +350,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildHeader(String title) {
     return Padding(
-      padding: const EdgeInsets.only(left: 12, bottom: 8, top: 24),
+      padding: const EdgeInsets.only(
+          left: Spacing.lg, bottom: Spacing.xs, top: Spacing.xxxl),
       child: Text(
         title.toUpperCase(),
-        style: AppStyles.headerStyle(context),
+        style: AppTypography.caption(
+                color: AppStyles.getSecondaryTextColor(context))
+            .copyWith(letterSpacing: 1.2),
       ),
     );
   }
@@ -390,18 +394,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: AppStyles.titleStyle(context)),
+                Text(title,
+                    style: AppTypography.callout(
+                        color: AppStyles.getTextColor(context))),
                 if (subtitle != null)
                   Text(subtitle,
-                      style: TextStyle(
-                          fontSize: TypeScale.caption,
+                      style: AppTypography.footnote(
                           color: AppStyles.getSecondaryTextColor(context))),
               ],
             ),
           ),
           CupertinoSwitch(
             value: value,
-            activeTrackColor: CupertinoColors.activeGreen,
+            activeTrackColor: SemanticColors.getPrimary(context),
             onChanged: (v) {
               Haptics.light();
               onChanged(v);
@@ -441,11 +446,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: AppStyles.titleStyle(context)),
+                  Text(title,
+                      style: AppTypography.callout(
+                          color: AppStyles.getTextColor(context))),
                   if (subtitle != null)
                     Text(subtitle,
-                        style: TextStyle(
-                            fontSize: TypeScale.caption,
+                        style: AppTypography.footnote(
                             color: AppStyles.getSecondaryTextColor(context))),
                 ],
               ),
@@ -453,10 +459,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             if (value != null) ...[
               Text(
                 value,
-                style: TextStyle(
-                  fontSize: TypeScale.footnote,
-                  color: AppStyles.getSecondaryTextColor(context),
-                ),
+                style: AppTypography.footnote(
+                    color: AppStyles.getSecondaryTextColor(context)),
               ),
               const SizedBox(width: Spacing.sm),
             ],
@@ -488,12 +492,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Icon(icon, size: 20, color: color),
           ),
           const SizedBox(width: Spacing.lg),
-          Expanded(child: Text(title, style: AppStyles.titleStyle(context))),
+          Expanded(
+              child: Text(title,
+                  style: AppTypography.callout(
+                      color: AppStyles.getTextColor(context)))),
           Text(value,
-              style: TextStyle(
-                  fontSize: TypeScale.footnote,
-                  fontWeight: FontWeight.w600,
-                  color: AppStyles.getSecondaryTextColor(context))),
+              style: AppTypography.footnote(
+                      color: AppStyles.getSecondaryTextColor(context))
+                  .copyWith(fontWeight: FontWeight.w600)),
         ],
       ),
     );
@@ -526,11 +532,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(title,
-                      style: AppStyles.titleStyle(context).copyWith(
+                      style: AppTypography.callout(
                           color: AppStyles.loss(context))),
                   Text(subtitle,
-                      style: TextStyle(
-                          fontSize: TypeScale.caption,
+                      style: AppTypography.footnote(
                           color: AppStyles.getSecondaryTextColor(context))),
                 ],
               ),
