@@ -58,7 +58,8 @@ class _QuickEntrySheet extends StatefulWidget {
   State<_QuickEntrySheet> createState() => _QuickEntrySheetState();
 }
 
-class _QuickEntrySheetState extends State<_QuickEntrySheet> {
+class _QuickEntrySheetState extends State<_QuickEntrySheet>
+    with TickerProviderStateMixin {
   late TransactionWizardBranch _branch;
   final TextEditingController _amountCtrl = TextEditingController();
   final TextEditingController _descCtrl = TextEditingController();
@@ -88,6 +89,21 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
   bool _isDirty = false;
 
   DateTime _selectedDate = DateTime.now();
+
+  // ── Phase 5A/5C animation controllers ────────────────────────────────────────
+
+  /// Drives the open animation: amount scale 0.95→1.0 and pill stagger.
+  late AnimationController _openCtrl;
+  late Animation<double> _amountScale;
+  late Animation<double> _pill0Opacity;
+  late Animation<double> _pill1Opacity;
+
+  /// Drives the waiting-for-input pulse on the amount field (5C).
+  late AnimationController _pulseCtrl;
+  late Animation<double> _pulseOpacity;
+
+  /// True while save-confirmation flash (5D) is playing.
+  bool _saveFlash = false;
 
   @override
   void initState() {
@@ -224,10 +240,57 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
         _categoryAutoSuggested = false;
       });
     }
+
+    // ── Phase 5A open animation ───────────────────────────────────────────────
+    _openCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _amountScale = Tween(begin: 0.95, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _openCtrl,
+        curve: const Interval(0.24, 1.0, curve: Curves.easeOutCubic),
+      ),
+    );
+    _pill0Opacity = Tween(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _openCtrl,
+        curve: const Interval(0.0, 0.55, curve: Curves.easeOut),
+      ),
+    );
+    _pill1Opacity = Tween(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _openCtrl,
+        curve: const Interval(0.08, 0.65, curve: Curves.easeOut),
+      ),
+    );
+    // Start 120ms after sheet arrives
+    Future.delayed(const Duration(milliseconds: 120), () {
+      if (mounted) _openCtrl.forward();
+    });
+
+    // ── Phase 5C waiting pulse ────────────────────────────────────────────────
+    _pulseCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    );
+    _pulseOpacity = Tween(begin: 0.20, end: 0.60).animate(
+      CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut),
+    );
+    _pulseCtrl.repeat(reverse: true);
+    // Stop pulse the moment user types anything
+    _amountCtrl.addListener(() {
+      if (_amountCtrl.text.isNotEmpty && _pulseCtrl.isAnimating) {
+        _pulseCtrl.stop();
+        _pulseCtrl.value = 1.0; // lock at full opacity
+      }
+    });
   }
 
   @override
   void dispose() {
+    _openCtrl.dispose();
+    _pulseCtrl.dispose();
     _amountCtrl.dispose();
     _descCtrl.dispose();
     _merchantCtrl.dispose();
@@ -400,7 +463,10 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
         return;
       }
       HapticFeedback.heavyImpact();
-      if (mounted) Navigator.pop(context);
+      if (mounted) {
+        await _triggerSaveFlash();
+        if (mounted) Navigator.pop(context);
+      }
       toast_lib.toast.showSuccess('Transaction updated');
     } else {
       // New transaction mode: manual balance updates
@@ -436,9 +502,19 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
       await transactionsCtrl.addTransaction(tx);
       HapticFeedback.heavyImpact();
       dashboardSavedSignal.value++; // triggers FAB checkmark morph
-      if (mounted) Navigator.pop(context);
+      if (mounted) {
+        await _triggerSaveFlash();
+        if (mounted) Navigator.pop(context);
+      }
       toast_lib.toast.showSuccess('Transaction saved');
     }
+  }
+
+  /// Phase 5D — brief success flash before the sheet dismisses.
+  Future<void> _triggerSaveFlash() async {
+    setState(() => _saveFlash = true);
+    await Future.delayed(const Duration(milliseconds: 300));
+    if (mounted) setState(() => _saveFlash = false);
   }
 
   // ── Account picker ───────────────────────────────────────────────────────────
@@ -936,7 +1012,10 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
     final isDark = AppStyles.isDarkMode(context);
     final categories = context.watch<CategoriesController>().categories;
     final tags = context.watch<TagsController>().tags;
-    final bgColor = isDark ? const Color(0xFF080F1C) : CupertinoColors.systemBackground.resolveFrom(context);
+    final bgBase = isDark ? const Color(0xFF080F1C) : CupertinoColors.systemBackground.resolveFrom(context);
+    final bgColor = _saveFlash
+        ? Color.lerp(bgBase, SemanticColors.success, 0.12)!
+        : bgBase;
     final secondaryText = AppStyles.getSecondaryTextColor(context);
     final primaryText = AppStyles.getTextColor(context);
 
@@ -1054,12 +1133,34 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // ── Type toggle ─────────────────────────────────────────
-                        _buildTypeToggle(isDark),
+                        // ── Type toggle — stagger in (Phase 5A) ─────────────────
+                        AnimatedBuilder(
+                          animation: _openCtrl,
+                          builder: (context, child) => Opacity(
+                            opacity: _pill0Opacity.value,
+                            child: child,
+                          ),
+                          child: _buildTypeToggle(isDark),
+                        ),
                         const SizedBox(height: Spacing.lg),
 
-                        // ── Amount ──────────────────────────────────────────────
-                        _buildAmountField(isDark, primaryText),
+                        // ── Amount — scale in + waiting pulse (Phase 5A/5C) ──────
+                        AnimatedBuilder(
+                          animation: Listenable.merge([_openCtrl, _pulseCtrl]),
+                          builder: (context, child) {
+                            final isEmpty = _amountCtrl.text.isEmpty;
+                            return Transform.scale(
+                              scale: _amountScale.value,
+                              child: isEmpty
+                                  ? Opacity(
+                                      opacity: _pulseOpacity.value,
+                                      child: child,
+                                    )
+                                  : child,
+                            );
+                          },
+                          child: _buildAmountField(isDark, primaryText),
+                        ),
                         const SizedBox(height: Spacing.lg),
 
                         // ── Category ────────────────────────────────────────────
@@ -1177,7 +1278,10 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet> {
         ? const Color(0xFFFF3B30)
         : const Color(0xFF34C759);
     return GestureDetector(
-      onTap: () => setState(() => _branch = branch),
+      onTap: () {
+        HapticFeedback.selectionClick();
+        setState(() => _branch = branch);
+      },
       child: AnimatedContainer(
         duration: AppDurations.fast,
         padding: const EdgeInsets.symmetric(vertical: Spacing.md),
