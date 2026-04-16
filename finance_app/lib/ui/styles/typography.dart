@@ -40,6 +40,7 @@ class AppTypography {
     return TextStyle(
       fontSize: TypeScale.display,
       fontWeight: fontWeight ?? bold,
+      fontFeatures: const [FontFeature.tabularFigures()],
       letterSpacing: letterSpacingTight,
       height: lineHeightTight,
       color: color,
@@ -53,6 +54,7 @@ class AppTypography {
     return TextStyle(
       fontSize: TypeScale.hero,
       fontWeight: fontWeight ?? heavy,
+      fontFeatures: const [FontFeature.tabularFigures()],
       letterSpacing: letterSpacingTight,
       height: lineHeightTight,
       color: color,
@@ -67,6 +69,7 @@ class AppTypography {
     return TextStyle(
       fontSize: TypeScale.largeTitle,
       fontWeight: fontWeight ?? bold,
+      fontFeatures: const [FontFeature.tabularFigures()],
       letterSpacing: letterSpacingTight,
       height: lineHeightNormal,
       color: color,
@@ -80,6 +83,7 @@ class AppTypography {
     return TextStyle(
       fontSize: TypeScale.title1,
       fontWeight: fontWeight ?? semiBold,
+      fontFeatures: const [FontFeature.tabularFigures()],
       letterSpacing: letterSpacingNormal,
       height: lineHeightNormal,
       color: color,
@@ -93,6 +97,7 @@ class AppTypography {
     return TextStyle(
       fontSize: TypeScale.title2,
       fontWeight: fontWeight ?? semiBold,
+      fontFeatures: const [FontFeature.tabularFigures()],
       letterSpacing: letterSpacingNormal,
       height: lineHeightNormal,
       color: color,
@@ -106,6 +111,7 @@ class AppTypography {
     return TextStyle(
       fontSize: TypeScale.title3,
       fontWeight: fontWeight ?? semiBold,
+      fontFeatures: const [FontFeature.tabularFigures()],
       letterSpacing: letterSpacingNormal,
       height: lineHeightNormal,
       color: color,
@@ -120,6 +126,7 @@ class AppTypography {
     return TextStyle(
       fontSize: TypeScale.headline,
       fontWeight: fontWeight ?? semiBold,
+      fontFeatures: const [FontFeature.tabularFigures()],
       letterSpacing: letterSpacingNormal,
       height: lineHeightNormal,
       color: color,
@@ -133,6 +140,7 @@ class AppTypography {
     return TextStyle(
       fontSize: TypeScale.body,
       fontWeight: fontWeight ?? regular,
+      fontFeatures: const [FontFeature.tabularFigures()],
       letterSpacing: letterSpacingNormal,
       height: lineHeightRelaxed,
       color: color,
@@ -146,6 +154,7 @@ class AppTypography {
     return TextStyle(
       fontSize: TypeScale.callout,
       fontWeight: fontWeight ?? regular,
+      fontFeatures: const [FontFeature.tabularFigures()],
       letterSpacing: letterSpacingNormal,
       height: lineHeightNormal,
       color: color,
@@ -159,6 +168,7 @@ class AppTypography {
     return TextStyle(
       fontSize: TypeScale.subhead,
       fontWeight: fontWeight ?? regular,
+      fontFeatures: const [FontFeature.tabularFigures()],
       letterSpacing: letterSpacingNormal,
       height: lineHeightNormal,
       color: color,
@@ -173,6 +183,7 @@ class AppTypography {
     return TextStyle(
       fontSize: TypeScale.footnote,
       fontWeight: fontWeight ?? regular,
+      fontFeatures: const [FontFeature.tabularFigures()],
       letterSpacing: letterSpacingNormal,
       height: lineHeightNormal,
       color: color,
@@ -186,6 +197,7 @@ class AppTypography {
     return TextStyle(
       fontSize: TypeScale.caption,
       fontWeight: fontWeight ?? regular,
+      fontFeatures: const [FontFeature.tabularFigures()],
       letterSpacing: letterSpacingWide,
       height: lineHeightNormal,
       color: color,
@@ -200,6 +212,7 @@ class AppTypography {
     return TextStyle(
       fontSize: TypeScale.micro,
       fontWeight: fontWeight ?? regular,
+      fontFeatures: const [FontFeature.tabularFigures()],
       letterSpacing: letterSpacingNormal,
       height: lineHeightNormal,
       color: color,
@@ -214,6 +227,7 @@ class AppTypography {
     return TextStyle(
       fontSize: TypeScale.caption,
       fontWeight: bold,
+      fontFeatures: const [FontFeature.tabularFigures()],
       letterSpacing: 1.2,
       height: lineHeightNormal,
       color: color,
@@ -230,6 +244,7 @@ class AppTypography {
       fontFamily: monoFont,
       fontSize: fontSize ?? TypeScale.body,
       fontWeight: fontWeight ?? regular,
+      fontFeatures: const [FontFeature.tabularFigures()],
       letterSpacing: letterSpacingNormal,
       height: lineHeightNormal,
       color: color,
@@ -243,6 +258,7 @@ class AppTypography {
     return TextStyle(
       fontSize: TypeScale.callout,
       fontWeight: fontWeight ?? semiBold,
+      fontFeatures: const [FontFeature.tabularFigures()],
       letterSpacing: letterSpacingWide,
       height: lineHeightNormal,
       color: color,
@@ -256,6 +272,7 @@ class AppTypography {
     return TextStyle(
       fontSize: TypeScale.footnote,
       fontWeight: fontWeight ?? medium,
+      fontFeatures: const [FontFeature.tabularFigures()],
       letterSpacing: letterSpacingWide,
       height: lineHeightNormal,
       color: color,
