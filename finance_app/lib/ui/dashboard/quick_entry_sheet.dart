@@ -217,6 +217,53 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
       }
     }
 
+    // ── Phase 5A open animation ───────────────────────────────────────────────
+    _openCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _amountScale = Tween(begin: 0.95, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _openCtrl,
+        curve: const Interval(0.24, 1.0, curve: Curves.easeOutCubic),
+      ),
+    );
+    _pill0Opacity = Tween(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _openCtrl,
+        curve: const Interval(0.0, 0.55, curve: Curves.easeOut),
+      ),
+    );
+    _pill1Opacity = Tween(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _openCtrl,
+        curve: const Interval(0.08, 0.65, curve: Curves.easeOut),
+      ),
+    );
+    // Start 80ms after sheet arrives (was 120ms — reduce blank flash).
+    Future.delayed(const Duration(milliseconds: 80), () {
+      if (mounted) _openCtrl.forward();
+    });
+
+    // ── Phase 5C waiting pulse ────────────────────────────────────────────────
+    _pulseCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    );
+    // Pulse between 0.65–1.0 so the field is always legible in both themes.
+    // The original 0.20 floor made it near-invisible on light backgrounds.
+    _pulseOpacity = Tween(begin: 0.65, end: 1.0).animate(
+      CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut),
+    );
+    _pulseCtrl.repeat(reverse: true);
+    // Stop pulse the moment user types anything
+    _amountCtrl.addListener(() {
+      if (_amountCtrl.text.isNotEmpty && _pulseCtrl.isAnimating) {
+        _pulseCtrl.stop();
+        _pulseCtrl.value = 1.0; // lock at full opacity
+      }
+    });
+
     // ML auto-suggest: when merchant changes, auto-pick the most likely category
     _merchantCtrl.addListener(_onMerchantChanged);
 
@@ -246,51 +293,6 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
         _categoryAutoSuggested = false;
       });
     }
-
-    // ── Phase 5A open animation ───────────────────────────────────────────────
-    _openCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    );
-    _amountScale = Tween(begin: 0.95, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _openCtrl,
-        curve: const Interval(0.24, 1.0, curve: Curves.easeOutCubic),
-      ),
-    );
-    _pill0Opacity = Tween(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _openCtrl,
-        curve: const Interval(0.0, 0.55, curve: Curves.easeOut),
-      ),
-    );
-    _pill1Opacity = Tween(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _openCtrl,
-        curve: const Interval(0.08, 0.65, curve: Curves.easeOut),
-      ),
-    );
-    // Start 120ms after sheet arrives
-    Future.delayed(const Duration(milliseconds: 120), () {
-      if (mounted) _openCtrl.forward();
-    });
-
-    // ── Phase 5C waiting pulse ────────────────────────────────────────────────
-    _pulseCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    );
-    _pulseOpacity = Tween(begin: 0.20, end: 0.60).animate(
-      CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut),
-    );
-    _pulseCtrl.repeat(reverse: true);
-    // Stop pulse the moment user types anything
-    _amountCtrl.addListener(() {
-      if (_amountCtrl.text.isNotEmpty && _pulseCtrl.isAnimating) {
-        _pulseCtrl.stop();
-        _pulseCtrl.value = 1.0; // lock at full opacity
-      }
-    });
   }
 
   @override

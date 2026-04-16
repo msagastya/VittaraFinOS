@@ -430,9 +430,9 @@ class FadeScalePageRoute<T> extends PageRouteBuilder<T> {
             ).chain(CurveTween(curve: _enterScale));
 
             // ── Exit: screen being pushed away recedes slightly ─────────────
-            final exitScale = Tween(begin: 1.0, end: 0.96)
+            final exitScale = Tween(begin: 1.0, end: 0.98)
                 .chain(CurveTween(curve: _exitCurve));
-            final exitFade = Tween(begin: 1.0, end: 0.6)
+            final exitFade = Tween(begin: 1.0, end: 0.85)
                 .chain(CurveTween(curve: _exitCurve));
 
             return FadeTransition(
@@ -452,8 +452,8 @@ class FadeScalePageRoute<T> extends PageRouteBuilder<T> {
               ),
             );
           },
-          transitionDuration: const Duration(milliseconds: 340),
-          reverseTransitionDuration: const Duration(milliseconds: 220),
+          transitionDuration: const Duration(milliseconds: 280),
+          reverseTransitionDuration: const Duration(milliseconds: 200),
         );
 }
 

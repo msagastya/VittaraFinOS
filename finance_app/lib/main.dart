@@ -6,6 +6,7 @@ import 'package:flutter/physics.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:vittara_fin_os/logic/account_model.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/banks_controller.dart';
 import 'package:vittara_fin_os/logic/brokers_controller.dart';
@@ -1899,7 +1900,7 @@ class DashboardScreen extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: RT.title2(context),
                                     fontWeight: FontWeight.w800,
-                                    color: Colors.white,
+                                    color: isDark ? Colors.white : AppStyles.getTextColor(context),
                                     letterSpacing: -0.5,
                                     height: 1.1,
                                   ),
@@ -1912,7 +1913,9 @@ class DashboardScreen extends StatelessWidget {
                                   dateFormatter,
                                   style: TextStyle(
                                     fontSize: TypeScale.footnote,
-                                    color: Colors.white.withValues(alpha: 0.55),
+                                    color: isDark
+                                        ? Colors.white.withValues(alpha: 0.55)
+                                        : AppStyles.getSecondaryTextColor(context),
                                     fontWeight: FontWeight.w500,
                                     letterSpacing: 0.2,
                                   ),
@@ -1969,8 +1972,12 @@ class DashboardScreen extends StatelessWidget {
                         final visibleAccounts = acCtrl.accounts
                             .where((a) => !a.isHidden)
                             .toList();
-                        final total = visibleAccounts.fold(
-                            0.0, (sum, a) => sum + a.balance);
+                        final total = visibleAccounts.fold(0.0, (sum, a) {
+                          // Credit cards and pay-later are liabilities — subtract.
+                          final isLiability = a.type == AccountType.credit ||
+                              a.type == AccountType.payLater;
+                          return sum + (isLiability ? -a.balance : a.balance);
+                        });
                         final count = visibleAccounts.length;
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1981,7 +1988,7 @@ class DashboardScreen extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 32,
                                 fontWeight: FontWeight.w800,
-                                color: Colors.white,
+                                color: isDark ? Colors.white : AppStyles.getTextColor(context),
                                 letterSpacing: -1.0,
                                 fontFamily: 'SpaceGrotesk',
                                 fontFeatures: const [
@@ -1995,7 +2002,9 @@ class DashboardScreen extends StatelessWidget {
                               'Across $count account${count == 1 ? '' : 's'}',
                               style: TextStyle(
                                 fontSize: TypeScale.caption,
-                                color: Colors.white.withValues(alpha: 0.55),
+                                color: isDark
+                                    ? Colors.white.withValues(alpha: 0.55)
+                                    : AppStyles.getSecondaryTextColor(context),
                                 fontWeight: FontWeight.w500,
                                 letterSpacing: 0.3,
                               ),
@@ -2012,11 +2021,17 @@ class DashboardScreen extends StatelessWidget {
                       height: 0.6,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [
-                            Colors.white.withValues(alpha: 0.00),
-                            Colors.white.withValues(alpha: 0.18),
-                            Colors.white.withValues(alpha: 0.00),
-                          ],
+                          colors: isDark
+                              ? [
+                                  Colors.white.withValues(alpha: 0.00),
+                                  Colors.white.withValues(alpha: 0.18),
+                                  Colors.white.withValues(alpha: 0.00),
+                                ]
+                              : [
+                                  AppStyles.aetherTeal.withValues(alpha: 0.00),
+                                  AppStyles.aetherTeal.withValues(alpha: 0.25),
+                                  AppStyles.aetherTeal.withValues(alpha: 0.00),
+                                ],
                         ),
                       ),
                     ),

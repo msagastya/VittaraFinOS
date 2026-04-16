@@ -203,7 +203,9 @@ class Transaction {
     switch (type) {
       case TransactionType.transfer:
         final flowType = metadata?['transferFlowType'] as String?;
-        final base = '$sourceAccountName → $destinationAccountName';
+        final from = sourceAccountName ?? 'unknown';
+        final to = destinationAccountName ?? 'unknown';
+        final base = '$from → $to';
         if (flowType == 'cash_withdrawal') {
           return 'Cash Withdrawal ($base)';
         }
@@ -219,7 +221,9 @@ class Transaction {
         }
         return base;
       case TransactionType.cashback:
-        return 'Cashback to $cashbackAccountName';
+        return cashbackAccountName != null
+            ? 'Cashback to $cashbackAccountName'
+            : 'Cashback';
       case TransactionType.lending:
         return 'Lent money';
       case TransactionType.borrowing:
