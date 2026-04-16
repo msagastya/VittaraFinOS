@@ -86,6 +86,12 @@ class _SpendIntelBody extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(Spacing.md, Spacing.md, Spacing.md, Spacing.xl),
         children: [
+          // ── Intelligence header ─────────────────────────────────────────
+          if (data.hasData) ...[
+            _IntelligenceHeader(data: data),
+            const SizedBox(height: Spacing.md),
+          ],
+
           // ── Summary tiles row ───────────────────────────────────────────
           _SummaryRow(data: data, isDark: isDark, cardBg: cardBg),
 
@@ -165,6 +171,135 @@ class _SpendIntelBody extends StatelessWidget {
 
           // ── Monthly trend bars (last 4 months) ──────────────────────────
           _MonthlyTrendSection(data: data, cardBg: cardBg, isDark: isDark),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Intelligence header — natural language spending summary with status border
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _IntelligenceHeader extends StatelessWidget {
+  final SpendIntelData data;
+  const _IntelligenceHeader({required this.data});
+
+  /// Returns (summary line, optional sub-line, border color, icon).
+  (String, String?, Color, IconData) _buildSummary(BuildContext context) {
+    final spent = data.totalThisMonth;
+    final income = data.incomeThisMonth;
+    final mom = data.momChange;
+
+    // Income-aware path
+    if (income > 0) {
+      final remaining = income - spent;
+      final sr = data.savingsRate;
+      if (remaining <= 0) {
+        return (
+          'You\'ve overspent your income by ${spendFmt(remaining.abs())} this month.',
+          'Consider reviewing your largest categories below.',
+          SemanticColors.getError(context),
+          CupertinoIcons.exclamationmark_triangle_fill,
+        );
+      } else if (sr >= 20) {
+        return (
+          'Your spending is on track. ${spendFmt(remaining)} left this month.',
+          '${sr.toStringAsFixed(0)}% savings rate — well above the 20% benchmark.',
+          SemanticColors.getSuccess(context),
+          CupertinoIcons.checkmark_seal_fill,
+        );
+      } else {
+        return (
+          'You\'ve spent ${spendFmt(spent)} so far. ${spendFmt(remaining)} remains.',
+          sr >= 0
+              ? '${sr.toStringAsFixed(0)}% savings rate this month.'
+              : null,
+          SemanticColors.getWarning(context),
+          CupertinoIcons.chart_bar_fill,
+        );
+      }
+    }
+
+    // No income tracked — fall back to MoM comparison
+    if (data.totalLastMonth > 0) {
+      if (mom <= -10) {
+        return (
+          'Great month. You spent ${spendFmt(spent)} — ${mom.abs().toStringAsFixed(0)}% less than last month.',
+          null,
+          SemanticColors.getSuccess(context),
+          CupertinoIcons.arrow_down_circle_fill,
+        );
+      } else if (mom <= 10) {
+        return (
+          'You spent ${spendFmt(spent)} this month, similar to last month.',
+          null,
+          SemanticColors.getWarning(context),
+          CupertinoIcons.equal_circle_fill,
+        );
+      } else {
+        return (
+          'You spent ${spendFmt(spent)} this month — ${mom.toStringAsFixed(0)}% more than last month.',
+          'Check the category breakdown below to see what drove the increase.',
+          SemanticColors.getError(context),
+          CupertinoIcons.arrow_up_circle_fill,
+        );
+      }
+    }
+
+    // No comparison data — just report spend
+    return (
+      'You\'ve spent ${spendFmt(spent)} so far this month.',
+      'Add more transactions to unlock deeper insights.',
+      AppStyles.getPrimaryColor(context),
+      CupertinoIcons.sparkles,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final (headline, sub, borderColor, icon) = _buildSummary(context);
+    final isDark = AppStyles.isDarkMode(context);
+    return Container(
+      padding: const EdgeInsets.fromLTRB(Spacing.md, Spacing.md, Spacing.md, Spacing.md),
+      decoration: BoxDecoration(
+        color: borderColor.withValues(alpha: isDark ? 0.07 : 0.05),
+        borderRadius: BorderRadius.circular(Radii.lg),
+        border: Border(left: BorderSide(color: borderColor, width: 3)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: borderColor.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(Radii.md),
+            ),
+            child: Icon(icon, size: 17, color: borderColor),
+          ),
+          const SizedBox(width: Spacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  headline,
+                  style: AppTypography.headline(color: AppStyles.getTextColor(context))
+                      .copyWith(height: 1.3),
+                ),
+                if (sub != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    sub,
+                    style: AppTypography.footnote(
+                        color: AppStyles.getSecondaryTextColor(context)),
+                  ),
+                ],
+              ],
+            ),
+          ),
         ],
       ),
     );
