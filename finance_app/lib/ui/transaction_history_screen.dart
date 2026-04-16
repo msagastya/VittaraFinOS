@@ -262,7 +262,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                   ),
                   const SizedBox(height: 8),
                   SizedBox(
-                    height: 36,
+                    height: 44,
                     child: ListView(
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -276,11 +276,12 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                             : type.name[0].toUpperCase() +
                                 type.name.substring(1);
                         return GestureDetector(
+                          behavior: HitTestBehavior.opaque,
                           onTap: () => setSheet(() => tempType = type),
                           child: Container(
                             margin: const EdgeInsets.only(right: 8),
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 6),
+                                horizontal: 12, vertical: 10),
                             decoration: BoxDecoration(
                               color: isSelected
                                   ? AppStyles.getPrimaryColor(ctx)
@@ -728,6 +729,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                           ),
                         ),
                         GestureDetector(
+                          behavior: HitTestBehavior.opaque,
                           onTap: () {
                             setState(() {
                               _minAmount = null;
@@ -737,10 +739,16 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                             });
                             _saveFilterPrefs();
                           },
-                          child: Icon(
-                            CupertinoIcons.xmark_circle_fill,
-                            size: 16,
-                            color: AppStyles.getSecondaryTextColor(context),
+                          child: SizedBox(
+                            width: 44,
+                            height: 44,
+                            child: Center(
+                              child: Icon(
+                                CupertinoIcons.xmark_circle_fill,
+                                size: 20,
+                                color: AppStyles.getSecondaryTextColor(context),
+                              ),
+                            ),
                           ),
                         ),
                       ],
@@ -789,22 +797,23 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
 
   Widget _buildDateChips() {
     return SizedBox(
-      height: 34,
+      height: 44,
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
         children: _DateRangeFilter.values.map((filter) {
           final selected = _dateFilter == filter;
           return GestureDetector(
+            behavior: HitTestBehavior.opaque,
             onTap: () => setState(() {
               _dateFilter = filter;
               _visibleCount = _pageSize;
             }),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 180),
-              margin: const EdgeInsets.only(right: 8, bottom: 4),
+              margin: const EdgeInsets.only(right: 8),
               padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: selected
                     ? AppStyles.getPrimaryColor(context)

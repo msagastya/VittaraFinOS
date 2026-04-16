@@ -251,13 +251,13 @@ class _ManageScreenState extends State<ManageScreen> {
 
   Widget _buildLandscapeNavBar(BuildContext context) {
     return Container(
-      height: 40,
+      height: 44,
       padding: const EdgeInsets.symmetric(horizontal: Spacing.md),
       child: Row(
         children: [
           CupertinoButton(
-            padding: EdgeInsets.zero,
-            minimumSize: Size.zero,
+            padding: const EdgeInsets.symmetric(horizontal: Spacing.sm),
+            minimumSize: const Size(44, 44),
             onPressed: () => Navigator.maybePop(context),
             child: Icon(CupertinoIcons.chevron_left, size: 20,
                 color: AppStyles.getPrimaryColor(context)),

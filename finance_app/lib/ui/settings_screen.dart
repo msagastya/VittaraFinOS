@@ -226,14 +226,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildLandscapeNavBar(BuildContext context) {
     return Container(
-      height: 40,
+      height: 44,
       color: AppStyles.getBackground(context),
       padding: const EdgeInsets.symmetric(horizontal: Spacing.sm),
       child: Row(
         children: [
           CupertinoButton(
-            padding: EdgeInsets.zero,
-            minimumSize: Size.zero,
+            padding: const EdgeInsets.symmetric(horizontal: Spacing.sm),
+            minimumSize: const Size(44, 44),
             onPressed: () => Navigator.of(context).maybePop(),
             child: Row(
               mainAxisSize: MainAxisSize.min,
