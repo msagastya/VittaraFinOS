@@ -1518,8 +1518,11 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
           }
 
           return RefreshIndicator(
-            onRefresh: () => _refreshCurrentValues(context),
-            color: SemanticColors.investments,
+            onRefresh: () async {
+              Haptics.medium();
+              await _refreshCurrentValues(context);
+            },
+            color: AppStyles.getPrimaryColor(context),
             child: ListView.builder(
               key: PageStorageKey('investments_list_$pageIndex'),
               controller:

@@ -215,6 +215,7 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                               showPulse: false,
                             )
                           : RefreshIndicator(
+                              color: AppStyles.getPrimaryColor(context),
                               onRefresh: () async {
                                 HapticFeedback.mediumImpact();
                                 await Provider.of<LendingBorrowingController>(

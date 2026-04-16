@@ -706,11 +706,15 @@ class _AccountsScreenState extends State<AccountsScreen> {
           child: sectionAccounts.isEmpty && _searchQuery.isNotEmpty
               ? _buildNoSearchResults()
               : RefreshIndicator(
-                  onRefresh: () =>
-                      context.read<AccountsController>().loadAccounts(),
-                  color: AppStyles.accentBlue,
+                  onRefresh: () async {
+                    Haptics.medium();
+                    await context.read<AccountsController>().loadAccounts();
+                  },
+                  color: AppStyles.getPrimaryColor(context),
                   child: ListView.builder(
                     key: PageStorageKey('accounts_list_${type.name}'),
+                    keyboardDismissBehavior:
+                        ScrollViewKeyboardDismissBehavior.onDrag,
                     padding:
                         const EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, 110),
                     itemCount: sectionAccounts.length,

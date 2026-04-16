@@ -403,8 +403,11 @@ class _ReportsAnalysisScreenState extends State<ReportsAnalysisScreen> {
                       _buildLandscapeNavBar(context),
                     Expanded(
                       child: RefreshIndicator(
-                  onRefresh: () => transactionsController.loadTransactions(),
-                  color: AppStyles.accentBlue,
+                  onRefresh: () async {
+                    Haptics.medium();
+                    await transactionsController.loadTransactions();
+                  },
+                  color: AppStyles.getPrimaryColor(context),
                   child: ListView(
                     padding: const EdgeInsets.fromLTRB(
                       Spacing.lg,

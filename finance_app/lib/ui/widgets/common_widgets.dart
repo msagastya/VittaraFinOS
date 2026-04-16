@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
+import 'package:flutter/rendering.dart' show ScrollDirection;
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
@@ -663,6 +664,9 @@ class FadingFAB extends StatefulWidget {
   final IconData icon;
   final Color? color;
   final String? heroTag;
+  /// Optional scroll controller — when provided the FAB hides on scroll-down
+  /// and reappears on scroll-up/stop. Without it, uses inactivity timer only.
+  final ScrollController? scrollController;
 
   const FadingFAB({
     super.key,
@@ -670,6 +674,7 @@ class FadingFAB extends StatefulWidget {
     this.icon = CupertinoIcons.add,
     this.color,
     this.heroTag,
+    this.scrollController,
   });
 
   @override
@@ -680,7 +685,9 @@ class _FadingFABState extends State<FadingFAB>
     with SingleTickerProviderStateMixin {
   Timer? _timer;
   late AnimationController _controller;
-  late Animation<double> _animation;
+  late Animation<double> _opacity;
+  late Animation<double> _scale;
+  bool _scrollHidden = false;
 
   @override
   void initState() {
@@ -689,10 +696,28 @@ class _FadingFABState extends State<FadingFAB>
       vsync: this,
       duration: AppDurations.toast,
     );
-    _animation = Tween<double>(begin: 1.0, end: Opacities.fadedFab).animate(
+    _opacity = Tween<double>(begin: 1.0, end: Opacities.fadedFab).animate(
       CurvedAnimation(parent: _controller, curve: MotionCurves.standard),
     );
-    _startInactivityTimer();
+    _scale = Tween<double>(begin: 1.0, end: 0.8).animate(
+      CurvedAnimation(parent: _controller, curve: MotionCurves.standard),
+    );
+    widget.scrollController?.addListener(_onScroll);
+    if (widget.scrollController == null) _startInactivityTimer();
+  }
+
+  void _onScroll() {
+    final sc = widget.scrollController;
+    if (sc == null || !sc.hasClients) return;
+    final scrollingDown = sc.position.userScrollDirection ==
+        ScrollDirection.reverse;
+    if (scrollingDown && !_scrollHidden) {
+      _scrollHidden = true;
+      _controller.forward();
+    } else if (!scrollingDown && _scrollHidden) {
+      _scrollHidden = false;
+      _controller.reverse();
+    }
   }
 
   void _startInactivityTimer() {
@@ -705,6 +730,7 @@ class _FadingFABState extends State<FadingFAB>
 
   @override
   void dispose() {
+    widget.scrollController?.removeListener(_onScroll);
     _timer?.cancel();
     _controller.dispose();
     super.dispose();
@@ -715,29 +741,34 @@ class _FadingFABState extends State<FadingFAB>
     final fabColor = widget.color ?? SemanticColors.getPrimary(context);
 
     final fab = AnimatedBuilder(
-      animation: _animation,
+      animation: _controller,
       builder: (context, child) {
         return Opacity(
-          opacity: _animation.value,
-          child: GestureDetector(
-            onTapDown: (_) => _startInactivityTimer(),
-            onTap: () {
-              _startInactivityTimer();
-              Haptics.light();
-              widget.onPressed();
-            },
-            child: Container(
-              width: ComponentSizes.fabSize,
-              height: ComponentSizes.fabSize,
-              decoration: BoxDecoration(
-                color: fabColor,
-                shape: BoxShape.circle,
-                boxShadow: Shadows.fab(fabColor),
-              ),
-              child: Icon(
-                widget.icon,
-                color: Colors.white,
-                size: IconSizes.fabIcon,
+          opacity: _opacity.value,
+          child: Transform.scale(
+            scale: _scale.value,
+            child: GestureDetector(
+              onTapDown: (_) {
+                if (widget.scrollController == null) _startInactivityTimer();
+              },
+              onTap: () {
+                if (widget.scrollController == null) _startInactivityTimer();
+                Haptics.light();
+                widget.onPressed();
+              },
+              child: Container(
+                width: ComponentSizes.fabSize,
+                height: ComponentSizes.fabSize,
+                decoration: BoxDecoration(
+                  color: fabColor,
+                  shape: BoxShape.circle,
+                  boxShadow: Shadows.fab(fabColor),
+                ),
+                child: Icon(
+                  widget.icon,
+                  color: Colors.white,
+                  size: IconSizes.fabIcon,
+                ),
               ),
             ),
           ),
@@ -769,8 +800,8 @@ class ModalHandle extends StatelessWidget {
       height: ComponentSizes.modalHandleHeight,
       decoration: BoxDecoration(
         color: isDark
-            ? const Color(0xFF2A3F5F) // moonlit ridge on void
-            : const Color(0xFFBBCCDD),
+            ? Colors.white.withValues(alpha: 0.3)
+            : Colors.black.withValues(alpha: 0.2),
         borderRadius:
             BorderRadius.circular(ComponentSizes.modalHandleHeight / 2),
       ),

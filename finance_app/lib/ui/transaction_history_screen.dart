@@ -1047,7 +1047,9 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     return Stack(
       children: [
         RefreshIndicator(
+      color: AppStyles.getPrimaryColor(context),
       onRefresh: () async {
+        Haptics.medium();
         // Scroll to top and trigger a UI refresh
         if (mounted) {
           _scrollController.jumpTo(0);
@@ -1056,6 +1058,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
       },
       child: ListView.builder(
         controller: _scrollController,
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         physics: const SmoothScrollPhysics(
           parent: AlwaysScrollableScrollPhysics(),
         ),
