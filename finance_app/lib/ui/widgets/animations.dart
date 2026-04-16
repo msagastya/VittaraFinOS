@@ -399,37 +399,55 @@ class GradientBorderContainer extends StatelessWidget {
 /// matching the feel of a SpringDescription(mass:1, stiffness:220, damping:22).
 /// Full `animateWith(SpringSimulation)` requires a custom ModalRoute; this
 /// achieves the same perceived result within PageRouteBuilder.
+/// T1 — Push transition: go deeper into hierarchy.
+///
+/// Enter (new screen): scale 0.94→1.0 spring + slight upward slide + fade 0→1.
+/// Exit (screen being covered): scale 1.0→0.96 + fade 1.0→0.6 via secondaryAnimation.
+/// Feel: diving forward — the previous screen recedes as the new one emerges.
 class FadeScalePageRoute<T> extends PageRouteBuilder<T> {
   final Widget page;
 
-  // Back-out spring approximation: overshoots ~4%, settles at 1.0.
-  static const _springScale = Cubic(0.34, 1.56, 0.64, 1.0);
+  // Spring overshoot for the entering scale.
+  static const _enterScale = Cubic(0.34, 1.56, 0.64, 1.0);
   // Crisp deceleration for fade — no overshoot on opacity.
   static const _fadeCurve = Cubic(0.25, 0.46, 0.45, 0.94);
-  // Gentle lift for slide.
-  static const _slideCurve = Cubic(0.34, 1.56, 0.64, 1.0);
+  // Ease-out for the secondary (exit) animations.
+  static const _exitCurve = Cubic(0.25, 0.46, 0.45, 0.94);
 
   FadeScalePageRoute({required this.page})
       : super(
           opaque: false,
           pageBuilder: (context, animation, secondaryAnimation) => page,
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            final scaleTween = Tween(begin: 0.92, end: 1.0)
-                .chain(CurveTween(curve: _springScale));
-            final fadeTween = Tween(begin: 0.0, end: 1.0)
+            // ── Enter: new screen comes in ──────────────────────────────────
+            final enterScale = Tween(begin: 0.94, end: 1.0)
+                .chain(CurveTween(curve: _enterScale));
+            final enterFade = Tween(begin: 0.0, end: 1.0)
                 .chain(CurveTween(curve: _fadeCurve));
-            final slideTween = Tween(
-              begin: const Offset(0.0, 0.025),
+            final enterSlide = Tween(
+              begin: const Offset(0.0, 0.022),
               end: Offset.zero,
-            ).chain(CurveTween(curve: _slideCurve));
+            ).chain(CurveTween(curve: _enterScale));
+
+            // ── Exit: screen being pushed away recedes slightly ─────────────
+            final exitScale = Tween(begin: 1.0, end: 0.96)
+                .chain(CurveTween(curve: _exitCurve));
+            final exitFade = Tween(begin: 1.0, end: 0.6)
+                .chain(CurveTween(curve: _exitCurve));
 
             return FadeTransition(
-              opacity: animation.drive(fadeTween),
-              child: SlideTransition(
-                position: animation.drive(slideTween),
-                child: ScaleTransition(
-                  scale: animation.drive(scaleTween),
-                  child: child,
+              opacity: secondaryAnimation.drive(exitFade),
+              child: ScaleTransition(
+                scale: secondaryAnimation.drive(exitScale),
+                child: FadeTransition(
+                  opacity: animation.drive(enterFade),
+                  child: SlideTransition(
+                    position: animation.drive(enterSlide),
+                    child: ScaleTransition(
+                      scale: animation.drive(enterScale),
+                      child: child,
+                    ),
+                  ),
                 ),
               ),
             );
@@ -437,6 +455,43 @@ class FadeScalePageRoute<T> extends PageRouteBuilder<T> {
           transitionDuration: const Duration(milliseconds: 340),
           reverseTransitionDuration: const Duration(milliseconds: 220),
         );
+}
+
+/// T3 — Replace transition: same-hierarchy crossfade.
+///
+/// Use when swapping content at the same level (tab switch, state swap).
+/// Outgoing fades + scales to 0.98; incoming fades + scales from 0.98.
+/// Duration: 200ms. NOT for navigating deeper (use FadeScalePageRoute for that).
+///
+/// Usage:
+/// ```dart
+/// T3CrossFade(
+///   stateKey: ValueKey(_selectedTab),
+///   child: MyTabContent(...),
+/// )
+/// ```
+class T3CrossFade extends StatelessWidget {
+  final Widget child;
+  final Object stateKey;
+  const T3CrossFade({super.key, required this.stateKey, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 200),
+      switchInCurve: Curves.easeOut,
+      switchOutCurve: Curves.easeIn,
+      transitionBuilder: (child, animation) {
+        final scale = Tween(begin: 0.98, end: 1.0)
+            .animate(CurvedAnimation(parent: animation, curve: Curves.easeOut));
+        return FadeTransition(
+          opacity: animation,
+          child: ScaleTransition(scale: scale, child: child),
+        );
+      },
+      child: KeyedSubtree(key: ValueKey(stateKey), child: child),
+    );
+  }
 }
 
 /// A wrapper widget that scales down when pressed and provides haptic feedback.

@@ -105,6 +105,12 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
   /// True while save-confirmation flash (5D) is playing.
   bool _saveFlash = false;
 
+  /// Key for the amount field ShakeAnimation — triggered on failed save tap.
+  final GlobalKey<ShakeAnimationState> _amountShakeKey = GlobalKey();
+
+  /// True while error flash (10C) is playing on the save button.
+  bool _errorFlash = false;
+
   @override
   void initState() {
     super.initState();
@@ -515,6 +521,14 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
     setState(() => _saveFlash = true);
     await Future.delayed(const Duration(milliseconds: 300));
     if (mounted) setState(() => _saveFlash = false);
+  }
+
+  /// Phase 10C — shake amount field + flash button red on failed save tap.
+  Future<void> _triggerErrorFlash() async {
+    _amountShakeKey.currentState?.shake(); // also fires Haptics.error()
+    setState(() => _errorFlash = true);
+    await Future.delayed(const Duration(milliseconds: 200));
+    if (mounted) setState(() => _errorFlash = false);
   }
 
   // ── Account picker ───────────────────────────────────────────────────────────
@@ -1145,21 +1159,24 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
                         const SizedBox(height: Spacing.lg),
 
                         // ── Amount — scale in + waiting pulse (Phase 5A/5C) ──────
-                        AnimatedBuilder(
-                          animation: Listenable.merge([_openCtrl, _pulseCtrl]),
-                          builder: (context, child) {
-                            final isEmpty = _amountCtrl.text.isEmpty;
-                            return Transform.scale(
-                              scale: _amountScale.value,
-                              child: isEmpty
-                                  ? Opacity(
-                                      opacity: _pulseOpacity.value,
-                                      child: child,
-                                    )
-                                  : child,
-                            );
-                          },
-                          child: _buildAmountField(isDark, primaryText),
+                        ShakeAnimation(
+                          key: _amountShakeKey,
+                          child: AnimatedBuilder(
+                            animation: Listenable.merge([_openCtrl, _pulseCtrl]),
+                            builder: (context, child) {
+                              final isEmpty = _amountCtrl.text.isEmpty;
+                              return Transform.scale(
+                                scale: _amountScale.value,
+                                child: isEmpty
+                                    ? Opacity(
+                                        opacity: _pulseOpacity.value,
+                                        child: child,
+                                      )
+                                    : child,
+                              );
+                            },
+                            child: _buildAmountField(isDark, primaryText),
+                          ),
                         ),
                         const SizedBox(height: Spacing.lg),
 
@@ -2100,13 +2117,17 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
   Widget _buildSaveButton() {
     final canSave = _canSave;
     final isExpense = _branch == TransactionWizardBranch.expense;
-    final startColor = isExpense ? const Color(0xFFFF3B30) : const Color(0xFF34C759);
-    final endColor = isExpense ? const Color(0xFFFF6B60) : const Color(0xFF00C44F);
+    final startColor = _errorFlash
+        ? SemanticColors.getError(context).withValues(alpha: 0.85)
+        : isExpense ? const Color(0xFFFF3B30) : const Color(0xFF34C759);
+    final endColor = _errorFlash
+        ? SemanticColors.getError(context)
+        : isExpense ? const Color(0xFFFF6B60) : const Color(0xFF00C44F);
 
     return Opacity(
-      opacity: canSave ? 1.0 : 0.4,
+      opacity: canSave ? 1.0 : (_errorFlash ? 0.9 : 0.4),
       child: BouncyButton(
-        onPressed: canSave ? _save : () {},
+        onPressed: canSave ? _save : _triggerErrorFlash,
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: Spacing.md),
