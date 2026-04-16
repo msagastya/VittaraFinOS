@@ -463,9 +463,7 @@ class _LoanCard extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: loan.progressPercent,
                 minHeight: 6,
-                backgroundColor: isDark
-                    ? const Color(0xFF1C1C1C)
-                    : AppStyles.loss(context).withValues(alpha: 0.12),
+                backgroundColor: AppStyles.getDividerColor(context),
                 valueColor: AlwaysStoppedAnimation<Color>(
                   loan.progressPercent >= 0.8
                       ? AppStyles.gain(context)

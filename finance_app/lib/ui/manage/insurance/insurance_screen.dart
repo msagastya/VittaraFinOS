@@ -469,9 +469,9 @@ class _PolicyCard extends StatelessWidget {
   }
 
   Color _renewalColor(BuildContext context) {
-    if (policy.isExpired) return AppStyles.loss(context);
-    if (policy.isExpiringSoon) return AppStyles.accentOrange;
-    return AppStyles.gain(context);
+    if (policy.isExpired) return SemanticColors.getError(context);
+    if (policy.isExpiringSoon) return SemanticColors.getWarning(context);
+    return SemanticColors.getSuccess(context);
   }
 
   String _renewalLabel() {
@@ -648,10 +648,8 @@ class _PolicyCard extends StatelessWidget {
                         const SizedBox(width: Spacing.xs),
                         Text(
                           '${CurrencyFormatter.compact(policy.premiumAmount)} / ${policy.premiumFrequency}',
-                          style: TextStyle(
-                            fontSize: TypeScale.caption,
-                            color:
-                                AppStyles.getSecondaryTextColor(context),
+                          style: AppTypography.caption(
+                            color: AppStyles.getSecondaryTextColor(context),
                           ),
                         ),
                       ],

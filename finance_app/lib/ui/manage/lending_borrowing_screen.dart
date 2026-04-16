@@ -354,7 +354,9 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
           color: selected ? color.withValues(alpha: 0.15) : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: selected ? color : AppStyles.getSecondaryTextColor(context),
+            color: selected
+                ? color
+                : AppStyles.getDividerColor(context),
             width: selected ? 1.5 : 1,
           ),
         ),
@@ -363,23 +365,25 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
             children: [
               Text(
                 title,
-                style: TextStyle(
-                  fontSize: TypeScale.subhead,
-                  fontWeight: FontWeight.w600,
+                style: AppTypography.subhead(
                   color: selected
                       ? color
-                      : AppStyles.getSecondaryTextColor(context),
+                      : AppStyles.getTertiaryTextColor(context),
+                  fontWeight: selected
+                      ? AppTypography.semiBold
+                      : AppTypography.regular,
                 ),
               ),
               const SizedBox(height: Spacing.xs),
               Text(
                 subtitle,
-                style: TextStyle(
-                  fontSize: TypeScale.caption,
-                  fontWeight: FontWeight.w600,
+                style: AppTypography.caption(
                   color: selected
-                      ? color
-                      : AppStyles.getSecondaryTextColor(context),
+                      ? color.withValues(alpha: 0.85)
+                      : AppStyles.getTertiaryTextColor(context),
+                  fontWeight: selected
+                      ? AppTypography.semiBold
+                      : AppTypography.regular,
                 ),
               ),
             ],

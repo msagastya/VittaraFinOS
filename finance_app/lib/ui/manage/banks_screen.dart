@@ -137,10 +137,8 @@ class _BanksScreenState extends State<BanksScreen> {
                             ),
                             const SizedBox(height: Spacing.lg),
                             Container(
-                              height: 1,
-                              color: isDark
-                                  ? Colors.grey[800]
-                                  : CupertinoColors.systemGrey5,
+                              height: 0.5,
+                              color: AppStyles.getDividerColor(context),
                               margin:
                                   const EdgeInsets.symmetric(horizontal: 16),
                             ),

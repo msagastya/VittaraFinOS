@@ -590,7 +590,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? _getAccountTypeColor(type).withValues(alpha: 0.16)
+                    ? _getAccountTypeColor(type).withValues(
+                        alpha: AppStyles.isDarkMode(context) ? 0.16 : 0.10)
                     : AppStyles.getCardColor(context),
                 borderRadius: BorderRadius.circular(Radii.md),
                 border: Border.all(
@@ -1081,7 +1082,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                   child: Icon(
                     CupertinoIcons.chevron_down,
                     size: 14,
-                    color: AppStyles.getSecondaryTextColor(context),
+                    color: AppStyles.getPrimaryColor(context),
                   ),
                 ),
               ],
@@ -1201,7 +1202,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                             children: [
                               Text(
                                 CurrencyFormatter.compact(account.balance),
-                                style: AppStyles.amountStyle(context,
+                                style: AppTypography.currencySmall(
                                     color: account.color),
                               ),
                               const SizedBox(height: Spacing.xs),
