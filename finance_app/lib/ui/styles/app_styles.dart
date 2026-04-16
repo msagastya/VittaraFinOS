@@ -718,3 +718,39 @@ class AppStyles {
     return 22;
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Chart Color Palettes
+// Two variants: dark (vivid/emissive on void) and light (desaturated, deeper,
+// WCAG-readable on white/off-white). Call ChartColors.palette(context) and
+// cycle with index % length — never hardcode chart colors inline.
+// ─────────────────────────────────────────────────────────────────────────────
+
+class ChartColors {
+  ChartColors._();
+
+  // Dark palette: vivid/emissive — designed for AMOLED/void backgrounds.
+  static const List<Color> _dark = [
+    Color(0xFF00D4AA), // aether teal
+    Color(0xFF3B8BFF), // electric blue
+    Color(0xFFFFD166), // solar gold
+    Color(0xFF9B7FFF), // nova violet
+    Color(0xFFFF9E2C), // plasma orange
+    Color(0xFFFF5580), // coral pulse
+  ];
+
+  // Light palette: desaturated, deeper — WCAG AA readable on #F2F2F7 / white.
+  static const List<Color> _light = [
+    Color(0xFF007A6E), // deep teal
+    Color(0xFF0056B3), // deep blue
+    Color(0xFFA07000), // deep amber
+    Color(0xFF5B3FCC), // deep violet
+    Color(0xFFBF6200), // deep orange
+    Color(0xFFBF2D50), // deep coral
+  ];
+
+  /// Returns the appropriate 6-color palette for the current brightness.
+  /// Cycle with `palette[i % palette.length]`.
+  static List<Color> palette(BuildContext context) =>
+      AppStyles.isDarkMode(context) ? _dark : _light;
+}

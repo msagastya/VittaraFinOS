@@ -436,6 +436,7 @@ class _ExpandableCategoryTableState extends State<_ExpandableCategoryTable> {
         ? Colors.white.withValues(alpha: 0.05)
         : Colors.black.withValues(alpha: 0.05);
 
+    final chartPalette = ChartColors.palette(context);
     return Column(
       children: widget.drifts.asMap().entries.map((entry) {
         final drift = entry.value;
@@ -443,6 +444,7 @@ class _ExpandableCategoryTableState extends State<_ExpandableCategoryTable> {
             ? (drift.thisMonth / widget.total).clamp(0.0, 1.0)
             : 0.0;
         final isLast = entry.key == widget.drifts.length - 1;
+        final barColor = chartPalette[entry.key % chartPalette.length];
         final delta = drift.momDelta;
         final deltaColor = drift.isAnomalous
             ? AppStyles.loss(context)
@@ -539,9 +541,8 @@ class _ExpandableCategoryTableState extends State<_ExpandableCategoryTable> {
                                     height: 4,
                                     decoration: BoxDecoration(
                                       gradient: LinearGradient(colors: [
-                                        AppStyles.teal(context)
-                                            .withValues(alpha: 0.6),
-                                        AppStyles.teal(context),
+                                        barColor.withValues(alpha: 0.6),
+                                        barColor,
                                       ]),
                                       borderRadius:
                                           BorderRadius.circular(Radii.full),
@@ -818,11 +819,7 @@ class _ExpandableMerchantsState extends State<_ExpandableMerchants> {
       return const SizedBox.shrink();
     }
     final isDark = widget.isDark;
-    final colors = [
-      AppStyles.teal(context),
-      AppStyles.accentBlue,
-      AppStyles.gold(context)
-    ];
+    final colors = ChartColors.palette(context);
     final divColor = isDark
         ? Colors.white.withValues(alpha: 0.07)
         : Colors.black.withValues(alpha: 0.07);

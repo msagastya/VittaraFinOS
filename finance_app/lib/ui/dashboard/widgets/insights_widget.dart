@@ -1191,11 +1191,7 @@ class _SpendTopMerchantsSectionState extends State<SpendTopMerchantsSection>
     if (widget.merchants.isEmpty || widget.totalThisMonth == 0) {
       return const SizedBox.shrink();
     }
-    final colors = [
-      AppStyles.teal(context),
-      AppStyles.accentBlue,
-      AppStyles.gold(context)
-    ];
+    final colors = ChartColors.palette(context);
     return AnimatedBuilder(
       animation: _ctrl,
       builder: (context, _) {
