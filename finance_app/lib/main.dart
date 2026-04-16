@@ -1468,7 +1468,7 @@ class DashboardScreen extends StatelessWidget {
               selector: (_, ctrl) => ctrl.accounts.isEmpty,
               builder: (context, hasNoAccounts, _) {
                 if (hasNoAccounts) {
-                  return _buildSetupCard(context);
+                  return const _SetupCard();
                 }
                 return CardDeckView(
                   cards: cards,
@@ -1888,24 +1888,30 @@ class DashboardScreen extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                greeting,
-                                style: TextStyle(
-                                  fontSize: RT.title2(context),
-                                  fontWeight: FontWeight.w800,
-                                  color: Colors.white,
-                                  letterSpacing: -0.5,
-                                  height: 1.1,
+                              _FadeSlideIn(
+                                delay: Duration.zero,
+                                child: Text(
+                                  greeting,
+                                  style: TextStyle(
+                                    fontSize: RT.title2(context),
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white,
+                                    letterSpacing: -0.5,
+                                    height: 1.1,
+                                  ),
                                 ),
                               ),
                               const SizedBox(height: 4),
-                              Text(
-                                dateFormatter,
-                                style: TextStyle(
-                                  fontSize: TypeScale.footnote,
-                                  color: Colors.white.withValues(alpha: 0.55),
-                                  fontWeight: FontWeight.w500,
-                                  letterSpacing: 0.2,
+                              _FadeSlideIn(
+                                delay: const Duration(milliseconds: 80),
+                                child: Text(
+                                  dateFormatter,
+                                  style: TextStyle(
+                                    fontSize: TypeScale.footnote,
+                                    color: Colors.white.withValues(alpha: 0.55),
+                                    fontWeight: FontWeight.w500,
+                                    letterSpacing: 0.2,
+                                  ),
                                 ),
                               ),
                             ],
@@ -2019,39 +2025,54 @@ class DashboardScreen extends StatelessWidget {
                       physics: const BouncingScrollPhysics(),
                       child: Row(
                         children: [
-                          _buildQuickActionPill(
-                            context,
-                            'History',
-                            CupertinoIcons.clock_fill,
-                            SemanticColors.info,
+                          _FadeSlideIn(
+                            delay: const Duration(milliseconds: 200),
+                            child: _buildQuickActionPill(
+                              context,
+                              'History',
+                              CupertinoIcons.clock_fill,
+                              SemanticColors.info,
+                            ),
                           ),
                           const SizedBox(width: Spacing.sm),
-                          _buildQuickActionPill(
-                            context,
-                            'Budgets',
-                            CupertinoIcons.chart_pie_fill,
-                            AppStyles.accentCoral,
+                          _FadeSlideIn(
+                            delay: const Duration(milliseconds: 240),
+                            child: _buildQuickActionPill(
+                              context,
+                              'Budgets',
+                              CupertinoIcons.chart_pie_fill,
+                              AppStyles.accentCoral,
+                            ),
                           ),
                           const SizedBox(width: Spacing.sm),
-                          _buildQuickActionPill(
-                            context,
-                            'Goals',
-                            CupertinoIcons.checkmark_seal_fill,
-                            AppStyles.aetherTeal,
+                          _FadeSlideIn(
+                            delay: const Duration(milliseconds: 280),
+                            child: _buildQuickActionPill(
+                              context,
+                              'Goals',
+                              CupertinoIcons.checkmark_seal_fill,
+                              AppStyles.aetherTeal,
+                            ),
                           ),
                           const SizedBox(width: Spacing.sm),
-                          _buildQuickActionPill(
-                            context,
-                            'Savings',
-                            CupertinoIcons.heart_fill,
-                            AppStyles.accentGreen,
+                          _FadeSlideIn(
+                            delay: const Duration(milliseconds: 320),
+                            child: _buildQuickActionPill(
+                              context,
+                              'Savings',
+                              CupertinoIcons.heart_fill,
+                              AppStyles.accentGreen,
+                            ),
                           ),
                           const SizedBox(width: Spacing.sm),
-                          _buildQuickActionPill(
-                            context,
-                            'AI Plan',
-                            CupertinoIcons.sparkles,
-                            AppStyles.accentOrange,
+                          _FadeSlideIn(
+                            delay: const Duration(milliseconds: 360),
+                            child: _buildQuickActionPill(
+                              context,
+                              'AI Plan',
+                              CupertinoIcons.sparkles,
+                              AppStyles.accentOrange,
+                            ),
                           ),
                         ],
                       ),
@@ -2960,17 +2981,42 @@ class _MorphFABState extends State<_MorphFAB>
     value: 0.0,
   );
 
+  // Separate controller for the one-shot pulse on first launch
+  AnimationController? _pulseCtrl;
+
   bool _showCheck = false;
 
   @override
   void initState() {
     super.initState();
     dashboardSavedSignal.addListener(_onSaved);
+    _checkFirstLaunchPulse();
+  }
+
+  Future<void> _checkFirstLaunchPulse() async {
+    final prefs = await sp.SharedPreferences.getInstance();
+    if (prefs.getBool('fab_pulse_done') == true) return;
+    await prefs.setBool('fab_pulse_done', true);
+    Future.delayed(const Duration(milliseconds: 800), () {
+      if (!mounted) return;
+      final pulse = AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 600),
+      );
+      _pulseCtrl = pulse;
+      pulse.animateWith(AppSprings.from(AppSprings.gentle, 0.0, 1.0))
+          .then((_) {
+        if (mounted) {
+          pulse.animateWith(AppSprings.from(AppSprings.gentle, 1.0, 0.0));
+        }
+      });
+    });
   }
 
   @override
   void dispose() {
     dashboardSavedSignal.removeListener(_onSaved);
+    _pulseCtrl?.dispose();
     _ctrl.dispose();
     super.dispose();
   }
@@ -2996,17 +3042,27 @@ class _MorphFABState extends State<_MorphFAB>
 
   @override
   Widget build(BuildContext context) {
+    // Merge the morph animation with the optional first-launch pulse
+    final listenable = _pulseCtrl != null
+        ? Listenable.merge([_ctrl, _pulseCtrl!])
+        : _ctrl;
+
     return BouncyButton(
       onPressed: widget.onPressed,
       scaleFactor: 0.92,
       child: AnimatedBuilder(
-        animation: _ctrl,
+        animation: listenable,
         builder: (context, _) {
           final t = _ctrl.value.clamp(0.0, 1.0);
           // Scale pulse: expands slightly past 1.0 during spring overshoot
-          final scale = 1.0 + (_ctrl.value - t) * 0.3;
+          final morphScale = 1.0 + (_ctrl.value - t) * 0.3;
+          // First-launch pulse: gentle 0→1→0 scale adds up to 6% extra
+          final pulseScale = _pulseCtrl != null
+              ? 1.0 + _pulseCtrl!.value.abs() * 0.06
+              : 1.0;
+          final scale = morphScale;
           return Transform.scale(
-            scale: 1.0 + scale * 0.04,
+            scale: (1.0 + scale * 0.04) * pulseScale,
             child: Container(
               width: 60,
               height: 60,
@@ -3051,6 +3107,236 @@ class _MorphFABState extends State<_MorphFAB>
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Phase 4A animation helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Fades and slides a child upward into view after an optional [delay].
+class _FadeSlideIn extends StatefulWidget {
+  final Widget child;
+  final Duration delay;
+  final Duration duration;
+
+  const _FadeSlideIn({
+    required this.child,
+    this.delay = Duration.zero,
+    this.duration = const Duration(milliseconds: 380),
+  });
+
+  @override
+  State<_FadeSlideIn> createState() => _FadeSlideInState();
+}
+
+class _FadeSlideInState extends State<_FadeSlideIn>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _opacity;
+  late Animation<Offset> _slide;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: widget.duration);
+    _opacity = Tween(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _ctrl, curve: Curves.easeOut),
+    );
+    _slide = Tween(begin: const Offset(0, 0.25), end: Offset.zero).animate(
+      CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic),
+    );
+    if (widget.delay == Duration.zero) {
+      _ctrl.forward();
+    } else {
+      Future.delayed(widget.delay, () {
+        if (mounted) _ctrl.forward();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _opacity,
+      child: SlideTransition(position: _slide, child: widget.child),
+    );
+  }
+}
+
+/// Spring-scales a child from [beginScale] → 1.0 with a bouncy spring,
+/// fading in simultaneously, after an optional [delay].
+class _SpringScaleIn extends StatefulWidget {
+  final Widget child;
+  final double beginScale;
+  final Duration delay;
+
+  const _SpringScaleIn({
+    required this.child,
+    this.beginScale = 0.5,
+    this.delay = Duration.zero,
+  });
+
+  @override
+  State<_SpringScaleIn> createState() => _SpringScaleInState();
+}
+
+class _SpringScaleInState extends State<_SpringScaleIn>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _opacity;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController.unbounded(vsync: this, value: 0.0);
+    _opacity = Tween(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _ctrl.view,
+        curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
+      ),
+    );
+    Future.delayed(widget.delay, () {
+      if (mounted) {
+        _ctrl.animateWith(AppSprings.from(AppSprings.bouncy, 0.0, 1.0));
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (context, child) {
+        final t = _ctrl.value.clamp(0.0, 1.0);
+        final scale = widget.beginScale + (1.0 - widget.beginScale) * t;
+        return Transform.scale(
+          scale: scale,
+          child: Opacity(
+            opacity: _opacity.value,
+            child: child,
+          ),
+        );
+      },
+      child: widget.child,
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// _SetupCard — first-launch setup prompt with stagger entrance animation
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _SetupCard extends StatelessWidget {
+  const _SetupCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
+      child: Center(
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(Spacing.xl),
+          decoration: AppStyles.heroCardDecoration(context),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Icon — spring-scales in first
+              _SpringScaleIn(
+                beginScale: 0.5,
+                child: Container(
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppStyles.aetherTeal.withValues(alpha: 0.12),
+                    border: Border.all(
+                      color: AppStyles.aetherTeal.withValues(alpha: 0.35),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: const Icon(
+                    CupertinoIcons.creditcard_fill,
+                    color: AppStyles.aetherTeal,
+                    size: 32,
+                  ),
+                ),
+              ),
+              const SizedBox(height: Spacing.lg),
+              // Title — slides up 120ms after icon
+              _FadeSlideIn(
+                delay: const Duration(milliseconds: 120),
+                child: Text(
+                  'Add Your First Account',
+                  style: AppTypography.title3(
+                    color: AppStyles.getTextColor(context),
+                    fontWeight: AppTypography.bold,
+                  ).copyWith(letterSpacing: -0.3),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: Spacing.sm),
+              // Subtitle — 200ms
+              _FadeSlideIn(
+                delay: const Duration(milliseconds: 200),
+                child: Text(
+                  'Connect a bank account, credit card, or cash wallet to start tracking your finances.',
+                  style: AppTypography.callout(
+                    color: AppStyles.getSecondaryTextColor(context),
+                  ).copyWith(height: 1.5),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: Spacing.xl),
+              // Button — 300ms
+              _FadeSlideIn(
+                delay: const Duration(milliseconds: 300),
+                child: BouncyButton(
+                  onPressed: () => Navigator.of(context).push(
+                    FadeScalePageRoute(page: const ManageScreen()),
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: Spacing.xl, vertical: Spacing.md),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [AppStyles.aetherTeal, AppStyles.novaPurple],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                      borderRadius: BorderRadius.circular(Radii.full),
+                      boxShadow: AppStyles.elevatedShadows(
+                        context,
+                        tint: AppStyles.aetherTeal,
+                        strength: 0.55,
+                      ),
+                    ),
+                    child: Text(
+                      'Set Up Accounts',
+                      style: AppTypography.button(color: Colors.white)
+                          .copyWith(letterSpacing: 0.2),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
