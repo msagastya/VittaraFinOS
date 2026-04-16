@@ -1090,7 +1090,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
             return Padding(
               key: ValueKey('h_${item.header}'),
               padding: EdgeInsets.only(
-                  top: index == 0 ? 0 : Spacing.lg, bottom: Spacing.sm),
+                  top: index == 0 ? 0 : Spacing.xl, bottom: Spacing.sm),
               child: Row(
                 children: [
                   Container(
@@ -1107,19 +1107,15 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                   ),
                   const SizedBox(width: 7),
                   Text(
-                    item.header!,
-                    style: TextStyle(
-                      fontSize: TypeScale.caption,
-                      fontWeight: FontWeight.w700,
+                    item.header!.toUpperCase(),
+                    style: AppTypography.sectionLabel(
                       color: AppStyles.getSecondaryTextColor(context),
-                      letterSpacing: 0.7,
                     ),
                   ),
                   const SizedBox(width: 6),
                   Text(
                     '· $dayCount',
-                    style: TextStyle(
-                      fontSize: TypeScale.caption,
+                    style: AppTypography.caption(
                       color: AppStyles.getSecondaryTextColor(context)
                           .withValues(alpha: 0.5),
                     ),
@@ -1128,28 +1124,20 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                   if (dayIncome > 0)
                     Text(
                       '+₹${dayIncome.toStringAsFixed(0)}',
-                      style: TextStyle(
-                        fontSize: TypeScale.caption,
-                        fontWeight: FontWeight.w600,
+                      style: AppTypography.caption(
                         color: AppStyles.gain(context).withValues(alpha: 0.8),
+                        fontWeight: AppTypography.semiBold,
                       ),
                     ),
                   if (dayIncome > 0 && dayExpense > 0)
-                    Text(
-                      '  ',
-                      style: TextStyle(
-                        fontSize: TypeScale.caption,
-                        color: AppStyles.getDividerColor(context),
-                      ),
-                    ),
+                    const SizedBox(width: 6),
                   if (dayExpense > 0)
                     Text(
                       '-₹${dayExpense.toStringAsFixed(0)}',
-                      style: TextStyle(
-                        fontSize: TypeScale.caption,
-                        fontWeight: FontWeight.w600,
+                      style: AppTypography.caption(
                         color: CupertinoColors.systemRed
                             .withValues(alpha: 0.75),
+                        fontWeight: AppTypography.semiBold,
                       ),
                     ),
                 ],
@@ -1230,7 +1218,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           SlidableAction(
             onPressed: (_) =>
                 _archiveTransaction(transaction, controller, archiveCtrl),
-            backgroundColor: AppStyles.teal(context),
+            backgroundColor: SemanticColors.warning,
             foregroundColor: CupertinoColors.white,
             icon: CupertinoIcons.archivebox_fill,
             borderRadius: BorderRadius.circular(Radii.lg),
@@ -1289,20 +1277,16 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                             children: [
                               Text(
                                 transaction.getTypeLabel(),
-                                style: TextStyle(
-                                  fontSize: TypeScale.callout,
-                                  fontWeight: FontWeight.w700,
+                                style: AppTypography.callout(
                                   color: AppStyles.getTextColor(context),
-                                  letterSpacing: -0.2,
-                                ),
+                                  fontWeight: AppTypography.semiBold,
+                                ).copyWith(letterSpacing: -0.2),
                               ),
                               const SizedBox(height: 2),
                               Text(
                                 transaction.getSummary(),
-                                style: TextStyle(
-                                  fontSize: TypeScale.footnote,
-                                  color:
-                                      AppStyles.getSecondaryTextColor(context),
+                                style: AppTypography.footnote(
+                                  color: AppStyles.getSecondaryTextColor(context),
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -1376,11 +1360,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                               const SizedBox(height: 2),
                               Text(
                                 DateFormatter.format(transaction.dateTime),
-                                style: TextStyle(
-                                  fontSize: TypeScale.caption,
-                                  color: AppStyles.getSecondaryTextColor(
-                                          context)
-                                      .withValues(alpha: 0.60),
+                                style: AppTypography.footnote(
+                                  color: AppStyles.getTertiaryTextColor(context),
                                 ),
                               ),
                             ],
@@ -1394,12 +1375,10 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                           children: [
                             Text(
                               '${transaction.type == TransactionType.expense ? '−' : '+'}${CurrencyFormatter.compact(transaction.amount)}',
-                              style: TextStyle(
-                                fontSize: TypeScale.title3,
-                                fontWeight: FontWeight.w800,
+                              style: AppTypography.callout(
                                 color: typeColor,
-                                letterSpacing: -0.4,
-                              ),
+                                fontWeight: AppTypography.bold,
+                              ).copyWith(letterSpacing: -0.3),
                             ),
                             const SizedBox(height: 4),
                             Icon(
