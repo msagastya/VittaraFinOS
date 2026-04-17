@@ -1367,6 +1367,63 @@ class DashboardScreen extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
+                          // Notification count badge
+                          Consumer<InvestmentsController>(
+                            builder: (_, invCtrl, __) {
+                              final all = invCtrl.investments;
+                              final fdsMatured = all.where((inv) {
+                                final md = inv.metadata;
+                                if (md == null || !md.containsKey('maturityDate')) return false;
+                                final days = DateTime.parse(md['maturityDate'] as String)
+                                    .difference(DateTime.now()).inDays;
+                                return days < 0;
+                              }).length;
+                              final fdsNear = all.where((inv) {
+                                final md = inv.metadata;
+                                if (md == null || !md.containsKey('maturityDate')) return false;
+                                final days = DateTime.parse(md['maturityDate'] as String)
+                                    .difference(DateTime.now()).inDays;
+                                return days >= 0 && days <= 10;
+                              }).length;
+                              final sipCount = collectSipNotifications(all).length;
+                              final bondCount = collectBondPayoutNotifications(all).length;
+                              final count = fdsMatured + fdsNear + sipCount + bondCount;
+                              if (count == 0) return const SizedBox.shrink();
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: Spacing.sm),
+                                child: GestureDetector(
+                                  onTap: () => Navigator.of(context).push(
+                                      FadeScalePageRoute(page: const NotificationsPage())),
+                                  child: Container(
+                                    width: 26,
+                                    height: 26,
+                                    decoration: BoxDecoration(
+                                      color: CupertinoColors.systemRed,
+                                      shape: BoxShape.circle,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: CupertinoColors.systemRed.withValues(alpha: 0.40),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        count > 99 ? '99+' : '$count',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700,
+                                          height: 1.0,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
                           // SMS scan mini button (only if SMS Scanning enabled)
                           Consumer<SettingsController>(
                             builder: (_, settings, __) {
@@ -1814,11 +1871,13 @@ class DashboardScreen extends StatelessWidget {
   Widget _buildHeaderSection(BuildContext context) {
     final now = DateTime.now();
     final hour = now.hour;
-    final greeting = hour < 12
+    final greeting = hour >= 5 && hour < 12
         ? 'Good Morning'
         : hour < 17
             ? 'Good Afternoon'
-            : 'Good Evening';
+            : hour < 21
+                ? 'Good Evening'
+                : 'Good Night';
 
     final dateFormatter = _formatHeaderDate(now);
 
@@ -1973,10 +2032,14 @@ class DashboardScreen extends StatelessWidget {
                             .where((a) => !a.isHidden)
                             .toList();
                         final total = visibleAccounts.fold(0.0, (sum, a) {
-                          // Credit cards and pay-later are liabilities — subtract.
-                          final isLiability = a.type == AccountType.credit ||
-                              a.type == AccountType.payLater;
-                          return sum + (isLiability ? -a.balance : a.balance);
+                          // Credit/payLater: balance = available limit remaining.
+                          // Amount owed = creditLimit - balance. Subtract as liability.
+                          if (a.type == AccountType.credit ||
+                              a.type == AccountType.payLater) {
+                            final owed = (a.creditLimit ?? 0.0) - a.balance;
+                            return sum - owed.clamp(0.0, double.infinity);
+                          }
+                          return sum + a.balance;
                         });
                         final count = visibleAccounts.length;
                         return Column(

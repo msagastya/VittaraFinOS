@@ -143,6 +143,13 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     // Initialise once so FutureBuilder always gets the same Future instance
     // (creating a new Future on every build resets FutureBuilder to loading)
     _goldPriceFuture = _getCurrentGoldPrice();
+    // Silent background refresh — no spinner, no toast. The controller's
+    // notifyListeners() will update the UI when values arrive.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final ctrl = Provider.of<InvestmentsController>(context, listen: false);
+      ctrl.refreshCurrentValues(_valueService).ignore();
+    });
   }
 
   void _onScroll() {
