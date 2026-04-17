@@ -99,7 +99,7 @@ abstract class BaseDashboardWidget extends StatelessWidget {
                           : LayoutBuilder(
                               builder: (ctx, constraints) =>
                                   SingleChildScrollView(
-                                physics: const BouncingScrollPhysics(),
+                                physics: const ClampingScrollPhysics(),
                                 child: ConstrainedBox(
                                   constraints: BoxConstraints(
                                     minHeight: constraints.maxHeight,

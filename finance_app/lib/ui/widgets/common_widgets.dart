@@ -1500,6 +1500,9 @@ class ColorPickerRow extends StatelessWidget {
 /// glide. On slow flings it switches to higher friction so the list stops
 /// quickly, giving a precise "slow scroll" feel — matching the user's
 /// expectation of "fast = loads fast, slow = stops where I want".
+///
+/// Boundaries are hard-clamped (like ClampingScrollPhysics) so the list
+/// never drifts past the top or bottom edge and gets stuck there.
 class SmoothScrollPhysics extends ScrollPhysics {
   const SmoothScrollPhysics({super.parent});
 
@@ -1511,12 +1514,51 @@ class SmoothScrollPhysics extends ScrollPhysics {
   @override
   double get minFlingVelocity => 80.0;
 
+  /// Clamp at boundaries — prevents the list from scrolling past the
+  /// top/bottom edge during drag or ballistic simulation.
+  @override
+  double applyBoundaryConditions(ScrollMetrics position, double value) {
+    if (value < position.pixels &&
+        position.pixels <= position.minScrollExtent) {
+      return value - position.pixels; // already at/past top, prevent further
+    }
+    if (position.maxScrollExtent <= position.pixels &&
+        position.pixels < value) {
+      return value - position.pixels; // already at/past bottom, prevent further
+    }
+    if (value < position.minScrollExtent &&
+        position.minScrollExtent < position.pixels) {
+      return value - position.minScrollExtent; // hitting top edge
+    }
+    if (position.pixels < position.maxScrollExtent &&
+        position.maxScrollExtent < value) {
+      return value - position.maxScrollExtent; // hitting bottom edge
+    }
+    return 0.0;
+  }
+
   @override
   Simulation? createBallisticSimulation(
       ScrollMetrics position, double velocity) {
     final tolerance = toleranceFor(position);
+
+    // If somehow overscrolled (edge case after layout change etc.), spring
+    // back immediately. NOTE: returning null here does NOT delegate to parent —
+    // it leaves the list frozen at the invalid position. Must spring back explicitly.
+    if (position.outOfRange) {
+      final target = position.pixels < position.minScrollExtent
+          ? position.minScrollExtent
+          : position.maxScrollExtent;
+      return ScrollSpringSimulation(
+        spring,
+        position.pixels,
+        target,
+        velocity,
+        tolerance: tolerance,
+      );
+    }
+
     if (velocity.abs() < tolerance.velocity ||
-        position.outOfRange || // don't interfere when overscrolled (let parent spring back)
         (position.pixels <= position.minScrollExtent && velocity < 0) ||
         (position.pixels >= position.maxScrollExtent && velocity > 0)) {
       return null;

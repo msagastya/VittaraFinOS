@@ -960,7 +960,7 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
           child: events.isEmpty
               ? CustomScrollView(
                   controller: _eventsScrollCtrl,
-                  physics: const BouncingScrollPhysics(),
+                  physics: const ClampingScrollPhysics(),
                   slivers: [
                     SliverFillRemaining(
                       hasScrollBody: false,

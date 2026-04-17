@@ -83,11 +83,13 @@ final AppLogger logger = AppLogger();
 /// sheet. The dashboard FAB listens to this and plays its checkmark morph.
 final dashboardSavedSignal = ValueNotifier<int>(0);
 
-/// Applies iOS-style rubber-band scroll physics to every scrollable in the app.
+/// Hard-stop scroll physics applied to every scrollable in the app.
+/// ClampingScrollPhysics prevents lists from drifting past top/bottom
+/// boundaries and getting stuck — consistent Android scroll behaviour.
 class _AppScrollBehavior extends ScrollBehavior {
   @override
   ScrollPhysics getScrollPhysics(BuildContext context) =>
-      const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics());
+      const ClampingScrollPhysics(parent: AlwaysScrollableScrollPhysics());
 }
 
 void main() {
@@ -2104,7 +2106,7 @@ class DashboardScreen extends StatelessWidget {
                     // Quick action pills — frequency descending: History first
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
-                      physics: const BouncingScrollPhysics(),
+                      physics: const ClampingScrollPhysics(),
                       child: Row(
                         children: [
                           _FadeSlideIn(
