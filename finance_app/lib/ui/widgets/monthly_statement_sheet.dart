@@ -80,7 +80,8 @@ class _MonthlyStatementSheetState extends State<_MonthlyStatementSheet> {
         [XFile(file.path)],
         subject: 'VittaraFinOS Monthly Statement — ${_monthLabel(DateTime(year, month))}',
       );
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('MonthlyStatement error: $e\n$st');
       if (mounted) toast.showError('Failed to generate statement: $e');
     } finally {
       if (mounted) setState(() => _loading.remove(key));

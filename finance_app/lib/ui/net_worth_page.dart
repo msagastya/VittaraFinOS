@@ -32,12 +32,14 @@ class _AllocationArcPainter extends CustomPainter {
   final double investmentsFrac;
   final double debtFrac;
   final double progress; // 0→1 animation progress
+  final Color trackColor;
 
   const _AllocationArcPainter({
     required this.savingsFrac,
     required this.investmentsFrac,
     required this.debtFrac,
     required this.progress,
+    required this.trackColor,
   });
 
   @override
@@ -50,7 +52,7 @@ class _AllocationArcPainter extends CustomPainter {
     const full = math.pi * 2;
 
     final trackPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.06)
+      ..color = trackColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeW;
     canvas.drawArc(rect, 0, full, false, trackPaint);
@@ -84,7 +86,8 @@ class _AllocationArcPainter extends CustomPainter {
       old.savingsFrac != savingsFrac ||
       old.investmentsFrac != investmentsFrac ||
       old.debtFrac != debtFrac ||
-      old.progress != progress;
+      old.progress != progress ||
+      old.trackColor != trackColor;
 }
 
 class _AllocationRing extends StatefulWidget {
@@ -135,6 +138,9 @@ class _AllocationRingState extends State<_AllocationRing>
           investmentsFrac: widget.investments,
           debtFrac: widget.debt,
           progress: _anim.value,
+          trackColor: AppStyles.isDarkMode(context)
+              ? Colors.white.withValues(alpha: 0.06)
+              : Colors.black.withValues(alpha: 0.06),
         ),
         child: SizedBox(
           width: 72,
@@ -142,10 +148,10 @@ class _AllocationRingState extends State<_AllocationRing>
           child: Center(
             child: Text(
               widget.centerLabel,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: TypeScale.micro,
                 fontWeight: FontWeight.w700,
-                color: Colors.white,
+                color: AppStyles.isDarkMode(context) ? Colors.white : Colors.black87,
               ),
               textAlign: TextAlign.center,
             ),
@@ -272,9 +278,9 @@ class _LegendDot extends StatelessWidget {
         const SizedBox(width: 4),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: TypeScale.micro,
-            color: Colors.white60,
+            color: AppStyles.isDarkMode(context) ? Colors.white60 : Colors.black54,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -839,6 +845,8 @@ class _NetWorthPageState extends State<NetWorthPage> {
     // Net Worth = Savings + Investment - Credit Used
     final totalNetWorth = totalSavings + totalInvestments - totalCreditUsed;
 
+    final isDark = AppStyles.isDarkMode(context);
+
     // Determine color based on positive/negative
     final netWorthColor =
         totalNetWorth >= 0 ? SemanticColors.primary : AppStyles.loss(context);
@@ -935,7 +943,9 @@ class _NetWorthPageState extends State<NetWorthPage> {
                         style: TextStyle(
                           fontSize: TypeScale.caption,
                           fontWeight: FontWeight.w700,
-                          color: Colors.white.withValues(alpha: 0.55),
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.55)
+                              : AppStyles.getSecondaryTextColor(context),
                           letterSpacing: 1.2,
                         ),
                       ),
@@ -951,10 +961,10 @@ class _NetWorthPageState extends State<NetWorthPage> {
                       Expanded(
                         child: AnimatedCounter(
                           value: totalNetWorth,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 42,
                             fontWeight: FontWeight.w900,
-                            color: Colors.white,
+                            color: isDark ? Colors.white : AppStyles.getTextColor(context),
                             letterSpacing: -1.5,
                             height: 1.0,
                           ),
@@ -985,10 +995,14 @@ class _NetWorthPageState extends State<NetWorthPage> {
                   Container(
                     padding: const EdgeInsets.all(Spacing.md),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.07),
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.07)
+                          : Colors.black.withValues(alpha: 0.04),
                       borderRadius: BorderRadius.circular(Radii.md),
                       border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.10),
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.10)
+                            : AppStyles.getDividerColor(context),
                         width: 0.8,
                       ),
                     ),
@@ -996,6 +1010,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         _heroRow(
+                          context: context,
                           icon: CupertinoIcons.building_2_fill,
                           label: 'Savings',
                           value: CurrencyFormatter.compact(totalSavings),
@@ -1004,6 +1019,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
                         if (totalInvestments > 0) ...[
                           const SizedBox(height: 6),
                           _heroRow(
+                            context: context,
                             icon: CupertinoIcons.graph_square_fill,
                             label: 'Investments',
                             value: CurrencyFormatter.compact(totalInvestments),
@@ -1014,10 +1030,13 @@ class _NetWorthPageState extends State<NetWorthPage> {
                           const SizedBox(height: 6),
                           Container(
                             height: 0.5,
-                            color: Colors.white.withValues(alpha: 0.12),
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.12)
+                                : AppStyles.getDividerColor(context),
                           ),
                           const SizedBox(height: 6),
                           _heroRow(
+                            context: context,
                             icon: CupertinoIcons.creditcard_fill,
                             label: 'Credit Used',
                             value:
@@ -1042,6 +1061,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
     required String label,
     required String value,
     required Color color,
+    required BuildContext context,
   }) {
     return Row(
       children: [
@@ -1052,7 +1072,9 @@ class _NetWorthPageState extends State<NetWorthPage> {
             label,
             style: TextStyle(
               fontSize: TypeScale.footnote,
-              color: Colors.white.withValues(alpha: 0.60),
+              color: AppStyles.isDarkMode(context)
+                  ? Colors.white.withValues(alpha: 0.60)
+                  : AppStyles.getSecondaryTextColor(context),
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -2116,16 +2138,7 @@ class _NetWorthPageState extends State<NetWorthPage> {
       'Dec',
     ];
 
-    // Weekly chart: ~26 weeks per 6 months for denser chart line
-    const weeksPerMonth = 52.0 / 12.0;
-    const forecastWeeks = 26;
-    final weeklyAvg = monthlyAvg / weeksPerMonth;
-    final projectedWeeklyValues = List.generate(
-      forecastWeeks + 1,
-      (i) => currentNetWorth + weeklyAvg * i,
-    );
-
-    // Monthly values used only for projection table (rows 1–6)
+    // Monthly projection values for the table and scenario analysis
     final projectedMonthlyValues = List.generate(
       forecastMonths + 1,
       (i) => currentNetWorth + monthlyAvg * i,
@@ -2142,13 +2155,6 @@ class _NetWorthPageState extends State<NetWorthPage> {
       final d = DateTime(now.year, now.month + i);
       return months[d.month - 1];
     });
-
-    // X-axis labels for weekly chart: Now / mid-point month / end month
-    final chartXLabels = [
-      'Now',
-      months[DateTime(now.year, now.month + 3).month - 1],
-      months[DateTime(now.year, now.month + 6).month - 1],
-    ];
 
     return Container(
       padding: const EdgeInsets.all(Spacing.lg),
@@ -2231,44 +2237,8 @@ class _NetWorthPageState extends State<NetWorthPage> {
 
           const SizedBox(height: Spacing.lg),
 
-          // Forecast chart — weekly points for smoother curve
-          SizedBox(
-            height: 130,
-            child: CustomPaint(
-              painter: _ForecastPainter(
-                values: projectedWeeklyValues,
-                actualColor: AppStyles.teal(context),
-                forecastColor: AppStyles.violet(context),
-                gridColor: AppStyles.getSecondaryTextColor(context),
-              ),
-              size: Size.infinite,
-            ),
-          ),
-
-          const SizedBox(height: Spacing.sm),
-
-          // X-axis labels (Now / ~3mo / ~6mo)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: chartXLabels
-                .asMap()
-                .entries
-                .map(
-                  (e) => Text(
-                    e.value,
-                    style: TextStyle(
-                      fontSize: TypeScale.label,
-                      color: e.key == 0
-                          ? AppStyles.teal(context)
-                          : e.key == 2
-                              ? AppStyles.violet(context)
-                              : AppStyles.getSecondaryTextColor(context),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                )
-                .toList(),
-          ),
+          // 3-scenario analysis — bear / base / bull
+          _buildScenarioAnalysis(context, currentNetWorth, monthlyAvg),
 
           const SizedBox(height: Spacing.lg),
 
@@ -2340,6 +2310,179 @@ class _NetWorthPageState extends State<NetWorthPage> {
         mainAxisSize: MainAxisSize.min,
         children: rows,
       ),
+    );
+  }
+
+  /// Three-scenario analysis: bear (50% avg), base (100% avg), bull (150% avg)
+  Widget _buildScenarioAnalysis(
+    BuildContext context,
+    double currentNetWorth,
+    double monthlyAvg,
+  ) {
+    if (monthlyAvg == 0) {
+      return Container(
+        padding: const EdgeInsets.all(Spacing.md),
+        decoration: BoxDecoration(
+          color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(Radii.md),
+        ),
+        child: Row(
+          children: [
+            Icon(CupertinoIcons.chart_bar, size: 14,
+                color: AppStyles.getSecondaryTextColor(context)),
+            const SizedBox(width: 8),
+            Text(
+              'No transaction data — scenarios unavailable',
+              style: TextStyle(
+                fontSize: TypeScale.footnote,
+                color: AppStyles.getSecondaryTextColor(context),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final isDark = AppStyles.isDarkMode(context);
+
+    const forecastMonths = 6;
+    final scenarios = [
+      (
+        label: 'Bear',
+        desc: '50% of avg savings',
+        multiplier: 0.5,
+        color: AppStyles.loss(context),
+        icon: CupertinoIcons.arrow_down_right,
+      ),
+      (
+        label: 'Base',
+        desc: '100% of avg savings',
+        multiplier: 1.0,
+        color: AppStyles.teal(context),
+        icon: CupertinoIcons.arrow_right,
+      ),
+      (
+        label: 'Bull',
+        desc: '150% of avg savings',
+        multiplier: 1.5,
+        color: AppStyles.gain(context),
+        icon: CupertinoIcons.arrow_up_right,
+      ),
+    ];
+
+    // Compute final net worth for each scenario after 6 months
+    final scenarioValues = scenarios.map((s) {
+      return currentNetWorth + monthlyAvg * s.multiplier * forecastMonths;
+    }).toList();
+
+    // Max absolute value for bar width normalization (relative to current)
+    final maxDelta = scenarioValues
+        .map((v) => (v - currentNetWorth).abs())
+        .reduce(math.max);
+    final maxDeltaSafe = maxDelta == 0 ? 1.0 : maxDelta;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '6-Month Scenarios',
+          style: TextStyle(
+            fontSize: TypeScale.caption,
+            fontWeight: FontWeight.w600,
+            color: AppStyles.getSecondaryTextColor(context),
+            letterSpacing: 0.5,
+          ),
+        ),
+        const SizedBox(height: Spacing.sm),
+        ...List.generate(scenarios.length, (si) {
+          final s = scenarios[si];
+          final endValue = scenarioValues[si];
+          final delta = endValue - currentNetWorth;
+          final barFrac = maxDeltaSafe == 0 ? 0.0 : delta.abs() / maxDeltaSafe;
+
+          return Padding(
+            padding: EdgeInsets.only(bottom: si < scenarios.length - 1 ? 10 : 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    SizedBox(
+                      width: 52,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(s.icon, size: 11, color: s.color),
+                          const SizedBox(width: 4),
+                          Text(
+                            s.label,
+                            style: TextStyle(
+                              fontSize: TypeScale.footnote,
+                              fontWeight: FontWeight.w700,
+                              color: s.color,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: LayoutBuilder(
+                        builder: (_, constraints) => Stack(
+                          children: [
+                            // Track
+                            Container(
+                              height: 6,
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? const Color(0xFF1C1C1C)
+                                    : const Color(0xFFEEEEEE),
+                                borderRadius: BorderRadius.circular(3),
+                              ),
+                            ),
+                            // Fill
+                            Container(
+                              height: 6,
+                              width: constraints.maxWidth * barFrac,
+                              decoration: BoxDecoration(
+                                color: s.color,
+                                borderRadius: BorderRadius.circular(3),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    SizedBox(
+                      width: 72,
+                      child: Text(
+                        CurrencyFormatter.compact(endValue),
+                        textAlign: TextAlign.right,
+                        style: TextStyle(
+                          fontSize: TypeScale.footnote,
+                          fontWeight: FontWeight.w700,
+                          color: AppStyles.getTextColor(context),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 60),
+                  child: Text(
+                    '${delta >= 0 ? '+' : ''}${CurrencyFormatter.compact(delta)} · ${s.desc}',
+                    style: TextStyle(
+                      fontSize: TypeScale.micro,
+                      color: AppStyles.getSecondaryTextColor(context),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
+      ],
     );
   }
 
@@ -2609,151 +2752,3 @@ class _NetWorthSparklinePainter extends CustomPainter {
       old.snapshots != snapshots || old.lineColor != lineColor;
 }
 
-// ---------------------------------------------------------------------------
-// Forecast painter — current point in actualColor, dashed projected line
-// ---------------------------------------------------------------------------
-
-class _ForecastPainter extends CustomPainter {
-  /// index 0 = current net worth; indices 1..N = projected monthly values
-  final List<double> values;
-  final Color actualColor;
-  final Color forecastColor;
-  final Color gridColor;
-
-  const _ForecastPainter({
-    required this.values,
-    required this.actualColor,
-    required this.forecastColor,
-    required this.gridColor,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (values.length < 2) return;
-
-    const leftPad = 4.0;
-    const rightPad = 4.0;
-    const topPad = 8.0;
-    const bottomPad = 8.0;
-    final w = size.width - leftPad - rightPad;
-    final h = size.height - topPad - bottomPad;
-
-    final minV = values.reduce(math.min);
-    final maxV = values.reduce(math.max);
-    final range = (maxV - minV).abs();
-    final adjustedMin = range == 0 ? minV - 1 : minV;
-    final adjustedMax = range == 0 ? maxV + 1 : maxV;
-    final adjustedRange = adjustedMax - adjustedMin;
-    final n = values.length;
-
-    double xOf(int i) => leftPad + (i / (n - 1)) * w;
-    double yOf(double v) =>
-        topPad + h - ((v - adjustedMin) / adjustedRange * h);
-
-    // Grid lines
-    final gridPaint = Paint()
-      ..color = gridColor.withValues(alpha: 0.08)
-      ..strokeWidth = 1;
-    for (int g = 0; g <= 2; g++) {
-      final y = topPad + (g / 2) * h;
-      canvas.drawLine(Offset(leftPad, y), Offset(leftPad + w, y), gridPaint);
-    }
-
-    // Gradient fill below forecast line
-    final forecastPath = Path()..moveTo(xOf(0), yOf(values[0]));
-    for (int i = 1; i < n; i++) {
-      forecastPath.lineTo(xOf(i), yOf(values[i]));
-    }
-    final fillPath = Path.from(forecastPath)
-      ..lineTo(xOf(n - 1), topPad + h)
-      ..lineTo(xOf(0), topPad + h)
-      ..close();
-    canvas.drawPath(
-      fillPath,
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            forecastColor.withValues(alpha: 0.18),
-            forecastColor.withValues(alpha: 0.0),
-          ],
-        ).createShader(Rect.fromLTWH(leftPad, topPad, w, h)),
-    );
-
-    // Dashed forecast line
-    final dashPaint = Paint()
-      ..color = forecastColor
-      ..strokeWidth = 2.0
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    const dashLen = 6.0;
-    const gapLen = 4.0;
-
-    for (int i = 0; i < n - 1; i++) {
-      final x1 = xOf(i);
-      final y1 = yOf(values[i]);
-      final x2 = xOf(i + 1);
-      final y2 = yOf(values[i + 1]);
-      final dx = x2 - x1;
-      final dy = y2 - y1;
-      final segLen = math.sqrt(dx * dx + dy * dy);
-      if (segLen == 0) continue;
-      final ux = dx / segLen;
-      final uy = dy / segLen;
-      double drawn = 0;
-      bool drawing = true;
-      while (drawn < segLen) {
-        final step = drawing
-            ? math.min(dashLen, segLen - drawn)
-            : math.min(gapLen, segLen - drawn);
-        if (drawing) {
-          canvas.drawLine(
-            Offset(x1 + ux * drawn, y1 + uy * drawn),
-            Offset(x1 + ux * (drawn + step), y1 + uy * (drawn + step)),
-            dashPaint,
-          );
-        }
-        drawn += step;
-        drawing = !drawing;
-      }
-    }
-
-    // Small dots on projected points
-    final dotPaint = Paint()..color = forecastColor;
-    for (int i = 1; i < n; i++) {
-      canvas.drawCircle(Offset(xOf(i), yOf(values[i])), 2.5, dotPaint);
-    }
-
-    // Current point — larger, aetherTeal
-    final cx = xOf(0);
-    final cy = yOf(values[0]);
-    canvas.drawCircle(
-      Offset(cx, cy),
-      6.0,
-      Paint()
-        ..color = actualColor.withValues(alpha: 0.20)
-        ..style = PaintingStyle.fill,
-    );
-    canvas.drawCircle(Offset(cx, cy), 4.0, Paint()..color = actualColor);
-
-    // End-point glow
-    final lx = xOf(n - 1);
-    final ly = yOf(values[n - 1]);
-    canvas.drawCircle(
-      Offset(lx, ly),
-      6.0,
-      Paint()
-        ..color = forecastColor.withValues(alpha: 0.25)
-        ..style = PaintingStyle.fill,
-    );
-    canvas.drawCircle(Offset(lx, ly), 3.5, dotPaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _ForecastPainter old) =>
-      old.values != values ||
-      old.actualColor != actualColor ||
-      old.forecastColor != forecastColor;
-}

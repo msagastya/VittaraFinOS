@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
@@ -137,9 +138,11 @@ class MonthlyStatementService {
     final ib = appIconBytes; // capture for closures
 
     // ── 1. Cover ──
+    debugPrint('MS: building section 1 (cover)');
     doc.addPage(_coverPage(monthLabel, monthTxns.length, stats, visibleAccounts, ib));
 
     // ── 2. Executive Summary ──
+    debugPrint('MS: building section 2 (exec summary)');
     doc.addPage(pw.MultiPage(
       pageFormat: PdfPageFormat.a4,
       margin: pw.EdgeInsets.zero,
@@ -160,6 +163,7 @@ class MonthlyStatementService {
     ));
 
     // ── 3. Per-Account Statements ──
+    debugPrint('MS: building section 3 (per-account)');
     for (int ai = 0; ai < visibleAccounts.length; ai++) {
       final account = visibleAccounts[ai];
       final row     = acctRows.firstWhere((r) => r.name == account.name,
@@ -184,6 +188,7 @@ class MonthlyStatementService {
     }
 
     // ── 4. Category Breakdown ──
+    debugPrint('MS: building section 4 (categories)');
     final catGroups = _groupByCategory(monthTxns);
     if (catGroups.isNotEmpty) {
       doc.addPage(pw.MultiPage(
@@ -208,6 +213,7 @@ class MonthlyStatementService {
     }
 
     // ── 5. Payment App Breakdown ──
+    debugPrint('MS: building section 5 (payment apps)');
     final appGroups = _groupByPaymentApp(monthTxns);
     if (appGroups.isNotEmpty) {
       doc.addPage(pw.MultiPage(
@@ -232,6 +238,7 @@ class MonthlyStatementService {
     }
 
     // ── 6. Investments ──
+    debugPrint('MS: building section 6 (investments)');
     final invTxns = monthTxns.where((t) => t.type == TransactionType.investment).toList();
     if (investments.isNotEmpty || invTxns.isNotEmpty) {
       final invByType = _groupInvestmentsByType(investments);
@@ -262,6 +269,7 @@ class MonthlyStatementService {
     }
 
     // ── 7. Dividends ──
+    debugPrint('MS: building section 7 (dividends)');
     final divTxns = monthTxns.where((t) {
       final ev = (t.metadata ?? {})['investmentEventType'] as String?;
       return ev == 'dividend';
@@ -282,6 +290,7 @@ class MonthlyStatementService {
     }
 
     // ── 8. Lending & Borrowing ──
+    debugPrint('MS: building section 8 (lending)');
     final lentTxns   = monthTxns.where((t) => t.type == TransactionType.lending).toList();
     final borrowTxns = monthTxns.where((t) => t.type == TransactionType.borrowing).toList();
     final activeLent     = lendingRecords.where((r) => r.type == LendingType.lent).toList();
@@ -324,6 +333,7 @@ class MonthlyStatementService {
     }
 
     // ── 9. Merchant Analysis ──
+    debugPrint('MS: building section 9 (merchants)');
     final merchantGroups = _groupByMerchant(monthTxns);
     if (merchantGroups.isNotEmpty) {
       doc.addPage(pw.MultiPage(
@@ -348,6 +358,7 @@ class MonthlyStatementService {
     }
 
     // ── 10. Financial Insights & Recommendations ──
+    debugPrint('MS: building section 10 (insights)');
     doc.addPage(pw.MultiPage(
       pageFormat: PdfPageFormat.a4,
       margin: pw.EdgeInsets.zero,
@@ -360,6 +371,7 @@ class MonthlyStatementService {
     ));
 
     // ── 11. Full Transaction Log ──
+    debugPrint('MS: building section 11 (txn log)');
     doc.addPage(pw.MultiPage(
       pageFormat: PdfPageFormat.a4,
       margin: pw.EdgeInsets.zero,
@@ -373,6 +385,7 @@ class MonthlyStatementService {
       ],
     ));
 
+    debugPrint('MS: calling doc.save()');
     final bytes = await doc.save();
     final dir   = await _reportDir();
     final file  = File('${dir.path}/monthly_${year}_${month.toString().padLeft(2, '0')}_${_timestamp()}.pdf');

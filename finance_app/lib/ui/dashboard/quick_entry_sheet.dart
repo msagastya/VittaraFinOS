@@ -1169,12 +1169,10 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
                               final isEmpty = _amountCtrl.text.isEmpty;
                               return Transform.scale(
                                 scale: _amountScale.value,
-                                child: isEmpty
-                                    ? Opacity(
-                                        opacity: _pulseOpacity.value,
-                                        child: child,
-                                      )
-                                    : child,
+                                child: Opacity(
+                                  opacity: isEmpty ? _pulseOpacity.value : 1.0,
+                                  child: child,
+                                ),
                               );
                             },
                             child: _buildAmountField(isDark, primaryText),
