@@ -15,6 +15,13 @@ import 'package:vittara_fin_os/ui/manage/budgets/modals/add_budget_modal.dart';
 import 'package:vittara_fin_os/ui/manage/goals/modals/add_goal_modal.dart';
 import 'package:vittara_fin_os/ui/manage/investments_screen.dart';
 import 'package:vittara_fin_os/ui/manage/ai_planner/ai_monthly_planner_screen.dart';
+import 'package:vittara_fin_os/ui/manage_screen.dart';
+import 'package:vittara_fin_os/ui/settings_screen.dart';
+import 'package:vittara_fin_os/ui/manage/reports_analysis_screen.dart';
+import 'package:vittara_fin_os/ui/financial_calendar_screen.dart';
+import 'package:vittara_fin_os/ui/settings/csv_import_screen.dart';
+import 'package:vittara_fin_os/ui/engagement/achievements_screen.dart';
+import 'package:vittara_fin_os/ui/widgets/monthly_statement_sheet.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
@@ -52,8 +59,6 @@ class EngagementStripWidget extends StatelessWidget {
         );
         final showNextMove = move != null;
 
-        if (!showOnboarding && !showNextMove) return const SizedBox.shrink();
-
         return Padding(
           padding: const EdgeInsets.fromLTRB(
               Spacing.lg, Spacing.sm, Spacing.lg, 0),
@@ -65,12 +70,17 @@ class EngagementStripWidget extends StatelessWidget {
                       budgetCtrl: budgetCtrl, goalCtrl: goalCtrl,
                       accCtrl: accCtrl),
                 ),
-                if (showNextMove) const SizedBox(width: Spacing.sm),
+                const SizedBox(width: Spacing.sm),
               ],
-              if (showNextMove)
+              if (showNextMove) ...[
                 Expanded(
                   child: _NextMovePill(move: move),
                 ),
+                const SizedBox(width: Spacing.sm),
+              ],
+              Expanded(
+                child: const _QuickAccessPill(),
+              ),
             ],
           ),
         );
@@ -427,6 +437,219 @@ class _StepDef {
   final String title;
   final IconData icon;
   const _StepDef(this.id, this.title, this.icon);
+}
+
+// ---------------------------------------------------------------------------
+// Quick Access pill + sheet
+// ---------------------------------------------------------------------------
+
+class _QuickAccessPill extends StatelessWidget {
+  const _QuickAccessPill();
+
+  @override
+  Widget build(BuildContext context) {
+    return BouncyButton(
+      onPressed: () => _showQuickAccessSheet(context),
+      child: Container(
+        height: 36,
+        padding: const EdgeInsets.symmetric(horizontal: Spacing.md),
+        decoration: BoxDecoration(
+          color: AppStyles.novaPurple.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(Radii.full),
+          border: Border.all(
+              color: AppStyles.novaPurple.withValues(alpha: 0.22), width: 0.8),
+        ),
+        child: Row(
+          children: [
+            Icon(CupertinoIcons.bolt_fill,
+                size: 13, color: AppStyles.novaPurple),
+            const SizedBox(width: 5),
+            Expanded(
+              child: Text(
+                'Quick Access',
+                style: TextStyle(
+                  fontSize: TypeScale.caption,
+                  fontWeight: FontWeight.w700,
+                  color: AppStyles.novaPurple,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            Icon(CupertinoIcons.chevron_right,
+                size: 10,
+                color: AppStyles.novaPurple.withValues(alpha: 0.5)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showQuickAccessSheet(BuildContext context) {
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (_) => _QuickAccessSheet(parentContext: context),
+    );
+  }
+}
+
+class _QuickAccessSheet extends StatelessWidget {
+  final BuildContext parentContext;
+  const _QuickAccessSheet({required this.parentContext});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = AppStyles.isDarkMode(context);
+
+    final items = [
+      _QAItem('Manage', CupertinoIcons.square_grid_2x2_fill, SemanticColors.accounts,
+          () => Navigator.of(parentContext).push(FadeScalePageRoute(page: const ManageScreen()))),
+      _QAItem('Settings', CupertinoIcons.settings_solid, SemanticColors.tags,
+          () => Navigator.of(parentContext).push(FadeScalePageRoute(page: const SettingsScreen()))),
+      _QAItem('Reports', CupertinoIcons.chart_bar_square_fill, SemanticColors.info,
+          () => Navigator.of(parentContext).push(FadeScalePageRoute(page: const ReportsAnalysisScreen()))),
+      _QAItem('Calendar', CupertinoIcons.calendar_badge_plus, AppStyles.aetherTeal,
+          () => Navigator.of(parentContext).push(FadeScalePageRoute(page: const FinancialCalendarScreen()))),
+      _QAItem('Statement', CupertinoIcons.doc_text_fill, SemanticColors.primary,
+          () => showMonthlyStatementSheet(parentContext)),
+      _QAItem('Import', CupertinoIcons.arrow_down_doc_fill, AppStyles.accentTeal,
+          () => Navigator.of(parentContext).push(FadeScalePageRoute(page: const CsvImportScreen()))),
+      _QAItem('Achievements', CupertinoIcons.star_fill, AppStyles.solarGold,
+          () => Navigator.of(parentContext).push(FadeScalePageRoute(page: const AchievementsScreen()))),
+    ];
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppStyles.getBackground(context),
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(Radii.xxl),
+          topRight: Radius.circular(Radii.xxl),
+        ),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.all(Spacing.xl),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Handle
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppStyles.getSecondaryTextColor(context)
+                        .withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(Radii.full),
+                  ),
+                ),
+              ),
+              const SizedBox(height: Spacing.lg),
+              Row(
+                children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: AppStyles.novaPurple.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(CupertinoIcons.bolt_fill,
+                        size: 15, color: AppStyles.novaPurple),
+                  ),
+                  const SizedBox(width: Spacing.md),
+                  Text(
+                    'Quick Access',
+                    style: TextStyle(
+                      fontSize: TypeScale.headline,
+                      fontWeight: FontWeight.w800,
+                      color: AppStyles.getTextColor(context),
+                    ),
+                  ),
+                  const Spacer(),
+                  CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    minimumSize: Size.zero,
+                    onPressed: () => Navigator.pop(context),
+                    child: Icon(
+                      CupertinoIcons.xmark_circle,
+                      size: 20,
+                      color: AppStyles.getSecondaryTextColor(context)
+                          .withValues(alpha: 0.4),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: Spacing.xl),
+              GridView.builder(
+                physics: const NeverScrollableScrollPhysics(),
+                shrinkWrap: true,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 4,
+                  mainAxisSpacing: Spacing.md,
+                  crossAxisSpacing: Spacing.md,
+                  childAspectRatio: 0.88,
+                ),
+                itemCount: items.length,
+                itemBuilder: (ctx, i) {
+                  final item = items[i];
+                  return BouncyButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      item.onTap();
+                    },
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 52,
+                          height: 52,
+                          decoration: BoxDecoration(
+                            color: item.color.withValues(
+                                alpha: isDark ? 0.15 : 0.10),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: item.color.withValues(
+                                  alpha: isDark ? 0.25 : 0.18),
+                              width: 1,
+                            ),
+                          ),
+                          child: Icon(item.icon, color: item.color, size: 22),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          item.label,
+                          style: TextStyle(
+                            fontSize: TypeScale.caption,
+                            fontWeight: FontWeight.w600,
+                            color: AppStyles.getTextColor(context),
+                          ),
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: Spacing.md),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _QAItem {
+  final String label;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+  const _QAItem(this.label, this.icon, this.color, this.onTap);
 }
 
 // ---------------------------------------------------------------------------
