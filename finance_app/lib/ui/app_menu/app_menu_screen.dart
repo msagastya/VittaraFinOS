@@ -47,7 +47,14 @@ class DashboardAppMenuScreen extends StatelessWidget {
               padding: const EdgeInsets.all(Spacing.lg),
               children: [
                 _BrandHeader(),
-                const SizedBox(height: Spacing.lg),
+                const SizedBox(height: Spacing.xl),
+
+                // ── Quick Access grid — all key features visible upfront ──
+                _buildQuickAccessGrid(context),
+
+                const SizedBox(height: Spacing.xl),
+
+                // ── Secondary sections ──
                 _MenuSectionCard(
                   title: 'Product',
                   items: [
@@ -149,89 +156,134 @@ class DashboardAppMenuScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: Spacing.lg),
-                _MenuSectionCard(
-                  title: 'Achievements',
-                  items: [
-                    _MenuItem(
-                      title: 'Your Achievements',
-                      subtitle: 'Milestones unlocked across your financial journey',
-                      icon: CupertinoIcons.star_fill,
-                      color: AppStyles.solarGold,
-                      onTap: () => Navigator.of(context).push(
-                        FadeScalePageRoute(page: const AchievementsScreen()),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: Spacing.lg),
-                _MenuSectionCard(
-                  title: 'Utilities',
-                  items: [
-                    _MenuItem(
-                      title: 'Financial Calendar',
-                      subtitle:
-                          'FD maturities, SIPs, bills, goals & budget resets',
-                      icon: CupertinoIcons.calendar_badge_plus,
-                      color: AppStyles.aetherTeal,
-                      onTap: () => Navigator.of(context).push(
-                        FadeScalePageRoute(
-                            page: const FinancialCalendarScreen()),
-                      ),
-                    ),
-                    _MenuItem(
-                      title: 'Reports & Analysis',
-                      subtitle:
-                          'Deep analysis by date/category/account/type + exports',
-                      icon: CupertinoIcons.chart_bar_square_fill,
-                      color: SemanticColors.info,
-                      onTap: () => Navigator.of(context).push(
-                        FadeScalePageRoute(page: const ReportsAnalysisScreen()),
-                      ),
-                    ),
-                    _MenuItem(
-                      title: 'Monthly Statement',
-                      subtitle:
-                          'Full account-wise PDF — accounts, investments, merchants & more',
-                      icon: CupertinoIcons.doc_text_fill,
-                      color: SemanticColors.primary,
-                      onTap: () => showMonthlyStatementSheet(context),
-                    ),
-                    _MenuItem(
-                      title: 'Manage',
-                      subtitle: 'Banks, accounts, categories, and app entities',
-                      icon: CupertinoIcons.square_grid_2x2_fill,
-                      color: SemanticColors.accounts,
-                      onTap: () => Navigator.of(context).push(
-                        FadeScalePageRoute(page: const ManageScreen()),
-                      ),
-                    ),
-                    _MenuItem(
-                      title: 'Import Bank Statement',
-                      subtitle: 'CSV, PDF, XLS, XLSX — 14 banks, AI-powered',
-                      icon: CupertinoIcons.arrow_down_doc_fill,
-                      color: AppStyles.aetherTeal,
-                      onTap: () => Navigator.of(context).push(
-                        FadeScalePageRoute(page: const CsvImportScreen()),
-                      ),
-                    ),
-                    _MenuItem(
-                      title: 'Settings',
-                      subtitle: 'Security, theme, backup, and preferences',
-                      icon: CupertinoIcons.settings_solid,
-                      color: SemanticColors.tags,
-                      onTap: () => Navigator.of(context).push(
-                        FadeScalePageRoute(page: const SettingsScreen()),
-                      ),
-                    ),
-                  ],
-                ),
+
                 const SizedBox(height: Spacing.xxl),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildQuickAccessGrid(BuildContext context) {
+    final isDark = AppStyles.isDarkMode(context);
+
+    final items = <_QuickItem>[
+      _QuickItem(
+        label: 'Manage',
+        icon: CupertinoIcons.square_grid_2x2_fill,
+        color: SemanticColors.accounts,
+        onTap: () => Navigator.of(context).push(FadeScalePageRoute(page: const ManageScreen())),
+      ),
+      _QuickItem(
+        label: 'Settings',
+        icon: CupertinoIcons.settings_solid,
+        color: SemanticColors.tags,
+        onTap: () => Navigator.of(context).push(FadeScalePageRoute(page: const SettingsScreen())),
+      ),
+      _QuickItem(
+        label: 'Reports',
+        icon: CupertinoIcons.chart_bar_square_fill,
+        color: SemanticColors.info,
+        onTap: () => Navigator.of(context).push(FadeScalePageRoute(page: const ReportsAnalysisScreen())),
+      ),
+      _QuickItem(
+        label: 'Calendar',
+        icon: CupertinoIcons.calendar_badge_plus,
+        color: AppStyles.aetherTeal,
+        onTap: () => Navigator.of(context).push(FadeScalePageRoute(page: const FinancialCalendarScreen())),
+      ),
+      _QuickItem(
+        label: 'Statement',
+        icon: CupertinoIcons.doc_text_fill,
+        color: SemanticColors.primary,
+        onTap: () => showMonthlyStatementSheet(context),
+      ),
+      _QuickItem(
+        label: 'Import',
+        icon: CupertinoIcons.arrow_down_doc_fill,
+        color: AppStyles.accentTeal,
+        onTap: () => Navigator.of(context).push(FadeScalePageRoute(page: const CsvImportScreen())),
+      ),
+      _QuickItem(
+        label: 'Achievements',
+        icon: CupertinoIcons.star_fill,
+        color: AppStyles.solarGold,
+        onTap: () => Navigator.of(context).push(FadeScalePageRoute(page: const AchievementsScreen())),
+      ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: Spacing.md, left: 2),
+          child: Row(
+            children: [
+              Icon(CupertinoIcons.bolt_fill, size: 12,
+                  color: AppStyles.getSecondaryTextColor(context)),
+              const SizedBox(width: 6),
+              Text(
+                'QUICK ACCESS',
+                style: TextStyle(
+                  fontSize: TypeScale.caption,
+                  fontWeight: FontWeight.w700,
+                  color: AppStyles.getSecondaryTextColor(context),
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ],
+          ),
+        ),
+        GridView.builder(
+          physics: const NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 4,
+            mainAxisSpacing: Spacing.md,
+            crossAxisSpacing: Spacing.md,
+            childAspectRatio: 0.88,
+          ),
+          itemCount: items.length,
+          itemBuilder: (ctx, i) {
+            final item = items[i];
+            return BouncyButton(
+              onPressed: item.onTap,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: item.color.withValues(alpha: isDark ? 0.15 : 0.10),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: item.color.withValues(alpha: isDark ? 0.25 : 0.18),
+                        width: 1,
+                      ),
+                    ),
+                    child: Icon(item.icon, color: item.color, size: 22),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    item.label,
+                    style: TextStyle(
+                      fontSize: TypeScale.caption,
+                      fontWeight: FontWeight.w600,
+                      color: AppStyles.getTextColor(context),
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 
@@ -459,6 +511,20 @@ class _MenuRow extends StatelessWidget {
       ),
     );
   }
+}
+
+class _QuickItem {
+  final String label;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _QuickItem({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
 }
 
 class _MenuItem {
