@@ -1,0 +1,14 @@
+# Treat font files as binary — prevents git from mangling TTF/OTF with line-ending conversions
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+
+# Other binary assets
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.apk binary
+*.aab binary
