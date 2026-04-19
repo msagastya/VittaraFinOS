@@ -2,8 +2,6 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
@@ -63,26 +61,6 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
     });
     if (result.success) {
       toast.showSuccess(result.filePath ?? 'Backup created');
-    } else {
-      toast.showError(result.message);
-    }
-  }
-
-  Future<void> _copyBackupJson() async {
-    setState(() => _busy = true);
-    final result = await BackupRestoreService.buildBackupJson();
-    if (!mounted) return;
-    if (result.success && result.backupJson != null) {
-      await Clipboard.setData(ClipboardData(text: result.backupJson!));
-    }
-    if (!mounted) return;
-    setState(() {
-      _busy = false;
-      _lastStatus = result.message;
-      _lastSummary = result.details;
-    });
-    if (result.success) {
-      toast.showSuccess('Backup JSON copied');
     } else {
       toast.showError(result.message);
     }
@@ -167,116 +145,6 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
     }
   }
 
-  Future<void> _restoreLatestLocalBackup() async {
-    final confirm = await _confirmDestructive(
-      title: 'Restore latest backup?',
-      message:
-          'This will overwrite current app data with the selected backup content.',
-      destructiveText: 'Restore',
-    );
-    if (confirm != true) return;
-
-    setState(() => _busy = true);
-    final result = await BackupRestoreService.restoreLatestLocalBackup();
-    if (result.success) {
-      await _reloadAllControllers();
-    }
-    if (!mounted) return;
-    setState(() {
-      _busy = false;
-      _lastStatus = result.message;
-      _lastSummary = result.details;
-    });
-    if (result.success) {
-      toast.showSuccess('Backup restored');
-      if (BackupRestoreService.lastRestoreUsedLegacyKey) {
-        // Show a gentle security nudge — legacy backups used a weaker key.
-        await Future.delayed(const Duration(milliseconds: 800));
-        if (!mounted) return;
-        toast.showWarning(
-          'Legacy backup detected. Create a new backup to upgrade encryption.',
-        );
-      }
-    } else {
-      toast.showError(result.message);
-    }
-  }
-
-  Future<void> _restoreFromPastedJson() async {
-    final controller = TextEditingController();
-    final restoreJson = await showCupertinoModalPopup<String>(
-      context: context,
-      builder: (modalContext) => RLayout.tabletConstrain(
-        modalContext,
-        CupertinoActionSheet(
-        title: const Text('Paste Backup JSON'),
-        message: Material(
-          color: Colors.transparent,
-          child: Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: CupertinoTextField(
-              controller: controller,
-              maxLines: 10,
-              placeholder: 'Paste backup JSON here',
-              textAlignVertical: TextAlignVertical.top,
-            ),
-          ),
-        ),
-        actions: [
-          CupertinoActionSheetAction(
-            onPressed: () => Navigator.pop(modalContext, controller.text),
-            child: const Text('Restore from this JSON'),
-          ),
-        ],
-        cancelButton: CupertinoActionSheetAction(
-          onPressed: () => Navigator.pop(modalContext),
-          child: const Text('Cancel'),
-        ),
-      ),
-      ),
-    );
-    controller.dispose();
-
-    if (!mounted) return;
-    if (restoreJson == null || restoreJson.trim().isEmpty) {
-      return;
-    }
-
-    final inspect = await BackupRestoreService.inspectBackupJson(restoreJson);
-    if (!mounted) return;
-    if (!inspect.success) {
-      toast.showError(inspect.message);
-      return;
-    }
-
-    final txCount = inspect.details?['transactionCount'] ?? 0;
-    final accounts = inspect.details?['accountCount'] ?? 0;
-    final confirm = await _confirmDestructive(
-      title: 'Restore from JSON?',
-      message:
-          'This backup contains $txCount transactions and $accounts accounts. Current data will be overwritten for restorable keys.',
-      destructiveText: 'Restore',
-    );
-    if (confirm != true) return;
-
-    setState(() => _busy = true);
-    final result = await BackupRestoreService.restoreFromJson(restoreJson);
-    if (result.success) {
-      await _reloadAllControllers();
-    }
-    if (!mounted) return;
-    setState(() {
-      _busy = false;
-      _lastStatus = result.message;
-      _lastSummary = result.details;
-    });
-    if (result.success) {
-      toast.showSuccess('Backup restored');
-    } else {
-      toast.showError(result.message);
-    }
-  }
-
   Future<void> _showLocalBackupPicker() async {
     if (_localBackups.isEmpty) {
       toast.showInfo('No local backup files found');
@@ -288,46 +156,45 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
       builder: (modalContext) => RLayout.tabletConstrain(
         modalContext,
         CupertinoActionSheet(
-        title: const Text('Local Backups'),
-        message: const Text('Pick a file to restore from local storage'),
-        actions: _localBackups.take(8).map((file) {
-          final name = file.path.split('/').last;
-          return CupertinoActionSheetAction(
-            onPressed: () async {
-              Navigator.pop(modalContext);
-              final confirm = await _confirmDestructive(
-                title: 'Restore "$name"?',
-                message:
-                    'Current restorable keys will be overwritten with this file.',
-                destructiveText: 'Restore',
-              );
-              if (confirm != true) return;
-              setState(() => _busy = true);
-              final raw = await file.readAsString();
-              final result = await BackupRestoreService.restoreFromJson(raw);
-              if (result.success) {
-                await _reloadAllControllers();
-              }
-              if (!mounted) return;
-              setState(() {
-                _busy = false;
-                _lastStatus = result.message;
-                _lastSummary = result.details;
-              });
-              if (result.success) {
-                toast.showSuccess('Backup restored');
-              } else {
-                toast.showError(result.message);
-              }
-            },
-            child: Text(name),
-          );
-        }).toList(),
-        cancelButton: CupertinoActionSheetAction(
-          onPressed: () => Navigator.pop(modalContext),
-          child: const Text('Close'),
+          title: const Text('Local Backups'),
+          message: const Text('Select a backup to restore'),
+          actions: _localBackups.take(8).map((file) {
+            final name = file.path.split('/').last;
+            return CupertinoActionSheetAction(
+              onPressed: () async {
+                Navigator.pop(modalContext);
+                final confirm = await _confirmDestructive(
+                  title: 'Restore "$name"?',
+                  message: 'Current data will be overwritten.',
+                  destructiveText: 'Restore',
+                );
+                if (confirm != true) return;
+                setState(() => _busy = true);
+                final raw = await file.readAsString();
+                final result = await BackupRestoreService.restoreFromJson(raw);
+                if (result.success) {
+                  await _reloadAllControllers();
+                }
+                if (!mounted) return;
+                setState(() {
+                  _busy = false;
+                  _lastStatus = result.message;
+                  _lastSummary = result.details;
+                });
+                if (result.success) {
+                  toast.showSuccess('Backup restored');
+                } else {
+                  toast.showError(result.message);
+                }
+              },
+              child: Text(name),
+            );
+          }).toList(),
+          cancelButton: CupertinoActionSheetAction(
+            onPressed: () => Navigator.pop(modalContext),
+            child: const Text('Close'),
+          ),
         ),
-      ),
       ),
     );
   }
@@ -399,15 +266,17 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
 
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
-        middle: Text(
-          'Backup & Restore',
-          style: TextStyle(color: AppStyles.getTextColor(context)),
-        ),
-        previousPageTitle: 'Back',
-        backgroundColor: AppStyles.getBackground(context),
-        border: null,
-      ),
+      navigationBar: AppStyles.isLandscape(context)
+          ? null
+          : CupertinoNavigationBar(
+              middle: Text(
+                'Backup & Restore',
+                style: TextStyle(color: AppStyles.getTextColor(context)),
+              ),
+              previousPageTitle: 'Back',
+              backgroundColor: AppStyles.getBackground(context),
+              border: null,
+            ),
       child: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(Spacing.lg),
@@ -419,64 +288,50 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
               investmentsCount: investmentsCount,
             ),
             const SizedBox(height: Spacing.md),
+
+            // ── Backup ──────────────────────────────────────────────────
+            _buildSectionHeader(context, 'Backup'),
             _buildActionCard(
               context,
-              title: 'Export & Share Backup',
-              subtitle:
-                  'Save to Downloads, Google Drive, WhatsApp, etc. Survives reinstall.',
+              title: 'Export & Share',
+              subtitle: 'Send to Google Drive, WhatsApp, Files, or any app. Survives reinstall.',
               icon: CupertinoIcons.share_solid,
               color: CupertinoColors.systemGreen,
               onTap: _busy ? null : _exportBackup,
             ),
             _buildActionCard(
               context,
+              title: 'Save Local Backup',
+              subtitle: 'Saves a copy on this device. Export to keep it safe across reinstalls.',
+              icon: CupertinoIcons.cloud_download_fill,
+              color: CupertinoColors.systemBlue,
+              onTap: _busy ? null : _createLocalBackup,
+            ),
+
+            const SizedBox(height: Spacing.sm),
+
+            // ── Restore ─────────────────────────────────────────────────
+            _buildSectionHeader(context, 'Restore'),
+            _buildActionCard(
+              context,
               title: 'Restore from File',
-              subtitle: 'Pick a backup .json file from your device or cloud storage.',
+              subtitle: 'Pick a backup .json from your device, Drive, or any cloud storage.',
               icon: CupertinoIcons.tray_arrow_up_fill,
               color: CupertinoColors.systemOrange,
               onTap: _busy ? null : _restoreFromPickedFile,
             ),
             _buildActionCard(
               context,
-              title: 'Create Local Backup',
+              title: 'Restore from Local Backup',
               subtitle:
-                  'Auto-saves a backup on this device (deleted on uninstall — export to keep it safe).',
-              icon: CupertinoIcons.cloud_download_fill,
-              color: CupertinoColors.systemBlue,
-              onTap: _busy ? null : _createLocalBackup,
-            ),
-            _buildActionCard(
-              context,
-              title: 'Copy Backup JSON',
-              subtitle: 'Copy a complete backup bundle to clipboard.',
-              icon: CupertinoIcons.doc_on_clipboard_fill,
-              color: CupertinoColors.systemTeal,
-              onTap: _busy ? null : _copyBackupJson,
-            ),
-            _buildActionCard(
-              context,
-              title: 'Restore Latest Local Backup',
-              subtitle: 'Restores from the most recent on-device backup file.',
-              icon: CupertinoIcons.arrow_clockwise_circle_fill,
-              color: CupertinoColors.systemBlue,
-              onTap: _busy ? null : _restoreLatestLocalBackup,
-            ),
-            _buildActionCard(
-              context,
-              title: 'Restore from Pasted JSON',
-              subtitle: 'Paste any backup JSON (new or legacy format).',
-              icon: CupertinoIcons.arrow_2_circlepath_circle_fill,
-              color: CupertinoColors.systemPurple,
-              onTap: _busy ? null : _restoreFromPastedJson,
-            ),
-            _buildActionCard(
-              context,
-              title: 'Browse Local Backups',
-              subtitle: 'Pick a specific on-device backup file to restore.',
+                  _localBackups.isEmpty
+                      ? 'No local backups found yet.'
+                      : '${_localBackups.length} backup${_localBackups.length == 1 ? '' : 's'} on this device — pick one to restore.',
               icon: CupertinoIcons.folder_fill,
               color: CupertinoColors.systemIndigo,
-              onTap: _busy ? null : _showLocalBackupPicker,
+              onTap: (_busy || _localBackups.isEmpty) ? null : _showLocalBackupPicker,
             ),
+
             if (_busy) ...[
               const SizedBox(height: Spacing.lg),
               const Center(child: CupertinoActivityIndicator(radius: 12)),
@@ -501,6 +356,21 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
     );
   }
 
+  Widget _buildSectionHeader(BuildContext context, String label) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 8),
+      child: Text(
+        label.toUpperCase(),
+        style: TextStyle(
+          fontSize: TypeScale.caption,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.8,
+          color: AppStyles.getSecondaryTextColor(context),
+        ),
+      ),
+    );
+  }
+
   Widget _buildOverviewCard(
     BuildContext context, {
     required int transactionsCount,
@@ -514,22 +384,14 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Current Data Snapshot',
+            'Current Data',
             style: AppStyles.titleStyle(context)
                 .copyWith(fontSize: TypeScale.title3),
           ),
           const SizedBox(height: Spacing.sm),
           Text(
-            'Transactions: $transactionsCount • Accounts: $accountsCount • Investments: $investmentsCount',
+            '$transactionsCount transactions · $accountsCount accounts · $investmentsCount investments',
             style: TextStyle(color: AppStyles.getSecondaryTextColor(context)),
-          ),
-          const SizedBox(height: Spacing.sm),
-          Text(
-            'Use "Export & Share Backup" to save your backup outside the app — local backups are deleted when you uninstall.',
-            style: TextStyle(
-              color: AppStyles.getSecondaryTextColor(context),
-              fontSize: TypeScale.footnote,
-            ),
           ),
         ],
       ),
@@ -549,7 +411,7 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
       child: GestureDetector(
         onTap: onTap,
         child: Opacity(
-          opacity: onTap == null ? 0.55 : 1,
+          opacity: onTap == null ? 0.45 : 1,
           child: Container(
             padding: const EdgeInsets.all(14),
             decoration: AppStyles.cardDecoration(context),
@@ -583,7 +445,8 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
                     ],
                   ),
                 ),
-                const Icon(CupertinoIcons.chevron_right, size: 16),
+                if (onTap != null)
+                  const Icon(CupertinoIcons.chevron_right, size: 16),
               ],
             ),
           ),
@@ -601,17 +464,12 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Last Operation Summary',
+            'Last Operation',
             style: AppStyles.titleStyle(context)
                 .copyWith(fontSize: TypeScale.body),
           ),
           const SizedBox(height: Spacing.sm),
-          Text('Source: ${value('source')}'),
-          Text('Keys: ${value('keys')}'),
           Text('Transactions: ${value('transactionCount')}'),
-          Text('Unique Transaction IDs: ${value('uniqueTransactionIds')}'),
-          Text(
-              'Duplicate Transaction IDs: ${value('duplicateTransactionIds')}'),
           Text('Accounts: ${value('accountCount')}'),
           Text('Investments: ${value('investmentCount')}'),
         ],

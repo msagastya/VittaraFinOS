@@ -33,7 +33,6 @@ import 'package:vittara_fin_os/logic/loan_controller.dart';
 import 'package:vittara_fin_os/logic/insurance_controller.dart';
 import 'package:vittara_fin_os/ui/fintech_loader.dart';
 import 'package:vittara_fin_os/ui/manage_screen.dart';
-import 'package:vittara_fin_os/ui/settings_screen.dart';
 import 'package:vittara_fin_os/ui/transaction_history_screen.dart';
 import 'package:vittara_fin_os/ui/spending_insights_screen.dart';
 import 'package:vittara_fin_os/ui/styles/app_springs.dart';
@@ -1498,48 +1497,76 @@ class DashboardScreen extends StatelessWidget {
 
     final isLandscape = AppStyles.isLandscape(context);
 
-    return Column(
-      children: [
-        // LANDSCAPE — compact inline nav bar replaces CupertinoNavigationBar
-        if (isLandscape) _buildLandscapeNavBar(context),
+    // ── LANDSCAPE: proper two-panel layout ──────────────────────────────────
+    if (isLandscape) {
+      return Row(
+        children: [
+          // LEFT SIDEBAR ── navigation, greeting, balance, quick actions
+          _buildLandscapeSidebar(context),
 
-        // PROFESSIONAL HEADER (hidden in landscape to save vertical space)
-        // Height capped proportionally so the CardDeck always gets enough space
-        // on narrow/short phones (Motorola 393dp, iPhone SE 375dp, Fold outer 360dp).
-        if (!isLandscape)
-          ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: (MediaQuery.of(context).size.height * 0.22).clamp(100.0, 160.0),
-            ),
-            child: _buildHeaderSection(context),
+          // Thin divider
+          Container(
+            width: 0.5,
+            color: AppStyles.getDividerColor(context),
           ),
 
-        // ENGAGEMENT: compact strip (collapses both into one thin row when scrolled)
+          // RIGHT PANEL ── the card deck fills the rest
+          Expanded(
+            child: Column(
+              children: [
+                const EngagementStripWidget(),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(
+                        top: Spacing.xs, bottom: Spacing.sm),
+                    child: Selector<AccountsController, bool>(
+                      selector: (_, ctrl) => ctrl.accounts.isEmpty,
+                      builder: (_, hasNoAccounts, __) => hasNoAccounts
+                          ? const _SetupCard()
+                          : CardDeckView(
+                              cards: cards,
+                              onCardChanged: (_) {},
+                            ),
+                    ),
+                  ),
+                ),
+                const _EngagementChecker(),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
+    // ── PORTRAIT: original layout ────────────────────────────────────────────
+    return Column(
+      children: [
+        // PROFESSIONAL HEADER — capped so CardDeck always gets enough space
+        ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight:
+                (MediaQuery.of(context).size.height * 0.22).clamp(100.0, 160.0),
+          ),
+          child: _buildHeaderSection(context),
+        ),
+
+        // ENGAGEMENT: compact strip
         const EngagementStripWidget(),
 
-        // CARD DECK — swipe left/right to cycle through widgets
+        // CARD DECK — swipe left/right
         Expanded(
           child: Padding(
-            padding: EdgeInsets.only(
-              top: isLandscape ? 0 : Spacing.md,
-              bottom: Spacing.sm,
-            ),
+            padding: const EdgeInsets.only(top: Spacing.md, bottom: Spacing.sm),
             child: Selector<AccountsController, bool>(
               selector: (_, ctrl) => ctrl.accounts.isEmpty,
-              builder: (context, hasNoAccounts, _) {
-                if (hasNoAccounts) {
-                  return const _SetupCard();
-                }
-                return CardDeckView(
-                  cards: cards,
-                  onCardChanged: (_) {},
-                );
-              },
+              builder: (_, hasNoAccounts, __) => hasNoAccounts
+                  ? const _SetupCard()
+                  : CardDeckView(cards: cards, onCardChanged: (_) {}),
             ),
           ),
         ),
 
-        // Engagement checker — handles achievements + monthly digest
+        // Engagement checker
         const _EngagementChecker(),
       ],
     );
@@ -1641,78 +1668,291 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  /// Compact 40dp nav bar shown only in landscape (replaces CupertinoNavigationBar).
-  Widget _buildLandscapeNavBar(BuildContext context) {
+  /// Full left sidebar shown in landscape — replaces the old 40dp nav bar strip.
+  Widget _buildLandscapeSidebar(BuildContext context) {
     final textColor = AppStyles.getTextColor(context);
     final secondary = AppStyles.getSecondaryTextColor(context);
-    return Container(
-      height: 40,
-      padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
-      decoration: BoxDecoration(
-        color: AppStyles.getCardColor(context).withValues(alpha: 0.85),
-        border: Border(
-          bottom: BorderSide(
-            color: AppStyles.getDividerColor(context),
-            width: 0.5,
-          ),
+    final isDark = AppStyles.isDarkMode(context);
+    final now = DateTime.now();
+    final h = now.hour;
+    final greeting = h >= 5 && h < 12
+        ? 'Good Morning'
+        : h < 17
+            ? 'Good Afternoon'
+            : h < 21
+                ? 'Good Evening'
+                : 'Good Night';
+    final dateStr = _formatHeaderDate(now);
+
+    return SizedBox(
+      width: 196,
+      child: Container(
+        decoration: BoxDecoration(
+          color: isDark
+              ? AppStyles.getCardColor(context).withValues(alpha: 0.95)
+              : AppStyles.getCardColor(context),
         ),
-      ),
-      child: Row(
-        children: [
-          // Menu button
-          BouncyButton(
-            onPressed: () => Navigator.of(context).push(
-              PageRouteBuilder(
-                pageBuilder: (_, __, ___) => const DashboardAppMenuScreen(),
-                transitionDuration: AppDurations.pageTransition,
-                reverseTransitionDuration: AppDurations.pageTransitionReverse,
-                transitionsBuilder: (ctx, anim, secAnim, child) =>
-                    SlideTransition(
-                  position: Tween<Offset>(
-                    begin: const Offset(-1.0, 0.0),
-                    end: Offset.zero,
-                  ).animate(CurvedAnimation(
-                      parent: anim, curve: MotionCurves.standard)),
-                  child: child,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Top bar: menu + title + search ───────────────────────
+            SizedBox(
+              height: 44,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: Spacing.md),
+                child: Row(
+                  children: [
+                    BouncyButton(
+                      onPressed: () => Navigator.of(context).push(
+                        PageRouteBuilder(
+                          pageBuilder: (_, __, ___) =>
+                              const DashboardAppMenuScreen(),
+                          transitionDuration: AppDurations.pageTransition,
+                          reverseTransitionDuration:
+                              AppDurations.pageTransitionReverse,
+                          transitionsBuilder: (ctx, anim, _, child) =>
+                              SlideTransition(
+                            position: Tween<Offset>(
+                              begin: const Offset(-1.0, 0.0),
+                              end: Offset.zero,
+                            ).animate(CurvedAnimation(
+                                parent: anim, curve: MotionCurves.standard)),
+                            child: child,
+                          ),
+                        ),
+                      ),
+                      child: Icon(CupertinoIcons.line_horizontal_3,
+                          size: 18, color: textColor),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Vittara',
+                        style: TextStyle(
+                          color: textColor,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          fontFamily: 'SpaceGrotesk',
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                    ),
+                    BouncyButton(
+                      onPressed: () => showGlobalSearch(context),
+                      child: Icon(CupertinoIcons.search, size: 16, color: secondary),
+                    ),
+                  ],
                 ),
               ),
             ),
-            child: Icon(CupertinoIcons.line_horizontal_3,
-                size: 18, color: textColor),
-          ),
-          const SizedBox(width: Spacing.lg),
-          // Title
-          Text(
-            'VittaraFinOS',
-            style: TextStyle(
-              color: textColor,
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.2,
+
+            Container(height: 0.5, color: AppStyles.getDividerColor(context)),
+
+            // ── Greeting + date ───────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                  Spacing.md, Spacing.sm, Spacing.md, Spacing.xs),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    greeting,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: textColor,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    dateStr,
+                    style: TextStyle(
+                      fontSize: TypeScale.caption,
+                      color: secondary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const Spacer(),
-          // Action icons
-          BouncyButton(
-            onPressed: () => Navigator.of(context).push(
-                FadeScalePageRoute(page: const DashboardSettingsModal())),
-            child:
-                Icon(CupertinoIcons.slider_horizontal_3, size: 18, color: secondary),
-          ),
-          const SizedBox(width: Spacing.xl),
-          BouncyButton(
-            onPressed: () => Navigator.of(context)
-                .push(FadeScalePageRoute(page: const ManageScreen())),
-            child:
-                Icon(CupertinoIcons.square_grid_2x2, size: 18, color: secondary),
-          ),
-          const SizedBox(width: Spacing.xl),
-          BouncyButton(
-            onPressed: () => Navigator.of(context)
-                .push(FadeScalePageRoute(page: const SettingsScreen())),
-            child: Icon(CupertinoIcons.settings, size: 18, color: secondary),
-          ),
-        ],
+
+            // ── Net worth card ────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                  Spacing.sm, Spacing.xs, Spacing.sm, Spacing.xs),
+              child: BouncyButton(
+                onPressed: () => Navigator.of(context)
+                    .push(FadeScalePageRoute(page: const NetWorthPage())),
+                child: Consumer<AccountsController>(
+                  builder: (ctx, acCtrl, _) {
+                    final visible =
+                        acCtrl.accounts.where((a) => !a.isHidden).toList();
+                    final total = visible.fold(0.0, (sum, a) {
+                      if (a.type == AccountType.credit ||
+                          a.type == AccountType.payLater) {
+                        return sum -
+                            ((a.creditLimit ?? 0.0) - a.balance)
+                                .clamp(0.0, double.infinity);
+                      }
+                      return sum + a.balance;
+                    });
+                    return Container(
+                      padding: const EdgeInsets.all(Spacing.sm),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            AppStyles.aetherTeal
+                                .withValues(alpha: isDark ? 0.13 : 0.07),
+                            AppStyles.novaPurple
+                                .withValues(alpha: isDark ? 0.09 : 0.05),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(Radii.md),
+                        border: Border.all(
+                          color: AppStyles.aetherTeal.withValues(alpha: 0.28),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(CupertinoIcons.chart_bar_square_fill,
+                                  size: 10, color: AppStyles.aetherTeal),
+                              const SizedBox(width: 4),
+                              Text(
+                                'NET WORTH',
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppStyles.aetherTeal,
+                                  letterSpacing: 0.9,
+                                ),
+                              ),
+                              const Spacer(),
+                              Icon(CupertinoIcons.chevron_right,
+                                  size: 10, color: secondary),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          AnimatedCounter(
+                            value: total,
+                            prefix: '₹',
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w800,
+                              color: textColor,
+                              fontFamily: 'SpaceGrotesk',
+                              letterSpacing: -0.6,
+                              fontFeatures: const [
+                                FontFeature.tabularFigures()
+                              ],
+                            ),
+                            duration: const Duration(milliseconds: 700),
+                          ),
+                          Text(
+                            '${visible.length} account${visible.length == 1 ? '' : 's'}',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: secondary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+
+            const Spacer(),
+
+            // ── Quick nav row ─────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                  Spacing.sm, 0, Spacing.sm, Spacing.xs),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _sidebarNavBtn(
+                    context,
+                    CupertinoIcons.list_bullet,
+                    'History',
+                    () => Navigator.of(context).push(
+                        FadeScalePageRoute(
+                            page: const TransactionHistoryScreen())),
+                  ),
+                  _sidebarNavBtn(
+                    context,
+                    CupertinoIcons.square_grid_2x2,
+                    'Manage',
+                    () => Navigator.of(context)
+                        .push(FadeScalePageRoute(page: const ManageScreen())),
+                  ),
+                  _sidebarNavBtn(
+                    context,
+                    CupertinoIcons.chart_pie_fill,
+                    'Insights',
+                    () => Navigator.of(context).push(FadeScalePageRoute(
+                        page: const SpendingInsightsScreen())),
+                  ),
+                  _sidebarNavBtn(
+                    context,
+                    CupertinoIcons.slider_horizontal_3,
+                    'Layout',
+                    () => Navigator.of(context).push(
+                        FadeScalePageRoute(
+                            page: const DashboardSettingsModal())),
+                  ),
+                ],
+              ),
+            ),
+
+            // ── Engagement strip ──────────────────────────────────────
+            const EngagementStripWidget(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Small icon+label button for the sidebar's quick-nav row.
+  Widget _sidebarNavBtn(
+    BuildContext context,
+    IconData icon,
+    String label,
+    VoidCallback onTap,
+  ) {
+    final secondary = AppStyles.getSecondaryTextColor(context);
+    return BouncyButton(
+      onPressed: onTap,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: AppStyles.getDividerColor(context).withValues(alpha: 0.6),
+          borderRadius: BorderRadius.circular(Radii.sm),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 15, color: secondary),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 8,
+                color: secondary,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.2,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

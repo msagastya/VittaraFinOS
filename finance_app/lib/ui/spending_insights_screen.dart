@@ -82,96 +82,299 @@ class _SpendIntelBody extends StatelessWidget {
             !t.dateTime.isBefore(monthStart))
         .toList();
 
+    final isLandscape = AppStyles.isLandscape(context);
+
+    // Shared content list items
+    final contentChildren = <Widget>[
+      if (data.hasData) ...[
+        _IntelligenceHeader(data: data),
+        const SizedBox(height: Spacing.md),
+      ],
+      _SummaryRow(data: data, isDark: isDark, cardBg: cardBg),
+      const SizedBox(height: Spacing.lg),
+      SpendSectionLabel(
+          'AI INSIGHTS  ·  ${data.narratives.length} signals this month'),
+      const SizedBox(height: Spacing.sm),
+      ...data.narratives.map((insight) => Padding(
+            padding: const EdgeInsets.only(bottom: Spacing.sm),
+            child: _FullNarrativeCard(insight: insight, isDark: isDark),
+          )),
+      const SizedBox(height: Spacing.md),
+      if (data.hasData && data.projectedMonthEnd > 0) ...[
+        SpendSectionLabel('MONTH FORECAST'),
+        const SizedBox(height: Spacing.sm),
+        Container(
+          padding: const EdgeInsets.all(Spacing.md),
+          decoration: BoxDecoration(
+              color: cardBg,
+              borderRadius: BorderRadius.circular(Radii.lg)),
+          child: SpendForecastBar(data: data, isDark: isDark),
+        ),
+        const SizedBox(height: Spacing.lg),
+      ],
+      if (data.categoryDrifts.isNotEmpty) ...[
+        SpendSectionLabel('CATEGORY PULSE  ·  tap to expand'),
+        const SizedBox(height: Spacing.sm),
+        Container(
+          padding: const EdgeInsets.all(Spacing.md),
+          decoration: BoxDecoration(
+              color: cardBg,
+              borderRadius: BorderRadius.circular(Radii.lg)),
+          child: _ExpandableCategoryTable(
+            drifts: data.categoryDrifts,
+            total: data.totalThisMonth,
+            isDark: isDark,
+            transactions: thisMonthExp,
+          ),
+        ),
+        const SizedBox(height: Spacing.lg),
+      ],
+      if (data.hasData) ...[
+        SpendSectionLabel('SPEND RHYTHM  ·  tap a day to expand'),
+        const SizedBox(height: Spacing.sm),
+        Container(
+          padding: const EdgeInsets.all(Spacing.md),
+          decoration: BoxDecoration(
+              color: cardBg,
+              borderRadius: BorderRadius.circular(Radii.lg)),
+          child: _ExpandableRhythm(
+            dowSpend: data.dowSpend,
+            isDark: isDark,
+            transactions: thisMonthExp,
+          ),
+        ),
+        const SizedBox(height: Spacing.lg),
+      ],
+      if (data.topMerchants.isNotEmpty && data.totalThisMonth > 0) ...[
+        SpendSectionLabel('TOP MERCHANTS  ·  tap to expand'),
+        const SizedBox(height: Spacing.sm),
+        Container(
+          padding: const EdgeInsets.all(Spacing.md),
+          decoration: BoxDecoration(
+              color: cardBg,
+              borderRadius: BorderRadius.circular(Radii.lg)),
+          child: _ExpandableMerchants(
+            merchants: data.topMerchants,
+            totalThisMonth: data.totalThisMonth,
+            isDark: isDark,
+            transactions: thisMonthExp,
+          ),
+        ),
+        const SizedBox(height: Spacing.lg),
+      ],
+      _MonthlyTrendSection(data: data, cardBg: cardBg, isDark: isDark),
+    ];
+
+    // ── LANDSCAPE: sidebar + scrollable content ──────────────────────────
+    if (isLandscape) {
+      final textColor = AppStyles.getTextColor(context);
+      final secondary = AppStyles.getSecondaryTextColor(context);
+
+      String fmt(double v) {
+        if (v >= 100000) return '₹${(v / 100000).toStringAsFixed(1)}L';
+        if (v >= 1000) return '₹${(v / 1000).toStringAsFixed(1)}K';
+        return '₹${v.toStringAsFixed(0)}';
+      }
+
+      Widget sidebarStat(String label, String value, Color color) {
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(
+              Spacing.md, Spacing.xs, Spacing.md, 0),
+          child: Row(
+            children: [
+              Text(
+                label,
+                style: TextStyle(fontSize: TypeScale.caption, color: secondary),
+              ),
+              const Spacer(),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: TypeScale.subhead,
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+
+      return SafeArea(
+        child: Row(
+          children: [
+            // LEFT PANEL
+            SizedBox(
+              width: 200,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.04)
+                      : Colors.black.withValues(alpha: 0.025),
+                  border: Border(
+                    right: BorderSide(
+                        color: AppStyles.getDividerColor(context), width: 0.5),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Nav bar
+                    SizedBox(
+                      height: 44,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: Spacing.sm),
+                        child: Row(
+                          children: [
+                            CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              minimumSize: Size.zero,
+                              onPressed: () => Navigator.maybePop(context),
+                              child: Icon(CupertinoIcons.chevron_left,
+                                  size: 18,
+                                  color: AppStyles.getPrimaryColor(context)),
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                'INTELLIGENCE',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: textColor,
+                                  letterSpacing: 1.0,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Container(
+                        height: 0.5,
+                        color: AppStyles.getDividerColor(context)),
+
+                    const SizedBox(height: Spacing.sm),
+
+                    // This month stats
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: Spacing.md),
+                      child: Text(
+                        'THIS MONTH',
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                          color: AppStyles.aetherTeal,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                    ),
+                    sidebarStat('Spent', fmt(data.totalThisMonth),
+                        AppStyles.loss(context)),
+                    sidebarStat('Income', fmt(data.incomeThisMonth),
+                        AppStyles.gain(context)),
+                    if (data.savingsRate > 0)
+                      sidebarStat(
+                        'Saved',
+                        '${data.savingsRate.toStringAsFixed(0)}%',
+                        AppStyles.gain(context),
+                      ),
+
+                    const SizedBox(height: Spacing.md),
+                    Container(
+                        height: 0.5,
+                        color: AppStyles.getDividerColor(context)
+                            .withValues(alpha: 0.5)),
+                    const SizedBox(height: Spacing.sm),
+
+                    // vs last month
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: Spacing.md),
+                      child: Text(
+                        'VS LAST MONTH',
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                          color: secondary,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                    ),
+                    sidebarStat('Last month', fmt(data.totalLastMonth),
+                        secondary),
+                    if (data.momChange != 0)
+                      sidebarStat(
+                        'Change',
+                        '${data.momChange > 0 ? '+' : ''}${data.momChange.toStringAsFixed(0)}%',
+                        data.momChange > 0
+                            ? AppStyles.loss(context)
+                            : AppStyles.gain(context),
+                      ),
+
+                    if (data.categoryDrifts.isNotEmpty) ...[
+                      const SizedBox(height: Spacing.md),
+                      Container(
+                          height: 0.5,
+                          color: AppStyles.getDividerColor(context)
+                              .withValues(alpha: 0.5)),
+                      const SizedBox(height: Spacing.sm),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: Spacing.md),
+                        child: Text(
+                          'TOP CATEGORY',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            color: secondary,
+                            letterSpacing: 1.0,
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                            Spacing.md, Spacing.xs, Spacing.md, 0),
+                        child: Text(
+                          data.categoryDrifts.first.name,
+                          style: TextStyle(
+                            fontSize: TypeScale.subhead,
+                            fontWeight: FontWeight.w600,
+                            color: textColor,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+
+                    const Spacer(),
+                  ],
+                ),
+              ),
+            ),
+
+            // RIGHT PANEL — scrollable content
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(
+                    Spacing.md, Spacing.sm, Spacing.md, Spacing.xl),
+                children: contentChildren,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // ── PORTRAIT ────────────────────────────────────────────────────────────
     return SafeArea(
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(Spacing.md, Spacing.md, Spacing.md, Spacing.xl),
-        children: [
-          // ── Intelligence header ─────────────────────────────────────────
-          if (data.hasData) ...[
-            _IntelligenceHeader(data: data),
-            const SizedBox(height: Spacing.md),
-          ],
-
-          // ── Summary tiles row ───────────────────────────────────────────
-          _SummaryRow(data: data, isDark: isDark, cardBg: cardBg),
-
-          const SizedBox(height: Spacing.lg),
-
-          // ── Narrative Intelligence Cards (all cards, vertical) ──────────
-          SpendSectionLabel('AI INSIGHTS  ·  ${data.narratives.length} signals this month'),
-          const SizedBox(height: Spacing.sm),
-          ...data.narratives.map((insight) => Padding(
-                padding: const EdgeInsets.only(bottom: Spacing.sm),
-                child: _FullNarrativeCard(insight: insight, isDark: isDark),
-              )),
-
-          const SizedBox(height: Spacing.md),
-
-          // ── Month Forecast ──────────────────────────────────────────────
-          if (data.hasData && data.projectedMonthEnd > 0) ...[
-            SpendSectionLabel('MONTH FORECAST'),
-            const SizedBox(height: Spacing.sm),
-            Container(
-              padding: const EdgeInsets.all(Spacing.md),
-              decoration: BoxDecoration(color: cardBg, borderRadius: BorderRadius.circular(Radii.lg)),
-              child: SpendForecastBar(data: data, isDark: isDark),
-            ),
-            const SizedBox(height: Spacing.lg),
-          ],
-
-          // ── Category Breakdown (full list, expandable) ──────────────────
-          if (data.categoryDrifts.isNotEmpty) ...[
-            SpendSectionLabel('CATEGORY PULSE  ·  tap to expand'),
-            const SizedBox(height: Spacing.sm),
-            Container(
-              padding: const EdgeInsets.all(Spacing.md),
-              decoration: BoxDecoration(color: cardBg, borderRadius: BorderRadius.circular(Radii.lg)),
-              child: _ExpandableCategoryTable(
-                drifts: data.categoryDrifts,
-                total: data.totalThisMonth,
-                isDark: isDark,
-                transactions: thisMonthExp,
-              ),
-            ),
-            const SizedBox(height: Spacing.lg),
-          ],
-
-          // ── Day-of-week rhythm (expandable) ─────────────────────────────
-          if (data.hasData) ...[
-            SpendSectionLabel('SPEND RHYTHM  ·  tap a day to expand'),
-            const SizedBox(height: Spacing.sm),
-            Container(
-              padding: const EdgeInsets.all(Spacing.md),
-              decoration: BoxDecoration(color: cardBg, borderRadius: BorderRadius.circular(Radii.lg)),
-              child: _ExpandableRhythm(
-                dowSpend: data.dowSpend,
-                isDark: isDark,
-                transactions: thisMonthExp,
-              ),
-            ),
-            const SizedBox(height: Spacing.lg),
-          ],
-
-          // ── Top Merchants (expandable) ───────────────────────────────────
-          if (data.topMerchants.isNotEmpty && data.totalThisMonth > 0) ...[
-            SpendSectionLabel('TOP MERCHANTS  ·  tap to expand'),
-            const SizedBox(height: Spacing.sm),
-            Container(
-              padding: const EdgeInsets.all(Spacing.md),
-              decoration: BoxDecoration(color: cardBg, borderRadius: BorderRadius.circular(Radii.lg)),
-              child: _ExpandableMerchants(
-                merchants: data.topMerchants,
-                totalThisMonth: data.totalThisMonth,
-                isDark: isDark,
-                transactions: thisMonthExp,
-              ),
-            ),
-            const SizedBox(height: Spacing.lg),
-          ],
-
-          // ── Monthly trend bars (last 4 months) ──────────────────────────
-          _MonthlyTrendSection(data: data, cardBg: cardBg, isDark: isDark),
-        ],
+        padding: const EdgeInsets.fromLTRB(
+            Spacing.md, Spacing.md, Spacing.md, Spacing.xl),
+        children: contentChildren,
       ),
     );
   }

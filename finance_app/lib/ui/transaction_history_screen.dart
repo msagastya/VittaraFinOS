@@ -665,16 +665,262 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
             );
           }
 
+          final isLandscape = AppStyles.isLandscape(context);
+
+          // ── LANDSCAPE: two-panel layout ──────────────────────────────
+          if (isLandscape) {
+            return SafeArea(
+              child: Row(
+                children: [
+                  // LEFT PANEL — navigation, search, filters, quick stats
+                  SizedBox(
+                    width: 210,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: AppStyles.getCardColor(context)
+                            .withValues(alpha: 0.90),
+                        border: Border(
+                          right: BorderSide(
+                            color: AppStyles.getDividerColor(context),
+                            width: 0.5,
+                          ),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Nav bar
+                          SizedBox(
+                            height: 44,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: Spacing.sm),
+                              child: Row(
+                                children: [
+                                  CupertinoButton(
+                                    padding: EdgeInsets.zero,
+                                    minimumSize: Size.zero,
+                                    onPressed: () =>
+                                        Navigator.maybePop(context),
+                                    child: Icon(CupertinoIcons.chevron_left,
+                                        size: 18,
+                                        color:
+                                            AppStyles.getPrimaryColor(context)),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(
+                                      (widget.filterPaymentAppName ??
+                                              widget.filterContactName ??
+                                              widget.filterAccountName ??
+                                              'Transactions')
+                                          .toUpperCase(),
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppStyles.getTextColor(context),
+                                        letterSpacing: 1.0,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  // Export
+                                  Consumer2<TransactionsController,
+                                      InvestmentsController>(
+                                    builder: (ctx, txCtrl, invCtrl, _) {
+                                      final all =
+                                          TransactionFeedBuilder.buildUnifiedFeed(
+                                        transactions: txCtrl.transactions,
+                                        investments: invCtrl.investments,
+                                      );
+                                      final filtered = _filterBySearch(all);
+                                      return CupertinoButton(
+                                        padding: EdgeInsets.zero,
+                                        minimumSize: Size.zero,
+                                        onPressed: (_isExportingCsv ||
+                                                    _isExportingPdf ||
+                                                    _isExportingXlsx) ||
+                                                filtered.isEmpty
+                                            ? null
+                                            : () => _showExportSheet(
+                                                ctx, filtered),
+                                        child: Icon(CupertinoIcons.share,
+                                            size: 16,
+                                            color: AppStyles
+                                                .getSecondaryTextColor(ctx)),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Container(
+                              height: 0.5,
+                              color: AppStyles.getDividerColor(context)),
+
+                          // Search field
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                                Spacing.sm, Spacing.sm, Spacing.sm, Spacing.xs),
+                            child: CupertinoSearchTextField(
+                              controller: _searchController,
+                              placeholder: 'Search',
+                              onChanged: (v) => setState(() {
+                                _searchQuery = v;
+                                _visibleCount = _pageSize;
+                              }),
+                              onSubmitted: (v) => setState(() {
+                                _searchQuery = v;
+                                _visibleCount = _pageSize;
+                              }),
+                            ),
+                          ),
+
+                          // Filter button
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: Spacing.sm, vertical: Spacing.xs),
+                            child: GestureDetector(
+                              onTap: () => _showFilterSheet(context),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: Spacing.sm, vertical: Spacing.xs),
+                                decoration: BoxDecoration(
+                                  color: _hasActiveFilter
+                                      ? AppStyles.getPrimaryColor(context)
+                                          .withValues(alpha: 0.12)
+                                      : AppStyles.getDividerColor(context)
+                                          .withValues(alpha: 0.4),
+                                  borderRadius:
+                                      BorderRadius.circular(Radii.sm),
+                                  border: Border.all(
+                                    color: _hasActiveFilter
+                                        ? AppStyles.getPrimaryColor(context)
+                                            .withValues(alpha: 0.4)
+                                        : AppStyles.getDividerColor(context),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      _hasActiveFilter
+                                          ? CupertinoIcons
+                                              .line_horizontal_3_decrease_circle_fill
+                                          : CupertinoIcons
+                                              .line_horizontal_3_decrease_circle,
+                                      size: 14,
+                                      color: _hasActiveFilter
+                                          ? AppStyles.getPrimaryColor(context)
+                                          : AppStyles.getSecondaryTextColor(
+                                              context),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      _hasActiveFilter ? 'Filters Active' : 'Filter',
+                                      style: TextStyle(
+                                        fontSize: TypeScale.caption,
+                                        color: _hasActiveFilter
+                                            ? AppStyles.getPrimaryColor(context)
+                                            : AppStyles.getSecondaryTextColor(
+                                                context),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    if (_hasActiveFilter) ...[
+                                      const SizedBox(width: 6),
+                                      GestureDetector(
+                                        behavior: HitTestBehavior.opaque,
+                                        onTap: () {
+                                          setState(() {
+                                            _minAmount = null;
+                                            _maxAmount = null;
+                                            _typeFilter = null;
+                                            _dateFilter =
+                                                _DateRangeFilter.all;
+                                          });
+                                          _saveFilterPrefs();
+                                        },
+                                        child: Icon(
+                                            CupertinoIcons.xmark_circle_fill,
+                                            size: 13,
+                                            color: AppStyles.getPrimaryColor(
+                                                context)),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          Container(
+                              height: 0.5,
+                              color: AppStyles.getDividerColor(context)
+                                  .withValues(alpha: 0.5)),
+                          const SizedBox(height: Spacing.xs),
+
+                          // Quick stats (landscape sidebar)
+                          if (transactions.isNotEmpty)
+                            _buildLandscapeStats(context, transactions),
+
+                          const Spacer(),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // RIGHT PANEL — date filters + transaction list
+                  Expanded(
+                    child: Column(
+                      children: [
+                        _buildDateChips(),
+                        if (_searchQuery.isEmpty &&
+                            _dateFilter == _DateRangeFilter.all)
+                          Consumer<RecurringTemplatesController>(
+                            builder: (_, recurringCtrl, __) =>
+                                _buildRecurringSuggestions(
+                              transactionsController.transactions,
+                              recurringCtrl,
+                            ),
+                          ),
+                        if (transactions.isEmpty)
+                          Expanded(
+                            child: _searchQuery.isNotEmpty
+                                ? _buildNoSearchResults()
+                                : Center(
+                                    child: Text(
+                                      _hasActiveFilter
+                                          ? 'No transactions match the current filter'
+                                          : 'No transactions found',
+                                      style: TextStyle(
+                                          color:
+                                              AppStyles.getSecondaryTextColor(
+                                                  context)),
+                                    ),
+                                  ),
+                          )
+                        else
+                          Expanded(
+                            child: _buildGroupedList(context, transactions,
+                                transactionsController),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          // ── PORTRAIT: original layout ────────────────────────────────
           return SafeArea(
             child: Column(
               children: [
-                if (AppStyles.isLandscape(context))
-                  _buildLandscapeNavBar(context),
                 Padding(
-                  padding: EdgeInsets.fromLTRB(
-                      Spacing.lg,
-                      AppStyles.isLandscape(context) ? Spacing.sm : Spacing.lg,
-                      Spacing.lg, Spacing.sm),
+                  padding: const EdgeInsets.fromLTRB(
+                      Spacing.lg, Spacing.lg, Spacing.lg, Spacing.sm),
                   child: CupertinoSearchTextField(
                     controller: _searchController,
                     placeholder: 'Search transactions',
@@ -689,7 +935,6 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                   ),
                 ),
                 _buildDateChips(),
-                // UTL-02 — recurring pattern suggestions
                 if (_searchQuery.isEmpty && _dateFilter == _DateRangeFilter.all)
                   Consumer<RecurringTemplatesController>(
                     builder: (_, recurringCtrl, __) =>
@@ -1402,6 +1647,89 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         ),
       ),
       ),
+    );
+  }
+
+  Widget _buildLandscapeStats(
+      BuildContext context, List<dynamic> transactions) {
+    double income = 0, expense = 0;
+    for (final tx in transactions) {
+      if (tx is Transaction) {
+        if (tx.type == TransactionType.income) {
+          income += tx.amount;
+        } else if (tx.type == TransactionType.expense) {
+          expense += tx.amount;
+        }
+      }
+    }
+    final net = income - expense;
+    final netPositive = net >= 0;
+
+    String fmt(double v) {
+      if (v >= 100000) return '₹${(v / 100000).toStringAsFixed(1)}L';
+      if (v >= 1000) return '₹${(v / 1000).toStringAsFixed(1)}K';
+      return '₹${v.toStringAsFixed(0)}';
+    }
+
+    Widget statRow(String label, String value, Color color) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(
+            horizontal: Spacing.sm, vertical: 3),
+        child: Row(
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: TypeScale.caption,
+                color: AppStyles.getSecondaryTextColor(context),
+              ),
+            ),
+            const Spacer(),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: TypeScale.caption,
+                fontWeight: FontWeight.w700,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+              Spacing.sm, Spacing.xs, Spacing.sm, 2),
+          child: Text(
+            '${transactions.length} transactions',
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: AppStyles.getSecondaryTextColor(context),
+              letterSpacing: 0.3,
+            ),
+          ),
+        ),
+        statRow('Income', fmt(income), AppStyles.gain(context)),
+        statRow('Expense', fmt(expense), AppStyles.loss(context)),
+        Padding(
+          padding: const EdgeInsets.symmetric(
+              horizontal: Spacing.sm, vertical: 2),
+          child: Container(
+              height: 0.5,
+              color: AppStyles.getDividerColor(context)
+                  .withValues(alpha: 0.5)),
+        ),
+        statRow(
+          'Net',
+          (netPositive ? '+' : '') + fmt(net.abs()),
+          netPositive ? AppStyles.gain(context) : AppStyles.loss(context),
+        ),
+      ],
     );
   }
 

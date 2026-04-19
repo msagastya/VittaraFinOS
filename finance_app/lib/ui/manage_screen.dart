@@ -171,75 +171,77 @@ class _ManageScreenState extends State<ManageScreen> {
             return true;
           }).toList();
 
+          final isLandscape = AppStyles.isLandscape(context);
+
           return SafeArea(
             child: RepaintBoundary(
               child: SubtleParticleOverlay(
-                particleCount: AppStyles.isLandscape(context) ? 0 : 12,
+                particleCount: 0,
                 child: Container(
                   decoration: BoxDecoration(
                     gradient: AppStyles.backgroundGradient(context),
                   ),
-                  child: Column(
-                    children: [
-                      if (AppStyles.isLandscape(context))
-                        _buildLandscapeNavBar(context),
-                      Expanded(
-                        child: RLayout.tabletConstrain(
-                          context,
-                          ReorderableListView.builder(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: RS.lg(context),
-                      vertical: RS.xl(context),
-                    ),
-                    header: Padding(
-                      padding: const EdgeInsets.only(bottom: Spacing.lg),
-                      child: _buildManageHeader(context),
-                    ),
-                    itemCount: filteredItems.length,
-                    onReorder: (oldIndex, newIndex) {
-                      Haptics.reorder();
-                      setState(() {
-                        if (oldIndex < newIndex) {
-                          newIndex -= 1;
-                        }
-                        final item = _items.removeAt(oldIndex);
-                        _items.insert(newIndex, item);
-                      });
-                      _saveOrder();
-                    },
-                    proxyDecorator: (child, index, animation) {
-                      return AnimatedBuilder(
-                        animation: animation,
-                        builder: (BuildContext context, Widget? child) {
-                          return Transform.scale(
-                            scale: 1.02,
-                            child: Container(
-                              decoration:
-                                  AppStyles.cardDecoration(context).copyWith(
-                                boxShadow: [
-                                  ...AppStyles.elevatedShadows(
-                                    context,
-                                    tint: SemanticColors.getPrimary(context),
-                                    strength: 0.7,
+                  child: isLandscape
+                      ? _buildLandscapeGrid(context, filteredItems)
+                      : Column(
+                          children: [
+                            Expanded(
+                              child: RLayout.tabletConstrain(
+                                context,
+                                ReorderableListView.builder(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: RS.lg(context),
+                                    vertical: RS.xl(context),
                                   ),
-                                ],
+                                  header: Padding(
+                                    padding: const EdgeInsets.only(
+                                        bottom: Spacing.lg),
+                                    child: _buildManageHeader(context),
+                                  ),
+                                  itemCount: filteredItems.length,
+                                  onReorder: (oldIndex, newIndex) {
+                                    Haptics.reorder();
+                                    setState(() {
+                                      if (oldIndex < newIndex) newIndex -= 1;
+                                      final item = _items.removeAt(oldIndex);
+                                      _items.insert(newIndex, item);
+                                    });
+                                    _saveOrder();
+                                  },
+                                  proxyDecorator: (child, index, animation) {
+                                    return AnimatedBuilder(
+                                      animation: animation,
+                                      builder: (context, child) =>
+                                          Transform.scale(
+                                        scale: 1.02,
+                                        child: Container(
+                                          decoration: AppStyles.cardDecoration(
+                                                  context)
+                                              .copyWith(
+                                            boxShadow: [
+                                              ...AppStyles.elevatedShadows(
+                                                context,
+                                                tint: SemanticColors.getPrimary(
+                                                    context),
+                                                strength: 0.7,
+                                              ),
+                                            ],
+                                          ),
+                                          child: child,
+                                        ),
+                                      ),
+                                      child: child,
+                                    );
+                                  },
+                                  itemBuilder: (context, index) {
+                                    final item = filteredItems[index];
+                                    return _build3DCard(item, index);
+                                  },
+                                ),
                               ),
-                              child: child,
                             ),
-                          );
-                        },
-                        child: child,
-                      );
-                    },
-                    itemBuilder: (context, index) {
-                      final item = filteredItems[index];
-                      return _build3DCard(item, index);
-                    },
-                  ),
-                        ), // closes tabletConstrain
-                      ), // closes Expanded
-                    ], // closes Column children
-                  ), // closes Column
+                          ],
+                        ),
                 ),
               ),
             ),
@@ -249,23 +251,127 @@ class _ManageScreenState extends State<ManageScreen> {
     );
   }
 
-  Widget _buildLandscapeNavBar(BuildContext context) {
-    return Container(
-      height: 44,
-      padding: const EdgeInsets.symmetric(horizontal: Spacing.md),
-      child: Row(
-        children: [
-          CupertinoButton(
-            padding: const EdgeInsets.symmetric(horizontal: Spacing.sm),
-            minimumSize: const Size(44, 44),
-            onPressed: () => Navigator.maybePop(context),
-            child: Icon(CupertinoIcons.chevron_left, size: 20,
-                color: AppStyles.getPrimaryColor(context)),
+  Widget _buildLandscapeGrid(
+      BuildContext context, List<Map<String, dynamic>> items) {
+    final textColor = AppStyles.getTextColor(context);
+    return Column(
+      children: [
+        // Compact nav bar
+        Container(
+          height: 44,
+          decoration: BoxDecoration(
+            color: AppStyles.getCardColor(context).withValues(alpha: 0.90),
+            border: Border(
+              bottom: BorderSide(
+                  color: AppStyles.getDividerColor(context), width: 0.5),
+            ),
           ),
-          const SizedBox(width: 8),
-          Text('MANAGE',
-              style: AppTypography.sectionLabel(color: AppStyles.getTextColor(context))),
-        ],
+          padding: const EdgeInsets.symmetric(horizontal: Spacing.md),
+          child: Row(
+            children: [
+              CupertinoButton(
+                padding: EdgeInsets.zero,
+                minimumSize: Size.zero,
+                onPressed: () => Navigator.maybePop(context),
+                child: Icon(CupertinoIcons.chevron_left,
+                    size: 18, color: AppStyles.getPrimaryColor(context)),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'MANAGE',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: textColor,
+                  letterSpacing: 1.1,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // 2-column grid
+        Expanded(
+          child: GridView.builder(
+            padding: const EdgeInsets.all(Spacing.md),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: Spacing.md,
+              mainAxisSpacing: Spacing.md,
+              childAspectRatio: 3.2,
+            ),
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              final item = items[index];
+              return _buildGridCard(context, item);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGridCard(BuildContext context, Map<String, dynamic> item) {
+    final color = item['color'] as Color;
+    return BouncyButton(
+      onPressed: () => _onCardPressed(item),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppStyles.getCardColor(context),
+          borderRadius: BorderRadius.circular(Radii.md),
+          border: Border.all(
+            color: color.withValues(alpha: 0.20),
+          ),
+        ),
+        padding: const EdgeInsets.symmetric(
+            horizontal: Spacing.md, vertical: Spacing.sm),
+        child: Row(
+          children: [
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(Radii.sm),
+              ),
+              child: Icon(item['icon'] as IconData, size: 17, color: color),
+            ),
+            const SizedBox(width: Spacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    item['title'] as String,
+                    style: TextStyle(
+                      fontSize: TypeScale.subhead,
+                      fontWeight: FontWeight.w600,
+                      color: AppStyles.getTextColor(context),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (item['subtitle'] != null)
+                    Text(
+                      item['subtitle'] as String,
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: AppStyles.getSecondaryTextColor(context),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                ],
+              ),
+            ),
+            Icon(
+              CupertinoIcons.chevron_right,
+              size: 12,
+              color: color.withValues(alpha: 0.6),
+            ),
+          ],
+        ),
       ),
     );
   }

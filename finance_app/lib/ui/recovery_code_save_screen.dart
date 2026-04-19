@@ -78,33 +78,35 @@ class _RecoveryCodeSaveScreenState extends State<RecoveryCodeSaveScreen>
 
     return CupertinoPageScaffold(
       backgroundColor: bg,
-      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
-        middle: Text('Recovery Code',
-            style: TextStyle(color: textColor)),
-        backgroundColor: bg.withValues(alpha: 0.85),
-        border: null,
-      ),
+      navigationBar: AppStyles.isLandscape(context)
+          ? null
+          : CupertinoNavigationBar(
+              middle: Text('Recovery Code', style: TextStyle(color: textColor)),
+              backgroundColor: bg.withValues(alpha: 0.85),
+              border: null,
+            ),
       child: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: Spacing.xl, vertical: Spacing.xl),
+          padding: const EdgeInsets.symmetric(
+              horizontal: Spacing.xl, vertical: Spacing.xl),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Warning icon
+              // Icon
               Container(
-                width: 72,
-                height: 72,
+                width: 64,
+                height: 64,
                 decoration: BoxDecoration(
                   color: AppStyles.gold(context).withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(CupertinoIcons.shield_lefthalf_fill,
-                    color: AppStyles.gold(context), size: 36),
+                    color: AppStyles.gold(context), size: 32),
               ),
-              const SizedBox(height: Spacing.xl),
+              const SizedBox(height: Spacing.lg),
 
               Text(
-                'Save Your\nRecovery Code',
+                'Save Your Recovery Code',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontFamily: 'SpaceGrotesk',
@@ -114,10 +116,10 @@ class _RecoveryCodeSaveScreenState extends State<RecoveryCodeSaveScreen>
                   height: 1.2,
                 ),
               ),
-              const SizedBox(height: Spacing.md),
+              const SizedBox(height: Spacing.sm),
 
               Text(
-                'If you forget your PIN and biometric is unavailable,\nthis code is the ONLY way to recover your data.\nWrite it down and store it somewhere safe.',
+                'If you forget your PIN, this code is the only way back in.\nWrite it down — it will not be shown again.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: TypeScale.body,
@@ -153,34 +155,36 @@ class _RecoveryCodeSaveScreenState extends State<RecoveryCodeSaveScreen>
                       ),
                     ),
                     const SizedBox(height: Spacing.lg),
-                    // Code in groups for readability
                     Wrap(
                       alignment: WrapAlignment.center,
                       spacing: 8,
                       runSpacing: 8,
-                      children: parts.map((part) => Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? AppStyles.gold(context).withValues(alpha: 0.10)
-                              : AppStyles.gold(context).withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          part,
-                          style: TextStyle(
-                            fontFamily: 'SpaceGrotesk',
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 2,
-                            color: textColor,
-                          ),
-                        ),
-                      )).toList(),
+                      children: parts
+                          .map((part) => Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? AppStyles.gold(context)
+                                          .withValues(alpha: 0.10)
+                                      : AppStyles.gold(context)
+                                          .withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  part,
+                                  style: TextStyle(
+                                    fontFamily: 'SpaceGrotesk',
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 2,
+                                    color: textColor,
+                                  ),
+                                ),
+                              ))
+                          .toList(),
                     ),
                     const SizedBox(height: Spacing.lg),
-                    // Copy button
                     BouncyButton(
                       onPressed: _copy,
                       child: Container(
@@ -205,7 +209,9 @@ class _RecoveryCodeSaveScreenState extends State<RecoveryCodeSaveScreen>
                                   ? CupertinoIcons.checkmark_circle_fill
                                   : CupertinoIcons.doc_on_doc,
                               size: 16,
-                              color: _copied ? AppStyles.gain(context) : AppStyles.gold(context),
+                              color: _copied
+                                  ? AppStyles.gain(context)
+                                  : AppStyles.gold(context),
                             ),
                             const SizedBox(width: 6),
                             Text(
@@ -213,7 +219,9 @@ class _RecoveryCodeSaveScreenState extends State<RecoveryCodeSaveScreen>
                               style: TextStyle(
                                 fontSize: TypeScale.subhead,
                                 fontWeight: FontWeight.w600,
-                                color: _copied ? AppStyles.gain(context) : AppStyles.gold(context),
+                                color: _copied
+                                    ? AppStyles.gain(context)
+                                    : AppStyles.gold(context),
                               ),
                             ),
                           ],
@@ -225,21 +233,35 @@ class _RecoveryCodeSaveScreenState extends State<RecoveryCodeSaveScreen>
               ),
               const SizedBox(height: Spacing.xl),
 
-              // Warning boxes
-              _warningBox(
-                context,
-                icon: CupertinoIcons.eye_slash_fill,
-                color: AppStyles.loss(context),
-                text: 'This code will NOT be shown again. Screenshot it or write it on paper NOW.',
+              // Single warning
+              Container(
+                padding: const EdgeInsets.all(Spacing.md),
+                decoration: BoxDecoration(
+                  color: AppStyles.loss(context).withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(Radii.sm),
+                  border: Border.all(
+                      color: AppStyles.loss(context).withValues(alpha: 0.20)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(CupertinoIcons.exclamationmark_triangle_fill,
+                        size: 16, color: AppStyles.loss(context)),
+                    const SizedBox(width: Spacing.sm),
+                    Expanded(
+                      child: Text(
+                        'Store this outside your phone — in a notes app, password manager, or on paper. If you lose the phone and forget the PIN, there is no other way in.',
+                        style: TextStyle(
+                          fontSize: TypeScale.subhead,
+                          color: subColor,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: Spacing.md),
-              _warningBox(
-                context,
-                icon: CupertinoIcons.device_phone_portrait,
-                color: subColor,
-                text: 'Do not save this only on this device — if you lose the phone, you lose access.',
-              ),
-              const SizedBox(height: Spacing.xxl),
+              const SizedBox(height: Spacing.xl),
 
               // Confirmation checkbox
               GestureDetector(
@@ -274,7 +296,7 @@ class _RecoveryCodeSaveScreenState extends State<RecoveryCodeSaveScreen>
                     const SizedBox(width: Spacing.md),
                     Expanded(
                       child: Text(
-                        'I have saved my recovery code in a safe place and understand it cannot be recovered if lost.',
+                        'I have saved my recovery code somewhere safe.',
                         style: TextStyle(
                           fontSize: TypeScale.subhead,
                           color: subColor,
@@ -301,12 +323,14 @@ class _RecoveryCodeSaveScreenState extends State<RecoveryCodeSaveScreen>
                             AppStyles.teal(context),
                           ])
                         : null,
-                    color: _confirmed ? null : subColor.withValues(alpha: 0.12),
+                    color: _confirmed
+                        ? null
+                        : subColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(Radii.full),
                   ),
                   child: Center(
                     child: Text(
-                      'I\'ve Saved It — Continue',
+                      "I've Saved It — Continue",
                       style: TextStyle(
                         fontSize: TypeScale.body,
                         fontWeight: FontWeight.w600,
@@ -320,37 +344,6 @@ class _RecoveryCodeSaveScreenState extends State<RecoveryCodeSaveScreen>
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _warningBox(BuildContext context,
-      {required IconData icon,
-      required Color color,
-      required String text}) {
-    return Container(
-      padding: const EdgeInsets.all(Spacing.md),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(Radii.sm),
-        border: Border.all(color: color.withValues(alpha: 0.20)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 16, color: color),
-          const SizedBox(width: Spacing.sm),
-          Expanded(
-            child: Text(
-              text,
-              style: TextStyle(
-                fontSize: TypeScale.subhead,
-                color: AppStyles.getSecondaryTextColor(context),
-                height: 1.4,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
