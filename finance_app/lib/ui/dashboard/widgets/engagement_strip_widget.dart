@@ -486,16 +486,34 @@ class _QuickAccessPill extends StatelessWidget {
   }
 
   void _showQuickAccessSheet(BuildContext context) {
-    showCupertinoModalPopup<void>(
-      context: context,
-      builder: (_) => _QuickAccessSheet(parentContext: context),
-    );
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+    if (isLandscape) {
+      // In landscape, a bottom sheet is too short — use a centered dialog instead
+      showCupertinoDialog<void>(
+        context: context,
+        barrierDismissible: true,
+        builder: (_) => _QuickAccessSheet(
+          parentContext: context,
+          isLandscapeDialog: true,
+        ),
+      );
+    } else {
+      showCupertinoModalPopup<void>(
+        context: context,
+        builder: (_) => _QuickAccessSheet(parentContext: context),
+      );
+    }
   }
 }
 
 class _QuickAccessSheet extends StatelessWidget {
   final BuildContext parentContext;
-  const _QuickAccessSheet({required this.parentContext});
+  final bool isLandscapeDialog;
+  const _QuickAccessSheet({
+    required this.parentContext,
+    this.isLandscapeDialog = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -518,84 +536,68 @@ class _QuickAccessSheet extends StatelessWidget {
           () => Navigator.of(parentContext).push(FadeScalePageRoute(page: const AchievementsScreen()))),
     ];
 
-    return Container(
-      decoration: BoxDecoration(
-        color: AppStyles.getBackground(context),
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(Radii.xxl),
-          topRight: Radius.circular(Radii.xxl),
-        ),
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.all(Spacing.xl),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+    Widget sheetContent = Padding(
+      padding: const EdgeInsets.all(Spacing.xl),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Handle (portrait only)
+          if (!isLandscapeDialog)
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: Spacing.lg),
+                decoration: BoxDecoration(
+                  color: AppStyles.getSecondaryTextColor(context)
+                      .withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(Radii.full),
+                ),
+              ),
+            ),
+          Row(
             children: [
-              // Handle
-              Center(
-                child: Container(
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppStyles.getSecondaryTextColor(context)
-                        .withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(Radii.full),
-                  ),
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: AppStyles.novaPurple.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(CupertinoIcons.bolt_fill,
+                    size: 15, color: AppStyles.novaPurple),
+              ),
+              const SizedBox(width: Spacing.md),
+              Text(
+                'Quick Access',
+                style: TextStyle(
+                  fontSize: TypeScale.headline,
+                  fontWeight: FontWeight.w800,
+                  color: AppStyles.getTextColor(context),
                 ),
               ),
-              const SizedBox(height: Spacing.lg),
-              Row(
-                children: [
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: AppStyles.novaPurple.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(CupertinoIcons.bolt_fill,
-                        size: 15, color: AppStyles.novaPurple),
-                  ),
-                  const SizedBox(width: Spacing.md),
-                  Text(
-                    'Quick Access',
-                    style: TextStyle(
-                      fontSize: TypeScale.headline,
-                      fontWeight: FontWeight.w800,
-                      color: AppStyles.getTextColor(context),
-                    ),
-                  ),
-                  const Spacer(),
-                  CupertinoButton(
-                    padding: EdgeInsets.zero,
-                    minimumSize: Size.zero,
-                    onPressed: () => Navigator.pop(context),
-                    child: Icon(
-                      CupertinoIcons.xmark_circle,
-                      size: 20,
-                      color: AppStyles.getSecondaryTextColor(context)
-                          .withValues(alpha: 0.4),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: Spacing.xl),
-              GridView.builder(
-                physics: const NeverScrollableScrollPhysics(),
-                shrinkWrap: true,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4,
-                  mainAxisSpacing: Spacing.md,
-                  crossAxisSpacing: Spacing.md,
-                  childAspectRatio: 0.88,
+              const Spacer(),
+              CupertinoButton(
+                padding: EdgeInsets.zero,
+                minimumSize: Size.zero,
+                onPressed: () => Navigator.pop(context),
+                child: Icon(
+                  CupertinoIcons.xmark_circle,
+                  size: 20,
+                  color: AppStyles.getSecondaryTextColor(context)
+                      .withValues(alpha: 0.4),
                 ),
-                itemCount: items.length,
-                itemBuilder: (ctx, i) {
-                  final item = items[i];
-                  return BouncyButton(
+              ),
+            ],
+          ),
+          const SizedBox(height: Spacing.xl),
+          // Landscape: single row; portrait: 4-column grid
+          if (isLandscapeDialog)
+            Row(
+              children: items.map((item) {
+                return Expanded(
+                  child: BouncyButton(
                     onPressed: () {
                       Navigator.pop(context);
                       item.onTap();
@@ -604,25 +606,25 @@ class _QuickAccessSheet extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Container(
-                          width: 52,
-                          height: 52,
+                          width: 44,
+                          height: 44,
                           decoration: BoxDecoration(
-                            color: item.color.withValues(
-                                alpha: isDark ? 0.15 : 0.10),
-                            borderRadius: BorderRadius.circular(14),
+                            color: item.color
+                                .withValues(alpha: isDark ? 0.15 : 0.10),
+                            borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: item.color.withValues(
-                                  alpha: isDark ? 0.25 : 0.18),
+                              color: item.color
+                                  .withValues(alpha: isDark ? 0.25 : 0.18),
                               width: 1,
                             ),
                           ),
-                          child: Icon(item.icon, color: item.color, size: 22),
+                          child: Icon(item.icon, color: item.color, size: 20),
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 5),
                         Text(
                           item.label,
                           style: TextStyle(
-                            fontSize: TypeScale.caption,
+                            fontSize: 10,
                             fontWeight: FontWeight.w600,
                             color: AppStyles.getTextColor(context),
                           ),
@@ -632,14 +634,99 @@ class _QuickAccessSheet extends StatelessWidget {
                         ),
                       ],
                     ),
-                  );
-                },
+                  ),
+                );
+              }).toList(),
+            )
+          else
+            GridView.builder(
+              physics: const NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 4,
+                mainAxisSpacing: Spacing.md,
+                crossAxisSpacing: Spacing.md,
+                childAspectRatio: 0.88,
               ),
-              const SizedBox(height: Spacing.md),
-            ],
+              itemCount: items.length,
+              itemBuilder: (ctx, i) {
+                final item = items[i];
+                return BouncyButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    item.onTap();
+                  },
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 52,
+                        height: 52,
+                        decoration: BoxDecoration(
+                          color: item.color
+                              .withValues(alpha: isDark ? 0.15 : 0.10),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: item.color
+                                .withValues(alpha: isDark ? 0.25 : 0.18),
+                            width: 1,
+                          ),
+                        ),
+                        child: Icon(item.icon, color: item.color, size: 22),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        item.label,
+                        style: TextStyle(
+                          fontSize: TypeScale.caption,
+                          fontWeight: FontWeight.w600,
+                          color: AppStyles.getTextColor(context),
+                        ),
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          const SizedBox(height: Spacing.md),
+        ],
+      ),
+    );
+
+    if (isLandscapeDialog) {
+      // Centered card dialog for landscape
+      return Center(
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            width: 560,
+            margin: const EdgeInsets.symmetric(horizontal: 24),
+            decoration: BoxDecoration(
+              color: AppStyles.getBackground(context),
+              borderRadius: BorderRadius.circular(Radii.xxl),
+              border: Border.all(
+                color: AppStyles.novaPurple.withValues(alpha: 0.15),
+                width: 1,
+              ),
+            ),
+            child: sheetContent,
           ),
         ),
+      );
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppStyles.getBackground(context),
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(Radii.xxl),
+          topRight: Radius.circular(Radii.xxl),
+        ),
       ),
+      child: SafeArea(top: false, child: sheetContent),
     );
   }
 }

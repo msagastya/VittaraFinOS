@@ -49,11 +49,6 @@ class DashboardAppMenuScreen extends StatelessWidget {
                 _BrandHeader(),
                 const SizedBox(height: Spacing.xl),
 
-                // ── Quick Access grid — all key features visible upfront ──
-                _buildQuickAccessGrid(context),
-
-                const SizedBox(height: Spacing.xl),
-
                 // ── Secondary sections ──
                 _MenuSectionCard(
                   title: 'Product',
