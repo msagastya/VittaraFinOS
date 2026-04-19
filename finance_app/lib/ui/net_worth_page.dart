@@ -20,6 +20,7 @@ import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/card_deck_view.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
+import 'package:vittara_fin_os/ui/widgets/landscape_scaffold.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
@@ -487,17 +488,29 @@ class _NetWorthPageState extends State<NetWorthPage> {
                 if (mounted) _maybeSaveSnapshot(totalNetWorth);
               });
 
-              // ── Card Deck Layout ────────────────────────────────────────
-              return Column(
-                children: [
-                  // Compact nav bar in landscape
-                  if (isLandscape) _buildLandscapeNavBar(context),
-                  Expanded(
-                    child: CardDeckView(
-                      cards: [
-                        // Card 1: Vault + Trajectory — net worth + momentum + trend + forecast
-                        _buildNwDeckCard(
-                          context,
+              // ── Layout: landscape = split, portrait = card deck ─────────
+              if (isLandscape) {
+                return LandscapeScaffold(
+                  railWidth: 210,
+                  leftRail: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      LandscapeRailHeader(
+                          title: 'SCORECARD', outerContext: context),
+                      const RailDivider(indent: 0),
+                      const SizedBox(height: 8),
+                      _buildLandscapeNetWorthRail(
+                          context, totalNetWorth, accountsController,
+                          investmentsController),
+                    ],
+                  ),
+                  body: GridView.count(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                    padding: const EdgeInsets.all(8),
+                    children: [
+                      _buildNwDeckCard(context,
                           label: 'VAULT · TRAJECTORY',
                           icon: CupertinoIcons.lock_shield_fill,
                           accent: AppStyles.teal(context),
@@ -507,25 +520,13 @@ class _NetWorthPageState extends State<NetWorthPage> {
                               _buildTotalNetWorthCard(context,
                                   accountsController, investmentsController),
                               if (_historySnapshots.length >= 2) ...[
-                                const SizedBox(height: Spacing.md),
+                                const SizedBox(height: Spacing.sm),
                                 _buildMotivationalBanner(
                                     context, totalNetWorth),
                               ],
-                              if (_dailySnapshots.length >= 2) ...[
-                                const SizedBox(height: Spacing.lg),
-                                const Divider(height: 1),
-                                const SizedBox(height: Spacing.lg),
-                                _buildNetWorthTrendCard(context),
-                              ],
-                              const SizedBox(height: Spacing.lg),
-                              _buildForecastCard(
-                                  context, txCtrl, totalNetWorth),
                             ],
-                          ),
-                        ),
-                        // Card 2: Liquid Assets — bank accounts + payment wallets
-                        _buildNwDeckCard(
-                          context,
+                          )),
+                      _buildNwDeckCard(context,
                           label: 'LIQUID ASSETS',
                           icon: CupertinoIcons.building_2_fill,
                           accent: AppStyles.gain(context),
@@ -536,11 +537,8 @@ class _NetWorthPageState extends State<NetWorthPage> {
                                   context, accountsController),
                               ..._buildWalletsSection(context, payCtrl),
                             ],
-                          ),
-                        ),
-                        // Card 3: Portfolio — demat + investments
-                        _buildNwDeckCard(
-                          context,
+                          )),
+                      _buildNwDeckCard(context,
                           label: 'PORTFOLIO',
                           icon: CupertinoIcons.chart_pie_fill,
                           accent: AppStyles.gold(context),
@@ -549,23 +547,84 @@ class _NetWorthPageState extends State<NetWorthPage> {
                             children: [
                               _buildDematAccountsSection(
                                   context, accountsController),
-                              const SizedBox(height: Spacing.lg),
+                              const SizedBox(height: Spacing.md),
                               _buildInvestmentsSection(
                                   context, investmentsController),
                             ],
-                          ),
-                        ),
-                        // Card 4: Obligations — credit liabilities
-                        _buildNwDeckCard(
-                          context,
+                          )),
+                      _buildNwDeckCard(context,
                           label: 'OBLIGATIONS',
                           icon: CupertinoIcons.creditcard_fill,
                           accent: AppStyles.loss(context),
                           child: _buildCreditLiabilitiesSection(
-                              context, accountsController),
-                        ),
+                              context, accountsController)),
+                    ],
+                  ),
+                );
+              }
+
+              // ── Portrait: Card Deck ──────────────────────────────────────
+              return CardDeckView(
+                cards: [
+                  _buildNwDeckCard(
+                    context,
+                    label: 'VAULT · TRAJECTORY',
+                    icon: CupertinoIcons.lock_shield_fill,
+                    accent: AppStyles.teal(context),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildTotalNetWorthCard(context,
+                            accountsController, investmentsController),
+                        if (_historySnapshots.length >= 2) ...[
+                          const SizedBox(height: Spacing.md),
+                          _buildMotivationalBanner(context, totalNetWorth),
+                        ],
+                        if (_dailySnapshots.length >= 2) ...[
+                          const SizedBox(height: Spacing.lg),
+                          const Divider(height: 1),
+                          const SizedBox(height: Spacing.lg),
+                          _buildNetWorthTrendCard(context),
+                        ],
+                        const SizedBox(height: Spacing.lg),
+                        _buildForecastCard(context, txCtrl, totalNetWorth),
                       ],
                     ),
+                  ),
+                  _buildNwDeckCard(
+                    context,
+                    label: 'LIQUID ASSETS',
+                    icon: CupertinoIcons.building_2_fill,
+                    accent: AppStyles.gain(context),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildBankAccountsSection(context, accountsController),
+                        ..._buildWalletsSection(context, payCtrl),
+                      ],
+                    ),
+                  ),
+                  _buildNwDeckCard(
+                    context,
+                    label: 'PORTFOLIO',
+                    icon: CupertinoIcons.chart_pie_fill,
+                    accent: AppStyles.gold(context),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildDematAccountsSection(context, accountsController),
+                        const SizedBox(height: Spacing.lg),
+                        _buildInvestmentsSection(context, investmentsController),
+                      ],
+                    ),
+                  ),
+                  _buildNwDeckCard(
+                    context,
+                    label: 'OBLIGATIONS',
+                    icon: CupertinoIcons.creditcard_fill,
+                    accent: AppStyles.loss(context),
+                    child: _buildCreditLiabilitiesSection(
+                        context, accountsController),
                   ),
                 ],
               );
@@ -611,55 +670,76 @@ class _NetWorthPageState extends State<NetWorthPage> {
     );
   }
 
-  // ── Compact landscape nav bar (back button + title) ─────────────────────────
-  Widget _buildLandscapeNavBar(BuildContext context) {
-    return Container(
-      height: 40,
-      padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
-      decoration: BoxDecoration(
-        color: AppStyles.getCardColor(context).withValues(alpha: 0.85),
-        border: Border(
-          bottom: BorderSide(
-              color: AppStyles.getDividerColor(context), width: 0.5),
-        ),
-      ),
-      child: Row(
-        children: [
-          BouncyButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(CupertinoIcons.chevron_back,
-                    size: 16,
-                    color: AppStyles.getPrimaryColor(context)),
-                const SizedBox(width: 4),
-                Text(
-                  'Back',
+  // ── Landscape left rail: net worth summary ──────────────────────────────────
+  Widget _buildLandscapeNetWorthRail(
+      BuildContext context,
+      double totalNetWorth,
+      AccountsController accCtrl,
+      InvestmentsController invCtrl) {
+    const liabilityTypes = {AccountType.credit, AccountType.payLater};
+    final liquid = accCtrl.accounts
+        .where((a) => !liabilityTypes.contains(a.type) && !a.isHidden)
+        .fold(0.0, (s, a) => s + a.balance);
+    final portfolio = invCtrl.investments
+        .fold(0.0, (s, i) => s + i.amount);
+    final obligations = accCtrl.accounts
+        .where((a) => liabilityTypes.contains(a.type) && !a.isHidden)
+        .fold(0.0, (s, a) => s + ((a.creditLimit ?? 0.0) - a.balance));
+
+    String _fmt(double v) {
+      if (v >= 1e7) return '₹${(v / 1e7).toStringAsFixed(1)}Cr';
+      if (v >= 1e5) return '₹${(v / 1e5).toStringAsFixed(1)}L';
+      if (v >= 1e3) return '₹${(v / 1e3).toStringAsFixed(0)}K';
+      return '₹${v.toStringAsFixed(0)}';
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('NET WORTH',
                   style: TextStyle(
-                    fontSize: 14,
-                    color: AppStyles.getPrimaryColor(context),
-                    fontWeight: FontWeight.w500,
-                  ),
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.4,
+                      color: AppStyles.getSecondaryTextColor(context))),
+              const SizedBox(height: 4),
+              Text(
+                _fmt(totalNetWorth),
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: totalNetWorth >= 0
+                      ? AppStyles.gain(context)
+                      : AppStyles.loss(context),
+                  fontFamily: 'SpaceGrotesk',
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          const Spacer(),
-          Text(
-            'NET WORTH',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: AppStyles.getSecondaryTextColor(context),
-              letterSpacing: 1.2,
-            ),
-          ),
-          const Spacer(),
-          // Spacer to balance back button width
-          const SizedBox(width: 60),
-        ],
-      ),
+        ),
+        const RailDivider(),
+        const SizedBox(height: 4),
+        RailStatRow(
+          label: 'Liquid',
+          value: _fmt(liquid),
+          valueColor: AppStyles.gain(context),
+        ),
+        RailStatRow(
+          label: 'Portfolio',
+          value: _fmt(portfolio),
+          valueColor: AppStyles.gold(context),
+        ),
+        RailStatRow(
+          label: 'Obligations',
+          value: _fmt(obligations),
+          valueColor: AppStyles.loss(context),
+        ),
+      ],
     );
   }
 

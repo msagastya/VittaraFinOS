@@ -18,6 +18,7 @@ import 'package:vittara_fin_os/ui/widgets/animated_counter.dart'
     as counter_widgets;
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/glass_card.dart';
+import 'package:vittara_fin_os/ui/widgets/landscape_scaffold.dart';
 import 'package:vittara_fin_os/ui/widgets/liquid_progress_indicators.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
 import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
@@ -89,151 +90,200 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
           final warningBudgets = controller.getBudgetsInWarning();
           final exceededBudgets = controller.getBudgetsExceedingLimit();
 
+          // ── Shared scrollable budget list ─────────────────────────────────
+          Widget budgetListView = CustomScrollView(
+            slivers: [
+              CupertinoSliverRefreshControl(
+                onRefresh: () async {
+                  HapticFeedback.mediumImpact();
+                  await Provider.of<BudgetsController>(context, listen: false)
+                      .reloadFromStorage();
+                },
+              ),
+              // Health summary — portrait only; landscape shows compact rail
+              if (!isLandscape)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                        Spacing.lg, Spacing.lg, Spacing.lg, 0),
+                    child: _buildHealthSummary(controller.activeBudgets),
+                  ),
+                ),
+              if (exceededBudgets.isNotEmpty)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(Spacing.lg),
+                    child: _buildWarningBanner(exceededBudgets.length, true),
+                  ),
+                ),
+              if (warningBudgets.isNotEmpty && exceededBudgets.isEmpty)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(Spacing.lg),
+                    child: _buildWarningBanner(warningBudgets.length, false),
+                  ),
+                ),
+              if (_filterPeriod != null)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: Spacing.lg, vertical: Spacing.sm),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: Spacing.md, vertical: Spacing.sm),
+                          decoration: BoxDecoration(
+                            color: SemanticColors.getPrimary(context)
+                                .withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(Radii.full),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                Budget(
+                                  id: '',
+                                  name: '',
+                                  limitAmount: 0,
+                                  spentAmount: 0,
+                                  period: _filterPeriod!,
+                                  startDate: DateTime.now(),
+                                  endDate: DateTime.now(),
+                                  color: AppStyles.aetherTeal,
+                                ).getPeriodLabel(),
+                                style: TextStyle(
+                                    color: SemanticColors.getPrimary(context),
+                                    fontSize: TypeScale.footnote,
+                                    fontWeight: FontWeight.w600),
+                              ),
+                              const SizedBox(width: Spacing.sm),
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() => _filterPeriod = null);
+                                  PageStorage.of(context).writeState(context,
+                                      null,
+                                      identifier: const ValueKey(
+                                          'budgets_filter_period'));
+                                },
+                                child: Icon(CupertinoIcons.xmark_circle_fill,
+                                    size: IconSizes.sm,
+                                    color: SemanticColors.getPrimary(context)),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              if (filteredBudgets.isEmpty)
+                SliverFillRemaining(
+                  child: EmptyStateView(
+                    icon: CupertinoIcons.search,
+                    title: 'No budgets found',
+                    subtitle: 'Try adjusting your filter.',
+                    showPulse: false,
+                  ),
+                )
+              else
+                SliverPadding(
+                  padding: const EdgeInsets.all(Spacing.lg),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final budget = filteredBudgets[index];
+                        return StaggeredItem(
+                          index: index,
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: Spacing.lg),
+                            child: _buildSlidableBudgetCard(budget),
+                          ),
+                        );
+                      },
+                      childCount: filteredBudgets.length,
+                    ),
+                  ),
+                ),
+              const SliverToBoxAdapter(child: SizedBox(height: 80)),
+            ],
+          );
+
+          // ── Landscape rail ─────────────────────────────────────────────────
+          Widget landscapeRail = Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              LandscapeRailHeader(
+                title: 'BUDGETS',
+                outerContext: context,
+                trailing: CupertinoButton(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  minSize: 44,
+                  onPressed: _showPeriodFilter,
+                  child: Icon(
+                    CupertinoIcons.line_horizontal_3_decrease,
+                    size: 16,
+                    color: AppStyles.getSecondaryTextColor(context),
+                  ),
+                ),
+              ),
+              const RailDivider(indent: 0),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 4, 0, 4),
+                child: _buildRailHealthSummary(controller.activeBudgets),
+              ),
+              const RailDivider(),
+              // Period filter chips
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+                child: _buildRailPeriodChips(),
+              ),
+              const Spacer(),
+              // Add Budget button
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
+                child: CupertinoButton(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  color: SemanticColors.primary.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                  onPressed: _showAddBudgetModal,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(CupertinoIcons.add,
+                          size: 14,
+                          color: SemanticColors.getPrimary(context)),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Add Budget',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: SemanticColors.getPrimary(context),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+
+          final portraitBody = filteredBudgets.isEmpty && _filterPeriod == null
+              ? _buildEmptyState()
+              : budgetListView;
+
           return Stack(
             children: [
               SafeArea(
-                child: filteredBudgets.isEmpty && _filterPeriod == null
-                    ? _buildEmptyState()
-                    : Column(
-                        children: [
-                          if (isLandscape) _buildLandscapeNavBar(context),
-                          Expanded(
-                            child: CustomScrollView(
-                        slivers: [
-                          // Pull-to-refresh
-                          CupertinoSliverRefreshControl(
-                            onRefresh: () async {
-                              HapticFeedback.mediumImpact();
-                              await Provider.of<BudgetsController>(context,
-                                      listen: false)
-                                  .reloadFromStorage();
-                            },
-                          ),
-                          // Budget Health Overview
-                          SliverToBoxAdapter(
-                            child: Padding(
-                              padding: const EdgeInsets.fromLTRB(
-                                  Spacing.lg, Spacing.lg, Spacing.lg, 0),
-                              child: _buildHealthSummary(
-                                  controller.activeBudgets),
-                            ),
-                          ),
-                          if (exceededBudgets.isNotEmpty)
-                            SliverToBoxAdapter(
-                              child: Padding(
-                                padding: const EdgeInsets.all(Spacing.lg),
-                                child: _buildWarningBanner(
-                                    exceededBudgets.length, true),
-                              ),
-                            ),
-                          if (warningBudgets.isNotEmpty &&
-                              exceededBudgets.isEmpty)
-                            SliverToBoxAdapter(
-                              child: Padding(
-                                padding: const EdgeInsets.all(Spacing.lg),
-                                child: _buildWarningBanner(
-                                    warningBudgets.length, false),
-                              ),
-                            ),
-                          if (_filterPeriod != null)
-                            SliverToBoxAdapter(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: Spacing.lg,
-                                    vertical: Spacing.sm),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: Spacing.md,
-                                          vertical: Spacing.sm),
-                                      decoration: BoxDecoration(
-                                        color:
-                                            SemanticColors.getPrimary(context)
-                                                .withValues(alpha: 0.1),
-                                        borderRadius:
-                                            BorderRadius.circular(Radii.full),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            Budget(
-                                              id: '',
-                                              name: '',
-                                              limitAmount: 0,
-                                              spentAmount: 0,
-                                              period: _filterPeriod!,
-                                              startDate: DateTime.now(),
-                                              endDate: DateTime.now(),
-                                              color: AppStyles.aetherTeal,
-                                            ).getPeriodLabel(),
-                                            style: TextStyle(
-                                                color:
-                                                    SemanticColors.getPrimary(
-                                                        context),
-                                                fontSize: TypeScale.footnote,
-                                                fontWeight: FontWeight.w600),
-                                          ),
-                                          const SizedBox(width: Spacing.sm),
-                                          GestureDetector(
-                                            onTap: () {
-                                              setState(() => _filterPeriod = null);
-                                              PageStorage.of(context).writeState(
-                                                  context, null,
-                                                  identifier: const ValueKey(
-                                                      'budgets_filter_period'));
-                                            },
-                                            child: Icon(
-                                                CupertinoIcons
-                                                    .xmark_circle_fill,
-                                                size: IconSizes.sm,
-                                                color:
-                                                    SemanticColors.getPrimary(
-                                                        context)),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          if (filteredBudgets.isEmpty)
-                            SliverFillRemaining(
-                              child: EmptyStateView(
-                                icon: CupertinoIcons.search,
-                                title: 'No budgets found',
-                                subtitle: 'Try adjusting your filter.',
-                                showPulse: false,
-                              ),
-                            )
-                          else
-                            SliverPadding(
-                              padding: const EdgeInsets.all(Spacing.lg),
-                              sliver: SliverList(
-                                delegate: SliverChildBuilderDelegate(
-                                  (context, index) {
-                                    final budget = filteredBudgets[index];
-                                    return StaggeredItem(
-                                      index: index,
-                                      child: Padding(
-                                        padding:
-                                            const EdgeInsets.only(bottom: Spacing.lg),
-                                        child: _buildSlidableBudgetCard(budget),
-                                      ),
-                                    );
-                                  },
-                                  childCount: filteredBudgets.length,
-                                ),
-                              ),
-                            ),
-                          const SliverToBoxAdapter(child: SizedBox(height: 80)),
-                        ],
-                      ),
-                          ),
-                        ],
-                      ),
+                child: isLandscape
+                    ? LandscapeScaffold(
+                        railWidth: 210,
+                        leftRail: landscapeRail,
+                        body: budgetListView,
+                        portraitBody: portraitBody,
+                      )
+                    : portraitBody,
               ),
               Positioned(
                 right: Spacing.lg,
@@ -248,6 +298,137 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
             ],
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildRailHealthSummary(List<Budget> allBudgets) {
+    if (allBudgets.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Text('No active budgets',
+            style: TextStyle(
+                fontSize: 11,
+                color: AppStyles.getSecondaryTextColor(context))),
+      );
+    }
+    final totalBudgeted =
+        allBudgets.fold<double>(0, (sum, b) => sum + b.limitAmount);
+    final totalSpent =
+        allBudgets.fold<double>(0, (sum, b) => sum + b.spentAmount);
+    final overallPct =
+        totalBudgeted > 0 ? (totalSpent / totalBudgeted).clamp(0.0, 1.0) : 0.0;
+    final exceededCount = allBudgets
+        .where((b) => b.status == BudgetStatus.exceeded)
+        .length;
+    final onTrackCount = allBudgets
+        .where((b) => b.status == BudgetStatus.onTrack)
+        .length;
+
+    final barColor = exceededCount > 0
+        ? SemanticColors.error
+        : onTrackCount == allBudgets.length
+            ? SemanticColors.success
+            : SemanticColors.warning;
+
+    String _fmt(double v) {
+      if (v >= 1e7) return '₹${(v / 1e7).toStringAsFixed(1)}Cr';
+      if (v >= 1e5) return '₹${(v / 1e5).toStringAsFixed(1)}L';
+      if (v >= 1e3) return '₹${(v / 1e3).toStringAsFixed(0)}K';
+      return '₹${v.toStringAsFixed(0)}';
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        RailStatRow(label: 'Budgeted', value: _fmt(totalBudgeted)),
+        RailStatRow(
+            label: 'Spent',
+            value: _fmt(totalSpent),
+            valueColor: barColor),
+        RailStatRow(label: 'On track', value: '$onTrackCount / ${allBudgets.length}'),
+        const SizedBox(height: 4),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(3),
+            child: LinearProgressIndicator(
+              value: overallPct,
+              minHeight: 4,
+              backgroundColor: barColor.withValues(alpha: 0.15),
+              valueColor: AlwaysStoppedAnimation(barColor),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRailPeriodChips() {
+    final periods = BudgetPeriod.values;
+    final secondary = AppStyles.getSecondaryTextColor(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('PERIOD',
+            style: TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1.2,
+                color: secondary)),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            _buildPeriodChip(null, 'All'),
+            ...periods.map((p) => _buildPeriodChip(
+                p,
+                Budget(
+                  id: '',
+                  name: '',
+                  limitAmount: 0,
+                  spentAmount: 0,
+                  period: p,
+                  startDate: DateTime.now(),
+                  endDate: DateTime.now(),
+                  color: AppStyles.aetherTeal,
+                ).getPeriodLabel())),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPeriodChip(BudgetPeriod? period, String label) {
+    final isSelected = _filterPeriod == period;
+    final accent = SemanticColors.getPrimary(context);
+    return GestureDetector(
+      onTap: () {
+        setState(() => _filterPeriod = period);
+        PageStorage.of(context).writeState(context, period?.name,
+            identifier: const ValueKey('budgets_filter_period'));
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? accent.withValues(alpha: 0.15)
+              : AppStyles.getCardColor(context),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(
+            color: isSelected ? accent.withValues(alpha: 0.5) : Colors.transparent,
+            width: 0.5,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+            color: isSelected ? accent : AppStyles.getSecondaryTextColor(context),
+          ),
+        ),
       ),
     );
   }
@@ -742,55 +923,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> {
   }
 
   /// Compact 40dp nav bar for landscape mode.
-  Widget _buildLandscapeNavBar(BuildContext context) {
-    final secondary = AppStyles.getSecondaryTextColor(context);
-    return Container(
-      height: 40,
-      padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
-      decoration: BoxDecoration(
-        color: AppStyles.getCardColor(context).withValues(alpha: 0.85),
-        border: Border(
-          bottom: BorderSide(
-              color: AppStyles.getDividerColor(context), width: 0.5),
-        ),
-      ),
-      child: Row(
-        children: [
-          BouncyButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(CupertinoIcons.chevron_back,
-                    size: 16, color: AppStyles.getPrimaryColor(context)),
-                const SizedBox(width: 4),
-                Text('Back',
-                    style: TextStyle(
-                        fontSize: 14,
-                        color: AppStyles.getPrimaryColor(context),
-                        fontWeight: FontWeight.w500)),
-              ],
-            ),
-          ),
-          const Spacer(),
-          Text('BUDGETS',
-              style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: secondary,
-                  letterSpacing: 1.2)),
-          const Spacer(),
-          CupertinoButton(
-            padding: EdgeInsets.zero,
-            onPressed: () => _showPeriodFilter(),
-            child: Icon(CupertinoIcons.line_horizontal_3_decrease,
-                size: 18, color: secondary),
-          ),
-          const SizedBox(width: 60),
-        ],
-      ),
-    );
-  }
+
 
   Widget _budgetStatCell({
     required String label,

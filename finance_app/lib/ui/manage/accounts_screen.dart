@@ -22,6 +22,7 @@ import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/styles/typography.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
+import 'package:vittara_fin_os/ui/widgets/landscape_scaffold.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/transaction_history_screen.dart';
@@ -492,6 +493,40 @@ class _AccountsScreenState extends State<AccountsScreen> {
     }
   }
 
+  String _formatAmount(double v) {
+    if (v >= 1e7) return '₹${(v / 1e7).toStringAsFixed(1)}Cr';
+    if (v >= 1e5) return '₹${(v / 1e5).toStringAsFixed(1)}L';
+    if (v >= 1e3) return '₹${(v / 1e3).toStringAsFixed(0)}K';
+    return '₹${v.toStringAsFixed(0)}';
+  }
+
+  Widget _buildRailAccountSummary(List<Account> accounts) {
+    const liabilityTypes = {AccountType.credit, AccountType.payLater};
+    final assets = accounts
+        .where((a) => !liabilityTypes.contains(a.type))
+        .fold(0.0, (s, a) => s + a.balance);
+    final liabilities = accounts
+        .where((a) => liabilityTypes.contains(a.type))
+        .fold(0.0, (s, a) => s + ((a.creditLimit ?? 0.0) - a.balance));
+    final net = assets - liabilities;
+    return Column(
+      children: [
+        RailStatRow(
+            label: 'Assets',
+            value: _formatAmount(assets),
+            valueColor: AppStyles.gain(context)),
+        RailStatRow(
+            label: 'Liabilities',
+            value: _formatAmount(liabilities),
+            valueColor: AppStyles.loss(context)),
+        RailStatRow(
+            label: 'Net',
+            value: _formatAmount(net),
+            valueColor: net >= 0 ? AppStyles.accentBlue : AppStyles.loss(context)),
+      ],
+    );
+  }
+
   Widget _buildAllAccountsSummary(List<Account> accounts) {
     const liabilityTypes = {AccountType.credit, AccountType.payLater};
     final assets = accounts
@@ -810,6 +845,31 @@ class _AccountsScreenState extends State<AccountsScreen> {
             }
           }
 
+          final isLandscape = AppStyles.isLandscape(context);
+
+          // ── Shared: PageView of account type pages ────────────────────────
+          Widget pageContent = Column(
+            children: [
+              Expanded(
+                child: types.isEmpty
+                    ? const SizedBox.shrink()
+                    : PageView.builder(
+                        controller: _categoryPageController,
+                        itemCount: types.length,
+                        onPageChanged: (index) {
+                          setState(() => _selectedCategoryIndex = index);
+                        },
+                        itemBuilder: (context, index) {
+                          return _buildCategoryPage(
+                              types[index], visibleAccounts);
+                        },
+                      ),
+              ),
+              if (hiddenAccounts.isNotEmpty)
+                _buildHiddenAccountsSection(hiddenAccounts),
+            ],
+          );
+
           return Stack(
             children: [
               if (allAccounts.isEmpty)
@@ -820,23 +880,172 @@ class _AccountsScreenState extends State<AccountsScreen> {
                   actionLabel: 'Add Account',
                   onAction: () => _showAddOptions(context),
                 )
+              else if (isLandscape)
+                SafeArea(
+                  child: LandscapeScaffold(
+                    railWidth: 190,
+                    leftRail: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        LandscapeRailHeader(
+                          title: 'ACCOUNTS',
+                          outerContext: context,
+                        ),
+                        const RailDivider(indent: 0),
+                        // Summary stats
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(0, 6, 0, 4),
+                          child: _buildRailAccountSummary(visibleAccounts),
+                        ),
+                        const RailDivider(),
+                        // Vertical account type tabs
+                        Expanded(
+                          child: ListView.separated(
+                            padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+                            itemCount: types.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 4),
+                            itemBuilder: (context, index) {
+                              final type = types[index];
+                              final isSelected =
+                                  index == _selectedCategoryIndex;
+                              final total =
+                                  _getTotalByType(visibleAccounts, type);
+                              final color = _getAccountTypeColor(type);
+                              return GestureDetector(
+                                onTap: () {
+                                  setState(
+                                      () => _selectedCategoryIndex = index);
+                                  _categoryPageController.animateToPage(
+                                    index,
+                                    duration:
+                                        const Duration(milliseconds: 250),
+                                    curve: Curves.easeOutCubic,
+                                  );
+                                },
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 180),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 7),
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? color.withValues(alpha: 0.12)
+                                        : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: isSelected
+                                          ? color.withValues(alpha: 0.4)
+                                          : Colors.transparent,
+                                      width: 0.5,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          _getAccountTypeLabel(type),
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: isSelected
+                                                ? FontWeight.w600
+                                                : FontWeight.w400,
+                                            color: isSelected
+                                                ? color
+                                                : AppStyles.getTextColor(
+                                                    context),
+                                          ),
+                                        ),
+                                      ),
+                                      Text(
+                                        _formatAmount(total),
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          color: isSelected
+                                              ? color
+                                              : AppStyles.getSecondaryTextColor(
+                                                  context),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        // Add Account button
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
+                          child: CupertinoButton(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            color: AppStyles.accentBlue
+                                .withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(10),
+                            onPressed: () => _showAddOptions(context),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(CupertinoIcons.add,
+                                    size: 14,
+                                    color: AppStyles.accentBlue),
+                                const SizedBox(width: 6),
+                                Text('Add Account',
+                                    style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppStyles.accentBlue)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    body: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                              Spacing.sm, Spacing.sm, Spacing.sm, Spacing.sm),
+                          child: CupertinoSearchTextField(
+                            controller: _searchController,
+                            placeholder: 'Search accounts',
+                            backgroundColor: AppStyles.getCardColor(context),
+                            style: TextStyle(
+                                color: AppStyles.getTextColor(context)),
+                            placeholderStyle: TextStyle(
+                                color: AppStyles.getSecondaryTextColor(context),
+                                fontSize: TypeScale.body),
+                            onChanged: (v) => setState(() {
+                              _searchQuery = v;
+                              _persistedSearchQuery = v;
+                            }),
+                          ),
+                        ),
+                        Expanded(child: pageContent),
+                      ],
+                    ),
+                  ),
+                )
               else
                 SafeArea(
                   child: Column(
                     children: [
                       const SizedBox(height: Spacing.lg),
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: Spacing.lg),
                         child: CupertinoSearchTextField(
                           controller: _searchController,
                           placeholder: 'Search accounts',
                           backgroundColor: AppStyles.getCardColor(context),
-                          style:
-                              TextStyle(color: AppStyles.getTextColor(context)),
+                          style: TextStyle(
+                              color: AppStyles.getTextColor(context)),
                           placeholderStyle: TextStyle(
                               color: AppStyles.getSecondaryTextColor(context),
                               fontSize: TypeScale.body),
-                          onChanged: (v) => setState(() { _searchQuery = v; _persistedSearchQuery = v; }),
+                          onChanged: (v) => setState(() {
+                            _searchQuery = v;
+                            _persistedSearchQuery = v;
+                          }),
                         ),
                       ),
                       const SizedBox(height: Spacing.sm),
@@ -844,41 +1053,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                       const SizedBox(height: Spacing.sm),
                       _buildCategoryTabs(types, visibleAccounts),
                       const SizedBox(height: Spacing.md),
-                      Expanded(
-                        child: CustomScrollView(
-                          slivers: [
-                            SliverFillRemaining(
-                              hasScrollBody: true,
-                              child: Column(
-                                children: [
-                                  Expanded(
-                                    child: types.isEmpty
-                                        ? const SizedBox.shrink()
-                                        : PageView.builder(
-                                            controller:
-                                                _categoryPageController,
-                                            itemCount: types.length,
-                                            onPageChanged: (index) {
-                                              setState(() =>
-                                                  _selectedCategoryIndex =
-                                                      index);
-                                            },
-                                            itemBuilder: (context, index) {
-                                              return _buildCategoryPage(
-                                                  types[index],
-                                                  visibleAccounts);
-                                            },
-                                          ),
-                                  ),
-                                  if (hiddenAccounts.isNotEmpty)
-                                    _buildHiddenAccountsSection(
-                                        hiddenAccounts),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      Expanded(child: pageContent),
                     ],
                   ),
                 ),

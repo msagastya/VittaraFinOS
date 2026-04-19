@@ -19,6 +19,7 @@ import 'package:vittara_fin_os/ui/styles/typography.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/app_date_picker.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
+import 'package:vittara_fin_os/ui/widgets/landscape_scaffold.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
 import 'package:vittara_fin_os/ui/manage/bonds/bond_payout_modal.dart';
 import 'package:vittara_fin_os/ui/manage/bonds/bonds_details_screen.dart';
@@ -220,99 +221,12 @@ class _NotificationsPageState extends State<NotificationsPage> {
                     color: AppStyles.accentBlue, count: 0),
               ];
 
-              return Column(
-                children: [
-                  if (AppStyles.isLandscape(context))
-                    _buildLandscapeNavBar(context),
-                  // Calendar shortcut (persistent)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-                    child: GestureDetector(
-                      onTap: () => Navigator.of(context).push(
-                        CupertinoPageRoute(
-                          builder: (_) => const FinancialCalendarScreen(),
-                        ),
-                      ),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 14),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              AppStyles.teal(context).withValues(alpha: 0.18),
-                              AppStyles.violet(context).withValues(alpha: 0.12),
-                            ],
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                          ),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color:
-                                AppStyles.teal(context).withValues(alpha: 0.3),
-                            width: 1,
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 36,
-                              height: 36,
-                              decoration: BoxDecoration(
-                                color: AppStyles.teal(context)
-                                    .withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Icon(
-                                CupertinoIcons.calendar,
-                                color: AppStyles.teal(context),
-                                size: 20,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Financial Calendar',
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppStyles.teal(context),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    'FDs, SIPs, bills, goals & budget resets',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: isDark
-                                          ? Colors.white54
-                                          : Colors.black45,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Icon(
-                              CupertinoIcons.chevron_right,
-                              color: AppStyles.teal(context),
-                              size: 16,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  // Tab chips
-                  _buildTabBar(context, tabs),
-                  // Divider
-                  Divider(height: 1, color: AppStyles.getDividerColor(context)),
-                  // Tab pages
-                  Expanded(
-                    child: PageView(
-                      controller: _pageController,
-                      onPageChanged: (i) => setState(() => _currentPage = i),
+              final isLandscape = AppStyles.isLandscape(context);
+
+              // ── Shared PageView body ───────────────────────────────────────
+              Widget pageViewBody = PageView(
+                    controller: _pageController,
+                    onPageChanged: (i) => setState(() => _currentPage = i),
                       children: [
                         // Tab 0: Upcoming
                         SingleChildScrollView(
@@ -1103,8 +1017,228 @@ class _NotificationsPageState extends State<NotificationsPage> {
                           },
                         ),
                       ],
+                    );
+
+              // ── Landscape calendar shortcut (compact for rail) ─────────────
+              Widget calendarButton = GestureDetector(
+                onTap: () => Navigator.of(context).push(
+                  CupertinoPageRoute(
+                    builder: (_) => const FinancialCalendarScreen(),
+                  ),
+                ),
+                child: Container(
+                  margin: const EdgeInsets.fromLTRB(12, 0, 12, 0),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppStyles.teal(context).withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                        color: AppStyles.teal(context).withValues(alpha: 0.25),
+                        width: 0.5),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(CupertinoIcons.calendar,
+                          size: 14, color: AppStyles.teal(context)),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Financial Calendar',
+                          style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                              color: AppStyles.teal(context)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+
+              if (isLandscape) {
+                // ── LANDSCAPE: left rail + right page view ─────────────────
+                Widget rail = Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    LandscapeRailHeader(
+                        title: 'NOTIFICATIONS', outerContext: context),
+                    const RailDivider(indent: 0),
+                    const SizedBox(height: 8),
+                    // Vertical tab list
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Column(
+                        children: tabs.asMap().entries.map((entry) {
+                          final i = entry.key;
+                          final tab = entry.value;
+                          final isActive = _currentPage == i;
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 6),
+                            child: GestureDetector(
+                              onTap: () {
+                                _pageController.animateToPage(i,
+                                    duration: const Duration(milliseconds: 250),
+                                    curve: Curves.easeInOut);
+                                setState(() => _currentPage = i);
+                              },
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 180),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: isActive
+                                      ? tab.color.withValues(alpha: 0.15)
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: isActive
+                                        ? tab.color.withValues(alpha: 0.4)
+                                        : Colors.transparent,
+                                    width: 0.5,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(tab.icon,
+                                        size: 13,
+                                        color: isActive
+                                            ? tab.color
+                                            : AppStyles.getSecondaryTextColor(
+                                                context)),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        tab.label,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: isActive
+                                              ? FontWeight.w600
+                                              : FontWeight.w400,
+                                          color: isActive
+                                              ? tab.color
+                                              : AppStyles.getTextColor(context),
+                                        ),
+                                      ),
+                                    ),
+                                    if (tab.count > 0)
+                                      Container(
+                                        width: 18,
+                                        height: 18,
+                                        decoration: BoxDecoration(
+                                          color:
+                                              tab.color.withValues(alpha: 0.2),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          '${tab.count}',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w700,
+                                            color: tab.color,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    const Spacer(),
+                    calendarButton,
+                    const SizedBox(height: 12),
+                  ],
+                );
+
+                return LandscapeScaffold(
+                  railWidth: 190,
+                  leftRail: rail,
+                  body: pageViewBody,
+                );
+              }
+
+              // ── PORTRAIT: original column layout ──────────────────────────
+              return Column(
+                children: [
+                  // Calendar shortcut
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                    child: GestureDetector(
+                      onTap: () => Navigator.of(context).push(
+                        CupertinoPageRoute(
+                          builder: (_) => const FinancialCalendarScreen(),
+                        ),
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 14),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              AppStyles.teal(context).withValues(alpha: 0.18),
+                              AppStyles.violet(context).withValues(alpha: 0.12),
+                            ],
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                          ),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: AppStyles.teal(context).withValues(alpha: 0.3),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: AppStyles.teal(context)
+                                    .withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Icon(CupertinoIcons.calendar,
+                                  color: AppStyles.teal(context), size: 20),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Financial Calendar',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppStyles.teal(context),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'FDs, SIPs, bills, goals & budget resets',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: isDark
+                                          ? Colors.white54
+                                          : Colors.black45,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(CupertinoIcons.chevron_right,
+                                color: AppStyles.teal(context), size: 16),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
+                  _buildTabBar(context, tabs),
+                  Divider(height: 1, color: AppStyles.getDividerColor(context)),
+                  Expanded(child: pageViewBody),
                 ],
               );
             },
@@ -1204,27 +1338,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
                 textAlign: TextAlign.center),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildLandscapeNavBar(BuildContext context) {
-    return Container(
-      height: 40,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        children: [
-          CupertinoButton(
-            padding: EdgeInsets.zero,
-            minimumSize: Size.zero,
-            onPressed: () => Navigator.maybePop(context),
-            child: Icon(CupertinoIcons.chevron_left, size: 20,
-                color: AppStyles.getPrimaryColor(context)),
-          ),
-          const SizedBox(width: 8),
-          Text('NOTIFICATIONS',
-              style: AppTypography.sectionLabel(color: AppStyles.getTextColor(context))),
-        ],
       ),
     );
   }

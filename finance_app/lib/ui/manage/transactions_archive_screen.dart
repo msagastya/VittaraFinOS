@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/payment_apps_controller.dart';
@@ -11,6 +12,7 @@ import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/styles/transaction_type_theme.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
+import 'package:vittara_fin_os/ui/widgets/landscape_scaffold.dart';
 import 'package:vittara_fin_os/ui/widgets/transaction_details_content.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
 import 'package:vittara_fin_os/utils/date_formatter.dart';
@@ -67,28 +69,31 @@ class _TransactionsArchiveScreenState extends State<TransactionsArchiveScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isLandscape = AppStyles.isLandscape(context);
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
-        middle: Text('Archived Transactions',
-            style: TextStyle(color: AppStyles.getTextColor(context))),
-        previousPageTitle: 'Back',
-        backgroundColor: AppStyles.getBackground(context),
-        border: null,
-        trailing: CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: _showFilterSheet,
-          child: Icon(
-            _filterType != null
-                ? CupertinoIcons.line_horizontal_3_decrease_circle_fill
-                : CupertinoIcons.line_horizontal_3_decrease_circle,
-            color: _filterType != null
-                ? AppStyles.accentBlue
-                : AppStyles.getPrimaryColor(context),
-            size: 22,
-          ),
-        ),
-      ),
+      navigationBar: isLandscape
+          ? null
+          : CupertinoNavigationBar(
+              middle: Text('Archived Transactions',
+                  style: TextStyle(color: AppStyles.getTextColor(context))),
+              previousPageTitle: 'Back',
+              backgroundColor: AppStyles.getBackground(context),
+              border: null,
+              trailing: CupertinoButton(
+                padding: EdgeInsets.zero,
+                onPressed: _showFilterSheet,
+                child: Icon(
+                  _filterType != null
+                      ? CupertinoIcons.line_horizontal_3_decrease_circle_fill
+                      : CupertinoIcons.line_horizontal_3_decrease_circle,
+                  color: _filterType != null
+                      ? AppStyles.accentBlue
+                      : AppStyles.getPrimaryColor(context),
+                  size: 22,
+                ),
+              ),
+            ),
       child: Consumer4<TransactionsArchiveController, TransactionsController,
           AccountsController, PaymentAppsController>(
         builder: (context, archiveController, transactionsController,
@@ -96,35 +101,42 @@ class _TransactionsArchiveScreenState extends State<TransactionsArchiveScreen> {
           final archived = archiveController.archived;
 
           if (archived.isEmpty) {
-            return const Center(
-              child: EmptyStateView(
-                icon: CupertinoIcons.archivebox_fill,
-                title: 'No Archived Transactions',
-                subtitle:
-                    'Deleted entries will appear once you archive a transaction',
-                actionLabel: null,
-              ),
+            return SafeArea(
+              child: isLandscape
+                  ? LandscapeScaffold(
+                      railWidth: 200,
+                      leftRail: Column(
+                        children: [
+                          LandscapeRailHeader(
+                              title: 'ARCHIVE', outerContext: context),
+                          const RailDivider(indent: 0),
+                        ],
+                      ),
+                      body: const Center(
+                        child: EmptyStateView(
+                          icon: CupertinoIcons.archivebox_fill,
+                          title: 'No Archived Transactions',
+                          subtitle:
+                              'Deleted entries will appear once you archive a transaction',
+                          actionLabel: null,
+                        ),
+                      ),
+                    )
+                  : const Center(
+                      child: EmptyStateView(
+                        icon: CupertinoIcons.archivebox_fill,
+                        title: 'No Archived Transactions',
+                        subtitle:
+                            'Deleted entries will appear once you archive a transaction',
+                        actionLabel: null,
+                      ),
+                    ),
             );
           }
 
           final filtered = _filterType == null
               ? archived
               : archived.where((t) => t.type == _filterType).toList();
-
-          if (filtered.isEmpty) {
-            return SafeArea(
-              child: Center(
-                child: EmptyStateView(
-                  icon: CupertinoIcons.line_horizontal_3_decrease_circle,
-                  title: 'No Matching Transactions',
-                  subtitle:
-                      'No archived ${_filterType!.name} transactions found',
-                  actionLabel: 'Clear Filter',
-                  onAction: () => setState(() => _filterType = null),
-                ),
-              ),
-            );
-          }
 
           // Build date-grouped list
           final groups = DateFormatter.groupByDate(filtered, (t) => t.dateTime);
@@ -136,47 +148,170 @@ class _TransactionsArchiveScreenState extends State<TransactionsArchiveScreen> {
             }
           }
 
-          return SafeArea(
-            child: ListView.builder(
-              physics: const SmoothScrollPhysics(),
-              cacheExtent: 600,
-              padding: const EdgeInsets.fromLTRB(
-                  Spacing.lg, Spacing.lg, Spacing.lg, Spacing.xxxl),
-              itemCount: listItems.length,
-              itemBuilder: (context, index) {
-                final item = listItems[index];
-                if (item.isHeader) {
-                  return Padding(
-                    key: ValueKey('header_${item.header}'),
-                    padding: EdgeInsets.only(
-                        top: index == 0 ? 0 : Spacing.lg, bottom: Spacing.sm),
-                    child: Text(
-                      item.header!,
-                      style: TextStyle(
-                        fontSize: TypeScale.footnote,
-                        fontWeight: FontWeight.w600,
-                        color: AppStyles.getSecondaryTextColor(context),
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  );
-                }
-                final transaction = item.transaction!;
-                return StaggeredItem(
-                  key: ValueKey(transaction.id),
-                  index: index,
-                  child: _ArchivedTransactionCard(
-                    transaction: transaction,
-                    accountsController: accountsController,
-                    paymentAppsController: paymentAppsController,
-                    archiveController: archiveController,
-                    transactionsController: transactionsController,
+          Widget listView = filtered.isEmpty
+              ? Center(
+                  child: EmptyStateView(
+                    icon: CupertinoIcons.line_horizontal_3_decrease_circle,
+                    title: 'No Matching Transactions',
+                    subtitle:
+                        'No archived ${_filterType!.name} transactions found',
+                    actionLabel: 'Clear Filter',
+                    onAction: () => setState(() => _filterType = null),
                   ),
+                )
+              : ListView.builder(
+                  physics: const SmoothScrollPhysics(),
+                  cacheExtent: 600,
+                  padding: const EdgeInsets.fromLTRB(
+                      Spacing.lg, Spacing.lg, Spacing.lg, Spacing.xxxl),
+                  itemCount: listItems.length,
+                  itemBuilder: (context, index) {
+                    final item = listItems[index];
+                    if (item.isHeader) {
+                      return Padding(
+                        key: ValueKey('header_${item.header}'),
+                        padding: EdgeInsets.only(
+                            top: index == 0 ? 0 : Spacing.lg,
+                            bottom: Spacing.sm),
+                        child: Text(
+                          item.header!,
+                          style: TextStyle(
+                            fontSize: TypeScale.footnote,
+                            fontWeight: FontWeight.w600,
+                            color: AppStyles.getSecondaryTextColor(context),
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      );
+                    }
+                    final transaction = item.transaction!;
+                    return StaggeredItem(
+                      key: ValueKey(transaction.id),
+                      index: index,
+                      child: _ArchivedTransactionCard(
+                        transaction: transaction,
+                        accountsController: accountsController,
+                        paymentAppsController: paymentAppsController,
+                        archiveController: archiveController,
+                        transactionsController: transactionsController,
+                      ),
+                    );
+                  },
                 );
-              },
+
+          if (!isLandscape) {
+            return SafeArea(child: listView);
+          }
+
+          // ── Landscape: left rail + archive list ──────────────────────────
+          Widget rail = Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              LandscapeRailHeader(
+                title: 'ARCHIVE',
+                outerContext: context,
+                trailing: CupertinoButton(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  minSize: 44,
+                  onPressed: _showFilterSheet,
+                  child: Icon(
+                    _filterType != null
+                        ? CupertinoIcons.line_horizontal_3_decrease_circle_fill
+                        : CupertinoIcons.line_horizontal_3_decrease_circle,
+                    size: 16,
+                    color: _filterType != null
+                        ? AppStyles.accentBlue
+                        : AppStyles.getSecondaryTextColor(context),
+                  ),
+                ),
+              ),
+              const RailDivider(indent: 0),
+              const SizedBox(height: 8),
+              RailStatRow(
+                label: 'Total archived',
+                value: '${archived.length}',
+              ),
+              if (_filterType != null)
+                RailStatRow(
+                  label: 'Showing',
+                  value: '${filtered.length}',
+                  valueColor: AppStyles.accentBlue,
+                ),
+              const RailDivider(),
+              // Type filter chips
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('FILTER',
+                        style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.2,
+                            color: AppStyles.getSecondaryTextColor(context))),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        _archiveFilterChip(null, 'All'),
+                        _archiveFilterChip(TransactionType.expense, 'Expense'),
+                        _archiveFilterChip(TransactionType.income, 'Income'),
+                        _archiveFilterChip(TransactionType.transfer, 'Transfer'),
+                        _archiveFilterChip(TransactionType.lending, 'Lending'),
+                        _archiveFilterChip(
+                            TransactionType.borrowing, 'Borrowing'),
+                        _archiveFilterChip(
+                            TransactionType.investment, 'Investment'),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+
+          return SafeArea(
+            child: LandscapeScaffold(
+              railWidth: 200,
+              leftRail: rail,
+              body: listView,
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _archiveFilterChip(TransactionType? type, String label) {
+    final isSelected = _filterType == type;
+    final accent = AppStyles.accentBlue;
+    return GestureDetector(
+      onTap: () => setState(() => _filterType = type),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? accent.withValues(alpha: 0.15)
+              : AppStyles.getCardColor(context),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(
+            color:
+                isSelected ? accent.withValues(alpha: 0.5) : Colors.transparent,
+            width: 0.5,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+            color: isSelected
+                ? accent
+                : AppStyles.getSecondaryTextColor(context),
+          ),
+        ),
       ),
     );
   }

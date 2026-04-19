@@ -15,6 +15,7 @@ import 'package:vittara_fin_os/ui/widgets/animated_counter.dart'
     as counter_widgets;
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 import 'package:vittara_fin_os/ui/widgets/glass_card.dart';
+import 'package:vittara_fin_os/ui/widgets/landscape_scaffold.dart';
 import 'package:vittara_fin_os/ui/widgets/liquid_progress_indicators.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
 import 'package:vittara_fin_os/utils/logger.dart';
@@ -84,9 +85,10 @@ class _GoalsScreenState extends State<GoalsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isLandscape = AppStyles.isLandscape(context);
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: AppStyles.isLandscape(context) ? null : CupertinoNavigationBar(
+      navigationBar: isLandscape ? null : CupertinoNavigationBar(
         middle: Text('Goals',
             style: TextStyle(color: AppStyles.getTextColor(context))),
         previousPageTitle: 'Back',
@@ -113,173 +115,219 @@ class _GoalsScreenState extends State<GoalsScreen> {
 
           final expiringGoals = controller.getGoalsExpiringSoon(days: 30);
 
+          // ── Shared: the scrollable right-panel content (used in portrait too) ─
+          Widget goalListContent = CustomScrollView(
+            key: const PageStorageKey('goals_list'),
+            controller: _scrollController,
+            slivers: [
+              CupertinoSliverRefreshControl(
+                onRefresh: () async {
+                  HapticFeedback.mediumImpact();
+                  await Provider.of<GoalsController>(context, listen: false)
+                      .reloadFromStorage();
+                },
+              ),
+              // Stats header — portrait only; landscape puts this in the rail
+              if (!isLandscape)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(Spacing.lg),
+                    child: _buildStatsSection(controller),
+                  ),
+                ),
+
+              // Search Bar
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                      Spacing.lg, Spacing.sm, Spacing.lg, Spacing.sm),
+                  child: CupertinoSearchTextField(
+                    controller: _searchTextController,
+                    backgroundColor:
+                        CupertinoColors.systemFill.resolveFrom(context),
+                    style: TextStyle(color: AppStyles.getTextColor(context)),
+                    placeholder: 'Search Goals',
+                    placeholderStyle: TextStyle(
+                        color: AppStyles.getSecondaryTextColor(context)),
+                    onChanged: (value) {
+                      setState(() => _searchQuery = value);
+                      PageStorage.of(context).writeState(context, value,
+                          identifier: const ValueKey('goals_search'));
+                    },
+                  ),
+                ),
+              ),
+
+              // Expiring Soon Banner
+              if (expiringGoals.isNotEmpty)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                        Spacing.lg, 0, Spacing.lg, Spacing.sm),
+                    child: _buildExpiringSoonBanner(expiringGoals),
+                  ),
+                ),
+
+              // Active Filter Chip
+              if (_filterType != null)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: Spacing.lg, vertical: Spacing.sm),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: Spacing.md, vertical: Spacing.sm),
+                          decoration: BoxDecoration(
+                            color: SemanticColors.getPrimary(context)
+                                .withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(Radii.full),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                Goal(
+                                  id: '',
+                                  name: '',
+                                  type: _filterType!,
+                                  targetAmount: 0,
+                                  currentAmount: 0,
+                                  createdDate: DateTime.now(),
+                                  targetDate: DateTime.now(),
+                                  color: AppStyles.aetherTeal,
+                                ).getTypeLabel(),
+                                style: TextStyle(
+                                  color: SemanticColors.getPrimary(context),
+                                  fontSize: TypeScale.footnote,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(width: Spacing.sm),
+                              GestureDetector(
+                                onTap: () =>
+                                    setState(() => _filterType = null),
+                                child: Icon(
+                                  CupertinoIcons.xmark_circle_fill,
+                                  size: IconSizes.sm,
+                                  color: SemanticColors.getPrimary(context),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+              // Goals List
+              if (filteredGoals.isEmpty)
+                SliverFillRemaining(
+                  child: EmptyStateView(
+                    icon: CupertinoIcons.search,
+                    title: 'No goals found',
+                    subtitle: 'Try adjusting your search or filter.',
+                    showPulse: false,
+                  ),
+                )
+              else
+                SliverPadding(
+                  padding: const EdgeInsets.all(Spacing.lg),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final goal = filteredGoals[index];
+                        return StaggeredItem(
+                          index: index,
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: Spacing.lg),
+                            child: _buildSlidableGoalCard(goal),
+                          ),
+                        );
+                      },
+                      childCount: filteredGoals.length,
+                    ),
+                  ),
+                ),
+
+              const SliverToBoxAdapter(child: SizedBox(height: 80)),
+            ],
+          );
+
+          // ── Landscape rail ────────────────────────────────────────────────
+          Widget landscapeRail = Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              LandscapeRailHeader(
+                title: 'GOALS',
+                outerContext: context,
+                trailing: CupertinoButton(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  minSize: 44,
+                  onPressed: _showFilterSheet,
+                  child: Icon(
+                    CupertinoIcons.line_horizontal_3_decrease,
+                    size: 16,
+                    color: AppStyles.getSecondaryTextColor(context),
+                  ),
+                ),
+              ),
+              const RailDivider(indent: 0),
+              // Compact stats
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+                child: _buildRailStats(controller),
+              ),
+              const RailDivider(),
+              const Spacer(),
+              // Add Goal button at bottom
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
+                child: CupertinoButton(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  color: SemanticColors.success.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                  onPressed: _showAddGoalModal,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(CupertinoIcons.add,
+                          size: 14, color: SemanticColors.success),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Add Goal',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: SemanticColors.success,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+
+          final portraitBody = filteredGoals.isEmpty &&
+                  _searchQuery.isEmpty &&
+                  _filterType == null
+              ? _buildEmptyState()
+              : goalListContent;
+
           return Stack(
             children: [
               SafeArea(
-                child: filteredGoals.isEmpty &&
-                        _searchQuery.isEmpty &&
-                        _filterType == null
-                    ? _buildEmptyState()
-                    : CustomScrollView(
-                        key: const PageStorageKey('goals_list'),
-                        controller: _scrollController,
-                        slivers: [
-                          if (AppStyles.isLandscape(context))
-                            SliverToBoxAdapter(
-                              child: _buildLandscapeNavBar(context, controller),
-                            ),
-                          // Pull-to-refresh
-                          CupertinoSliverRefreshControl(
-                            onRefresh: () async {
-                              HapticFeedback.mediumImpact();
-                              await Provider.of<GoalsController>(context,
-                                      listen: false)
-                                  .reloadFromStorage();
-                            },
-                          ),
-                          // Stats Header
-                          SliverToBoxAdapter(
-                            child: Padding(
-                              padding: const EdgeInsets.all(Spacing.lg),
-                              child: _buildStatsSection(controller),
-                            ),
-                          ),
-
-                          // Search Bar
-                          SliverToBoxAdapter(
-                            child: Padding(
-                              padding: const EdgeInsets.fromLTRB(
-                                  Spacing.lg, 0, Spacing.lg, Spacing.sm),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: AppStyles.getCardColor(context),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: CupertinoSearchTextField(
-                                  controller: _searchTextController,
-                                  backgroundColor: CupertinoColors.systemFill
-                                      .resolveFrom(context),
-                                  style: TextStyle(
-                                      color: AppStyles.getTextColor(context)),
-                                  placeholder: 'Search Goals',
-                                  placeholderStyle: TextStyle(
-                                      color: AppStyles.getSecondaryTextColor(
-                                          context)),
-                                  onChanged: (value) {
-                                    setState(() => _searchQuery = value);
-                                    PageStorage.of(context).writeState(context,
-                                        value,
-                                        identifier: const ValueKey('goals_search'));
-                                  },
-                                ),
-                              ),
-                            ),
-                          ),
-
-                          // Expiring Soon Banner
-                          if (expiringGoals.isNotEmpty)
-                            SliverToBoxAdapter(
-                              child: Padding(
-                                padding: const EdgeInsets.all(Spacing.lg),
-                                child: _buildExpiringSoonBanner(expiringGoals),
-                              ),
-                            ),
-
-                          // Active Filter Chip
-                          if (_filterType != null)
-                            SliverToBoxAdapter(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: Spacing.lg,
-                                    vertical: Spacing.sm),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: Spacing.md,
-                                          vertical: Spacing.sm),
-                                      decoration: BoxDecoration(
-                                        color:
-                                            SemanticColors.getPrimary(context)
-                                                .withValues(alpha: 0.1),
-                                        borderRadius:
-                                            BorderRadius.circular(Radii.full),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            Goal(
-                                              id: '',
-                                              name: '',
-                                              type: _filterType!,
-                                              targetAmount: 0,
-                                              currentAmount: 0,
-                                              createdDate: DateTime.now(),
-                                              targetDate: DateTime.now(),
-                                              color: AppStyles.aetherTeal,
-                                            ).getTypeLabel(),
-                                            style: TextStyle(
-                                              color: SemanticColors.getPrimary(
-                                                  context),
-                                              fontSize: TypeScale.footnote,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                          const SizedBox(width: Spacing.sm),
-                                          GestureDetector(
-                                            onTap: () => setState(
-                                                () => _filterType = null),
-                                            child: Icon(
-                                              CupertinoIcons.xmark_circle_fill,
-                                              size: IconSizes.sm,
-                                              color: SemanticColors.getPrimary(
-                                                  context),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-
-                          // Goals List
-                          if (filteredGoals.isEmpty)
-                            SliverFillRemaining(
-                              child: EmptyStateView(
-                                icon: CupertinoIcons.search,
-                                title: 'No goals found',
-                                subtitle:
-                                    'Try adjusting your search or filter.',
-                                showPulse: false,
-                              ),
-                            )
-                          else
-                            SliverPadding(
-                              padding: const EdgeInsets.all(Spacing.lg),
-                              sliver: SliverList(
-                                delegate: SliverChildBuilderDelegate(
-                                  (context, index) {
-                                    final goal = filteredGoals[index];
-                                    return StaggeredItem(
-                                      index: index,
-                                      child: Padding(
-                                        padding:
-                                            const EdgeInsets.only(bottom: Spacing.lg),
-                                        child: _buildSlidableGoalCard(goal),
-                                      ),
-                                    );
-                                  },
-                                  childCount: filteredGoals.length,
-                                ),
-                              ),
-                            ),
-
-                          const SliverToBoxAdapter(child: SizedBox(height: 80)),
-                        ],
-                      ),
+                child: isLandscape
+                    ? LandscapeScaffold(
+                        railWidth: 210,
+                        leftRail: landscapeRail,
+                        body: goalListContent,
+                        portraitBody: portraitBody,
+                      )
+                    : portraitBody,
               ),
               Positioned(
                 right: Spacing.lg,
@@ -298,37 +346,65 @@ class _GoalsScreenState extends State<GoalsScreen> {
     );
   }
 
-  Widget _buildLandscapeNavBar(BuildContext context, GoalsController controller) {
-    return Container(
-      height: 40,
-      padding: const EdgeInsets.symmetric(horizontal: Spacing.md),
-      child: Row(
-        children: [
-          CupertinoButton(
-            padding: EdgeInsets.zero,
-            minimumSize: Size.zero,
-            onPressed: () => Navigator.maybePop(context),
-            child: Icon(CupertinoIcons.chevron_left, size: 20,
-                color: AppStyles.getPrimaryColor(context)),
+  Widget _buildRailStats(GoalsController controller) {
+    final secondary = AppStyles.getSecondaryTextColor(context);
+    final fg = AppStyles.getTextColor(context);
+    final totalTarget = controller.totalTargetAmount;
+    final totalSaved = controller.totalSavedAmount;
+    final progress = controller.overallProgress;
+    final active = controller.activeGoals.length;
+
+    String _fmt(double v) {
+      if (v >= 1e7) return '₹${(v / 1e7).toStringAsFixed(1)}Cr';
+      if (v >= 1e5) return '₹${(v / 1e5).toStringAsFixed(1)}L';
+      if (v >= 1e3) return '₹${(v / 1e3).toStringAsFixed(0)}K';
+      return '₹${v.toStringAsFixed(0)}';
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        RailStatRow(
+          label: 'Target',
+          value: _fmt(totalTarget),
+        ),
+        RailStatRow(
+          label: 'Saved',
+          value: _fmt(totalSaved),
+          valueColor: SemanticColors.success,
+        ),
+        RailStatRow(
+          label: 'Active goals',
+          value: '$active',
+        ),
+        const SizedBox(height: 6),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(3),
+                child: LinearProgressIndicator(
+                  value: (progress / 100).clamp(0.0, 1.0),
+                  minHeight: 4,
+                  backgroundColor: SemanticColors.success.withValues(alpha: 0.15),
+                  valueColor:
+                      const AlwaysStoppedAnimation(SemanticColors.success),
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                '${progress.toStringAsFixed(1)}% overall',
+                style: TextStyle(
+                  fontSize: 10,
+                  color: secondary,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
-          Text('GOALS',
-              style: AppTypography.sectionLabel(color: AppStyles.getTextColor(context))),
-          const Spacer(),
-          Text(
-            '${controller.activeGoals.length} active',
-            style: AppTypography.footnote(color: AppStyles.getSecondaryTextColor(context)),
-          ),
-          const SizedBox(width: 8),
-          CupertinoButton(
-            padding: EdgeInsets.zero,
-            minimumSize: Size.zero,
-            onPressed: _showFilterSheet,
-            child: Icon(CupertinoIcons.line_horizontal_3_decrease, size: 18,
-                color: AppStyles.getPrimaryColor(context)),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

@@ -11,6 +11,7 @@ import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/styles/typography.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
+import 'package:vittara_fin_os/ui/widgets/landscape_scaffold.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 import 'package:vittara_fin_os/ui/manage/lending/bill_split_screen.dart';
@@ -121,136 +122,260 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
               controller.getBorrowedActiveRecords()
               .where((r) => r.dueDate != null && r.dueDate!.isBefore(DateTime.now()))
               .length;
-          return Stack(
+          final isLandscape = AppStyles.isLandscape(context);
+
+          // ── Records list widget (shared portrait/landscape right-panel) ───
+          Widget recordsList = Column(
             children: [
-              SafeArea(
+              // Net Exposure Bar — portrait only (landscape shows in rail)
+              if (!isLandscape)
+                _buildNetExposureBar(context, totalLent, totalBorrowed,
+                    netExposure, overdueCount),
+              // Tab Selector — portrait: horizontal row; landscape: in rail
+              if (!isLandscape)
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _buildTabTile(context,
+                            title: 'I Lent',
+                            subtitle:
+                                '₹${controller.getTotalLent().toStringAsFixed(0)}',
+                            selected: _selectedTab == 0,
+                            color: AppStyles.accentBlue,
+                            onTap: () {
+                              HapticFeedback.selectionClick();
+                              setState(() => _selectedTab = 0);
+                            }),
+                      ),
+                      const SizedBox(width: Spacing.md),
+                      Expanded(
+                        child: _buildTabTile(context,
+                            title: 'I Borrowed',
+                            subtitle:
+                                '₹${controller.getTotalBorrowed().toStringAsFixed(0)}',
+                            selected: _selectedTab == 1,
+                            color: AppStyles.loss(context),
+                            onTap: () {
+                              HapticFeedback.selectionClick();
+                              setState(() => _selectedTab = 1);
+                            }),
+                      ),
+                      const SizedBox(width: Spacing.md),
+                      Expanded(
+                        child: _buildTabTile(context,
+                            title: 'Settled',
+                            subtitle: '${settledRecords.length}',
+                            selected: _selectedTab == 2,
+                            color: SemanticColors.success,
+                            onTap: () {
+                              HapticFeedback.selectionClick();
+                              setState(() => _selectedTab = 2);
+                            }),
+                      ),
+                    ],
+                  ),
+                ),
+              // Search Bar
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                child: CupertinoSearchTextField(
+                  controller: _searchController,
+                  placeholder: 'Search by name or amount',
+                  onChanged: (v) => setState(() => _searchQuery = v),
+                  onSubmitted: (v) => setState(() => _searchQuery = v),
+                ),
+              ),
+              // Records List
+              Expanded(
+                child: displayRecords.isEmpty
+                    ? EmptyStateView(
+                        icon: _searchQuery.isNotEmpty
+                            ? CupertinoIcons.search
+                            : _selectedTab == 2
+                                ? CupertinoIcons.checkmark_seal
+                                : CupertinoIcons.person_2_fill,
+                        title: _searchQuery.isNotEmpty
+                            ? 'No results for "$_searchQuery"'
+                            : _selectedTab == 0
+                                ? 'No lending records yet'
+                                : _selectedTab == 1
+                                    ? 'No borrowing records yet'
+                                    : 'No settled records yet',
+                        subtitle: _searchQuery.isEmpty && _selectedTab == 2
+                            ? 'Settled records will appear here.'
+                            : null,
+                        showPulse: false,
+                      )
+                    : RefreshIndicator(
+                        color: AppStyles.getPrimaryColor(context),
+                        onRefresh: () async {
+                          HapticFeedback.mediumImpact();
+                          await Provider.of<LendingBorrowingController>(
+                                  context, listen: false)
+                              .loadRecords();
+                        },
+                        child: ListView.builder(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+                          itemCount: displayRecords.length,
+                          itemBuilder: (context, index) {
+                            final record = displayRecords[index];
+                            return StaggeredItem(
+                              index: index,
+                              child: _buildRecordCard(
+                                  record, context, controller),
+                            );
+                          },
+                        ),
+                      ),
+              ),
+            ],
+          );
+
+          // ── Landscape rail ─────────────────────────────────────────────────
+          Widget landscapeRail = Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              LandscapeRailHeader(
+                title: 'LENDING',
+                outerContext: context,
+                trailing: CupertinoButton(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  minSize: 44,
+                  onPressed: _showSortSheet,
+                  child: Icon(
+                    CupertinoIcons.arrow_up_arrow_down,
+                    size: 16,
+                    color: AppStyles.getSecondaryTextColor(context),
+                  ),
+                ),
+              ),
+              const RailDivider(indent: 0),
+              // Net exposure compact stats
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 6, 0, 4),
                 child: Column(
                   children: [
-                    if (AppStyles.isLandscape(context))
-                      _buildLandscapeNavBar(context, controller),
-                    // Net Exposure Bar
-                    _buildNetExposureBar(context, totalLent, totalBorrowed, netExposure, overdueCount),
-                    // Tab Selector
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: _buildTabTile(
-                              context,
-                              title: 'I Lent',
-                              subtitle:
-                                  '₹${controller.getTotalLent().toStringAsFixed(0)}',
-                              selected: _selectedTab == 0,
-                              color: AppStyles.accentBlue,
-                              onTap: () {
-                                HapticFeedback.selectionClick();
-                                setState(() => _selectedTab = 0);
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: Spacing.md),
-                          Expanded(
-                            child: _buildTabTile(
-                              context,
-                              title: 'I Borrowed',
-                              subtitle:
-                                  '₹${controller.getTotalBorrowed().toStringAsFixed(0)}',
-                              selected: _selectedTab == 1,
-                              color: AppStyles.loss(context),
-                              onTap: () {
-                                HapticFeedback.selectionClick();
-                                setState(() => _selectedTab = 1);
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: Spacing.md),
-                          Expanded(
-                            child: _buildTabTile(
-                              context,
-                              title: 'Settled',
-                              subtitle: '${settledRecords.length}',
-                              selected: _selectedTab == 2,
-                              color: SemanticColors.success,
-                              onTap: () {
-                                HapticFeedback.selectionClick();
-                                setState(() => _selectedTab = 2);
-                              },
-                            ),
-                          ),
-                        ],
+                    RailStatRow(
+                      label: 'I Lent',
+                      value: '₹${totalLent.toStringAsFixed(0)}',
+                      valueColor: AppStyles.accentBlue,
+                    ),
+                    RailStatRow(
+                      label: 'I Borrowed',
+                      value: '₹${totalBorrowed.toStringAsFixed(0)}',
+                      valueColor: AppStyles.loss(context),
+                    ),
+                    RailStatRow(
+                      label: 'Net',
+                      value:
+                          '${netExposure >= 0 ? '+' : '−'}₹${netExposure.abs().toStringAsFixed(0)}',
+                      valueColor: netExposure >= 0
+                          ? AppStyles.accentBlue
+                          : AppStyles.loss(context),
+                    ),
+                    if (overdueCount > 0)
+                      RailStatRow(
+                        label: 'Overdue',
+                        value: '$overdueCount',
+                        valueColor: CupertinoColors.systemRed,
                       ),
-                    ),
-                    // Search Bar
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                      child: CupertinoSearchTextField(
-                        controller: _searchController,
-                        placeholder: 'Search by name or amount',
-                        onChanged: (v) => setState(() => _searchQuery = v),
-                        onSubmitted: (v) => setState(() => _searchQuery = v),
-                      ),
-                    ),
-                    // Records List
-                    Expanded(
-                      child: displayRecords.isEmpty
-                          ? EmptyStateView(
-                              icon: _searchQuery.isNotEmpty
-                                  ? CupertinoIcons.search
-                                  : _selectedTab == 2
-                                      ? CupertinoIcons.checkmark_seal
-                                      : CupertinoIcons.person_2_fill,
-                              title: _searchQuery.isNotEmpty
-                                  ? 'No results for "$_searchQuery"'
-                                  : _selectedTab == 0
-                                      ? 'No lending records yet'
-                                      : _selectedTab == 1
-                                          ? 'No borrowing records yet'
-                                          : 'No settled records yet',
-                              subtitle:
-                                  _searchQuery.isEmpty && _selectedTab == 2
-                                      ? 'Settled records will appear here.'
-                                      : null,
-                              showPulse: false,
-                            )
-                          : RefreshIndicator(
-                              color: AppStyles.getPrimaryColor(context),
-                              onRefresh: () async {
-                                HapticFeedback.mediumImpact();
-                                await Provider.of<LendingBorrowingController>(
-                                        context,
-                                        listen: false)
-                                    .loadRecords();
-                              },
-                              child: ListView.builder(
-                              padding:
-                                  const EdgeInsets.fromLTRB(16, 0, 16, 100),
-                              itemCount: displayRecords.length,
-                              itemBuilder: (context, index) {
-                                final record = displayRecords[index];
-                                return StaggeredItem(
-                                  index: index,
-                                  child: _buildRecordCard(
-                                      record, context, controller),
-                                );
-                              },
-                            ),
-                            ),
-                    ),
                   ],
                 ),
               ),
-              // Add Button
-              Positioned(
-                right: Spacing.lg,
-                bottom: Spacing.xxxl,
-                child: FadingFAB(
-                  onPressed: () => _showLendingTypeModal(context),
-                  color: SemanticColors.lending,
-                  heroTag: 'lending_fab',
+              const RailDivider(),
+              // Vertical tab selector
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+                child: Column(
+                  children: [
+                    _buildRailTab('I Lent',
+                        '₹${totalLent.toStringAsFixed(0)}', 0,
+                        AppStyles.accentBlue),
+                    const SizedBox(height: 6),
+                    _buildRailTab('I Borrowed',
+                        '₹${totalBorrowed.toStringAsFixed(0)}', 1,
+                        AppStyles.loss(context)),
+                    const SizedBox(height: 6),
+                    _buildRailTab('Settled',
+                        '${settledRecords.length} records', 2,
+                        SemanticColors.success),
+                  ],
                 ),
               ),
+              const Spacer(),
+              // Bill Split + Add buttons
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                child: CupertinoButton(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  color: AppStyles.getCardColor(context),
+                  borderRadius: BorderRadius.circular(10),
+                  onPressed: () => _navigateToBillSplit(context),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(CupertinoIcons.person_2_square_stack,
+                          size: 14, color: SemanticColors.lending),
+                      const SizedBox(width: 6),
+                      Text('Split Bill',
+                          style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: SemanticColors.lending)),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
+                child: CupertinoButton(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  color: SemanticColors.lending.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                  onPressed: () => _showLendingTypeModal(context),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(CupertinoIcons.add,
+                          size: 14, color: SemanticColors.lending),
+                      const SizedBox(width: 6),
+                      Text('Add Record',
+                          style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: SemanticColors.lending)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+
+          return Stack(
+            children: [
+              SafeArea(
+                child: isLandscape
+                    ? LandscapeScaffold(
+                        railWidth: 210,
+                        leftRail: landscapeRail,
+                        body: recordsList,
+                      )
+                    : recordsList,
+              ),
+              // Add Button (portrait only — landscape has it in the rail)
+              if (!isLandscape)
+                Positioned(
+                  right: Spacing.lg,
+                  bottom: Spacing.xxxl,
+                  child: FadingFAB(
+                    onPressed: () => _showLendingTypeModal(context),
+                    color: SemanticColors.lending,
+                    heroTag: 'lending_fab',
+                  ),
+                ),
             ],
           );
         },
@@ -258,31 +383,48 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
     );
   }
 
-  Widget _buildLandscapeNavBar(BuildContext context, LendingBorrowingController controller) {
-    return Container(
-      height: 40,
-      padding: const EdgeInsets.symmetric(horizontal: Spacing.md),
-      child: Row(
-        children: [
-          CupertinoButton(
-            padding: EdgeInsets.zero,
-            minimumSize: Size.zero,
-            onPressed: () => Navigator.maybePop(context),
-            child: Icon(CupertinoIcons.chevron_left, size: 20,
-                color: AppStyles.getPrimaryColor(context)),
+  Widget _buildRailTab(
+      String label, String sub, int tabIndex, Color color) {
+    final isSelected = _selectedTab == tabIndex;
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        setState(() => _selectedTab = tabIndex);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? color.withValues(alpha: 0.12)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected
+                ? color.withValues(alpha: 0.4)
+                : Colors.transparent,
+            width: 0.5,
           ),
-          const SizedBox(width: 8),
-          Text('LENDING & BORROWING',
-              style: AppTypography.sectionLabel(color: AppStyles.getTextColor(context))),
-          const Spacer(),
-          CupertinoButton(
-            padding: EdgeInsets.zero,
-            minimumSize: Size.zero,
-            onPressed: _showSortSheet,
-            child: Icon(CupertinoIcons.arrow_up_arrow_down, size: 18,
-                color: AppStyles.getSecondaryTextColor(context)),
-          ),
-        ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(label,
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight:
+                          isSelected ? FontWeight.w600 : FontWeight.w400,
+                      color: isSelected
+                          ? color
+                          : AppStyles.getTextColor(context))),
+            ),
+            Text(sub,
+                style: TextStyle(
+                    fontSize: 10,
+                    color: isSelected
+                        ? color
+                        : AppStyles.getSecondaryTextColor(context))),
+          ],
+        ),
       ),
     );
   }

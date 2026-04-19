@@ -31,3 +31,6 @@ export 'card_deck_view.dart';
 
 // SYS-04 — Landscape split-view (left panel + right panel)
 export 'landscape_split_view.dart';
+
+// SYS-05 — Landscape scaffold, rail, and rail header
+export 'landscape_scaffold.dart';

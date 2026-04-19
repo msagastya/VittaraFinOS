@@ -13,6 +13,7 @@ import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/styles/typography.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
+import 'package:vittara_fin_os/ui/widgets/landscape_scaffold.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
@@ -25,243 +26,258 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   final AppLogger logger = AppLogger();
+  int _selectedSection = 0; // 0=Privacy, 1=Display, 2=Data, 3=About, 4=Danger
 
   @override
   Widget build(BuildContext context) {
     final settings = Provider.of<SettingsController>(context);
 
+    final isLandscape = AppStyles.isLandscape(context);
+
+    // ── Full settings content (portrait + landscape right panel) ────────
+    Widget fullContent = SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: EdgeInsets.symmetric(horizontal: RS.lg(context)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: Spacing.lg),
+          _buildHeader('Privacy & Security'),
+          _buildModernSection(context, [
+            _buildToggleRow(
+              context,
+              icon: CupertinoIcons.viewfinder,
+              title: 'Biometric Auth',
+              subtitle: 'FaceID / fingerprint unlock',
+              value: settings.isBiometricEnabled,
+              color: AppStyles.gain(context),
+              onChanged: (val) => settings.toggleBiometric(val),
+            ),
+            if (settings.isBiometricEnabled) ...[
+              _buildDivider(context),
+              _buildToggleRow(
+                context,
+                icon: CupertinoIcons.lock_shield,
+                title: 'Lock on Minimize',
+                subtitle: 'Lock app when sent to background',
+                value: settings.lockOnMinimize,
+                color: SemanticColors.warning,
+                onChanged: (val) {
+                  settings.toggleLockOnMinimize(val);
+                  if (val) _showLockTimeoutOptions(context, settings);
+                },
+              ),
+              if (settings.lockOnMinimize) ...[
+                _buildDivider(context),
+                _buildNavRow(
+                  context,
+                  icon: CupertinoIcons.time,
+                  title: 'Lock Timeout',
+                  subtitle: null,
+                  value: _getTimeoutString(settings.lockTimeoutSeconds),
+                  color: AppStyles.getSecondaryTextColor(context),
+                  onTap: () => _showLockTimeoutOptions(context, settings),
+                ),
+              ],
+              _buildDivider(context),
+              _buildNavRow(
+                context,
+                icon: CupertinoIcons.number_square_fill,
+                title: 'PIN Lock',
+                subtitle: 'Set a 6-digit fallback PIN',
+                value: settings.isPinEnabled ? 'Enabled' : 'Not set',
+                color: SemanticColors.categories,
+                onTap: () => _showPinSetupSheet(context, settings),
+              ),
+              if (settings.isPinEnabled) ...[
+                _buildDivider(context),
+                _buildNavRow(
+                  context,
+                  icon: CupertinoIcons.shield_lefthalf_fill,
+                  title: 'Recovery Code',
+                  subtitle: 'View your 24-word recovery phrase',
+                  value: 'View',
+                  color: AppStyles.gold(context),
+                  onTap: () => _showRecoveryCode(context, settings),
+                ),
+              ],
+            ],
+          ]),
+          _buildHeader('Display'),
+          _buildModernSection(context, [
+            _buildNavRow(
+              context,
+              icon: CupertinoIcons.brightness,
+              title: 'Theme',
+              subtitle: 'AMOLED dark / light / system',
+              value: _getThemeString(settings.themeMode),
+              color: AppStyles.getPrimaryColor(context),
+              onTap: () => _showThemeOptions(context, settings),
+            ),
+          ]),
+          _buildHeader('Data & Backup'),
+          _buildModernSection(context, [
+            _buildToggleRow(
+              context,
+              icon: CupertinoIcons.graph_square,
+              title: 'Investment Tracking',
+              subtitle: 'Show investments in Quick Add',
+              value: settings.isInvestmentTrackingEnabled,
+              color: AppStyles.violet(context),
+              onChanged: (val) => settings.toggleInvestmentTracking(val),
+            ),
+            _buildDivider(context),
+            _buildToggleRow(
+              context,
+              icon: CupertinoIcons.archivebox_fill,
+              title: 'Show Archived Transactions',
+              subtitle: 'Include in history and search',
+              value: settings.isArchivedTransactionsEnabled,
+              color: AppStyles.teal(context),
+              onChanged: (val) => settings.toggleArchivedTransactions(val),
+            ),
+            _buildDivider(context),
+            _buildToggleRow(
+              context,
+              icon: CupertinoIcons.chat_bubble_text_fill,
+              title: 'SMS Scanning',
+              subtitle: 'Auto-detect bank transactions',
+              value: settings.isSmsEnabled,
+              color: AppStyles.info(context),
+              onChanged: (val) => settings.toggleSmsScanning(val),
+            ),
+            _buildDivider(context),
+            _buildNavRow(
+              context,
+              icon: CupertinoIcons.cloud_upload,
+              title: 'Backup & Restore',
+              subtitle: 'Encrypted device backup',
+              value: null,
+              color: SemanticColors.error,
+              onTap: () => Navigator.of(context).push(
+                FadeScalePageRoute(page: const BackupRestoreScreen()),
+              ),
+            ),
+            _buildDivider(context),
+            _buildNavRow(
+              context,
+              icon: CupertinoIcons.checkmark_shield,
+              title: 'Data Health',
+              subtitle: 'Check for orphaned records',
+              value: null,
+              color: AppStyles.accentBlue,
+              onTap: () => _runIntegrityCheck(context),
+            ),
+          ]),
+          _buildHeader('About'),
+          _buildModernSection(context, [
+            _buildNavRow(
+              context,
+              icon: CupertinoIcons.info_circle_fill,
+              title: 'About VittaraFinOS',
+              subtitle: null,
+              value: 'v1.0.0',
+              color: AppStyles.getPrimaryColor(context),
+              onTap: () => _showAboutDialog(context),
+            ),
+          ]),
+          _buildHeader('Danger Zone'),
+          _buildModernSection(context, [
+            _buildDangerRow(
+              context,
+              icon: CupertinoIcons.refresh,
+              title: 'Reset Settings',
+              subtitle: 'Restore all settings to defaults',
+              onTap: () => _confirmResetSettings(context, settings),
+            ),
+          ]),
+          const SizedBox(height: Spacing.xxl),
+        ],
+      ),
+    );
+
     return CupertinoPageScaffold(
       backgroundColor: AppStyles.getBackground(context),
-      navigationBar: AppStyles.isLandscape(context)
+      navigationBar: isLandscape
           ? null
           : AppStyles.standardNavBar(context, 'Settings'),
       child: SafeArea(
-        child: Column(
-          children: [
-            if (AppStyles.isLandscape(context)) _buildLandscapeNavBar(context),
-            Expanded(
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: EdgeInsets.symmetric(horizontal: RS.lg(context)),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        child: isLandscape
+            ? LandscapeScaffold(
+                railWidth: 200,
+                leftRail: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: Spacing.lg),
-
-                    // ── PRIVACY & SECURITY ──────────────────────────────
-                    _buildHeader('Privacy & Security'),
-                    _buildModernSection(context, [
-                      _buildToggleRow(
-                        context,
-                        icon: CupertinoIcons.viewfinder,
-                        title: 'Biometric Auth',
-                        subtitle: 'FaceID / fingerprint unlock',
-                        value: settings.isBiometricEnabled,
-                        color: AppStyles.gain(context),
-                        onChanged: (val) => settings.toggleBiometric(val),
-                      ),
-                      if (settings.isBiometricEnabled) ...[
-                        _buildDivider(context),
-                        _buildToggleRow(
-                          context,
-                          icon: CupertinoIcons.lock_shield,
-                          title: 'Lock on Minimize',
-                          subtitle: 'Lock app when sent to background',
-                          value: settings.lockOnMinimize,
-                          color: SemanticColors.warning,
-                          onChanged: (val) {
-                            settings.toggleLockOnMinimize(val);
-                            if (val)
-                              _showLockTimeoutOptions(context, settings);
-                          },
-                        ),
-                        if (settings.lockOnMinimize) ...[
-                          _buildDivider(context),
-                          _buildNavRow(
-                            context,
-                            icon: CupertinoIcons.time,
-                            title: 'Lock Timeout',
-                            subtitle: null,
-                            value: _getTimeoutString(
-                                settings.lockTimeoutSeconds),
-                            color: AppStyles.getSecondaryTextColor(context),
-                            onTap: () =>
-                                _showLockTimeoutOptions(context, settings),
-                          ),
-                        ],
-                        _buildDivider(context),
-                        _buildNavRow(
-                          context,
-                          icon: CupertinoIcons.number_square_fill,
-                          title: 'PIN Lock',
-                          subtitle: 'Set a 6-digit fallback PIN',
-                          value: settings.isPinEnabled ? 'Enabled' : 'Not set',
-                          color: SemanticColors.categories,
-                          onTap: () => _showPinSetupSheet(context, settings),
-                        ),
-                        if (settings.isPinEnabled) ...[
-                          _buildDivider(context),
-                          _buildNavRow(
-                            context,
-                            icon: CupertinoIcons.shield_lefthalf_fill,
-                            title: 'Recovery Code',
-                            subtitle: 'View your 24-word recovery phrase',
-                            value: 'View',
-                            color: AppStyles.gold(context),
-                            onTap: () =>
-                                _showRecoveryCode(context, settings),
-                          ),
-                        ],
-                      ],
-                    ]),
-
-                    // ── DISPLAY ─────────────────────────────────────────
-                    _buildHeader('Display'),
-                    _buildModernSection(context, [
-                      _buildNavRow(
-                        context,
-                        icon: CupertinoIcons.brightness,
-                        title: 'Theme',
-                        subtitle: 'AMOLED dark / light / system',
-                        value: _getThemeString(settings.themeMode),
-                        color: AppStyles.getPrimaryColor(context),
-                        onTap: () => _showThemeOptions(context, settings),
-                      ),
-                    ]),
-
-                    // ── DATA & BACKUP ────────────────────────────────────
-                    _buildHeader('Data & Backup'),
-                    _buildModernSection(context, [
-                      _buildToggleRow(
-                        context,
-                        icon: CupertinoIcons.graph_square,
-                        title: 'Investment Tracking',
-                        subtitle: 'Show investments in Quick Add',
-                        value: settings.isInvestmentTrackingEnabled,
-                        color: AppStyles.violet(context),
-                        onChanged: (val) =>
-                            settings.toggleInvestmentTracking(val),
-                      ),
-                      _buildDivider(context),
-                      _buildToggleRow(
-                        context,
-                        icon: CupertinoIcons.archivebox_fill,
-                        title: 'Show Archived Transactions',
-                        subtitle: 'Include in history and search',
-                        value: settings.isArchivedTransactionsEnabled,
-                        color: AppStyles.teal(context),
-                        onChanged: (val) =>
-                            settings.toggleArchivedTransactions(val),
-                      ),
-                      _buildDivider(context),
-                      _buildToggleRow(
-                        context,
-                        icon: CupertinoIcons.chat_bubble_text_fill,
-                        title: 'SMS Scanning',
-                        subtitle: 'Auto-detect bank transactions',
-                        value: settings.isSmsEnabled,
-                        color: AppStyles.info(context),
-                        onChanged: (val) => settings.toggleSmsScanning(val),
-                      ),
-                      _buildDivider(context),
-                      _buildNavRow(
-                        context,
-                        icon: CupertinoIcons.cloud_upload,
-                        title: 'Backup & Restore',
-                        subtitle: 'Encrypted device backup',
-                        value: null,
-                        color: SemanticColors.error,
-                        onTap: () => Navigator.of(context).push(
-                          FadeScalePageRoute(
-                              page: const BackupRestoreScreen()),
-                        ),
-                      ),
-                      _buildDivider(context),
-                      _buildNavRow(
-                        context,
-                        icon: CupertinoIcons.checkmark_shield,
-                        title: 'Data Health',
-                        subtitle: 'Check for orphaned records',
-                        value: null,
-                        color: AppStyles.accentBlue,
-                        onTap: () => _runIntegrityCheck(context),
-                      ),
-                    ]),
-
-                    // ── ABOUT ────────────────────────────────────────────
-                    _buildHeader('About'),
-                    _buildModernSection(context, [
-                      _buildNavRow(
-                        context,
-                        icon: CupertinoIcons.info_circle_fill,
-                        title: 'About VittaraFinOS',
-                        subtitle: null,
-                        value: 'v1.0.0',
-                        color: AppStyles.getPrimaryColor(context),
-                        onTap: () => _showAboutDialog(context),
-                      ),
-                    ]),
-
-                    // ── DANGER ZONE ──────────────────────────────────────
-                    _buildHeader('Danger Zone'),
-                    _buildModernSection(context, [
-                      _buildDangerRow(
-                        context,
-                        icon: CupertinoIcons.refresh,
-                        title: 'Reset Settings',
-                        subtitle: 'Restore all settings to defaults',
-                        onTap: () => _confirmResetSettings(context, settings),
-                      ),
-                    ]),
-
-                    const SizedBox(height: Spacing.xxl),
+                    LandscapeRailHeader(
+                        title: 'SETTINGS', outerContext: context),
+                    const RailDivider(indent: 0),
+                    const SizedBox(height: 4),
+                    ..._buildSettingsSectionTiles(context),
                   ],
                 ),
-              ),
-            ),
-          ],
-        ),
+                body: fullContent,
+              )
+            : fullContent,
       ),
     );
   }
 
-  Widget _buildLandscapeNavBar(BuildContext context) {
-    return Container(
-      height: 44,
-      color: AppStyles.getBackground(context),
-      padding: const EdgeInsets.symmetric(horizontal: Spacing.sm),
-      child: Row(
-        children: [
-          CupertinoButton(
-            padding: const EdgeInsets.symmetric(horizontal: Spacing.sm),
-            minimumSize: const Size(44, 44),
-            onPressed: () => Navigator.of(context).maybePop(),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(CupertinoIcons.chevron_left,
-                    size: 16,
-                    color: AppStyles.getPrimaryColor(context)),
-                const SizedBox(width: 2),
-                Text('Back',
-                    style: TextStyle(
-                        fontSize: TypeScale.footnote,
-                        color: AppStyles.getPrimaryColor(context))),
-              ],
+  List<Widget> _buildSettingsSectionTiles(BuildContext context) {
+    final sections = [
+      (CupertinoIcons.lock_shield_fill, 'Privacy & Security',
+          AppStyles.gain(context)),
+      (CupertinoIcons.brightness, 'Display',
+          AppStyles.getPrimaryColor(context)),
+      (CupertinoIcons.cloud_upload, 'Data & Backup', SemanticColors.error),
+      (CupertinoIcons.info_circle_fill, 'About',
+          AppStyles.accentBlue),
+      (CupertinoIcons.exclamationmark_triangle_fill, 'Danger Zone',
+          SemanticColors.error),
+    ];
+    return sections.asMap().entries.map((entry) {
+      final i = entry.key;
+      final (icon, label, color) = entry.value;
+      final isSelected = _selectedSection == i;
+      return GestureDetector(
+        onTap: () => setState(() => _selectedSection = i),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+          decoration: BoxDecoration(
+            color: isSelected ? color.withValues(alpha: 0.12) : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: isSelected ? color.withValues(alpha: 0.4) : Colors.transparent,
+              width: 0.5,
             ),
           ),
-          const Spacer(),
-          Text('SETTINGS',
-              style: TextStyle(
-                  fontSize: TypeScale.caption,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.5,
-                  color: AppStyles.getTextColor(context))),
-          const Spacer(),
-          const SizedBox(width: 60),
-        ],
-      ),
-    );
+          child: Row(
+            children: [
+              Icon(icon,
+                  size: 15,
+                  color: isSelected
+                      ? color
+                      : AppStyles.getSecondaryTextColor(context)),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight:
+                        isSelected ? FontWeight.w600 : FontWeight.w400,
+                    color: isSelected
+                        ? color
+                        : AppStyles.getTextColor(context),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }).toList();
   }
 
   void _runIntegrityCheck(BuildContext context) {
