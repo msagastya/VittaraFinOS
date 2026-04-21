@@ -73,6 +73,7 @@ import 'package:vittara_fin_os/ui/dashboard/widgets/insights_widget.dart';
 import 'package:vittara_fin_os/ui/dashboard/widgets/net_worth_widget.dart';
 import 'package:vittara_fin_os/ui/dashboard/widgets/transaction_history_widget.dart';
 import 'package:vittara_fin_os/ui/dashboard/widgets/engagement_strip_widget.dart';
+import 'package:vittara_fin_os/ui/dashboard/widgets/ai_insights_strip.dart';
 import 'package:vittara_fin_os/logic/engagement_service.dart';
 import 'package:vittara_fin_os/ui/engagement/achievements_screen.dart';
 import 'package:vittara_fin_os/ui/dashboard/widgets/health_score_widget.dart';
@@ -1535,6 +1536,7 @@ class DashboardScreen extends StatelessWidget {
             child: Column(
               children: [
                 const EngagementStripWidget(),
+                const AIInsightsStrip(),
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.only(
@@ -1572,6 +1574,9 @@ class DashboardScreen extends StatelessWidget {
 
         // ENGAGEMENT: compact strip
         const EngagementStripWidget(),
+
+        // AI INSIGHTS: proactive cards (hidden when no content)
+        const AIInsightsStrip(),
 
         // CARD DECK — swipe left/right
         Expanded(

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:vittara_fin_os/logic/ai/ai_intelligence_controller.dart';
 import 'package:vittara_fin_os/logic/budgets_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
@@ -86,6 +87,85 @@ class _SpendIntelBody extends StatelessWidget {
 
     // Shared content list items
     final contentChildren = <Widget>[
+      // Monthly narrative from AI Intelligence Controller
+      Builder(builder: (ctx) {
+        final ai = ctx.watch<AIIntelligenceController>();
+        final narrative = ai.currentMonthNarrative;
+        if (narrative == null) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.only(bottom: Spacing.md),
+          child: Container(
+            padding: const EdgeInsets.all(Spacing.lg),
+            decoration: BoxDecoration(
+              color: AppStyles.aetherTeal.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                  color: AppStyles.aetherTeal.withValues(alpha: 0.3)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(CupertinoIcons.chart_bar_fill,
+                        color: AppStyles.aetherTeal, size: 16),
+                    const SizedBox(width: 6),
+                    Text(
+                      narrative.headline,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: AppStyles.aetherTeal,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  narrative.paragraph,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppStyles.getTextColor(ctx),
+                    height: 1.5,
+                  ),
+                ),
+                if (narrative.highlight != null) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF4CAF50).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      '✓ ${narrative.highlight}',
+                      style: const TextStyle(
+                          fontSize: 11, color: Color(0xFF4CAF50)),
+                    ),
+                  ),
+                ],
+                if (narrative.watchOut != null) ...[
+                  const SizedBox(height: 4),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFF6B6B).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      '⚠ ${narrative.watchOut}',
+                      style: const TextStyle(
+                          fontSize: 11, color: Color(0xFFFF6B6B)),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      }),
       if (data.hasData) ...[
         _IntelligenceHeader(data: data),
         const SizedBox(height: Spacing.md),

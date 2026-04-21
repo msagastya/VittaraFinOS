@@ -15,6 +15,8 @@ import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/ui/manage/accounts_screen.dart';
 import 'package:vittara_fin_os/ui/manage/investments_screen.dart';
 import 'package:vittara_fin_os/ui/manage/payment_apps_screen.dart';
+import 'package:vittara_fin_os/logic/ai/ai_intelligence_controller.dart';
+import 'package:vittara_fin_os/ui/scorecard/financial_health_card.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/card_deck_view.dart';
@@ -626,6 +628,89 @@ class _NetWorthPageState extends State<NetWorthPage> {
                     child: _buildCreditLiabilitiesSection(
                         context, accountsController),
                   ),
+                  // Financial Health Score card
+                  Builder(builder: (ctx) {
+                    final ai = ctx.watch<AIIntelligenceController>();
+                    final score = ai.healthScore;
+                    if (score == null) return const SizedBox.shrink();
+                    final color = score.overallScore >= 70
+                        ? AppStyles.gain(ctx)
+                        : score.overallScore >= 40
+                            ? const Color(0xFFFF9500)
+                            : AppStyles.loss(ctx);
+                    return _buildNwDeckCard(
+                      ctx,
+                      label: 'HEALTH SCORE',
+                      icon: CupertinoIcons.heart_fill,
+                      accent: color,
+                      child: GestureDetector(
+                        onTap: () => Navigator.of(ctx).push(
+                          CupertinoPageRoute(
+                            builder: (_) => FinancialHealthCard(score: score),
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  score.overallScore.toStringAsFixed(0),
+                                  style: TextStyle(
+                                    fontSize: 48,
+                                    fontWeight: FontWeight.w800,
+                                    color: color,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      score.overallLabel,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppStyles.getTextColor(ctx),
+                                      ),
+                                    ),
+                                    Text(
+                                      'Tap for full breakdown →',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: AppStyles.getSecondaryTextColor(ctx),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            ...score.dimensions.take(4).map((d) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 6),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          d.name,
+                                          style: const TextStyle(fontSize: 12),
+                                        ),
+                                      ),
+                                      Text(
+                                        d.score.toStringAsFixed(0),
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: color,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )),
+                          ],
+                        ),
+                      ),
+                    );
+                  }),
                 ],
               );
             } catch (e) {
