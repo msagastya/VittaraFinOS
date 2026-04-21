@@ -16,6 +16,7 @@ import 'package:vittara_fin_os/logic/recurring_pattern_detector.dart';
 import 'package:vittara_fin_os/utils/id_generator.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/logic/ai/ai_intelligence_controller.dart';
 import 'package:vittara_fin_os/ui/styles/transaction_type_theme.dart';
 import 'package:vittara_fin_os/ui/styles/typography.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
@@ -1532,7 +1533,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                transaction.getSummary(),
+                                AIIntelligenceController.displayName(transaction),
                                 style: AppTypography.footnote(
                                   color: AppStyles.getSecondaryTextColor(context),
                                 ),

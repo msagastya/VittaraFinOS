@@ -29,6 +29,9 @@ import 'package:vittara_fin_os/logic/transactions_archive_controller.dart';
 import 'package:vittara_fin_os/logic/recurring_templates_controller.dart';
 import 'package:vittara_fin_os/logic/ai_planner_context.dart';
 import 'package:vittara_fin_os/logic/backup_restore_service.dart';
+import 'package:vittara_fin_os/logic/ai/device_intelligence_tier.dart';
+import 'package:vittara_fin_os/logic/ai/merchant_normalizer.dart';
+import 'package:vittara_fin_os/logic/ai/ai_intelligence_controller.dart';
 import 'package:vittara_fin_os/logic/loan_controller.dart';
 import 'package:vittara_fin_os/logic/insurance_controller.dart';
 import 'package:vittara_fin_os/ui/fintech_loader.dart';
@@ -171,6 +174,16 @@ void main() {
           ChangeNotifierProvider(create: (_) {
             try { return EngagementService()..initialize(); }
             catch (e) { logger.error('EngagementService init failed', error: e); return EngagementService(); }
+          }),
+          ChangeNotifierProvider(create: (_) {
+            try {
+              final ctrl = AIIntelligenceController();
+              ctrl.init(); // fire-and-forget, non-blocking
+              return ctrl;
+            } catch (e) {
+              logger.error('AIIntelligenceController init failed', error: e);
+              return AIIntelligenceController();
+            }
           }),
         ],
         child: const MyApp(),
@@ -706,6 +719,9 @@ class _SplashScreenState extends State<SplashScreen> {
         _checkAndShowWhatsNew();
         // UTL-04: daily auto-backup (fire-and-forget, max once per day)
         BackupRestoreService.runAutoBackupIfNeeded();
+        // Phase 1 AI init — fire-and-forget, never blocks UI
+        DeviceIntelligenceTier.detect();
+        MerchantNormalizer.init();
       } else {
         Navigator.of(context).pushReplacement(
           FadeScalePageRoute(
@@ -716,6 +732,8 @@ class _SplashScreenState extends State<SplashScreen> {
                 _triggerSmsStartupScan();
                 if (mounted) _checkAndShowWhatsNew();
                 BackupRestoreService.runAutoBackupIfNeeded();
+                DeviceIntelligenceTier.detect();
+                MerchantNormalizer.init();
               },
             ),
           ),

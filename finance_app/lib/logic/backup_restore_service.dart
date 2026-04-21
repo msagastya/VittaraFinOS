@@ -356,7 +356,7 @@ class BackupRestoreService {
         'summary': summary,
         'encryption': {
           'algorithm': _encryptionAlgorithm,
-          'keyVersion': _encryptionKeyVersion,
+          'keyVersion': 1, // must match the keyVersion used inside _encryptPayload
           'nonce': encrypted['nonce'],
           'salt': encrypted['salt'],
           'mac': encrypted['mac'],
@@ -1568,49 +1568,59 @@ class BackupRestoreService {
       final cipher = base64Decode(payloadBase64);
       final mac = base64Decode(macBase64);
 
-      // keyVersion 1 = hardcoded seed (portable, survives reinstall).
-      // keyVersion 2 = per-device key in secure storage (deprecated — deleted on uninstall).
-      final Uint8List seed;
-      if (keyVersion >= 2) {
-        lastRestoreUsedLegacyKey = false;
-        seed = await _getOrCreateDeviceKey();
-      } else {
-        // keyVersion=1 is now the standard portable format — not a legacy flag.
-        lastRestoreUsedLegacyKey = false;
-        seed = Uint8List.fromList(_masterSecretSeed);
-      }
+      // Try decrypting with the keyVersions to try, in priority order.
+      // Old (buggy) exports wrote keyVersion=2 in the envelope but encrypted
+      // with the portable seed (keyVersion=1). So if the stated keyVersion is 2
+      // we still fall back to 1 if MAC verification fails.
+      final keyVersionsToTry = keyVersion == 1
+          ? [1]
+          : [keyVersion, 1]; // try stated version first, then portable seed
 
-      final encryptionKey = _deriveEncryptionKey(
-        seed: seed,
-        keyVersion: keyVersion,
-        salt: salt,
-        purpose: 'enc',
-      );
-      final macKey = _deriveEncryptionKey(
-        seed: seed,
-        keyVersion: keyVersion,
-        salt: salt,
-        purpose: 'mac',
-      );
-      final macInput = _buildMacInputV2(
-        algorithm: algorithm,
-        keyVersion: keyVersion,
-        nonce: nonce,
-        salt: salt,
-        cipher: cipher,
-      );
-      final expectedMac = Hmac(sha256, macKey).convert(macInput).bytes;
+      for (final kv in keyVersionsToTry) {
+        final Uint8List seed;
+        if (kv >= 2) {
+          try {
+            seed = await _getOrCreateDeviceKey();
+          } catch (_) {
+            continue; // can't get device key on this device — try next
+          }
+        } else {
+          seed = Uint8List.fromList(_masterSecretSeed);
+        }
 
-      if (!_constantTimeEquals(expectedMac, mac)) {
-        throw const FormatException(
-          'Backup decryption failed: authentication tag mismatch',
+        final encryptionKey = _deriveEncryptionKey(
+          seed: seed,
+          keyVersion: kv,
+          salt: salt,
+          purpose: 'enc',
         );
+        final macKey = _deriveEncryptionKey(
+          seed: seed,
+          keyVersion: kv,
+          salt: salt,
+          purpose: 'mac',
+        );
+        final macInput = _buildMacInputV2(
+          algorithm: algorithm,
+          keyVersion: kv,
+          nonce: nonce,
+          salt: salt,
+          cipher: cipher,
+        );
+        final expectedMac = Hmac(sha256, macKey).convert(macInput).bytes;
+
+        if (_constantTimeEquals(expectedMac, mac)) {
+          lastRestoreUsedLegacyKey = false;
+          return _decryptWithKey(
+            key: encryptionKey,
+            nonce: nonce,
+            cipher: cipher,
+          );
+        }
       }
 
-      return _decryptWithKey(
-        key: encryptionKey,
-        nonce: nonce,
-        cipher: cipher,
+      throw const FormatException(
+        'Backup decryption failed: authentication tag mismatch',
       );
     }
 

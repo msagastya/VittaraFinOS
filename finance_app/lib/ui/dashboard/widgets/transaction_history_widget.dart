@@ -7,6 +7,7 @@ import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/logic/transaction_feed_builder.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
+import 'package:vittara_fin_os/logic/ai/ai_intelligence_controller.dart';
 import 'package:vittara_fin_os/ui/dashboard/base_dashboard_widget.dart';
 import 'package:vittara_fin_os/ui/dashboard/quick_entry_sheet.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
@@ -214,7 +215,8 @@ class TransactionHistoryWidget extends BaseDashboardWidget {
     bool compact = false,
   }) {
     final amount = transaction.amount;
-    final description = transaction.description;
+    // Use AI-normalized merchant name for cleaner display
+    final description = AIIntelligenceController.displayName(transaction);
     final metadata = transaction.metadata ?? const <String, dynamic>{};
     final category =
         (metadata['categoryName'] as String?) ?? transaction.getTypeLabel();

@@ -14,6 +14,10 @@ class TransactionsController with ChangeNotifier {
   static const String _storageKey = 'transactions';
   static final _writeMutex = AsyncMutex();
 
+  /// Optional hook called after any data change — used by AIIntelligenceController
+  /// to trigger background analysis without creating a circular dependency.
+  static void Function(List<Transaction>)? onDataChanged;
+
   List<Transaction> get transactions => _transactions;
 
   TransactionsController() {
@@ -55,6 +59,7 @@ class TransactionsController with ChangeNotifier {
     }
 
     notifyListeners();
+    onDataChanged?.call(List.unmodifiable(_transactions));
   }
 
   Future<void> addTransaction(Transaction transaction) async {
@@ -67,15 +72,48 @@ class TransactionsController with ChangeNotifier {
     if (normalized.createdAt == null) {
       normalized = normalized.copyWith(createdAt: DateTime.now());
     }
+
+    // Backdated entry: if the transaction date is before today, place it at
+    // the end of that day so it doesn't appear out of order in the history.
+    // Find the latest existing timestamp for that date and add 1 second.
+    // If already at 23:59:59 (or beyond), keep 23:59:59 as the time.
+    final txDate = normalized.dateTime;
+    final today = DateTime.now();
+    final isBackdated = txDate.year < today.year ||
+        (txDate.year == today.year && txDate.month < today.month) ||
+        (txDate.year == today.year &&
+            txDate.month == today.month &&
+            txDate.day < today.day);
+
+    if (isBackdated) {
+      final endOfDay = DateTime(txDate.year, txDate.month, txDate.day, 23, 59, 59);
+      // Find the latest dateTime among existing transactions on that same date
+      DateTime latest = DateTime(txDate.year, txDate.month, txDate.day, 23, 58, 59);
+      for (final t in _transactions) {
+        final d = t.dateTime;
+        if (d.year == txDate.year &&
+            d.month == txDate.month &&
+            d.day == txDate.day &&
+            d.isAfter(latest)) {
+          latest = d;
+        }
+      }
+      final candidate = latest.add(const Duration(seconds: 1));
+      final assignedTime = candidate.isAfter(endOfDay) ? endOfDay : candidate;
+      normalized = normalized.copyWith(dateTime: assignedTime);
+    }
+
     _transactions.insert(0, normalized); // Add to beginning (newest first)
     await _saveTransactions();
     notifyListeners();
+    onDataChanged?.call(List.unmodifiable(_transactions));
   }
 
   Future<void> removeTransaction(String transactionId) async {
     _transactions.removeWhere((t) => t.id == transactionId);
     await _saveTransactions();
     notifyListeners();
+    onDataChanged?.call(List.unmodifiable(_transactions));
   }
 
   Future<void> updateTransaction(Transaction updated) async {

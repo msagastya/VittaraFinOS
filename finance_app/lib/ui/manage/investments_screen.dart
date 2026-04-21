@@ -112,6 +112,9 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _showScrollToTop = false;
 
+  // Category tab strip scroll controller — used to keep active tab visible
+  final ScrollController _tabStripController = ScrollController();
+
   static const _prefKeySortBy = 'inv_sort';
   static const _prefKeySortAsc = 'inv_sort_asc';
 
@@ -184,6 +187,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     _categoryPageController.dispose();
     _searchController.dispose();
     _scrollController.dispose();
+    _tabStripController.dispose();
     super.dispose();
   }
 
@@ -1023,6 +1027,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     return SizedBox(
       height: 60,
       child: ListView.separated(
+        controller: _tabStripController,
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
         itemCount: categories.length,
@@ -1046,6 +1051,18 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                 duration: const Duration(milliseconds: 260),
                 curve: Curves.easeOutCubic,
               );
+              // Scroll tab strip so selected tab is centered
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!_tabStripController.hasClients) return;
+                final tabWidth = 90.0; // approximate tab width incl. separator
+                final stripWidth = _tabStripController.position.viewportDimension;
+                final target = (index * tabWidth) - (stripWidth / 2) + (tabWidth / 2);
+                _tabStripController.animateTo(
+                  target.clamp(0.0, _tabStripController.position.maxScrollExtent),
+                  duration: const Duration(milliseconds: 260),
+                  curve: Curves.easeOutCubic,
+                );
+              });
             },
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 180),
@@ -1152,6 +1169,25 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               ),
             ),
           ),
+          const Spacer(),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                CupertinoIcons.arrow_down,
+                size: 10,
+                color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.55),
+              ),
+              const SizedBox(width: 3),
+              Text(
+                'scroll to refresh',
+                style: TextStyle(
+                  fontSize: 10,
+                  color: AppStyles.getSecondaryTextColor(context).withValues(alpha: 0.55),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -1171,78 +1207,20 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
         previousPageTitle: 'Back',
         backgroundColor: AppStyles.getBackground(context),
         border: null,
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Maturity Calendar Icon
-            Semantics(
-              label: 'Maturity calendar',
-              child: CupertinoButton(
-                padding: const EdgeInsets.symmetric(horizontal: Spacing.sm),
-                onPressed: () => _showMaturityCalendar(
-                    context,
-                    Provider.of<InvestmentsController>(context, listen: false)
-                        .investments),
-                child: const Icon(
-                  CupertinoIcons.calendar,
-                  size: 20,
-                  color: SemanticColors.investments,
-                ),
-              ),
+        trailing: Semantics(
+          label: 'Maturity calendar',
+          child: CupertinoButton(
+            padding: const EdgeInsets.symmetric(horizontal: Spacing.sm),
+            onPressed: () => _showMaturityCalendar(
+                context,
+                Provider.of<InvestmentsController>(context, listen: false)
+                    .investments),
+            child: const Icon(
+              CupertinoIcons.calendar,
+              size: 20,
+              color: SemanticColors.investments,
             ),
-            // Sort Icon
-            Semantics(
-              label: 'Sort investments',
-              child: CupertinoButton(
-                padding: const EdgeInsets.symmetric(horizontal: Spacing.sm),
-                onPressed: () => _showSortModal(context),
-                child: const Icon(
-                  CupertinoIcons.arrow_up_arrow_down,
-                  size: 20,
-                  color: SemanticColors.investments,
-                ),
-              ),
-            ),
-            // Refresh Icon
-            Semantics(
-              label: 'Refresh investment values',
-              child: CupertinoButton(
-                padding: const EdgeInsets.symmetric(horizontal: Spacing.md),
-                onPressed: _isRefreshingCurrentValues
-                    ? null
-                    : () => _refreshCurrentValues(context),
-                child: _isRefreshingCurrentValues
-                    ? const CupertinoActivityIndicator(
-                        radius: 10, color: SemanticColors.investments)
-                    : const Icon(
-                        CupertinoIcons.arrow_clockwise,
-                        size: 20,
-                        color: SemanticColors.investments,
-                      ),
-              ),
-            ),
-            // Ascending/Descending Icon
-            Semantics(
-              label: _sortAscending
-                  ? 'Sort descending'
-                  : 'Sort ascending',
-              child: CupertinoButton(
-                padding: const EdgeInsets.symmetric(horizontal: Spacing.md),
-                onPressed: () {
-                  Haptics.light();
-                  setState(() => _sortAscending = !_sortAscending);
-                  _saveSortPrefs();
-                },
-                child: Icon(
-                  _sortAscending
-                      ? CupertinoIcons.arrow_up
-                      : CupertinoIcons.arrow_down,
-                  size: 20,
-                  color: SemanticColors.investments,
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
       child: Consumer<InvestmentsController>(
@@ -1379,7 +1357,6 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
 
   /// Compact 40dp nav bar shown in landscape (replaces CupertinoNavigationBar).
   Widget _buildLandscapeInvestmentsNavBar(BuildContext context) {
-    final textColor = AppStyles.getTextColor(context);
     final secondary = AppStyles.getSecondaryTextColor(context);
     return Container(
       height: 40,
@@ -1420,7 +1397,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             ),
           ),
           const Spacer(),
-          // Maturity calendar + sort + refresh in compact row
+          // Maturity calendar only
           CupertinoButton(
             padding: EdgeInsets.zero,
             onPressed: () => _showMaturityCalendar(
@@ -1429,25 +1406,6 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                     .investments),
             child: Icon(CupertinoIcons.calendar, size: 18, color: secondary),
           ),
-          const SizedBox(width: Spacing.sm),
-          CupertinoButton(
-            padding: EdgeInsets.zero,
-            onPressed: () => _showSortModal(context),
-            child: Icon(CupertinoIcons.arrow_up_arrow_down,
-                size: 18, color: secondary),
-          ),
-          const SizedBox(width: Spacing.sm),
-          CupertinoButton(
-            padding: EdgeInsets.zero,
-            onPressed: _isRefreshingCurrentValues
-                ? null
-                : () => _refreshCurrentValues(context),
-            child: _isRefreshingCurrentValues
-                ? const CupertinoActivityIndicator(radius: 8)
-                : Icon(CupertinoIcons.arrow_clockwise, size: 18, color: secondary),
-          ),
-          const SizedBox(width: Spacing.xs),
-          Text(textColor.toString().isEmpty ? '' : ''),
         ],
       ),
     );
@@ -1466,6 +1424,18 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
           setState(() {
             _selectedCategoryIndex = index;
             _selectedFilter = categories[index];
+          });
+          // Keep the active tab visible in the tab strip
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!_tabStripController.hasClients) return;
+            const tabWidth = 90.0;
+            final stripWidth = _tabStripController.position.viewportDimension;
+            final target = (index * tabWidth) - (stripWidth / 2) + (tabWidth / 2);
+            _tabStripController.animateTo(
+              target.clamp(0.0, _tabStripController.position.maxScrollExtent),
+              duration: const Duration(milliseconds: 260),
+              curve: Curves.easeOutCubic,
+            );
           });
         },
         itemBuilder: (context, pageIndex) {

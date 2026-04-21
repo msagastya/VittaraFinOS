@@ -262,7 +262,12 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
               // Bottom controls
               Padding(
-                padding: const EdgeInsets.fromLTRB(24, 0, 24, 0),
+                padding: EdgeInsets.fromLTRB(
+                  24,
+                  0,
+                  24,
+                  MediaQuery.of(context).orientation == Orientation.landscape ? 4 : 0,
+                ),
                 child: Column(
                   children: [
                     // Dot indicators + page counter
@@ -358,78 +363,50 @@ class _OnboardingPageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textColor = isDark ? AppStyles.darkText : AppStyles.lightText;
-    final secondaryColor =
-        AppStyles.getSecondaryTextColor(context);
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+    return isLandscape
+        ? _buildLandscape(context)
+        : _buildPortrait(context);
+  }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Emoji / symbol in glowing circle
-          Container(
-            width: 120,
-            height: 120,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: page.accent.withValues(alpha: 0.1),
-              border: Border.all(
-                color: page.accent.withValues(alpha: 0.35),
-                width: 1.5,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: page.accent.withValues(alpha: 0.25),
-                  blurRadius: 32,
-                  spreadRadius: 4,
-                ),
-              ],
-            ),
-            child: Center(
-              child: Text(
-                page.emoji,
-                style: TextStyle(
-                  color: page.accent,
-                  fontSize: 52,
-                  height: 1,
-                ),
-              ),
-            ),
+  // ── Shared widgets ──────────────────────────────────────────────────────────
+
+  Widget _buildIcon(double size, double fontSize) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: page.accent.withValues(alpha: 0.1),
+        border: Border.all(
+          color: page.accent.withValues(alpha: 0.35),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: page.accent.withValues(alpha: 0.25),
+            blurRadius: 32,
+            spreadRadius: 4,
           ),
-          const SizedBox(height: 40),
+        ],
+      ),
+      child: Center(
+        child: Text(
+          page.emoji,
+          style: TextStyle(color: page.accent, fontSize: fontSize, height: 1),
+        ),
+      ),
+    );
+  }
 
-          // Title
-          Text(
-            page.title,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: textColor,
-              fontSize: RT.title1(context),
-              fontWeight: FontWeight.w700,
-              letterSpacing: -0.5,
-              height: 1.2,
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // Subtitle
-          Text(
-            page.subtitle,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: secondaryColor,
-              fontSize: TypeScale.callout,
-              fontWeight: FontWeight.w400,
-              height: 1.5,
-            ),
-          ),
-          const SizedBox(height: 36),
-
-          // Bullet list
-          ...page.bullets.map(
+  Widget _buildBullets(BuildContext context, Color textColor) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: page.bullets
+          .map(
             (b) => Padding(
-              padding: const EdgeInsets.only(bottom: 14),
+              padding: const EdgeInsets.only(bottom: 12),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -462,6 +439,95 @@ class _OnboardingPageView extends StatelessWidget {
                   ),
                 ],
               ),
+            ),
+          )
+          .toList(),
+    );
+  }
+
+  // ── Portrait: centered column ───────────────────────────────────────────────
+
+  Widget _buildPortrait(BuildContext context) {
+    final textColor = isDark ? AppStyles.darkText : AppStyles.lightText;
+    final secondaryColor = AppStyles.getSecondaryTextColor(context);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildIcon(120, 52),
+          const SizedBox(height: 40),
+          Text(
+            page.title,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: textColor,
+              fontSize: RT.title1(context),
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.5,
+              height: 1.2,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            page.subtitle,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: secondaryColor,
+              fontSize: TypeScale.callout,
+              fontWeight: FontWeight.w400,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 36),
+          _buildBullets(context, textColor),
+        ],
+      ),
+    );
+  }
+
+  // ── Landscape: icon left, text+bullets right, scrollable ───────────────────
+
+  Widget _buildLandscape(BuildContext context) {
+    final textColor = isDark ? AppStyles.darkText : AppStyles.lightText;
+    final secondaryColor = AppStyles.getSecondaryTextColor(context);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          _buildIcon(88, 38),
+          const SizedBox(width: 32),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  page.title,
+                  style: TextStyle(
+                    color: textColor,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.5,
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  page.subtitle,
+                  style: TextStyle(
+                    color: secondaryColor,
+                    fontSize: TypeScale.callout,
+                    fontWeight: FontWeight.w400,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                _buildBullets(context, textColor),
+              ],
             ),
           ),
         ],
