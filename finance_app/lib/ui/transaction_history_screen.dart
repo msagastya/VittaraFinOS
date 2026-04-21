@@ -21,6 +21,7 @@ import 'package:vittara_fin_os/ui/styles/transaction_type_theme.dart';
 import 'package:vittara_fin_os/ui/styles/typography.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
+import 'package:vittara_fin_os/ui/widgets/empty_state_widget.dart';
 import 'package:vittara_fin_os/ui/dashboard/transaction_wizard.dart';
 import 'package:vittara_fin_os/ui/widgets/transaction_details_content.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
@@ -890,16 +891,22 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                           Expanded(
                             child: _searchQuery.isNotEmpty
                                 ? _buildNoSearchResults()
-                                : Center(
-                                    child: Text(
-                                      _hasActiveFilter
-                                          ? 'No transactions match the current filter'
-                                          : 'No transactions found',
-                                      style: TextStyle(
-                                          color:
-                                              AppStyles.getSecondaryTextColor(
-                                                  context)),
-                                    ),
+                                : EmptyStateWidget(
+                                    icon: _hasActiveFilter
+                                        ? CupertinoIcons.line_horizontal_3_decrease
+                                        : CupertinoIcons.arrow_up_arrow_down_circle,
+                                    title: _hasActiveFilter
+                                        ? 'No matches'
+                                        : 'No transactions yet',
+                                    subtitle: _hasActiveFilter
+                                        ? 'Try removing some filters.'
+                                        : 'Tap + to log your first expense or income.',
+                                    actionLabel: _hasActiveFilter
+                                        ? null
+                                        : 'Log first transaction',
+                                    onAction: _hasActiveFilter
+                                        ? null
+                                        : () => showQuickEntrySheet(context),
                                   ),
                           )
                         else
@@ -1017,15 +1024,22 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                   Expanded(
                     child: _searchQuery.isNotEmpty
                         ? _buildNoSearchResults()
-                        : Center(
-                            child: Text(
-                              _hasActiveFilter
-                                  ? 'No transactions match the current filter'
-                                  : 'No transactions found',
-                              style: TextStyle(
-                                  color: AppStyles.getSecondaryTextColor(
-                                      context)),
-                            ),
+                        : EmptyStateWidget(
+                            icon: _hasActiveFilter
+                                ? CupertinoIcons.line_horizontal_3_decrease
+                                : CupertinoIcons.arrow_up_arrow_down_circle,
+                            title: _hasActiveFilter
+                                ? 'No matches'
+                                : 'No transactions yet',
+                            subtitle: _hasActiveFilter
+                                ? 'Try removing some filters.'
+                                : 'Tap + to log your first expense or income.',
+                            actionLabel: _hasActiveFilter
+                                ? null
+                                : 'Log first transaction',
+                            onAction: _hasActiveFilter
+                                ? null
+                                : () => showQuickEntrySheet(context),
                           ),
                   )
                 else

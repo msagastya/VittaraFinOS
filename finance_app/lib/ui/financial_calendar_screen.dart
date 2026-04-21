@@ -20,6 +20,7 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
+import 'package:vittara_fin_os/ui/widgets/empty_state_widget.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 
@@ -986,28 +987,13 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
   }
 
   Widget _buildEmptyEvents(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            CupertinoIcons.calendar,
-            size: 48,
-            color: AppStyles.getSecondaryTextColor(context)
-                .withValues(alpha: 0.3),
-          ),
-          const SizedBox(height: Spacing.md),
-          Text(
-            _selectedDay != null
-                ? 'No events on this day'
-                : 'No events this month',
-            style: TextStyle(
-              fontSize: TypeScale.body,
-              color: AppStyles.getSecondaryTextColor(context),
-            ),
-          ),
-        ],
-      ),
+    return EmptyStateWidget(
+      icon: CupertinoIcons.calendar,
+      title: _selectedDay != null
+          ? 'No events on this day'
+          : 'No events this month',
+      subtitle:
+          'Upcoming salary, bills, and recurring transactions will appear here.',
     );
   }
 
