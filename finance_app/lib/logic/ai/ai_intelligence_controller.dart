@@ -17,6 +17,7 @@ import 'monthly_narrative.dart';
 import 'habit_observation_engine.dart';
 import 'habit_constructor.dart';
 import 'behavioral_nudge.dart';
+import 'financial_health_score.dart';
 
 /// Central coordinator for all on-device AI features.
 ///
@@ -84,6 +85,10 @@ class AIIntelligenceController extends ChangeNotifier {
 
   List<HabitNudge> _habitNudges = [];
   List<HabitNudge> get habitNudges => _habitNudges;
+
+  // Phase 6 — financial health score
+  FinancialHealthScore? _healthScore;
+  FinancialHealthScore? get healthScore => _healthScore;
 
   bool _isComputing = false;
   bool get isComputing => _isComputing;
@@ -217,6 +222,16 @@ class AIIntelligenceController extends ChangeNotifier {
         _habitOpportunities = HabitObservationEngine.observe(
           transactions: transactions,
           readiness: _readiness,
+        );
+      }
+
+      // Phase 6: Financial Health Score
+      if (_readiness.canShowHealthScore && accountBalances != null) {
+        _healthScore = FinancialHealthScorer.compute(
+          transactions: transactions,
+          accountBalances: accountBalances,
+          goals: goals ?? [],
+          predictedCalendar: _predictedCalendar.isNotEmpty ? _predictedCalendar : null,
         );
       }
 

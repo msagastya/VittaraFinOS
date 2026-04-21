@@ -32,6 +32,7 @@ import 'package:vittara_fin_os/logic/backup_restore_service.dart';
 import 'package:vittara_fin_os/logic/ai/device_intelligence_tier.dart';
 import 'package:vittara_fin_os/logic/ai/merchant_normalizer.dart';
 import 'package:vittara_fin_os/logic/ai/ai_intelligence_controller.dart';
+import 'package:vittara_fin_os/logic/ai/voice_controller.dart';
 import 'package:vittara_fin_os/logic/loan_controller.dart';
 import 'package:vittara_fin_os/logic/insurance_controller.dart';
 import 'package:vittara_fin_os/ui/fintech_loader.dart';
@@ -185,6 +186,7 @@ void main() {
               return AIIntelligenceController();
             }
           }),
+          ChangeNotifierProvider(create: (_) => VoiceController()),
         ],
         child: const MyApp(),
       ),

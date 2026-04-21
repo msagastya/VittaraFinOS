@@ -40,6 +40,12 @@ dependencies:
   syncfusion_flutter_pdf: ^28.2.7
   # AI Intelligence System (Phase 1)
   device_info_plus: ^10.1.0
+  # Phase 5 — Voice + OCR
+  speech_to_text: ^7.0.0
+  flutter_tts: ^4.0.0
+  google_mlkit_text_recognition: ^0.15.0
+  camera: ^0.11.0
+  image_picker: ^1.1.2
 dev_dependencies:
   flutter_test:
     sdk: flutter
