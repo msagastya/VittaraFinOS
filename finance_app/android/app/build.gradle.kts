@@ -20,15 +20,6 @@ android {
         jvmTarget = JavaVersion.VERSION_17.toString()
     }
 
-    signingConfigs {
-        create("release") {
-            keyAlias = "vittara"
-            keyPassword = "vittara2024release"
-            storeFile = file("vittara-release.jks")
-            storePassword = "vittara2024release"
-        }
-    }
-
     defaultConfig {
         applicationId = "com.example.finance_app"
         minSdk = 26 // ML Kit entity-extraction requires API 26+
@@ -39,7 +30,7 @@ android {
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = signingConfigs.getByName("debug")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
