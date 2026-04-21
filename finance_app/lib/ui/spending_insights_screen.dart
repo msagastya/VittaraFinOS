@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/ai/ai_intelligence_controller.dart';
+import 'package:vittara_fin_os/logic/ai/peer_benchmark.dart';
 import 'package:vittara_fin_os/logic/budgets_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
@@ -243,6 +244,8 @@ class _SpendIntelBody extends StatelessWidget {
         const SizedBox(height: Spacing.lg),
       ],
       _MonthlyTrendSection(data: data, cardBg: cardBg, isDark: isDark),
+      const SizedBox(height: Spacing.lg),
+      _PeerBenchmarkSection(transactions: transactions, isDark: isDark),
     ];
 
     // ── LANDSCAPE: sidebar + scrollable content ──────────────────────────
@@ -1558,6 +1561,135 @@ class _MonthlyTrendSection extends StatelessWidget {
             ],
           ),
         ),
+      ],
+    );
+  }
+}
+
+// ── Peer Benchmark Section ────────────────────────────────────────────────────
+
+class _PeerBenchmarkSection extends StatelessWidget {
+  final List<Transaction> transactions;
+  final bool isDark;
+  const _PeerBenchmarkSection(
+      {required this.transactions, required this.isDark});
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final threeMonthsAgo = DateTime(now.year, now.month - 3, now.day);
+    final incomeTotal = transactions
+        .where((t) =>
+            t.type == TransactionType.income &&
+            t.dateTime.isAfter(threeMonthsAgo))
+        .fold<double>(0, (sum, t) => sum + t.amount);
+    final monthlyIncome = incomeTotal / 3;
+
+    if (monthlyIncome < 5000) return const SizedBox.shrink();
+
+    final bracket = monthlyIncome < 30000
+        ? IncomeBracket.below30k
+        : monthlyIncome < 60000
+            ? IncomeBracket.range30_60
+            : monthlyIncome < 100000
+                ? IncomeBracket.range60_100
+                : IncomeBracket.above100k;
+
+    final benchmarks = PeerBenchmark.compute(
+      transactions: transactions,
+      bracket: bracket,
+    ).where((b) => b.isActionable).toList();
+
+    if (benchmarks.isEmpty) return const SizedBox.shrink();
+
+    final cardBg = isDark
+        ? Colors.white.withValues(alpha: 0.04)
+        : Colors.black.withValues(alpha: 0.025);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SpendSectionLabel('PEER COMPARISON  ·  ${bracket.label}'),
+        const SizedBox(height: Spacing.sm),
+        ...benchmarks.map((b) => Padding(
+              padding: const EdgeInsets.only(bottom: Spacing.sm),
+              child: Container(
+                padding: const EdgeInsets.all(Spacing.md),
+                decoration: BoxDecoration(
+                  color: cardBg,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          b.name,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppStyles.getTextColor(context),
+                          ),
+                        ),
+                        Text(
+                          'You: ${b.userPct.toStringAsFixed(0)}%  '
+                          'Peers: ${b.peerLow.toStringAsFixed(0)}–'
+                          '${b.peerHigh.toStringAsFixed(0)}%',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppStyles.getSecondaryTextColor(context),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Stack(
+                      children: [
+                        Container(
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: AppStyles.getDividerColor(context),
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                        ),
+                        FractionallySizedBox(
+                          widthFactor: (b.peerHigh / 100).clamp(0.0, 1.0),
+                          child: Container(
+                            height: 6,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF4CAF50)
+                                  .withValues(alpha: 0.5),
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                          ),
+                        ),
+                        FractionallySizedBox(
+                          widthFactor: (b.userPct / 100).clamp(0.0, 1.0),
+                          child: Container(
+                            height: 6,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFF6B6B),
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      b.insight,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AppStyles.getSecondaryTextColor(context),
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )),
       ],
     );
   }
