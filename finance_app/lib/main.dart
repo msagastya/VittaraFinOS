@@ -1536,6 +1536,7 @@ class DashboardScreen extends StatelessWidget {
             child: Column(
               children: [
                 const EngagementStripWidget(),
+                const SizedBox(height: Spacing.sm),
                 const AIInsightsStrip(),
                 Expanded(
                   child: Padding(
@@ -1576,6 +1577,7 @@ class DashboardScreen extends StatelessWidget {
         const EngagementStripWidget(),
 
         // AI INSIGHTS: proactive cards (hidden when no content)
+        const SizedBox(height: Spacing.sm),
         const AIInsightsStrip(),
 
         // CARD DECK — swipe left/right

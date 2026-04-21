@@ -33,7 +33,7 @@ class AIInsightsStrip extends StatelessWidget {
         if (cards.isEmpty) return const SizedBox.shrink();
 
         return SizedBox(
-          height: 88,
+          height: 72,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
@@ -146,7 +146,7 @@ class _InsightCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         width: 200,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: AppStyles.getCardColor(context),
           borderRadius: BorderRadius.circular(14),
@@ -156,13 +156,13 @@ class _InsightCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              width: 32,
-              height: 32,
+              width: 28,
+              height: 28,
               decoration: BoxDecoration(
                 color: accent.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(7),
               ),
-              child: Icon(icon, color: accent, size: 16),
+              child: Icon(icon, color: accent, size: 14),
             ),
             const SizedBox(width: 8),
             Expanded(
@@ -189,7 +189,7 @@ class _InsightCard extends StatelessWidget {
                       color: AppStyles.getTextColor(context),
                       height: 1.3,
                     ),
-                    maxLines: 3,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
@@ -284,7 +284,7 @@ class _HealthScoreCard extends StatelessWidget {
       ),
       child: Container(
         width: 200,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: AppStyles.getCardColor(context),
           borderRadius: BorderRadius.circular(14),
