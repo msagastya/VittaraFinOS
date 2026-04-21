@@ -127,6 +127,7 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
 
   /// True while save-confirmation flash (5D) is playing.
   bool _saveFlash = false;
+  bool _isSaving = false;
 
   /// Key for the amount field ShakeAnimation — triggered on failed save tap.
   final GlobalKey<ShakeAnimationState> _amountShakeKey = GlobalKey();
@@ -432,9 +433,11 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
   // ── Save transaction ─────────────────────────────────────────────────────────
 
   Future<void> _save() async {
+    if (_isSaving) return;
     final amount = double.tryParse(_amountCtrl.text.trim()) ?? 0;
     if (amount <= 0 || _selectedCategory == null) return;
-
+    setState(() => _isSaving = true);
+    try {
     final accountsCtrl = context.read<AccountsController>();
     final paymentAppsCtrl = context.read<PaymentAppsController>();
     final transactionsCtrl = context.read<TransactionsController>();
@@ -563,6 +566,9 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
         if (mounted) Navigator.pop(context);
       }
       toast_lib.toast.showSuccess('Transaction saved');
+    }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
@@ -2204,9 +2210,11 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
         : isExpense ? const Color(0xFFFF6B60) : const Color(0xFF00C44F);
 
     return Opacity(
-      opacity: canSave ? 1.0 : (_errorFlash ? 0.9 : 0.4),
+      opacity: canSave && !_isSaving ? 1.0 : (_errorFlash ? 0.9 : 0.4),
       child: BouncyButton(
-        onPressed: canSave ? _save : _triggerErrorFlash,
+        onPressed: _isSaving
+            ? _triggerErrorFlash  // noop-ish; already blocked by guard
+            : (canSave ? _save : _triggerErrorFlash),
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: Spacing.md),
@@ -2218,8 +2226,15 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
             ),
             borderRadius: BorderRadius.circular(Radii.md),
           ),
-          child: const Center(
-            child: Text(
+          child: Center(
+            child: _isSaving
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CupertinoActivityIndicator(
+                        color: CupertinoColors.white),
+                  )
+                : const Text(
               'Save Transaction',
               style: TextStyle(
                 fontFamily: 'SpaceGrotesk',
