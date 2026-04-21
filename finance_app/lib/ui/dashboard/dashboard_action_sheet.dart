@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show Colors, Divider;
@@ -32,8 +33,22 @@ import 'package:vittara_fin_os/ui/manage/rd/rd_wizard_screen.dart';
 import 'package:vittara_fin_os/ui/manage/simple_investment_entry_wizard.dart';
 import 'package:vittara_fin_os/ui/manage/stocks/stock_details_screen.dart';
 import 'package:vittara_fin_os/ui/manage/stocks/stocks_wizard.dart';
+import 'package:vittara_fin_os/logic/accounts_controller.dart';
+import 'package:vittara_fin_os/logic/payment_apps_controller.dart';
+import 'package:vittara_fin_os/logic/ai/voice_controller.dart';
+import 'package:vittara_fin_os/logic/ai/voice_transaction_handler.dart';
+import 'package:vittara_fin_os/logic/transaction_account_adjuster.dart';
+import 'package:vittara_fin_os/logic/transaction_model.dart';
+import 'package:vittara_fin_os/logic/transactions_controller.dart';
+import 'package:vittara_fin_os/utils/id_generator.dart';
 import 'package:vittara_fin_os/ui/dashboard/quick_entry_sheet.dart';
 import 'package:vittara_fin_os/ui/manage/transfer_wizard.dart';
+import 'package:vittara_fin_os/ui/ocr/receipt_scanner_screen.dart';
+import 'package:vittara_fin_os/ui/ocr/screenshot_import_sheet.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:vittara_fin_os/logic/ai/statement_ocr_parser.dart';
+import 'package:vittara_fin_os/ui/ocr/statement_import_screen.dart';
+import 'package:vittara_fin_os/ui/voice/voice_overlay_widget.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
@@ -432,9 +447,86 @@ class _DashboardActionSheetState extends State<_DashboardActionSheet> {
               color: const Color(0xFFFF9500),
               onTap: () => _push(_Page.dividendType),
               hasChevron: true,
-              isLast: true,
             ),
           ],
+          // ── Voice + OCR quick-add ──────────────────────────────────────────
+          _homeRow(
+            icon: CupertinoIcons.mic_fill,
+            label: 'Voice',
+            subtitle: 'Say "₹500 for coffee" to log instantly',
+            color: AppStyles.aetherTeal,
+            onTap: () async {
+              Navigator.pop(context);
+              final result =
+                  await VoiceOverlayWidget.show(widget.navigator.context);
+              if (result != null && widget.navigator.context.mounted) {
+                await VoiceTransactionHandler.handle(
+                    widget.navigator.context, result);
+              }
+            },
+          ),
+          _homeRow(
+            icon: CupertinoIcons.camera_fill,
+            label: 'Scan Receipt',
+            subtitle: 'Take a photo to auto-fill amount & merchant',
+            color: const Color(0xFFFF6B6B),
+            onTap: () async {
+              Navigator.pop(context);
+              final extraction =
+                  await ReceiptScannerScreen.show(widget.navigator.context);
+              if (extraction != null && widget.navigator.context.mounted) {
+                showQuickEntrySheet(
+                  widget.navigator.context,
+                  initialAmount: extraction.totalAmount,
+                  initialMerchant: extraction.merchantName,
+                  initialDate: extraction.date,
+                );
+              }
+            },
+          ),
+          _homeRow(
+            icon: CupertinoIcons.photo_fill,
+            label: 'Payment Screenshot',
+            subtitle: 'Import from GPay, PhonePe, Paytm, CRED…',
+            color: const Color(0xFFFF9500),
+            onTap: () async {
+              Navigator.pop(context);
+              final picker = ImagePicker();
+              final xfile = await picker.pickImage(
+                source: ImageSource.gallery,
+                imageQuality: 90,
+              );
+              if (xfile == null) return;
+              if (!widget.navigator.context.mounted) return;
+              final data = await ScreenshotImportSheet.show(
+                  widget.navigator.context, File(xfile.path));
+              if (data != null && widget.navigator.context.mounted) {
+                showQuickEntrySheet(
+                  widget.navigator.context,
+                  initialAmount: data.amount,
+                  initialMerchant: data.recipient,
+                  initialDate: data.date,
+                );
+              }
+            },
+          ),
+          _homeRow(
+            icon: CupertinoIcons.doc_on_clipboard_fill,
+            label: 'Import Statement',
+            subtitle: 'Scan bank statement to batch-import transactions',
+            color: const Color(0xFF6C63FF),
+            onTap: () async {
+              Navigator.pop(context);
+              final rows =
+                  await StatementImportScreen.show(widget.navigator.context);
+              if (rows != null &&
+                  rows.isNotEmpty &&
+                  widget.navigator.context.mounted) {
+                await _importStatementRows(widget.navigator.context, rows);
+              }
+            },
+            isLast: true,
+          ),
         ],
       ),
     );
@@ -1003,6 +1095,57 @@ class _DashboardActionSheetState extends State<_DashboardActionSheet> {
           ),
         const SizedBox(height: 24),
       ],
+    );
+  }
+
+  // ── Statement import helper ──────────────────────────────────────────────────
+
+  Future<void> _importStatementRows(
+      BuildContext ctx, List<StatementRow> rows) async {
+    final txController = ctx.read<TransactionsController>();
+    final accountsController = ctx.read<AccountsController>();
+
+    final transactions = rows.asMap().entries.map((e) {
+      final i = e.key;
+      final row = e.value;
+      final isCredit = row.credit != null && row.credit! > 0;
+      final amount = isCredit ? row.credit! : (row.debit ?? 0);
+      final date = row.date;
+      return Transaction(
+        id: IdGenerator.next(),
+        description: row.description.isNotEmpty ? row.description : (isCredit ? 'Credit' : 'Debit'),
+        amount: amount,
+        type: isCredit ? TransactionType.income : TransactionType.expense,
+        dateTime: date.copyWith(hour: 23, minute: 59, second: i.clamp(0, 59)),
+      );
+    }).toList();
+
+    final paymentApps = ctx.read<PaymentAppsController>();
+    await txController.addTransactionsBatch(transactions);
+    for (final tx in transactions) {
+      await TransactionAccountAdjuster.applyTransaction(
+          accountsController, tx, paymentApps);
+    }
+
+    if (ctx.mounted) {
+      _showImportToast(ctx, transactions.length);
+    }
+  }
+
+  void _showImportToast(BuildContext ctx, int count) {
+    showCupertinoDialog(
+      context: ctx,
+      barrierDismissible: true,
+      builder: (_) => CupertinoAlertDialog(
+        title: const Text('Import Complete'),
+        content: Text('$count transaction${count == 1 ? '' : 's'} imported successfully.'),
+        actions: [
+          CupertinoDialogAction(
+            child: const Text('OK'),
+            onPressed: () => Navigator.of(ctx, rootNavigator: true).pop(),
+          ),
+        ],
+      ),
     );
   }
 

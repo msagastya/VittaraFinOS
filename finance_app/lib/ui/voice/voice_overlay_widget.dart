@@ -12,8 +12,9 @@ import 'voice_result_card.dart';
 class VoiceOverlayWidget extends StatelessWidget {
   const VoiceOverlayWidget({super.key});
 
-  static Future<void> show(BuildContext context) {
-    return showCupertinoModalPopup(
+  /// Shows the voice overlay and returns the confirmed [VoiceResult] or null.
+  static Future<VoiceResult?> show(BuildContext context) {
+    return showCupertinoModalPopup<VoiceResult?>(
       context: context,
       barrierColor: Colors.black87,
       builder: (_) => ChangeNotifierProvider.value(

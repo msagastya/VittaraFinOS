@@ -80,9 +80,9 @@ class _StatementImportScreenState extends State<StatementImportScreen> {
     final selectedCount = _rows?.where((r) => r.isSelected).length ?? 0;
 
     return CupertinoPageScaffold(
-      backgroundColor: AppStyles.getBackgroundColor(context),
+      backgroundColor: AppStyles.getBackground(context),
       navigationBar: CupertinoNavigationBar(
-        backgroundColor: AppStyles.getBackgroundColor(context),
+        backgroundColor: AppStyles.getBackground(context),
         middle: const Text('Import Statement'),
         leading: CupertinoButton(
           padding: EdgeInsets.zero,

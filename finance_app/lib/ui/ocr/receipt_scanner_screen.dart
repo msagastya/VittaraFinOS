@@ -62,9 +62,9 @@ class _ReceiptScannerScreenState extends State<ReceiptScannerScreen> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      backgroundColor: AppStyles.getBackgroundColor(context),
+      backgroundColor: AppStyles.getBackground(context),
       navigationBar: CupertinoNavigationBar(
-        backgroundColor: AppStyles.getBackgroundColor(context),
+        backgroundColor: AppStyles.getBackground(context),
         middle: const Text('Scan Receipt'),
         leading: CupertinoButton(
           padding: EdgeInsets.zero,

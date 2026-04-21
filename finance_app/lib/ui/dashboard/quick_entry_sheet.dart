@@ -25,21 +25,34 @@ import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/utils/id_generator.dart';
 import 'package:intl/intl.dart';
 import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
+import 'package:vittara_fin_os/logic/ai/voice_controller.dart';
 import 'package:vittara_fin_os/main.dart' show dashboardSavedSignal;
+import 'package:vittara_fin_os/ui/voice/voice_overlay_widget.dart';
 
 // ── Entry point ───────────────────────────────────────────────────────────────
 
 void showQuickEntrySheet(BuildContext context,
     {TransactionWizardBranch branch = TransactionWizardBranch.expense,
-    Transaction? existingTransaction}) {
+    Transaction? existingTransaction,
+    // OCR / Voice pre-fill
+    double? initialAmount,
+    String? initialMerchant,
+    String? initialDescription,
+    DateTime? initialDate,
+    String? initialAccountId}) {
   showCupertinoModalPopup<void>(
     context: context,
     builder: (ctx) => RLayout.tabletConstrain(
       ctx,
       _QuickEntrySheet(
-      initialBranch: branch,
-      existingTransaction: existingTransaction,
-    ),
+        initialBranch: branch,
+        existingTransaction: existingTransaction,
+        initialAmount: initialAmount,
+        initialMerchant: initialMerchant,
+        initialDescription: initialDescription,
+        initialDate: initialDate,
+        initialAccountId: initialAccountId,
+      ),
     ),
   );
 }
@@ -49,9 +62,19 @@ void showQuickEntrySheet(BuildContext context,
 class _QuickEntrySheet extends StatefulWidget {
   final TransactionWizardBranch initialBranch;
   final Transaction? existingTransaction;
+  final double? initialAmount;
+  final String? initialMerchant;
+  final String? initialDescription;
+  final DateTime? initialDate;
+  final String? initialAccountId;
   const _QuickEntrySheet({
     required this.initialBranch,
     this.existingTransaction,
+    this.initialAmount,
+    this.initialMerchant,
+    this.initialDescription,
+    this.initialDate,
+    this.initialAccountId,
   });
 
   @override
@@ -177,7 +200,7 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
         _showTagPicker = _selectedTags.isNotEmpty;
       }
     } else {
-      // New transaction - use defaults
+      // New transaction - use defaults, then apply any OCR/Voice pre-fill
       // Resolve default account
       final defaultAccountId = settings.defaultAccountId;
       if (defaultAccountId != null) {
@@ -214,6 +237,31 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
       }
       if (_selectedPaymentApp == null && paymentApps.enabledApps.isNotEmpty) {
         _selectedPaymentApp = paymentApps.enabledApps.first['name'] as String?;
+      }
+
+      // ── OCR / Voice pre-fill override ────────────────────────────────────────
+      if (widget.initialAmount != null) {
+        _amountCtrl.text = widget.initialAmount!.toStringAsFixed(2);
+        _isDirty = true;
+      }
+      if (widget.initialMerchant != null && widget.initialMerchant!.isNotEmpty) {
+        _merchantCtrl.text = widget.initialMerchant!;
+        _showMerchantField = true;
+        _isDirty = true;
+      }
+      if (widget.initialDescription != null && widget.initialDescription!.isNotEmpty) {
+        _descCtrl.text = widget.initialDescription!;
+        _isDirty = true;
+      }
+      if (widget.initialDate != null) {
+        _selectedDate = widget.initialDate!;
+      }
+      if (widget.initialAccountId != null) {
+        final acc = accounts.getAccountById(widget.initialAccountId!);
+        if (acc != null) {
+          _selectedAccountId = acc.id;
+          _selectedAccountName = acc.name;
+        }
       }
     }
 
@@ -1079,18 +1127,49 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
                           color: primaryText,
                         ),
                       ),
-                      CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        onPressed: () async {
-                          if (await _confirmDiscard() && context.mounted) {
-                            Navigator.pop(context);
-                          }
-                        },
-                        child: Icon(
-                          CupertinoIcons.xmark_circle_fill,
-                          color: secondaryText.withValues(alpha: 0.4),
-                          size: 28,
-                        ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Mic button — opens voice overlay and pre-fills if result received
+                          CupertinoButton(
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
+                            onPressed: () async {
+                              final result = await VoiceOverlayWidget.show(context);
+                              if (result != null && context.mounted) {
+                                final amount = result.fields['amount'];
+                                final merchant = result.fields['merchant'] as String?;
+                                if (amount != null) {
+                                  _amountCtrl.text = (amount as num).toStringAsFixed(2);
+                                  _isDirty = true;
+                                }
+                                if (merchant != null && merchant.isNotEmpty) {
+                                  _merchantCtrl.text = merchant;
+                                  _showMerchantField = true;
+                                  _isDirty = true;
+                                }
+                                setState(() {});
+                              }
+                            },
+                            child: Icon(
+                              CupertinoIcons.mic_fill,
+                              color: AppStyles.aetherTeal,
+                              size: 22,
+                            ),
+                          ),
+                          CupertinoButton(
+                            padding: EdgeInsets.zero,
+                            onPressed: () async {
+                              if (await _confirmDiscard() && context.mounted) {
+                                Navigator.pop(context);
+                              }
+                            },
+                            child: Icon(
+                              CupertinoIcons.xmark_circle_fill,
+                              color: secondaryText.withValues(alpha: 0.4),
+                              size: 28,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
