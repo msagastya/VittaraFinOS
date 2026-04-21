@@ -447,86 +447,9 @@ class _DashboardActionSheetState extends State<_DashboardActionSheet> {
               color: const Color(0xFFFF9500),
               onTap: () => _push(_Page.dividendType),
               hasChevron: true,
+              isLast: true,
             ),
           ],
-          // ── Voice + OCR quick-add ──────────────────────────────────────────
-          _homeRow(
-            icon: CupertinoIcons.mic_fill,
-            label: 'Voice',
-            subtitle: 'Say "₹500 for coffee" to log instantly',
-            color: AppStyles.aetherTeal,
-            onTap: () async {
-              Navigator.pop(context);
-              final result =
-                  await VoiceOverlayWidget.show(widget.navigator.context);
-              if (result != null && widget.navigator.context.mounted) {
-                await VoiceTransactionHandler.handle(
-                    widget.navigator.context, result);
-              }
-            },
-          ),
-          _homeRow(
-            icon: CupertinoIcons.camera_fill,
-            label: 'Scan Receipt',
-            subtitle: 'Take a photo to auto-fill amount & merchant',
-            color: const Color(0xFFFF6B6B),
-            onTap: () async {
-              Navigator.pop(context);
-              final extraction =
-                  await ReceiptScannerScreen.show(widget.navigator.context);
-              if (extraction != null && widget.navigator.context.mounted) {
-                showQuickEntrySheet(
-                  widget.navigator.context,
-                  initialAmount: extraction.totalAmount,
-                  initialMerchant: extraction.merchantName,
-                  initialDate: extraction.date,
-                );
-              }
-            },
-          ),
-          _homeRow(
-            icon: CupertinoIcons.photo_fill,
-            label: 'Payment Screenshot',
-            subtitle: 'Import from GPay, PhonePe, Paytm, CRED…',
-            color: const Color(0xFFFF9500),
-            onTap: () async {
-              Navigator.pop(context);
-              final picker = ImagePicker();
-              final xfile = await picker.pickImage(
-                source: ImageSource.gallery,
-                imageQuality: 90,
-              );
-              if (xfile == null) return;
-              if (!widget.navigator.context.mounted) return;
-              final data = await ScreenshotImportSheet.show(
-                  widget.navigator.context, File(xfile.path));
-              if (data != null && widget.navigator.context.mounted) {
-                showQuickEntrySheet(
-                  widget.navigator.context,
-                  initialAmount: data.amount,
-                  initialMerchant: data.recipient,
-                  initialDate: data.date,
-                );
-              }
-            },
-          ),
-          _homeRow(
-            icon: CupertinoIcons.doc_on_clipboard_fill,
-            label: 'Import Statement',
-            subtitle: 'Scan bank statement to batch-import transactions',
-            color: const Color(0xFF6C63FF),
-            onTap: () async {
-              Navigator.pop(context);
-              final rows =
-                  await StatementImportScreen.show(widget.navigator.context);
-              if (rows != null &&
-                  rows.isNotEmpty &&
-                  widget.navigator.context.mounted) {
-                await _importStatementRows(widget.navigator.context, rows);
-              }
-            },
-            isLast: true,
-          ),
         ],
       ),
     );
