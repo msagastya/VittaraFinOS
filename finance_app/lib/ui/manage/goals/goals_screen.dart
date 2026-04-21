@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:provider/provider.dart';
+import 'package:vittara_fin_os/logic/ai/ai_intelligence_controller.dart';
+import 'package:vittara_fin_os/logic/ai/goal_timeline.dart';
 import 'package:vittara_fin_os/logic/goals_controller.dart';
 import 'package:vittara_fin_os/logic/goal_model.dart';
 import 'package:vittara_fin_os/ui/manage/goals/goal_details_screen.dart';
@@ -788,10 +790,66 @@ class _GoalsScreenState extends State<GoalsScreen> {
                 ),
               ],
             ),
+            // AI Goal Timeline Badge
+            Builder(builder: (ctx) {
+              final ai = ctx.watch<AIIntelligenceController>();
+              final timeline = ai.goalTimelines
+                  .cast<GoalTimelineAnalysis?>()
+                  .firstWhere((t) => t?.goalId == goal.id,
+                      orElse: () => null);
+              if (timeline == null) return const SizedBox.shrink();
+              final isSlipping = timeline.isSlipping;
+              final color =
+                  isSlipping ? const Color(0xFFFF6B6B) : const Color(0xFF4CAF50);
+              final label = timeline.predictedCompletionDate != null
+                  ? 'AI: on track for ${_formatMonth(timeline.predictedCompletionDate!)}'
+                  : isSlipping
+                      ? 'AI: Behind schedule'
+                      : 'AI: On track';
+              return Padding(
+                padding: const EdgeInsets.only(top: Spacing.sm),
+                child: Row(
+                  children: [
+                    Icon(
+                      isSlipping
+                          ? CupertinoIcons.exclamationmark_triangle_fill
+                          : CupertinoIcons.checkmark_seal_fill,
+                      size: 12,
+                      color: color,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      label,
+                      style: TextStyle(fontSize: 11, color: color),
+                    ),
+                    if (timeline.topAction != null) ...[
+                      const SizedBox(width: 8),
+                      Text(
+                        '· ${timeline.topAction!.description}',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppStyles.getSecondaryTextColor(ctx),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
+                ),
+              );
+            }),
           ],
         ),
       ),
     );
+  }
+
+  String _formatMonth(DateTime date) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return '${months[date.month - 1]} ${date.year}';
   }
 
   Widget _buildEmptyState() {
