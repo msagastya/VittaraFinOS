@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:vittara_fin_os/logic/goal_model.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'device_intelligence_tier.dart';
@@ -10,6 +11,12 @@ import 'budget_exhaustion_predictor.dart';
 import 'cashflow_forecaster.dart';
 import 'anomaly_detector.dart';
 import 'opportunity_spotter.dart';
+import 'goal_timeline.dart';
+import 'predicted_calendar.dart';
+import 'monthly_narrative.dart';
+import 'habit_observation_engine.dart';
+import 'habit_constructor.dart';
+import 'behavioral_nudge.dart';
 
 /// Central coordinator for all on-device AI features.
 ///
@@ -55,6 +62,29 @@ class AIIntelligenceController extends ChangeNotifier {
   List<OpportunityTip> get topOpportunities =>
       _opportunities.take(3).toList();
 
+  // Phase 2 — goal timelines + predicted calendar
+  List<GoalTimelineAnalysis> _goalTimelines = [];
+  List<GoalTimelineAnalysis> get goalTimelines => _goalTimelines;
+
+  List<PredictedTransaction> _predictedCalendar = [];
+  List<PredictedTransaction> get predictedCalendar => _predictedCalendar;
+
+  // Phase 3 — narrative
+  MonthlyNarrative? _currentMonthNarrative;
+  MonthlyNarrative? get currentMonthNarrative => _currentMonthNarrative;
+
+  // Phase 4 — habits
+  List<HabitOpportunity> _habitOpportunities = [];
+  List<HabitOpportunity> get habitOpportunities => _habitOpportunities;
+  HabitOpportunity? get topHabitOpportunity =>
+      _habitOpportunities.isEmpty ? null : _habitOpportunities.first;
+
+  List<HabitContract> _activeHabits = [];
+  List<HabitContract> get activeHabits => _activeHabits;
+
+  List<HabitNudge> _habitNudges = [];
+  List<HabitNudge> get habitNudges => _habitNudges;
+
   bool _isComputing = false;
   bool get isComputing => _isComputing;
 
@@ -72,6 +102,9 @@ class AIIntelligenceController extends ChangeNotifier {
     // Load any previously computed results from cache (fast, no computation)
     _patterns = await PatternDetector.loadCached();
     _fingerprint = await BehavioralFingerprintBuilder.loadCached();
+
+    // Load persisted habits
+    _activeHabits = await HabitConstructor.loadAll();
 
     // Register hook so we get notified whenever TransactionsController data changes
     TransactionsController.onDataChanged = (txs) {
@@ -92,6 +125,7 @@ class AIIntelligenceController extends ChangeNotifier {
     required int accountCount,
     List<Map<String, dynamic>>? budgets, // raw budget maps for predictions
     Map<String, double>? accountBalances, // accountId → current balance
+    List<Goal>? goals, // for goal timeline analysis
   }) async {
     if (_isComputing) return; // don't stack refreshes
 
@@ -143,12 +177,56 @@ class AIIntelligenceController extends ChangeNotifier {
         );
       }
 
-      // Phase 3: opportunity spotter
+      // Phase 3a: opportunity spotter
       if (_readiness.canGenerateInsights && accountBalances != null) {
         _opportunities = OpportunitySpotter.spot(
           transactions: transactions,
           accountBalances: accountBalances,
           patterns: _patterns,
+        );
+      }
+
+      // Phase 2 extras: goal timelines + predicted calendar
+      if (_readiness.canForecast && goals != null) {
+        _goalTimelines = GoalTimeline.analyse(
+          goals: goals,
+          transactions: transactions,
+        );
+      }
+      if (_readiness.canDetectPatterns && _patterns != null) {
+        _predictedCalendar = PredictedCalendar.build(
+          patterns: _patterns!,
+          from: DateTime.now(),
+        );
+      }
+
+      // Phase 3b: monthly narrative
+      if (_readiness.canGenerateInsights) {
+        final now = DateTime.now();
+        _currentMonthNarrative = MonthlyNarrativeGenerator.generate(
+          transactions: transactions,
+          year: now.year,
+          month: now.month,
+          fingerprint: _readiness.canComputeFingerprint ? _fingerprint : null,
+          patterns: _patterns,
+        );
+      }
+
+      // Phase 4: habit opportunities + nudges
+      if (_readiness.canBuildHabits) {
+        _habitOpportunities = HabitObservationEngine.observe(
+          transactions: transactions,
+          readiness: _readiness,
+        );
+      }
+
+      // Reload persisted habits and compute nudges
+      _activeHabits = await HabitConstructor.loadAll();
+      if (_activeHabits.isNotEmpty) {
+        _habitNudges = BehavioralNudgeEngine.compute(
+          habits: _activeHabits,
+          transactions: transactions,
+          currentStreakDays: 0, // wired to TransactionsController.loggingStreakDays separately
         );
       }
     } catch (e) {
@@ -215,5 +293,36 @@ class AIIntelligenceController extends ChangeNotifier {
     final forecast = _cashflowForecast;
     if (forecast == null) return false;
     return forecast.warnings.isNotEmpty;
+  }
+
+  // ── Habit management ──────────────────────────────────────────────────────
+
+  /// Persist a new habit contract and update local state.
+  Future<void> addHabit(HabitContract contract) async {
+    await HabitConstructor.save(contract);
+    _activeHabits = await HabitConstructor.loadAll();
+    notifyListeners();
+  }
+
+  /// Update an existing habit (e.g. after difficulty calibration).
+  Future<void> updateHabit(HabitContract updated) async {
+    await HabitConstructor.update(updated);
+    _activeHabits = await HabitConstructor.loadAll();
+    notifyListeners();
+  }
+
+  /// Monthly narrative for a specific month (useful for history view).
+  MonthlyNarrative narrativeFor(
+    List<Transaction> transactions,
+    int year,
+    int month,
+  ) {
+    return MonthlyNarrativeGenerator.generate(
+      transactions: transactions,
+      year: year,
+      month: month,
+      fingerprint: _readiness.canComputeFingerprint ? _fingerprint : null,
+      patterns: _patterns,
+    );
   }
 }
