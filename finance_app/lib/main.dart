@@ -44,6 +44,7 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/typography.dart';
 import 'package:vittara_fin_os/logic/notification_helpers.dart';
 import 'package:vittara_fin_os/ui/dashboard/dashboard_action_sheet.dart';
+import 'package:vittara_fin_os/ui/dashboard/ai_tray_sheet.dart';
 import 'package:vittara_fin_os/ui/notifications_page.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/dashboard/dashboard_settings_modal.dart';
@@ -1446,47 +1447,53 @@ class DashboardScreen extends StatelessWidget {
                               );
                             },
                           ),
-                          // SMS scan mini button (only if SMS Scanning enabled)
+                          // AI Tray button — above SMS when on, in SMS slot when off
                           Consumer<SettingsController>(
                             builder: (_, settings, __) {
-                              if (!settings.isSmsEnabled) return const SizedBox.shrink();
                               return Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  BouncyButton(
-                                    onPressed: () {
-                                      Navigator.of(context).push(
-                                        FadeScalePageRoute(
-                                          page: const SmsReviewScreen(),
+                                  const AITrayButton(),
+                                  if (settings.isSmsEnabled)
+                                    Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        BouncyButton(
+                                          onPressed: () {
+                                            Navigator.of(context).push(
+                                              FadeScalePageRoute(
+                                                page: const SmsReviewScreen(),
+                                              ),
+                                            );
+                                          },
+                                          child: Container(
+                                            width: 46,
+                                            height: 46,
+                                            decoration: BoxDecoration(
+                                              color: AppStyles.isDarkMode(context)
+                                                  ? const Color(0xFF00D4AA).withValues(alpha: 0.10)
+                                                  : const Color(0xFFE0FAF5),
+                                              shape: BoxShape.circle,
+                                              border: Border.all(
+                                                color: AppStyles.aetherTeal
+                                                    .withValues(alpha: 0.40),
+                                              ),
+                                              boxShadow: AppStyles.elevatedShadows(
+                                                context,
+                                                tint: AppStyles.aetherTeal,
+                                                strength: 0.35,
+                                              ),
+                                            ),
+                                            child: const Icon(
+                                              CupertinoIcons.chat_bubble_text_fill,
+                                              color: AppStyles.aetherTeal,
+                                              size: 20,
+                                            ),
+                                          ),
                                         ),
-                                      );
-                                    },
-                                    child: Container(
-                                      width: 46,
-                                      height: 46,
-                                      decoration: BoxDecoration(
-                                        color: AppStyles.isDarkMode(context)
-                                            ? const Color(0xFF00D4AA).withValues(alpha: 0.10)
-                                            : const Color(0xFFE0FAF5),
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: AppStyles.aetherTeal
-                                              .withValues(alpha: 0.40),
-                                        ),
-                                        boxShadow: AppStyles.elevatedShadows(
-                                          context,
-                                          tint: AppStyles.aetherTeal,
-                                          strength: 0.35,
-                                        ),
-                                      ),
-                                      child: const Icon(
-                                        CupertinoIcons.chat_bubble_text_fill,
-                                        color: AppStyles.aetherTeal,
-                                        size: 20,
-                                      ),
+                                        const SizedBox(height: Spacing.sm),
+                                      ],
                                     ),
-                                  ),
-                                  const SizedBox(height: Spacing.sm),
                                 ],
                               );
                             },
