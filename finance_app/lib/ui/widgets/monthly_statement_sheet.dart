@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
+import 'package:vittara_fin_os/logic/budgets_controller.dart';
+import 'package:vittara_fin_os/logic/goals_controller.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/lending_borrowing_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
@@ -59,6 +61,8 @@ class _MonthlyStatementSheetState extends State<_MonthlyStatementSheet> {
       final acCtrl = ctx.read<AccountsController>();
       final invCtrl = ctx.read<InvestmentsController>();
       final lbCtrl = ctx.read<LendingBorrowingController>();
+      final goalCtrl = ctx.read<GoalsController>();
+      final budgetCtrl = ctx.read<BudgetsController>();
 
       Uint8List? iconBytes;
       try {
@@ -74,6 +78,8 @@ class _MonthlyStatementSheetState extends State<_MonthlyStatementSheet> {
         investments: invCtrl.investments,
         lendingRecords: lbCtrl.records,
         appIconBytes: iconBytes,
+        goals: goalCtrl.goals,
+        budgets: budgetCtrl.budgets,
       );
 
       await Share.shareXFiles(

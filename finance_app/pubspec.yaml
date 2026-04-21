@@ -1,7 +1,7 @@
 name: vittara_fin_os
 description: "Track Wealth, Master Life"
 publish_to: 'none'
-version: 1.0.0+2006
+version: 1.0.0+2007
 
 environment:
   sdk: '>=3.1.0 <4.0.0'

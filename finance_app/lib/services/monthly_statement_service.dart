@@ -6,6 +6,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:vittara_fin_os/logic/account_model.dart';
+import 'package:vittara_fin_os/logic/budget_model.dart';
+import 'package:vittara_fin_os/logic/goal_model.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/lending_borrowing_model.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
@@ -113,6 +115,8 @@ class MonthlyStatementService {
     required List<Account> accounts,
     required List<Investment> investments,
     required List<LendingBorrowing> lendingRecords,
+    List<Goal> goals = const [],
+    List<Budget> budgets = const [],
     Uint8List? appIconBytes,
   }) async {
     // Load Roboto fonts (supports ₹ and full Unicode — unlike built-in Helvetica).
@@ -137,11 +141,24 @@ class MonthlyStatementService {
 
     final ib = appIconBytes; // capture for closures
 
+    // Pre-compute shared data
+    final invTxns        = monthTxns.where((t) => t.type == TransactionType.investment).toList();
+    final catGroups      = _groupByCategory(monthTxns);
+    final appGroups      = _groupByPaymentApp(monthTxns);
+    final invByType      = _groupInvestmentsByType(investments);
+    final invTxByType    = _groupInvTxsByType(invTxns);
+    final merchantGroups = _groupByMerchant(monthTxns);
+    final divTxns        = monthTxns.where((t) => (t.metadata ?? {})['investmentEventType'] == 'dividend').toList();
+    final lentTxns       = monthTxns.where((t) => t.type == TransactionType.lending).toList();
+    final borrowTxns     = monthTxns.where((t) => t.type == TransactionType.borrowing).toList();
+    final activeLent     = lendingRecords.where((r) => r.type == LendingType.lent).toList();
+    final activeBorrowed = lendingRecords.where((r) => r.type == LendingType.borrowed).toList();
+
     // ── 1. Cover ──
     debugPrint('MS: building section 1 (cover)');
-    doc.addPage(_coverPage(monthLabel, monthTxns.length, stats, visibleAccounts, ib));
+    doc.addPage(_coverPage(monthLabel, monthTxns.length, stats, visibleAccounts, investments, ib));
 
-    // ── 2. Executive Summary ──
+    // ── 2. Executive Summary (Strategic Overview) ──
     debugPrint('MS: building section 2 (exec summary)');
     doc.addPage(pw.MultiPage(
       pageFormat: PdfPageFormat.a4,
@@ -150,9 +167,9 @@ class MonthlyStatementService {
       footer: (ctx) => _ftr(ctx),
       build: (_) => [
         pw.SizedBox(height: 10),
-        _summaryStatRow(stats),
+        _summaryStatRow(stats, investments, invTxns),
         pw.SizedBox(height: 14),
-        _sectionBanner('Account Balance Overview', 'Opening -> Closing balances for ${_mo[month - 1]}', _brandTeal, _blue, 'A'),
+        _sectionBanner('Account Balance Overview', 'Opening → Closing balances for ${_mo[month - 1]}', _brandTeal, _blue, 'A'),
         pw.SizedBox(height: 6),
         _acctBalanceTable(acctRows),
         pw.SizedBox(height: 14),
@@ -162,45 +179,32 @@ class MonthlyStatementService {
       ],
     ));
 
-    // ── 3. Per-Account Statements ──
-    debugPrint('MS: building section 3 (per-account)');
-    for (int ai = 0; ai < visibleAccounts.length; ai++) {
-      final account = visibleAccounts[ai];
-      final row     = acctRows.firstWhere((r) => r.name == account.name,
-          orElse: () => _AcctRow(name: account.name, opening: account.balance, debits: 0, credits: 0));
-      final txRows  = _txRowsForAccount(account, monthTxns);
-      if (txRows.isEmpty) continue;
+    // ── 3. Financial Insights & Recommendations (moved up — executive reads this early) ──
+    debugPrint('MS: building section 3 (insights)');
+    doc.addPage(pw.MultiPage(
+      pageFormat: PdfPageFormat.a4,
+      margin: pw.EdgeInsets.zero,
+      header: (ctx) => _hdr('Financial Insights', monthLabel, ctx, ib),
+      footer: (ctx) => _ftr(ctx),
+      build: (_) => [
+        pw.SizedBox(height: 10),
+        ..._insightsSection(stats, monthTxns, monthLabel, allTransactions, goals, budgets),
+      ],
+    ));
 
-      doc.addPage(pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: pw.EdgeInsets.zero,
-        header: (ctx) => _hdr('Account Statement', monthLabel, ctx, ib),
-        footer: (ctx) => _ftr(ctx),
-        build: (_) => [
-          pw.SizedBox(height: 10),
-          _acctSectionHeader(account, row, ai),
-          pw.SizedBox(height: 6),
-          _acctTxTable(txRows, row.opening),
-          pw.SizedBox(height: 8),
-          _acctClosingSummary(row),
-        ],
-      ));
-    }
-
-    // ── 4. Category Breakdown ──
+    // ── 4. Cash Flow Analysis ──
     debugPrint('MS: building section 4 (categories)');
-    final catGroups = _groupByCategory(monthTxns);
     if (catGroups.isNotEmpty) {
       doc.addPage(pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: pw.EdgeInsets.zero,
-        header: (ctx) => _hdr('Category Breakdown', monthLabel, ctx, ib),
+        header: (ctx) => _hdr('Cash Flow Analysis', monthLabel, ctx, ib),
         footer: (ctx) => _ftr(ctx),
         build: (_) => [
           pw.SizedBox(height: 10),
           _sectionBanner('Spending by Category', 'All transactions grouped by category', _brandViolet, _indigo, 'C'),
           pw.SizedBox(height: 6),
-          _catSummaryBars(catGroups, stats['expense'] ?? 0.0),
+          _catSummaryBars(catGroups, stats['expense'] ?? 0.0, budgets),
           pw.SizedBox(height: 14),
           ...catGroups.entries.expand((entry) => [
             _subSectionHeader(entry.key.isEmpty ? 'Uncategorised' : entry.key, entry.value.length, _pal[catGroups.keys.toList().indexOf(entry.key) % _pal.length]),
@@ -212,89 +216,8 @@ class MonthlyStatementService {
       ));
     }
 
-    // ── 5. Payment App Breakdown ──
-    debugPrint('MS: building section 5 (payment apps)');
-    final appGroups = _groupByPaymentApp(monthTxns);
-    if (appGroups.isNotEmpty) {
-      doc.addPage(pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: pw.EdgeInsets.zero,
-        header: (ctx) => _hdr('Payment Apps', monthLabel, ctx, ib),
-        footer: (ctx) => _ftr(ctx),
-        build: (_) => [
-          pw.SizedBox(height: 10),
-          _sectionBanner('Payment App Breakdown', 'Transactions via each payment app / UPI method', _orange, _amber, 'P'),
-          pw.SizedBox(height: 6),
-          _appSummaryBars(appGroups),
-          pw.SizedBox(height: 14),
-          ...appGroups.entries.expand((entry) => [
-            _subSectionHeader(entry.key, entry.value.length, _pal[appGroups.keys.toList().indexOf(entry.key) % _pal.length]),
-            pw.SizedBox(height: 4),
-            _miniTxTable(entry.value),
-            pw.SizedBox(height: 10),
-          ]),
-        ],
-      ));
-    }
-
-    // ── 6. Investments ──
-    debugPrint('MS: building section 6 (investments)');
-    final invTxns = monthTxns.where((t) => t.type == TransactionType.investment).toList();
-    if (investments.isNotEmpty || invTxns.isNotEmpty) {
-      final invByType = _groupInvestmentsByType(investments);
-      final invTxByType = _groupInvTxsByType(invTxns);
-      doc.addPage(pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: pw.EdgeInsets.zero,
-        header: (ctx) => _hdr('Investments', monthLabel, ctx, ib),
-        footer: (ctx) => _ftr(ctx),
-        build: (_) => [
-          pw.SizedBox(height: 10),
-          _sectionBanner('Investment Portfolio', 'Holdings and transactions by investment type', _indigo, _brandViolet, 'I'),
-          pw.SizedBox(height: 6),
-          _investmentSummaryTable(invByType),
-          pw.SizedBox(height: 14),
-          if (invTxns.isNotEmpty) ...[
-            _sectionBanner('Investment Transactions This Month', '${invTxns.length} investment events recorded', _brandViolet, _purple, 'T'),
-            pw.SizedBox(height: 6),
-            ...invTxByType.entries.expand((entry) => [
-              _subSectionHeader(entry.key, entry.value.length, _indigo),
-              pw.SizedBox(height: 4),
-              _miniTxTable(entry.value),
-              pw.SizedBox(height: 10),
-            ]),
-          ],
-        ],
-      ));
-    }
-
-    // ── 7. Dividends ──
-    debugPrint('MS: building section 7 (dividends)');
-    final divTxns = monthTxns.where((t) {
-      final ev = (t.metadata ?? {})['investmentEventType'] as String?;
-      return ev == 'dividend';
-    }).toList();
-    if (divTxns.isNotEmpty) {
-      doc.addPage(pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: pw.EdgeInsets.zero,
-        header: (ctx) => _hdr('Dividends', monthLabel, ctx, ib),
-        footer: (ctx) => _ftr(ctx),
-        build: (_) => [
-          pw.SizedBox(height: 10),
-          _sectionBanner('Dividend Income', '${divTxns.length} dividend events — total Rs ${_fmtAmt(divTxns.fold(0.0, (s, t) => s + t.amount))}', _amber, _orange, 'D'),
-          pw.SizedBox(height: 6),
-          _dividendTable(divTxns),
-        ],
-      ));
-    }
-
-    // ── 8. Lending & Borrowing ──
-    debugPrint('MS: building section 8 (lending)');
-    final lentTxns   = monthTxns.where((t) => t.type == TransactionType.lending).toList();
-    final borrowTxns = monthTxns.where((t) => t.type == TransactionType.borrowing).toList();
-    final activeLent     = lendingRecords.where((r) => r.type == LendingType.lent).toList();
-    final activeBorrowed = lendingRecords.where((r) => r.type == LendingType.borrowed).toList();
+    // ── 5. Lending & Borrowing (moved up — active liabilities matter) ──
+    debugPrint('MS: building section 5 (lending)');
     if (lentTxns.isNotEmpty || borrowTxns.isNotEmpty || activeLent.isNotEmpty || activeBorrowed.isNotEmpty) {
       doc.addPage(pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
@@ -332,9 +255,77 @@ class MonthlyStatementService {
       ));
     }
 
+    // ── 6. Portfolio Deep Dive ──
+    debugPrint('MS: building section 6 (investments)');
+    if (investments.isNotEmpty || invTxns.isNotEmpty) {
+      doc.addPage(pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: pw.EdgeInsets.zero,
+        header: (ctx) => _hdr('Portfolio Deep Dive', monthLabel, ctx, ib),
+        footer: (ctx) => _ftr(ctx),
+        build: (_) => [
+          pw.SizedBox(height: 10),
+          _sectionBanner('Investment Portfolio', 'Holdings by type · Monthly contributions vs total value', _indigo, _brandViolet, 'I'),
+          pw.SizedBox(height: 6),
+          _investmentSummaryTable(invByType, invTxns),
+          pw.SizedBox(height: 14),
+          if (invTxns.isNotEmpty) ...[
+            _sectionBanner('Investment Transactions This Month', '${invTxns.length} investment events recorded', _brandViolet, _purple, 'T'),
+            pw.SizedBox(height: 6),
+            ...invTxByType.entries.expand((entry) => [
+              _subSectionHeader(entry.key, entry.value.length, _indigo),
+              pw.SizedBox(height: 4),
+              _miniTxTable(entry.value),
+              pw.SizedBox(height: 10),
+            ]),
+          ],
+        ],
+      ));
+    }
+
+    // ── 7. Dividends ──
+    debugPrint('MS: building section 7 (dividends)');
+    if (divTxns.isNotEmpty) {
+      doc.addPage(pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: pw.EdgeInsets.zero,
+        header: (ctx) => _hdr('Dividends', monthLabel, ctx, ib),
+        footer: (ctx) => _ftr(ctx),
+        build: (_) => [
+          pw.SizedBox(height: 10),
+          _sectionBanner('Dividend Income', '${divTxns.length} dividend events — total Rs ${_fmtAmt(divTxns.fold(0.0, (s, t) => s + t.amount))}', _amber, _orange, 'D'),
+          pw.SizedBox(height: 6),
+          _dividendTable(divTxns),
+        ],
+      ));
+    }
+
+    // ── 8. Payment App Breakdown ──
+    debugPrint('MS: building section 8 (payment apps)');
+    if (appGroups.isNotEmpty) {
+      doc.addPage(pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: pw.EdgeInsets.zero,
+        header: (ctx) => _hdr('Payment Apps', monthLabel, ctx, ib),
+        footer: (ctx) => _ftr(ctx),
+        build: (_) => [
+          pw.SizedBox(height: 10),
+          _sectionBanner('Payment App Breakdown', 'Transactions via each payment app / UPI method', _orange, _amber, 'P'),
+          pw.SizedBox(height: 6),
+          _appSummaryBars(appGroups),
+          pw.SizedBox(height: 14),
+          ...appGroups.entries.expand((entry) => [
+            _subSectionHeader(entry.key, entry.value.length, _pal[appGroups.keys.toList().indexOf(entry.key) % _pal.length]),
+            pw.SizedBox(height: 4),
+            _miniTxTable(entry.value),
+            pw.SizedBox(height: 10),
+          ]),
+        ],
+      ));
+    }
+
     // ── 9. Merchant Analysis ──
     debugPrint('MS: building section 9 (merchants)');
-    final merchantGroups = _groupByMerchant(monthTxns);
     if (merchantGroups.isNotEmpty) {
       doc.addPage(pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
@@ -357,29 +348,41 @@ class MonthlyStatementService {
       ));
     }
 
-    // ── 10. Financial Insights & Recommendations ──
-    debugPrint('MS: building section 10 (insights)');
-    doc.addPage(pw.MultiPage(
-      pageFormat: PdfPageFormat.a4,
-      margin: pw.EdgeInsets.zero,
-      header: (ctx) => _hdr('Financial Insights', monthLabel, ctx, ib),
-      footer: (ctx) => _ftr(ctx),
-      build: (_) => [
-        pw.SizedBox(height: 10),
-        ..._insightsSection(stats, monthTxns, monthLabel),
-      ],
-    ));
+    // ── APPENDIX A. Per-Account Statements ──
+    debugPrint('MS: building appendix A (per-account)');
+    for (int ai = 0; ai < visibleAccounts.length; ai++) {
+      final account = visibleAccounts[ai];
+      final row     = acctRows.firstWhere((r) => r.name == account.name,
+          orElse: () => _AcctRow(name: account.name, opening: account.balance, debits: 0, credits: 0));
+      final txRows  = _txRowsForAccount(account, monthTxns);
+      if (txRows.isEmpty) continue;
 
-    // ── 11. Full Transaction Log ──
-    debugPrint('MS: building section 11 (txn log)');
+      doc.addPage(pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: pw.EdgeInsets.zero,
+        header: (ctx) => _hdr('Appendix A — Account Logs', monthLabel, ctx, ib),
+        footer: (ctx) => _ftr(ctx),
+        build: (_) => [
+          pw.SizedBox(height: 10),
+          _acctSectionHeader(account, row, ai),
+          pw.SizedBox(height: 6),
+          _acctTxTable(txRows, row.opening),
+          pw.SizedBox(height: 8),
+          _acctClosingSummary(row),
+        ],
+      ));
+    }
+
+    // ── APPENDIX B. Full Transaction Log ──
+    debugPrint('MS: building appendix B (txn log)');
     doc.addPage(pw.MultiPage(
       pageFormat: PdfPageFormat.a4,
       margin: pw.EdgeInsets.zero,
-      header: (ctx) => _hdr('Full Transaction Log', monthLabel, ctx, ib),
+      header: (ctx) => _hdr('Appendix B — Full Transaction Log', monthLabel, ctx, ib),
       footer: (ctx) => _ftr(ctx),
       build: (_) => [
         pw.SizedBox(height: 10),
-        _sectionBanner('Complete Transaction Log', '${monthTxns.length} records for ${_mo[month - 1]} $year - chronological', _navy, _navyMid, 'F'),
+        _sectionBanner('Complete Transaction Log', '${monthTxns.length} records for ${_mo[month - 1]} $year — chronological', _navy, _navyMid, 'F'),
         pw.SizedBox(height: 6),
         _fullLogTable(monthTxns),
       ],
@@ -397,8 +400,10 @@ class MonthlyStatementService {
   // SECTION 1 — Cover page (pw.Page, full design)
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static pw.Page _coverPage(String monthLabel, int txnCount, Map<String, double> stats, List<Account> accounts, Uint8List? ib) {
+  static pw.Page _coverPage(String monthLabel, int txnCount, Map<String, double> stats, List<Account> accounts, List<Investment> investments, Uint8List? ib) {
     final net = stats['net'] ?? 0.0;
+    final portfolioValue = investments.fold(0.0, (s, i) => s + i.amount);
+    final monthlyContrib = stats['investment'] ?? 0.0;
     return pw.Page(
       pageFormat: PdfPageFormat.a4,
       margin: pw.EdgeInsets.zero,
@@ -474,7 +479,7 @@ class MonthlyStatementService {
                 pw.SizedBox(width: 12),
                 _coverStat('NET',       '${net >= 0 ? '+' : '-'}₹${_fmtAmt(net.abs())}', net >= 0 ? _green : _red),
                 pw.SizedBox(width: 12),
-                _coverStat('INVESTED',  '₹${_fmtAmt(stats['investment'] ?? 0.0)}', _indigo),
+                _coverStat('PORTFOLIO', '₹${_fmtAmt(portfolioValue > 0 ? portfolioValue : monthlyContrib)}', _indigo),
                 pw.SizedBox(width: 12),
                 _coverStat('RECORDS',   '$txnCount',                           _brandTeal),
               ]),
@@ -533,30 +538,69 @@ class MonthlyStatementService {
   // SECTION 2 — Executive Summary widgets
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static pw.Widget _summaryStatRow(Map<String, double> stats) {
+  static pw.Widget _summaryStatRow(Map<String, double> stats, List<Investment> investments, List<Transaction> invTxns) {
     final net = stats['net'] ?? 0.0;
-    return pw.Container(
-      padding: const pw.EdgeInsets.fromLTRB(20, 12, 20, 12),
-      decoration: pw.BoxDecoration(
-        gradient: pw.LinearGradient(
-          colors: [const PdfColor(0.94, 0.95, 0.97), const PdfColor(0.97, 0.97, 0.99)],
-          begin: pw.Alignment.topLeft, end: pw.Alignment.bottomRight,
+    final portfolioValue  = investments.fold(0.0, (s, i) => s + i.amount);
+    final monthlyContrib  = invTxns.fold(0.0, (s, t) => s + t.amount);
+    return pw.Column(children: [
+      pw.Container(
+        padding: const pw.EdgeInsets.fromLTRB(20, 12, 20, 12),
+        decoration: pw.BoxDecoration(
+          gradient: pw.LinearGradient(
+            colors: [const PdfColor(0.94, 0.95, 0.97), const PdfColor(0.97, 0.97, 0.99)],
+            begin: pw.Alignment.topLeft, end: pw.Alignment.bottomRight,
+          ),
         ),
+        child: pw.Row(children: [
+          _sCard('INCOME',    '+₹${_fmtAmt(stats['income'] ?? 0.0)}',    _green,      const PdfColor(0.87, 0.98, 0.91), '+'),
+          pw.SizedBox(width: 6),
+          _sCard('EXPENSES',  '-₹${_fmtAmt(stats['expense'] ?? 0.0)}',   _red,        const PdfColor(0.99, 0.88, 0.89), '-'),
+          pw.SizedBox(width: 6),
+          _sCard('NET FLOW',  '${net >= 0 ? '+' : '-'}₹${_fmtAmt(net.abs())}', net >= 0 ? _green : _red, net >= 0 ? const PdfColor(0.87, 0.98, 0.91) : const PdfColor(0.99, 0.88, 0.89), '='),
+          pw.SizedBox(width: 6),
+          _sCard('TRANSFERS', '₹${_fmtAmt(stats['transfer'] ?? 0.0)}',   _brandTeal,  const PdfColor(0.86, 0.97, 0.96), '<>'),
+          pw.SizedBox(width: 6),
+          _sCard('RECORDS',   '${(stats['count'] ?? 0.0).toInt()}',       _navy,       const PdfColor(0.90, 0.92, 0.95), '#'),
+        ]),
       ),
-      child: pw.Row(children: [
-        _sCard('INCOME',    '+₹${_fmtAmt(stats['income'] ?? 0.0)}',    _green,      const PdfColor(0.87, 0.98, 0.91), '+'),
-        pw.SizedBox(width: 6),
-        _sCard('EXPENSES',  '-₹${_fmtAmt(stats['expense'] ?? 0.0)}',   _red,        const PdfColor(0.99, 0.88, 0.89), '-'),
-        pw.SizedBox(width: 6),
-        _sCard('NET FLOW',  '${net >= 0 ? '+' : '-'}₹${_fmtAmt(net.abs())}', net >= 0 ? _green : _red, net >= 0 ? const PdfColor(0.87, 0.98, 0.91) : const PdfColor(0.99, 0.88, 0.89), '='),
-        pw.SizedBox(width: 6),
-        _sCard('INVESTED',  '₹${_fmtAmt(stats['investment'] ?? 0.0)}', _indigo,     const PdfColor(0.93, 0.91, 0.99), '*'),
-        pw.SizedBox(width: 6),
-        _sCard('TRANSFERS', '₹${_fmtAmt(stats['transfer'] ?? 0.0)}',   _brandTeal,  const PdfColor(0.86, 0.97, 0.96), '<>'),
-        pw.SizedBox(width: 6),
-        _sCard('RECORDS',   '${(stats['count'] ?? 0.0).toInt()}',       _navy,       const PdfColor(0.90, 0.92, 0.95), '#'),
-      ]),
-    );
+      // Investment split row — monthly contributions vs total portfolio
+      if (portfolioValue > 0 || monthlyContrib > 0) ...[
+        pw.SizedBox(height: 6),
+        pw.Container(
+          padding: const pw.EdgeInsets.fromLTRB(20, 10, 20, 10),
+          decoration: pw.BoxDecoration(
+            color: const PdfColor(0.93, 0.91, 0.99),
+            borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
+            border: pw.Border(left: pw.BorderSide(color: _indigo, width: 4)),
+          ),
+          child: pw.Row(children: [
+            pw.Expanded(child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+              pw.Text('MONTHLY SIP / CONTRIBUTIONS', style: pw.TextStyle(font: _boldFont, fontSize: 7, color: _indigo, letterSpacing: 0.5)),
+              pw.SizedBox(height: 3),
+              pw.Text('₹${_fmtAmt(monthlyContrib)}', style: pw.TextStyle(font: _boldFont, fontSize: 14, color: _indigo)),
+              pw.Text('Invested this month', style: pw.TextStyle(font: _regFont, fontSize: 7, color: _grey)),
+            ])),
+            pw.Container(width: 1, height: 40, color: _indigo.shade(0.3)),
+            pw.SizedBox(width: 16),
+            pw.Expanded(child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+              pw.Text('TOTAL PORTFOLIO VALUE', style: pw.TextStyle(font: _boldFont, fontSize: 7, color: _brandViolet, letterSpacing: 0.5)),
+              pw.SizedBox(height: 3),
+              pw.Text('₹${_fmtAmt(portfolioValue)}', style: pw.TextStyle(font: _boldFont, fontSize: 14, color: _brandViolet)),
+              pw.Text('Across all holdings', style: pw.TextStyle(font: _regFont, fontSize: 7, color: _grey)),
+            ])),
+            pw.SizedBox(width: 16),
+            pw.Expanded(child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+              pw.Text('PORTFOLIO ROI', style: pw.TextStyle(font: _boldFont, fontSize: 7, color: _green, letterSpacing: 0.5)),
+              pw.SizedBox(height: 3),
+              pw.Text(portfolioValue > 0 && (stats['income'] ?? 0) > 0
+                ? '${((portfolioValue / ((stats['income'] ?? 1) * 12)) * 100).toStringAsFixed(1)}% est. annual'
+                : 'Add cost basis\nfor exact ROI',
+                style: pw.TextStyle(font: _boldFont, fontSize: portfolioValue > 0 ? 12 : 8, color: _green)),
+            ])),
+          ]),
+        ),
+      ],
+    ]);
   }
 
   static pw.Widget _sCard(String l, String v, PdfColor accent, PdfColor tint, String sym) {
@@ -808,7 +852,7 @@ class MonthlyStatementService {
   // SECTION 4/5/9 — Category / App / Merchant bar summaries
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static pw.Widget _catSummaryBars(Map<String, List<Transaction>> groups, double totalExpense) {
+  static pw.Widget _catSummaryBars(Map<String, List<Transaction>> groups, double totalExpense, List<Budget> budgets) {
     final entries = groups.entries.toList()
       ..sort((a, b) => _sumAmt(b.value).compareTo(_sumAmt(a.value)));
     final maxAmt = entries.isEmpty ? 1.0 : _sumAmt(entries.first.value);
@@ -819,21 +863,54 @@ class MonthlyStatementService {
       final pct  = totalExpense > 0 ? amt / totalExpense * 100 : 0.0;
       final col  = _pal[i % _pal.length];
       final tint = _palTint[i % _palTint.length];
+      // Budget lookup — match by category name (case-insensitive)
+      final budget = budgets.where((b) =>
+        b.categoryName != null && b.categoryName!.toLowerCase() == name.toLowerCase()
+      ).firstOrNull;
+      final budgetLimit = budget?.limitAmount ?? 0.0;
+      final isOverBudget = budgetLimit > 0 && amt > budgetLimit;
+      final statusColor = isOverBudget ? _red : (budgetLimit > 0 ? _green : col);
+      final statusLabel = isOverBudget
+          ? 'Over budget by ₹${_fmtAmt(amt - budgetLimit)}'
+          : budgetLimit > 0
+              ? 'On track (₹${_fmtAmt(budgetLimit - amt)} left)'
+              : '';
       return pw.Container(
         margin: const pw.EdgeInsets.only(bottom: 4),
         padding: const pw.EdgeInsets.fromLTRB(16, 6, 16, 6),
-        decoration: pw.BoxDecoration(color: tint, borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4))),
-        child: pw.Row(children: [
-          pw.Container(width: 10, height: 10, decoration: pw.BoxDecoration(color: col, borderRadius: const pw.BorderRadius.all(pw.Radius.circular(2)))),
-          pw.SizedBox(width: 8),
-          pw.SizedBox(width: 90, child: pw.Text(name.isEmpty ? 'Uncategorised' : name, style: pw.TextStyle(font: _boldFont, fontSize: 8, color: _navy))),
-          pw.Expanded(child: _hBar(frac, col)),
-          pw.SizedBox(width: 6),
-          _pill('${pct.toStringAsFixed(0)}%', col),
-          pw.SizedBox(width: 8),
-          pw.SizedBox(width: 60, child: pw.Text('₹${_fmtAmt(amt)}', textAlign: pw.TextAlign.right, style: pw.TextStyle(font: _boldFont, fontSize: 8, color: col))),
-          pw.SizedBox(width: 6),
-          pw.SizedBox(width: 36, child: pw.Text('${txns.length} txns', textAlign: pw.TextAlign.right, style: pw.TextStyle(font: _regFont, fontSize: 7, color: _grey))),
+        decoration: pw.BoxDecoration(
+          color: isOverBudget ? const PdfColor(0.99, 0.93, 0.93) : tint,
+          borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+          border: isOverBudget ? pw.Border.all(color: _red, width: 0.8) : null,
+        ),
+        child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+          pw.Row(children: [
+            pw.Container(width: 10, height: 10, decoration: pw.BoxDecoration(color: col, borderRadius: const pw.BorderRadius.all(pw.Radius.circular(2)))),
+            pw.SizedBox(width: 8),
+            pw.SizedBox(width: 90, child: pw.Text(name.isEmpty ? 'Uncategorised' : name, style: pw.TextStyle(font: _boldFont, fontSize: 8, color: _navy))),
+            pw.Expanded(child: _hBar(frac, col)),
+            pw.SizedBox(width: 6),
+            _pill('${pct.toStringAsFixed(0)}%', col),
+            pw.SizedBox(width: 8),
+            pw.SizedBox(width: 60, child: pw.Text('₹${_fmtAmt(amt)}', textAlign: pw.TextAlign.right, style: pw.TextStyle(font: _boldFont, fontSize: 8, color: col))),
+            pw.SizedBox(width: 6),
+            pw.SizedBox(width: 36, child: pw.Text('${txns.length} txns', textAlign: pw.TextAlign.right, style: pw.TextStyle(font: _regFont, fontSize: 7, color: _grey))),
+          ]),
+          if (statusLabel.isNotEmpty) ...[
+            pw.SizedBox(height: 3),
+            pw.Row(children: [
+              pw.SizedBox(width: 18),
+              pw.Container(
+                padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: pw.BoxDecoration(color: statusColor.shade(0.15), borderRadius: const pw.BorderRadius.all(pw.Radius.circular(3))),
+                child: pw.Text(statusLabel, style: pw.TextStyle(font: _boldFont, fontSize: 6.5, color: statusColor)),
+              ),
+              if (budgetLimit > 0) ...[
+                pw.SizedBox(width: 6),
+                pw.Text('Budget: ₹${_fmtAmt(budgetLimit)}', style: pw.TextStyle(font: _regFont, fontSize: 6.5, color: _grey)),
+              ],
+            ]),
+          ],
         ]),
       );
     }).toList());
@@ -890,8 +967,16 @@ class MonthlyStatementService {
   // SECTION 6 — Investments
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static pw.Widget _investmentSummaryTable(Map<String, List<Investment>> byType) {
-    if (byType.isEmpty) return pw.Text('No investments on record.', style: pw.TextStyle(font: _regFont, fontSize: 9, color: _grey));
+  static pw.Widget _investmentSummaryTable(Map<String, List<Investment>> byType, List<Transaction> invTxns) {
+    if (byType.isEmpty && invTxns.isEmpty) return pw.Text('No investments on record.', style: pw.TextStyle(font: _regFont, fontSize: 9, color: _grey));
+    // Monthly contributions by type label
+    final monthlyByType = <String, double>{};
+    for (final t in invTxns) {
+      final label = ((t.metadata ?? {})['investmentType'] as String?) ?? 'Other';
+      monthlyByType[label] = (monthlyByType[label] ?? 0) + t.amount;
+    }
+    final grandTotal = byType.values.fold(0.0, (s, items) => s + items.fold(0.0, (ss, i) => ss + i.amount));
+    final monthlyTotal = invTxns.fold(0.0, (s, t) => s + t.amount);
     return pw.Column(children: [
       pw.Container(
         padding: const pw.EdgeInsets.fromLTRB(16, 7, 16, 7),
@@ -900,32 +985,51 @@ class MonthlyStatementService {
           borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
         ),
         child: pw.Row(children: [
-          pw.SizedBox(width: 130, child: _wt('INVESTMENT TYPE')),
+          pw.SizedBox(width: 120, child: _wt('INVESTMENT TYPE')),
           pw.Expanded(            child: _wt('HOLDINGS')),
-          pw.SizedBox(width: 90,  child: _wt('TOTAL VALUE', right: true)),
-          pw.SizedBox(width: 40,  child: _wt('COUNT', right: true)),
+          pw.SizedBox(width: 80,  child: _wt('THIS MONTH', right: true)),
+          pw.SizedBox(width: 90,  child: _wt('PORTFOLIO VALUE', right: true)),
+          pw.SizedBox(width: 36,  child: _wt('COUNT', right: true)),
         ]),
       ),
       ...byType.entries.toList().asMap().entries.map((e) {
         final i = e.key; final type = e.value.key; final items = e.value.value;
-        final total = items.fold(0.0, (s, inv) => s + inv.amount);
-        final col = _pal[i % _pal.length];
+        final total    = items.fold(0.0, (s, inv) => s + inv.amount);
+        final monthly  = monthlyByType[type] ?? 0.0;
+        final col      = _pal[i % _pal.length];
         return pw.Container(
           color: i.isEven ? _palTint[i % _palTint.length] : PdfColors.white,
           padding: const pw.EdgeInsets.fromLTRB(16, 6, 16, 6),
           child: pw.Row(children: [
             pw.Container(width: 10, height: 10, decoration: pw.BoxDecoration(color: col, borderRadius: const pw.BorderRadius.all(pw.Radius.circular(2)))),
             pw.SizedBox(width: 6),
-            pw.SizedBox(width: 124, child: pw.Text(type, style: pw.TextStyle(font: _boldFont, fontSize: 8.5, color: _navy))),
+            pw.SizedBox(width: 114, child: pw.Text(type, style: pw.TextStyle(font: _boldFont, fontSize: 8.5, color: _navy))),
             pw.Expanded(child: pw.Text(items.map((inv) => inv.name).take(3).join(', ') + (items.length > 3 ? '...' : ''),
                 style: pw.TextStyle(font: _regFont, fontSize: 7.5, color: _grey))),
+            pw.SizedBox(width: 80, child: pw.Text(monthly > 0 ? '+₹${_fmtAmt(monthly)}' : '—', textAlign: pw.TextAlign.right,
+                style: pw.TextStyle(font: _boldFont, fontSize: 8, color: monthly > 0 ? _green : _grey))),
             pw.SizedBox(width: 90, child: pw.Text('₹${_fmtAmt(total)}', textAlign: pw.TextAlign.right,
                 style: pw.TextStyle(font: _boldFont, fontSize: 8.5, color: col))),
-            pw.SizedBox(width: 40, child: pw.Text('${items.length}', textAlign: pw.TextAlign.right,
+            pw.SizedBox(width: 36, child: pw.Text('${items.length}', textAlign: pw.TextAlign.right,
                 style: pw.TextStyle(font: _regFont, fontSize: 7.5, color: _grey))),
           ]),
         );
       }),
+      // Totals row
+      pw.Container(
+        color: const PdfColor(0.11, 0.23, 0.32),
+        padding: const pw.EdgeInsets.fromLTRB(16, 6, 16, 6),
+        child: pw.Row(children: [
+          pw.SizedBox(width: 120, child: pw.Text('TOTAL', style: pw.TextStyle(font: _boldFont, fontSize: 8.5, color: PdfColors.white))),
+          pw.Expanded(child: pw.SizedBox()),
+          pw.SizedBox(width: 80, child: pw.Text(monthlyTotal > 0 ? '+₹${_fmtAmt(monthlyTotal)}' : '—', textAlign: pw.TextAlign.right,
+              style: pw.TextStyle(font: _boldFont, fontSize: 8.5, color: const PdfColor(0.65, 1.0, 0.78)))),
+          pw.SizedBox(width: 90, child: pw.Text('₹${_fmtAmt(grandTotal)}', textAlign: pw.TextAlign.right,
+              style: pw.TextStyle(font: _boldFont, fontSize: 8.5, color: PdfColors.white))),
+          pw.SizedBox(width: 36, child: pw.Text('', textAlign: pw.TextAlign.right,
+              style: pw.TextStyle(font: _regFont, fontSize: 7.5, color: _grey))),
+        ]),
+      ),
     ]);
   }
 
@@ -1280,25 +1384,52 @@ class MonthlyStatementService {
   // SECTION 10 — Financial Insights & Recommendations
   // ═══════════════════════════════════════════════════════════════════════════
 
-  static List<pw.Widget> _insightsSection(Map<String, double> stats, List<Transaction> txns, String monthLabel) {
+  static List<pw.Widget> _insightsSection(
+    Map<String, double> stats,
+    List<Transaction> txns,
+    String monthLabel,
+    List<Transaction> allTxns,
+    List<Goal> goals,
+    List<Budget> budgets,
+  ) {
     final income   = stats['income'] ?? 0.0;
     final expense  = stats['expense'] ?? 0.0;
     final invested = stats['investment'] ?? 0.0;
     final transfer = stats['transfer'] ?? 0.0;
     final net      = stats['net'] ?? 0.0;
 
-    // ── Compute health score (0-100) ──
-    double score = 50.0;
-    if (income > 0) {
-      final savingsRate = (net / income * 100).clamp(-100.0, 100.0);
-      score += savingsRate * 0.4; // savings rate contributes up to 40pts
+    // ── Weighted Health Score (5 dimensions, 20pts each) ──
+    // 1. Savings Rate (20pts): 30%+ = 20, 20%+ = 14, 10%+ = 8, 0%+ = 4, negative = 0
+    final savingsRate = income > 0 ? ((income - expense) / income * 100).clamp(-100.0, 100.0) : 0.0;
+    final savingsPts  = income == 0 ? 10.0 : savingsRate >= 30 ? 20.0 : savingsRate >= 20 ? 14.0 : savingsRate >= 10 ? 8.0 : savingsRate >= 0 ? 4.0 : 0.0;
+
+    // 2. Investment Rate (20pts): 20%+ = 20, 10%+ = 12, 5%+ = 6, any = 2, none = 0
+    final invRate  = income > 0 ? (invested / income * 100) : 0.0;
+    final invPts   = invRate >= 20 ? 20.0 : invRate >= 10 ? 12.0 : invRate >= 5 ? 6.0 : invRate > 0 ? 2.0 : 0.0;
+
+    // 3. Spend Control (20pts): no single category >40% of expense = 20, >50% = 10, >70% = 5
+    final catMap = <String, double>{};
+    for (final t in txns.where((t) => t.type == TransactionType.expense)) {
+      final cat = ((t.metadata ?? {})['categoryName'] ?? 'Other').toString();
+      catMap[cat] = (catMap[cat] ?? 0) + t.amount;
     }
-    if (income > 0 && invested > 0) {
-      final invRate = (invested / income * 100).clamp(0.0, 30.0);
-      score += invRate; // investment rate contributes up to 30pts
+    final topCatPct = expense > 0 && catMap.isNotEmpty ? catMap.values.reduce((a, b) => a > b ? a : b) / expense * 100 : 0.0;
+    final spendCtrlPts = topCatPct <= 40 ? 20.0 : topCatPct <= 50 ? 10.0 : 5.0;
+
+    // 4. Budget Adherence (20pts): all within budget = 20, 1 over = 12, 2+ = 4
+    int budgetsOver = 0;
+    for (final b in budgets.where((b) => b.categoryName != null)) {
+      final spent = catMap[b.categoryName] ?? 0.0;
+      if (spent > b.limitAmount) budgetsOver++;
     }
-    if (expense > income && income > 0) score -= 20;
-    score = score.clamp(0.0, 100.0);
+    final budgetPts = budgets.isEmpty ? 10.0 : budgetsOver == 0 ? 20.0 : budgetsOver == 1 ? 12.0 : 4.0;
+
+    // 5. Lending Risk (20pts): lending >20% of income = risky
+    final lentAmt   = txns.where((t) => t.type == TransactionType.lending).fold(0.0, (s, t) => s + t.amount);
+    final lendingPct = income > 0 ? lentAmt / income * 100 : 0.0;
+    final lendingPts = lendingPct <= 5 ? 20.0 : lendingPct <= 15 ? 12.0 : lendingPct <= 25 ? 6.0 : 2.0;
+
+    final score = (savingsPts + invPts + spendCtrlPts + budgetPts + lendingPts).clamp(0.0, 100.0);
 
     final scoreColor = score >= 70 ? _green : (score >= 45 ? _orange : _red);
     final scoreLabel = score >= 70 ? 'Healthy' : (score >= 45 ? 'Needs Attention' : 'At Risk');
@@ -1393,43 +1524,182 @@ class MonthlyStatementService {
     widgets.add(_sectionBanner('Financial Insights & Recommendations', 'Personalized analysis for $monthLabel', _brandTeal, _brandViolet, 'I'));
     widgets.add(pw.SizedBox(height: 12));
 
-    // Health score card
+    // ── Weighted Health Score Card ──
     widgets.add(pw.Container(
       padding: const pw.EdgeInsets.all(16),
       decoration: pw.BoxDecoration(
         gradient: pw.LinearGradient(colors: [_navy, _navyMid], begin: pw.Alignment.topLeft, end: pw.Alignment.bottomRight),
         borderRadius: const pw.BorderRadius.all(pw.Radius.circular(10)),
       ),
-      child: pw.Row(crossAxisAlignment: pw.CrossAxisAlignment.center, children: [
-        pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-          pw.Text('FINANCIAL HEALTH SCORE', style: pw.TextStyle(font: _boldFont, fontSize: 7, color: const PdfColor(0.55, 0.70, 0.82), letterSpacing: 1.0)),
-          pw.SizedBox(height: 6),
-          pw.Row(crossAxisAlignment: pw.CrossAxisAlignment.end, children: [
-            pw.Text(score.toInt().toString(), style: pw.TextStyle(font: _boldFont, fontSize: 40, color: scoreColor)),
-            pw.SizedBox(width: 4),
-            pw.Padding(padding: const pw.EdgeInsets.only(bottom: 6), child:
-              pw.Text('/100  $scoreLabel', style: pw.TextStyle(font: _boldFont, fontSize: 10, color: scoreColor))),
+      child: pw.Column(children: [
+        pw.Row(crossAxisAlignment: pw.CrossAxisAlignment.center, children: [
+          pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+            pw.Text('FINANCIAL HEALTH SCORE', style: pw.TextStyle(font: _boldFont, fontSize: 7, color: const PdfColor(0.55, 0.70, 0.82), letterSpacing: 1.0)),
+            pw.SizedBox(height: 6),
+            pw.Row(crossAxisAlignment: pw.CrossAxisAlignment.end, children: [
+              pw.Text(score.toInt().toString(), style: pw.TextStyle(font: _boldFont, fontSize: 40, color: scoreColor)),
+              pw.SizedBox(width: 4),
+              pw.Padding(padding: const pw.EdgeInsets.only(bottom: 6), child:
+                pw.Text('/100  $scoreLabel', style: pw.TextStyle(font: _boldFont, fontSize: 10, color: scoreColor))),
+            ]),
+          ]),
+          pw.SizedBox(width: 20),
+          pw.Expanded(child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+            _insightScoreBar('Savings Rate', savingsPts / 20.0, _green, '${savingsPts.toInt()}/20'),
+            pw.SizedBox(height: 4),
+            _insightScoreBar('Investment Rate', invPts / 20.0, _indigo, '${invPts.toInt()}/20'),
+            pw.SizedBox(height: 4),
+            _insightScoreBar('Spend Control', spendCtrlPts / 20.0, _brandTeal, '${spendCtrlPts.toInt()}/20'),
+            pw.SizedBox(height: 4),
+            _insightScoreBar('Budget Adherence', budgetPts / 20.0, _orange, '${budgetPts.toInt()}/20'),
+            pw.SizedBox(height: 4),
+            _insightScoreBar('Lending Risk', lendingPts / 20.0, _brandViolet, '${lendingPts.toInt()}/20'),
+          ])),
+          pw.SizedBox(width: 16),
+          pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.end, children: [
+            _insightMini('Income',  '+₹${_fmtAmt(income)}',  _green),
+            pw.SizedBox(height: 6),
+            _insightMini('Expense', '-₹${_fmtAmt(expense)}', _red),
+            pw.SizedBox(height: 6),
+            _insightMini('Saved',   '${net >= 0 ? '+' : '-'}₹${_fmtAmt(net.abs())}', net >= 0 ? _green : _red),
           ]),
         ]),
-        pw.SizedBox(width: 20),
-        pw.Expanded(child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-          _insightScoreBar('Savings', income > 0 ? ((net / income).clamp(0.0, 1.0)) : 0.0, _green),
-          pw.SizedBox(height: 4),
-          _insightScoreBar('Investment', income > 0 ? (invested / income).clamp(0.0, 1.0) : 0.0, _indigo),
-          pw.SizedBox(height: 4),
-          _insightScoreBar('Spend Control', income > 0 ? (1.0 - (expense / income).clamp(0.0, 1.0)) : 0.5, _brandTeal),
-        ])),
-        pw.SizedBox(width: 16),
-        pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.end, children: [
-          _insightMini('Income',  '+₹${_fmtAmt(income)}',  _green),
-          pw.SizedBox(height: 6),
-          _insightMini('Expense', '-₹${_fmtAmt(expense)}', _red),
-          pw.SizedBox(height: 6),
-          _insightMini('Saved',   '${net >= 0 ? '+' : '-'}₹${_fmtAmt(net.abs())}', net >= 0 ? _green : _red),
-        ]),
+        // How to improve
+        pw.SizedBox(height: 10),
+        pw.Container(
+          padding: const pw.EdgeInsets.fromLTRB(10, 7, 10, 7),
+          decoration: pw.BoxDecoration(
+            color: const PdfColor(0.08, 0.20, 0.35),
+            borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
+          ),
+          child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+            pw.Text('HOW TO IMPROVE YOUR SCORE', style: pw.TextStyle(font: _boldFont, fontSize: 6.5, color: const PdfColor(0.55, 0.70, 0.82), letterSpacing: 0.5)),
+            pw.SizedBox(height: 5),
+            ...[
+              if (savingsPts < 20) '  Savings (${savingsPts.toInt()}/20): Increase savings rate to 30%+ of income. Currently ${savingsRate.toStringAsFixed(0)}%.',
+              if (invPts < 20)     '  Investment (${invPts.toInt()}/20): Set up automatic SIP to reach 20% investment rate. Currently ${invRate.toStringAsFixed(0)}%.',
+              if (spendCtrlPts < 20) '  Spend Control (${spendCtrlPts.toInt()}/20): Reduce top category concentration below 40% of expenses.',
+              if (budgetPts < 20 && budgets.isNotEmpty) '  Budget (${budgetPts.toInt()}/20): $budgetsOver budget${budgetsOver == 1 ? '' : 's'} exceeded this month. Set realistic limits.',
+              if (lendingPts < 20) '  Lending (${lendingPts.toInt()}/20): Money lent out is ${lendingPct.toStringAsFixed(0)}% of income. Recover outstanding amounts.',
+            ].map((tip) => pw.Padding(padding: const pw.EdgeInsets.only(bottom: 3),
+              child: pw.Text(tip, style: pw.TextStyle(font: _regFont, fontSize: 7.5, color: const PdfColor(0.75, 0.85, 0.95))))),
+          ]),
+        ),
       ]),
     ));
     widgets.add(pw.SizedBox(height: 14));
+
+    // ── Cash Flow Forecast — next month survival cost ──
+    final recurringDescriptions = <String, List<double>>{};
+    for (final t in allTxns.where((t) => t.type == TransactionType.expense)) {
+      final desc = ((t.metadata ?? {})['merchant'] as String?) ??
+                   ((t.metadata ?? {})['description'] as String?) ?? '';
+      if (desc.isNotEmpty) {
+        recurringDescriptions[desc] = (recurringDescriptions[desc] ?? [])..add(t.amount);
+      }
+    }
+    final recurring = recurringDescriptions.entries
+        .where((e) => e.value.length >= 2)
+        .map((e) => MapEntry(e.key, e.value.reduce((a, b) => a + b) / e.value.length))
+        .where((e) => e.value >= 50)
+        .toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final forecastTotal = recurring.take(10).fold(0.0, (s, e) => s + e.value);
+    if (recurring.isNotEmpty) {
+      widgets.add(_sectionBanner('Cash Flow Forecast — Next Month', 'Based on your recurring transaction patterns', _brandTeal, _blue, 'F'));
+      widgets.add(pw.SizedBox(height: 6));
+      widgets.add(pw.Container(
+        padding: const pw.EdgeInsets.all(12),
+        decoration: pw.BoxDecoration(
+          color: const PdfColor(0.93, 0.97, 0.99),
+          borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
+          border: pw.Border(left: pw.BorderSide(color: _brandTeal, width: 3)),
+        ),
+        child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+          pw.Row(children: [
+            pw.Expanded(child: pw.Text('Predicted recurring expenses next month:', style: pw.TextStyle(font: _boldFont, fontSize: 8.5, color: _navy))),
+            pw.Text('≈ ₹${_fmtAmt(forecastTotal)} survival cost', style: pw.TextStyle(font: _boldFont, fontSize: 9, color: _brandTeal)),
+          ]),
+          pw.SizedBox(height: 6),
+          pw.Wrap(spacing: 6, runSpacing: 4, children: recurring.take(8).map((e) =>
+            pw.Container(
+              padding: const pw.EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+              decoration: pw.BoxDecoration(color: _brandTeal.shade(0.15), borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4))),
+              child: pw.Text('${e.key}  ₹${_fmtAmt(e.value)}', style: pw.TextStyle(font: _regFont, fontSize: 7, color: _navy)),
+            )
+          ).toList()),
+        ]),
+      ));
+      widgets.add(pw.SizedBox(height: 14));
+    }
+
+    // ── Goal Impact ──
+    if (goals.isNotEmpty && net != 0) {
+      widgets.add(_sectionBanner('Goal Impact', 'How this month\'s cash flow affected your goals', _brandViolet, _indigo, 'G'));
+      widgets.add(pw.SizedBox(height: 6));
+      widgets.add(pw.Column(children: goals.take(4).map((goal) {
+        final remaining = (goal.targetAmount - goal.currentAmount).clamp(0.0, goal.targetAmount);
+        final monthsLeft = net > 0 ? (remaining / net).ceil() : 999;
+        final isOnTrack = net > 0 && monthsLeft <= goal.daysRemaining ~/ 30;
+        final statusColor = isOnTrack ? _green : _red;
+        final statusText  = isOnTrack
+            ? 'On track — ~$monthsLeft months at this rate'
+            : net <= 0
+                ? 'At risk — negative cash flow this month'
+                : 'Behind — need ₹${_fmtAmt(remaining / (goal.daysRemaining ~/ 30).clamp(1, 999).toDouble())} /month';
+        return pw.Container(
+          margin: const pw.EdgeInsets.only(bottom: 5),
+          padding: const pw.EdgeInsets.fromLTRB(12, 8, 12, 8),
+          decoration: pw.BoxDecoration(
+            color: isOnTrack ? const PdfColor(0.87, 0.98, 0.91) : const PdfColor(0.99, 0.93, 0.93),
+            borderRadius: const pw.BorderRadius.all(pw.Radius.circular(5)),
+            border: pw.Border(left: pw.BorderSide(color: statusColor, width: 3)),
+          ),
+          child: pw.Row(children: [
+            pw.Expanded(child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+              pw.Text(goal.name, style: pw.TextStyle(font: _boldFont, fontSize: 8.5, color: _navy)),
+              pw.SizedBox(height: 2),
+              pw.Text(statusText, style: pw.TextStyle(font: _regFont, fontSize: 7.5, color: statusColor)),
+            ])),
+            pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.end, children: [
+              pw.Text('₹${_fmtAmt(goal.currentAmount)} / ₹${_fmtAmt(goal.targetAmount)}', style: pw.TextStyle(font: _boldFont, fontSize: 7.5, color: _navy)),
+              pw.Text('${goal.progressPercentage.toStringAsFixed(0)}% complete', style: pw.TextStyle(font: _regFont, fontSize: 7, color: _grey)),
+            ]),
+          ]),
+        );
+      }).toList()));
+      widgets.add(pw.SizedBox(height: 14));
+    }
+
+    // ── Credit Utilization Alert ──
+    final creditTxns = txns.where((t) {
+      final payApp = (t.metadata ?? {})['paymentApp'] as String? ?? '';
+      final acct   = t.sourceAccountName ?? '';
+      return t.type == TransactionType.expense &&
+          (payApp.toLowerCase().contains('credit') || acct.toLowerCase().contains('credit'));
+    }).toList();
+    final creditSpend = creditTxns.fold(0.0, (s, t) => s + t.amount);
+    if (creditSpend > 10000) {
+      final utilizationPct = income > 0 ? creditSpend / income * 100 : 0.0;
+      final isHighUtil = utilizationPct > 30;
+      widgets.add(pw.Container(
+        padding: const pw.EdgeInsets.fromLTRB(14, 10, 14, 10),
+        decoration: pw.BoxDecoration(
+          color: isHighUtil ? const PdfColor(0.99, 0.91, 0.88) : const PdfColor(0.93, 0.97, 0.99),
+          borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
+          border: pw.Border.all(color: isHighUtil ? _red : _brandTeal, width: 0.8),
+        ),
+        child: pw.Row(children: [
+          pw.Expanded(child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+            pw.Text('CREDIT UTILIZATION ALERT', style: pw.TextStyle(font: _boldFont, fontSize: 7, color: isHighUtil ? _red : _brandTeal, letterSpacing: 0.5)),
+            pw.SizedBox(height: 3),
+            pw.Text('₹${_fmtAmt(creditSpend)} spent via credit this month (${utilizationPct.toStringAsFixed(0)}% of income).', style: pw.TextStyle(font: _regFont, fontSize: 8, color: _navy)),
+            if (isHighUtil) pw.Text('High utilization can trigger interest and impact credit score. Pay full balance before due date.', style: pw.TextStyle(font: _regFont, fontSize: 7.5, color: _red)),
+          ])),
+        ]),
+      ));
+      widgets.add(pw.SizedBox(height: 14));
+    }
 
     if (positives.isNotEmpty) {
       widgets.add(_insightGroup('What You Are Doing Well', positives, _green, const PdfColor(0.87, 0.98, 0.91)));
@@ -1454,12 +1724,12 @@ class MonthlyStatementService {
     return widgets;
   }
 
-  static pw.Widget _insightScoreBar(String label, double fraction, PdfColor color) {
+  static pw.Widget _insightScoreBar(String label, double fraction, PdfColor color, [String? scoreLabel]) {
     final pct = fraction.clamp(0.0, 1.0);
     final fFlex = (pct * 100).round().clamp(1, 100);
     final eFlex = ((1.0 - pct) * 100).round().clamp(0, 100);
     return pw.Row(children: [
-      pw.SizedBox(width: 72, child: pw.Text(label, style: pw.TextStyle(font: _regFont, fontSize: 7, color: const PdfColor(0.70, 0.82, 0.90)))),
+      pw.SizedBox(width: 90, child: pw.Text(label, style: pw.TextStyle(font: _regFont, fontSize: 7, color: const PdfColor(0.70, 0.82, 0.90)))),
       pw.Expanded(child: pw.ClipRRect(
         horizontalRadius: 3, verticalRadius: 3,
         child: pw.Row(children: [
@@ -1468,7 +1738,7 @@ class MonthlyStatementService {
         ]),
       )),
       pw.SizedBox(width: 6),
-      pw.SizedBox(width: 28, child: pw.Text('${(pct * 100).toInt()}%', textAlign: pw.TextAlign.right, style: pw.TextStyle(font: _boldFont, fontSize: 7, color: color))),
+      pw.SizedBox(width: 36, child: pw.Text(scoreLabel ?? '${(pct * 100).toInt()}%', textAlign: pw.TextAlign.right, style: pw.TextStyle(font: _boldFont, fontSize: 7, color: color))),
     ]);
   }
 
