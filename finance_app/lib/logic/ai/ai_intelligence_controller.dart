@@ -119,6 +119,14 @@ class AIIntelligenceController extends ChangeNotifier {
 
     _initialized = true;
     notifyListeners();
+
+    // Trigger an immediate refresh using whatever transactions are already loaded.
+    // This handles the case where TransactionsController finished loading before
+    // this hook was registered (race condition on startup / after reinstall).
+    final existing = TransactionsController.lastKnownTransactions;
+    if (existing != null && existing.isNotEmpty) {
+      refresh(transactions: existing, accountCount: 1);
+    }
   }
 
   // ── Refresh ────────────────────────────────────────────────────────────────

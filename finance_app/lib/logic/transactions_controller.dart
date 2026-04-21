@@ -17,6 +17,9 @@ class TransactionsController with ChangeNotifier {
   /// Optional hook called after any data change — used by AIIntelligenceController
   /// to trigger background analysis without creating a circular dependency.
   static void Function(List<Transaction>)? onDataChanged;
+  // Snapshot of last loaded transactions — used by AI controller to handle
+  // the startup race where load() finishes before the hook is registered.
+  static List<Transaction>? lastKnownTransactions;
 
   List<Transaction> get transactions => _transactions;
 
@@ -59,7 +62,9 @@ class TransactionsController with ChangeNotifier {
     }
 
     notifyListeners();
-    onDataChanged?.call(List.unmodifiable(_transactions));
+    final snapshot = List<Transaction>.unmodifiable(_transactions);
+    lastKnownTransactions = snapshot;
+    onDataChanged?.call(snapshot);
   }
 
   Future<void> addTransaction(Transaction transaction) async {
