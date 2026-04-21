@@ -15,6 +15,7 @@ import 'package:vittara_fin_os/logic/loan_controller.dart';
 import 'package:vittara_fin_os/logic/loan_model.dart';
 import 'package:vittara_fin_os/logic/recurring_deposit_model.dart';
 import 'package:vittara_fin_os/logic/recurring_template_model.dart';
+import 'package:vittara_fin_os/logic/ai/ai_intelligence_controller.dart';
 import 'package:vittara_fin_os/logic/recurring_templates_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
@@ -134,6 +135,7 @@ class CalendarEvent {
   final DateTime date;
   final CalendarEventType type;
   final double? amount;
+  final bool isPredicted; // true for AI-predicted ghost events
 
   const CalendarEvent({
     required this.id,
@@ -142,6 +144,7 @@ class CalendarEvent {
     required this.date,
     required this.type,
     this.amount,
+    this.isPredicted = false,
   });
 }
 
@@ -271,6 +274,26 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
     for (final e in allEvents) {
       final k = _dateKey(e.date);
       eventsMap.putIfAbsent(k, () => []).add(e);
+    }
+
+    // Add AI-predicted ghost events (upcoming 90 days)
+    final ai = context.read<AIIntelligenceController>();
+    for (final p in ai.predictedCalendar) {
+      final k = _dateKey(p.expectedDate);
+      final ghost = CalendarEvent(
+        id: 'pred_${p.id}',
+        title: '${p.merchantName} (predicted)',
+        subtitle: p.type.name == 'income'
+            ? '≈₹${p.typicalAmount.toStringAsFixed(0)} expected'
+            : '≈₹${p.typicalAmount.toStringAsFixed(0)} due',
+        date: p.expectedDate,
+        type: p.source == 'salary'
+            ? CalendarEventType.bill
+            : CalendarEventType.bill,
+        amount: p.typicalAmount,
+        isPredicted: true,
+      );
+      eventsMap.putIfAbsent(k, () => []).add(ghost);
     }
 
     // Events to display below calendar
@@ -1626,16 +1649,24 @@ class _EventTile extends StatelessWidget {
       daysColor = AppStyles.getSecondaryTextColor(context);
     }
 
-    return Container(
+    final isPredicted = event.isPredicted;
+    return Opacity(
+      opacity: isPredicted ? 0.6 : 1.0,
+      child: Container(
       margin: const EdgeInsets.only(bottom: Spacing.sm),
       decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withValues(alpha: 0.04)
-            : Colors.white,
+        color: isPredicted
+            ? AppStyles.aetherTeal.withValues(alpha: 0.06)
+            : (isDark
+                ? Colors.white.withValues(alpha: 0.04)
+                : Colors.white),
         borderRadius: BorderRadius.circular(Radii.lg),
         border: Border.all(
-          color: color.withValues(alpha: isDark ? 0.2 : 0.15),
-          width: 1,
+          color: isPredicted
+              ? AppStyles.aetherTeal.withValues(alpha: 0.3)
+              : color.withValues(alpha: isDark ? 0.2 : 0.15),
+          width: isPredicted ? 1 : 1,
+          style: isPredicted ? BorderStyle.solid : BorderStyle.solid,
         ),
         boxShadow: isDark ? Shadows.cardDark : Shadows.cardLight,
       ),
@@ -1764,7 +1795,8 @@ class _EventTile extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ),   // Container
+    );   // Opacity
   }
 
   String _formatDate(DateTime date) => DateFormatter.format(date);
