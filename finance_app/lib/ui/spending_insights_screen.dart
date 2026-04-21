@@ -451,10 +451,20 @@ class _SpendIntelBody extends StatelessWidget {
 
     // ── PORTRAIT ────────────────────────────────────────────────────────────
     return SafeArea(
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(
-            Spacing.md, Spacing.md, Spacing.md, Spacing.xl),
-        children: contentChildren,
+      child: RefreshIndicator(
+        onRefresh: () async {
+          final ai = context.read<AIIntelligenceController>();
+          await ai.refresh(
+            transactions: transactions,
+            accountCount: 1,
+          );
+        },
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(
+              Spacing.md, Spacing.md, Spacing.md, Spacing.xl),
+          children: contentChildren,
+        ),
       ),
     );
   }
