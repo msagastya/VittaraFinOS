@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/ai/ai_intelligence_controller.dart';
 import 'package:vittara_fin_os/logic/ai/peer_benchmark.dart';
 import 'package:vittara_fin_os/logic/budgets_controller.dart';
+import 'package:vittara_fin_os/logic/investments_controller.dart';
+import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/ui/dashboard/widgets/insights_widget.dart';
@@ -246,6 +248,8 @@ class _SpendIntelBody extends StatelessWidget {
       _MonthlyTrendSection(data: data, cardBg: cardBg, isDark: isDark),
       const SizedBox(height: Spacing.lg),
       _PeerBenchmarkSection(transactions: transactions, isDark: isDark),
+      const SizedBox(height: Spacing.lg),
+      _TaxSummarySection(transactions: transactions, isDark: isDark),
     ];
 
     // ── LANDSCAPE: sidebar + scrollable content ──────────────────────────
@@ -1690,6 +1694,224 @@ class _PeerBenchmarkSection extends StatelessWidget {
                 ),
               ),
             )),
+      ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TAX SUMMARY (India — Estimated 80C + HRA + Disclaimer)
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _TaxSummarySection extends StatelessWidget {
+  final List<Transaction> transactions;
+  final bool isDark;
+
+  const _TaxSummarySection({
+    required this.transactions,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final investments = context.watch<InvestmentsController>().investments;
+
+    // ── 80C computation ──────────────────────────────────────────────────────
+    // ELSS / MF with 80C flag
+    final elssAmount = investments
+        .where((i) => i.type == InvestmentType.mutualFund)
+        .fold<double>(0.0, (s, i) => s + i.amount);
+
+    // NPS (pension)
+    final npsAmount = investments
+        .where((i) => i.type == InvestmentType.pensionSchemes)
+        .fold<double>(0.0, (s, i) => s + i.amount);
+
+    // Fixed Deposits (5yr tax-saver FDs)
+    final fdAmount = investments
+        .where((i) => i.type == InvestmentType.fixedDeposit)
+        .fold<double>(0.0, (s, i) => s + i.amount);
+
+    // Life insurance premiums from transactions tagged "insurance"
+    final lifeInsuranceAmount = transactions
+        .where((t) {
+          final tags = (t.metadata?['tags'] as List?) ?? [];
+          final desc = (t.metadata?['description'] as String? ?? '').toLowerCase();
+          final merchant = (t.metadata?['merchant'] as String? ?? '').toLowerCase();
+          return t.type == TransactionType.expense &&
+              (tags.any((tag) => tag.toString().toLowerCase().contains('insurance')) ||
+               desc.contains('insurance') || desc.contains('lic') ||
+               merchant.contains('lic') || merchant.contains('hdfc life') ||
+               merchant.contains('sbi life') || merchant.contains('max life'));
+        })
+        .fold<double>(0.0, (s, t) => s + t.amount);
+
+    final total80c = (elssAmount + npsAmount + fdAmount + lifeInsuranceAmount)
+        .clamp(0.0, 150000.0);
+    final remaining80c = (150000.0 - total80c).clamp(0.0, 150000.0);
+
+    // ── HRA computation ──────────────────────────────────────────────────────
+    final rentTransactions = transactions.where((t) {
+      final tags = (t.metadata?['tags'] as List?) ?? [];
+      final desc = (t.metadata?['description'] as String? ?? '').toLowerCase();
+      final merchant = (t.metadata?['merchant'] as String? ?? '').toLowerCase();
+      return t.type == TransactionType.expense &&
+          (tags.any((tag) => tag.toString().toLowerCase().contains('rent')) ||
+           desc.contains('rent') || merchant.contains('rent'));
+    }).toList();
+
+    final annualRent = rentTransactions.fold<double>(0.0, (s, t) => s + t.amount);
+
+    // Nothing to show if user has no relevant data
+    if (total80c == 0.0 && annualRent == 0.0) return const SizedBox.shrink();
+
+    final textColor = AppStyles.getTextColor(context);
+    final secondary = AppStyles.getSecondaryTextColor(context);
+    final cardBg = isDark
+        ? Colors.white.withValues(alpha: 0.04)
+        : Colors.black.withValues(alpha: 0.025);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SpendSectionLabel('TAX ESTIMATES  ·  FY ${_currentFY()}'),
+        const SizedBox(height: Spacing.sm),
+        Container(
+          padding: const EdgeInsets.all(Spacing.lg),
+          decoration: BoxDecoration(
+            color: cardBg,
+            borderRadius: BorderRadius.circular(Radii.xl),
+            border: Border.all(
+              color: const Color(0xFF10B981).withValues(alpha: 0.25),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 80C Row
+              if (total80c > 0) ...[
+                _TaxRow(
+                  label: 'Section 80C',
+                  value: '₹${_fmt(total80c)} / ₹1,50,000',
+                  progress: total80c / 150000.0,
+                  progressColor: total80c >= 150000.0
+                      ? const Color(0xFF10B981)
+                      : const Color(0xFFF59E0B),
+                  trailing: remaining80c > 0
+                      ? '₹${_fmt(remaining80c)} more saves ₹${_fmt(remaining80c * 0.3)} tax'
+                      : 'Limit reached!',
+                  trailingColor: remaining80c > 0
+                      ? const Color(0xFFF59E0B)
+                      : const Color(0xFF10B981),
+                  isDark: isDark,
+                  textColor: textColor,
+                  secondary: secondary,
+                ),
+                const SizedBox(height: Spacing.md),
+              ],
+              // HRA Row
+              if (annualRent > 0) ...[
+                _TaxRow(
+                  label: 'HRA Eligible Rent',
+                  value: '₹${_fmt(annualRent)} paid',
+                  progress: null,
+                  progressColor: const Color(0xFF6366F1),
+                  trailing: 'Declare rent receipts to HR',
+                  trailingColor: const Color(0xFF6366F1),
+                  isDark: isDark,
+                  textColor: textColor,
+                  secondary: secondary,
+                ),
+                const SizedBox(height: Spacing.md),
+              ],
+              // Disclaimer
+              Text(
+                '⚠ Estimate only — consult a CA for ITR filing',
+                style: TextStyle(
+                  fontSize: 10,
+                  color: secondary.withValues(alpha: 0.6),
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _currentFY() {
+    final now = DateTime.now();
+    if (now.month >= 4) return '${now.year}–${now.year + 1}';
+    return '${now.year - 1}–${now.year}';
+  }
+
+  String _fmt(double v) {
+    if (v >= 100000) return '${(v / 100000).toStringAsFixed(1)}L';
+    if (v >= 1000) return '${(v / 1000).toStringAsFixed(0)}K';
+    return v.toStringAsFixed(0);
+  }
+}
+
+class _TaxRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final double? progress;
+  final Color progressColor;
+  final String trailing;
+  final Color trailingColor;
+  final bool isDark;
+  final Color textColor;
+  final Color secondary;
+
+  const _TaxRow({
+    required this.label,
+    required this.value,
+    required this.progress,
+    required this.progressColor,
+    required this.trailing,
+    required this.trailingColor,
+    required this.isDark,
+    required this.textColor,
+    required this.secondary,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(label,
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: textColor)),
+            Text(value,
+                style: TextStyle(fontSize: 12, color: secondary)),
+          ],
+        ),
+        if (progress != null) ...[
+          const SizedBox(height: 6),
+          LinearProgressIndicator(
+            value: progress!.clamp(0.0, 1.0),
+            backgroundColor: isDark
+                ? Colors.white.withValues(alpha: 0.08)
+                : Colors.black.withValues(alpha: 0.08),
+            valueColor: AlwaysStoppedAnimation(progressColor),
+            minHeight: 4,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ],
+        const SizedBox(height: 4),
+        Text(trailing,
+            style: TextStyle(
+                fontSize: 11,
+                color: trailingColor,
+                fontWeight: FontWeight.w500)),
       ],
     );
   }

@@ -16,6 +16,7 @@ import 'package:vittara_fin_os/logic/loan_model.dart';
 import 'package:vittara_fin_os/logic/recurring_deposit_model.dart';
 import 'package:vittara_fin_os/logic/recurring_template_model.dart';
 import 'package:vittara_fin_os/logic/ai/ai_intelligence_controller.dart';
+import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/logic/recurring_templates_controller.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
@@ -992,17 +993,28 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
                     ),
                   ],
                 )
-              : ListView.builder(
-                  controller: _eventsScrollCtrl,
-                  padding: const EdgeInsets.fromLTRB(
-                    Spacing.lg,
-                    0,
-                    Spacing.lg,
-                    Spacing.massive,
+              : RefreshIndicator(
+                  onRefresh: () async {
+                    final ai = context.read<AIIntelligenceController>();
+                    final txCtrl = context.read<TransactionsController>();
+                    await ai.refresh(
+                      transactions: txCtrl.transactions,
+                      accountCount: 1,
+                    );
+                    setState(() {});
+                  },
+                  child: ListView.builder(
+                    controller: _eventsScrollCtrl,
+                    padding: const EdgeInsets.fromLTRB(
+                      Spacing.lg,
+                      0,
+                      Spacing.lg,
+                      Spacing.massive,
+                    ),
+                    itemCount: events.length,
+                    itemBuilder: (ctx, i) =>
+                        _EventTile(event: events[i]),
                   ),
-                  itemCount: events.length,
-                  itemBuilder: (ctx, i) =>
-                      _EventTile(event: events[i]),
                 ),
         ),
       ],

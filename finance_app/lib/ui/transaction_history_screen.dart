@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math' show min;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show RefreshIndicator, VerticalDivider;
+import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:provider/provider.dart';
@@ -193,9 +194,20 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     if (_searchQuery.isNotEmpty) {
       final q = _searchQuery.toLowerCase();
       result = result.where((t) {
-        return t.getTypeLabel().toLowerCase().contains(q) ||
-            t.getSummary().toLowerCase().contains(q) ||
-            t.amount.toString().contains(q);
+        final merchant = (t.metadata?['merchant'] as String? ?? '').toLowerCase();
+        final description = (t.metadata?['description'] as String? ?? '').toLowerCase();
+        final tags = ((t.metadata?['tags'] as List?)?.join(' ') ?? '').toLowerCase();
+        final summary = t.getSummary().toLowerCase();
+        final typeLabel = t.getTypeLabel().toLowerCase();
+        final amount = t.amount.toString();
+        // Search all fields; also support fuzzy prefix matching (e.g. "swig" matches "swiggy")
+        bool matchesField(String field) => field.contains(q);
+        return matchesField(merchant) ||
+            matchesField(description) ||
+            matchesField(tags) ||
+            matchesField(summary) ||
+            matchesField(typeLabel) ||
+            matchesField(amount);
       }).toList();
     }
     if (_typeFilter != null) {
@@ -2020,6 +2032,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     TransactionsController controller,
     TransactionsArchiveController archiveController,
   ) async {
+    HapticFeedback.mediumImpact();
     await archiveController.addToArchive(transaction);
     await controller.removeTransaction(transaction.id);
     logger.info('Archived transaction: ${transaction.id}',
