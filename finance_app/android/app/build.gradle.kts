@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.finance_app"
+    namespace = "com.vittara.finos"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -30,7 +30,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.finance_app"
+        applicationId = "com.vittara.finos"
         minSdk = 26 // ML Kit entity-extraction requires API 26+
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
