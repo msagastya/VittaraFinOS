@@ -13,8 +13,22 @@ import 'package:vittara_fin_os/logic/goals_controller.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
-import 'package:vittara_fin_os/ui/dashboard/quick_entry_sheet.dart';
+import 'package:vittara_fin_os/logic/settings_controller.dart';
+import 'package:vittara_fin_os/ui/backup_restore_screen.dart';
+import 'package:vittara_fin_os/ui/financial_calendar_screen.dart';
 import 'package:vittara_fin_os/ui/manage/account_wizard.dart';
+import 'package:vittara_fin_os/ui/manage/accounts_screen.dart';
+import 'package:vittara_fin_os/ui/manage/budgets/budgets_screen.dart';
+import 'package:vittara_fin_os/ui/manage/categories_screen.dart';
+import 'package:vittara_fin_os/ui/manage/goals/goals_screen.dart';
+import 'package:vittara_fin_os/ui/manage/lending_borrowing_screen.dart';
+import 'package:vittara_fin_os/ui/manage/transactions_archive_screen.dart';
+import 'package:vittara_fin_os/ui/net_worth_page.dart';
+import 'package:vittara_fin_os/ui/settings/csv_import_screen.dart';
+import 'package:vittara_fin_os/ui/settings_screen.dart';
+import 'package:vittara_fin_os/ui/spending_insights_screen.dart';
+import 'package:vittara_fin_os/ui/transaction_history_screen.dart';
+import 'package:vittara_fin_os/ui/widgets/transaction_details_content.dart';
 import 'package:vittara_fin_os/ui/manage/budgets/budget_details_screen.dart';
 import 'package:vittara_fin_os/ui/manage/contacts_screen.dart';
 import 'package:vittara_fin_os/ui/manage/goals/goal_details_screen.dart';
@@ -26,7 +40,7 @@ import 'package:vittara_fin_os/ui/widgets/animations.dart';
 const String _kRecentSearchesKey = 'global_search_recent';
 const int _kMaxRecentSearches = 10;
 
-enum _ResultType { transaction, account, investment, goal, budget, contact }
+enum _ResultType { transaction, account, investment, goal, budget, contact, action }
 
 class _SearchResult {
   final _ResultType type;
@@ -590,10 +604,7 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage>
             ? CupertinoIcons.arrow_down_circle_fill
             : CupertinoIcons.arrow_up_circle_fill,
         color: isIncome ? AppStyles.gain(context) : AppStyles.loss(context),
-        onNavigate: () => showQuickEntrySheet(
-          context,
-          existingTransaction: capturedTx,
-        ),
+        onNavigate: () => _showTransactionDetail(context, capturedTx),
       ));
     }
 
@@ -700,6 +711,10 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage>
       }
     }
 
+    // ── Actions ───────────────────────────────────────────────────────────────
+    final settingsCtrl = context.read<SettingsController>();
+    results.insertAll(0, _buildActionResults(context, raw, settingsCtrl));
+
     if (mounted) {
       setState(() {
         _results = results;
@@ -707,6 +722,121 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage>
         _searching = false;
       });
     }
+  }
+
+  List<_SearchResult> _buildActionResults(
+      BuildContext context, String raw, SettingsController settingsCtrl) {
+    final actions = <_SearchResult>[];
+
+    void action(String id, String title, String subtitle, IconData icon,
+        Color color, List<String> keywords, VoidCallback onTap) {
+      if (!keywords.any((k) => raw.contains(k))) return;
+      actions.add(_SearchResult(
+        type: _ResultType.action,
+        id: id,
+        title: title,
+        subtitle: subtitle,
+        icon: icon,
+        color: color,
+        onNavigate: onTap,
+      ));
+    }
+
+    final isDark = settingsCtrl.themeMode == ThemeMode.dark;
+    // ── Navigation ─────────────────────────────────────────────────────────────
+    action('nav_investments', 'Open Investments', 'Stocks, MF, FD, Crypto…',
+        CupertinoIcons.chart_bar_square_fill, const Color(0xFF6C63FF),
+        ['invest', 'stock', 'portfolio', 'mutual fund', 'sip', 'fd', 'mf', 'crypto', 'gold', 'nps'],
+        () => Navigator.of(context, rootNavigator: true)
+            .push(FadeScalePageRoute(page: const InvestmentsScreen())));
+
+    action('nav_goals', 'Open Goals', 'Your savings targets',
+        CupertinoIcons.flag_fill, const Color(0xFFFFB300),
+        ['goal', 'goals', 'saving for', 'target', 'dreams'],
+        () => Navigator.of(context, rootNavigator: true)
+            .push(FadeScalePageRoute(page: const GoalsScreen())));
+
+    action('nav_budgets', 'Open Budgets', 'Monthly spending limits',
+        CupertinoIcons.chart_pie_fill, const Color(0xFF26A69A),
+        ['budget', 'budgets', 'limit', 'spending limit'],
+        () => Navigator.of(context, rootNavigator: true)
+            .push(FadeScalePageRoute(page: const BudgetsScreen())));
+
+    action('nav_accounts', 'Open Accounts', 'Bank accounts & wallets',
+        CupertinoIcons.creditcard_fill, AppStyles.teal(context),
+        ['account', 'accounts', 'bank', 'wallet', 'my accounts', 'cards'],
+        () => Navigator.of(context, rootNavigator: true)
+            .push(FadeScalePageRoute(page: const AccountsScreen())));
+
+    action('nav_history', 'Transaction History', 'All your transactions',
+        CupertinoIcons.doc_text, AppStyles.teal(context),
+        ['history', 'all transactions', 'transaction history', 'transactions list'],
+        () => Navigator.of(context, rootNavigator: true)
+            .push(FadeScalePageRoute(page: const TransactionHistoryScreen())));
+
+    action('nav_networth', 'Net Worth', 'Total assets & liabilities',
+        CupertinoIcons.sum, const Color(0xFF4CAF50),
+        ['net worth', 'networth', 'wealth', 'total wealth', 'assets'],
+        () => Navigator.of(context, rootNavigator: true)
+            .push(FadeScalePageRoute(page: const NetWorthPage())));
+
+    action('nav_insights', 'Spending Insights', 'Analytics & patterns',
+        CupertinoIcons.sparkles, const Color(0xFF6C63FF),
+        ['insight', 'insights', 'analysis', 'analytics', 'spending pattern', 'report', 'reports'],
+        () => Navigator.of(context, rootNavigator: true)
+            .push(FadeScalePageRoute(page: const SpendingInsightsScreen())));
+
+    action('nav_calendar', 'Financial Calendar', 'Upcoming payments & events',
+        CupertinoIcons.calendar, const Color(0xFF42A5F5),
+        ['calendar', 'schedule', 'upcoming', 'planned', 'recurring'],
+        () => Navigator.of(context, rootNavigator: true)
+            .push(FadeScalePageRoute(page: const FinancialCalendarScreen())));
+
+    action('nav_lending', 'Lending & Borrowing', 'Track money given or taken',
+        CupertinoIcons.arrow_right_arrow_left_circle_fill, const Color(0xFFFF7043),
+        ['lend', 'lending', 'borrow', 'loan', 'borrowed', 'owed', 'due'],
+        () => Navigator.of(context, rootNavigator: true)
+            .push(FadeScalePageRoute(page: const LendingBorrowingScreen())));
+
+    action('nav_archive', 'Transaction Archive', 'Deleted & archived entries',
+        CupertinoIcons.archivebox_fill, AppStyles.getSecondaryTextColor(context),
+        ['archive', 'archived', 'deleted', 'old transaction', 'trash'],
+        () => Navigator.of(context, rootNavigator: true)
+            .push(FadeScalePageRoute(page: const TransactionsArchiveScreen())));
+
+    action('nav_settings', 'Open Settings', 'Preferences & configuration',
+        CupertinoIcons.settings_solid, AppStyles.getSecondaryTextColor(context),
+        ['setting', 'settings', 'preferences', 'configure', 'configuration'],
+        () => Navigator.of(context, rootNavigator: true)
+            .push(FadeScalePageRoute(page: const SettingsScreen())));
+
+    // ── Settings actions ───────────────────────────────────────────────────────
+    action('act_theme', isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode',
+        isDark ? 'Turn off AMOLED dark mode' : 'Turn on AMOLED dark mode',
+        isDark ? CupertinoIcons.sun_max_fill : CupertinoIcons.moon_fill,
+        const Color(0xFF6C63FF),
+        ['dark mode', 'light mode', 'theme', 'change theme', 'dark', 'night mode', 'amoled'],
+        () => settingsCtrl.setThemeMode(isDark ? ThemeMode.light : ThemeMode.dark));
+
+    action('act_backup', 'Backup & Restore', 'Export or import your data',
+        CupertinoIcons.arrow_clockwise_circle_fill, const Color(0xFF26A69A),
+        ['backup', 'restore', 'export data', 'import data', 'sync', 'save data'],
+        () => Navigator.of(context, rootNavigator: true)
+            .push(FadeScalePageRoute(page: const BackupRestoreScreen())));
+
+    action('act_csv', 'Import CSV Statement', 'Import from bank CSV/Excel',
+        CupertinoIcons.doc_text_fill, const Color(0xFF42A5F5),
+        ['import csv', 'csv', 'excel', 'import statement', 'bank csv', 'upload statement'],
+        () => Navigator.of(context, rootNavigator: true)
+            .push(FadeScalePageRoute(page: const CsvImportScreen())));
+
+    action('act_categories', 'Manage Categories', 'Add or edit categories',
+        CupertinoIcons.tag_fill, const Color(0xFFFF9800),
+        ['categor', 'categories', 'category', 'manage categories', 'tags'],
+        () => Navigator.of(context, rootNavigator: true)
+            .push(FadeScalePageRoute(page: const CategoriesScreen())));
+
+    return actions;
   }
 
   bool _matchesParsed(Transaction tx, _ParsedQuery parsed, String rawQuery) {
@@ -799,7 +929,7 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage>
                     child: CupertinoTextField(
                       controller: _controller,
                       focusNode: _focus,
-                      placeholder: 'Search or ask in natural language…',
+                      placeholder: 'Search, navigate, or ask naturally…',
                       placeholderStyle: TextStyle(
                         color: AppStyles.getSecondaryTextColor(context),
                         fontSize: TypeScale.callout,
@@ -974,6 +1104,7 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage>
     }
 
     const typeLabels = {
+      _ResultType.action: 'QUICK ACTIONS',
       _ResultType.transaction: 'TRANSACTIONS',
       _ResultType.account: 'ACCOUNTS',
       _ResultType.investment: 'INVESTMENTS',
@@ -1069,7 +1200,7 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage>
               ),
               const SizedBox(height: Spacing.xs),
               Text(
-                '"food expenses last month"\n"transfers above ₹5000"\n"Swiggy this week"',
+                '"food expenses last month"\n"open investments" · "dark mode"\n"Swiggy this week" · "backup"',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: AppStyles.getSecondaryTextColor(context),
@@ -1152,6 +1283,49 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage>
       case 'investment': return 'Investment';
       default: return typeName;
     }
+  }
+
+  // ── Transaction detail sheet (read-only) ─────────────────────────────────
+
+  void _showTransactionDetail(BuildContext context, Transaction tx) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (ctx) {
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.7,
+          minChildSize: 0.4,
+          maxChildSize: 0.95,
+          builder: (_, scrollCtrl) => Container(
+            decoration: BoxDecoration(
+              color: AppStyles.isDarkMode(context)
+                  ? const Color(0xFF0D0D0D)
+                  : CupertinoColors.systemBackground,
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: SingleChildScrollView(
+              controller: scrollCtrl,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 36,
+                    height: 4,
+                    margin: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: AppStyles.getDividerColor(context),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  TransactionDetailsContent(transaction: tx),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 }
 
