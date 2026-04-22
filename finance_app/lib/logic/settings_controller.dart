@@ -13,7 +13,7 @@ import 'package:vittara_fin_os/utils/logger.dart';
 class SettingsController with ChangeNotifier {
   final AppLogger logger = AppLogger();
   final LocalAuthentication auth = LocalAuthentication();
-  static const platform = MethodChannel('com.example.finance_app/secure');
+  static const platform = MethodChannel('com.vittara.finos/secure');
   late SharedPreferences _prefs;
 
   // Secure storage for PIN hash and recovery code (Android Keystore / iOS Keychain)
