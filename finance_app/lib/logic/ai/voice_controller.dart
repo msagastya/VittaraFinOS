@@ -20,13 +20,16 @@ class VoiceResult {
   final VoiceIntent intent;
   final Map<String, dynamic> fields;
   final String confirmationText;
-  final bool isComplete; // all required fields filled
+  final bool isComplete;
+  /// Fields the engine is uncertain about — UI highlights these for user review.
+  final List<String> uncertainFields;
 
   const VoiceResult({
     required this.intent,
     required this.fields,
     required this.confirmationText,
     required this.isComplete,
+    this.uncertainFields = const [],
   });
 }
 
@@ -168,24 +171,24 @@ class VoiceController extends ChangeNotifier {
       return; // No TTS here — UI shows the confirmation card
     }
 
-    // Parse + fill
-    final step = _fillEngine.process(text);
+    // Parse + fill — ML Kit runs async on-device, ~100ms
+    final step = await _fillEngine.processAsync(text);
     if (step.isComplete) {
       _pendingResult = VoiceResult(
         intent: step.intent,
         fields: step.fields,
         confirmationText: step.confirmationText,
         isComplete: true,
+        uncertainFields: step.uncertainFields,
       );
       _setState(VoiceState.confirming);
-      // No TTS on confirmation — UI card is faster and avoids mic conflicts
     } else if (step.followUpQuestion != null) {
       _currentQuestion = step.followUpQuestion;
       _setState(VoiceState.filling);
-      // Show question on screen, wait for tap to re-listen
-      // (No TTS auto-listen loop — it caused mic picking up TTS audio)
+      // Show question on screen — "Tap to answer" button triggers re-listen
+      // (no auto TTS re-listen loop — that caused mic picking up TTS audio)
     } else {
-      _setError("Couldn't understand — try saying the amount and what it was for.");
+      _setError("Didn't catch that — try: \"500 on Swiggy\" or just say the amount.");
       _setState(VoiceState.idle);
     }
   }
@@ -213,7 +216,7 @@ class VoiceController extends ChangeNotifier {
     );
   }
 
-  void _onAnswerReceived(String answer) async {
+  void _onAnswerReceived(String answer) {
     _setState(VoiceState.processing);
     final step = _fillEngine.processAnswer(answer);
     if (step.isComplete) {
@@ -223,17 +226,14 @@ class VoiceController extends ChangeNotifier {
         fields: step.fields,
         confirmationText: step.confirmationText,
         isComplete: true,
+        uncertainFields: step.uncertainFields,
       );
       _setState(VoiceState.confirming);
-      await _speak(step.confirmationText);
     } else if (step.followUpQuestion != null) {
       _currentQuestion = step.followUpQuestion;
       _setState(VoiceState.filling);
-      await _speak(step.followUpQuestion!);
-      _listenForAnswer();
     } else {
-      _setError("I didn't catch that. Want to try again?");
-      await _speak("I didn't catch that.");
+      _setError("Still couldn't get that — try just saying the amount.");
       _setState(VoiceState.idle);
     }
   }
