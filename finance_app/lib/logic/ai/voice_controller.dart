@@ -132,9 +132,8 @@ class VoiceController extends ChangeNotifier {
           _onTranscriptFinal(_transcript);
         }
       },
-      listenFor: const Duration(seconds: 10),
-      pauseFor: const Duration(seconds: 2),
-      localeId: 'en_IN',
+      listenFor: const Duration(seconds: 12),
+      pauseFor: const Duration(milliseconds: 900), // faster: was 2s
       cancelOnError: true,
     );
   }
@@ -166,8 +165,7 @@ class VoiceController extends ChangeNotifier {
         isComplete: true,
       );
       _setState(VoiceState.confirming);
-      await _speak('Opening ${navTarget.label}.');
-      return;
+      return; // No TTS here — UI shows the confirmation card
     }
 
     // Parse + fill
@@ -180,22 +178,23 @@ class VoiceController extends ChangeNotifier {
         isComplete: true,
       );
       _setState(VoiceState.confirming);
-      await _speak(step.confirmationText);
+      // No TTS on confirmation — UI card is faster and avoids mic conflicts
     } else if (step.followUpQuestion != null) {
       _currentQuestion = step.followUpQuestion;
       _setState(VoiceState.filling);
-      await _speak(step.followUpQuestion!);
-      // Immediately re-listen for the answer
-      _listenForAnswer();
+      // Show question on screen, wait for tap to re-listen
+      // (No TTS auto-listen loop — it caused mic picking up TTS audio)
     } else {
-      _setError("I didn't catch that — try again?");
-      await _speak("I didn't catch that. Try again?");
+      _setError("Couldn't understand — try saying the amount and what it was for.");
       _setState(VoiceState.idle);
     }
   }
 
+  /// Called from UI "Tap to answer" button when in [VoiceState.filling].
+  Future<void> listenForAnswer() => _listenForAnswer();
+
   Future<void> _listenForAnswer() async {
-    await Future.delayed(const Duration(milliseconds: 400));
+    await Future.delayed(const Duration(milliseconds: 200));
     _setState(VoiceState.listening);
     _transcript = '';
     notifyListeners();
@@ -209,8 +208,7 @@ class VoiceController extends ChangeNotifier {
         }
       },
       listenFor: const Duration(seconds: 8),
-      pauseFor: const Duration(seconds: 2),
-      localeId: 'en_IN',
+      pauseFor: const Duration(milliseconds: 900),
       cancelOnError: true,
     );
   }

@@ -54,14 +54,14 @@ class _SearchResult {
 // ── NL Query Parser ────────────────────────────────────────────────────────────
 
 class _ParsedQuery {
-  final String displaySummary;   // e.g. "Food · Last month · Expenses"
-  final String? keyword;         // residual keyword for title/merchant match
+  final String displaySummary;
+  final String? keyword;
   final DateTime? fromDate;
   final DateTime? toDate;
   final TransactionType? type;
   final double? minAmount;
   final double? maxAmount;
-  final List<String> categoryHints; // e.g. ['food', 'dining']
+  final List<String> categoryHints;
 
   const _ParsedQuery({
     required this.displaySummary,
@@ -75,168 +75,275 @@ class _ParsedQuery {
   });
 }
 
+/// Flexible NL parser — understands broken English, Hinglish, partial words.
+/// Strategy: tokenise → match each token greedily against every signal type →
+/// collect constraints → anything left over becomes a keyword filter.
 class _NLQueryParser {
-  static const _categoryKeywords = <String, List<String>>{
-    'food': ['food', 'eating', 'restaurant', 'dining', 'lunch', 'dinner', 'breakfast', 'snack', 'cafe', 'coffee', 'swiggy', 'zomato'],
-    'transport': ['transport', 'travel', 'uber', 'ola', 'cab', 'auto', 'metro', 'bus', 'fuel', 'petrol', 'rapido', 'namma yatri', 'irctc', 'flight'],
-    'shopping': ['shopping', 'amazon', 'flipkart', 'myntra', 'meesho', 'ajio', 'nykaa', 'clothes', 'clothing', 'clothes'],
-    'entertainment': ['entertainment', 'netflix', 'prime', 'hotstar', 'movie', 'cinema', 'game', 'gaming', 'spotify', 'youtube'],
-    'health': ['health', 'medical', 'doctor', 'pharmacy', 'medicine', 'hospital', 'gym', 'fitness'],
-    'utilities': ['utility', 'utilities', 'electricity', 'internet', 'wifi', 'mobile', 'recharge', 'bill', 'water'],
-    'rent': ['rent', 'housing', 'maintenance'],
-    'groceries': ['groceries', 'grocery', 'vegetables', 'fruits', 'milk', 'blinkit', 'zepto', 'bigbasket', 'dmarts', 'd-mart'],
-    'investment': ['investment', 'sip', 'mutual fund', 'stocks', 'zerodha', 'groww', 'nps'],
-    'transfer': ['transfer', 'upi', 'sent', 'paid', 'given'],
-    'income': ['income', 'salary', 'received', 'credit'],
-    'subscription': ['subscription', 'plan', 'renewal', 'annual'],
-    'insurance': ['insurance', 'lic', 'premium', 'policy'],
+
+  // ── Category signals — broad synonyms + Hinglish ──────────────────────────
+  static const _catMap = <String, List<String>>{
+    'Food': ['food', 'eat', 'eating', 'ate', 'lunch', 'dinner', 'breakfast',
+        'snack', 'cafe', 'coffee', 'chai', 'tea', 'restaurant', 'dining',
+        'swiggy', 'zomato', 'khaana', 'khana', 'bhojan', 'khaya', 'pizza',
+        'burger', 'biryani', 'sandwich', 'hotel', 'dhaba', 'dominos', 'kfc',
+        'mcdonalds', 'subway', 'starbucks', 'chaayos', 'barbeque'],
+    'Groceries': ['grocery', 'groceries', 'vegetables', 'sabzi', 'fruits',
+        'milk', 'doodh', 'kiryana', 'ration', 'blinkit', 'zepto', 'bigbasket',
+        'dmart', 'reliance fresh', 'more supermarket', 'grofers'],
+    'Transport': ['transport', 'travel', 'uber', 'ola', 'rapido', 'cab',
+        'taxi', 'auto', 'rickshaw', 'metro', 'bus', 'train', 'petrol',
+        'fuel', 'diesel', 'irctc', 'flight', 'airport', 'namma yatri',
+        'yatri', 'gaadi', 'bike', 'ride', 'makemytrip', 'goibibo', 'cleartrip',
+        'ixigo'],
+    'Shopping': ['shopping', 'shop', 'amazon', 'flipkart', 'myntra', 'meesho',
+        'ajio', 'nykaa', 'clothes', 'clothing', 'shoes', 'kapde', 'dress',
+        'shirt', 'pant', 'jeans', 'kurta', 'saree', 'watch', 'gadget',
+        'electronics', 'mobile', 'laptop'],
+    'Entertainment': ['entertainment', 'netflix', 'prime', 'hotstar', 'disney',
+        'spotify', 'youtube', 'movie', 'cinema', 'pvr', 'inox', 'multiplex',
+        'game', 'gaming', 'play', 'concert', 'show', 'event', 'ticket'],
+    'Health': ['health', 'medical', 'doctor', 'hospital', 'clinic', 'pharmacy',
+        'medicine', 'dawa', 'dawai', 'gym', 'fitness', 'apollo', 'practo',
+        'medplus', 'netmeds', 'wellness', 'yoga', 'dentist'],
+    'Utilities': ['electricity', 'light bill', 'bijli', 'water bill', 'internet',
+        'wifi', 'broadband', 'mobile recharge', 'recharge', 'postpaid', 'prepaid',
+        'dth', 'tata sky', 'airtel xstream', 'gas', 'cylinder', 'lpg', 'utility',
+        'bill', 'jio', 'airtel', 'vi', 'bsnl'],
+    'Rent': ['rent', 'kiraya', 'house rent', 'pg', 'hostel', 'maintenance',
+        'society', 'housing', 'flat', 'room'],
+    'Insurance': ['insurance', 'lic', 'premium', 'policy', 'term plan', 'health insurance'],
+    'Investment': ['invest', 'investment', 'sip', 'mutual fund', 'stocks',
+        'shares', 'nifty', 'zerodha', 'groww', 'upstox', 'nps', 'ppf',
+        'fd', 'fixed deposit', 'gold', 'crypto'],
+    'Subscription': ['subscription', 'subscribe', 'plan', 'renewal', 'annual',
+        'monthly plan'],
   };
 
-  static _ParsedQuery? parse(String query) {
-    final q = query.toLowerCase().trim();
-    if (q.isEmpty) return null;
+  // ── Date signals ──────────────────────────────────────────────────────────
+  static final _dateSignals = <String, String Function(DateTime)>{
+    'today': (now) => 'today',
+    'aaj': (now) => 'today',
+    'yesterday': (now) => 'yesterday',
+    'kal': (now) => 'yesterday',
+    'this week': (now) => 'thisweek',
+    'is hafte': (now) => 'thisweek',
+    'last week': (now) => 'lastweek',
+    'pichle hafte': (now) => 'lastweek',
+    'this month': (now) => 'thismonth',
+    'is mahine': (now) => 'thismonth',
+    'last month': (now) => 'lastmonth',
+    'pichle mahine': (now) => 'lastmonth',
+    'previous month': (now) => 'lastmonth',
+    'last 7 days': (now) => 'last7',
+    'last seven days': (now) => 'last7',
+    'last 30 days': (now) => 'last30',
+    'last 3 months': (now) => 'last3m',
+    'last three months': (now) => 'last3m',
+    'past 3 months': (now) => 'last3m',
+    'last 6 months': (now) => 'last6m',
+    'this year': (now) => 'thisyear',
+    'is saal': (now) => 'thisyear',
+  };
+
+  // ── Type signals ──────────────────────────────────────────────────────────
+  static const _expenseWords = ['expense', 'expenses', 'spent', 'spend',
+      'spending', 'paid', 'pay', 'debit', 'debited', 'outgoing', 'kharcha',
+      'kharch', 'diya', 'diye', 'bahar gaya', 'nikal', 'cut'];
+  static const _incomeWords = ['income', 'received', 'receive', 'credited',
+      'credit', 'earnings', 'earned', 'salary', 'incoming', 'mila', 'aaya',
+      'aayi', 'aaye', 'refund', 'cashback', 'bonus'];
+  static const _transferWords = ['transfer', 'transfers', 'transferred', 'sent',
+      'send', 'bheja', 'bhejo', 'moved', 'upi'];
+
+  static _ParsedQuery? parse(String raw) {
+    if (raw.trim().isEmpty) return null;
+    final q = raw.toLowerCase().trim();
 
     DateTime? from, to;
     TransactionType? txType;
     double? minAmt, maxAmt;
-    List<String> catHints = [];
-    String residual = q;
-    List<String> tags = [];
+    final catHints = <String>[];
+    final tags = <String>[];
+    var residual = q;
 
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
-    // ── Date extraction ──────────────────────────────────────────────────────
-    if (_contains(q, ['last month', 'previous month', 'past month'])) {
-      final d = DateTime(now.year, now.month - 1, 1);
-      from = d;
-      to = DateTime(d.year, d.month + 1, 1).subtract(const Duration(seconds: 1));
-      tags.add('Last month');
-      residual = _remove(residual, ['last month', 'previous month', 'past month']);
-    } else if (_contains(q, ['this month', 'current month'])) {
-      from = DateTime(now.year, now.month, 1);
-      to = now;
-      tags.add('This month');
-      residual = _remove(residual, ['this month', 'current month']);
-    } else if (_contains(q, ['this week', 'current week'])) {
-      final weekday = today.weekday;
-      from = today.subtract(Duration(days: weekday - 1));
-      to = now;
-      tags.add('This week');
-      residual = _remove(residual, ['this week', 'current week']);
-    } else if (_contains(q, ['last week', 'previous week', 'past week'])) {
-      final weekday = today.weekday;
-      final startOfThisWeek = today.subtract(Duration(days: weekday - 1));
-      from = startOfThisWeek.subtract(const Duration(days: 7));
-      to = startOfThisWeek.subtract(const Duration(seconds: 1));
-      tags.add('Last week');
-      residual = _remove(residual, ['last week', 'previous week', 'past week']);
-    } else if (_contains(q, ['today'])) {
-      from = today;
-      to = now;
-      tags.add('Today');
-      residual = _remove(residual, ['today']);
-    } else if (_contains(q, ['yesterday'])) {
-      from = today.subtract(const Duration(days: 1));
-      to = today.subtract(const Duration(seconds: 1));
-      tags.add('Yesterday');
-      residual = _remove(residual, ['yesterday']);
-    } else if (_contains(q, ['last 7 days', 'past 7 days', 'last seven days'])) {
-      from = today.subtract(const Duration(days: 7));
-      to = now;
-      tags.add('Last 7 days');
-      residual = _remove(residual, ['last 7 days', 'past 7 days', 'last seven days']);
-    } else if (_contains(q, ['last 30 days', 'past 30 days', 'last thirty days'])) {
-      from = today.subtract(const Duration(days: 30));
-      to = now;
-      tags.add('Last 30 days');
-      residual = _remove(residual, ['last 30 days', 'past 30 days', 'last thirty days']);
-    } else if (_contains(q, ['last 3 months', 'past 3 months', 'last three months'])) {
-      from = DateTime(now.year, now.month - 3, 1);
-      to = now;
-      tags.add('Last 3 months');
-      residual = _remove(residual, ['last 3 months', 'past 3 months', 'last three months']);
-    } else {
-      // Try month name matching
-      const months = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+    // ── 1. Multi-word date signals first (longest match wins) ─────────────────
+    String? dateKey;
+    // Sort by length descending so "last 3 months" matches before "last"
+    final sortedDateKeys = _dateSignals.keys.toList()
+      ..sort((a, b) => b.length.compareTo(a.length));
+    for (final key in sortedDateKeys) {
+      if (q.contains(key)) {
+        dateKey = _dateSignals[key]!(now);
+        residual = residual.replaceAll(key, '');
+        break;
+      }
+    }
+    // Month name matching
+    if (dateKey == null) {
+      const months = ['january','february','march','april','may','june',
+          'july','august','september','october','november','december'];
+      // Also short forms
+      const shortMonths = ['jan','feb','mar','apr','may','jun',
+          'jul','aug','sep','oct','nov','dec'];
       for (int i = 0; i < months.length; i++) {
-        if (q.contains(months[i])) {
-          int year = now.year;
-          final monthIdx = i + 1;
-          if (monthIdx > now.month) year--;
-          from = DateTime(year, monthIdx, 1);
-          to = DateTime(year, monthIdx + 1, 1).subtract(const Duration(seconds: 1));
-          tags.add(_capitalize(months[i]));
-          residual = _remove(residual, [months[i]]);
+        if (q.contains(months[i]) || q.contains(shortMonths[i])) {
+          dateKey = 'month:${i + 1}';
+          residual = residual
+              .replaceAll(months[i], '')
+              .replaceAll(shortMonths[i], '');
           break;
         }
       }
     }
+    // Apply date
+    if (dateKey != null) {
+      switch (dateKey) {
+        case 'today':
+          from = today; to = now; tags.add('Today');
+          break;
+        case 'yesterday':
+          from = today.subtract(const Duration(days: 1));
+          to = today.subtract(const Duration(seconds: 1));
+          tags.add('Yesterday');
+          break;
+        case 'thisweek':
+          from = today.subtract(Duration(days: today.weekday - 1));
+          to = now; tags.add('This week');
+          break;
+        case 'lastweek':
+          final sw = today.subtract(Duration(days: today.weekday - 1));
+          from = sw.subtract(const Duration(days: 7));
+          to = sw.subtract(const Duration(seconds: 1));
+          tags.add('Last week');
+          break;
+        case 'thismonth':
+          from = DateTime(now.year, now.month, 1); to = now;
+          tags.add('This month');
+          break;
+        case 'lastmonth':
+          final lm = DateTime(now.year, now.month - 1, 1);
+          from = lm;
+          to = DateTime(lm.year, lm.month + 1, 1).subtract(const Duration(seconds: 1));
+          tags.add('Last month');
+          break;
+        case 'last7':
+          from = today.subtract(const Duration(days: 7)); to = now;
+          tags.add('Last 7 days');
+          break;
+        case 'last30':
+          from = today.subtract(const Duration(days: 30)); to = now;
+          tags.add('Last 30 days');
+          break;
+        case 'last3m':
+          from = DateTime(now.year, now.month - 3, 1); to = now;
+          tags.add('Last 3 months');
+          break;
+        case 'last6m':
+          from = DateTime(now.year, now.month - 6, 1); to = now;
+          tags.add('Last 6 months');
+          break;
+        case 'thisyear':
+          from = DateTime(now.year, 1, 1); to = now;
+          tags.add('This year');
+          break;
+        default:
+          if (dateKey.startsWith('month:')) {
+            final mi = int.parse(dateKey.split(':')[1]);
+            int yr = now.year;
+            if (mi > now.month) yr--;
+            from = DateTime(yr, mi, 1);
+            to = DateTime(yr, mi + 1, 1).subtract(const Duration(seconds: 1));
+            const mn = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            tags.add(mn[mi - 1]);
+          }
+      }
+    }
 
-    // ── Transaction type ─────────────────────────────────────────────────────
-    if (_contains(q, ['expense', 'expenses', 'spent', 'spend', 'debited', 'debit', 'outgoing', 'paid out'])) {
+    // ── 2. Transaction type ────────────────────────────────────────────────────
+    if (_expenseWords.any((w) => q.contains(w))) {
       txType = TransactionType.expense;
       tags.add('Expenses');
-      residual = _remove(residual, ['expense', 'expenses', 'spent', 'spend', 'debited', 'debit', 'outgoing', 'paid out']);
-    } else if (_contains(q, ['income', 'received', 'credited', 'earnings', 'salary', 'incoming'])) {
+      for (final w in _expenseWords) residual = residual.replaceAll(w, '');
+    } else if (_incomeWords.any((w) => q.contains(w))) {
       txType = TransactionType.income;
       tags.add('Income');
-      residual = _remove(residual, ['income', 'received', 'credited', 'earnings', 'salary', 'incoming']);
-    } else if (_contains(q, ['transfer', 'transferred', 'sent', 'sent to'])) {
+      for (final w in _incomeWords) residual = residual.replaceAll(w, '');
+    } else if (_transferWords.any((w) => q.contains(w))) {
       txType = TransactionType.transfer;
       tags.add('Transfers');
-      residual = _remove(residual, ['transfer', 'transferred', 'sent', 'sent to']);
+      for (final w in _transferWords) residual = residual.replaceAll(w, '');
     }
 
-    // ── Amount range ─────────────────────────────────────────────────────────
-    // "above/more than/greater than X"
-    final aboveMatch = RegExp(r'(?:above|more than|greater than|over|>\s*)(?:₹|rs\.?\s*)?(\d+(?:,\d+)*(?:\.\d+)?)\s*(?:k|lakh|l|cr)?').firstMatch(q);
-    if (aboveMatch != null) {
-      minAmt = _parseAmount(aboveMatch.group(1)!, aboveMatch.group(0)!);
-      tags.add('>₹${_fmtShort(minAmt)}');
-      residual = residual.replaceAll(aboveMatch.group(0)!, '');
+    // ── 3. Amount range ────────────────────────────────────────────────────────
+    final aboveRx = RegExp(
+        r'(?:above|more than|greater than|over|zyada|upar|>\s*)[\s]*(?:₹|rs\.?\s*)?(\d[\d,]*)[\s]*(k|lakh|l|cr)?');
+    final belowRx = RegExp(
+        r'(?:below|less than|under|kam|neeche|<\s*)[\s]*(?:₹|rs\.?\s*)?(\d[\d,]*)[\s]*(k|lakh|l|cr)?');
+    final betweenRx = RegExp(
+        r'between[\s]+(?:₹|rs\.?\s*)?(\d[\d,]*)[\s]+and[\s]+(?:₹|rs\.?\s*)?(\d[\d,]*)');
+
+    final am = aboveRx.firstMatch(q);
+    if (am != null) {
+      minAmt = _parseAmt(am.group(1)!, am.group(2));
+      tags.add('>₹${_short(minAmt)}');
+      residual = residual.replaceAll(am.group(0)!, '');
+    }
+    final bm = belowRx.firstMatch(q);
+    if (bm != null) {
+      maxAmt = _parseAmt(bm.group(1)!, bm.group(2));
+      tags.add('<₹${_short(maxAmt)}');
+      residual = residual.replaceAll(bm.group(0)!, '');
+    }
+    final btm = betweenRx.firstMatch(q);
+    if (btm != null) {
+      minAmt = _parseAmt(btm.group(1)!, null);
+      maxAmt = _parseAmt(btm.group(2)!, null);
+      tags.add('₹${_short(minAmt)}–₹${_short(maxAmt)}');
+      residual = residual.replaceAll(btm.group(0)!, '');
     }
 
-    // "below/less than/under X"
-    final belowMatch = RegExp(r'(?:below|less than|under|<\s*)(?:₹|rs\.?\s*)?(\d+(?:,\d+)*(?:\.\d+)?)\s*(?:k|lakh|l|cr)?').firstMatch(q);
-    if (belowMatch != null) {
-      maxAmt = _parseAmount(belowMatch.group(1)!, belowMatch.group(0)!);
-      tags.add('<₹${_fmtShort(maxAmt)}');
-      residual = residual.replaceAll(belowMatch.group(0)!, '');
-    }
-
-    // "between X and Y"
-    final betweenMatch = RegExp(r'between\s+(?:₹|rs\.?\s*)?(\d+(?:,\d+)*(?:\.\d+)?)\s+and\s+(?:₹|rs\.?\s*)?(\d+(?:,\d+)*(?:\.\d+)?)').firstMatch(q);
-    if (betweenMatch != null) {
-      minAmt = _parseAmount(betweenMatch.group(1)!, betweenMatch.group(0)!);
-      maxAmt = _parseAmount(betweenMatch.group(2)!, betweenMatch.group(0)!);
-      tags.add('₹${_fmtShort(minAmt)}–₹${_fmtShort(maxAmt)}');
-      residual = residual.replaceAll(betweenMatch.group(0)!, '');
-    }
-
-    // ── Category hints ───────────────────────────────────────────────────────
-    for (final entry in _categoryKeywords.entries) {
+    // ── 4. Category hints — scan entire query (not just residual) ─────────────
+    for (final entry in _catMap.entries) {
       for (final kw in entry.value) {
         if (q.contains(kw)) {
-          if (!catHints.contains(entry.key)) catHints.add(entry.key);
-          if (!tags.contains(_capitalize(entry.key))) tags.add(_capitalize(entry.key));
+          if (!catHints.contains(entry.key)) {
+            catHints.add(entry.key);
+            tags.add(entry.key);
+          }
           residual = residual.replaceAll(kw, '');
           break;
         }
       }
     }
 
-    // Clean residual
+    // ── 5. Clean up residual — strip noise words ───────────────────────────────
     residual = residual
-        .replaceAll(RegExp(r'\b(?:show|me|all|my|the|in|for|on|of|from|transactions?|entries?)\b'), '')
+        .replaceAll(RegExp(
+            r'\b(?:show|me|all|my|the|in|for|on|of|from|to|with|a|an|'
+            r'transactions?|entries?|records?|history|list|find|search|get|'
+            r'dikhao|dikha|batao|bata)\b'), ' ')
         .replaceAll(RegExp(r'\s{2,}'), ' ')
         .trim();
 
-    // Only return parsed result if we extracted at least one constraint
+    // If residual has a number that wasn't caught as amount range, strip it too
+    if (minAmt == null && maxAmt == null) {
+      // Don't strip — might be useful as keyword match
+    } else {
+      residual = residual
+          .replaceAll(RegExp(r'\b\d[\d,]*(?:\.\d+)?\s*(?:k|l|lakh|cr)?\b'), '')
+          .trim();
+    }
+
+    // ── Return ─────────────────────────────────────────────────────────────────
+    if (tags.isEmpty && residual.isEmpty) return null;
+    // If the only "signal" is the residual keyword → treat as plain search
     if (tags.isEmpty && residual == q.trim()) return null;
 
     return _ParsedQuery(
-      displaySummary: tags.isEmpty ? 'Searching' : tags.join(' · '),
+      displaySummary: tags.isEmpty ? 'Filtered' : tags.join(' · '),
       keyword: residual.isEmpty ? null : residual,
       fromDate: from,
       toDate: to,
@@ -247,31 +354,16 @@ class _NLQueryParser {
     );
   }
 
-  static bool _contains(String q, List<String> terms) =>
-      terms.any((t) => q.contains(t));
-
-  static String _remove(String q, List<String> terms) {
-    var s = q;
-    for (final t in terms) {
-      s = s.replaceAll(t, '');
-    }
-    return s;
+  static double _parseAmt(String digits, String? suffix) {
+    double v = double.tryParse(digits.replaceAll(',', '')) ?? 0;
+    final s = suffix?.toLowerCase() ?? '';
+    if (s == 'k') v *= 1000;
+    if (s == 'l' || s == 'lakh') v *= 100000;
+    if (s == 'cr') v *= 10000000;
+    return v;
   }
 
-  static String _capitalize(String s) =>
-      s.isEmpty ? s : '${s[0].toUpperCase()}${s.substring(1)}';
-
-  static double _parseAmount(String digits, String full) {
-    final cleaned = digits.replaceAll(',', '');
-    double val = double.tryParse(cleaned) ?? 0;
-    final f = full.toLowerCase();
-    if (f.contains('lakh') || f.contains(' l')) val *= 100000;
-    if (f.contains('cr')) val *= 10000000;
-    if (f.endsWith('k')) val *= 1000;
-    return val;
-  }
-
-  static String _fmtShort(double v) {
+  static String _short(double v) {
     if (v >= 10000000) return '${(v / 10000000).toStringAsFixed(1)}Cr';
     if (v >= 100000) return '${(v / 100000).toStringAsFixed(1)}L';
     if (v >= 1000) return '${(v / 1000).toStringAsFixed(0)}K';
@@ -634,12 +726,15 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage>
       final cat = (tx.metadata?['categoryName'] as String? ?? '').toLowerCase();
       final desc = tx.description.toLowerCase();
       final merchant = (tx.metadata?['merchant'] as String? ?? '').toLowerCase();
-      final matched = parsed.categoryHints.any((hint) =>
-          cat.contains(hint) ||
-          desc.contains(hint) ||
-          merchant.contains(hint) ||
-          (_NLQueryParser._categoryKeywords[hint] ?? [])
-              .any((kw) => desc.contains(kw) || merchant.contains(kw) || cat.contains(kw)));
+      final matched = parsed.categoryHints.any((hint) {
+        final hintLower = hint.toLowerCase();
+        if (cat.contains(hintLower) || desc.contains(hintLower) || merchant.contains(hintLower)) {
+          return true;
+        }
+        // Check against the category's keyword list
+        final kws = _NLQueryParser._catMap[hint] ?? [];
+        return kws.any((kw) => desc.contains(kw) || merchant.contains(kw) || cat.contains(kw));
+      });
       if (!matched) return false;
     }
 

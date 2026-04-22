@@ -46,7 +46,7 @@ class VoiceOverlayWidget extends StatelessWidget {
 
         return GestureDetector(
           onTap: () {
-            if (voice.state == VoiceState.idle) {
+            if (voice.state == VoiceState.idle || voice.state == VoiceState.error) {
               voice.cancel();
               Navigator.of(context).pop(null);
             }
@@ -93,6 +93,25 @@ class VoiceOverlayWidget extends StatelessWidget {
                     ],
                     const SizedBox(height: Spacing.xl),
                     _buildMicButton(voice, context),
+                    // "Tap to answer" button when waiting for follow-up
+                    if (voice.state == VoiceState.filling) ...[
+                      const SizedBox(height: Spacing.md),
+                      CupertinoButton.filled(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 32, vertical: 10),
+                        onPressed: () => voice.listenForAnswer(),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(CupertinoIcons.mic_fill,
+                                size: 16, color: CupertinoColors.white),
+                            SizedBox(width: 8),
+                            Text('Tap to answer',
+                                style: TextStyle(fontSize: 15)),
+                          ],
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: Spacing.md),
                     CupertinoButton(
                       padding: EdgeInsets.zero,
