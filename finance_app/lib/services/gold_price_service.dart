@@ -1,7 +1,6 @@
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vittara_fin_os/services/network/secure_network_client.dart';
 
 class GoldPriceService {
   static final Logger _logger = Logger();
@@ -66,28 +65,17 @@ class GoldPriceService {
   static Future<double?> _fetchGoldUsdFromYahoo() async {
     for (final url in [_yahooGoldUrl, _yahooGoldUrlAlt]) {
       try {
-        final response = await http.get(
+        final data = await SecureNetworkClient.instance.getJson(
           Uri.parse(url),
-          headers: {
-            'User-Agent':
-                'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.230 Mobile Safari/537.36',
-            'Accept': 'application/json, text/plain, */*',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Origin': 'https://finance.yahoo.com',
-            'Referer': 'https://finance.yahoo.com/',
-          },
-        ).timeout(const Duration(seconds: 8));
-
-        if (response.statusCode == 200) {
-          final data = jsonDecode(response.body) as Map<String, dynamic>;
-          final result = (data['chart']?['result'] as List?)?.firstOrNull;
-          if (result != null) {
-            final price =
-                (result['meta']?['regularMarketPrice'] as num?)?.toDouble();
-            if (price != null && price > 0) {
-              _logger.i('Yahoo Finance gold: \$$price/oz');
-              return price;
-            }
+          timeout: const Duration(seconds: 8),
+        );
+        final result = (data['chart']?['result'] as List?)?.firstOrNull;
+        if (result != null) {
+          final price =
+              (result['meta']?['regularMarketPrice'] as num?)?.toDouble();
+          if (price != null && price > 0) {
+            _logger.i('Yahoo Finance gold: \$$price/oz');
+            return price;
           }
         }
       } catch (e) {
@@ -101,19 +89,15 @@ class GoldPriceService {
   static Future<double?> _getUsdInrRate() async {
     for (final url in [_exchangeRatePrimary, _exchangeRateFallback]) {
       try {
-        final response = await http.get(
+        final data = await SecureNetworkClient.instance.getJson(
           Uri.parse(url),
-          headers: {'User-Agent': 'VittaraFinOS/1.0'},
-        ).timeout(const Duration(seconds: 5));
-
-        if (response.statusCode == 200) {
-          final data = jsonDecode(response.body) as Map<String, dynamic>;
-          final rates = data['rates'] as Map<String, dynamic>?;
-          final rate = (rates?['INR'] as num?)?.toDouble();
-          if (rate != null && rate > 0) {
-            _logger.i('ExRate: 1 USD = ₹$rate (from $url)');
-            return rate;
-          }
+          timeout: const Duration(seconds: 5),
+        );
+        final rates = data['rates'] as Map<String, dynamic>?;
+        final rate = (rates?['INR'] as num?)?.toDouble();
+        if (rate != null && rate > 0) {
+          _logger.i('ExRate: 1 USD = ₹$rate (from $url)');
+          return rate;
         }
       } catch (e) {
         _logger.w('ExRate ($url) failed: $e');

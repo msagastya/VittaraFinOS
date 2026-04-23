@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  VittaraFinOS — Network Security Configuration
+  ══════════════════════════════════════════════════════════════════════════════
+  POLICY: This app is fully offline except for investment current-value feeds.
+  The base-config blocks ALL cleartext and ALL HTTPS to any domain not listed
+  below. Any accidental HTTP call from voice, search, OCR, backup, SMS, or
+  any other non-investment screen will throw a SocketException at the OS level
+  before a single byte leaves the device.
+
+  WHITELISTED DOMAINS (investment price data only):
+    • query1/query2.finance.yahoo.com — stocks, ETFs, gold, crypto prices
+    • www.amfiindia.com              — Indian mutual fund NAVs (AMFI official)
+    • api.mfapi.in                   — MF NAV API (free, no key)
+    • open.er-api.com                — USD/INR exchange rate for gold conversion
+    • api.exchangerate-api.com       — exchange rate fallback
+    • www.nseindia.com               — NSE India stock data
+
+  TO ADD A NEW DOMAIN: add a <domain-config> block here AND add it to
+  _kAllowedHosts in lib/services/network/secure_network_client.dart.
+  Both lists must stay in sync.
+  ══════════════════════════════════════════════════════════════════════════════
+-->
+<network-security-config>
+
+  <!-- BASE POLICY: block everything not in a domain-config below -->
+  <base-config cleartextTrafficPermitted="false">
+    <trust-anchors>
+      <certificates src="system"/>
+    </trust-anchors>
+  </base-config>
+
+  <!-- Yahoo Finance — stocks, ETFs, indices, gold futures, crypto -->
+  <domain-config cleartextTrafficPermitted="false">
+    <domain includeSubdomains="true">finance.yahoo.com</domain>
+    <domain includeSubdomains="true">query1.finance.yahoo.com</domain>
+    <domain includeSubdomains="true">query2.finance.yahoo.com</domain>
+    <trust-anchors>
+      <certificates src="system"/>
+    </trust-anchors>
+  </domain-config>
+
+  <!-- AMFI India — official mutual fund NAV data (Indian regulator) -->
+  <domain-config cleartextTrafficPermitted="false">
+    <domain includeSubdomains="false">www.amfiindia.com</domain>
+    <trust-anchors>
+      <certificates src="system"/>
+    </trust-anchors>
+  </domain-config>
+
+  <!-- MFAPI.in — free MF NAV REST API -->
+  <domain-config cleartextTrafficPermitted="false">
+    <domain includeSubdomains="false">api.mfapi.in</domain>
+    <trust-anchors>
+      <certificates src="system"/>
+    </trust-anchors>
+  </domain-config>
+
+  <!-- Exchange rate APIs — for gold USD→INR conversion -->
+  <domain-config cleartextTrafficPermitted="false">
+    <domain includeSubdomains="false">open.er-api.com</domain>
+    <trust-anchors>
+      <certificates src="system"/>
+    </trust-anchors>
+  </domain-config>
+
+  <domain-config cleartextTrafficPermitted="false">
+    <domain includeSubdomains="false">api.exchangerate-api.com</domain>
+    <trust-anchors>
+      <certificates src="system"/>
+    </trust-anchors>
+  </domain-config>
+
+  <!-- NSE India — Indian stock exchange data -->
+  <domain-config cleartextTrafficPermitted="false">
+    <domain includeSubdomains="false">www.nseindia.com</domain>
+    <trust-anchors>
+      <certificates src="system"/>
+    </trust-anchors>
+  </domain-config>
+
+</network-security-config>

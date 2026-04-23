@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vittara_fin_os/services/network/secure_network_client.dart';
 import 'package:vittara_fin_os/utils/app_config.dart';
 
 /// Service for fetching NAV (Net Asset Value) data for Mutual Funds
@@ -35,32 +35,28 @@ class NAVService {
 
   Future<NAVData?> _fetchLatestOrFallbackNAV(String schemeCode) async {
     // Primary endpoint
-    final latestUrl = Uri.parse('${AppConfig.mfSchemeLatestUrl}/$schemeCode/latest');
-    final latestResponse =
-        await http.get(latestUrl).timeout(const Duration(seconds: 10));
-    if (latestResponse.statusCode == 200) {
-      final latestPayload = json.decode(latestResponse.body);
+    try {
+      final latestUrl = Uri.parse('${AppConfig.mfSchemeLatestUrl}/$schemeCode/latest');
+      final latestPayload = await SecureNetworkClient.instance
+          .getJson(latestUrl, timeout: const Duration(seconds: 10));
       final latestNav = _parseLatestNAVResponse(latestPayload);
-      if (latestNav != null && latestNav.nav > 0) {
-        return latestNav;
-      }
-    }
+      if (latestNav != null && latestNav.nav > 0) return latestNav;
+    } catch (_) {}
 
     // Fallback endpoint: historical feed, take first record
-    final fallbackUrl = Uri.parse('${AppConfig.mfSchemeLatestUrl}/$schemeCode');
-    final fallbackResponse =
-        await http.get(fallbackUrl).timeout(const Duration(seconds: 10));
-    if (fallbackResponse.statusCode != 200) return null;
+    try {
+      final fallbackUrl = Uri.parse('${AppConfig.mfSchemeLatestUrl}/$schemeCode');
+      final fallbackPayload = await SecureNetworkClient.instance
+          .getJson(fallbackUrl, timeout: const Duration(seconds: 10));
+      final dataNode = fallbackPayload['data'];
+      if (dataNode is List &&
+          dataNode.isNotEmpty &&
+          dataNode.first is Map<String, dynamic>) {
+        final nav = NAVData.fromJson(dataNode.first as Map<String, dynamic>);
+        return nav.nav > 0 ? nav : null;
+      }
+    } catch (_) {}
 
-    final fallbackPayload = json.decode(fallbackResponse.body);
-    if (fallbackPayload is! Map<String, dynamic>) return null;
-    final dataNode = fallbackPayload['data'];
-    if (dataNode is List &&
-        dataNode.isNotEmpty &&
-        dataNode.first is Map<String, dynamic>) {
-      final nav = NAVData.fromJson(dataNode.first as Map<String, dynamic>);
-      return nav.nav > 0 ? nav : null;
-    }
     return null;
   }
 
@@ -100,33 +96,28 @@ class NAVService {
   }) async {
     try {
       final url = Uri.parse('${AppConfig.mfSchemeLatestUrl}/$schemeCode');
-      final response = await http.get(url).timeout(const Duration(seconds: 15));
+      final data = await SecureNetworkClient.instance
+          .getJson(url, timeout: const Duration(seconds: 15));
+      final List<dynamic> navList = data['data'] ?? [];
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final List<dynamic> navList = data['data'] ?? [];
+      List<NAVData> historicalData =
+          navList.map((item) => NAVData.fromJson(item)).toList();
 
-        List<NAVData> historicalData =
-            navList.map((item) => NAVData.fromJson(item)).toList();
-
-        // Filter by date range if provided
-        if (fromDate != null || toDate != null) {
-          historicalData = historicalData.where((nav) {
-            if (fromDate != null && nav.date.isBefore(fromDate)) return false;
-            if (toDate != null && nav.date.isAfter(toDate)) return false;
-            return true;
-          }).toList();
-        }
-
-        // Limit to last N days if provided
-        if (lastNDays != null && historicalData.length > lastNDays) {
-          historicalData = historicalData.sublist(0, lastNDays);
-        }
-
-        return historicalData;
+      // Filter by date range if provided
+      if (fromDate != null || toDate != null) {
+        historicalData = historicalData.where((nav) {
+          if (fromDate != null && nav.date.isBefore(fromDate)) return false;
+          if (toDate != null && nav.date.isAfter(toDate)) return false;
+          return true;
+        }).toList();
       }
 
-      return [];
+      // Limit to last N days if provided
+      if (lastNDays != null && historicalData.length > lastNDays) {
+        historicalData = historicalData.sublist(0, lastNDays);
+      }
+
+      return historicalData;
     } catch (e) {
       debugPrint('Error fetching historical NAV for $schemeCode: $e');
       return [];

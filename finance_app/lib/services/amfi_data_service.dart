@@ -1,6 +1,6 @@
-import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import 'package:vittara_fin_os/models/mutual_fund_model.dart';
+import 'package:vittara_fin_os/services/network/secure_network_client.dart';
 
 class AMFIDataService {
   static const String amfiUrl = 'https://www.amfiindia.com/spages/NAVAll.txt';
@@ -8,18 +8,11 @@ class AMFIDataService {
 
   static Future<List<MutualFund>> fetchAndParseAMFIData() async {
     try {
-      final response = await http.get(Uri.parse(amfiUrl)).timeout(
-        const Duration(seconds: 30),
-        onTimeout: () {
-          throw Exception('AMFI request timeout');
-        },
+      final body = await SecureNetworkClient.instance.getText(
+        Uri.parse(amfiUrl),
+        timeout: const Duration(seconds: 30),
       );
-
-      if (response.statusCode == 200) {
-        return _parseAMFIData(response.body);
-      } else {
-        throw Exception('Failed to load AMFI data: ${response.statusCode}');
-      }
+      return _parseAMFIData(body);
     } catch (e) {
       _logger.e('Error fetching AMFI data: $e');
       rethrow;
