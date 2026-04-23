@@ -9,7 +9,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sqflite/sqflite.dart' hide Transaction;
+import 'package:sqflite_sqlcipher/sqflite.dart' hide Transaction;
 import 'package:vittara_fin_os/logic/transaction_model.dart' as app_txn;
 import 'package:vittara_fin_os/utils/id_generator.dart';
 

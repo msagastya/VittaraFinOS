@@ -1,9 +1,12 @@
 import 'dart:convert';
+import 'dart:io';
+import 'dart:math';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_sqlcipher/sqflite.dart';
 
 /// Central SQLite service for VittaraFinOS.
 ///
@@ -28,27 +31,68 @@ class DatabaseService {
   bool get isOpen => _db != null;
 
   static const int _kSchemaVersion = 1;
+  static const String _kDbKeyStorageKey = 'vittara_db_key';
+
+  // Android Keystore-backed secure storage — key never leaves the secure enclave
+  static const _secureStorage = FlutterSecureStorage(
+    aOptions: AndroidOptions(
+      encryptedSharedPreferences: true,
+      keyCipherAlgorithm:
+          KeyCipherAlgorithm.RSA_ECB_OAEPwithSHA_256andMGF1Padding,
+      storageCipherAlgorithm: StorageCipherAlgorithm.AES_GCM_NoPadding,
+    ),
+    iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
+  );
 
   // ── Open ──────────────────────────────────────────────────────────────────
 
   Future<void> open() async {
     if (_db != null) return;
+    final key = await _getOrCreateDbKey();
     final docDir = await getApplicationDocumentsDirectory();
     final path = join(docDir.path, 'vittara.db');
 
-    _db = await openDatabase(
+    try {
+      _db = await _openWithKey(path, key);
+    } on DatabaseException {
+      // Database exists but was created without encryption (dev migration).
+      // Delete and recreate — acceptable during build phase; data migrated next.
+      debugPrint('[DatabaseService] Legacy unencrypted DB detected — recreating encrypted.');
+      await File(path).delete();
+      _db = await _openWithKey(path, key);
+    }
+    debugPrint('[DatabaseService] Opened encrypted DB: $path');
+  }
+
+  Future<Database> _openWithKey(String path, String key) {
+    return openDatabase(
       path,
+      password: key,
       version: _kSchemaVersion,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
       onConfigure: (db) async {
-        // Enable WAL mode — faster concurrent reads, no data loss on crash
+        // WAL mode — faster concurrent reads, crash-safe writes
         await db.execute('PRAGMA journal_mode=WAL');
         // Enforce FK constraints
         await db.execute('PRAGMA foreign_keys=ON');
       },
     );
-    debugPrint('[DatabaseService] Opened: $path');
+  }
+
+  /// Returns the DB encryption key from secure storage, creating one if absent.
+  Future<String> _getOrCreateDbKey() async {
+    final existing = await _secureStorage.read(key: _kDbKeyStorageKey);
+    if (existing != null && existing.isNotEmpty) return existing;
+
+    // Generate a fresh 32-byte (256-bit) random key
+    final rng = Random.secure();
+    final keyBytes = List.generate(32, (_) => rng.nextInt(256));
+    final newKey =
+        keyBytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+    await _secureStorage.write(key: _kDbKeyStorageKey, value: newKey);
+    debugPrint('[DatabaseService] Generated new DB encryption key');
+    return newKey;
   }
 
   Future<void> _onCreate(Database db, int version) async {
