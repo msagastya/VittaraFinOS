@@ -29,19 +29,28 @@ Map<String, dynamic> _decryptAndParseInIsolate(Map<String, dynamic> args) {
   final nonce = args['nonce'] as Uint8List;
 
   // Keystream (HMAC-SHA256 counter mode)
-  final output = BytesBuilder(copy: false);
+  // Pre-allocate the block input buffer (nonce + 8-byte counter) once and
+  // mutate the counter bytes in place — avoids 181K BytesBuilder allocations.
+  final blockInput = Uint8List(nonce.length + 8);
+  blockInput.setRange(0, nonce.length, nonce);
+
+  final keystream = Uint8List(cipher.length);
+  var offset = 0;
   var counter = 0;
-  while (output.length < cipher.length) {
-    final counterBytes = ByteData(8)..setUint64(0, counter);
-    final blockInput = BytesBuilder(copy: false)
-      ..add(nonce)
-      ..add(counterBytes.buffer.asUint8List());
-    final block = Hmac(sha256, key).convert(blockInput.toBytes()).bytes;
-    output.add(block);
+
+  while (offset < cipher.length) {
+    // Write counter as big-endian uint64 into the last 8 bytes
+    var c = counter;
+    for (var j = 7; j >= 0; j--) {
+      blockInput[nonce.length + j] = c & 0xFF;
+      c >>= 8;
+    }
+    final block = Hmac(sha256, key).convert(blockInput).bytes;
+    final toCopy = (cipher.length - offset).clamp(0, 32);
+    keystream.setRange(offset, offset + toCopy, block);
+    offset += toCopy;
     counter += 1;
   }
-  final all = output.toBytes();
-  final keystream = Uint8List.sublistView(all, 0, cipher.length);
 
   // XOR decrypt
   final plain = Uint8List(cipher.length);
@@ -488,13 +497,16 @@ class BackupRestoreService {
       final parsed = await _parseIncomingBackup(rawJson);
       final prefs = await SharedPreferences.getInstance();
 
+      // Restore user data from SharedPreferences snapshot
       await _applySnapshotMerged(prefs, parsed.snapshotEntries);
-      await _restoreSQLiteSnapshots(parsed.sqliteSnapshots);
 
-      // After writing legacy SharedPreferences data from the backup, immediately
-      // run the SQLite migration so vittara.db is populated before controllers
-      // reload. Without this, controllers read empty SQLite and the user sees
-      // nothing until a force-close restart.
+      // NOTE: SQLite snapshot restore (MF scheme names, 14K rows) is intentionally
+      // skipped here. That lookup table is re-fetched from AMFI on demand and
+      // its restore would take 30-60 seconds blocking the restore flow.
+      // User data (transactions/accounts/investments) lives in SharedPreferences.
+
+      // Immediately migrate restored SharedPreferences → vittara.db so
+      // controllers reload from populated SQLite without needing a restart.
       if (DatabaseService.instance.isOpen) {
         await DatabaseService.instance.migrateFromSharedPrefsIfNeeded();
       }
