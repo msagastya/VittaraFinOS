@@ -72,10 +72,18 @@ class DatabaseService {
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
       onConfigure: (db) async {
-        // WAL mode — faster concurrent reads, crash-safe writes
-        await db.execute('PRAGMA journal_mode=WAL');
-        // Enforce FK constraints
-        await db.execute('PRAGMA foreign_keys=ON');
+        // Android's SQLiteDatabase.execSQL() rejects statements that return
+        // values (like PRAGMA journal_mode). Use rawQuery instead.
+        try {
+          await db.rawQuery('PRAGMA journal_mode=WAL');
+        } catch (e) {
+          debugPrint('[DatabaseService] WAL mode unavailable: $e');
+        }
+        try {
+          await db.rawQuery('PRAGMA foreign_keys=ON');
+        } catch (e) {
+          debugPrint('[DatabaseService] FK pragma unavailable: $e');
+        }
       },
     );
   }
@@ -226,6 +234,59 @@ class DatabaseService {
       table: 'savings_planners',
       rowBuilder: (map) => {'id': map['id']?.toString() ?? '', 'data': jsonEncode(map)},
     );
+  }
+
+  // ── One-time external seed (manual recovery) ──────────────────────────────
+
+  /// Checks for `vittara_seed.json` in the app's external files directory
+  /// (written by `adb push` during a manual recovery). If found, inserts all
+  /// rows directly into the encrypted DB and deletes the file.
+  ///
+  /// Format: `{ "transactions": [...], "archived_transactions": [...],
+  ///            "accounts": [...], "investments": [...],
+  ///            "goals": [...], "budgets": [...] }`
+  ///
+  /// Each array item is the raw map returned by the model's toMap().
+  Future<void> seedFromExternalFileIfPresent() async {
+    try {
+      final extDir = await getExternalStorageDirectory();
+      if (extDir == null) return;
+      final seedFile = File(join(extDir.path, 'vittara_seed.json'));
+      if (!await seedFile.exists()) return;
+
+      debugPrint('[DatabaseService] Found vittara_seed.json — seeding...');
+      final raw = await seedFile.readAsString();
+      final data = jsonDecode(raw) as Map<String, dynamic>;
+
+      Future<void> insertList(String key, String table,
+          {bool archived = false}) async {
+        final items = (data[key] as List?)?.cast<Map<String, dynamic>>() ?? [];
+        if (items.isEmpty) return;
+        final batch = _db!.batch();
+        for (final map in items) {
+          final row = table == 'transactions'
+              ? _txRow(map, archived: archived)
+              : {'id': map['id']?.toString() ?? '', 'data': jsonEncode(map)};
+          if ((row['id'] as String? ?? '').isEmpty) continue;
+          batch.insert(table, row,
+              conflictAlgorithm: ConflictAlgorithm.replace);
+        }
+        await batch.commit(noResult: true);
+        debugPrint('[DatabaseService] Seeded ${items.length} rows → $table');
+      }
+
+      await insertList('transactions', 'transactions');
+      await insertList('archived_transactions', 'transactions', archived: true);
+      await insertList('accounts', 'accounts');
+      await insertList('investments', 'investments');
+      await insertList('goals', 'goals');
+      await insertList('budgets', 'budgets');
+
+      await seedFile.delete();
+      debugPrint('[DatabaseService] Seed complete — file deleted');
+    } catch (e) {
+      debugPrint('[DatabaseService] seedFromExternalFile error: $e');
+    }
   }
 
   /// Migrates a SharedPreferences key that holds List<String> (each item JSON).

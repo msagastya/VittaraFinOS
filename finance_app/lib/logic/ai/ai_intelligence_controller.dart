@@ -19,6 +19,30 @@ import 'habit_constructor.dart';
 import 'behavioral_nudge.dart';
 import 'financial_health_score.dart';
 
+/// Callbacks the AI controller uses to pull live data from other controllers.
+/// Injected at startup from main.dart so the AI controller stays decoupled
+/// from the Provider tree while still getting real balances, budgets, and goals.
+class AIDataProviders {
+  /// Returns current account balances as {accountId: balance}.
+  final Map<String, double> Function() accountBalances;
+
+  /// Returns active budgets as raw maps (Budget.toMap()).
+  final List<Map<String, dynamic>> Function() budgets;
+
+  /// Returns active goals.
+  final List<Goal> Function() goals;
+
+  /// Returns current account count.
+  final int Function() accountCount;
+
+  const AIDataProviders({
+    required this.accountBalances,
+    required this.budgets,
+    required this.goals,
+    required this.accountCount,
+  });
+}
+
 /// Central coordinator for all on-device AI features.
 ///
 /// Register as a ChangeNotifier provider alongside other controllers.
@@ -96,7 +120,15 @@ class AIIntelligenceController extends ChangeNotifier {
   bool _initialized = false;
   bool get isInitialized => _initialized;
 
+  AIDataProviders? _providers;
+
   // ── Init ───────────────────────────────────────────────────────────────────
+
+  /// Wire live data providers after all controllers are ready.
+  /// Call from main.dart after the Provider tree is built.
+  void wireProviders(AIDataProviders providers) {
+    _providers = providers;
+  }
 
   /// Initialize once at startup — loads cached data and detects device tier.
   Future<void> init() async {
@@ -111,10 +143,17 @@ class AIIntelligenceController extends ChangeNotifier {
     // Load persisted habits
     _activeHabits = await HabitConstructor.loadAll();
 
-    // Register hook so we get notified whenever TransactionsController data changes
+    // Register hook so we get notified whenever TransactionsController data changes.
+    // Pull real balances/budgets/goals from wired providers if available.
     TransactionsController.onDataChanged = (txs) {
-      // Lightweight refresh — patterns + fingerprint are rate-limited internally
-      refresh(transactions: txs, accountCount: 1);
+      final p = _providers;
+      refresh(
+        transactions: txs,
+        accountCount: p != null ? p.accountCount() : 1,
+        budgets: p?.budgets(),
+        accountBalances: p?.accountBalances(),
+        goals: p?.goals(),
+      );
     };
 
     _initialized = true;
@@ -125,7 +164,14 @@ class AIIntelligenceController extends ChangeNotifier {
     // this hook was registered (race condition on startup / after reinstall).
     final existing = TransactionsController.lastKnownTransactions;
     if (existing != null && existing.isNotEmpty) {
-      refresh(transactions: existing, accountCount: 1);
+      final p = _providers;
+      refresh(
+        transactions: existing,
+        accountCount: p != null ? p.accountCount() : 1,
+        budgets: p?.budgets(),
+        accountBalances: p?.accountBalances(),
+        goals: p?.goals(),
+      );
     }
   }
 

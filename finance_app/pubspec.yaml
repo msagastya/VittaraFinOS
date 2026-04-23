@@ -38,6 +38,7 @@ dependencies:
   excel: ^4.0.2
   file_picker: ^8.1.2
   syncfusion_flutter_pdf: ^28.2.7
+  safe_device: ^1.1.1
   # AI Intelligence System (Phase 1)
   device_info_plus: ^10.1.0
   # Phase 5 — Voice + OCR

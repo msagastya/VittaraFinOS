@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/budget_model.dart';
 import 'package:vittara_fin_os/logic/budgets_controller.dart';
 import 'package:vittara_fin_os/logic/fixed_deposit_model.dart';
@@ -997,9 +998,15 @@ class _FinancialCalendarScreenState extends State<FinancialCalendarScreen> {
                   onRefresh: () async {
                     final ai = context.read<AIIntelligenceController>();
                     final txCtrl = context.read<TransactionsController>();
+                    final accounts = context.read<AccountsController>();
+                    final budgetsCtrl = context.read<BudgetsController>();
+                    final goalsCtrl = context.read<GoalsController>();
                     await ai.refresh(
                       transactions: txCtrl.transactions,
-                      accountCount: 1,
+                      accountCount: accounts.accounts.length,
+                      accountBalances: {for (final a in accounts.accounts) a.id: a.balance},
+                      budgets: budgetsCtrl.budgets.map((b) => b.toMap()).toList(),
+                      goals: goalsCtrl.activeGoals,
                     );
                     setState(() {});
                   },

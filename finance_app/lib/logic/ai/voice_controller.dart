@@ -142,10 +142,23 @@ class VoiceController extends ChangeNotifier {
   }
 
   Future<void> stopListening() async {
+    // Capture transcript BEFORE stopping — some Android STT implementations
+    // clear the buffer when stop() is called, or never fire a finalResult
+    // callback on manual stop (hold-and-release pattern).
+    final captured = _transcript.trim();
     await _stt.stop();
+
+    // If still in listening state, the STT did NOT fire a finalResult callback.
+    // Process what we captured manually so hold-to-speak actually works.
     if (_state == VoiceState.listening) {
-      _setState(VoiceState.idle);
+      if (captured.isNotEmpty) {
+        _onTranscriptFinal(captured);
+      } else {
+        _setState(VoiceState.idle);
+      }
     }
+    // If state already changed (STT fired finalResult before stop returned),
+    // do nothing — processing is already underway.
   }
 
   // ── Fill-engine loop ──────────────────────────────────────────────────────

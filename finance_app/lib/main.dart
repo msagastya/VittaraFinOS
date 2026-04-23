@@ -55,6 +55,7 @@ import 'package:vittara_fin_os/ui/widgets/floating_particle_background.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 import 'package:vittara_fin_os/services/database_service.dart';
+import 'package:vittara_fin_os/services/security/device_security_service.dart';
 import 'package:vittara_fin_os/services/mf_database_service.dart';
 import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 import 'package:vittara_fin_os/ui/manage/goals/goals_screen.dart';
@@ -102,10 +103,15 @@ void main() {
   runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
 
+    // Device security checks + screenshot protection — before any UI renders.
+    unawaited(DeviceSecurityService.instance.check());
+    unawaited(DeviceSecurityService.instance.enableScreenshotProtection());
+
     // Open encrypted SQLite DB and run one-time SharedPreferences migration
     // BEFORE any controller initializes so load() calls find data in SQLite.
     try {
       await DatabaseService.instance.open();
+      await DatabaseService.instance.seedFromExternalFileIfPresent();
       await DatabaseService.instance.migrateFromSharedPrefsIfNeeded();
     } catch (e) {
       logger.error('DatabaseService init failed', error: e);
@@ -188,9 +194,27 @@ void main() {
             try { return EngagementService()..initialize(); }
             catch (e) { logger.error('EngagementService init failed', error: e); return EngagementService(); }
           }),
-          ChangeNotifierProvider(create: (_) {
+          ChangeNotifierProvider(create: (ctx) {
             try {
               final ctrl = AIIntelligenceController();
+              // Wire live data providers after the Provider tree is ready.
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                try {
+                  final accounts = Provider.of<AccountsController>(ctx, listen: false);
+                  final budgetsCtrl = Provider.of<BudgetsController>(ctx, listen: false);
+                  final goalsCtrl = Provider.of<GoalsController>(ctx, listen: false);
+                  ctrl.wireProviders(AIDataProviders(
+                    accountCount: () => accounts.accounts.length,
+                    accountBalances: () => {
+                      for (final a in accounts.accounts) a.id: a.balance,
+                    },
+                    budgets: () => budgetsCtrl.budgets.map((b) => b.toMap()).toList(),
+                    goals: () => goalsCtrl.activeGoals,
+                  ));
+                } catch (e) {
+                  logger.error('AIDataProviders wiring failed', error: e);
+                }
+              });
               ctrl.init(); // fire-and-forget, non-blocking
               return ctrl;
             } catch (e) {
@@ -731,6 +755,7 @@ class _SplashScreenState extends State<SplashScreen> {
             FadeScalePageRoute(page: const DashboardScreen()));
         _triggerSmsStartupScan();
         _checkAndShowWhatsNew();
+        _showDeviceSecurityWarningIfNeeded();
         // UTL-04: daily auto-backup (fire-and-forget, max once per day)
         BackupRestoreService.runAutoBackupIfNeeded();
         // Phase 1 AI init — fire-and-forget, never blocks UI
@@ -753,6 +778,29 @@ class _SplashScreenState extends State<SplashScreen> {
           ),
         );
       }
+  }
+
+  /// Show a one-time warning if the device is rooted or an emulator.
+  void _showDeviceSecurityWarningIfNeeded() {
+    final warning = DeviceSecurityService.instance.warningMessage;
+    if (warning == null) return;
+    Future.delayed(const Duration(milliseconds: 1200), () {
+      if (!mounted) return;
+      showCupertinoDialog<void>(
+        context: context,
+        builder: (_) => CupertinoAlertDialog(
+          title: const Text('Security Warning'),
+          content: Text(warning),
+          actions: [
+            CupertinoDialogAction(
+              isDestructiveAction: true,
+              child: const Text('I Understand'),
+              onPressed: () => Navigator.of(_, rootNavigator: true).pop(),
+            ),
+          ],
+        ),
+      );
+    });
   }
 
   /// AU20-02 — Show "What's New" once on first launch after an app update.

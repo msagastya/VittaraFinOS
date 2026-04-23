@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/ai/ai_intelligence_controller.dart';
 import 'package:vittara_fin_os/logic/ai/peer_benchmark.dart';
+import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/budgets_controller.dart';
+import 'package:vittara_fin_os/logic/goals_controller.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
@@ -461,9 +463,15 @@ class _SpendIntelBody extends StatelessWidget {
       child: RefreshIndicator(
         onRefresh: () async {
           final ai = context.read<AIIntelligenceController>();
+          final accounts = context.read<AccountsController>();
+          final budgetsCtrl = context.read<BudgetsController>();
+          final goalsCtrl = context.read<GoalsController>();
           await ai.refresh(
             transactions: transactions,
-            accountCount: 1,
+            accountCount: accounts.accounts.length,
+            accountBalances: {for (final a in accounts.accounts) a.id: a.balance},
+            budgets: budgetsCtrl.budgets.map((b) => b.toMap()).toList(),
+            goals: goalsCtrl.activeGoals,
           );
         },
         child: ListView(
