@@ -14,6 +14,45 @@ import 'package:vittara_fin_os/logic/transaction_model.dart' as app_txn;
 import 'package:vittara_fin_os/services/database_service.dart';
 import 'package:vittara_fin_os/utils/id_generator.dart';
 
+// ── Background isolate helpers ────────────────────────────────────────────────
+// Must be top-level (not static) so compute() can transfer them to an isolate.
+
+/// Runs in a background isolate via compute().
+/// Performs the two CPU-heavy operations that would otherwise freeze the UI:
+///   1. Keystream generation  — ~181K HMAC-SHA256 calls for a 5 MB payload
+///   2. XOR decryption        — byte loop over ~5 MB
+///   3. JSON decode           — parsing the resulting ~5 MB JSON string
+/// Returns the decoded payload map, ready for use on the main isolate.
+Map<String, dynamic> _decryptAndParseInIsolate(Map<String, dynamic> args) {
+  final cipher = args['cipher'] as Uint8List;
+  final key = args['key'] as Uint8List;
+  final nonce = args['nonce'] as Uint8List;
+
+  // Keystream (HMAC-SHA256 counter mode)
+  final output = BytesBuilder(copy: false);
+  var counter = 0;
+  while (output.length < cipher.length) {
+    final counterBytes = ByteData(8)..setUint64(0, counter);
+    final blockInput = BytesBuilder(copy: false)
+      ..add(nonce)
+      ..add(counterBytes.buffer.asUint8List());
+    final block = Hmac(sha256, key).convert(blockInput.toBytes()).bytes;
+    output.add(block);
+    counter += 1;
+  }
+  final all = output.toBytes();
+  final keystream = Uint8List.sublistView(all, 0, cipher.length);
+
+  // XOR decrypt
+  final plain = Uint8List(cipher.length);
+  for (var i = 0; i < cipher.length; i++) {
+    plain[i] = cipher[i] ^ keystream[i];
+  }
+
+  // JSON parse — the decoded payload may contain 10K+ rows of MF data
+  return jsonDecode(utf8.decode(plain)) as Map<String, dynamic>;
+}
+
 class BackupOperationResult {
   final bool success;
   final String message;
@@ -853,17 +892,11 @@ class BackupRestoreService {
     if (root['format'] == backupFormat &&
         root['payload'] is String &&
         root['encryption'] is Map) {
-      final payloadJson = await _decryptPayload(
+      final payload = await _decryptPayload(
         payloadBase64: root['payload'] as String,
         encryptionMap: Map<String, dynamic>.from(root['encryption'] as Map),
         envelopeSchemaVersion: schemaVersion,
       );
-      final payloadDecoded = jsonDecode(payloadJson);
-      if (payloadDecoded is! Map) {
-        throw const FormatException('Backup payload is malformed');
-      }
-
-      final payload = Map<String, dynamic>.from(payloadDecoded);
       final payloadAppId = payload['appId']?.toString();
       if (payloadAppId != null &&
           payloadAppId.isNotEmpty &&
@@ -1554,7 +1587,7 @@ class BackupRestoreService {
     };
   }
 
-  static Future<String> _decryptPayload({
+  static Future<Map<String, dynamic>> _decryptPayload({
     required String payloadBase64,
     required Map<String, dynamic> encryptionMap,
     required int envelopeSchemaVersion,
@@ -1620,11 +1653,13 @@ class BackupRestoreService {
 
         if (_constantTimeEquals(expectedMac, mac)) {
           lastRestoreUsedLegacyKey = false;
-          return _decryptWithKey(
-            key: encryptionKey,
-            nonce: nonce,
-            cipher: cipher,
+          // MAC verified — offload the CPU-heavy decrypt + JSON parse to a
+          // background isolate so the UI spinner keeps rendering.
+          final payloadMap = await compute(
+            _decryptAndParseInIsolate,
+            {'cipher': cipher, 'key': encryptionKey, 'nonce': nonce},
           );
+          return payloadMap;
         }
       }
 
@@ -1635,10 +1670,14 @@ class BackupRestoreService {
 
     // Backward-compatible decryption for previous encrypted backups.
     if (algorithm == _legacyEncryptionAlgorithm || algorithm.isEmpty) {
-      return _decryptLegacyPayload(
+      final plainText = _decryptLegacyPayload(
         payloadBase64: payloadBase64,
         encryptionMap: encryptionMap,
         envelopeSchemaVersion: envelopeSchemaVersion,
+      );
+      return await compute<String, Map<String, dynamic>>(
+        (s) => jsonDecode(s) as Map<String, dynamic>,
+        plainText,
       );
     }
 
