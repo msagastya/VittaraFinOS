@@ -1,11 +1,12 @@
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/logic/goal_model.dart';
+import 'package:vittara_fin_os/services/database_service.dart';
+import 'package:vittara_fin_os/utils/async_mutex.dart';
+import 'package:vittara_fin_os/utils/safe_storage_mixin.dart';
 
 /// Controller for managing financial goals
-class GoalsController with ChangeNotifier {
-  static const String _storageKey = 'goals';
+class GoalsController with ChangeNotifier, SafeStorageMixin {
+  static final _writeMutex = AsyncMutex();
 
   List<Goal> _goals = [];
   bool _isInitialized = false;
@@ -37,51 +38,56 @@ class GoalsController with ChangeNotifier {
     }
   }
 
-  /// Save goals to storage
   Future<void> _saveGoals() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final String goalsJson =
-          json.encode(_goals.map((g) => g.toMap()).toList());
-      await prefs.setString(_storageKey, goalsJson);
-    } catch (e) {
-      debugPrint('Error saving goals: $e');
-    }
+    await safeWrite('save goals', () async {
+      await _writeMutex.protect(() async {
+        await DatabaseService.instance.upsertDataRowsBatch(
+          'goals', _goals.map((g) => g.toMap()).toList());
+      });
+    });
+  }
+
+  Future<void> _upsertOne(Goal goal) async {
+    await safeWrite('save goal', () async {
+      await _writeMutex.protect(() async {
+        await DatabaseService.instance.upsertDataRow(
+            'goals', goal.id, goal.toMap());
+      });
+    });
+  }
+
+  Future<void> _deleteOne(String id) async {
+    await safeWrite('delete goal', () async {
+      await _writeMutex.protect(() async {
+        await DatabaseService.instance.deleteRow('goals', id);
+      });
+    });
   }
 
   Future<void> _loadGoalsFromStorage() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? goalsJson = prefs.getString(_storageKey);
-    if (goalsJson != null && goalsJson.isNotEmpty) {
-      final List<dynamic> decodedList = json.decode(goalsJson);
-      _goals = decodedList.map((item) => Goal.fromMap(item)).toList();
-    } else {
-      _goals = [];
-    }
+    final rows = await DatabaseService.instance.getAllData('goals');
+    _goals = rows.map((m) => Goal.fromMap(m)).toList();
   }
 
-  /// Add a new goal
   Future<void> addGoal(Goal goal) async {
     _goals.add(goal);
     notifyListeners();
-    await _saveGoals();
+    await _upsertOne(goal);
   }
 
-  /// Update an existing goal
   Future<void> updateGoal(Goal goal) async {
     final index = _goals.indexWhere((g) => g.id == goal.id);
     if (index != -1) {
       _goals[index] = goal;
       notifyListeners();
-      await _saveGoals();
+      await _upsertOne(goal);
     }
   }
 
-  /// Delete a goal
   Future<void> deleteGoal(String goalId) async {
     _goals.removeWhere((g) => g.id == goalId);
     notifyListeners();
-    await _saveGoals();
+    await _deleteOne(goalId);
   }
 
   /// Add contribution to a goal
@@ -106,11 +112,10 @@ class GoalsController with ChangeNotifier {
       );
 
       notifyListeners();
-      await _saveGoals();
+      await _upsertOne(_goals[index]);
     }
   }
 
-  /// Withdraw from a goal
   Future<void> withdrawFromGoal(
     String goalId,
     double amount,
@@ -129,11 +134,10 @@ class GoalsController with ChangeNotifier {
       );
 
       notifyListeners();
-      await _saveGoals();
+      await _upsertOne(_goals[index]);
     }
   }
 
-  /// Mark goal as completed
   Future<void> completeGoal(String goalId) async {
     final index = _goals.indexWhere((g) => g.id == goalId);
     if (index != -1) {
@@ -142,11 +146,10 @@ class GoalsController with ChangeNotifier {
         completedDate: DateTime.now(),
       );
       notifyListeners();
-      await _saveGoals();
+      await _upsertOne(_goals[index]);
     }
   }
 
-  /// Reopen a completed goal
   Future<void> reopenGoal(String goalId) async {
     final index = _goals.indexWhere((g) => g.id == goalId);
     if (index != -1) {
@@ -155,7 +158,7 @@ class GoalsController with ChangeNotifier {
         completedDate: null,
       );
       notifyListeners();
-      await _saveGoals();
+      await _upsertOne(_goals[index]);
     }
   }
 

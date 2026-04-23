@@ -1,19 +1,17 @@
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/logic/budget_model.dart';
 import 'package:vittara_fin_os/logic/notification_helpers.dart';
+import 'package:vittara_fin_os/services/database_service.dart';
 import 'package:vittara_fin_os/utils/async_mutex.dart';
+import 'package:vittara_fin_os/utils/safe_storage_mixin.dart';
 
 /// Controller for managing budgets and savings planners
-class BudgetsController with ChangeNotifier {
-  static const String _budgetsKey = 'budgets';
-  static const String _plannersKey = 'savings_planners';
-
+class BudgetsController with ChangeNotifier, SafeStorageMixin {
   List<Budget> _budgets = [];
   List<SavingsPlanner> _planners = [];
   bool _isInitialized = false;
-  final _spendingMutex = AsyncMutex();
+  // Static mutex — shared across all instances to prevent concurrent writes
+  static final _writeMutex = AsyncMutex();
 
   List<Budget> get budgets => _budgets;
   List<Budget> get activeBudgets => _budgets.where((b) => b.isActive).toList();
@@ -50,54 +48,70 @@ class BudgetsController with ChangeNotifier {
     }
   }
 
-  /// Save budgets to storage
   Future<void> _saveBudgets() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final String json = jsonEncode(_budgets.map((b) => b.toMap()).toList());
-      await prefs.setString(_budgetsKey, json);
-    } catch (e) {
-      debugPrint('Error saving budgets: $e');
-    }
+    await safeWrite('save budgets', () async {
+      await _writeMutex.protect(() async {
+        await DatabaseService.instance.upsertDataRowsBatch(
+          'budgets', _budgets.map((b) => b.toMap()).toList());
+      });
+    });
   }
 
-  /// Save savings planners to storage
+  Future<void> _upsertBudget(Budget b) async {
+    await safeWrite('save budget', () async {
+      await _writeMutex.protect(() async {
+        await DatabaseService.instance.upsertDataRow('budgets', b.id, b.toMap());
+      });
+    });
+  }
+
+  Future<void> _deleteBudget(String id) async {
+    await safeWrite('delete budget', () async {
+      await _writeMutex.protect(() async {
+        await DatabaseService.instance.deleteRow('budgets', id);
+      });
+    });
+  }
+
   Future<void> _savePlanners() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final String json = jsonEncode(_planners.map((p) => p.toMap()).toList());
-      await prefs.setString(_plannersKey, json);
-    } catch (e) {
-      debugPrint('Error saving planners: $e');
-    }
+    await safeWrite('save planners', () async {
+      await _writeMutex.protect(() async {
+        await DatabaseService.instance.upsertDataRowsBatch(
+          'savings_planners', _planners.map((p) => p.toMap()).toList());
+      });
+    });
+  }
+
+  Future<void> _upsertPlanner(SavingsPlanner p) async {
+    await safeWrite('save planner', () async {
+      await _writeMutex.protect(() async {
+        await DatabaseService.instance.upsertDataRow(
+            'savings_planners', p.id, p.toMap());
+      });
+    });
+  }
+
+  Future<void> _deletePlanner(String id) async {
+    await safeWrite('delete planner', () async {
+      await _writeMutex.protect(() async {
+        await DatabaseService.instance.deleteRow('savings_planners', id);
+      });
+    });
   }
 
   Future<void> _loadFromStorage() async {
-    final prefs = await SharedPreferences.getInstance();
+    final budgetRows = await DatabaseService.instance.getAllData('budgets');
+    _budgets = budgetRows.map((m) => Budget.fromMap(m)).toList();
 
-    final String? budgetsJson = prefs.getString(_budgetsKey);
-    if (budgetsJson != null && budgetsJson.isNotEmpty) {
-      final List<dynamic> decodedList = json.decode(budgetsJson);
-      _budgets = decodedList.map((item) => Budget.fromMap(item)).toList();
-    } else {
-      _budgets = [];
-    }
-
-    final String? plannersJson = prefs.getString(_plannersKey);
-    if (plannersJson != null && plannersJson.isNotEmpty) {
-      final List<dynamic> decodedList = json.decode(plannersJson);
-      _planners =
-          decodedList.map((item) => SavingsPlanner.fromMap(item)).toList();
-    } else {
-      _planners = [];
-    }
+    final plannerRows =
+        await DatabaseService.instance.getAllData('savings_planners');
+    _planners = plannerRows.map((m) => SavingsPlanner.fromMap(m)).toList();
   }
 
-  // Budget operations
   Future<void> addBudget(Budget budget) async {
     _budgets.add(budget);
     notifyListeners();
-    await _saveBudgets();
+    await _upsertBudget(budget);
   }
 
   Future<void> updateBudget(Budget budget) async {
@@ -105,24 +119,25 @@ class BudgetsController with ChangeNotifier {
     if (index != -1) {
       _budgets[index] = budget;
       notifyListeners();
-      await _saveBudgets();
+      await _upsertBudget(budget);
     }
   }
 
   Future<void> deleteBudget(String budgetId) async {
     _budgets.removeWhere((b) => b.id == budgetId);
-    await _saveBudgets();
+    await _deleteBudget(budgetId);
     notifyListeners();
   }
 
   Future<void> updateBudgetSpending(String budgetId, double amount) async {
-    await _spendingMutex.protect(() async {
+    await _writeMutex.protect(() async {
       final index = _budgets.indexWhere((b) => b.id == budgetId);
       if (index != -1) {
         _budgets[index] = _budgets[index].copyWith(
           spentAmount: _budgets[index].spentAmount + amount,
         );
-        await _saveBudgets();
+        await DatabaseService.instance.upsertDataRow(
+            'budgets', _budgets[index].id, _budgets[index].toMap());
         notifyListeners();
       }
     });
@@ -144,7 +159,7 @@ class BudgetsController with ChangeNotifier {
   Future<void> addSavingsPlanner(SavingsPlanner planner) async {
     _planners.add(planner);
     notifyListeners();
-    await _savePlanners();
+    await _upsertPlanner(planner);
   }
 
   Future<void> updateSavingsPlanner(SavingsPlanner planner) async {
@@ -152,14 +167,14 @@ class BudgetsController with ChangeNotifier {
     if (index != -1) {
       _planners[index] = planner;
       notifyListeners();
-      await _savePlanners();
+      await _upsertPlanner(planner);
     }
   }
 
   Future<void> deleteSavingsPlanner(String plannerId) async {
     _planners.removeWhere((p) => p.id == plannerId);
     notifyListeners();
-    await _savePlanners();
+    await _deletePlanner(plannerId);
   }
 
   Future<void> addSavingsContribution(String plannerId, double amount) async {
@@ -169,7 +184,7 @@ class BudgetsController with ChangeNotifier {
         currentMonthSaved: _planners[index].currentMonthSaved + amount,
       );
       notifyListeners();
-      await _savePlanners();
+      await _upsertPlanner(_planners[index]);
     }
   }
 

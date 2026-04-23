@@ -1,16 +1,15 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
+import 'package:vittara_fin_os/services/database_service.dart';
 import 'package:vittara_fin_os/services/investment_value_service.dart';
 import 'package:vittara_fin_os/utils/async_mutex.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
+import 'package:vittara_fin_os/utils/safe_storage_mixin.dart';
 
 final _investmentsLogger = AppLogger();
 
-class InvestmentsController with ChangeNotifier {
-  late SharedPreferences _prefs;
+class InvestmentsController with ChangeNotifier, SafeStorageMixin {
   late List<Investment> _investments;
   static final _writeMutex = AsyncMutex();
   static const String _storageKey = 'investments';
@@ -32,15 +31,13 @@ class InvestmentsController with ChangeNotifier {
   }
 
   Future<void> loadInvestments() async {
-    _prefs = await SharedPreferences.getInstance();
-    final investmentsJson = _prefs.getStringList(_storageKey) ?? [];
+    final rows = await DatabaseService.instance.getAllData('investments');
 
     final loaded = <Investment>[];
     int skipped = 0;
-    for (final json in investmentsJson) {
+    for (final map in rows) {
       try {
-        loaded.add(
-            Investment.fromMap(jsonDecode(json) as Map<String, dynamic>));
+        loaded.add(Investment.fromMap(map));
       } catch (e) {
         skipped++;
         _investmentsLogger.warning(
@@ -72,14 +69,14 @@ class InvestmentsController with ChangeNotifier {
   Future<void> addInvestment(Investment investment) async {
     final normalized = _ensureCreateActivityLog(investment);
     _investments.add(normalized);
-    await _saveInvestments();
+    await _upsertOne(normalized);
     _invalidateCache();
     notifyListeners();
   }
 
   Future<void> removeInvestment(String investmentId) async {
     _investments.removeWhere((inv) => inv.id == investmentId);
-    await _saveInvestments();
+    await _deleteOne(investmentId);
     _invalidateCache();
     notifyListeners();
   }
@@ -125,7 +122,7 @@ class InvestmentsController with ChangeNotifier {
           ? _appendDeltaActivityLog(current, investment)
           : _ensureCreateActivityLog(investment);
       _investments[index] = normalized;
-      await _saveInvestments();
+      await _upsertOne(normalized);
       _invalidateCache();
       notifyListeners();
     }
@@ -162,17 +159,34 @@ class InvestmentsController with ChangeNotifier {
     metadata['lastActivityAt'] = (dateTime ?? DateTime.now()).toIso8601String();
 
     _investments[index] = current.copyWith(metadata: metadata);
-    await _saveInvestments();
+    await _upsertOne(_investments[index]);
     _invalidateCache();
     notifyListeners();
   }
 
   Future<void> _saveInvestments() async {
-    await _writeMutex.protect(() async {
-      final investmentsJson = _investments
-          .map((investment) => jsonEncode(investment.toMap()))
-          .toList();
-      await _prefs.setStringList(_storageKey, investmentsJson);
+    await safeWrite('save investments', () async {
+      await _writeMutex.protect(() async {
+        await DatabaseService.instance.upsertDataRowsBatch(
+          'investments', _investments.map((i) => i.toMap()).toList());
+      });
+    });
+  }
+
+  Future<void> _upsertOne(Investment inv) async {
+    await safeWrite('save investment', () async {
+      await _writeMutex.protect(() async {
+        await DatabaseService.instance.upsertDataRow(
+            'investments', inv.id, inv.toMap());
+      });
+    });
+  }
+
+  Future<void> _deleteOne(String id) async {
+    await safeWrite('delete investment', () async {
+      await _writeMutex.protect(() async {
+        await DatabaseService.instance.deleteRow('investments', id);
+      });
     });
   }
 

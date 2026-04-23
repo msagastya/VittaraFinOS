@@ -54,6 +54,7 @@ import 'package:vittara_fin_os/ui/widgets/card_deck_view.dart';
 import 'package:vittara_fin_os/ui/widgets/floating_particle_background.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
+import 'package:vittara_fin_os/services/database_service.dart';
 import 'package:vittara_fin_os/services/mf_database_service.dart';
 import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
 import 'package:vittara_fin_os/ui/manage/goals/goals_screen.dart';
@@ -98,8 +99,17 @@ class _AppScrollBehavior extends ScrollBehavior {
 }
 
 void main() {
-  runZonedGuarded(() {
+  runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
+
+    // Open encrypted SQLite DB and run one-time SharedPreferences migration
+    // BEFORE any controller initializes so load() calls find data in SQLite.
+    try {
+      await DatabaseService.instance.open();
+      await DatabaseService.instance.migrateFromSharedPrefsIfNeeded();
+    } catch (e) {
+      logger.error('DatabaseService init failed', error: e);
+    }
 
     FlutterError.onError = (FlutterErrorDetails details) {
       logger.error('Flutter Framework Error',

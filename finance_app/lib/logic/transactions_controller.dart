@@ -1,17 +1,15 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/payment_apps_controller.dart';
 import 'package:vittara_fin_os/logic/transaction_account_adjuster.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
+import 'package:vittara_fin_os/services/database_service.dart';
 import 'package:vittara_fin_os/utils/async_mutex.dart';
 import 'package:vittara_fin_os/utils/id_generator.dart';
+import 'package:vittara_fin_os/utils/safe_storage_mixin.dart';
 
-class TransactionsController with ChangeNotifier {
-  late SharedPreferences _prefs;
+class TransactionsController with ChangeNotifier, SafeStorageMixin {
   late List<Transaction> _transactions;
-  static const String _storageKey = 'transactions';
   static final _writeMutex = AsyncMutex();
 
   /// Optional hook called after any data change — used by AIIntelligenceController
@@ -28,17 +26,15 @@ class TransactionsController with ChangeNotifier {
   }
 
   Future<void> loadTransactions() async {
-    _prefs = await SharedPreferences.getInstance();
-    final transactionsJson = _prefs.getStringList(_storageKey) ?? [];
+    final rows = await DatabaseService.instance.getTransactions(archived: false);
 
     final parsedTransactions = <Transaction>[];
     final usedIds = <String>{};
     var dataChanged = false;
 
-    for (final row in transactionsJson) {
+    for (final map in rows) {
       try {
-        final decoded = jsonDecode(row) as Map<String, dynamic>;
-        var transaction = Transaction.fromMap(decoded);
+        var transaction = Transaction.fromMap(map);
         final normalizedId = transaction.id.trim();
         if (normalizedId.isEmpty || usedIds.contains(normalizedId)) {
           transaction =
@@ -53,8 +49,6 @@ class TransactionsController with ChangeNotifier {
     }
 
     _transactions = parsedTransactions;
-
-    // Sort by date descending (newest first)
     _transactions.sort((a, b) => b.dateTime.compareTo(a.dateTime));
 
     if (dataChanged) {
@@ -108,15 +102,15 @@ class TransactionsController with ChangeNotifier {
       normalized = normalized.copyWith(dateTime: assignedTime);
     }
 
-    _transactions.insert(0, normalized); // Add to beginning (newest first)
-    await _saveTransactions();
+    _transactions.insert(0, normalized);
+    await _upsertOne(normalized);
     notifyListeners();
     onDataChanged?.call(List.unmodifiable(_transactions));
   }
 
   Future<void> removeTransaction(String transactionId) async {
     _transactions.removeWhere((t) => t.id == transactionId);
-    await _saveTransactions();
+    await _deleteOne(transactionId);
     notifyListeners();
     onDataChanged?.call(List.unmodifiable(_transactions));
   }
@@ -125,7 +119,7 @@ class TransactionsController with ChangeNotifier {
     final idx = _transactions.indexWhere((t) => t.id == updated.id);
     if (idx < 0) return;
     _transactions[idx] = updated;
-    await _saveTransactions();
+    await _upsertOne(updated);
     notifyListeners();
   }
 
@@ -169,7 +163,7 @@ class TransactionsController with ChangeNotifier {
     _updateBalanceSnapshotsCascade(idx, oldTransaction, updated);
 
     _transactions[idx] = updated;
-    await _saveTransactions();
+    await _upsertOne(updated);
     notifyListeners();
     return true;
   }
@@ -308,16 +302,42 @@ class TransactionsController with ChangeNotifier {
     }
     // Sort by date descending after bulk insert
     _transactions.sort((a, b) => b.dateTime.compareTo(a.dateTime));
-    await _saveTransactions();
-    notifyListeners(); // Single notify for entire batch
+    // Batch upsert — one DB transaction for the entire import
+    await safeWrite('batch save transactions', () async {
+      await _writeMutex.protect(() async {
+        await DatabaseService.instance.upsertTransactionsBatch(
+          _transactions.map((t) => t.toMap()).toList(),
+        );
+      });
+    });
+    notifyListeners();
   }
 
   Future<void> _saveTransactions() async {
-    await _writeMutex.protect(() async {
-      final transactionsJson = _transactions
-          .map((transaction) => jsonEncode(transaction.toMap()))
-          .toList();
-      await _prefs.setStringList(_storageKey, transactionsJson);
+    await safeWrite('save transactions', () async {
+      await _writeMutex.protect(() async {
+        await DatabaseService.instance.upsertTransactionsBatch(
+          _transactions.map((t) => t.toMap()).toList(),
+        );
+      });
+    });
+  }
+
+  /// Persist a single transaction upsert — used for single add/update/delete
+  /// to avoid rewriting the full list on every change.
+  Future<void> _upsertOne(Transaction tx) async {
+    await safeWrite('save transaction', () async {
+      await _writeMutex.protect(() async {
+        await DatabaseService.instance.upsertTransaction(tx.toMap());
+      });
+    });
+  }
+
+  Future<void> _deleteOne(String id) async {
+    await safeWrite('delete transaction', () async {
+      await _writeMutex.protect(() async {
+        await DatabaseService.instance.deleteRow('transactions', id);
+      });
     });
   }
 

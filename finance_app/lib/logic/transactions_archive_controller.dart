@@ -1,50 +1,57 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
+import 'package:vittara_fin_os/services/database_service.dart';
+import 'package:vittara_fin_os/utils/async_mutex.dart';
+import 'package:vittara_fin_os/utils/safe_storage_mixin.dart';
 
-class TransactionsArchiveController with ChangeNotifier {
-  static const String _storageKey = 'archived_transactions';
-  late SharedPreferences _prefs;
-  late List<Transaction> _archived;
+/// Archive controller — thin wrapper over the [DatabaseService] transactions
+/// table using the [is_archived] flag.
+///
+/// No separate storage key. Archived and live transactions share one table,
+/// so there is no drift between the two collections.
+class TransactionsArchiveController with ChangeNotifier, SafeStorageMixin {
+  static final _writeMutex = AsyncMutex();
+
+  List<Transaction> _archived = [];
   bool _isLoaded = false;
 
   List<Transaction> get archived => List.unmodifiable(_archived);
   bool get isLoaded => _isLoaded;
 
   TransactionsArchiveController() {
-    _archived = [];
-    _loadArchivedTransactions();
+    _load();
   }
 
-  Future<void> reloadFromStorage() async {
-    await _loadArchivedTransactions();
-  }
+  Future<void> reloadFromStorage() => _load();
 
-  Future<void> _loadArchivedTransactions() async {
-    _prefs = await SharedPreferences.getInstance();
-    final stored = _prefs.getStringList(_storageKey) ?? [];
-    _archived = stored
-        .map((item) =>
-            Transaction.fromMap(jsonDecode(item) as Map<String, dynamic>))
-        .toList();
+  Future<void> _load() async {
+    final rows =
+        await DatabaseService.instance.getTransactions(archived: true);
+    _archived = rows.map(Transaction.fromMap).toList();
     _isLoaded = true;
     notifyListeners();
   }
 
   Future<void> addToArchive(Transaction txn) async {
     _archived.insert(0, txn);
-    await _persist();
+    notifyListeners();
+    await safeWrite('archive transaction', () async {
+      await _writeMutex.protect(() async {
+        await DatabaseService.instance.upsertTransaction(
+          txn.toMap(),
+          archived: true,
+        );
+      });
+    });
   }
 
   Future<void> removeFromArchive(String txnId) async {
     _archived.removeWhere((txn) => txn.id == txnId);
-    await _persist();
-  }
-
-  Future<void> _persist() async {
-    final encoded = _archived.map((txn) => jsonEncode(txn.toMap())).toList();
-    await _prefs.setStringList(_storageKey, encoded);
     notifyListeners();
+    await safeWrite('remove from archive', () async {
+      await _writeMutex.protect(() async {
+        await DatabaseService.instance.deleteRow('transactions', txnId);
+      });
+    });
   }
 }
