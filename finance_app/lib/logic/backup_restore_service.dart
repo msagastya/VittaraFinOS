@@ -11,6 +11,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart' hide Transaction;
 import 'package:vittara_fin_os/logic/transaction_model.dart' as app_txn;
+import 'package:vittara_fin_os/services/database_service.dart';
 import 'package:vittara_fin_os/utils/id_generator.dart';
 
 class BackupOperationResult {
@@ -450,6 +451,14 @@ class BackupRestoreService {
 
       await _applySnapshotMerged(prefs, parsed.snapshotEntries);
       await _restoreSQLiteSnapshots(parsed.sqliteSnapshots);
+
+      // After writing legacy SharedPreferences data from the backup, immediately
+      // run the SQLite migration so vittara.db is populated before controllers
+      // reload. Without this, controllers read empty SQLite and the user sees
+      // nothing until a force-close restart.
+      if (DatabaseService.instance.isOpen) {
+        await DatabaseService.instance.migrateFromSharedPrefsIfNeeded();
+      }
 
       return BackupOperationResult(
         success: true,
