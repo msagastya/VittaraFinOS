@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'device_intelligence_tier.dart';
@@ -64,6 +65,13 @@ class VoiceController extends ChangeNotifier {
   bool _ttsEnabled = true;
   bool get ttsEnabled => _ttsEnabled;
 
+  /// Countdown seconds before auto-starting mic on follow-up questions.
+  /// Null when no countdown is active.
+  int? _autoListenCountdown;
+  int? get autoListenCountdown => _autoListenCountdown;
+
+  Timer? _countdownTimer;
+
   IntelligenceTier _tier = IntelligenceTier.entry;
 
   late VoiceFillEngine _fillEngine;
@@ -126,6 +134,7 @@ class VoiceController extends ChangeNotifier {
     _setState(VoiceState.listening);
     _transcript = '';
     notifyListeners();
+    HapticFeedback.lightImpact(); // signal mic is open
 
     _stt.listen(
       onResult: (result) {
@@ -135,9 +144,10 @@ class VoiceController extends ChangeNotifier {
           _onTranscriptFinal(_transcript);
         }
       },
-      listenFor: const Duration(seconds: 12),
-      pauseFor: const Duration(milliseconds: 900), // faster: was 2s
+      listenFor: const Duration(seconds: 30),
+      pauseFor: const Duration(milliseconds: 2500),
       cancelOnError: true,
+      localeId: 'en_IN',
     );
   }
 
@@ -198,8 +208,7 @@ class VoiceController extends ChangeNotifier {
     } else if (step.followUpQuestion != null) {
       _currentQuestion = step.followUpQuestion;
       _setState(VoiceState.filling);
-      // Show question on screen — "Tap to answer" button triggers re-listen
-      // (no auto TTS re-listen loop — that caused mic picking up TTS audio)
+      _startAutoListenCountdown();
     } else {
       _setError("Didn't catch that — try: \"500 on Swiggy\" or just say the amount.");
       _setState(VoiceState.idle);
@@ -207,13 +216,16 @@ class VoiceController extends ChangeNotifier {
   }
 
   /// Called from UI "Tap to answer" button when in [VoiceState.filling].
+  /// Also called automatically after [autoAnswerDelayMs] when a question appears.
   Future<void> listenForAnswer() => _listenForAnswer();
 
   Future<void> _listenForAnswer() async {
-    await Future.delayed(const Duration(milliseconds: 200));
+    // Small gap so the question text is visible before the mic opens
+    await Future.delayed(const Duration(milliseconds: 300));
     _setState(VoiceState.listening);
     _transcript = '';
     notifyListeners();
+    HapticFeedback.lightImpact(); // signal mic is open
 
     _stt.listen(
       onResult: (result) {
@@ -223,9 +235,10 @@ class VoiceController extends ChangeNotifier {
           _onAnswerReceived(_transcript);
         }
       },
-      listenFor: const Duration(seconds: 8),
-      pauseFor: const Duration(milliseconds: 900),
+      listenFor: const Duration(seconds: 20),
+      pauseFor: const Duration(milliseconds: 2500),
       cancelOnError: true,
+      localeId: 'en_IN',
     );
   }
 
@@ -245,10 +258,41 @@ class VoiceController extends ChangeNotifier {
     } else if (step.followUpQuestion != null) {
       _currentQuestion = step.followUpQuestion;
       _setState(VoiceState.filling);
+      _startAutoListenCountdown();
     } else {
       _setError("Still couldn't get that — try just saying the amount.");
       _setState(VoiceState.idle);
     }
+  }
+
+  // ── Auto-listen countdown ─────────────────────────────────────────────────
+
+  /// Starts a 2-second countdown then automatically opens the mic.
+  /// This gives the user time to read the follow-up question before speaking.
+  void _startAutoListenCountdown() {
+    _cancelCountdown();
+    _autoListenCountdown = 2;
+    notifyListeners();
+
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (_autoListenCountdown == null || _autoListenCountdown! <= 0) {
+        t.cancel();
+        _autoListenCountdown = null;
+        notifyListeners();
+        if (_state == VoiceState.filling) {
+          listenForAnswer();
+        }
+        return;
+      }
+      _autoListenCountdown = _autoListenCountdown! - 1;
+      notifyListeners();
+    });
+  }
+
+  void _cancelCountdown() {
+    _countdownTimer?.cancel();
+    _countdownTimer = null;
+    _autoListenCountdown = null;
   }
 
   // ── Confirm / Cancel ──────────────────────────────────────────────────────
@@ -263,6 +307,7 @@ class VoiceController extends ChangeNotifier {
 
   /// Called by UI when user taps "Edit" or "Cancel".
   void cancel() {
+    _cancelCountdown();
     _fillEngine.reset();
     _currentQuestion = null;
     _pendingResult = null;
@@ -303,6 +348,7 @@ class VoiceController extends ChangeNotifier {
 
   @override
   void dispose() {
+    _cancelCountdown();
     _stt.cancel();
     _tts.stop();
     super.dispose();

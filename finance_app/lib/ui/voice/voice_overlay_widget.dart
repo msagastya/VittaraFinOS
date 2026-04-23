@@ -86,6 +86,11 @@ class VoiceOverlayWidget extends StatelessWidget {
                     if (voice.currentQuestion != null) ...[
                       const SizedBox(height: Spacing.md),
                       _buildQuestion(voice.currentQuestion!, context),
+                      // Countdown + auto-listen indicator
+                      if (voice.autoListenCountdown != null) ...[
+                        const SizedBox(height: Spacing.sm),
+                        _buildCountdown(voice.autoListenCountdown!, context),
+                      ],
                     ],
                     if (voice.errorMessage != null) ...[
                       const SizedBox(height: Spacing.md),
@@ -93,8 +98,10 @@ class VoiceOverlayWidget extends StatelessWidget {
                     ],
                     const SizedBox(height: Spacing.xl),
                     _buildMicButton(voice, context),
-                    // "Tap to answer" button when waiting for follow-up
-                    if (voice.state == VoiceState.filling) ...[
+                    // Manual fallback: "Tap to answer" shown only if countdown finished
+                    // but user didn't speak and mic went idle (e.g. cancelled)
+                    if (voice.state == VoiceState.filling &&
+                        voice.autoListenCountdown == null) ...[
                       const SizedBox(height: Spacing.md),
                       CupertinoButton.filled(
                         padding: const EdgeInsets.symmetric(
@@ -146,16 +153,16 @@ class VoiceOverlayWidget extends StatelessWidget {
     String text;
     switch (voice.state) {
       case VoiceState.idle:
-        text = 'Hold to speak';
+        text = 'Tap mic and speak';
         break;
       case VoiceState.listening:
-        text = 'Listening...';
+        text = voice.currentQuestion != null ? 'Speak your answer' : 'Listening...';
         break;
       case VoiceState.processing:
         text = 'Understanding...';
         break;
       case VoiceState.filling:
-        text = '';
+        text = 'Follow-up question';
         break;
       case VoiceState.confirming:
         text = 'Got it';
@@ -173,8 +180,29 @@ class VoiceOverlayWidget extends StatelessWidget {
       style: TextStyle(
         fontSize: 17,
         fontWeight: FontWeight.w600,
-        color: AppStyles.getTextColor(context),
+        color: voice.state == VoiceState.filling
+            ? AppStyles.aetherTeal
+            : AppStyles.getTextColor(context),
       ),
+    );
+  }
+
+  Widget _buildCountdown(int seconds, BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const CupertinoActivityIndicator(radius: 7),
+        const SizedBox(width: 6),
+        Text(
+          seconds > 0
+              ? 'Mic opens in $seconds...'
+              : 'Opening mic...',
+          style: TextStyle(
+            fontSize: 13,
+            color: AppStyles.getSecondaryTextColor(context),
+          ),
+        ),
+      ],
     );
   }
 
