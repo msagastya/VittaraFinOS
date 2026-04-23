@@ -35,6 +35,7 @@ import 'package:vittara_fin_os/ui/manage/goals/goal_details_screen.dart';
 import 'package:vittara_fin_os/ui/manage/investments_screen.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/logic/search/nl_search_engine.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 
 const String _kRecentSearchesKey = 'global_search_recent';
@@ -431,6 +432,9 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage>
   bool _searching = false;
   String _query = '';
   _ParsedQuery? _parsedQuery;
+  // ML Kit enhancement state
+  bool _mlkitActive = false;
+  String? _mlkitQueryTag;
 
   // Voice
   final _stt = SpeechToText();
@@ -451,6 +455,8 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage>
     );
     _loadRecentSearches();
     _initStt();
+    // Warm up ML Kit entity extractor in the background — doesn't block UI
+    NLSearchEngine.instance.warmUp();
     WidgetsBinding.instance.addPostFrameCallback((_) => _focus.requestFocus());
   }
 
@@ -550,8 +556,12 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage>
     final raw = q.toLowerCase().trim();
     final results = <_SearchResult>[];
 
-    // Try NL parse first
+    // Pass 1 — rule-based NL parse (synchronous, immediate)
     final parsed = _NLQueryParser.parse(raw);
+
+    // Pass 2 — ML Kit entity enhancement (async, fires in background)
+    // If ML Kit extracts dates/amounts the regex missed, re-runs the search.
+    _mlkitEnhance(q, raw, parsed);
 
     final txCtrl = context.read<TransactionsController>();
     final accCtrl = context.read<AccountsController>();
@@ -720,6 +730,100 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage>
         _results = results;
         _parsedQuery = parsed;
         _searching = false;
+        _mlkitActive = false;
+        _mlkitQueryTag = null;
+      });
+    }
+  }
+
+  /// ML Kit pass — runs after the synchronous rule-based search.
+  /// If ML Kit extracts date/amount entities the regex missed, we re-run
+  /// the transaction filter and update the result list.
+  Future<void> _mlkitEnhance(
+    String originalQuery,
+    String raw,
+    _ParsedQuery? ruleBasedParsed,
+  ) async {
+    if (!mounted) return;
+    setState(() => _mlkitActive = true);
+
+    final hints = await NLSearchEngine.instance.extractHints(originalQuery);
+
+    // Bail if query changed while ML Kit was running
+    if (!mounted || _query != originalQuery) return;
+
+    // ML Kit found a date the regex didn't catch
+    final mlkitFromDate = hints.fromDate;
+    final mlkitToDate = hints.toDate;
+    final mlkitAmt = hints.amountMin;
+
+    final bool addsDate = mlkitFromDate != null &&
+        ruleBasedParsed?.fromDate == null;
+    final bool addsAmt = mlkitAmt != null &&
+        ruleBasedParsed?.minAmount == null;
+
+    if (!addsDate && !addsAmt) {
+      if (mounted) setState(() => _mlkitActive = false);
+      return;
+    }
+
+    // Build an enhanced parsed query merging both passes
+    final base = ruleBasedParsed;
+    final enhanced = _ParsedQuery(
+      displaySummary: [
+        if (base?.displaySummary != null && base!.displaySummary.isNotEmpty)
+          base.displaySummary,
+        if (addsDate) 'AI date',
+        if (addsAmt) 'AI amount',
+      ].join(' · '),
+      keyword: base?.keyword,
+      fromDate: addsDate ? mlkitFromDate : base?.fromDate,
+      toDate: addsDate ? mlkitToDate : base?.toDate,
+      type: base?.type,
+      minAmount: addsAmt ? mlkitAmt : base?.minAmount,
+      maxAmount: base?.maxAmount,
+      categoryHints: base?.categoryHints ?? const [],
+    );
+
+    // Re-filter transactions with the enhanced query
+    final txCtrl = context.read<TransactionsController>();
+    final enhancedResults = <_SearchResult>[];
+    for (final tx in txCtrl.transactions) {
+      if (enhancedResults.length >= 20) break;
+      if (!_matchesParsed(tx, enhanced, raw)) continue;
+      final isIncome = tx.type == TransactionType.income ||
+          tx.type == TransactionType.cashback;
+      final merchant = (tx.metadata?['merchant'] as String? ?? '').trim();
+      final cat = (tx.metadata?['categoryName'] as String? ?? '').trim();
+      final capturedTx = tx;
+      enhancedResults.add(_SearchResult(
+        type: _ResultType.transaction,
+        id: tx.id,
+        title: merchant.isNotEmpty ? merchant : tx.description,
+        subtitle: [
+          if (cat.isNotEmpty) cat,
+          _fmtDate(tx.dateTime),
+          if ((tx.sourceAccountName ?? '').isNotEmpty) tx.sourceAccountName!,
+        ].join(' · '),
+        amount: tx.amount,
+        icon: isIncome
+            ? CupertinoIcons.arrow_down_circle_fill
+            : CupertinoIcons.arrow_up_circle_fill,
+        color: isIncome ? AppStyles.gain(context) : AppStyles.loss(context),
+        onNavigate: () => _showTransactionDetail(context, capturedTx),
+      ));
+    }
+
+    if (mounted) {
+      setState(() {
+        _results = enhancedResults;
+        _parsedQuery = enhanced;
+        _mlkitActive = false;
+        _mlkitQueryTag = addsDate
+            ? 'AI: date extracted'
+            : addsAmt
+                ? 'AI: amount extracted'
+                : null;
       });
     }
   }
@@ -1141,6 +1245,15 @@ class _GlobalSearchPageState extends State<_GlobalSearchPage>
                   ),
                 ),
               ),
+              if (_mlkitActive)
+                const SizedBox(
+                  width: 10,
+                  height: 10,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 1.5,
+                    color: Color(0xFF6C63FF),
+                  ),
+                ),
             ],
           ),
         ),
