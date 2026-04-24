@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/categories_controller.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
+import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/tags_controller.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'package:vittara_fin_os/ui/financial_calendar_screen.dart';
@@ -231,8 +232,34 @@ class DashboardAppMenuScreen extends StatelessWidget {
 
   Widget _buildQuickAccessGrid(BuildContext context) {
     final isDark = AppStyles.isDarkMode(context);
+    // Count today's events (FD maturities and recurring templates due today)
+    final investmentsCtrl = context.read<InvestmentsController>();
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    int todayEventCount = 0;
+    for (final inv in investmentsCtrl.investments) {
+      if (inv.type != InvestmentType.fixedDeposit) continue;
+      final meta = inv.metadata;
+      if (meta == null) continue;
+      try {
+        DateTime? d;
+        if (meta.containsKey('maturityDate')) {
+          d = DateTime.tryParse((meta['maturityDate'] as String?) ?? '');
+        }
+        if (d != null && DateTime(d.year, d.month, d.day) == today) {
+          todayEventCount++;
+        }
+      } catch (_) {}
+    }
 
     final items = <_QuickItem>[
+      _QuickItem(
+        label: 'Calendar',
+        icon: CupertinoIcons.calendar_badge_plus,
+        color: AppStyles.aetherTeal,
+        badge: todayEventCount,
+        onTap: () => Navigator.of(context).push(FadeScalePageRoute(page: const FinancialCalendarScreen())),
+      ),
       _QuickItem(
         label: 'Manage',
         icon: CupertinoIcons.square_grid_2x2_fill,
@@ -250,12 +277,6 @@ class DashboardAppMenuScreen extends StatelessWidget {
         icon: CupertinoIcons.chart_bar_square_fill,
         color: SemanticColors.info,
         onTap: () => Navigator.of(context).push(FadeScalePageRoute(page: const ReportsAnalysisScreen())),
-      ),
-      _QuickItem(
-        label: 'Calendar',
-        icon: CupertinoIcons.calendar_badge_plus,
-        color: AppStyles.aetherTeal,
-        onTap: () => Navigator.of(context).push(FadeScalePageRoute(page: const FinancialCalendarScreen())),
       ),
       _QuickItem(
         label: 'Statement',
@@ -327,7 +348,33 @@ class DashboardAppMenuScreen extends StatelessWidget {
                         width: 1,
                       ),
                     ),
-                    child: Icon(item.icon, color: item.color, size: 22),
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Center(child: Icon(item.icon, color: item.color, size: 22)),
+                        if (item.badge > 0)
+                          Positioned(
+                            top: -4,
+                            right: -4,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 5, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: AppStyles.plasmaRed,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                '${item.badge}',
+                                style: const TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w800,
+                                  color: CupertinoColors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 6),
                   Text(
@@ -581,12 +628,14 @@ class _QuickItem {
   final IconData icon;
   final Color color;
   final VoidCallback onTap;
+  final int badge; // 0 = no badge
 
   const _QuickItem({
     required this.label,
     required this.icon,
     required this.color,
     required this.onTap,
+    this.badge = 0,
   });
 }
 

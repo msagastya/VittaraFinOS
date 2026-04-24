@@ -262,6 +262,16 @@ class DashboardController with ChangeNotifier {
           columnSpan: 3,
           rowSpan: 1,
         ),
+        DashboardWidgetConfig(
+          id: 'financial_calendar',
+          type: DashboardWidgetType.financialCalendar,
+          title: 'Upcoming Events',
+          isVisible: true,
+          gridRow: 9,
+          gridColumn: 1,
+          columnSpan: 3,
+          rowSpan: 1,
+        ),
       ],
     );
   }
@@ -272,7 +282,8 @@ class DashboardController with ChangeNotifier {
     final updatedWidgets = [..._config.widgets];
     final defaults = _getDefaultConfig().widgets.where((w) =>
         w.id == 'sip_tracker' ||
-        w.id == 'spending_insights');
+        w.id == 'spending_insights' ||
+        w.id == 'financial_calendar');
 
     for (final optional in defaults) {
       if (!existingIds.contains(optional.id)) {

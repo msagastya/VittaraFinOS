@@ -39,6 +39,12 @@ import 'package:vittara_fin_os/ui/fintech_loader.dart';
 import 'package:vittara_fin_os/ui/manage_screen.dart';
 import 'package:vittara_fin_os/ui/transaction_history_screen.dart';
 import 'package:vittara_fin_os/ui/spending_insights_screen.dart';
+import 'package:vittara_fin_os/ui/financial_calendar_screen.dart';
+import 'package:vittara_fin_os/logic/fixed_deposit_model.dart';
+import 'package:vittara_fin_os/logic/loan_model.dart';
+import 'package:vittara_fin_os/logic/goal_model.dart';
+import 'package:vittara_fin_os/logic/recurring_template_model.dart';
+import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/ui/styles/app_springs.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/typography.dart';
@@ -1376,6 +1382,44 @@ class DashboardScreen extends StatelessWidget {
                           ),
                         ),
                       ),
+                      const SizedBox(width: Spacing.xl),
+                      Semantics(
+                        label: 'Financial calendar',
+                        child: Consumer2<InvestmentsController, LoanController>(
+                          builder: (context, investments, loans, _) {
+                            final hasDue = _hasEventDueWithin7Days(
+                                investments.investments, loans.loans);
+                            return BouncyButton(
+                              onPressed: () => Navigator.of(context).push(
+                                  FadeScalePageRoute(
+                                      page: const FinancialCalendarScreen())),
+                              child: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  Icon(
+                                    CupertinoIcons.calendar,
+                                    size: IconSizes.navIcon,
+                                    color: AppStyles.getTextColor(context),
+                                  ),
+                                  if (hasDue)
+                                    Positioned(
+                                      top: -2,
+                                      right: -2,
+                                      child: Container(
+                                        width: 7,
+                                        height: 7,
+                                        decoration: const BoxDecoration(
+                                          color: AppStyles.plasmaRed,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ),
                     ],
                   ),
                   backgroundColor:
@@ -2200,6 +2244,8 @@ class DashboardScreen extends StatelessWidget {
         return CupertinoIcons.graph_circle_fill;
       case DashboardWidgetType.spendingInsights:
         return CupertinoIcons.lightbulb_fill;
+      case DashboardWidgetType.financialCalendar:
+        return CupertinoIcons.calendar;
     }
   }
 
@@ -2212,6 +2258,8 @@ class DashboardScreen extends StatelessWidget {
       case DashboardWidgetType.sipTracker:
         return CupertinoColors.activeBlue;
       case DashboardWidgetType.spendingInsights:
+        return AppStyles.aetherTeal;
+      case DashboardWidgetType.financialCalendar:
         return AppStyles.aetherTeal;
     }
   }
@@ -2588,6 +2636,42 @@ class DashboardScreen extends StatelessWidget {
       default:
         break;
     }
+  }
+
+  /// Returns true if any FD matures or loan EMI falls within the next 7 days.
+  bool _hasEventDueWithin7Days(
+      List<Investment> investments, List<Loan> loans) {
+    final today = DateTime.now();
+    final cutoff = today.add(const Duration(days: 7));
+
+    for (final inv in investments) {
+      if (inv.type != InvestmentType.fixedDeposit) continue;
+      final meta = inv.metadata;
+      if (meta == null) continue;
+      try {
+        if (meta.containsKey('fdData')) {
+          final fd = FixedDeposit.fromMap(
+              Map<String, dynamic>.from(meta['fdData'] as Map));
+          if (fd.status != FDStatus.prematurelyWithdrawn &&
+              !fd.maturityDate.isBefore(today) &&
+              fd.maturityDate.isBefore(cutoff)) return true;
+        } else if (meta.containsKey('maturityDate')) {
+          final d = DateTime.tryParse((meta['maturityDate'] as String?) ?? '');
+          if (d != null && !d.isBefore(today) && d.isBefore(cutoff)) return true;
+        }
+      } catch (_) {}
+    }
+
+    for (final loan in loans) {
+      if (!loan.isActive) continue;
+      var d = DateTime(loan.startDate.year, loan.startDate.month, loan.startDate.day);
+      while (d.isBefore(today)) {
+        d = DateTime(d.year, d.month + 1, d.day);
+      }
+      if (d.isBefore(cutoff)) return true;
+    }
+
+    return false;
   }
 
   String _formatHeaderDate(DateTime date) {
@@ -3059,6 +3143,11 @@ class DashboardScreen extends StatelessWidget {
           duration: const Duration(milliseconds: 500),
           child: InsightsWidget(config: widgetConfig),
         );
+      case DashboardWidgetType.financialCalendar:
+        return FadeInAnimation(
+          duration: const Duration(milliseconds: 500),
+          child: _UpcomingEventsWidget(config: widgetConfig),
+        );
       default:
         return const SizedBox.shrink();
     }
@@ -3191,6 +3280,11 @@ class DashboardScreen extends StatelessWidget {
       case DashboardWidgetType.spendingInsights:
         Navigator.of(context).push(
           FadeScalePageRoute(page: const SpendingInsightsScreen()),
+        );
+        break;
+      case DashboardWidgetType.financialCalendar:
+        Navigator.of(context).push(
+          FadeScalePageRoute(page: const FinancialCalendarScreen()),
         );
         break;
       default:
@@ -3770,6 +3864,287 @@ class _SetupCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// _UpcomingEventsWidget — compact dashboard card showing next 3 calendar events
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _UpcomingEventsWidget extends StatelessWidget {
+  final DashboardWidgetConfig config;
+  const _UpcomingEventsWidget({required this.config});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer4<InvestmentsController, RecurringTemplatesController,
+        GoalsController, LoanController>(
+      builder: (context, investments, templates, goals, loans, _) {
+        final events = _computeUpcoming(
+          investments: investments.investments,
+          templates: templates.templates,
+          goals: goals.goals,
+          loans: loans.loans,
+        );
+
+        final isDark = AppStyles.isDarkMode(context);
+        final teal = AppStyles.aetherTeal;
+
+        return Container(
+          decoration: AppStyles.sectionDecoration(context, tint: teal, radius: 20),
+          padding: Spacing.cardPadding,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Row(
+                children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: teal.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(CupertinoIcons.calendar, size: 16, color: teal),
+                  ),
+                  const SizedBox(width: Spacing.sm),
+                  Expanded(
+                    child: Text(
+                      'UPCOMING EVENTS',
+                      style: TextStyle(
+                        fontSize: TypeScale.micro,
+                        fontWeight: FontWeight.w700,
+                        color: teal,
+                        letterSpacing: 1.1,
+                      ),
+                    ),
+                  ),
+                  BouncyButton(
+                    onPressed: () => Navigator.of(context).push(
+                        FadeScalePageRoute(page: const FinancialCalendarScreen())),
+                    child: Text(
+                      'View all',
+                      style: TextStyle(
+                        fontSize: TypeScale.caption,
+                        color: teal,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: Spacing.md),
+              if (events.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: Spacing.md),
+                  child: Text(
+                    'No upcoming events in the next 30 days',
+                    style: TextStyle(
+                      fontSize: TypeScale.footnote,
+                      color: AppStyles.getSecondaryTextColor(context),
+                    ),
+                  ),
+                )
+              else
+                ...events.take(3).map((e) => _EventRow(event: e, isDark: isDark)),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  List<_UpcomingEvent> _computeUpcoming({
+    required List<Investment> investments,
+    required List<RecurringTemplate> templates,
+    required List<Goal> goals,
+    required List<Loan> loans,
+  }) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final cutoff = today.add(const Duration(days: 30));
+    final events = <_UpcomingEvent>[];
+
+    // FD maturity from investments
+    for (final inv in investments) {
+      if (inv.type != InvestmentType.fixedDeposit) continue;
+      final meta = inv.metadata;
+      if (meta == null) continue;
+      DateTime? maturity;
+      if (meta.containsKey('fdData')) {
+        try {
+          final fd = FixedDeposit.fromMap(
+              Map<String, dynamic>.from(meta['fdData'] as Map));
+          if (fd.status != FDStatus.prematurelyWithdrawn) maturity = fd.maturityDate;
+        } catch (_) {}
+      } else if (meta.containsKey('maturityDate')) {
+        maturity = DateTime.tryParse((meta['maturityDate'] as String?) ?? '');
+      }
+      if (maturity != null && !maturity.isBefore(today) && maturity.isBefore(cutoff)) {
+        events.add(_UpcomingEvent(
+          title: inv.name,
+          subtitle: 'FD Maturity',
+          date: maturity,
+          icon: CupertinoIcons.lock_fill,
+          color: AppStyles.solarGold,
+        ));
+      }
+    }
+
+    // Recurring templates (SIP / bills)
+    for (final t in templates) {
+      final next = _nextOccurrence(t.nextDueDate, today, cutoff);
+      if (next != null) {
+        events.add(_UpcomingEvent(
+          title: t.name,
+          subtitle: t.categoryName ?? 'Recurring',
+          date: next,
+          icon: CupertinoIcons.arrow_2_circlepath,
+          color: AppStyles.aetherTeal,
+        ));
+      }
+    }
+
+    // Loan EMIs
+    for (final loan in loans) {
+      if (!loan.isActive) continue;
+      final next = _nextEmiDate(loan.startDate, today, cutoff);
+      if (next != null) {
+        events.add(_UpcomingEvent(
+          title: loan.name,
+          subtitle: 'Loan EMI',
+          date: next,
+          icon: CupertinoIcons.creditcard_fill,
+          color: const Color(0xFFFF6D00),
+        ));
+      }
+    }
+
+    // Goals with target date
+    for (final g in goals) {
+      final d = g.targetDate;
+      if (!d.isBefore(today) && d.isBefore(cutoff)) {
+        events.add(_UpcomingEvent(
+          title: g.name,
+          subtitle: 'Goal deadline',
+          date: d,
+          icon: CupertinoIcons.flag_fill,
+          color: AppStyles.novaPurple,
+        ));
+      }
+    }
+
+    events.sort((a, b) => a.date.compareTo(b.date));
+    return events;
+  }
+
+  DateTime? _nextOccurrence(DateTime? base, DateTime today, DateTime cutoff) {
+    if (base == null) return null;
+    var d = DateTime(base.year, base.month, base.day);
+    if (d.isAfter(cutoff)) return null;
+    if (!d.isBefore(today)) return d;
+    // Advance by month until within range
+    while (d.isBefore(today)) {
+      d = DateTime(d.year, d.month + 1, d.day);
+    }
+    return d.isBefore(cutoff) ? d : null;
+  }
+
+  DateTime? _nextEmiDate(DateTime startDate, DateTime today, DateTime cutoff) {
+    var d = DateTime(startDate.year, startDate.month, startDate.day);
+    while (d.isBefore(today)) {
+      d = DateTime(d.year, d.month + 1, d.day);
+    }
+    return d.isBefore(cutoff) ? d : null;
+  }
+}
+
+class _UpcomingEvent {
+  final String title;
+  final String subtitle;
+  final DateTime date;
+  final IconData icon;
+  final Color color;
+  const _UpcomingEvent({
+    required this.title,
+    required this.subtitle,
+    required this.date,
+    required this.icon,
+    required this.color,
+  });
+}
+
+class _EventRow extends StatelessWidget {
+  final _UpcomingEvent event;
+  final bool isDark;
+  const _EventRow({required this.event, required this.isDark});
+
+  @override
+  Widget build(BuildContext context) {
+    final daysAway = event.date.difference(DateTime.now()).inDays;
+    final dayLabel = daysAway == 0
+        ? 'Today'
+        : daysAway == 1
+            ? 'Tomorrow'
+            : 'in $daysAway days';
+    return Padding(
+      padding: const EdgeInsets.only(bottom: Spacing.sm),
+      child: Row(
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: event.color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(event.icon, size: 15, color: event.color),
+          ),
+          const SizedBox(width: Spacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  event.title,
+                  style: TextStyle(
+                    fontSize: TypeScale.footnote,
+                    fontWeight: FontWeight.w600,
+                    color: AppStyles.getTextColor(context),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  event.subtitle,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: AppStyles.getSecondaryTextColor(context),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: event.color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: event.color.withValues(alpha: 0.25)),
+            ),
+            child: Text(
+              dayLabel,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: event.color,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -3,6 +3,7 @@ enum DashboardWidgetType {
   netWorth,
   sipTracker,
   spendingInsights,
+  financialCalendar,
 }
 
 class DashboardWidgetConfig {

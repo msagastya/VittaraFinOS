@@ -208,6 +208,8 @@ class _DashboardSettingsModalState extends State<DashboardSettingsModal> {
         return 'Active SIPs · investment alerts · cash flow';
       case DashboardWidgetType.spendingInsights:
         return 'Spending patterns & insights';
+      case DashboardWidgetType.financialCalendar:
+        return 'Upcoming FD, SIP, EMI & goal events';
     }
   }
 }
