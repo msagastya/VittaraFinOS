@@ -4,6 +4,7 @@ import 'package:flutter/material.dart' show Colors, LinearProgressIndicator;
 import 'package:vittara_fin_os/logic/ai/financial_health_score.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/widgets/health_score_dimension_sheet.dart';
 
 /// Full financial health scorecard with hexagonal spider chart.
 /// Embed inside any screen or show as a modal page.
@@ -170,9 +171,9 @@ class _FinancialHealthCardState extends State<FinancialHealthCard>
   ) {
     final color = _scoreColor(dim.score, context);
     return GestureDetector(
-      onTap: () => setState(() {
-        _expandedIndex = isExpanded ? null : index;
-      }),
+      onTap: () {
+        HealthScoreDimensionSheet.show(context, dim);
+      },
       child: Container(
         margin: const EdgeInsets.only(bottom: Spacing.sm),
         padding: const EdgeInsets.all(Spacing.md),

@@ -12,6 +12,10 @@ class HealthDimension {
   final double score; // 0–100
   final ScoreTrend trend;
   final String actionSentence; // single actionable suggestion
+  /// T-096: 2-3 specific data-driven reasons for this score.
+  final List<String> reasons;
+  /// T-096: One concrete improvement tip.
+  final String improvementTip;
 
   const HealthDimension({
     required this.id,
@@ -20,7 +24,9 @@ class HealthDimension {
     required this.score,
     required this.trend,
     required this.actionSentence,
-  });
+    this.reasons = const [],
+    String? improvementTip,
+  }) : improvementTip = improvementTip ?? actionSentence;
 }
 
 /// Complete 6-dimension financial health scorecard.
@@ -166,6 +172,8 @@ class FinancialHealthScorer {
 
     final trend = ratio >= 1.3 ? ScoreTrend.improving : ScoreTrend.stable;
 
+    final ratioStr = ratio.toStringAsFixed(2);
+    final varianceStr = (incomeVariance * 100).toStringAsFixed(0);
     return HealthDimension(
       id: 'cash_flow',
       name: 'Cash Flow',
@@ -173,6 +181,14 @@ class FinancialHealthScorer {
       score: score,
       trend: trend,
       actionSentence: ratio < 1.1
+          ? 'Expenses are close to income — aim to keep a 20% buffer.'
+          : 'Cash flow is healthy. Maintain consistent income logging.',
+      reasons: [
+        'Income/expense ratio: ${ratioStr}x over the last 3 months',
+        'Income variance: ${varianceStr}% — ${incomeVariance < 0.15 ? 'very consistent' : incomeVariance < 0.3 ? 'moderate variability' : 'high variability'}',
+        ratio >= 1.3 ? 'Comfortable buffer — income well above expenses' : 'Buffer is thin — income and expenses are close',
+      ],
+      improvementTip: ratio < 1.1
           ? 'Expenses are close to income — aim to keep a 20% buffer.'
           : 'Cash flow is healthy. Maintain consistent income logging.',
     );
@@ -233,6 +249,7 @@ class FinancialHealthScorer {
       else if (recent < older - 3) trend = ScoreTrend.declining;
     }
 
+    final positiveMonths = monthRates.where((r) => r > 0).length;
     return HealthDimension(
       id: 'savings',
       name: 'Savings Discipline',
@@ -243,6 +260,16 @@ class FinancialHealthScorer {
           ? 'Aim to save at least 10% of income each month as a baseline.'
           : avgRate < 20
               ? 'Good start. Pushing toward 20% would significantly strengthen your position.'
+              : 'Strong savings rate. Keep the consistency going.',
+      reasons: [
+        'Average savings rate: ${avgRate.toStringAsFixed(0)}% over last ${monthRates.length} months',
+        'Saved in $positiveMonths of ${monthRates.length} months',
+        cv < 0.2 ? 'Very consistent savings pattern' : 'Savings rate varies month to month',
+      ],
+      improvementTip: avgRate < 10
+          ? 'Aim to save at least 10% of income each month as a baseline.'
+          : avgRate < 20
+              ? 'Pushing toward 20% savings rate would significantly strengthen your position.'
               : 'Strong savings rate. Keep the consistency going.',
     );
   }
@@ -288,6 +315,23 @@ class FinancialHealthScorer {
       description: 'Borrowing and obligations as a ratio of income',
       score: score,
       trend: ScoreTrend.stable,
+      reasons: [
+        borrowing == 0
+            ? 'No borrowing logged in the last 3 months'
+            : 'Borrowed ₹${_fmt(borrowing)} vs ₹${_fmt(income)} income (${(debtRatio * 100).toStringAsFixed(0)}%)',
+        debtRatio == 0
+            ? 'Debt-free position — excellent financial posture'
+            : debtRatio < 0.1
+                ? 'Low debt-to-income ratio — well within safe range'
+                : debtRatio < 0.3
+                    ? 'Moderate debt level — manageable but worth monitoring'
+                    : 'High debt-to-income ratio — above recommended 30% threshold',
+      ],
+      improvementTip: debtRatio > 0.3
+          ? 'Borrowing above 30% of income — prioritise reducing this before new commitments.'
+          : debtRatio > 0
+              ? 'Manageable debt. Track repayments to avoid compounding.'
+              : 'Debt-free — maintain this position by avoiding unnecessary credit.',
       actionSentence: debtRatio > 0.3
           ? 'Borrowing is above 30% of income — prioritise reducing this.'
           : debtRatio > 0
@@ -321,6 +365,20 @@ class FinancialHealthScorer {
       description: 'On-track rate across all active goals',
       score: score,
       trend: rate >= 0.8 ? ScoreTrend.improving : ScoreTrend.stable,
+      reasons: [
+        '$onTrack of ${active.length} active goal${active.length > 1 ? 's' : ''} on track',
+        rate == 1.0
+            ? 'All goals progressing as planned'
+            : '${active.length - onTrack} goal${(active.length - onTrack) > 1 ? 's' : ''} behind schedule',
+        active.isNotEmpty
+            ? 'Goals tracked: ${active.map((g) => g.name).take(3).join(', ')}${active.length > 3 ? '...' : ''}'
+            : 'No active goals set',
+      ],
+      improvementTip: rate < 0.5
+          ? 'Review under-funded goals and increase monthly contributions.'
+          : rate < 1.0
+              ? 'A small top-up this month could bring lagging goals back on track.'
+              : 'All goals on track — maintain current contribution pace.',
       actionSentence: rate < 0.5
           ? '${active.length - onTrack} of your goals are behind schedule — review contributions.'
           : rate < 1.0
@@ -382,6 +440,18 @@ class FinancialHealthScorer {
       description: 'SIP regularity and portfolio contributions',
       score: score,
       trend: consistency > 0.8 ? ScoreTrend.improving : ScoreTrend.stable,
+      reasons: [
+        'Invested in $monthsWithInvestment of last 6 months',
+        'Investment rate: ${(rate * 100).toStringAsFixed(0)}% of income over 6 months',
+        consistency >= 0.8
+            ? 'Strong habit — investing regularly every month'
+            : 'Inconsistent — missing some months breaks compound growth',
+      ],
+      improvementTip: rate < 0.10
+          ? 'Start a SIP of even ₹500/month — consistency matters more than amount.'
+          : consistency < 0.7
+              ? 'Automate a monthly SIP to remove the decision each month.'
+              : 'Strong habit. Consider increasing by 1% of income annually.',
       actionSentence: rate < 0.10
           ? 'Investing less than 10% of income — start a SIP to build this habit.'
           : consistency < 0.7
@@ -430,6 +500,16 @@ class FinancialHealthScorer {
       description: 'Liquid savings vs 3-month expense cover',
       score: score,
       trend: monthsCovered >= 3 ? ScoreTrend.stable : ScoreTrend.declining,
+      reasons: [
+        'Liquid balance: ₹${_fmt(totalLiquid)}',
+        'Monthly expenses (avg): ₹${_fmt(monthlyExpense)}',
+        monthsCovered < 1
+            ? 'Buffer covers less than 1 month of expenses — critical gap'
+            : 'Buffer covers ${monthsCovered.toStringAsFixed(1)} months of expenses (target: 3–6)',
+      ],
+      improvementTip: monthsCovered < 3
+          ? 'Add ₹${_fmt(gap / 3)} per month for 3 months to reach a 3-month buffer.'
+          : 'Buffer is healthy. Consider growing to 6 months for extra security.',
       actionSentence: monthsCovered < 3
           ? 'Buffer covers ${monthsCovered.toStringAsFixed(1)} months — target 3. Gap: ₹${_fmt(gap)}.'
           : 'Emergency buffer is healthy at ${monthsCovered.toStringAsFixed(1)} months.',
