@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:vittara_fin_os/logic/goal_model.dart';
+import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/logic/transaction_model.dart';
 import 'package:vittara_fin_os/logic/transactions_controller.dart';
 import 'device_intelligence_tier.dart';
@@ -185,6 +186,7 @@ class AIIntelligenceController extends ChangeNotifier {
     List<Map<String, dynamic>>? budgets, // raw budget maps for predictions
     Map<String, double>? accountBalances, // accountId → current balance
     List<Goal>? goals, // for goal timeline analysis
+    List<Investment>? investments, // for FD maturity + portfolio checks
   }) async {
     if (_isComputing) return; // don't stack refreshes
 
@@ -242,6 +244,8 @@ class AIIntelligenceController extends ChangeNotifier {
           transactions: transactions,
           accountBalances: accountBalances,
           patterns: _patterns,
+          investments: investments,
+          budgets: budgets,
         );
       }
 

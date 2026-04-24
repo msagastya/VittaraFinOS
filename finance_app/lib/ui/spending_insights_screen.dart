@@ -15,6 +15,7 @@ import 'package:vittara_fin_os/ui/dashboard/widgets/insights_widget.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/styles/typography.dart';
+import 'package:vittara_fin_os/logic/ai/opportunity_spotter.dart';
 import 'package:vittara_fin_os/ui/widgets/common_widgets.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -245,6 +246,45 @@ class _SpendIntelBody extends StatelessWidget {
               SkeletonLoader.card(),
               const SizedBox(height: Spacing.md),
               SkeletonLoader.card(),
+            ],
+          ),
+        );
+      }),
+      // T-102: Opportunity chips — horizontal scrollable strip
+      Builder(builder: (ctx) {
+        final ai = ctx.watch<AIIntelligenceController>();
+        final opps = ai.topOpportunities;
+        if (opps.isEmpty) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.only(bottom: Spacing.lg),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Opportunities',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppStyles.getSecondaryTextColor(ctx),
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const SizedBox(height: Spacing.sm),
+              SizedBox(
+                height: 44,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: opps.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: Spacing.sm),
+                  itemBuilder: (ctx2, i) {
+                    final opp = opps[i];
+                    return _OpportunityChip(
+                      opportunity: opp,
+                      onTap: () => _showOpportunitySheet(ctx2, opp),
+                    );
+                  },
+                ),
+              ),
             ],
           ),
         );
@@ -2078,6 +2118,160 @@ class _TaxRow extends StatelessWidget {
                 color: trailingColor,
                 fontWeight: FontWeight.w500)),
       ],
+    );
+  }
+}
+
+// ─── T-102: Opportunity chip + bottom sheet ────────────────────────────────────
+
+void _showOpportunitySheet(BuildContext context, OpportunityTip opp) {
+  showCupertinoModalPopup<void>(
+    context: context,
+    builder: (_) => SafeArea(
+      top: false,
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+        padding: const EdgeInsets.all(Spacing.xl),
+        decoration: BoxDecoration(
+          color: AppStyles.getCardColor(context),
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: CupertinoColors.systemGrey5,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: Spacing.lg),
+            Row(
+              children: [
+                Icon(_oppIcon(opp.category),
+                    size: 20, color: AppStyles.aetherTeal),
+                const SizedBox(width: Spacing.sm),
+                Expanded(
+                  child: Text(
+                    opp.title,
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: AppStyles.getTextColor(context),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: Spacing.md),
+            Text(
+              opp.detail,
+              style: TextStyle(
+                fontSize: 14,
+                color: AppStyles.getSecondaryTextColor(context),
+                height: 1.5,
+              ),
+            ),
+            if (opp.potentialSavingOrGain > 0) ...[
+              const SizedBox(height: Spacing.md),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: Spacing.md, vertical: Spacing.sm),
+                decoration: BoxDecoration(
+                  color: AppStyles.accentGreen.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  'Potential: ₹${_fmtOpp(opp.potentialSavingOrGain)}/year',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppStyles.accentGreen,
+                  ),
+                ),
+              ),
+            ],
+            const SizedBox(height: Spacing.xl),
+            if (opp.actionLabel != null)
+              SizedBox(
+                width: double.infinity,
+                child: CupertinoButton.filled(
+                  borderRadius: BorderRadius.circular(14),
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(opp.actionLabel!),
+                ),
+              ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+IconData _oppIcon(OpportunityCategory cat) {
+  switch (cat) {
+    case OpportunityCategory.idleCash:
+      return CupertinoIcons.money_dollar_circle_fill;
+    case OpportunityCategory.budgetOptimization:
+      return CupertinoIcons.chart_pie_fill;
+    case OpportunityCategory.investmentGap:
+      return CupertinoIcons.chart_bar_alt_fill;
+    case OpportunityCategory.subscriptionAudit:
+      return CupertinoIcons.creditcard_fill;
+    case OpportunityCategory.emergencyFund:
+      return CupertinoIcons.shield_fill;
+  }
+}
+
+String _fmtOpp(double v) {
+  if (v >= 100000) return '${(v / 100000).toStringAsFixed(1)}L';
+  if (v >= 1000) return '${(v / 1000).toStringAsFixed(0)}K';
+  return v.toInt().toString();
+}
+
+class _OpportunityChip extends StatelessWidget {
+  final OpportunityTip opportunity;
+  final VoidCallback onTap;
+
+  const _OpportunityChip({required this.opportunity, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: AppStyles.aetherTeal.withValues(alpha: 0.10),
+          borderRadius: BorderRadius.circular(Radii.full),
+          border: Border.all(
+            color: AppStyles.aetherTeal.withValues(alpha: 0.3),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(_oppIcon(opportunity.category),
+                size: 13, color: AppStyles.aetherTeal),
+            const SizedBox(width: 6),
+            Text(
+              opportunity.title,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppStyles.aetherTeal,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
