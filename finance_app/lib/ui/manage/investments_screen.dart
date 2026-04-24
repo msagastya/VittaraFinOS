@@ -1155,7 +1155,9 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                 );
               });
             },
-            child: AnimatedContainer(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+              child: AnimatedContainer(
               duration: const Duration(milliseconds: 180),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
@@ -1197,7 +1199,8 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                   ),
                 ],
               ),
-            ),
+            ), // AnimatedContainer
+            ), // ConstrainedBox
           );
         },
       ),

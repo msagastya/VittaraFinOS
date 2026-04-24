@@ -1508,7 +1508,9 @@ class _DayCell extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: Column(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+        child: Column(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -1577,7 +1579,8 @@ class _DayCell extends StatelessWidget {
           else
             const SizedBox(height: 7), // placeholder to keep row height
         ],
-      ),
+      ), // Column
+      ), // ConstrainedBox
     );
   }
 }

@@ -392,7 +392,7 @@ class _ManageScreenState extends State<ManageScreen> {
                 onTap: () => _toggleSection(section.id),
                 behavior: HitTestBehavior.opaque,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: Spacing.sm),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
                   child: Row(
                     children: [
                       Container(

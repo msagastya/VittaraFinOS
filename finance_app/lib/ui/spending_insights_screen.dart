@@ -1042,7 +1042,7 @@ class _ExpandableCategoryTableState extends State<_ExpandableCategoryTable> {
               onTap: () => setState(
                   () => _expandedName = isExpanded ? null : drift.name),
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: Spacing.sm),
+                padding: const EdgeInsets.symmetric(vertical: 12),
                 child: Row(
                   children: [
                     Text(drift.emoji, style: AppTypography.callout()),
