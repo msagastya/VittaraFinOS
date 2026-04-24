@@ -63,6 +63,132 @@ class SpendingInsightsScreen extends StatelessWidget {
   }
 }
 
+/// Progress ring shown when the user has fewer than [targetCount] transactions.
+/// Encourages them to add more to unlock AI-powered insights.
+class _InsightsUnlockRing extends StatelessWidget {
+  final int transactionCount;
+  final int targetCount;
+  final bool isDark;
+
+  const _InsightsUnlockRing({
+    required this.transactionCount,
+    required this.targetCount,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final progress = (transactionCount / targetCount).clamp(0.0, 1.0);
+    final remaining = targetCount - transactionCount;
+    final cardBg = isDark
+        ? Colors.white.withValues(alpha: 0.04)
+        : Colors.black.withValues(alpha: 0.025);
+
+    return Container(
+      padding: const EdgeInsets.all(Spacing.lg),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(Radii.lg),
+        border: Border.all(
+          color: AppStyles.aetherTeal.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 56,
+            height: 56,
+            child: CustomPaint(
+              painter: _RingPainter(
+                progress: progress,
+                color: AppStyles.aetherTeal,
+                isDark: isDark,
+              ),
+              child: Center(
+                child: Text(
+                  '$transactionCount',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppStyles.aetherTeal,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: Spacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  remaining > 0
+                      ? 'Add $remaining more transaction${remaining == 1 ? '' : 's'} to unlock insights'
+                      : 'Insights are unlocking…',
+                  style: TextStyle(
+                    fontSize: TypeScale.subhead,
+                    fontWeight: FontWeight.w700,
+                    color: AppStyles.getTextColor(context),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Vittara learns your patterns and surfaces personalised signals as you track more.',
+                  style: TextStyle(
+                    fontSize: TypeScale.caption,
+                    color: AppStyles.getSecondaryTextColor(context),
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RingPainter extends CustomPainter {
+  final double progress;
+  final Color color;
+  final bool isDark;
+
+  const _RingPainter({
+    required this.progress,
+    required this.color,
+    required this.isDark,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2 - 4;
+    final trackPaint = Paint()
+      ..color = color.withValues(alpha: 0.15)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 5
+      ..strokeCap = StrokeCap.round;
+    final progressPaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 5
+      ..strokeCap = StrokeCap.round;
+    canvas.drawCircle(center, radius, trackPaint);
+    const startAngle = -3.14159 / 2; // top
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      startAngle,
+      2 * 3.14159 * progress,
+      false,
+      progressPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_RingPainter old) => old.progress != progress;
+}
+
 class _SpendIntelBody extends StatelessWidget {
   final SpendIntelData data;
   final bool isDark;
@@ -92,6 +218,16 @@ class _SpendIntelBody extends StatelessWidget {
 
     // Shared content list items
     final contentChildren = <Widget>[
+      // Insights unlock progress ring — shown when fewer than 7 transactions
+      if (transactions.length < 7)
+        Padding(
+          padding: const EdgeInsets.only(bottom: Spacing.lg),
+          child: _InsightsUnlockRing(
+            transactionCount: transactions.length,
+            targetCount: 7,
+            isDark: isDark,
+          ),
+        ),
       // Monthly narrative from AI Intelligence Controller
       Builder(builder: (ctx) {
         final ai = ctx.watch<AIIntelligenceController>();

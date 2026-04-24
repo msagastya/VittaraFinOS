@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -36,13 +37,21 @@ class _PensionWizardContentState extends State<_PensionWizardContent> {
   @override
   void initState() {
     super.initState();
+    // Lock to portrait for the duration of this wizard so orientation changes
+    // cannot rebuild the form and clear entered data.
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
     _pageController = PageController();
   }
 
   @override
   void dispose() {
     _pageController.dispose();
-    super.dispose();
+    // Restore all orientations when the wizard is dismissed.
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+        super.dispose();
   }
 
   Future<void> _saveInvestment(

@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
@@ -14,15 +15,35 @@ import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
-class DigitalGoldWizard extends StatelessWidget {
+class DigitalGoldWizard extends StatefulWidget {
   const DigitalGoldWizard({super.key, this.existingInvestment});
   final Investment? existingInvestment;
+
+  @override
+  State<DigitalGoldWizard> createState() => _DigitalGoldWizardState();
+}
+
+class _DigitalGoldWizardState extends State<DigitalGoldWizard> {
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+  }
+
+  @override
+  void dispose() {
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => DigitalGoldWizardController(),
-      child: _DigitalGoldWizardContent(existingInvestment: existingInvestment),
+      child: _DigitalGoldWizardContent(existingInvestment: widget.existingInvestment),
     );
   }
 }

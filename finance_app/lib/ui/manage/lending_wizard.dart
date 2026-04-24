@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart' as flutter_contacts;
@@ -51,6 +52,12 @@ class _LendingWizardState extends State<LendingWizard> {
   @override
   void initState() {
     super.initState();
+    // Lock to portrait for the duration of this wizard so orientation changes
+    // cannot rebuild the form and clear entered data.
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
     // Pre-populate fields if editing existing record
     if (widget.existingRecord != null) {
       final record = widget.existingRecord!;
@@ -72,7 +79,9 @@ class _LendingWizardState extends State<LendingWizard> {
     _amountController.dispose();
     _descriptionController.dispose();
     _searchController.dispose();
-    super.dispose();
+    // Restore all orientations when the wizard is dismissed.
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+        super.dispose();
   }
 
   void _nextStep() {

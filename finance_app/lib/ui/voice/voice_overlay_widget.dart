@@ -13,15 +13,27 @@ class VoiceOverlayWidget extends StatelessWidget {
   const VoiceOverlayWidget({super.key});
 
   /// Shows the voice overlay and returns the confirmed [VoiceResult] or null.
-  static Future<VoiceResult?> show(BuildContext context) {
-    return showCupertinoModalPopup<VoiceResult?>(
+  static Future<VoiceResult?> show(BuildContext context) async {
+    // Lock to portrait so orientation changes cannot interrupt an active
+    // voice session mid-utterance or cause the overlay to misbehave.
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+    final voice = context.read<VoiceController>();
+    final result = await showCupertinoModalPopup<VoiceResult?>(
       context: context,
       barrierColor: Colors.black87,
       builder: (_) => ChangeNotifierProvider.value(
-        value: context.read<VoiceController>(),
+        value: voice,
         child: const VoiceOverlayWidget(),
       ),
     );
+    // Restore all orientations after the overlay is dismissed.
+    await SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+    // Guarantee mic is dead regardless of how the modal was closed.
+    if (voice.state != VoiceState.idle) voice.cancel();
+    return result;
   }
 
   @override
@@ -46,10 +58,9 @@ class VoiceOverlayWidget extends StatelessWidget {
 
         return GestureDetector(
           onTap: () {
-            if (voice.state == VoiceState.idle || voice.state == VoiceState.error) {
-              voice.cancel();
-              Navigator.of(context).pop(null);
-            }
+            // Cancel unconditionally — kills mic even if STT is mid-session.
+            voice.cancel();
+            Navigator.of(context).pop(null);
           },
           child: Container(
             color: Colors.transparent,
@@ -132,6 +143,15 @@ class VoiceOverlayWidget extends StatelessWidget {
                           fontSize: 15,
                           color: AppStyles.getSecondaryTextColor(context),
                         ),
+                      ),
+                    ),
+                    const SizedBox(height: Spacing.sm),
+                    Text(
+                      'Tap anywhere outside to dismiss',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppStyles.getSecondaryTextColor(context)
+                            .withValues(alpha: 0.5),
                       ),
                     ),
                   ],

@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
@@ -30,13 +31,21 @@ class _RDWizardScreenState extends State<RDWizardScreen> {
   @override
   void initState() {
     super.initState();
+    // Lock to portrait for the duration of this wizard so orientation changes
+    // cannot rebuild the form and clear entered data.
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
     _controller = RDWizardController();
   }
 
   @override
   void dispose() {
     _controller.dispose();
-    super.dispose();
+    // Restore all orientations when the wizard is dismissed.
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+        super.dispose();
   }
 
   Widget _buildStepContent(int step) {

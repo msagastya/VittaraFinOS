@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
@@ -17,15 +18,35 @@ import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 
-class MFWizard extends StatelessWidget {
+class MFWizard extends StatefulWidget {
   final MFWizardIntent? intent;
 
   const MFWizard({super.key, this.intent});
 
   @override
+  State<MFWizard> createState() => _MFWizardState();
+}
+
+class _MFWizardState extends State<MFWizard> {
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+  }
+
+  @override
+  void dispose() {
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => MFWizardController(intent: intent),
+      create: (_) => MFWizardController(intent: widget.intent),
       child: const _MFWizardContent(),
     );
   }

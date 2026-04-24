@@ -58,6 +58,12 @@ class _InsuranceWizardState extends State<InsuranceWizard> {
   @override
   void initState() {
     super.initState();
+    // Lock to portrait for the duration of this wizard so orientation changes
+    // cannot rebuild the form and clear entered data.
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
     final p = widget.existingPolicy;
     if (p != null) {
       _selectedType = p.type;
@@ -95,7 +101,9 @@ class _InsuranceWizardState extends State<InsuranceWizard> {
     _premPayingTermController.dispose();
     _nomineeController.dispose();
     _notesController.dispose();
-    super.dispose();
+    // Restore all orientations when the wizard is dismissed.
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+        super.dispose();
   }
 
   void _nextStep() {

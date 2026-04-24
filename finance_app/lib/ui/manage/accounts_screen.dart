@@ -44,8 +44,16 @@ class _AccountsScreenState extends State<AccountsScreen> {
   static String _persistedSearchQuery = '';
 
   final AppLogger logger = AppLogger();
-  final PageController _categoryPageController = PageController();
+  // Initialised with the current step index so that if the widget tree is
+  // ever rebuilt (orientation change with lock not in effect), the PageView
+  // restores to the correct category rather than jumping to index 0.
+  late final PageController _categoryPageController;
   int _selectedCategoryIndex = 0;
+
+  // Tab strip real-position sync
+  final ScrollController _tabStripController = ScrollController();
+  final List<GlobalKey> _tabKeys = [];
+  final List<double> _tabOffsets = [];
   String _searchQuery = '';
   late final TextEditingController _searchController;
 
@@ -60,6 +68,10 @@ class _AccountsScreenState extends State<AccountsScreen> {
     super.initState();
     _searchQuery = _persistedSearchQuery;
     _searchController = TextEditingController(text: _persistedSearchQuery);
+    // Use _selectedCategoryIndex so rebuild after an orientation event (if the
+    // lock is ever not in effect) restores the correct tab, not tab 0.
+    _categoryPageController = PageController(initialPage: _selectedCategoryIndex);
+    _categoryPageController.addListener(_syncTabStripOnDrag);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<AccountsController>(context, listen: false)
           .addListener(_onAccountsChanged);
@@ -71,11 +83,48 @@ class _AccountsScreenState extends State<AccountsScreen> {
     _lastCacheKey = '';
   }
 
+  void _syncTabStripOnDrag() {
+    if (!_categoryPageController.hasClients) return;
+    if (!_tabStripController.hasClients) return;
+    if (_tabOffsets.isEmpty) return;
+    final page = _categoryPageController.page ?? _selectedCategoryIndex.toDouble();
+    final lo = page.floor().clamp(0, _tabOffsets.length - 1);
+    final hi = page.ceil().clamp(0, _tabOffsets.length - 1);
+    final t = page - page.floor();
+    final offset = lo == hi
+        ? _tabOffsets[lo]
+        : _tabOffsets[lo] + (_tabOffsets[hi] - _tabOffsets[lo]) * t;
+    _tabStripController.jumpTo(
+      offset.clamp(0.0, _tabStripController.position.maxScrollExtent),
+    );
+  }
+
+  void _measureTabOffsets() {
+    if (!_tabStripController.hasClients) return;
+    final stripWidth = _tabStripController.position.viewportDimension;
+    _tabOffsets.clear();
+    for (final key in _tabKeys) {
+      final ctx = key.currentContext;
+      if (ctx == null) { _tabOffsets.add(0); continue; }
+      final box = ctx.findRenderObject() as RenderBox?;
+      if (box == null) { _tabOffsets.add(0); continue; }
+      final tabStart = box.localToGlobal(Offset.zero).dx +
+          _tabStripController.position.pixels;
+      final tabWidth = box.size.width;
+      _tabOffsets.add(
+        (tabStart - stripWidth / 2 + tabWidth / 2)
+            .clamp(0.0, _tabStripController.position.maxScrollExtent),
+      );
+    }
+  }
+
   @override
   void dispose() {
     Provider.of<AccountsController>(context, listen: false)
         .removeListener(_onAccountsChanged);
+    _categoryPageController.removeListener(_syncTabStripOnDrag);
     _categoryPageController.dispose();
+    _tabStripController.dispose();
     _searchController.dispose();
     super.dispose();
   }
@@ -600,9 +649,19 @@ class _AccountsScreenState extends State<AccountsScreen> {
   }
 
   Widget _buildCategoryTabs(List<AccountType> types, List<Account> accounts) {
+    // Ensure GlobalKeys match tab count; measure positions after first frame.
+    if (_tabKeys.length != types.length) {
+      _tabKeys
+        ..clear()
+        ..addAll(List.generate(types.length, (_) => GlobalKey()));
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _measureTabOffsets();
+      });
+    }
     return SizedBox(
       height: 88,
       child: ListView.separated(
+        controller: _tabStripController,
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
         itemCount: types.length,
@@ -612,6 +671,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
           final isSelected = index == _selectedCategoryIndex;
           final total = _getTotalByType(accounts, type);
           return BouncyButton(
+            key: _tabKeys[index],
             onPressed: () {
               setState(() => _selectedCategoryIndex = index);
               _categoryPageController.animateToPage(
@@ -619,6 +679,16 @@ class _AccountsScreenState extends State<AccountsScreen> {
                 duration: const Duration(milliseconds: 280),
                 curve: Curves.easeOutCubic,
               );
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (_tabStripController.hasClients &&
+                    _tabOffsets.length > index) {
+                  _tabStripController.animateTo(
+                    _tabOffsets[index],
+                    duration: const Duration(milliseconds: 260),
+                    curve: Curves.easeOutCubic,
+                  );
+                }
+              });
             },
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),

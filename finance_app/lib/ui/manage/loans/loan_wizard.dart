@@ -54,6 +54,12 @@ class _LoanWizardState extends State<LoanWizard> {
   @override
   void initState() {
     super.initState();
+    // Lock to portrait for the duration of this wizard so orientation changes
+    // cannot rebuild the form and clear entered data.
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
     final l = widget.existingLoan;
     if (l != null) {
       _selectedType = l.type;
@@ -85,7 +91,9 @@ class _LoanWizardState extends State<LoanWizard> {
     _tenureController.dispose();
     _remainingController.dispose();
     _notesController.dispose();
-    super.dispose();
+    // Restore all orientations when the wizard is dismissed.
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+        super.dispose();
   }
 
   void _nextStep() {

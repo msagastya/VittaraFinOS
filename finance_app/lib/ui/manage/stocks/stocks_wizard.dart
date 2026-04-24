@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/accounts_controller.dart';
 import 'package:vittara_fin_os/logic/investments_controller.dart';
@@ -15,17 +16,37 @@ import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart' as toast_lib;
 
-class StocksWizard extends StatelessWidget {
+class StocksWizard extends StatefulWidget {
   const StocksWizard({super.key, this.existingInvestment});
 
   /// When set, the stock search step (step 0) is pre-filled and skipped.
   final Investment? existingInvestment;
 
   @override
+  State<StocksWizard> createState() => _StocksWizardState();
+}
+
+class _StocksWizardState extends State<StocksWizard> {
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+  }
+
+  @override
+  void dispose() {
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) =>
-          StocksWizardController(existingInvestment: existingInvestment),
+          StocksWizardController(existingInvestment: widget.existingInvestment),
       child: const _StocksWizardContent(),
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
 import 'package:vittara_fin_os/ui/manage/mf/sip_wizard_controller.dart';
@@ -10,7 +11,7 @@ import 'package:vittara_fin_os/ui/manage/mf/steps/sip_review_step.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 
-class SIPWizard extends StatelessWidget {
+class SIPWizard extends StatefulWidget {
   final Map<String, dynamic>? initialData;
   final Account? initialAccount;
 
@@ -21,11 +22,31 @@ class SIPWizard extends StatelessWidget {
   });
 
   @override
+  State<SIPWizard> createState() => _SIPWizardState();
+}
+
+class _SIPWizardState extends State<SIPWizard> {
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+  }
+
+  @override
+  void dispose() {
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => SIPWizardController(
-        initialData: initialData,
-        initialAccount: initialAccount,
+        initialData: widget.initialData,
+        initialAccount: widget.initialAccount,
       ),
       child: const _SIPWizardContent(),
     );

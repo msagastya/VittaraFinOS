@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:provider/provider.dart';
@@ -54,6 +55,12 @@ class _SimpleInvestmentEntryWizardState
   @override
   void initState() {
     super.initState();
+    // Lock to portrait for the duration of this wizard so orientation changes
+    // cannot rebuild the form and clear entered data.
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
     _nameController = TextEditingController(text: widget.defaultName);
   }
 
@@ -64,7 +71,9 @@ class _SimpleInvestmentEntryWizardState
     _currentValueController.dispose();
     _referenceController.dispose();
     _notesController.dispose();
-    super.dispose();
+    // Restore all orientations when the wizard is dismissed.
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+        super.dispose();
   }
 
   Future<void> _pickDate() async {

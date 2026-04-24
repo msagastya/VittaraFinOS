@@ -204,8 +204,18 @@ class _LendingBorrowingScreenState extends State<LendingBorrowingScreen> {
                                 : _selectedTab == 1
                                     ? 'No borrowing records yet'
                                     : 'No settled records yet',
-                        subtitle: _searchQuery.isEmpty && _selectedTab == 2
-                            ? 'Settled records will appear here.'
+                        subtitle: _searchQuery.isNotEmpty
+                            ? null
+                            : _selectedTab == 0
+                                ? 'Track money you\'ve lent to friends or family.'
+                                : _selectedTab == 1
+                                    ? 'Track money you\'ve borrowed from others.'
+                                    : 'Settled records will appear here.',
+                        actionLabel: _searchQuery.isEmpty && _selectedTab != 2
+                            ? (_selectedTab == 0 ? 'Record a lend' : 'Record a borrow')
+                            : null,
+                        onAction: _searchQuery.isEmpty && _selectedTab != 2
+                            ? () => _showLendingTypeModal(context)
                             : null,
                         showPulse: false,
                       )

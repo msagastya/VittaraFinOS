@@ -671,11 +671,12 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           final transactions = _filterBySearch(allTransactions);
 
           if (allTransactions.isEmpty) {
-            return const EmptyStateView(
+            return EmptyStateView(
               icon: CupertinoIcons.doc_text,
-              title: 'No Transactions Yet',
-              subtitle: 'Transfers and other transactions will appear here',
-              actionLabel: null,
+              title: 'No transactions yet',
+              subtitle: 'Your spending, income, and transfers will appear here.',
+              actionLabel: 'Add your first transaction',
+              onAction: () => showQuickEntrySheet(context),
             );
           }
 

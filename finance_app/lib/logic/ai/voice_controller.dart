@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'device_intelligence_tier.dart';
@@ -41,7 +42,7 @@ class VoiceResult {
 ///
 /// Register as a ChangeNotifier provider. The UI listens to [state] and
 /// [currentQuestion] to drive the voice overlay.
-class VoiceController extends ChangeNotifier {
+class VoiceController extends ChangeNotifier with WidgetsBindingObserver {
   final SpeechToText _stt = SpeechToText();
   final FlutterTts _tts = FlutterTts();
 
@@ -72,10 +73,31 @@ class VoiceController extends ChangeNotifier {
 
   Timer? _countdownTimer;
 
+  /// Hard session timeout — if the mic has been open for this long without
+  /// resolution, cancel automatically to prevent zombie sessions.
+  static const _kMaxSessionSeconds = 45;
+  Timer? _sessionTimeoutTimer;
+
   IntelligenceTier _tier = IntelligenceTier.entry;
 
   late VoiceFillEngine _fillEngine;
   bool _initialized = false;
+
+  // ── App lifecycle ─────────────────────────────────────────────────────────
+
+  /// Kill the mic immediately when the app is backgrounded or killed.
+  /// This prevents the "microphone keeps running after leaving the screen"
+  /// zombie bug where STT stays alive even when the app is in recents.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached ||
+        state == AppLifecycleState.hidden) {
+      if (_state != VoiceState.idle) {
+        cancel();
+      }
+    }
+  }
 
   // ── Init ───────────────────────────────────────────────────────────────────
 
@@ -87,8 +109,18 @@ class VoiceController extends ChangeNotifier {
     if (_initialized) return;
     _tier = tier;
 
+    // Register for lifecycle events so the mic is killed on app background.
+    WidgetsBinding.instance.addObserver(this);
+
     final available = await _stt.initialize(
       onError: (e) => _onSttError(e.errorMsg),
+      onStatus: (status) {
+        // If STT reports it stopped listening while our state still thinks
+        // it's active, sync up so the UI doesn't show a stuck mic indicator.
+        if (status == 'notListening' && _state == VoiceState.listening) {
+          _setState(VoiceState.idle);
+        }
+      },
     );
     if (!available) {
       debugPrint('[VoiceController] STT not available on this device');
@@ -135,6 +167,7 @@ class VoiceController extends ChangeNotifier {
     _transcript = '';
     notifyListeners();
     HapticFeedback.lightImpact(); // signal mic is open
+    _resetSessionTimeout(); // start 45s hard kill timer
 
     _stt.listen(
       onResult: (result) {
@@ -226,6 +259,7 @@ class VoiceController extends ChangeNotifier {
     _transcript = '';
     notifyListeners();
     HapticFeedback.lightImpact(); // signal mic is open
+    _resetSessionTimeout(); // restart 45s hard kill timer for follow-up
 
     _stt.listen(
       onResult: (result) {
@@ -295,10 +329,34 @@ class VoiceController extends ChangeNotifier {
     _autoListenCountdown = null;
   }
 
+  // ── Session timeout ───────────────────────────────────────────────────────
+
+  /// Starts (or restarts) the 45-second hard-kill timer.
+  /// If the session is still active when it fires, cancel() is called
+  /// automatically — prevents zombie mic sessions.
+  void _resetSessionTimeout() {
+    _sessionTimeoutTimer?.cancel();
+    _sessionTimeoutTimer = Timer(
+      const Duration(seconds: _kMaxSessionSeconds),
+      () {
+        if (_state != VoiceState.idle) {
+          debugPrint('[VoiceController] Session timeout — auto-cancelling.');
+          cancel();
+        }
+      },
+    );
+  }
+
+  void _cancelSessionTimeout() {
+    _sessionTimeoutTimer?.cancel();
+    _sessionTimeoutTimer = null;
+  }
+
   // ── Confirm / Cancel ──────────────────────────────────────────────────────
 
   /// Called by UI when user taps "Confirm".
   void confirm() {
+    _cancelSessionTimeout();
     _fillEngine.reset();
     _currentQuestion = null;
     _setState(VoiceState.idle);
@@ -308,6 +366,9 @@ class VoiceController extends ChangeNotifier {
   /// Called by UI when user taps "Edit" or "Cancel".
   void cancel() {
     _cancelCountdown();
+    _cancelSessionTimeout();
+    _stt.cancel();
+    _tts.stop();
     _fillEngine.reset();
     _currentQuestion = null;
     _pendingResult = null;
@@ -348,7 +409,9 @@ class VoiceController extends ChangeNotifier {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _cancelCountdown();
+    _cancelSessionTimeout();
     _stt.cancel();
     _tts.stop();
     super.dispose();

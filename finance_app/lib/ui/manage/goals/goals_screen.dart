@@ -227,12 +227,23 @@ class _GoalsScreenState extends State<GoalsScreen> {
               // Goals List
               if (filteredGoals.isEmpty)
                 SliverFillRemaining(
-                  child: EmptyStateView(
-                    icon: CupertinoIcons.search,
-                    title: 'No goals found',
-                    subtitle: 'Try adjusting your search or filter.',
-                    showPulse: false,
-                  ),
+                  child: controller.activeGoals.isEmpty &&
+                          _searchQuery.isEmpty &&
+                          _filterType == null
+                      ? EmptyStateView(
+                          icon: CupertinoIcons.star_circle_fill,
+                          title: 'No goals yet',
+                          subtitle:
+                              'Save for something you care about — a trip, gadget, or emergency fund.',
+                          actionLabel: 'Create a goal',
+                          onAction: () => _showAddGoalModal(),
+                        )
+                      : EmptyStateView(
+                          icon: CupertinoIcons.search,
+                          title: 'No goals found',
+                          subtitle: 'Try adjusting your search or filter.',
+                          showPulse: false,
+                        ),
                 )
               else
                 SliverPadding(

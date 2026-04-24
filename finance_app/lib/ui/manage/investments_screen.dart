@@ -86,7 +86,9 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
   bool _isPnLExpanded = false; // P&L row collapsed by default to save space
   bool _isAllocationExpanded = false; // Allocation collapsed by default
   InvestmentType? _selectedFilter; // null = All investments
-  final PageController _categoryPageController = PageController();
+  // initialPage is set in initState using _selectedCategoryIndex so a rebuild
+  // after an orientation change restores the correct tab, not tab 0.
+  late PageController _categoryPageController;
   int _selectedCategoryIndex = 0;
 
   // Sort options
@@ -112,8 +114,12 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _showScrollToTop = false;
 
-  // Category tab strip scroll controller — used to keep active tab visible
+  // Category tab strip scroll controller — used to keep active tab visible.
+  // Tab positions (measured via GlobalKeys) are stored in _tabPositions so
+  // the strip can track the PageView continuously during drag, not just on snap.
   final ScrollController _tabStripController = ScrollController();
+  final List<GlobalKey> _tabKeys = [];
+  final List<double> _tabOffsets = []; // scroll offset for each tab to be centred
 
   static const _prefKeySortBy = 'inv_sort';
   static const _prefKeySortAsc = 'inv_sort_asc';
@@ -141,6 +147,11 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     super.initState();
     _searchQuery = _persistedSearchQuery;
     _searchController = TextEditingController(text: _persistedSearchQuery);
+    _categoryPageController = PageController(initialPage: _selectedCategoryIndex);
+    // Continuously sync header strip while user drags the PageView.
+    // .page is a double (e.g. 1.4) during drag — interpolating between
+    // adjacent tab offsets gives frame-synchronous header tracking.
+    _categoryPageController.addListener(_syncTabStripOnDrag);
     _loadSortPrefs();
     _scrollController.addListener(_onScroll);
     // Initialise once so FutureBuilder always gets the same Future instance
@@ -184,11 +195,70 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
   void dispose() {
     final ctrl = Provider.of<InvestmentsController>(context, listen: false);
     ctrl.removeListener(_onInvestmentsChanged);
+    _categoryPageController.removeListener(_syncTabStripOnDrag);
     _categoryPageController.dispose();
     _searchController.dispose();
     _scrollController.dispose();
     _tabStripController.dispose();
     super.dispose();
+  }
+
+  // ── Tab strip continuous sync ─────────────────────────────────────────────
+
+  /// Called every frame while the PageView is being dragged.
+  /// Interpolates between measured tab offsets so the header strip tracks
+  /// content in real-time rather than only jumping at page snap boundaries.
+  void _syncTabStripOnDrag() {
+    if (!_categoryPageController.hasClients) return;
+    if (!_tabStripController.hasClients) return;
+    if (_tabOffsets.isEmpty) return;
+
+    final page = _categoryPageController.page ?? _selectedCategoryIndex.toDouble();
+    final lo = page.floor().clamp(0, _tabOffsets.length - 1);
+    final hi = page.ceil().clamp(0, _tabOffsets.length - 1);
+    final t = page - page.floor(); // fractional part [0.0, 1.0]
+
+    final offset = lo == hi
+        ? _tabOffsets[lo]
+        : _tabOffsets[lo] + (_tabOffsets[hi] - _tabOffsets[lo]) * t;
+
+    _tabStripController.jumpTo(
+      offset.clamp(0.0, _tabStripController.position.maxScrollExtent),
+    );
+  }
+
+  /// Measures each tab pill's rendered position and computes the scroll offset
+  /// that centres that tab in the strip viewport.
+  /// Called once after the first build when tabs are rendered.
+  void _measureTabOffsets() {
+    if (!_tabStripController.hasClients) return;
+    final stripWidth = _tabStripController.position.viewportDimension;
+    _tabOffsets.clear();
+    for (final key in _tabKeys) {
+      final ctx = key.currentContext;
+      if (ctx == null) {
+        _tabOffsets.add(0);
+        continue;
+      }
+      final box = ctx.findRenderObject() as RenderBox?;
+      if (box == null) {
+        _tabOffsets.add(0);
+        continue;
+      }
+      // Position of the tab relative to the strip's scroll content
+      final tabStart = box.localToGlobal(Offset.zero).dx +
+          _tabStripController.position.pixels -
+          // Adjust for the strip's own screen position
+          (_tabStripController.position.viewportDimension > 0
+              ? 0
+              : 0);
+      final tabWidth = box.size.width;
+      final centred = tabStart - (stripWidth / 2) + (tabWidth / 2);
+      _tabOffsets.add(centred.clamp(
+        0.0,
+        _tabStripController.position.maxScrollExtent,
+      ));
+    }
   }
 
   String _getSortLabel(SortBy sort) {
@@ -1024,6 +1094,17 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
     List<Investment> investments,
     List<InvestmentType?> categories,
   ) {
+    // Ensure we have one GlobalKey per tab. Re-measure offsets after the first
+    // frame so _syncTabStripOnDrag uses real positions, not approximations.
+    if (_tabKeys.length != categories.length) {
+      _tabKeys
+        ..clear()
+        ..addAll(List.generate(categories.length, (_) => GlobalKey()));
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _measureTabOffsets();
+      });
+    }
+
     return SizedBox(
       height: 60,
       child: ListView.separated(
@@ -1041,6 +1122,7 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
               ? SemanticColors.investments
               : _getInvestmentTypeColor(type);
           return BouncyButton(
+            key: _tabKeys[index],
             onPressed: () {
               setState(() {
                 _selectedCategoryIndex = index;
@@ -1051,10 +1133,19 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
                 duration: const Duration(milliseconds: 260),
                 curve: Curves.easeOutCubic,
               );
-              // Scroll tab strip so selected tab is centered
+              // Scroll tab strip so selected tab is centred using measured offset.
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (!_tabStripController.hasClients) return;
-                final tabWidth = 90.0; // approximate tab width incl. separator
+                if (_tabOffsets.length > index) {
+                  _tabStripController.animateTo(
+                    _tabOffsets[index],
+                    duration: const Duration(milliseconds: 260),
+                    curve: Curves.easeOutCubic,
+                  );
+                  return;
+                }
+                // Fallback to approximation if offsets not yet measured.
+                final tabWidth = 90.0;
                 final stripWidth = _tabStripController.position.viewportDimension;
                 final target = (index * tabWidth) - (stripWidth / 2) + (tabWidth / 2);
                 _tabStripController.animateTo(
@@ -1425,17 +1516,18 @@ class _InvestmentsScreenState extends State<InvestmentsScreen> {
             _selectedCategoryIndex = index;
             _selectedFilter = categories[index];
           });
-          // Keep the active tab visible in the tab strip
+          // Keep the active tab visible in the tab strip — use measured offsets.
+          // The continuous drag listener (_syncTabStripOnDrag) already tracks
+          // mid-swipe; this ensures the final snap position is also correct.
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (!_tabStripController.hasClients) return;
-            const tabWidth = 90.0;
-            final stripWidth = _tabStripController.position.viewportDimension;
-            final target = (index * tabWidth) - (stripWidth / 2) + (tabWidth / 2);
-            _tabStripController.animateTo(
-              target.clamp(0.0, _tabStripController.position.maxScrollExtent),
-              duration: const Duration(milliseconds: 260),
-              curve: Curves.easeOutCubic,
-            );
+            if (_tabOffsets.length > index) {
+              _tabStripController.animateTo(
+                _tabOffsets[index],
+                duration: const Duration(milliseconds: 260),
+                curve: Curves.easeOutCubic,
+              );
+            }
           });
         },
         itemBuilder: (context, pageIndex) {
