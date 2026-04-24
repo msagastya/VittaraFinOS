@@ -46,6 +46,7 @@ import 'package:vittara_fin_os/logic/goal_model.dart';
 import 'package:vittara_fin_os/logic/recurring_template_model.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/services/usage_tracker_service.dart';
+import 'package:vittara_fin_os/ui/onboarding/onboarding_activation_screen.dart';
 import 'package:vittara_fin_os/ui/styles/app_springs.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/typography.dart';
@@ -777,33 +778,30 @@ class _SplashScreenState extends State<SplashScreen> {
     logger.info("Navigating from SplashScreen", context: 'SplashScreen');
     Provider.of<SettingsController>(context, listen: false).setAppLoaded();
 
-      final done = await hasCompletedOnboarding();
+      final v1Done = await hasCompletedOnboarding();
+      final v2Done = await hasCompletedActivation();
       if (!mounted) return;
 
-      if (done) {
+      void _goToDashboard() {
         Navigator.of(context).pushReplacement(
             FadeScalePageRoute(page: const DashboardScreen()));
         _triggerSmsStartupScan();
         _checkAndShowWhatsNew();
         _showDeviceSecurityWarningIfNeeded();
-        // UTL-04: daily auto-backup (fire-and-forget, max once per day)
         BackupRestoreService.runAutoBackupIfNeeded();
-        // Phase 1 AI init — fire-and-forget, never blocks UI
         DeviceIntelligenceTier.detect();
         MerchantNormalizer.init();
+      }
+
+      if (v1Done || v2Done) {
+        // Existing user (v1) or activation-complete user (v2) → dashboard
+        _goToDashboard();
       } else {
+        // New user → show activation wizard
         Navigator.of(context).pushReplacement(
           FadeScalePageRoute(
-            page: OnboardingScreen(
-              onComplete: (ctx) {
-                Navigator.of(ctx).pushReplacement(
-                    FadeScalePageRoute(page: const DashboardScreen()));
-                _triggerSmsStartupScan();
-                if (mounted) _checkAndShowWhatsNew();
-                BackupRestoreService.runAutoBackupIfNeeded();
-                DeviceIntelligenceTier.detect();
-                MerchantNormalizer.init();
-              },
+            page: OnboardingActivationScreen(
+              onComplete: _goToDashboard,
             ),
           ),
         );
