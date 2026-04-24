@@ -45,6 +45,7 @@ import 'package:vittara_fin_os/logic/loan_model.dart';
 import 'package:vittara_fin_os/logic/goal_model.dart';
 import 'package:vittara_fin_os/logic/recurring_template_model.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
+import 'package:vittara_fin_os/services/usage_tracker_service.dart';
 import 'package:vittara_fin_os/ui/styles/app_springs.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/typography.dart';
@@ -414,8 +415,30 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           ),
         );
       },
+      navigatorObservers: [_UsageRouteObserver()],
       home: const SplashScreen(),
     );
+  }
+}
+
+/// Tracks every named route push/replace in [UsageTrackerService].
+class _UsageRouteObserver extends NavigatorObserver {
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    final name = route.settings.name;
+    if (name != null && name.isNotEmpty) {
+      UsageTrackerService.instance.record(name);
+    }
+    super.didPush(route, previousRoute);
+  }
+
+  @override
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
+    final name = newRoute?.settings.name;
+    if (name != null && name.isNotEmpty) {
+      UsageTrackerService.instance.record(name);
+    }
+    super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
   }
 }
 

@@ -26,6 +26,9 @@ import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
 import 'package:vittara_fin_os/ui/widgets/animations.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
+import 'package:vittara_fin_os/services/usage_tracker_service.dart';
+import 'package:vittara_fin_os/ui/transaction_history_screen.dart';
+import 'package:vittara_fin_os/ui/manage/budgets/budgets_screen.dart';
 
 // ---------------------------------------------------------------------------
 // EngagementStripWidget — single compact row replacing the two tall cards.
@@ -507,7 +510,7 @@ class _QuickAccessPill extends StatelessWidget {
   }
 }
 
-class _QuickAccessSheet extends StatelessWidget {
+class _QuickAccessSheet extends StatefulWidget {
   final BuildContext parentContext;
   final bool isLandscapeDialog;
   const _QuickAccessSheet({
@@ -516,25 +519,95 @@ class _QuickAccessSheet extends StatelessWidget {
   });
 
   @override
+  State<_QuickAccessSheet> createState() => _QuickAccessSheetState();
+}
+
+class _QuickAccessSheetState extends State<_QuickAccessSheet> {
+  static const _defaultRoutes = [
+    '/transactions', '/budgets', '/calendar', '/investments'
+  ];
+
+  List<_QAItem> _allItems(BuildContext context) => [
+    _QAItem('Transactions', CupertinoIcons.arrow_right_arrow_left_circle_fill, SemanticColors.info,
+        () => Navigator.of(widget.parentContext).push(FadeScalePageRoute(page: const TransactionHistoryScreen()))),
+    _QAItem('Budgets', CupertinoIcons.chart_bar_fill, AppStyles.novaPurple,
+        () => Navigator.of(widget.parentContext).push(FadeScalePageRoute(page: const BudgetsScreen()))),
+    _QAItem('Calendar', CupertinoIcons.calendar_badge_plus, AppStyles.aetherTeal,
+        () => Navigator.of(widget.parentContext).push(FadeScalePageRoute(page: const FinancialCalendarScreen()))),
+    _QAItem('Investments', CupertinoIcons.graph_square_fill, SemanticColors.investments,
+        () => Navigator.of(widget.parentContext).push(FadeScalePageRoute(page: const InvestmentsScreen()))),
+    _QAItem('Manage', CupertinoIcons.square_grid_2x2_fill, SemanticColors.accounts,
+        () => Navigator.of(widget.parentContext).push(FadeScalePageRoute(page: const ManageScreen()))),
+    _QAItem('Settings', CupertinoIcons.settings_solid, SemanticColors.tags,
+        () => Navigator.of(widget.parentContext).push(FadeScalePageRoute(page: const SettingsScreen()))),
+    _QAItem('Reports', CupertinoIcons.chart_bar_square_fill, SemanticColors.info,
+        () => Navigator.of(widget.parentContext).push(FadeScalePageRoute(page: const ReportsAnalysisScreen()))),
+    _QAItem('Statement', CupertinoIcons.doc_text_fill, SemanticColors.primary,
+        () => showMonthlyStatementSheet(widget.parentContext)),
+    _QAItem('Import', CupertinoIcons.arrow_down_doc_fill, AppStyles.accentTeal,
+        () => Navigator.of(widget.parentContext).push(FadeScalePageRoute(page: const CsvImportScreen()))),
+    _QAItem('Achievements', CupertinoIcons.star_fill, AppStyles.solarGold,
+        () => Navigator.of(widget.parentContext).push(FadeScalePageRoute(page: const AchievementsScreen()))),
+  ];
+
+  static const _labelToRoute = {
+    'Transactions': '/transactions',
+    'Budgets': '/budgets',
+    'Calendar': '/calendar',
+    'Investments': '/investments',
+    'Manage': '/manage',
+    'Settings': '/settings',
+    'Reports': '/reports',
+    'Statement': '/statement',
+    'Import': '/import',
+    'Achievements': '/achievements',
+  };
+
+  @override
   Widget build(BuildContext context) {
     final isDark = AppStyles.isDarkMode(context);
 
-    final items = [
-      _QAItem('Manage', CupertinoIcons.square_grid_2x2_fill, SemanticColors.accounts,
-          () => Navigator.of(parentContext).push(FadeScalePageRoute(page: const ManageScreen()))),
-      _QAItem('Settings', CupertinoIcons.settings_solid, SemanticColors.tags,
-          () => Navigator.of(parentContext).push(FadeScalePageRoute(page: const SettingsScreen()))),
-      _QAItem('Reports', CupertinoIcons.chart_bar_square_fill, SemanticColors.info,
-          () => Navigator.of(parentContext).push(FadeScalePageRoute(page: const ReportsAnalysisScreen()))),
-      _QAItem('Calendar', CupertinoIcons.calendar_badge_plus, AppStyles.aetherTeal,
-          () => Navigator.of(parentContext).push(FadeScalePageRoute(page: const FinancialCalendarScreen()))),
-      _QAItem('Statement', CupertinoIcons.doc_text_fill, SemanticColors.primary,
-          () => showMonthlyStatementSheet(parentContext)),
-      _QAItem('Import', CupertinoIcons.arrow_down_doc_fill, AppStyles.accentTeal,
-          () => Navigator.of(parentContext).push(FadeScalePageRoute(page: const CsvImportScreen()))),
-      _QAItem('Achievements', CupertinoIcons.star_fill, AppStyles.solarGold,
-          () => Navigator.of(parentContext).push(FadeScalePageRoute(page: const AchievementsScreen()))),
-    ];
+    return FutureBuilder<_QuickItemResult>(
+      future: _resolveItems(context),
+      builder: (context, snap) {
+        final items = snap.data?.items ?? _fallbackItems(context);
+        final isDynamic = snap.data?.isDynamic ?? false;
+        return _buildSheet(context, isDark, items, isDynamic);
+      },
+    );
+  }
+
+  Future<_QuickItemResult> _resolveItems(BuildContext context) async {
+    final days = await UsageTrackerService.instance.daysSinceFirstUse();
+    if (days < 7) {
+      return _QuickItemResult(items: _fallbackItems(context), isDynamic: false);
+    }
+    final topRoutes = await UsageTrackerService.instance.topRoutes(4);
+    final all = _allItems(context);
+    final routeToItem = {
+      for (final item in all)
+        _labelToRoute[item.label] ?? '': item,
+    };
+    final dynamic = topRoutes
+        .map((r) => routeToItem[r])
+        .whereType<_QAItem>()
+        .toList();
+    if (dynamic.length < 4) {
+      // pad with defaults not already included
+      for (final item in _fallbackItems(context)) {
+        if (!dynamic.any((i) => i.label == item.label)) dynamic.add(item);
+        if (dynamic.length >= 4) break;
+      }
+    }
+    return _QuickItemResult(items: dynamic.take(4).toList(), isDynamic: true);
+  }
+
+  List<_QAItem> _fallbackItems(BuildContext context) {
+    final all = _allItems(context);
+    return all.where((i) => _defaultRoutes.contains(_labelToRoute[i.label])).toList();
+  }
+
+  Widget _buildSheet(BuildContext context, bool isDark, List<_QAItem> items, bool isDynamic) {
 
     Widget sheetContent = Padding(
       padding: const EdgeInsets.all(Spacing.xl),
@@ -543,7 +616,7 @@ class _QuickAccessSheet extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Handle (portrait only)
-          if (!isLandscapeDialog)
+          if (!widget.isLandscapeDialog)
             Center(
               child: Container(
                 width: 36,
@@ -593,7 +666,7 @@ class _QuickAccessSheet extends StatelessWidget {
           ),
           const SizedBox(height: Spacing.xl),
           // Landscape: single row; portrait: 4-column grid
-          if (isLandscapeDialog)
+          if (widget.isLandscapeDialog)
             Row(
               children: items.map((item) {
                 return Expanded(
@@ -696,7 +769,7 @@ class _QuickAccessSheet extends StatelessWidget {
       ),
     );
 
-    if (isLandscapeDialog) {
+    if (widget.isLandscapeDialog) {
       // Centered card dialog for landscape
       return Center(
         child: Material(
@@ -729,6 +802,12 @@ class _QuickAccessSheet extends StatelessWidget {
       child: SafeArea(top: false, child: sheetContent),
     );
   }
+}
+
+class _QuickItemResult {
+  final List<_QAItem> items;
+  final bool isDynamic;
+  const _QuickItemResult({required this.items, required this.isDynamic});
 }
 
 class _QAItem {
