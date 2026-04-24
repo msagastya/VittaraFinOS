@@ -47,6 +47,8 @@ import 'package:vittara_fin_os/logic/recurring_template_model.dart';
 import 'package:vittara_fin_os/logic/investment_model.dart';
 import 'package:vittara_fin_os/services/usage_tracker_service.dart';
 import 'package:vittara_fin_os/ui/onboarding/onboarding_activation_screen.dart';
+import 'package:vittara_fin_os/services/tooltip_service.dart';
+import 'package:vittara_fin_os/ui/widgets/coach_mark.dart';
 import 'package:vittara_fin_os/ui/styles/app_springs.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/typography.dart';
@@ -777,6 +779,8 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!mounted) return;
     logger.info("Navigating from SplashScreen", context: 'SplashScreen');
     Provider.of<SettingsController>(context, listen: false).setAppLoaded();
+    // Track session for feature-discovery tooltips
+    await TooltipService.instance.incrementSession();
 
       final v1Done = await hasCompletedOnboarding();
       final v2Done = await hasCompletedActivation();
@@ -1262,8 +1266,93 @@ class _MonthlyDigestSheet extends StatelessWidget {
 // Dashboard Screen
 // ---------------------------------------------------------------------------
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenOuterState();
+}
+
+class _DashboardScreenOuterState extends State<DashboardScreen> {
+  // GlobalKeys for coach mark targeting
+  final GlobalKey _searchIconKey = GlobalKey();
+  final GlobalKey _calendarIconKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scheduleCoachMarks());
+  }
+
+  Future<void> _scheduleCoachMarks() async {
+    final session = await TooltipService.instance.sessionCount();
+    if (!mounted) return;
+    // Session 2: search coach mark
+    if (session == 2 && await TooltipService.instance.shouldShow(1)) {
+      await Future.delayed(const Duration(seconds: 1));
+      if (!mounted) return;
+      await CoachMark.show(
+        context: context,
+        targetKey: _searchIconKey,
+        title: 'Search with natural language',
+        body: "Try 'food last week', 'coffee this month', or 'show savings'. Works in English and Hinglish.",
+      );
+      await TooltipService.instance.markShown(1);
+    }
+    // Session 3: voice mic coach mark
+    if (session == 3 && await TooltipService.instance.shouldShow(2)) {
+      await Future.delayed(const Duration(seconds: 1));
+      if (!mounted) return;
+      await CoachMark.show(
+        context: context,
+        targetKey: _searchIconKey, // fallback — ideally mic key
+        title: 'Add transactions by voice',
+        body: "Tap the + button and hold the mic. Say '500 on Swiggy' or '₹1200 salary credited'. Hindi and Hinglish work too.",
+      );
+      await TooltipService.instance.markShown(2);
+    }
+    // Session 4: calendar coach mark
+    if (session == 4 && await TooltipService.instance.shouldShow(3)) {
+      await Future.delayed(const Duration(seconds: 1));
+      if (!mounted) return;
+      await CoachMark.show(
+        context: context,
+        targetKey: _calendarIconKey,
+        title: 'Your financial calendar',
+        body: 'This shows when your FDs mature, SIPs are due, and bills are coming — all in one timeline.',
+      );
+      await TooltipService.instance.markShown(3);
+    }
+    // Session 5: voice navigation banner
+    if (session == 5 && await TooltipService.instance.shouldShow(4)) {
+      await Future.delayed(const Duration(seconds: 1));
+      if (!mounted) return;
+      await CoachMark.show(
+        context: context,
+        targetKey: _searchIconKey, // fallback key
+        title: 'Navigate by voice',
+        body: "Say 'goals dikhao', 'show my budget', or 'open investments' to jump anywhere in the app.",
+      );
+      await TooltipService.instance.markShown(4);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _DashboardScreenContent(
+      searchIconKey: _searchIconKey,
+      calendarIconKey: _calendarIconKey,
+    );
+  }
+}
+
+class _DashboardScreenContent extends StatelessWidget {
+  final GlobalKey searchIconKey;
+  final GlobalKey calendarIconKey;
+  const _DashboardScreenContent({
+    required this.searchIconKey,
+    required this.calendarIconKey,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1378,6 +1467,7 @@ class DashboardScreen extends StatelessWidget {
                       Semantics(
                         label: 'Search',
                         child: BouncyButton(
+                          key: searchIconKey,
                           onPressed: () => showGlobalSearch(context),
                           child: Icon(
                             CupertinoIcons.search,
@@ -1411,6 +1501,7 @@ class DashboardScreen extends StatelessWidget {
                             final hasDue = _hasEventDueWithin7Days(
                                 investments.investments, loans.loans);
                             return BouncyButton(
+                              key: calendarIconKey,
                               onPressed: () => Navigator.of(context).push(
                                   FadeScalePageRoute(
                                       page: const FinancialCalendarScreen())),
