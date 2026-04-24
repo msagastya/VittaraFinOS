@@ -17,6 +17,7 @@ import 'predicted_calendar.dart';
 import 'monthly_narrative.dart';
 import 'habit_observation_engine.dart';
 import 'habit_constructor.dart';
+import 'habit_weekly_checker.dart';
 import 'behavioral_nudge.dart';
 import 'financial_health_score.dart';
 
@@ -107,6 +108,12 @@ class AIIntelligenceController extends ChangeNotifier {
 
   List<HabitContract> _activeHabits = [];
   List<HabitContract> get activeHabits => _activeHabits;
+
+  // T-105: Habit weekly progress
+  List<HabitWeeklyProgress> _habitProgress = [];
+  List<HabitWeeklyProgress> get habitProgress => _habitProgress;
+  HabitWeeklyProgress? get topHabitProgress =>
+      _habitProgress.isEmpty ? null : _habitProgress.first;
 
   List<HabitNudge> _habitNudges = [];
   List<HabitNudge> get habitNudges => _habitNudges;
@@ -304,13 +311,17 @@ class AIIntelligenceController extends ChangeNotifier {
         );
       }
 
-      // Reload persisted habits and compute nudges
+      // Reload persisted habits and compute nudges + weekly progress
       _activeHabits = await HabitConstructor.loadAll();
       if (_activeHabits.isNotEmpty) {
         _habitNudges = BehavioralNudgeEngine.compute(
           habits: _activeHabits,
           transactions: transactions,
           currentStreakDays: 0, // wired to TransactionsController.loggingStreakDays separately
+        );
+        // T-105: Weekly habit progress for dashboard check-in widget
+        _habitProgress = await HabitWeeklyChecker.check(
+          transactions: transactions,
         );
       }
     } catch (e) {

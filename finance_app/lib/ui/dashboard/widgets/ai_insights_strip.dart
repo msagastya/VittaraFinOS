@@ -6,11 +6,13 @@ import 'package:vittara_fin_os/logic/ai/anomaly_detector.dart';
 import 'package:vittara_fin_os/logic/ai/behavioral_nudge.dart';
 import 'package:vittara_fin_os/logic/ai/financial_health_score.dart';
 import 'package:vittara_fin_os/logic/ai/habit_observation_engine.dart';
+import 'package:vittara_fin_os/logic/ai/habit_weekly_checker.dart';
 import 'package:vittara_fin_os/logic/ai/monthly_narrative.dart';
 import 'package:vittara_fin_os/ui/habits/habit_question_card.dart';
 import 'package:vittara_fin_os/ui/scorecard/financial_health_card.dart';
 import 'package:vittara_fin_os/ui/styles/app_styles.dart';
 import 'package:vittara_fin_os/ui/styles/design_tokens.dart';
+import 'package:vittara_fin_os/ui/widgets/habit_detail_sheet.dart';
 
 /// Horizontally scrollable row of proactive AI insight cards.
 /// Appears on the dashboard only when the AI system has something to say.
@@ -27,6 +29,7 @@ class AIInsightsStrip extends StatelessWidget {
         narrative: ai.currentMonthNarrative,
         healthScore: ai.healthScore,
         topOpportunity: ai.topHabitOpportunity,
+        topHabitProgress: ai.topHabitProgress,
       ),
       builder: (context, data, _) {
         final cards = _buildCards(context, data);
@@ -77,6 +80,14 @@ class AIInsightsStrip extends StatelessWidget {
       cards.add(_HealthScoreCard(score: data.healthScore!));
     }
 
+    // 6. Habit check-in (T-105) — only appears after first habit is confirmed
+    if (data.topHabitProgress != null) {
+      cards.add(_HabitCheckInCard(
+        progress: data.topHabitProgress!,
+        onTap: () => HabitDetailSheet.show(context, data.topHabitProgress!),
+      ));
+    }
+
     return cards;
   }
 
@@ -100,6 +111,7 @@ class _StripData {
   final MonthlyNarrative? narrative;
   final FinancialHealthScore? healthScore;
   final HabitOpportunity? topOpportunity;
+  final HabitWeeklyProgress? topHabitProgress;
 
   const _StripData({
     required this.anomalies,
@@ -107,6 +119,7 @@ class _StripData {
     required this.narrative,
     required this.healthScore,
     required this.topOpportunity,
+    this.topHabitProgress,
   });
 
   @override
@@ -116,11 +129,13 @@ class _StripData {
       nudges.length == other.nudges.length &&
       narrative?.headline == other.narrative?.headline &&
       healthScore?.overallScore == other.healthScore?.overallScore &&
-      topOpportunity?.id == other.topOpportunity?.id;
+      topOpportunity?.id == other.topOpportunity?.id &&
+      topHabitProgress?.habit.id == other.topHabitProgress?.habit.id;
 
   @override
   int get hashCode => Object.hash(anomalies.length, nudges.length,
-      narrative?.headline, healthScore?.overallScore, topOpportunity?.id);
+      narrative?.headline, healthScore?.overallScore, topOpportunity?.id,
+      topHabitProgress?.habit.id);
 }
 
 // ── Individual card widgets ───────────────────────────────────────────────────
@@ -348,5 +363,40 @@ class _HealthScoreCard extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+// ── T-105: Habit check-in card ────────────────────────────────────────────────
+
+class _HabitCheckInCard extends StatelessWidget {
+  final HabitWeeklyProgress progress;
+  final VoidCallback onTap;
+
+  const _HabitCheckInCard({required this.progress, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final ratio = progress.weeklyTarget > 0
+        ? progress.actualCount / progress.weeklyTarget
+        : 0.0;
+    final color = ratio >= 1.0
+        ? AppStyles.accentGreen
+        : ratio >= 0.5
+            ? AppStyles.accentAmber
+            : AppStyles.accentCoral;
+
+    return _InsightCard(
+      icon: CupertinoIcons.flame_fill,
+      accent: color,
+      label: progress.habit.category,
+      body: '${progress.actualCount}/${progress.weeklyTarget} days'
+          ' · ₹${_fmtCompact(progress.actualSpend)}',
+      onTap: onTap,
+    );
+  }
+
+  String _fmtCompact(double v) {
+    if (v >= 1000) return '${(v / 1000).toStringAsFixed(1)}K';
+    return v.toInt().toString();
   }
 }

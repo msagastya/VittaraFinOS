@@ -23,6 +23,10 @@ class HabitContract {
   final BehavioralNudgeStyle nudgeStyle;
   final bool isActive;
   final DateTime? pausedUntil;
+  /// T-103: Timestamp when the user confirmed tracking this habit.
+  final DateTime? confirmedAt;
+  /// T-103: Weekly frequency target derived from the habit's pattern.
+  final int weeklyTarget;
 
   const HabitContract({
     required this.id,
@@ -36,6 +40,8 @@ class HabitContract {
     required this.nudgeStyle,
     this.isActive = true,
     this.pausedUntil,
+    this.confirmedAt,
+    this.weeklyTarget = 1,
   });
 
   Map<String, dynamic> toMap() => {
@@ -50,6 +56,8 @@ class HabitContract {
         'nudgeStyle': nudgeStyle.index,
         'isActive': isActive,
         'pausedUntil': pausedUntil?.toIso8601String(),
+        'confirmedAt': confirmedAt?.toIso8601String(),
+        'weeklyTarget': weeklyTarget,
       };
 
   factory HabitContract.fromMap(Map<String, dynamic> m) => HabitContract(
@@ -68,6 +76,21 @@ class HabitContract {
         pausedUntil: m['pausedUntil'] != null
             ? DateTime.tryParse(m['pausedUntil'] as String)
             : null,
+        confirmedAt: m['confirmedAt'] != null
+            ? DateTime.tryParse(m['confirmedAt'] as String)
+            : null,
+        weeklyTarget: (m['weeklyTarget'] as int?) ?? 1,
+      );
+
+  /// Create a confirmed copy with the given timestamp and weeklyTarget.
+  HabitContract confirm({required DateTime at, required int weeklyTarget}) =>
+      HabitContract(
+        id: id, title: title, category: category, type: type,
+        targetValue: targetValue, period: period, difficulty: difficulty,
+        startDate: startDate, nudgeStyle: nudgeStyle, isActive: isActive,
+        pausedUntil: pausedUntil,
+        confirmedAt: at,
+        weeklyTarget: weeklyTarget,
       );
 }
 
