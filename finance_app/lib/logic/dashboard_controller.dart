@@ -306,6 +306,20 @@ class DashboardController with ChangeNotifier {
     notifyListeners();
   }
 
+  /// Reorders visible widgets according to [orderedIds].
+  /// Assigns sequential gridRow values (1, 2, 3…) to match the new order.
+  Future<void> reorderWidgets(List<String> orderedIds) async {
+    final updatedWidgets = [..._config.widgets];
+    for (var i = 0; i < orderedIds.length; i++) {
+      final idx = updatedWidgets.indexWhere((w) => w.id == orderedIds[i]);
+      if (idx >= 0) {
+        updatedWidgets[idx] = updatedWidgets[idx].copyWith(gridRow: i + 1);
+      }
+    }
+    _config = _config.copyWith(widgets: updatedWidgets);
+    await saveConfig();
+  }
+
   void updateWidget(DashboardWidgetConfig widget) {
     final index = _config.widgets.indexWhere((w) => w.id == widget.id);
     if (index != -1) {

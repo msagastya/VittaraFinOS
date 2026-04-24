@@ -2227,7 +2227,12 @@ class _DashboardScreenContent extends StatelessWidget {
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return BouncyButton(
+    return GestureDetector(
+      onLongPress: () {
+        HapticFeedback.mediumImpact();
+        _showReorderSheet(context);
+      },
+      child: BouncyButton(
       onPressed: () => _handleWidgetTap(context, widgetConfig),
       child: AnimatedContainer(
         duration: AppDurations.medium,
@@ -2343,7 +2348,8 @@ class _DashboardScreenContent extends StatelessWidget {
           ),
         ),
       ),
-    );
+    ), // BouncyButton
+    ); // GestureDetector
   }
 
   IconData _widgetIcon(DashboardWidgetType type) {
@@ -2391,7 +2397,10 @@ class _DashboardScreenContent extends StatelessWidget {
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Padding(
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+      Padding(
       padding:
           const EdgeInsets.fromLTRB(Spacing.lg, Spacing.sm, Spacing.lg, Spacing.sm),
       child: Container(
@@ -2673,8 +2682,41 @@ class _DashboardScreenContent extends StatelessWidget {
             ],
           ),
         ),
+      ), // ClipRRect / Container
+      ), // Padding
+      // T-072: "Edit layout" hint — visible after 3 sessions, hides once user has reordered
+      FutureBuilder<bool>(
+        future: _shouldShowEditLayoutHint(),
+        builder: (_, snap) {
+          if (snap.data != true) return const SizedBox.shrink();
+          return Padding(
+            padding: const EdgeInsets.only(top: 4, right: Spacing.lg),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: GestureDetector(
+                onTap: () => _showReorderSheet(context),
+                child: Text(
+                  'Edit layout',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: AppStyles.getSecondaryTextColor(context),
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
-    );
+      ], // Column children
+    ); // Column
+  }
+
+  Future<bool> _shouldShowEditLayoutHint() async {
+    final prefs = await sp.SharedPreferences.getInstance();
+    final sessions = prefs.getInt('app_session_count') ?? 1;
+    final hasReordered = prefs.getBool('dashboard_reordered') ?? false;
+    return sessions >= 3 && !hasReordered;
   }
 
   Widget _buildQuickActionPill(
@@ -3368,6 +3410,87 @@ class _DashboardScreenContent extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  void _showReorderSheet(BuildContext context) {
+    final dashCtrl = context.read<DashboardController>();
+    final widgets = [...dashCtrl.visibleWidgets];
+    showCupertinoModalPopup(
+      context: context,
+      builder: (sheetCtx) {
+        final items = [...widgets];
+        return StatefulBuilder(builder: (ctx, setModalState) {
+          return Container(
+            height: MediaQuery.of(ctx).size.height * 0.6,
+            decoration: AppStyles.bottomSheetDecoration(ctx),
+            child: Column(
+              children: [
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    margin: const EdgeInsets.only(top: 12, bottom: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
+                  child: Row(
+                    children: [
+                      Text('Reorder Widgets',
+                          style: TextStyle(
+                              fontSize: TypeScale.headline,
+                              fontWeight: FontWeight.w700,
+                              color: AppStyles.getTextColor(ctx))),
+                      const Spacer(),
+                      CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: () => Navigator.pop(sheetCtx),
+                        child: const Text('Done'),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: ReorderableListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: Spacing.lg),
+                    itemCount: items.length,
+                    onReorder: (oldIdx, newIdx) {
+                      setModalState(() {
+                        if (newIdx > oldIdx) newIdx--;
+                        final moved = items.removeAt(oldIdx);
+                        items.insert(newIdx, moved);
+                      });
+                      final ids = items.map((w) => w.id).toList();
+                      dashCtrl.reorderWidgets(ids);
+                      sp.SharedPreferences.getInstance().then(
+                          (p) => p.setBool('dashboard_reordered', true));
+                    },
+                    itemBuilder: (_, i) {
+                      final w = items[i];
+                      return ListTile(
+                        key: ValueKey(w.id),
+                        leading: Icon(_widgetIcon(w.type),
+                            color: _widgetAccentColor(w.type), size: 20),
+                        title: Text(w.title,
+                            style: TextStyle(
+                                fontSize: TypeScale.body,
+                                color: AppStyles.getTextColor(ctx))),
+                        trailing: const Icon(CupertinoIcons.line_horizontal_3,
+                            size: 18, color: Colors.grey),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        });
+      },
     );
   }
 
