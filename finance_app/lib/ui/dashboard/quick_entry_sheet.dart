@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show Colors, Divider, InkWell;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:vittara_fin_os/logic/account_model.dart';
@@ -110,6 +111,9 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
 
   // Dirty tracking — true once the user has entered any data
   bool _isDirty = false;
+
+  // Progressive disclosure — tier 2 expand/collapse
+  bool _tier2Expanded = false;
 
   DateTime _selectedDate = DateTime.now();
 
@@ -320,6 +324,15 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
     _amountCtrl.addListener(_markDirty);
     _merchantCtrl.addListener(_markDirty);
     _descCtrl.addListener(_markDirty);
+
+    // Load tier-2 expansion preference
+    SharedPreferences.getInstance().then((prefs) {
+      if (mounted) {
+        setState(() {
+          _tier2Expanded = prefs.getBool('quick_entry_expanded') ?? false;
+        });
+      }
+    });
   }
 
   void _onMerchantChanged() {
@@ -1234,7 +1247,9 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // ── Type toggle — stagger in (Phase 5A) ─────────────────
+                        // ── TIER 1: always-visible ──────────────────────────────
+
+                        // Type toggle — stagger in (Phase 5A)
                         AnimatedBuilder(
                           animation: _openCtrl,
                           builder: (context, child) => Opacity(
@@ -1245,7 +1260,7 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
                         ),
                         const SizedBox(height: Spacing.lg),
 
-                        // ── Amount — scale in + waiting pulse (Phase 5A/5C) ──────
+                        // Amount — scale in + waiting pulse (Phase 5A/5C)
                         ShakeAnimation(
                           key: _amountShakeKey,
                           child: AnimatedBuilder(
@@ -1265,31 +1280,52 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
                         ),
                         const SizedBox(height: Spacing.lg),
 
-                        // ── Category ────────────────────────────────────────────
-                        _buildCategorySection(categories, isDark, secondaryText, primaryText),
-                        const SizedBox(height: Spacing.lg),
-
-                        // ── Description ─────────────────────────────────────────
+                        // Description
                         _buildDescriptionField(isDark, secondaryText),
-                        const SizedBox(height: Spacing.lg),
-
-                        // ── Details divider ──────────────────────────────────────
-                        _buildDetailsDivider(isDark, secondaryText),
                         const SizedBox(height: Spacing.md),
 
-                        // ── Defaults ─────────────────────────────────────────────
-                        _buildDefaultsRow(isDark, secondaryText, primaryText),
-                        const SizedBox(height: Spacing.md),
+                        // ── Tier 2 summary (collapsed, has selections) ──────────
+                        if (!_tier2Expanded) _buildTier2Summary(isDark, secondaryText),
 
-                        // ── Optional detail rows ─────────────────────────────────
-                        _buildMerchantRow(isDark, secondaryText, primaryText),
-                        _buildCashbackRow(isDark, secondaryText, primaryText),
-                        _buildTagsRow(tags, isDark, secondaryText, primaryText),
+                        // ── Expand / collapse chevron ───────────────────────────
+                        _buildExpandChevron(isDark, secondaryText),
                         const SizedBox(height: Spacing.sm),
 
-                        // ── Date (tappable) ───────────────────────────────────────
-                        _buildDateRow(isDark, secondaryText, primaryText),
-                        const SizedBox(height: Spacing.lg),
+                        // ── TIER 2: optional details (collapsible) ──────────────
+                        AnimatedCrossFade(
+                          duration: const Duration(milliseconds: 320),
+                          sizeCurve: Curves.easeOutCubic,
+                          crossFadeState: _tier2Expanded
+                              ? CrossFadeState.showFirst
+                              : CrossFadeState.showSecond,
+                          firstChild: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Category
+                              _buildCategorySection(categories, isDark, secondaryText, primaryText),
+                              const SizedBox(height: Spacing.lg),
+
+                              // Details divider
+                              _buildDetailsDivider(isDark, secondaryText),
+                              const SizedBox(height: Spacing.md),
+
+                              // Defaults (account selector)
+                              _buildDefaultsRow(isDark, secondaryText, primaryText),
+                              const SizedBox(height: Spacing.md),
+
+                              // Optional detail rows
+                              _buildMerchantRow(isDark, secondaryText, primaryText),
+                              _buildCashbackRow(isDark, secondaryText, primaryText),
+                              _buildTagsRow(tags, isDark, secondaryText, primaryText),
+                              const SizedBox(height: Spacing.sm),
+
+                              // Date (tappable)
+                              _buildDateRow(isDark, secondaryText, primaryText),
+                              const SizedBox(height: Spacing.lg),
+                            ],
+                          ),
+                          secondChild: const SizedBox(width: double.infinity),
+                        ),
 
                         // ── Save button ───────────────────────────────────────────
                         _buildSaveButton(),
@@ -1360,6 +1396,67 @@ class _QuickEntrySheetState extends State<_QuickEntrySheet>
       ), // Container (closes AnimatedPadding's child:)
       ), // AnimatedPadding (closes PopScope's child:)
     ); // PopScope
+  }
+
+  // ── Tier 2 expand/collapse ────────────────────────────────────────────────────
+
+  Widget _buildExpandChevron(bool isDark, Color secondaryText) {
+    return GestureDetector(
+      onTap: () async {
+        HapticFeedback.selectionClick();
+        setState(() => _tier2Expanded = !_tier2Expanded);
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('quick_entry_expanded', _tier2Expanded);
+      },
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AnimatedRotation(
+              turns: _tier2Expanded ? 0.5 : 0.0,
+              duration: const Duration(milliseconds: 280),
+              curve: Curves.easeOutCubic,
+              child: Icon(
+                CupertinoIcons.chevron_down,
+                size: 14,
+                color: secondaryText,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Text(
+              _tier2Expanded ? 'Less' : 'More',
+              style: TextStyle(
+                fontSize: TypeScale.caption,
+                color: secondaryText,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTier2Summary(bool isDark, Color secondaryText) {
+    final parts = <String>[];
+    if (_selectedCategory != null) parts.add(_selectedCategory!.name);
+    if (_selectedTags.isNotEmpty) parts.addAll(_selectedTags.map((t) => '#$t'));
+    if (_selectedAccountName != null) parts.add(_selectedAccountName!);
+    if (parts.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: Spacing.xs),
+      child: Text(
+        parts.join(' · '),
+        style: TextStyle(
+          fontSize: TypeScale.caption,
+          color: secondaryText,
+          overflow: TextOverflow.ellipsis,
+        ),
+        maxLines: 1,
+      ),
+    );
   }
 
   // ── Type toggle ──────────────────────────────────────────────────────────────

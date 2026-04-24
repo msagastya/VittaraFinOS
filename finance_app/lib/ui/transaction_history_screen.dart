@@ -1487,16 +1487,51 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
 
     return Slidable(
       key: ValueKey('slide_${transaction.id}'),
+      // Right swipe → Edit + Duplicate
+      startActionPane: ActionPane(
+        motion: const DrawerMotion(),
+        extentRatio: 0.44,
+        children: [
+          SlidableAction(
+            onPressed: (_) => _editTransaction(context, transaction, controller),
+            backgroundColor: CupertinoColors.activeBlue,
+            foregroundColor: CupertinoColors.white,
+            icon: CupertinoIcons.pencil,
+            label: 'Edit',
+            borderRadius: BorderRadius.circular(Radii.lg),
+          ),
+          SlidableAction(
+            onPressed: (_) =>
+                _duplicateTransaction(context, transaction, controller),
+            backgroundColor: const Color(0xFF636366),
+            foregroundColor: CupertinoColors.white,
+            icon: CupertinoIcons.doc_on_doc,
+            label: 'Copy',
+            borderRadius: BorderRadius.circular(Radii.lg),
+          ),
+        ],
+      ),
+      // Left swipe → Delete + Archive
       endActionPane: ActionPane(
         motion: const DrawerMotion(),
-        extentRatio: 0.22,
+        extentRatio: 0.44,
         children: [
+          SlidableAction(
+            onPressed: (_) =>
+                _deleteTransaction(context, transaction, controller),
+            backgroundColor: CupertinoColors.destructiveRed,
+            foregroundColor: CupertinoColors.white,
+            icon: CupertinoIcons.trash,
+            label: 'Delete',
+            borderRadius: BorderRadius.circular(Radii.lg),
+          ),
           SlidableAction(
             onPressed: (_) =>
                 _archiveTransaction(transaction, controller, archiveCtrl),
             backgroundColor: SemanticColors.warning,
             foregroundColor: CupertinoColors.white,
             icon: CupertinoIcons.archivebox_fill,
+            label: 'Archive',
             borderRadius: BorderRadius.circular(Radii.lg),
           ),
         ],
@@ -2049,6 +2084,45 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         toast_lib.toast.showInfo('Restored');
       },
     ));
+  }
+
+  Future<void> _deleteTransaction(
+    BuildContext context,
+    Transaction transaction,
+    TransactionsController controller,
+  ) async {
+    HapticFeedback.heavyImpact();
+    await controller.removeTransaction(transaction.id);
+    toast_lib.toast.show(toast_lib.ToastData(
+      message: 'Transaction deleted',
+      type: toast_lib.ToastType.error,
+      actionLabel: 'Undo',
+      duration: const Duration(seconds: 5),
+      onAction: () async {
+        await controller.addTransaction(transaction);
+        toast_lib.toast.showInfo('Restored');
+      },
+    ));
+  }
+
+  void _editTransaction(
+    BuildContext context,
+    Transaction transaction,
+    TransactionsController controller,
+  ) {
+    showQuickEntrySheet(context, existingTransaction: transaction);
+  }
+
+  void _duplicateTransaction(
+    BuildContext context,
+    Transaction transaction,
+    TransactionsController controller,
+  ) {
+    final copy = transaction.copyWith(
+      id: 'tx_${DateTime.now().millisecondsSinceEpoch}',
+      dateTime: DateTime.now(),
+    );
+    showQuickEntrySheet(context, existingTransaction: copy);
   }
 
   // ── UTL-02: Recurring pattern suggestion banner ───────────────────────────

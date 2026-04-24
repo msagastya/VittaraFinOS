@@ -109,7 +109,8 @@ class ToastOverlay extends StatefulWidget {
   State<ToastOverlay> createState() => _ToastOverlayState();
 }
 
-class _ToastOverlayState extends State<ToastOverlay> {
+class _ToastOverlayState extends State<ToastOverlay>
+    with WidgetsBindingObserver {
   ToastData? _currentToast;
   Timer? _dismissTimer;
   StreamSubscription<ToastData?>? _subscription;
@@ -118,6 +119,19 @@ class _ToastOverlayState extends State<ToastOverlay> {
   void initState() {
     super.initState();
     _subscription = toast.toastStream.listen(_onToastReceived);
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Dismiss any pending undo toasts when app goes to background
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      if (_currentToast != null) {
+        _dismissTimer?.cancel();
+        if (mounted) setState(() => _currentToast = null);
+      }
+    }
   }
 
   void _onToastReceived(ToastData? toastData) {
@@ -142,6 +156,7 @@ class _ToastOverlayState extends State<ToastOverlay> {
   void dispose() {
     _dismissTimer?.cancel();
     _subscription?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
@@ -182,10 +197,12 @@ class _ToastWidget extends StatefulWidget {
 }
 
 class _ToastWidgetState extends State<_ToastWidget>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<Offset> _slideAnimation;
   late Animation<double> _fadeAnimation;
+  // Countdown bar for action toasts
+  AnimationController? _countdownController;
 
   @override
   void initState() {
@@ -205,6 +222,14 @@ class _ToastWidgetState extends State<_ToastWidget>
         CurvedAnimation(parent: _controller, curve: MotionCurves.standard));
 
     _controller.forward();
+
+    // Countdown bar — only for action toasts
+    if (widget.data.actionLabel != null) {
+      _countdownController = AnimationController(
+        vsync: this,
+        duration: widget.data.duration,
+      )..forward();
+    }
 
     // Haptic feedback based on type
     switch (widget.data.type) {
@@ -226,6 +251,7 @@ class _ToastWidgetState extends State<_ToastWidget>
   @override
   void dispose() {
     _controller.dispose();
+    _countdownController?.dispose();
     super.dispose();
   }
 
@@ -310,7 +336,11 @@ class _ToastWidgetState extends State<_ToastWidget>
                 ),
               ],
             ),
-            child: Row(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+            Row(
               children: [
                 Icon(icon, color: textColor, size: IconSizes.md),
                 const SizedBox(width: Spacing.md),
@@ -354,6 +384,25 @@ class _ToastWidgetState extends State<_ToastWidget>
                     ),
                   ),
                 ],
+              ],
+            ),
+            // Countdown bar for action toasts
+            if (_countdownController != null) ...[
+              const SizedBox(height: 6),
+              AnimatedBuilder(
+                animation: _countdownController!,
+                builder: (_, __) => ClipRRect(
+                  borderRadius: BorderRadius.circular(2),
+                  child: LinearProgressIndicator(
+                    value: 1.0 - _countdownController!.value,
+                    minHeight: 2,
+                    backgroundColor: textColor.withValues(alpha: 0.15),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                        textColor.withValues(alpha: 0.6)),
+                  ),
+                ),
+              ),
+            ],
               ],
             ),
           ),

@@ -26,6 +26,7 @@ import 'package:vittara_fin_os/ui/widgets/landscape_scaffold.dart';
 import 'package:vittara_fin_os/ui/widgets/toast_notification.dart';
 import 'package:vittara_fin_os/utils/date_formatter.dart';
 import 'package:vittara_fin_os/ui/transaction_history_screen.dart';
+import 'package:vittara_fin_os/ui/dashboard/quick_entry_sheet.dart';
 import 'package:vittara_fin_os/utils/logger.dart';
 import 'package:vittara_fin_os/services/transaction_export_service.dart';
 import 'package:vittara_fin_os/ui/styles/responsive_utils.dart';
@@ -1941,7 +1942,6 @@ class _AccountsScreenState extends State<AccountsScreen> {
                               Color amtColor;
                               String prefix;
                               if (tx.type == TransactionType.transfer) {
-                                // For transfers use account direction
                                 final isSend = tx.sourceAccountId == account.id;
                                 if (isSend) {
                                   amtColor = AppStyles.loss(dragContext);
@@ -1956,61 +1956,119 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                 amtColor = AppStyles.gain(dragContext);
                                 prefix = '+';
                               } else {
-                                // expense, investment, lending
                                 amtColor = AppStyles.loss(dragContext);
                                 prefix = '−';
                               }
                               final label = (meta['categoryName'] as String?) ??
                                   tx.getTypeLabel();
-                              return Container(
-                                margin: const EdgeInsets.only(bottom: 8),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 10),
-                                decoration: BoxDecoration(
-                                  color: AppStyles.getBackground(dragContext),
-                                  borderRadius:
-                                      BorderRadius.circular(Radii.md),
-                                ),
-                                child: Row(
+                              final txCtrlRef = Provider.of<TransactionsController>(dragContext, listen: false);
+                              return Slidable(
+                                key: ValueKey('acct_tx_${tx.id}'),
+                                startActionPane: ActionPane(
+                                  motion: const DrawerMotion(),
+                                  extentRatio: 0.44,
                                   children: [
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            tx.description,
-                                            style: TextStyle(
-                                              color: AppStyles.getTextColor(
-                                                  dragContext),
-                                              fontSize: TypeScale.body,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          const SizedBox(height: 2),
-                                          Text(
-                                            '${DateFormatter.format(tx.dateTime)}  ·  $label',
-                                            style: TextStyle(
-                                              color:
-                                                  AppStyles.getSecondaryTextColor(
-                                                      dragContext),
-                                              fontSize: TypeScale.caption,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+                                    SlidableAction(
+                                      onPressed: (_) => showQuickEntrySheet(dragContext, existingTransaction: tx),
+                                      backgroundColor: CupertinoColors.activeBlue,
+                                      foregroundColor: CupertinoColors.white,
+                                      icon: CupertinoIcons.pencil,
+                                      label: 'Edit',
+                                      borderRadius: BorderRadius.circular(Radii.md),
                                     ),
-                                    Text(
-                                      '$prefix₹${tx.amount.abs().toStringAsFixed(0)}',
-                                      style: TextStyle(
-                                        color: amtColor,
-                                        fontSize: TypeScale.body,
-                                        fontWeight: FontWeight.w700,
-                                      ),
+                                    SlidableAction(
+                                      onPressed: (_) {
+                                        final copy = tx.copyWith(
+                                          id: 'tx_${DateTime.now().millisecondsSinceEpoch}',
+                                          dateTime: DateTime.now(),
+                                        );
+                                        showQuickEntrySheet(dragContext, existingTransaction: copy);
+                                      },
+                                      backgroundColor: const Color(0xFF636366),
+                                      foregroundColor: CupertinoColors.white,
+                                      icon: CupertinoIcons.doc_on_doc,
+                                      label: 'Copy',
+                                      borderRadius: BorderRadius.circular(Radii.md),
                                     ),
                                   ],
+                                ),
+                                endActionPane: ActionPane(
+                                  motion: const DrawerMotion(),
+                                  extentRatio: 0.22,
+                                  children: [
+                                    SlidableAction(
+                                      onPressed: (_) async {
+                                        HapticFeedback.heavyImpact();
+                                        await txCtrlRef.removeTransaction(tx.id);
+                                        toast.show(ToastData(
+                                          message: 'Transaction deleted',
+                                          type: ToastType.error,
+                                          actionLabel: 'Undo',
+                                          duration: const Duration(seconds: 5),
+                                          onAction: () async {
+                                            await txCtrlRef.addTransaction(tx);
+                                            toast.showInfo('Restored');
+                                          },
+                                        ));
+                                      },
+                                      backgroundColor: CupertinoColors.destructiveRed,
+                                      foregroundColor: CupertinoColors.white,
+                                      icon: CupertinoIcons.trash,
+                                      label: 'Delete',
+                                      borderRadius: BorderRadius.circular(Radii.md),
+                                    ),
+                                  ],
+                                ),
+                                child: Container(
+                                  margin: const EdgeInsets.only(bottom: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 10),
+                                  decoration: BoxDecoration(
+                                    color: AppStyles.getBackground(dragContext),
+                                    borderRadius:
+                                        BorderRadius.circular(Radii.md),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              tx.description,
+                                              style: TextStyle(
+                                                color: AppStyles.getTextColor(
+                                                    dragContext),
+                                                fontSize: TypeScale.body,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              '${DateFormatter.format(tx.dateTime)}  ·  $label',
+                                              style: TextStyle(
+                                                color:
+                                                    AppStyles.getSecondaryTextColor(
+                                                        dragContext),
+                                                fontSize: TypeScale.caption,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Text(
+                                        '$prefix₹${tx.amount.abs().toStringAsFixed(0)}',
+                                        style: TextStyle(
+                                          color: amtColor,
+                                          fontSize: TypeScale.body,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               );
                             }),
