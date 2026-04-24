@@ -40,6 +40,8 @@ class _TransferWizardState extends State<TransferWizard> {
   final _appWalletAmountController = TextEditingController();
   final _cashbackAmountController = TextEditingController();
   String? _selectedPaymentApp;
+  // For cash transfers: 'direct' (hand-to-hand) or 'atm' (ATM withdrawal/deposit)
+  String _cashMethod = 'direct';
   Account? _cashbackAccount;
   bool _cashbackToPaymentApp = false;
   bool _paymentAppHasWallet = false;
@@ -72,26 +74,54 @@ class _TransferWizardState extends State<TransferWizard> {
         super.dispose();
   }
 
+  /// True when either account is a cash account (ATM/direct instead of payment app)
+  bool get _involvesCash =>
+      _sourceAccount?.type == AccountType.cash ||
+      _destinationAccount?.type == AccountType.cash;
+
+  /// Steps to skip when cash accounts are involved: payment app (3) and app wallet (4)
+  static const _cashSkipSteps = {3, 4};
+
   void _nextStep() {
     FocusManager.instance.primaryFocus?.unfocus();
-    if (_currentStep < _totalSteps - 1) {
-      _pageController.nextPage(
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.easeInOutCubic,
-      );
-      setState(() => _currentStep++);
+    int next = _currentStep + 1;
+    // Skip payment app + app wallet steps for cash transfers
+    if (_involvesCash) {
+      while (_cashSkipSteps.contains(next) && next < _totalSteps) {
+        next++;
+      }
+    }
+    if (next < _totalSteps) {
+      final stepsToAdvance = next - _currentStep;
+      for (var i = 0; i < stepsToAdvance; i++) {
+        _pageController.nextPage(
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeInOutCubic,
+        );
+      }
+      setState(() => _currentStep = next);
     } else {
       _finishTransfer();
     }
   }
 
   void _prevStep() {
-    if (_currentStep > 0) {
-      _pageController.previousPage(
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.easeInOutCubic,
-      );
-      setState(() => _currentStep--);
+    int prev = _currentStep - 1;
+    // Skip payment app + app wallet steps going back for cash transfers
+    if (_involvesCash) {
+      while (_cashSkipSteps.contains(prev) && prev > 0) {
+        prev--;
+      }
+    }
+    if (prev >= 0) {
+      final stepsBack = _currentStep - prev;
+      for (var i = 0; i < stepsBack; i++) {
+        _pageController.previousPage(
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeInOutCubic,
+        );
+      }
+      setState(() => _currentStep = prev);
     } else {
       Navigator.pop(context);
     }
@@ -247,6 +277,7 @@ class _TransferWizardState extends State<TransferWizard> {
             ? (canCreditCashbackToApp ? 'paymentApp' : 'bank')
             : 'bank',
         'transferRef': IdGenerator.next(prefix: 'tref'),
+        if (_involvesCash) 'cashMethod': _cashMethod,
         if (_sourceAccount != null)
           'sourceBalanceAfter': _sourceAccount!.balance - deductFromSource - charges,
         if (_sourceAccount?.creditLimit != null)
@@ -822,6 +853,45 @@ class _TransferWizardState extends State<TransferWizard> {
                           fontSize: RT.largeTitle(context),
                           fontWeight: FontWeight.bold),
                     ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          // Cash method selector — only for cash account transfers
+          if (_involvesCash) ...[
+            const SizedBox(height: 24),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'How was cash handled?',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppStyles.getSecondaryTextColor(context),
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      _CashMethodChip(
+                        label: 'Direct',
+                        icon: CupertinoIcons.hand_draw,
+                        selected: _cashMethod == 'direct',
+                        onTap: () => setState(() => _cashMethod = 'direct'),
+                      ),
+                      const SizedBox(width: 10),
+                      _CashMethodChip(
+                        label: 'ATM',
+                        icon: CupertinoIcons.creditcard_fill,
+                        selected: _cashMethod == 'atm',
+                        onTap: () => setState(() => _cashMethod = 'atm'),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -2005,5 +2075,63 @@ class _PaymentAppSetupWizardState extends State<_PaymentAppSetupWizard> {
           ],
         );
     }
+  }
+}
+
+/// Small selectable chip for cash transfer method (Direct / ATM).
+class _CashMethodChip extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _CashMethodChip({
+    required this.label,
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = AppStyles.aetherTeal;
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: selected
+              ? color.withValues(alpha: 0.15)
+              : AppStyles.getCardColor(context),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: selected ? color : AppStyles.getDividerColor(context),
+            width: selected ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16,
+                color: selected
+                    ? color
+                    : AppStyles.getSecondaryTextColor(context)),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight:
+                    selected ? FontWeight.w700 : FontWeight.w500,
+                color: selected
+                    ? color
+                    : AppStyles.getTextColor(context),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
